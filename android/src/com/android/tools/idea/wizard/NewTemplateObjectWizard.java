@@ -20,6 +20,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -54,7 +55,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * NewTemplateObjectWizard is a base class for templates that instantiate new Android objects based on templates. These aren't for
  * complex objects like projects or modules that get customized wizards, but objects simple enough that we can show a generic template
  * parameter page and run the template against the source tree.
+ *
+ * Deprecated. Extend from {@link DynamicWizard} instead.
  */
+@Deprecated
 public class NewTemplateObjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener,
                                                                        ChooseTemplateStep.TemplateChangeListener,
                                                                        ChooseSourceSetStep.SourceProviderSelectedListener {
@@ -86,15 +90,6 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
                                  @Nullable VirtualFile invocationTarget,
-                                 @Nullable String templateCategory,
-                                 @Nullable String templateName) {
-    this(project, module, invocationTarget, templateCategory, templateName, null);
-    init();
-  }
-
-  public NewTemplateObjectWizard(@Nullable Project project,
-                                 @Nullable Module module,
-                                 @Nullable VirtualFile invocationTarget,
                                  @Nullable String title,
                                  @Nullable File templateFile) {
     this(project, module, invocationTarget, null, title, null);
@@ -113,16 +108,6 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     this(project, module, invocationTarget, null, title, null);
     init();
     myChooseTemplateStep.setListData(ChooseTemplateStep.getTemplateList(myWizardState, templateFiles, null));
-  }
-
-
-  public NewTemplateObjectWizard(@NotNull Module module,
-                                 @Nullable VirtualFile invocationTarget,
-                                 @Nullable String templateCategory,
-                                 @Nullable String templateName,
-                                 @Nullable Set<String> excluded) {
-    this(module.getProject(), module, invocationTarget, templateCategory, templateName, excluded);
-    init();
   }
 
   private NewTemplateObjectWizard(@Nullable Project project,
@@ -170,7 +155,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     if (gradleProject != null) {
       myGradleProject = gradleProject;
       // Select the source set that we're targeting
-      mySourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceSet());
+      mySourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceProvider());
       SourceProvider sourceProvider = mySourceProviders.get(0);
 
       selectSourceProvider(sourceProvider, gradleProject);
@@ -217,7 +202,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
-    myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
+    myWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, moduleName);
 
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -264,7 +249,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     }
 
     // Calculate package name
-    String applicationPackageName = gradleProject.computePackageName();
+    String applicationPackageName = ManifestInfo.get(myModule, false).getPackage();
     String packageName = null;
     if (myTargetFolder != null && IdeaSourceProvider.containsFile(sourceProvider, VfsUtilCore.virtualToIoFile(myTargetFolder))) {
       packageName = getPackageFromDirectory(VfsUtilCore.virtualToIoFile(myTargetFolder), sourceProvider, myModule, myWizardState);

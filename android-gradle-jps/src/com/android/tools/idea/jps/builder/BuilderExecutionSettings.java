@@ -39,7 +39,7 @@ class BuilderExecutionSettings {
 
   @NotNull private final File myProjectDir;
   @NotNull private final BuildMode myBuildMode;
-  @NotNull private final List<String> myModulesToBuildNames;
+  @NotNull private final List<String> myGradleTasksToInvoke;
   @NotNull private final List<String> myCommandLineOptions;
   @NotNull private final List<String> myJvmOptions;
 
@@ -57,9 +57,9 @@ class BuilderExecutionSettings {
     myProjectDir = findProjectRootDir();
     String buildActionName = System.getProperty(BUILD_MODE);
     myBuildMode = Strings.isNullOrEmpty(buildActionName) ? BuildMode.DEFAULT_BUILD_MODE : BuildMode.valueOf(buildActionName);
-    myModulesToBuildNames = getJvmArgGroup(MODULES_TO_BUILD_PROPERTY_COUNT, MODULES_TO_BUILD_PROPERTY_PREFIX);
-    myCommandLineOptions = getJvmArgGroup(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX);
-    myJvmOptions = getJvmArgGroup(GRADLE_DAEMON_JVM_OPTION_COUNT, GRADLE_DAEMON_JVM_OPTION_PREFIX);
+    myGradleTasksToInvoke = getJvmArgGroup(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX);
+    myCommandLineOptions = getJvmArgGroup(GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX);
+    myJvmOptions = getJvmArgGroup(GRADLE_DAEMON_JVM_OPTION_PREFIX);
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
     myOfflineBuildMode = SystemProperties.getBooleanProperty(GRADLE_OFFLINE_BUILD_MODE, false);
@@ -102,31 +102,33 @@ class BuilderExecutionSettings {
   }
 
   @NotNull
-  private static List<String> getJvmArgGroup(@NotNull String countArgName, @NotNull String argPrefix) {
-    int count = SystemProperties.getIntProperty(countArgName, 0);
+  private static List<String> getJvmArgGroup(@NotNull String argPrefix) {
     List<String> args = Lists.newArrayList();
-    for (int i = 0; i < count; i++) {
-      String arg = System.getProperty(argPrefix + i);
-      if (!Strings.isNullOrEmpty(arg)) {
-        args.add(arg);
+    int counter = 0;
+    while (true) {
+      String arg = System.getProperty(argPrefix + counter++);
+      if (Strings.isNullOrEmpty(arg)) {
+        break;
       }
+      args.add(arg);
     }
     return args;
   }
 
   private void populateHttpProxyJvmOptions() {
-    int vmOptionCount = SystemProperties.getIntProperty(HTTP_PROXY_PROPERTY_COUNT, 0);
-    for (int i = 0; i < vmOptionCount; i++) {
-      String jvmOption = System.getProperty(HTTP_PROXY_PROPERTY_PREFIX + i);
-      if (!Strings.isNullOrEmpty(jvmOption)) {
-        int indexOfSeparator = jvmOption.indexOf(HTTP_PROXY_PROPERTY_SEPARATOR);
-        if (indexOfSeparator < 0 || indexOfSeparator >= jvmOption.length() - 1) {
-          continue;
-        }
-        String arg =
-          AndroidGradleSettings.createJvmArg(jvmOption.substring(0, indexOfSeparator), jvmOption.substring(indexOfSeparator + 1));
-        myJvmOptions.add(arg);
+    int counter = 0;
+    while (true) {
+      String jvmOption = System.getProperty(HTTP_PROXY_PROPERTY_PREFIX + counter++);
+      if (Strings.isNullOrEmpty(jvmOption)) {
+        break;
       }
+      int indexOfSeparator = jvmOption.indexOf(HTTP_PROXY_PROPERTY_SEPARATOR);
+      if (indexOfSeparator < 0 || indexOfSeparator >= jvmOption.length() - 1) {
+        continue;
+      }
+      String arg =
+        AndroidGradleSettings.createJvmArg(jvmOption.substring(0, indexOfSeparator), jvmOption.substring(indexOfSeparator + 1));
+      myJvmOptions.add(arg);
     }
   }
 
@@ -186,8 +188,8 @@ class BuilderExecutionSettings {
   }
 
   @NotNull
-  List<String> getModulesToBuildNames() {
-    return myModulesToBuildNames;
+  List<String> getGradleTasksToInvoke() {
+    return myGradleTasksToInvoke;
   }
 
   @Override
@@ -200,7 +202,7 @@ class BuilderExecutionSettings {
            ", gradleServiceDir=" + myGradleServiceDir +
            ", javaHomeDir=" + myJavaHomeDir +
            ", jvmOptions=" + myJvmOptions +
-           ", modulesToBuildNames=" + myModulesToBuildNames +
+           ", gradleTasksToInvoke=" + myGradleTasksToInvoke +
            ", offlineBuild=" + myOfflineBuildMode +
            ", parallelBuild=" + myParallelBuild +
            ", projectDir=" + myProjectDir +

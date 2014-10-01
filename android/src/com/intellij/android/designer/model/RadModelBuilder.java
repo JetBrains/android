@@ -254,8 +254,8 @@ public class RadModelBuilder {
           component = null;
         } else {
           ApplicationManager.getApplication().assertReadAccessAllowed();
-          String name = tag.getName();
-          if (myMetaManager.getModelByTag(name) != component.getMetaModel()) {
+          MetaModel modelByTag = myMetaManager.getModelByTag(tag.getName());
+          if (modelByTag != null && modelByTag != component.getMetaModel()) {
             component = null;
           }
         }

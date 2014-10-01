@@ -17,7 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -54,7 +54,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
+import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
 
 /**
  * Test for template instantiation.
@@ -502,7 +502,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     Template.convertApisToInt(values.getParameters());
     values.put(ATTR_CREATE_ACTIVITY, createWithProject);
     values.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    values.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    values.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     values.put(ATTR_MODULE_NAME, "TestModule");
     values.put(ATTR_PACKAGE_NAME, "test.pkg");
 

@@ -31,8 +31,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -41,11 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
@@ -55,7 +52,9 @@ import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
  * through steps to configure the project, setting its location and build parameters, and allows
  * the user to choose an activity to populate it. The wizard is template-driven, using templates
  * that live in the ADK.
+ * Deprecated by {@link NewProjectWizardDynamic}
  */
+@Deprecated
 public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
@@ -104,7 +103,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myWizardState = new NewProjectWizardState();
     Template.convertApisToInt(myWizardState.getParameters());
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_PER_MODULE_REPOS, false);
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
@@ -151,7 +150,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     List<String> errors = Lists.newArrayList();
     try {
       wizardState.populateDirectoryParameters();
-      String moduleName = wizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String moduleName = wizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
       String projectName = wizardState.getString(TemplateMetadata.ATTR_APP_TITLE);
       File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
@@ -165,7 +164,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
           ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
-          setGradleWrapperExecutable(projectRoot);
+          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
         }
 
         wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
@@ -187,9 +186,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         if (version != null) {
           initialLanguageLevel = LanguageLevel.parse(version.toString());
         }
-        projectImporter.importProject(projectName, projectRoot, true, new NewProjectImportGradleSyncListener() {
+        projectImporter.importNewlyCreatedProject(projectName, projectRoot, new NewProjectImportGradleSyncListener() {
           @Override
-          public void syncEnded(@NotNull final Project project) {
+          public void syncSucceeded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example
             // the layout editor won't add Design tabs to the file
             StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
@@ -225,18 +224,6 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
       Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
       LOG.error(msg);
-    }
-  }
-
-  public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
-    if (SystemInfo.isUnix) {
-      File gradlewFile = new File(projectRoot, "gradlew");
-      if (!gradlewFile.isFile()) {
-        LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
-      }
-      else {
-        FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
-      }
     }
   }
 }

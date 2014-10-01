@@ -19,12 +19,18 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
+import com.android.tools.idea.gradle.parser.ValueFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.SortedList;
@@ -43,7 +49,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener {
+public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener, KeyValuePane.ModificationListener {
   /**
    * The PanelGroup class allows UI panels to talk to each other so that a pane that maintains a list of
    * {@link NamedObject} instances can talk to another pane that maintains a
@@ -74,6 +80,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private JSplitPane mySplitPane;
   private JPanel myRightPane;
   private KeyValuePane myDetailsPane;
+  private JLabel myNameWarning;
   private final BuildFileKey myBuildFileKey;
   private final String myNewItemName;
   private final SortedListModel myListModel;
@@ -82,6 +89,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private Map<String, Map<BuildFileKey, Object>> myModelObjects = Maps.newHashMap();
   private final PanelGroup myPanelGroup;
   private volatile boolean myUpdating;
+  private final Set<Pair<NamedObject, BuildFileKey>> myModifiedKeys = Sets.newHashSet();
 
   /** An object that can't be deleted because it's supplied by default by the model */
   private static class UndeletableNamedObject extends NamedObject {
@@ -138,6 +146,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     mySplitPane.setLeftComponent(decorator.createPanel());
     mySplitPane.setDividerLocation(200);
     myRightPane.setBorder(IdeBorderFactory.createBorder());
+
+    myNameWarning.setForeground(JBColor.RED);
   }
 
   @Override
@@ -218,7 +228,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       public void run() {
         updatePanelGroup();
       }
-    });
+    }, ModalityState.any());
   }
 
   private int addElement(@NotNull NamedObject object) {
@@ -227,7 +237,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
 
   @Override
   public void apply() {
-    if (!myModified ||  myGradleBuildFile == null) {
+    if ((!myModified && myModifiedKeys.isEmpty()) ||  myGradleBuildFile == null) {
       return;
     }
     List<NamedObject> objects = Lists.newArrayList();
@@ -241,6 +251,9 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
         }
         assert defaultConfig != null;
         for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
+          if (!isModified(obj, key)) {
+            continue;
+          }
           Object value = obj.getValue(key);
           if (value != null) {
             myGradleBuildFile.setValue(defaultConfig, key, value);
@@ -255,10 +268,31 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
         objects.add(obj);
       }
     }
-    myGradleBuildFile.setValue(myBuildFileKey, objects);
+    myGradleBuildFile.setValue(myBuildFileKey, objects, new ValueFactory.KeyFilter() {
+      @Override
+      public boolean shouldWriteKey(BuildFileKey key, Object object) {
+        return isModified((NamedObject)object, key);
+      }
+    });
 
     myModified = false;
-    myDetailsPane.clearModified();
+    myModifiedKeys.clear();
+  }
+
+  private boolean isModified(NamedObject obj, BuildFileKey key) {
+    // An O(n) lookup shouldn't be inefficient for the small number of values we'll have. It's probably better than
+    // myModifiedKeys.contains(Pair.create(obj, key));
+    for (Pair<NamedObject, BuildFileKey> modifiedKey : myModifiedKeys) {
+      if (modifiedKey.first.equals(obj) && modifiedKey.second.equals(key)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void modified(@NotNull BuildFileKey key) {
+    myModifiedKeys.add(Pair.create(myCurrentObject, key));
   }
 
   private static boolean isObjectEmpty(NamedObject obj) {
@@ -331,7 +365,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
 
   @Override
   public boolean isModified() {
-    return myModified || myDetailsPane.isModified();
+    return myModified || !myModifiedKeys.isEmpty();
   }
 
   @Override
@@ -343,7 +377,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     if (myCurrentObject == null || myUpdating) {
       return;
     }
-    String newName = myObjectName.getText();
+    String newName = validateName();
     if (newName != null && !myCurrentObject.getName().equals(newName)) {
       myCurrentObject.setName(newName);
       myList.updateUI();
@@ -362,10 +396,27 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
       myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
       myDetailsPane.updateUiFromCurrentObject();
+      validateName();
     }
     finally {
       myUpdating = false;
     }
+  }
+
+  @NotNull
+  private String validateName() {
+    if (myCurrentObject == null) {
+      return "";
+    }
+    String newName = myObjectName.getText();
+    if (!PsiNameHelper.getInstance(myProject).isIdentifier(newName, LanguageLevel.JDK_1_7)) {
+      myNameWarning.setText("Name must be a valid Java identifier");
+      newName = myCurrentObject.getName();
+    }
+    else {
+      myNameWarning.setText(" ");
+    }
+  return newName;
   }
 
   @Nullable
@@ -375,7 +426,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   }
 
   private void createUIComponents() {
-    myDetailsPane = new KeyValuePane(myProject);
+    myDetailsPane = new KeyValuePane(myProject, this);
   }
 
   private Collection<NamedObject> getObjectsFromModel(Collection<BuildFileKey> properties) {

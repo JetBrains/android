@@ -17,24 +17,21 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
-import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.rendering.ShadowPainter;
-import com.android.tools.idea.wizard.NewTemplateObjectWizard;
+import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Condition;
@@ -50,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -57,15 +55,16 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
-import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
-  private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
+  //private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
   public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
   private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
+  private static final Color TRIGGER_BACKGROUND_COLOR = new JBColor(Gray.get(200), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = new JBColor(Gray.get(180), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = new JBColor(Gray.get(170), Gray.get(50));
   private static final Color SNAP_GRID_LINE_COLOR_MAJOR = new JBColor(Gray.get(160), Gray.get(40));
@@ -90,16 +89,18 @@ public class NavigationView extends JComponent {
   private static final Condition<Component> EDITORS = not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
   private static final boolean DEBUG = false;
+  // See http://www.google.com/design/spec/patterns/gestures.html#gestures-gestures
+  private static final Color GESTURE_ICON_COLOR = new JBColor(new Color(0xE64BA7), new Color(0xE64BA7));
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
+  private final SelectionModel mySelectionModel;
 
   private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
   private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
 
   private boolean myStateCacheIsValid;
   private boolean myTransitionEditorCacheIsValid;
-  @NotNull private Selections.Selection mySelection = Selections.NULL;
   private Map<State, Map<String, RenderedView>> myLocationToRenderedView = new IdentityHashMap<State, Map<String, RenderedView>>();
   private Image myBackgroundImage;
   private Point myMouseLocation;
@@ -161,9 +162,10 @@ public class NavigationView extends JComponent {
     return new RenderingParameters(project, configuration, facet);
   }
 
-  public NavigationView(RenderingParameters renderingParams, NavigationModel model) {
+  public NavigationView(RenderingParameters renderingParams, NavigationModel model, SelectionModel selectionModel) {
     myRenderingParams = renderingParams;
     myNavigationModel = model;
+    mySelectionModel = selectionModel;
 
     setFocusable(true);
     setLayout(null);
@@ -201,7 +203,7 @@ public class NavigationView extends JComponent {
       Action remove = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          mySelection.remove();
+          mySelectionModel.getSelection().remove();
           setSelection(Selections.NULL);
         }
       };
@@ -323,6 +325,21 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
+  static String getViewId(@Nullable ViewInfo leaf) {
+    if (leaf != null) {
+      Object cookie = leaf.getCookie();
+      if (cookie instanceof XmlTag) {
+        XmlTag tag = (XmlTag)cookie;
+        String attributeValue = tag.getAttributeValue("android:id");
+        if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
+          return attributeValue.substring(ID_PREFIX.length());
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   static RenderedView getNamedParent(@Nullable RenderedView view) {
     while (view != null && getViewId(view) == null) {
       view = view.getParent();
@@ -333,13 +350,27 @@ public class NavigationView extends JComponent {
   private Map<String, RenderedView> getNameToRenderedView(State state) {
     Map<String, RenderedView> result = myLocationToRenderedView.get(state);
     if (result == null) {
-      RenderedView root = getStateComponentAssociation().keyToValue.get(state).getRootView();
-      if (root != null) {
-        myLocationToRenderedView.put(state, result = createViewNameToRenderedView(root));
+      AndroidRootComponent androidRootComponent = getStateComponentAssociation().keyToValue.get(state);
+      if (androidRootComponent == null) {
+        return Collections.emptyMap();
       }
-      else {
+
+      RenderResult renderResult = androidRootComponent.getRenderResult();
+      if (renderResult == null) {
         return Collections.emptyMap(); // rendering library hasn't loaded, temporarily return an empty map
       }
+
+      RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+      if (hierarchy == null) {
+        return Collections.emptyMap();
+      }
+
+      List<RenderedView> roots = hierarchy.getRoots();
+      Map<String, RenderedView> renderedViews = new HashMap<String, RenderedView>();
+      for (RenderedView root : roots) {
+        renderedViews.putAll(createViewNameToRenderedView(root));
+      }
+      myLocationToRenderedView.put(state, result = renderedViews);
     }
     return result;
   }
@@ -349,6 +380,22 @@ public class NavigationView extends JComponent {
     new Object() {
       void walk(RenderedView parent) {
         for (RenderedView child : parent.getChildren()) {
+          String id = getViewId(child);
+          if (id != null) {
+            result.put(id, child);
+          }
+          walk(child);
+        }
+      }
+    }.walk(root);
+    return result;
+  }
+
+  private static Map<String, ViewInfo> createViewNameToViewInfo(@NotNull ViewInfo root) {
+    final Map<String, ViewInfo> result = new HashMap<String, ViewInfo>();
+    new Object() {
+      void walk(ViewInfo parent) {
+        for (ViewInfo child : parent.getChildren()) {
           String id = getViewId(child);
           if (id != null) {
             result.put(id, child);
@@ -376,7 +423,7 @@ public class NavigationView extends JComponent {
   }
 
   private void setSelection(@NotNull Selections.Selection selection) {
-    mySelection = selection;
+    mySelectionModel.setSelection(selection);
     // the re-validate() call shouldn't be necessary but removing it causes orphaned
     // combo-boxes to remain visible (and click-able) after a 'remove' operation
     revalidate();
@@ -384,7 +431,7 @@ public class NavigationView extends JComponent {
   }
 
   private void moveSelection(Point location) {
-    mySelection.moveTo(location);
+    mySelectionModel.getSelection().moveTo(location);
     revalidate();
     repaint();
   }
@@ -397,7 +444,7 @@ public class NavigationView extends JComponent {
   }
 
   private void finaliseSelectionLocation(Point location) {
-    mySelection = mySelection.finaliseSelectionLocation(location);
+    mySelectionModel.setSelection(mySelectionModel.getSelection().finaliseSelectionLocation(location));
     revalidate();
     repaint();
   }
@@ -460,7 +507,8 @@ public class NavigationView extends JComponent {
     // draw background
     if (mDrawGrid) {
       g.drawImage(getBackGroundImage(), 0, 0, null);
-    } else {
+    }
+    else {
       Color tmp = getBackground();
       g.setColor(BACKGROUND_COLOR);
       g.fillRect(0, 0, getWidth(), getHeight());
@@ -678,8 +726,8 @@ public class NavigationView extends JComponent {
   }
 
   private void paintSelection(Graphics g) {
-    mySelection.paint(g, hasFocus());
-    mySelection.paintOver(g);
+    mySelectionModel.getSelection().paint(g, hasFocus());
+    mySelectionModel.getSelection().paintOver(g);
   }
 
   private void paintChildren(Graphics g, Condition<Component> condition) {
@@ -712,7 +760,6 @@ public class NavigationView extends JComponent {
 
   @Override
   public void doLayout() {
-    if (DEBUG) System.out.println("NavigationView: doLayout");
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
@@ -728,6 +775,9 @@ public class NavigationView extends JComponent {
         Component editor = transitionToEditor.get(transition);
         if (editor == null) { // if model is changed on another thread we may see null here (with new notification system)
           continue;
+        }
+        if (editor.getParent() == null) { // unclear why this happens
+          add(editor);
         }
         Dimension preferredSize = editor.getPreferredSize();
         Point[] points = getControlPoints(transition);
@@ -750,22 +800,38 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private JComboBox createEditorFor(final Transition transition) {
-    String gesture = transition.getType();
-    JComboBox c = new ComboBox(new DefaultComboBoxModel(new Object[]{"press", "swipe"}));
-    c.setSelectedItem(gesture);
-    c.setForeground(getForeground());
-    //c.setBorder(LABEL_BORDER);
-    //c.setOpaque(true);
-    c.setBackground(BACKGROUND_COLOR);
-    c.addItemListener(new ItemListener() {
+  private static JComponent getPressGestureIcon() {
+    return new JComponent() {
+      private Dimension SIZE = new Dimension(24, 24);
+
       @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        transition.setType((String)itemEvent.getItem());
-        myNavigationModel.getListeners().notify(NavigationModel.Event.update(Transition.class));
+      public Dimension getPreferredSize() {
+        return SIZE;
       }
-    });
-    return c;
+
+      @Override
+      public void paintComponent(Graphics g) {
+        RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        ((Graphics2D)g).setRenderingHints(rh);
+        g.setColor(GESTURE_ICON_COLOR);
+        g.fillOval(0, 0, SIZE.width - 1, SIZE.height - 1);
+      }
+    };
+  }
+
+  private static JLabel getSwipeGestureIcon() {
+    JLabel result = new JLabel("<->");
+    result.setFont(result.getFont().deriveFont(20f));
+    result.setForeground(TRANSITION_LINE_COLOR);
+    result.setBackground(TRIGGER_BACKGROUND_COLOR);
+    result.setBorder(new LineBorder(TRANSITION_LINE_COLOR, 1));
+    result.setOpaque(true);
+    return result;
+  }
+
+  private static Component createEditorFor(final Transition transition) {
+    String gesture = transition.getType();
+    return gesture.equals(Transition.PRESS) ? getPressGestureIcon() : getSwipeGestureIcon();
   }
 
   private void syncTransitionCache(Assoc<Transition, Component> assoc) {
@@ -853,9 +919,13 @@ public class NavigationView extends JComponent {
     if (component instanceof AndroidRootComponent) {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       if (!shiftDown) {
-        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, mouseDownLocation, transition,
-                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent),
-                                                            myTransform);
+        State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
+        if (state == null) {
+          return Selections.NULL;
+        }
+        setComponentZOrder(androidRootComponent, 0);
+        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition, myRenderingParams,
+                                                            mouseDownLocation, state, myTransform);
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
@@ -863,7 +933,7 @@ public class NavigationView extends JComponent {
       }
     }
     else {
-      return new Selections.ComponentSelection<Component>(myNavigationModel, component, transition);
+      return new Selections.ComponentSelection<Component>(myRenderingParams, myNavigationModel, component, transition);
     }
   }
 
@@ -874,13 +944,11 @@ public class NavigationView extends JComponent {
       anItem.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-          Project project = myRenderingParams.myProject;
           Module module = myRenderingParams.myFacet.getModule();
-          NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(project, module, null, CATEGORY_ACTIVITIES);
+          NewAndroidActivityWizard dialog = new NewAndroidActivityWizard(module, null, null);
+          dialog.init();
+          dialog.setOpenCreatedFiles(false);
           dialog.show();
-          if (dialog.isOK()) {
-            dialog.createTemplateObject(false);
-          }
         }
       });
       menu.add(anItem);

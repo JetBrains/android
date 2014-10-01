@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogConsoleListener;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -36,6 +37,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -218,9 +220,19 @@ public abstract class AndroidLogcatView implements Disposable {
           }
 
           @Override
-          public void clientSelected(@Nullable Client c) {
+          public void clientSelected(@Nullable final Client c) {
             if (PropertiesComponent.getInstance().getBoolean(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, true)) {
-              createAndSelectFilterForClient(c);
+              if (ApplicationManager.getApplication().isDispatchThread()) {
+                createAndSelectFilterForClient(c);
+              }
+              else {
+                ApplicationManager.getApplication().invokeLater(new Runnable() {
+                  @Override
+                  public void run() {
+                    createAndSelectFilterForClient(c);
+                  }
+                });
+              }
             }
           }
         };
@@ -229,20 +241,14 @@ public abstract class AndroidLogcatView implements Disposable {
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
-    final DefaultActionGroup group1 = new DefaultActionGroup();
-    ActionGroup toolbarActions = myLogConsole.getToolbarActions();
-    if (toolbarActions != null) {
-      group1.addAll(toolbarActions);
-    }
-    group1.add(new MyRestartAction());
-    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group1, false);
     final ConsoleView console = myLogConsole.getConsole();
-
     if (console != null) {
+      final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,
+                                                                                    myLogConsole.getOrCreateActions(), false);
       toolbar.setTargetComponent(console.getComponent());
+      final JComponent tbComp1 = toolbar.getComponent();
+      myPanel.add(tbComp1, BorderLayout.WEST);
     }
-    final JComponent tbComp1 = toolbar.getComponent();
-    myPanel.add(tbComp1, BorderLayout.EAST);
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
     Disposer.register(this, myLogConsole);
@@ -478,6 +484,12 @@ public abstract class AndroidLogcatView implements Disposable {
     @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, new MyLoggingReader(), "", false, logFilterModel);
+      ConsoleView console = getConsole();
+      if (console instanceof ConsoleViewImpl) {
+        ConsoleViewImpl c = ((ConsoleViewImpl)console);
+        c.addCustomConsoleAction(new Separator());
+        c.addCustomConsoleAction(new MyRestartAction());
+      }
     }
 
     @Override
@@ -489,8 +501,8 @@ public abstract class AndroidLogcatView implements Disposable {
       IDevice device = getSelectedDevice();
       if (device != null) {
         AndroidLogcatUtil.clearLogcat(myProject, device);
-        myLogConsole.clear();
       }
+      myLogConsole.clear();
     }
   }
 

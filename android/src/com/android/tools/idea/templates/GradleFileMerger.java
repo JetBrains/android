@@ -154,16 +154,20 @@ public class GradleFileMerger {
     for (String key : dependencies.keySet()) {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
 
-      // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
-      // have that repository available.
-      if (RepositoryUrlManager.supports(highest.getArtifactId())) {
-        GradleCoordinate available = GradleCoordinate.parseCoordinateString(
-          urlManager.getLibraryCoordinate(highest.getArtifactId()));
+      // For test consistency, don't depend on installed SDK state while testing
+      if (!ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("force.gradlemerger.repository.check")) {
+        // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
+        // that we can add instead of a plus revision.
+        if (RepositoryUrlManager.supports(highest.getArtifactId())) {
+          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, false /* No previews */);
+          GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
 
-        File archiveFile = urlManager.getArchiveForCoordinate(available);
-        if (archiveFile == null || !archiveFile.exists() || COMPARE_PLUS_LOWER.compare(available, highest) < 0) {
-          PsiElement comment = factory.createGroovyFile(RepositoryUrlManager.getHelpComment(highest), false, null);
-          toRoot.addBefore(comment, toRoot.getLastChild());
+          if (available != null) {
+            File archiveFile = urlManager.getArchiveForCoordinate(available);
+            if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
+              highest = available;
+            }
+          }
         }
       }
       PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, highest.toString()));

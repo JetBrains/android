@@ -24,7 +24,6 @@ import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
-import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.util.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -162,16 +161,7 @@ public class ViewLoader {
   @Nullable
   private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
-      if (myProjectClassLoader == null) {
-        // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-        boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-        try {
-          myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
-        } finally {
-          RenderSecurityManager.exitSafeRegion(token);
-        }
-      }
-      return myProjectClassLoader.loadClass(className);
+      return getProjectClassLoader().loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (!className.equals(FragmentLayoutDomFileDescription.FRAGMENT_TAG_NAME)) {
@@ -179,6 +169,21 @@ public class ViewLoader {
       }
       return null;
     }
+  }
+
+  @NotNull
+  private ProjectClassLoader getProjectClassLoader() {
+    if (myProjectClassLoader == null) {
+      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule, myLogger, myCredential);
+      } finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
+    }
+
+    return myProjectClassLoader;
   }
 
   @Nullable
@@ -208,7 +213,7 @@ public class ViewLoader {
           if (!AndroidUtils.isAbstract(psiClass)) {
             try {
               Class<?> aClass = myLoadedClasses.get(qName);
-              if (aClass == null) {
+              if (aClass == null && myParentClassLoader != null) {
                 aClass = myParentClassLoader.loadClass(qName);
                 if (aClass != null) {
                   myLoadedClasses.put(qName, aClass);
@@ -242,8 +247,7 @@ public class ViewLoader {
     IllegalAccessException,
     NoSuchFieldException {
 
-    assert myProjectClassLoader != null;
-    final Class<?> mockViewClass = myProjectClassLoader.loadClass(SdkConstants.CLASS_MOCK_VIEW);
+    final Class<?> mockViewClass = getProjectClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
     final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs);
 
     final Method setTextMethod = viewObject.getClass().getMethod("setText", CharSequence.class);
@@ -405,7 +409,7 @@ public class ViewLoader {
     final String rClassName = getRClassName(myModule);
     try {
       if (rClassName == null) {
-        LOG.info("loadAndParseRClass: failed to find manifest package for project %1$s");
+        LOG.info(String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
         return;
       }
       myLogger.setResourceClass(rClassName);
@@ -423,8 +427,7 @@ public class ViewLoader {
   public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
-      ProjectClassLoader loader = new ProjectClassLoader(null, myModule);
-      aClass = loader.loadClass(className);
+      aClass = getProjectClassLoader().loadClass(className);
 
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);
@@ -440,7 +443,9 @@ public class ViewLoader {
 
       if (parseClass(aClass, id2res, styleableId2res, res2id)) {
         AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
-        appResources.setCompiledResources(id2res, styleableId2res, res2id);
+        if (appResources != null) {
+          appResources.setCompiledResources(id2res, styleableId2res, res2id);
+        }
       }
     }
   }

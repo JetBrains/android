@@ -21,12 +21,14 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -149,6 +151,14 @@ public class LayoutPullParserFactory {
     if (DEBUG) {
       //noinspection UseOfSystemOutOrSystemErr
       System.out.println(XmlPrettyPrinter.prettyPrint(document, true));
+    }
+
+    // Allow tools:background in drawable XML files to manually set the render background.
+    // Useful for example when dealing with vectors or shapes where the color happens to
+    // be close to the IDE default background.
+    String background = AndroidPsiUtils.getRootTagAttributeSafely(file, ATTR_BACKGROUND, TOOLS_URI);
+    if (background != null && !background.isEmpty()) {
+      setAndroidAttr(imageView, ATTR_BACKGROUND, background);
     }
 
     return new DomPullParser(document.getDocumentElement());

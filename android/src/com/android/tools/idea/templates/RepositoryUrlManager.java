@@ -16,15 +16,15 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.sdklib.repository.FullRevision;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -32,10 +32,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
@@ -62,6 +59,27 @@ public class RepositoryUrlManager {
   /** The path ID of the Play Services library */
   public static final String PLAY_SERVICES_ID = "play-services";
 
+  /** The path ID of the Wearable Play Services library */
+  public static final String PLAY_SERVICES_WEARABLE_ID = "play-services-wearable";
+
+  /** The path ID of the wearable support library */
+  public static final String SUPPORT_WEARABLE_ID = "wearable";
+
+  /** The path ID of the cardview library*/
+  public static final String CARDVIEW_ID_V7 = "cardview-v7";
+
+  /** The path ID of the leanback library*/
+  public static final String LEANBACK_ID_V17 = "leanback-v17";
+
+  /** The path ID of the palette library*/
+  public static final String PALETTE_ID_V7 = "palette-v7";
+
+  /** The path ID of the recyclerview library*/
+  public static final String RECYCLER_VIEW_ID_V7 = "recyclerview-v7";
+
+  /** The path ID of the support-annotations library*/
+  public static final String SUPPORT_ANNOTATIONS = "support-annotations";
+
   /** The path ID of the compatibility library (which was its id for releases 1-3). */
   public static final String COMPATIBILITY_ID = "compatibility";
 
@@ -71,10 +89,13 @@ public class RepositoryUrlManager {
 
   private static final String SUPPORT_BASE_COORDINATE = "com.android.support:%s:%s";
   private static final String GOOGLE_BASE_COORDINATE = "com.google.android.gms:%s:%s";
+  private static final String GOOGLE_SUPPORT_BASE_COORDINATE = "com.google.android.support:%s:%s";
 
   private static final String SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/android/m2repository/com/android/support/%s/";
 
   private static final String GOOGLE_REPOSITORY_BASE_PATH = "%s/extras/google/m2repository/com/google/android/gms/%s/";
+
+  private static final String GOOGLE_SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/google/m2repository/com/google/android/support/%s/";
 
   // e.g. 18.0.0/appcompat-v7-18.0.0
   private static final String MAVEN_REVISION_PATH = "%2$s/%1$s-%2$s";
@@ -86,13 +107,27 @@ public class RepositoryUrlManager {
     "// You must install or update the %1$s Repository through the SDK manager to use this dependency.";
 
   /** Model of our internal extras repository */
+  private static final RangeMap<Integer, String> SUPPORT_LIBRARY_EXTENSIONS = ImmutableRangeMap.<Integer, String>builder()
+    .put(Range.closed(1, 19), SdkConstants.DOT_JAR)
+    .put(Range.atLeast(20), SdkConstants.DOT_AAR)
+    .build();
   public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
-    .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
-    .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+    .put(SUPPORT_ANNOTATIONS, new RepositoryLibrary(SUPPORT_ANNOTATIONS, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+    .put(SUPPORT_ID_V4,
+         new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SUPPORT_LIBRARY_EXTENSIONS))
+    .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
+                                               SUPPORT_LIBRARY_EXTENSIONS))
     .put(APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(MEDIA_ROUTER_ID_V7, new RepositoryLibrary(MEDIA_ROUTER_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(PLAY_SERVICES_WEARABLE_ID, new RepositoryLibrary(PLAY_SERVICES_WEARABLE_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(CARDVIEW_ID_V7, new RepositoryLibrary(CARDVIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(PALETTE_ID_V7, new RepositoryLibrary(PALETTE_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(RECYCLER_VIEW_ID_V7, new RepositoryLibrary(RECYCLER_VIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(LEANBACK_ID_V17, new RepositoryLibrary(LEANBACK_ID_V17, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(SUPPORT_WEARABLE_ID, new RepositoryLibrary(SUPPORT_WEARABLE_ID, GOOGLE_SUPPORT_REPOSITORY_BASE_PATH, GOOGLE_SUPPORT_BASE_COORDINATE,
+                                                    SdkConstants.DOT_AAR))
     .build();
 
 
@@ -103,6 +138,7 @@ public class RepositoryUrlManager {
   @VisibleForTesting
   RepositoryUrlManager() {}
 
+
   /**
    * Calculate the coordinate pointing to the highest valued version of the given library we
    * have available in our repository.
@@ -111,6 +147,19 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public String getLibraryCoordinate(String libraryId) {
+    return getLibraryCoordinate(libraryId, null, true);
+  }
+
+  /**
+   * Calculate the coordinate pointing to the highest valued version of the given library we
+   * have available in our repository.
+   * @param libraryId the id of the library to find
+   * @param filterPrefix an optional prefix libraries must match; e.g. if the prefix is "18." then only coordinates
+   *           in version 18.x will be considered
+   * @return a maven coordinate for the requested library or null if we don't support that library
+   */
+  @Nullable
+  public String getLibraryCoordinate(String libraryId, @Nullable String filterPrefix, boolean includePreviews) {
     // Check to see if this is a URL we support:
     if (!EXTRAS_REPOSITORY.containsKey(libraryId)) {
       return null;
@@ -130,9 +179,9 @@ public class RepositoryUrlManager {
       return String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
 
-    String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
+    String version = getLatestVersionFromMavenMetadata(supportMetadataFile, filterPrefix, includePreviews);
 
-    return String.format(library.baseCoordinate, library.id, version);
+    return version != null ? String.format(library.baseCoordinate, library.id, version) : null;
   }
 
   /**
@@ -155,7 +204,8 @@ public class RepositoryUrlManager {
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
 
     File path = new File(String.format(library.basePath, sdkLocation, library.id));
-    String revisionPath = String.format(MAVEN_REVISION_PATH, library.id, revision) + library.archiveExtension;
+    String revisionPath = String.format(MAVEN_REVISION_PATH, library.id, revision) +
+                          library.getArchiveExtension(gradleCoordinate.getMajorVersion());
 
     return new File(path, revisionPath);
   }
@@ -172,11 +222,13 @@ public class RepositoryUrlManager {
   /**
    * Parses a Maven metadata file and returns a string of the highest found version
    * @param metadataFile the files to parse
+   * @param includePreviews if false, preview versions of the library will not be returned
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
-  private String getLatestVersionFromMavenMetadata(File metadataFile) {
+  @Nullable
+  private String getLatestVersionFromMavenMetadata(File metadataFile, @Nullable final String filterPrefix, boolean includePreviews) {
     String xml = readTextFile(metadataFile);
-    final List<FullRevision> versions = new LinkedList<FullRevision>();
+    final List<GradleCoordinate> versions = Lists.newLinkedList();
     try {
       SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
         boolean inVersionTag = false;
@@ -192,7 +244,10 @@ public class RepositoryUrlManager {
         public void characters(char[] ch, int start, int length) throws SAXException {
           // Get the version and compare it to the current known max version
           if (inVersionTag) {
-            versions.add(FullRevision.parseRevision(new String(ch, start, length)));
+            String revision = new String(ch, start, length);
+            if (filterPrefix == null || revision.startsWith(filterPrefix)) {
+              versions.add(GradleCoordinate.parseVersionOnly(revision));
+            }
             inVersionTag = false;
           }
         }
@@ -203,18 +258,33 @@ public class RepositoryUrlManager {
 
     if (versions.isEmpty()) {
       return REVISION_ANY;
+    } else if (includePreviews) {
+      return GRADLE_COORDINATE_ORDERING.max(versions).getFullRevision();
     } else {
-      return Collections.max(versions).toString();
+      try {
+        return GRADLE_COORDINATE_ORDERING.max(Iterables.filter(versions, IS_NOT_PREVIEW)).getFullRevision();
+      } catch (NoSuchElementException e) {
+        return null;
+      }
     }
   }
 
   /**
-   * Get a helpful comment about how to install the parent repository for the given coordinate
+   * Evaluates to true iff the given FullRevision is not a preview version
    */
-  public static String getHelpComment(@NotNull GradleCoordinate coordinate) {
-    String repositoryName = coordinate.getArtifactId().equals(PLAY_SERVICES_ID) ? "Google" : "Support";
-    return String.format(HELP_COMMENT, repositoryName);
-  }
+  private static final Predicate<GradleCoordinate> IS_NOT_PREVIEW = new Predicate<GradleCoordinate>() {
+    @Override
+    public boolean apply(GradleCoordinate input) {
+      return !input.isPreview();
+    }
+  };
+
+  private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = new Ordering<GradleCoordinate>() {
+    @Override
+    public int compare(GradleCoordinate left, GradleCoordinate right) {
+      return GradleCoordinate.COMPARE_PLUS_LOWER.compare(left, right);
+    }
+  };
 
   @Nullable
   protected AndroidSdkData tryToChooseAndroidSdk() {
@@ -234,14 +304,28 @@ public class RepositoryUrlManager {
     public final String id;
     public final String basePath;
     public final String baseCoordinate;
-    public final String archiveExtension;
+    private final RangeMap<Integer, String> myArchiveExtensions;
 
 
     private RepositoryLibrary(String id, String basePath, String baseCoordinate, String archiveExtension) {
       this.id = id;
       this.basePath = basePath;
       this.baseCoordinate = baseCoordinate;
-      this.archiveExtension = archiveExtension;
+      myArchiveExtensions = TreeRangeMap.create();
+      myArchiveExtensions.put(Range.<Integer>all(), archiveExtension);
+    }
+
+    private RepositoryLibrary(String id, String basePath, String baseCoordinate, RangeMap<Integer, String> archiveExtensions) {
+      this.id = id;
+      this.basePath = basePath;
+      this.baseCoordinate = baseCoordinate;
+      myArchiveExtensions = archiveExtensions;
+    }
+
+    @NotNull
+    public String getArchiveExtension(int revision) {
+      String extension = myArchiveExtensions.get(revision);
+      return extension == null ? "" : extension;
     }
   }
 }

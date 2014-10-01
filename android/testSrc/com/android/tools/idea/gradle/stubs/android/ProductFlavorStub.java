@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ClassField;
-import com.android.builder.model.NdkConfig;
 import com.android.builder.model.ProductFlavor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,6 +72,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
+  @Nullable
+  public Integer getMaxSdkVersion() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public int getRenderscriptTargetApi() {
     throw new UnsupportedOperationException();
   }
@@ -108,12 +113,6 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @Nullable
   public Boolean getTestFunctionalTest() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @Nullable
-  public NdkConfig getNdkConfig() {
     throw new UnsupportedOperationException();
   }
 

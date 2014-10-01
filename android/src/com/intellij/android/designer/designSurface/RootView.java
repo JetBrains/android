@@ -158,6 +158,14 @@ public class RootView extends JComponent implements TransformedComponent {
       return;
     }
 
+    Shape clip = g.getClip();
+    if (clip != null) {
+      Rectangle clipBounds = g.getClipBounds();
+      int deltaX = getX();
+      int deltaY = getY();
+      g.setClip(clipBounds.x - deltaX, clipBounds.y - deltaY, clipBounds.width += deltaX, clipBounds.height + deltaY);
+    }
+
     double scale = myPanel.getZoom();
     myRenderedImage.setScale(scale);
     myRenderedImage.paint(g, 0, 0);
@@ -176,6 +184,10 @@ public class RootView extends JComponent implements TransformedComponent {
     }
 
     Overlay.paintOverlays(myPanel, this, g, 0, 0);
+
+    if (clip != null) {
+      g.setClip(clip);
+    }
   }
 
   /** Returns the width of the image itself, when scaled */

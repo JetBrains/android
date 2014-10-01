@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -37,8 +36,9 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PACKAGE_NAME_KEY;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.PACKAGE_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 import static com.android.tools.idea.wizard.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
@@ -50,7 +50,6 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
-  private static final Key<Boolean> IS_LIBRARY_MODULE_KEY = createKey(ATTR_IS_LIBRARY_MODULE, PATH, Boolean.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
   private static final Key<String> MODULE_LOCATION_KEY = createKey(ATTR_PROJECT_OUT, PATH, String.class);
@@ -107,8 +106,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    //noinspection ConstantConditions
-    myState.put(IS_LIBRARY_MODULE_KEY, false);
+    myState.put(WizardConstants.IS_LIBRARY_KEY, false);
     myState.put(SRC_DIR_KEY, calculateSrcDir());
     myState.put(RES_DIR_KEY, "src/main/res");
     myState.put(AIDL_DIR_KEY, "src/main/aidl");
@@ -118,24 +116,30 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(RELATIVE_PACKAGE_KEY, "");
 
     addStep(new ActivityGalleryStep(myFormFactor, true, KEY_SELECTED_TEMPLATE, myDisposable));
-    Map<String, Object> presetsMap = ImmutableMap.of(PACKAGE_NAME_KEY.name, (Object)myState.get(PACKAGE_NAME_KEY),
-                                                     TemplateMetadata.ATTR_IS_LAUNCHER, true,
-                                                     TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
-    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, null, myDisposable, PACKAGE_NAME_KEY);
+
+    Object packageName = myState.get(PACKAGE_NAME_KEY);
+    if (packageName == null) {
+      packageName = "";
+    }
+    Map<String, Object> presetsMap = ImmutableMap
+      .of(PACKAGE_NAME_KEY.name, packageName, TemplateMetadata.ATTR_IS_LAUNCHER, true, TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
+    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0]);
     addStep(myParameterStep);
   }
 
   @Override
   public void onPathStarted(boolean fromBeginning) {
     super.onPathStarted(fromBeginning);
-    Set<Key> keys = Sets.newHashSetWithExpectedSize(3);
+    // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
+    myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
+
+    Set<Key> keys = Sets.newHashSetWithExpectedSize(5);
+    keys.add(PACKAGE_NAME_KEY);
     keys.add(SRC_DIR_KEY);
+    keys.add(TEST_DIR_KEY);
     keys.add(PROJECT_LOCATION_KEY);
     keys.add(NUM_ENABLED_FORM_FACTORS_KEY);
     deriveValues(keys);
-
-    // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
-    myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
   }
 
   @NotNull
@@ -164,10 +168,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   public void deriveValues(Set<Key> modified) {
     if (modified.contains(NUM_ENABLED_FORM_FACTORS_KEY)) {
       //noinspection ConstantConditions
-      if (myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
+      if (myState.containsKey(NUM_ENABLED_FORM_FACTORS_KEY) && myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
         myState.put(myModuleNameKey, "app");
       }
-      else {
+      else if (!myState.containsKey(myModuleNameKey)) {
         myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
       }
     }
@@ -195,6 +199,20 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (modified.contains(TEST_DIR_KEY) || basePathModified) {
       updateOutputPath(TEST_DIR_KEY, TEST_OUT_KEY);
+    }
+    if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
+      Integer newApiLevel = myState.get(NEWLY_INSTALLED_API_KEY);
+      Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(myFormFactor);
+      Integer currentTargetLevel = myState.get(targetApiLevelKey);
+      if (currentTargetLevel == null || newApiLevel > currentTargetLevel) {
+        // If the newly installed is greater than the current target, we know we're not targeting
+        // a preview version, so we can safely set build/target api levels to the newly installed level
+        String newApiString = Integer.toString(newApiLevel);
+        myState.put(targetApiLevelKey, newApiLevel);
+        myState.put(FormFactorUtils.getTargetApiStringKey(myFormFactor), newApiString);
+        myState.put(FormFactorUtils.getBuildApiLevelKey(myFormFactor), newApiLevel);
+        myState.put(FormFactorUtils.getBuildApiKey(myFormFactor), newApiString);
+      }
     }
   }
 

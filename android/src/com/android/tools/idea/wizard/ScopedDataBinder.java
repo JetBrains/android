@@ -298,6 +298,9 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     myValueDerivers.put(key, deriver);
   }
 
+  protected <T> void unregisterValueDeriver(@NotNull Key<T> key) {
+    myValueDerivers.remove(key);
+  }
   /**
    * Allows clients of {@link ScopedDataBinder} to use custom JComponents by writing their own
    * setValue and getValue functions to support their custom implementations.
@@ -324,6 +327,13 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
      * Attach an action listener to the underlying component.
      */
     public void addActionListener(@NotNull ActionListener listener, @NotNull C component) {
+
+    }
+
+    /**
+     * Attach a change listener to the underlying component.
+     */
+    public void addChangeListener(@NotNull ChangeListener listener, @NotNull C component) {
 
     }
 
@@ -365,6 +375,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     component.addFocusListener(this);
     binding.addActionListener(this, component);
+    binding.addChangeListener(this, component);
     binding.addItemListener(this, component);
     Document document = binding.getDocument(component);
     if (document != null) {
@@ -462,20 +473,6 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     textField.addFocusListener(this);
     textField.getDocument().addDocumentListener(this);
-  }
-
-  /**
-   * Connects the given {@link JRadioButton} to the given key and sets a listener to pick up changes that need to trigger validation
-   * and UI updates.
-   */
-  protected <T> void register(@NotNull Key<T> key, @NotNull JRadioButton radioButton, @Nullable T defaultValue) {
-    T currentValue = bindAndGet(key, radioButton, null);
-    radioButton.setSelected(currentValue != null && currentValue.equals(defaultValue));
-    if (defaultValue != null) {
-      myState.put(key, defaultValue);
-    }
-    radioButton.addFocusListener(this);
-    radioButton.addActionListener(this);
   }
 
   /**

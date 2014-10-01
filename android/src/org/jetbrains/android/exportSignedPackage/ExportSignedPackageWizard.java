@@ -19,12 +19,12 @@ package org.jetbrains.android.exportSignedPackage;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -190,8 +190,22 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           @Override
           public void execute(@NotNull GradleInvocationResult result) {
             if (result.isBuildSuccessful()) {
-              Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APK's are in: " + myApkPath,
-                                                        NotificationType.INFORMATION));
+              if (ShowFilePathAction.isSupported()) {
+                ApplicationManager.getApplication().invokeLater(new Runnable() {
+                  @Override
+                  public void run() {
+                    if (Messages.showOkCancelDialog(myProject, "Signed APK's generated successfully.", NOTIFICATION_TITLE,
+                                                    RevealFileAction.getActionName(), IdeBundle.message("action.close"),
+                                                    Messages.getInformationIcon()) == Messages.OK) {
+                      ShowFilePathAction.openDirectory(new File(myApkPath));
+                    }
+                  }
+                });
+              }
+              else {
+                Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APK's are in: " + myApkPath,
+                                                          NotificationType.INFORMATION));
+              }
             }
             else {
               Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE,
@@ -231,7 +245,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get("");
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        return Collections.singletonList(GradleBuilds.createBuildTask(gradleProjectPath, taskName));
+        return Collections.singletonList(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
       } else {
         LOG.error("Unable to find default variant");
         return Collections.emptyList();
@@ -243,7 +257,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get(flavor);
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        assembleTasks.add(GradleBuilds.createBuildTask(gradleProjectPath, taskName));
+        assembleTasks.add(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
       }
     }
 
@@ -370,6 +384,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     final String sdkPath = platform.getSdkData().getPath();
     String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, platform.getTarget());
     File zipalign = new File(zipAlignPath);
+    if (!zipalign.isFile()) {
+      BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
+      if (buildTool != null) {
+        zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
+        zipalign = new File(zipAlignPath);
+      }
+    }
     final boolean runZipAlign = zipalign.isFile();
     File destFile = null;
     try {

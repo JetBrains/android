@@ -183,8 +183,23 @@ public class ImageUtils {
    * @param yScale y scale
    * @return the scaled image
    */
+  @NotNull
   public static BufferedImage scale(BufferedImage source, double xScale, double yScale) {
     return scale(source, xScale, yScale, 0, 0);
+  }
+
+  /**
+   * Resize the given image
+   *
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @param clip an optional clip rectangle to use
+   * @return the scaled image
+   */
+  @NotNull
+  public static BufferedImage scale(BufferedImage source, double xScale, double yScale, @Nullable Shape clip) {
+    return scale(source, xScale, yScale, 0, 0, clip);
   }
 
   /**
@@ -197,8 +212,26 @@ public class ImageUtils {
    * @param bottomMargin extra margin to add on the bottom
    * @return the scaled image
    */
+  @NotNull
   public static BufferedImage scale(BufferedImage source, double xScale, double yScale,
                                     int rightMargin, int bottomMargin) {
+    return scale(source, xScale, yScale, rightMargin, bottomMargin, null);
+  }
+
+  /**
+   * Resize the given image
+   *
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @param rightMargin extra margin to add on the right
+   * @param bottomMargin extra margin to add on the bottom
+   * @param clip an optional clip rectangle to use
+   * @return the scaled image
+   */
+  @NotNull
+  public static BufferedImage scale(BufferedImage source, double xScale, double yScale,
+                                    int rightMargin, int bottomMargin, @Nullable Shape clip) {
     int sourceWidth = source.getWidth();
     int sourceHeight = source.getHeight();
     int destWidth = Math.max(1, (int) (xScale * sourceWidth));
@@ -215,7 +248,9 @@ public class ImageUtils {
       //noinspection UseJBColor
       g2.setColor(new Color(0, true));
       g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin);
-
+      if (clip != null) {
+        g2.setClip(clip);
+      }
       if (xScale == 1 && yScale == 1) {
         g2.drawImage(source, 0, 0, null);
       } else {
@@ -252,7 +287,6 @@ public class ImageUtils {
       // Then we can successively resize the image in half, 680 to 340 to 170 to 85.
       // We end up with the expected final size, but we've been doing an exact
       // divide-in-half resizing operation at the end so there is less distortion.
-
 
       int iterations = 0; // Number of halving operations to perform after the initial resize
       int nearestWidth = destWidth; // Width closest to source width that = 2^x, x is integer
@@ -291,10 +325,14 @@ public class ImageUtils {
         if (iteration == 0) { // Last iteration: Add margins in final image
           scaled = new BufferedImage(halfWidth + rightMargin, halfHeight + bottomMargin,
                                      imageType);
+          g2 = scaled.createGraphics();
+          if (clip != null) {
+            g2.setClip(clip);
+          }
         } else {
           scaled = new BufferedImage(halfWidth, halfHeight, imageType);
+          g2 = scaled.createGraphics();
         }
-        g2 = scaled.createGraphics();
         g2.setRenderingHint(KEY_INTERPOLATION,VALUE_INTERPOLATION_BILINEAR);
         g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);

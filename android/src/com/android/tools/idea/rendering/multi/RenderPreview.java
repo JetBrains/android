@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.multi;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
@@ -44,12 +45,13 @@ import com.intellij.util.PairFunction;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -57,6 +59,8 @@ import java.util.Comparator;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
 import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 
 /**
  * Represents a preview rendering of a given configuration
@@ -428,12 +432,14 @@ public class RenderPreview implements Disposable {
     if (editedFile != null) {
       if (!myConfiguration.isBestMatchFor(editedFile, config)) {
         LocalResourceRepository resources = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
-        VirtualFile best = resources.getMatchingFile(editedFile, ResourceType.LAYOUT, config);
-        if (best != null) {
-          myAlternateInput = best;
-        }
-        if (myAlternateInput != null) {
-          myAlternateConfiguration = Configuration.create(myConfiguration, myAlternateInput);
+        if (resources != null) {
+          VirtualFile best = resources.getMatchingFile(editedFile, ResourceType.LAYOUT, config);
+          if (best != null) {
+            myAlternateInput = best;
+          }
+          if (myAlternateInput != null) {
+            myAlternateConfiguration = Configuration.create(myConfiguration, myAlternateInput);
+          }
         }
       }
     }
@@ -522,15 +528,19 @@ public class RenderPreview implements Disposable {
    * Render immediately (on the current thread)
    */
   void renderSync() {
-    disposeThumbnail();
+    if (!tryRenderSync()) {
+      disposeThumbnail();
+    }
+  }
 
+  private boolean tryRenderSync() {
     final Module module = myRenderContext.getModule();
     if (module == null) {
-      return;
+      return false;
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
-      return;
+      return false;
     }
 
     final Configuration configuration = myAlternateInput != null && myAlternateConfiguration != null
@@ -542,13 +552,13 @@ public class RenderPreview implements Disposable {
       psiFile = myRenderContext.getXmlFile();
     }
     if (psiFile == null) {
-      return;
+      return false;
     }
     RenderLogger logger = new RenderLogger(psiFile.getName(), module);
     PreviewRenderContext renderContext = new PreviewRenderContext(myRenderContext, configuration, (XmlFile)psiFile);
     final RenderService renderService = RenderService.create(facet, module, psiFile, configuration, logger, renderContext);
     if (renderService == null) {
-      return;
+      return false;
     }
 
     if (myIncludedWithin != null) {
@@ -580,9 +590,10 @@ public class RenderPreview implements Disposable {
 
       if (render.getStatus() == Status.ERROR_TIMEOUT) {
         // TODO: Special handling? schedule update again later
-        return;
+        return false;
       }
 
+      disposeThumbnail();
       if (render.isSuccess()) {
         RenderedImage renderedImage = result.getImage();
         if (renderedImage != null) {
@@ -593,9 +604,12 @@ public class RenderPreview implements Disposable {
       if (myError != null) {
         createErrorThumbnail();
       }
+      return true;
     } else {
       myError = "Render Failed";
+      disposeThumbnail();
       createErrorThumbnail();
+      return false;
     }
   }
 
@@ -619,8 +633,7 @@ public class RenderPreview implements Disposable {
     }
 
     Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
 
     if (UIUtil.isRetina() && ImageUtils.supportsRetina() && settings.isRetina() && createRetinaThumbnail()) {
       return;
@@ -637,6 +650,7 @@ public class RenderPreview implements Disposable {
       State deviceState = myConfiguration.getDeviceState();
       if (device != null && deviceState != null) {
         double scale = Math.min(1, getLayoutWidth() / (double)image.getWidth());
+        //double scale = getLayoutWidth() / (double)image.getWidth();
         ScreenOrientation orientation = deviceState.getOrientation();
         double frameScale = framePainter.getFrameMaxOverhead(device, orientation);
         scale /= frameScale;
@@ -679,9 +693,7 @@ public class RenderPreview implements Disposable {
     myThumbnailHasFrame = false;
     boolean showFrame = myShowFrame;
 
-    Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
     if (showFrame && settings.isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
@@ -907,7 +919,6 @@ public class RenderPreview implements Disposable {
     int height = getHeight();
     BufferedImage thumbnail = getThumbnail();
     if (thumbnail != null && myError == null) {
-      //noinspection ConstantConditions
       UIUtil.drawImage(gc, thumbnail, x, y, null);
 
       if (myActive) {
@@ -926,9 +937,20 @@ public class RenderPreview implements Disposable {
 
         //noinspection UseJBColor
         gc.setColor(new Color(181, 213, 255));
-        gc.drawRect(x1 - 1, y1 - 1, w + 1, h + 1);
-        gc.drawRect(x1 - 2, y1 - 2, w + 3, h + 3);
-        gc.drawRect(x1 - 3, y1 - 3, w + 5, h + 5);
+        if (HardwareConfigHelper.isRound(myConfiguration.getDevice())) {
+          Stroke prevStroke = gc.getStroke();
+          gc.setStroke(new BasicStroke(3.0f));
+          Object prevAntiAlias = gc.getRenderingHint(KEY_ANTIALIASING);
+          gc.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+          Ellipse2D.Double ellipse = new Ellipse2D.Double(x1, y1, w, h);
+          gc.draw(ellipse);
+          gc.setStroke(prevStroke);
+          gc.setRenderingHint(KEY_ANTIALIASING, prevAntiAlias);
+        } else {
+          gc.drawRect(x1 - 1, y1 - 1, w + 1, h + 1);
+          gc.drawRect(x1 - 2, y1 - 2, w + 3, h + 3);
+          gc.drawRect(x1 - 3, y1 - 3, w + 5, h + 5);
+        }
       }
     }
     else if (myError != null && !myError.isEmpty()) {

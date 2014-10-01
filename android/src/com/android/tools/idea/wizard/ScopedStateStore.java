@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -305,6 +307,18 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   @Override
   public Object apply(Key<?> input) {
     return get(input);
+  }
+
+  /**
+   * @return a all keys from all scopes that were set in this store.
+   */
+  public Set<Key> getAllKeys() {
+    if (myParent == null) {
+      return ImmutableSet.copyOf(myState.keySet());
+    }
+    else {
+      return ImmutableSet.copyOf(Iterables.concat(myState.keySet(), myParent.getAllKeys()));
+    }
   }
 
   public static class Key<T> {

@@ -84,7 +84,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testResourceCompletion3() throws Throwable {
-    doTestCompletionVariants("av4.xml", "@android:", "@anim/", "@color/", "@dimen/", "@drawable/", "@id/", "@string/", "@style/");
+    doTestCompletionVariants("av4.xml", "@android:", "@color/", "@dimen/", "@drawable/", "@id/", "@string/", "@style/");
   }
 
   public void testTagNameCompletion1() throws Throwable {
@@ -383,7 +383,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     });
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19");
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "L");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {

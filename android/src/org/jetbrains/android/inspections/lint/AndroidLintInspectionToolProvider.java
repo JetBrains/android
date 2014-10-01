@@ -1,22 +1,43 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.resources.ResourceFolderType;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.actions.OverrideResourceAction;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
- * @author Eugene.Kudelevsky
+ * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
  */
 public class AndroidLintInspectionToolProvider {
   public static class AndroidLintAaptCrashInspection extends AndroidLintInspectionBase {
@@ -154,11 +175,28 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintAlwaysShowActionInspection() {
       super(AndroidBundle.message("android.lint.inspections.always.show.action"), AlwaysShowActionDetector.ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] { new ReplaceStringQuickFix("Replace with ifRoom", "(always)", "ifRoom") };
+    }
   }
 
   public static class AndroidLintAppCompatMethodInspection extends AndroidLintInspectionBase {
     public AndroidLintAppCompatMethodInspection() {
       super(AndroidBundle.message("android.lint.inspections.app.compat.method"), AppCompatCallDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String oldCall = AppCompatCallDetector.getOldCall(message, RAW);
+      String newCall = AppCompatCallDetector.getNewCall(message, RAW);
+      if (oldCall != null && newCall != null) {
+        return new AndroidLintQuickFix[]{ new ReplaceStringQuickFix("Replace with " + newCall + "()", oldCall, newCall) };
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
@@ -274,10 +312,22 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintUseValueOfInspection() {
       super(AndroidBundle.message("android.lint.inspections.use.value.of"), JavaPerformanceDetector.USE_VALUE_OF);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String replacedType = JavaPerformanceDetector.getReplacedType(message, RAW);
+      if (replacedType != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with valueOf()", "(new\\s+" + replacedType + ")",
+                                                                   replacedType + ".valueOf")};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
 
   public static class AndroidLintLibraryCustomViewInspection extends AndroidLintInspectionBase {
     public AndroidLintLibraryCustomViewInspection() {
+      // TODO: Quickfix
       super(AndroidBundle.message("android.lint.inspections.library.custom.view"), NamespaceDetector.CUSTOM_VIEW);
     }
   }
@@ -309,6 +359,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintEnforceUTF8Inspection extends AndroidLintInspectionBase {
     public AndroidLintEnforceUTF8Inspection() {
       super(AndroidBundle.message("android.lint.inspections.enforce.utf8"), Utf8Detector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, "utf-8") };
     }
   }
 
@@ -342,14 +398,6 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  // it seems we don't need it because we have our own 'deprecated api' inspection
-  // TODO: Double check this; Lint's deprecations are for XML; does IntelliJ check that?
-  /*public static class AndroidLintDeprecatedInspection extends AndroidLintInspectionBase {
-    public AndroidLintDeprecatedInspection() {
-      super(AndroidBundle.message("android.lint.inspections.deprecated"), DeprecationDetector.ISSUE);
-    }
-  }*/
-
   public static class AndroidLintMissingPrefixInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingPrefixInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.prefix"), DetectMissingPrefix.MISSING_NAMESPACE);
@@ -364,12 +412,14 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintMissingQuantityInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingQuantityInspection() {
+      // TODO: Add fixes
       super(AndroidBundle.message("android.lint.inspections.missing.quantity"), PluralsDetector.MISSING);
     }
   }
 
   public static class AndroidLintUnusedQuantityInspection extends AndroidLintInspectionBase {
     public AndroidLintUnusedQuantityInspection() {
+      // TODO: Add fixes
       super(AndroidBundle.message("android.lint.inspections.unused.quantity"), PluralsDetector.EXTRA);
     }
   }
@@ -418,8 +468,15 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintDeprecatedInspection extends AndroidLintInspectionBase {
+    public AndroidLintDeprecatedInspection() {
+      super(AndroidBundle.message("android.lint.inspections.deprecated"), DeprecationDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintDeviceAdminInspection extends AndroidLintInspectionBase {
     public AndroidLintDeviceAdminInspection() {
+      // TODO: Add quickfix
       super(AndroidBundle.message("android.lint.inspections.device.admin"), ManifestDetector.DEVICE_ADMIN);
     }
   }
@@ -508,6 +565,17 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintNewerVersionAvailableInspection extends AndroidLintInspectionBase {
     public AndroidLintNewerVersionAvailableInspection() {
       super(AndroidBundle.message("android.lint.inspections.newer.version.available"), GradleDetector.REMOTE_VERSION);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String obsolete = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message, RAW);
+      String available = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
+      if (obsolete != null && available != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Update to " + available, obsolete, available)};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
@@ -602,6 +670,18 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintGradleDependencyInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String before = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
+      if (before != null && after != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
 
   public static class AndroidLintGradleDeprecatedInspection extends AndroidLintInspectionBase {
@@ -612,56 +692,71 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
-      // Quickfix for replacing the old plugin id with the new one
-      final String from;
-      final String to;
-      if (message.contains(GradleDetector.APP_PLUGIN_ID) && message.contains(GradleDetector.OLD_APP_PLUGIN_ID)) {
-        from = GradleDetector.OLD_APP_PLUGIN_ID;
-        to = GradleDetector.APP_PLUGIN_ID;
-      } else if (message.contains(GradleDetector.LIB_PLUGIN_ID) && message.contains(GradleDetector.OLD_LIB_PLUGIN_ID)) {
-        from = GradleDetector.OLD_LIB_PLUGIN_ID;
-        to = GradleDetector.LIB_PLUGIN_ID;
-      } else {
-        from = to = null;
+      String before = GradleDetector.getOldValue(GradleDetector.DEPRECATED, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.DEPRECATED, message, RAW);
+      if (before != null && after != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, before, after)};
       }
-      if (from != null) {
-        return new AndroidLintQuickFix[] { new AndroidLintQuickFix() {
-          @Override
-          public void apply(@NotNull PsiElement startElement,
-                            @NotNull PsiElement endElement,
-                            @NotNull AndroidQuickfixContexts.Context context) {
-            if (context instanceof AndroidQuickfixContexts.EditorContext && endElement.isValid()) {
-              final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
-              String text = endElement.getText();
-              int index = text.lastIndexOf(from);
-              if (index != -1) {
-                int textOffset = endElement.getTextOffset() + 1;
-                editor.getDocument().replaceString(textOffset, textOffset + from.length(), to);
-              }
-            }
-          }
-
-          @Override
-          public boolean isApplicable(@NotNull PsiElement startElement,
-                                      @NotNull PsiElement endElement,
-                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
-            return true;
-          }
-
-          @NotNull
-          @Override
-          public String getName() {
-            return String.format("Replace %1$s with %2$s", from, to);
-          }
-        }};
-      }
-      return super.getQuickFixes(message);
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
   public static class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleDynamicVersionInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.dynamic.version"), GradleDetector.PLUS);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      String before = GradleDetector.getOldValue(GradleDetector.PLUS, message, RAW);
+      if (before != null && before.endsWith("+")) {
+        final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
+        if (plus != null && plus.getArtifactId() != null) {
+          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", before, "specific version") {
+            @Nullable
+            @Override
+            protected String getNewValue() {
+              String filter = plus.getFullRevision();
+              assert filter.endsWith("+") : filter;
+              filter = filter.substring(0, filter.length() - 1);
+
+              // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
+              // have that repository available.
+              String artifactId = plus.getArtifactId();
+              if (RepositoryUrlManager.supports(plus.getArtifactId())) {
+                // First look for matches, where we don't allow preview versions
+                String libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, false);
+                if (libraryCoordinate != null) {
+                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+                  if (available != null) {
+                    return available.toString();
+                  }
+                }
+                // If that didn't yield any matches, try again, this time allowing preview platforms.
+                // This is necessary if the artifact filter includes enough of a version where there are
+                // only preview matches.
+                libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, true);
+                if (libraryCoordinate != null) {
+                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+                  if (available != null) {
+                    return available.toString();
+                  }
+                }
+              }
+
+              // Regular Gradle dependency? Look in Gradle cache
+              GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter);
+              if (found != null) {
+                return found.toString();
+              }
+
+              return null;
+            }
+          }};
+        }
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
@@ -671,51 +766,11 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  public static class AndroidLintGradleIdeErrorInspection extends AndroidLintInspectionBase {
-    public AndroidLintGradleIdeErrorInspection() {
-      super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
-    }
-
-    @NotNull
-    @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
-      // Quickfix for replacing packageName with applicationId.
-      // This is a temporary quickfix to support older versions of the Gradle plugin: TODO REMOVE.
-      if (message.contains("packageName")) {
-        return new AndroidLintQuickFix[] { new AndroidLintQuickFix() {
-          @Override
-          public void apply(@NotNull PsiElement startElement,
-                            @NotNull PsiElement endElement,
-                            @NotNull AndroidQuickfixContexts.Context context) {
-            if (context instanceof AndroidQuickfixContexts.EditorContext) {
-              final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
-              if (startElement == endElement) {
-                String text = startElement.getText();
-                if (text.equals("packageName") || text.equals("packageNameSuffix")) {
-                  int textOffset = startElement.getTextOffset();
-                  editor.getDocument().replaceString(textOffset, textOffset + startElement.getTextLength(),
-                                                     text.replace("packageName", "applicationId"));
-                }
-              }
-            }
-         }
-
-          @Override
-          public boolean isApplicable(@NotNull PsiElement startElement,
-                                      @NotNull PsiElement endElement,
-                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
-            return true;
-          }
-
-          @NotNull
-          @Override
-          public String getName() {
-            return message.replace("Deprecated: ", "");
-          }
-        }};
+    public static class AndroidLintGradleIdeErrorInspection extends AndroidLintInspectionBase {
+      public AndroidLintGradleIdeErrorInspection() {
+        super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
       }
-      return super.getQuickFixes(message);
-    }
+
   }
 
   public static class AndroidLintGradleOverridesInspection extends AndroidLintInspectionBase {
@@ -727,19 +782,6 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintGradlePathInspection extends AndroidLintInspectionBase {
     public AndroidLintGradlePathInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.path"), GradleDetector.PATH);
-    }
-  }
-
-  public static class AndroidLintGradleImproperProjectLevelStatementInspection extends AndroidLintInspectionBase {
-    public AndroidLintGradleImproperProjectLevelStatementInspection() {
-      super(AndroidBundle.message("android.lint.inspections.gradle.improper.project.level.statement"),
-            GradleDetector.IMPROPER_PROJECT_LEVEL_STATEMENT);
-    }
-  }
-
-  public static class AndroidLintGradleMisplacedStatementInspection extends AndroidLintInspectionBase {
-    public AndroidLintGradleMisplacedStatementInspection() {
-      super(AndroidBundle.message("android.lint.inspections.gradle.misplaced.statement"), GradleDetector.MISPLACED_STATEMENT);
     }
   }
 
@@ -792,11 +834,23 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintTypographyDashesInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.dashes"), TypographyDetector.DASHES);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {new TypographyQuickFix(myIssue, message)};
+    }
   }
 
   public static class AndroidLintTypographyQuotesInspection extends AndroidLintTypographyInspectionBase {
     public AndroidLintTypographyQuotesInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.quotes"), TypographyDetector.QUOTES);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {new TypographyQuickFix(myIssue, message)};
     }
   }
 
@@ -804,11 +858,23 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintTypographyFractionsInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.fractions"), TypographyDetector.FRACTIONS);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {new TypographyQuickFix(myIssue, message)};
+    }
   }
 
   public static class AndroidLintTypographyEllipsisInspection extends AndroidLintTypographyInspectionBase {
     public AndroidLintTypographyEllipsisInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.ellipsis"), TypographyDetector.ELLIPSIS);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {new TypographyQuickFix(myIssue, message)};
     }
   }
 
@@ -816,11 +882,42 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintTypographyOtherInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.other"), TypographyDetector.OTHER);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {new TypographyQuickFix(myIssue, message)};
+    }
   }
 
   public static class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
     public AndroidLintUseCheckPermissionInspection() {
       super(AndroidBundle.message("android.lint.inspections.use.check.permission"), CheckPermissionDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new ReplaceStringQuickFix("Change check to enforce", "(check).*\\(", "enforce") {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            // Also need to insert a message parameter
+            PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(startElement, PsiMethodCallExpression.class);
+            if (call != null) {
+              Document document = FileDocumentManager.getInstance().getDocument(startElement.getContainingFile().getVirtualFile());
+              if (document != null) {
+                PsiExpressionList argumentList = call.getArgumentList();
+                int offset = argumentList.getTextOffset() + argumentList.getTextLength() - 1;
+                document.insertString(offset, ", \"TODO: message if thrown\"");
+              }
+            }
+            super.apply(startElement, endElement, context);
+          }
+        }
+      };
     }
   }
 
@@ -829,7 +926,7 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.use.compound.drawables"), UseCompoundDrawableDetector.ISSUE);
     }
 
-    // todo: implement quickfix
+    // TODO: implement quickfix
   }
 
   public static class AndroidLintUselessParentInspection extends AndroidLintInspectionBase {
@@ -837,7 +934,7 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.useless.parent"), UselessViewDetector.USELESS_PARENT);
     }
 
-    // todo: implement quickfix
+    // TODO: implement quickfix
   }
 
   public static class AndroidLintUselessLeafInspection extends AndroidLintInspectionBase {
@@ -871,9 +968,8 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      return getApiDetectorFixes(message);
-
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getApiDetectorFixes(startElement, endElement, message);
     }
   }
 
@@ -884,18 +980,36 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      return getApiDetectorFixes(message);
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getApiDetectorFixes(startElement, endElement, message);
     }
   }
 
-  private static AndroidLintQuickFix[] getApiDetectorFixes(String message) {
+  private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull PsiElement startElement,
+                                                           @SuppressWarnings("UnusedParameters") @NotNull PsiElement endElement,
+                                                           @NotNull String message) {
     // TODO: Return one for each parent context (declaration, method, class, outer class(es)
     Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
     Matcher matcher = pattern.matcher(message);
     if (matcher.find()) {
       int api = Integer.parseInt(matcher.group(1));
-      return new AndroidLintQuickFix[] { new AddTargetApiQuickFix(api) };
+      List<AndroidLintQuickFix> list = Lists.newArrayList();
+      PsiFile file = startElement.getContainingFile();
+      if (file instanceof XmlFile) {
+        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        if (folderType != null) {
+          FolderConfiguration config = ResourceHelper.getFolderConfiguration(file);
+          if (config != null) {
+            config.setVersionQualifier(new VersionQualifier(api));
+            String folder = config.getFolderName(folderType);
+            list.add(OverrideResourceAction.createFix(folder));
+          }
+        }
+      }
+
+      list.add(new AddTargetApiQuickFix(api));
+
+      return list.toArray(new AndroidLintQuickFix[list.size()]);
     }
     return AndroidLintQuickFix.EMPTY_ARRAY;
   }
@@ -915,7 +1029,14 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintMissingApplicationIconInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestDetector.APPLICATION_ICON);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set application icon", ATTR_ICON, null) };
+    }
   }
+
   public static class AndroidLintResourceCycleInspection extends AndroidLintInspectionBase {
     public AndroidLintResourceCycleInspection() {
       super(AndroidBundle.message("android.lint.inspections.resource.cycle"), ResourceCycleDetector.CYCLE);
@@ -959,11 +1080,19 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.add.javascript.interface"), AddJavascriptInterfaceDetector.ISSUE);
     }
   }
+
   public static class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase {
     public AndroidLintAllowBackupInspection() {
       super(AndroidBundle.message("android.lint.inspections.allow.backup"), ManifestDetector.ALLOW_BACKUP);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set backup attribute", ATTR_ALLOW_BACKUP, null) };
+    }
   }
+
   public static class AndroidLintButtonStyleInspection extends AndroidLintInspectionBase {
     public AndroidLintButtonStyleInspection() {
       super(AndroidBundle.message("android.lint.inspections.button.style"), ButtonDetector.STYLE);
@@ -974,13 +1103,53 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintByteOrderMarkInspection() {
       super(AndroidBundle.message("android.lint.inspections.byte.order.mark"), ByteOrderMarkDetector.BOM);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new DefaultLintQuickFix("Remove byte order marks") {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            Document document = FileDocumentManager.getInstance().getDocument(startElement.getContainingFile().getVirtualFile());
+            if (document != null) {
+              String text = document.getText();
+              for (int i = text.length() - 1; i >= 0; i--) {
+                char c = text.charAt(i);
+                if (c == '\uFEFF') {
+                  document.deleteString(i, i + 1);
+                }
+              }
+            }
+          }
+        }
+      };
+    }
   }
 
   public static class AndroidLintCommitPrefEditsInspection extends AndroidLintInspectionBase {
     public AndroidLintCommitPrefEditsInspection() {
       super(AndroidBundle.message("android.lint.inspections.commit.pref.edits"), SharedPrefsDetector.ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      if (message.contains("commit") && message.contains("apply")) {
+        return new AndroidLintQuickFix[] { new ReplaceStringQuickFix("Replace commit() with apply()", "(commit)\\s*\\(", "apply") };
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
+  public static class AndroidLintCustomViewStyleableInspection extends AndroidLintInspectionBase {
+    public AndroidLintCustomViewStyleableInspection() {
+      super(AndroidBundle.message("android.lint.inspections.custom.view.styleable"), CustomViewDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintCutPasteIdInspection extends AndroidLintInspectionBase {
     public AndroidLintCutPasteIdInspection() {
       super(AndroidBundle.message("android.lint.inspections.cut.paste.id"), CutPasteDetector.ISSUE);
@@ -1052,6 +1221,19 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintIncludeLayoutParamInspection() {
       super(AndroidBundle.message("android.lint.inspections.include.layout.param"), IncludeDetector.ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(2);
+      if (IncludeDetector.requestsWidth(message)) {
+        fixes.add(new SetAttributeQuickFix("Set layout_width", ATTR_LAYOUT_WIDTH, null));
+      }
+      if (IncludeDetector.requestsHeight(message)) {
+        fixes.add(new SetAttributeQuickFix("Set layout_height", ATTR_LAYOUT_HEIGHT, null));
+      }
+      return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
+    }
   }
 
   public static class AndroidLintInflateParamsInspection extends AndroidLintInspectionBase {
@@ -1068,7 +1250,20 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintInnerclassSeparatorInspection() {
       super(AndroidBundle.message("android.lint.inspections.innerclass.separator"), MissingClassDetector.INNERCLASS);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String current = MissingClassDetector.getOldValue(MissingClassDetector.INNERCLASS, message, RAW);
+      String proposed = MissingClassDetector.getNewValue(MissingClassDetector.INNERCLASS, message, RAW);
+      if (proposed != null && current != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintInvalidIdInspection extends AndroidLintInspectionBase {
     public AndroidLintInvalidIdInspection() {
       super(AndroidBundle.message("android.lint.inspections.invalid.id"), WrongIdDetector.INVALID);
@@ -1081,7 +1276,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintLocaleFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintLocaleFolderInspection() {
-      super(AndroidBundle.message("android.lint.inspections.locale.folder"), com.android.tools.lint.checks.LocaleFolderDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.locale.folder"), LocaleFolderDetector.ISSUE);
     }
   }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
@@ -1099,12 +1294,26 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintMenuTitleInspection() {
       super(AndroidBundle.message("android.lint.inspections.menu.title"), TitleDetector.ISSUE);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set title", ATTR_TITLE, null) };
+    }
   }
+
   public static class AndroidLintMissingIdInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingIdInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.id"), MissingIdDetector.ISSUE);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set id", ATTR_ID, null) };
+    }
   }
+
   public static class AndroidLintMissingVersionInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingVersionInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.version"), ManifestDetector.SET_VERSION);
@@ -1114,12 +1323,43 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintOldTargetApiInspection() {
       super(AndroidBundle.message("android.lint.inspections.old.target.api"), ManifestDetector.TARGET_NEWER);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      String highest = Integer.toString(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API); // TODO: preview platform??
+      String label = "Update targetSdkVersion to " + highest;
+      if (startElement.getContainingFile() instanceof XmlFile) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(label, "targetSdkVersion\\s*=\\s*[\"'](.*)[\"']", highest)};
+      } else if (startElement.getContainingFile() instanceof GroovyFile) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(label, null, highest)};
+      } else{
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
+    }
   }
+
   public static class AndroidLintOrientationInspection extends AndroidLintInspectionBase {
     public AndroidLintOrientationInspection() {
       super(AndroidBundle.message("android.lint.inspections.orientation"), InefficientWeightDetector.ORIENTATION);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new SetAttributeQuickFix("Set orientation=\"horizontal\" (default)", ATTR_ORIENTATION, VALUE_HORIZONTAL),
+        new SetAttributeQuickFix("Set orientation=\"false\" (changes layout)", ATTR_ORIENTATION, VALUE_VERTICAL)
+      };
+    }
   }
+
+  public static class AndroidLintOverrideAbstractInspection extends AndroidLintInspectionBase {
+    public AndroidLintOverrideAbstractInspection() {
+      super(AndroidBundle.message("android.lint.inspections.override.abstract"), OverrideConcreteDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintPackagedPrivateKeyInspection extends AndroidLintInspectionBase {
     public AndroidLintPackagedPrivateKeyInspection() {
       super(AndroidBundle.message("android.lint.inspections.packaged.private.key"), PrivateKeyDetector.ISSUE);
@@ -1129,7 +1369,18 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintPropertyEscapeInspection() {
       super(AndroidBundle.message("android.lint.inspections.property.escape"), PropertyFileDetector.ISSUE);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String escaped = PropertyFileDetector.getSuggestedEscape(message, RAW);
+      if (escaped != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, escaped)};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintProtectedPermissionsInspection extends AndroidLintInspectionBase {
     public AndroidLintProtectedPermissionsInspection() {
       super(AndroidBundle.message("android.lint.inspections.protected.permissions"), SystemPermissionsDetector.ISSUE);
@@ -1139,12 +1390,30 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintReferenceTypeInspection() {
       super(AndroidBundle.message("android.lint.inspections.reference.type"), DuplicateResourceDetector.TYPE_MISMATCH);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String expected = DuplicateResourceDetector.getExpectedType(message, RAW);
+      if (expected != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, "(@.*/)", "@" + expected + "/")};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintRegisteredInspection extends AndroidLintInspectionBase {
     public AndroidLintRegisteredInspection() {
       super(AndroidBundle.message("android.lint.inspections.registered"), RegistrationDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintRelativeOverlapInspection extends AndroidLintInspectionBase {
+    public AndroidLintRelativeOverlapInspection() {
+      super(AndroidBundle.message("android.lint.inspections.relative.overlap"), RelativeOverlapDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintRequiredSizeInspection extends AndroidLintInspectionBase {
     public AndroidLintRequiredSizeInspection() {
       super(AndroidBundle.message("android.lint.inspections.required.size"), RequiredAttributeDetector.ISSUE);
@@ -1165,7 +1434,16 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintSelectableTextInspection() {
       super(AndroidBundle.message("android.lint.inspections.selectable.text"), TextViewDetector.SELECTABLE);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new SetAttributeQuickFix("Set android:textIsSelectable=true", ATTR_TEXT_IS_SELECTABLE, VALUE_TRUE)
+      };
+    }
   }
+
   public static class AndroidLintServiceCastInspection extends AndroidLintInspectionBase {
     public AndroidLintServiceCastInspection() {
       super(AndroidBundle.message("android.lint.inspections.service.cast"), ServiceCastDetector.ISSUE);
@@ -1185,38 +1463,91 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintSignatureOrSystemPermissionsInspection() {
       super(AndroidBundle.message("android.lint.inspections.signature.or.system.permissions"), SignatureOrSystemDetector.ISSUE);
     }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] { new ReplaceStringQuickFix(null, "signatureOrSystem", "signature") };
+    }
   }
+
   public static class AndroidLintSmallSpInspection extends AndroidLintInspectionBase {
     public AndroidLintSmallSpInspection() {
       super(AndroidBundle.message("android.lint.inspections.small.sp"), PxUsageDetector.SMALL_SP_ISSUE);
     }
   }
+
   public static class AndroidLintSpUsageInspection extends AndroidLintInspectionBase {
     public AndroidLintSpUsageInspection() {
       super(AndroidBundle.message("android.lint.inspections.sp.usage"), PxUsageDetector.DP_ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, "\\d+(di?p)", "sp")};
+    }
   }
+
   // Maybe not relevant
   public static class AndroidLintStopShipInspection extends AndroidLintInspectionBase {
     public AndroidLintStopShipInspection() {
       super(AndroidBundle.message("android.lint.inspections.stop.ship"), CommentDetector.STOP_SHIP);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      // TODO: Remove comment if that's all that remains
+      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Remove STOPSHIP", "(\\s*STOPSHIP)", "")};
+    }
   }
+
   public static class AndroidLintStringShouldBeIntInspection extends AndroidLintInspectionBase {
     public AndroidLintStringShouldBeIntInspection() {
       super(AndroidBundle.message("android.lint.inspections.string.should.be.int"), GradleDetector.STRING_INTEGER);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String current = GradleDetector.getOldValue(GradleDetector.STRING_INTEGER, message, RAW);
+      String proposed = GradleDetector.getNewValue(GradleDetector.STRING_INTEGER, message, RAW);
+      if (proposed != null && current != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with integer", current, proposed)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintSuspicious0dpInspection extends AndroidLintInspectionBase {
     public AndroidLintSuspicious0dpInspection() {
       super(AndroidBundle.message("android.lint.inspections.suspicious0dp"), InefficientWeightDetector.WRONG_0DP);
     }
   }
+
   public static class AndroidLintTyposInspection extends AndroidLintInspectionBase {
     public AndroidLintTyposInspection() {
       super(AndroidBundle.message("android.lint.inspections.typos"), TypoDetector.ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      List<String> suggestions = TypoDetector.getSuggestions(message, RAW);
+      if (suggestions != null && !suggestions.isEmpty()) {
+        List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.size());
+        for (String suggestion : suggestions) {
+          fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", null, suggestion));
+        }
+        return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintUniquePermissionInspection extends AndroidLintInspectionBase {
     public AndroidLintUniquePermissionInspection() {
       super(AndroidBundle.message("android.lint.inspections.unique.permission"), ManifestDetector.UNIQUE_PERMISSION);
@@ -1236,12 +1567,47 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintWrongCallInspection() {
       super(AndroidBundle.message("android.lint.inspections.wrong.call"), WrongCallDetector.ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String current = WrongCallDetector.getOldValue(message, RAW);
+      String proposed = WrongCallDetector.getNewValue(message, RAW);
+      if (proposed != null && current != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace call with " + proposed + "()", current, proposed)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
     public AndroidLintWrongCaseInspection() {
       super(AndroidBundle.message("android.lint.inspections.wrong.case"), WrongCaseDetector.WRONG_CASE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      final String current = WrongCaseDetector.getOldValue(message, RAW);
+      final String proposed = WrongCaseDetector.getNewValue(message, RAW);
+      if (proposed != null && current != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed) {
+          @Override
+          protected void editAfter(@SuppressWarnings("UnusedParameters") @NotNull Document document) {
+            String text = document.getText();
+            int index = text.indexOf("</" + current + ">");
+            if (index != -1) {
+              document.replaceString(index + 2, index + 2 + current.length(), proposed);
+            }
+          }
+        }};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
+
   public static class AndroidLintWrongFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintWrongFolderInspection() {
       super(AndroidBundle.message("android.lint.inspections.wrong.folder"), WrongLocationDetector.ISSUE);

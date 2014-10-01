@@ -48,8 +48,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ActionRunner;
 import com.intellij.util.PlatformIcons;
-import icons.MavenIcons;
-import org.jetbrains.android.facet.AndroidFacet;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,7 +199,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       @Override
       public void run(AnActionButton button) {
         ImmutableList<PopupAction> popupActions = ImmutableList.of(
-          new PopupAction(MavenIcons.MavenLogo, 1, "Library dependency") {
+          new PopupAction(AndroidIcons.MavenLogo, 1, "Library dependency") {
             @Override
             public void run() {
               addExternalDependency();
@@ -278,8 +277,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
 
   private void addExternalDependency() {
     Module module = GradleUtil.findModuleByGradlePath(myProject, myModulePath);
-    boolean isAndroidModule = module != null && AndroidFacet.getInstance(module) != null;
-    MavenDependencyLookupDialog dialog = new MavenDependencyLookupDialog(myProject, isAndroidModule);
+    MavenDependencyLookupDialog dialog = new MavenDependencyLookupDialog(myProject, module);
     dialog.setTitle("Choose Library Dependency");
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
@@ -422,7 +420,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       //noinspection EnumSwitchStatementWhichMissesCases
       switch (dependency.type) {
         case EXTERNAL:
-          icon = MavenIcons.MavenLogo;
+          icon = AndroidIcons.MavenLogo;
           break;
         case FILES:
           icon = PlatformIcons.LIBRARY_ICON;

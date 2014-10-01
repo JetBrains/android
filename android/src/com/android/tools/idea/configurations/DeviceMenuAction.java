@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -23,6 +24,8 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -100,9 +103,56 @@ public class DeviceMenuAction extends FlatComboAction {
           }
         }
       }
+
+      String skipPrefix = "Android ";
+      if (name.startsWith(skipPrefix)) {
+        name = name.substring(skipPrefix.length());
+      }
     }
 
     return name;
+  }
+
+  /** TODO: Combine with {@link com.android.tools.idea.wizard.FormFactorUtils.FormFactor} */
+  public enum FormFactor {
+    MOBILE, WEAR, GLASS, TV, CAR;
+
+    public static FormFactor getFormFactor(@NotNull Device device) {
+      if (HardwareConfigHelper.isWear(device)) {
+        return WEAR;
+      } else if (HardwareConfigHelper.isTv(device)) {
+        return TV;
+      }
+      // Glass, Car not yet in the device list
+
+      return MOBILE;
+    }
+
+    @NotNull
+    public Icon getIcon() {
+      switch (this) {
+        case CAR: return AndroidIcons.FormFactors.Car_16;
+        case WEAR: return AndroidIcons.FormFactors.Wear_16;
+        case TV: return AndroidIcons.FormFactors.Tv_16;
+        case GLASS: return AndroidIcons.FormFactors.Glass_16;
+        case MOBILE:
+        default:
+          return AndroidIcons.FormFactors.Mobile_16;
+      }
+    }
+
+    @NotNull
+    public Icon getLargeIcon() {
+      switch (this) {
+        case CAR: return AndroidIcons.FormFactors.Car_128;
+        case WEAR: return AndroidIcons.FormFactors.Wear_128;
+        case TV: return AndroidIcons.FormFactors.Tv_128;
+        case GLASS: return AndroidIcons.FormFactors.Glass_128;
+        case MOBILE:
+        default:
+          return AndroidIcons.FormFactors.Mobile_128;
+      }
+    }
   }
 
   @Override
@@ -123,7 +173,8 @@ public class DeviceMenuAction extends FlatComboAction {
         boolean separatorNeeded = false;
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
-          group.add(new SetDeviceAction(myRenderContext, label, device, device == current));
+          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          group.add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
           separatorNeeded = true;
         }
         if (separatorNeeded) {
@@ -145,7 +196,8 @@ public class DeviceMenuAction extends FlatComboAction {
         if (device != null) {
           String avdName = "AVD: " + avd.getName();
           boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
-          group.add(new SetDeviceAction(myRenderContext, avdName, device, selected));
+          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          group.add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
           separatorNeeded = true;
         }
       }
@@ -155,17 +207,10 @@ public class DeviceMenuAction extends FlatComboAction {
       }
     }
 
-    // Group the devices by manufacturer, then put them in the menu.
-    // If we don't have anything but Nexus devices, group them together rather than
-    // make many manufacturer submenus.
-    boolean haveNexus = false;
     if (!deviceList.isEmpty()) {
       Map<String, List<Device>> manufacturers = new TreeMap<String, List<Device>>();
       for (Device device : deviceList) {
         List<Device> devices;
-        if (isNexus(device)) {
-          haveNexus = true;
-        }
         if (manufacturers.containsKey(device.getManufacturer())) {
           devices = manufacturers.get(device.getManufacturer());
         }
@@ -176,57 +221,33 @@ public class DeviceMenuAction extends FlatComboAction {
         devices.add(device);
       }
       List<Device> nexus = new ArrayList<Device>();
-      List<Device> generic = new ArrayList<Device>();
-      if (haveNexus) {
-        // Nexus
-        for (List<Device> devices : manufacturers.values()) {
-          for (Device device : devices) {
-            if (isNexus(device)) {
-              if (device.getManufacturer().equals(MANUFACTURER_GENERIC)) {
-                generic.add(device);
-              }
-              else {
-                nexus.add(device);
-              }
-            }
-            else {
-              generic.add(device);
-            }
+      Map<FormFactor,List<Device>> deviceMap = Maps.newEnumMap(FormFactor.class);
+      for (FormFactor factor : FormFactor.values()) {
+        deviceMap.put(factor, Lists.<Device>newArrayList());
+      }
+      for (List<Device> devices : manufacturers.values()) {
+        for (Device device : devices) {
+          if (isNexus(device) && !device.getManufacturer().equals(MANUFACTURER_GENERIC)) {
+            nexus.add(device);
+          } else {
+            deviceMap.get(FormFactor.getFormFactor(device)).add(device);
           }
         }
       }
 
-      if (!nexus.isEmpty()) {
-        sortNexusList(nexus);
-        for (final Device device : nexus) {
-          if (device.getId().equals("Nexus 5")) {
-            // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
-            // fixed in that revision
-            IAndroidTarget target = myRenderContext.getConfiguration().getTarget();
-            if (target == null) {
-              continue;
-            }
-            AndroidVersion version = target.getVersion();
-            if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
-              continue;
-            }
-          }
-          String label = getLabel(device, true /*nexus*/);
-          group.add(new SetDeviceAction(myRenderContext, label, device, current == device));
-        }
+      sortNexusList(nexus);
+      addNexusDeviceSection(group, current, nexus);
+      group.addSeparator();
+      addDeviceSection(group, current, deviceMap, false, FormFactor.WEAR);
+      group.addSeparator();
+      addDeviceSection(group, current, deviceMap, false, FormFactor.TV);
+      group.addSeparator();
 
-        group.addSeparator();
-      }
-
-      // Generate the generic menu.
-      Collections.reverse(generic);
-      for (final Device device : generic) {
-        String label = getLabel(device, false /*nexus*/);
-        group.add(new SetDeviceAction(myRenderContext, label, device, current == device));
-      }
+      DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
+      addDeviceSection(genericGroup, current, deviceMap, true, FormFactor.MOBILE);
+      group.add(genericGroup);
     }
 
-    group.addSeparator();
     group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
     group.addSeparator();
     if (RenderPreviewMode.getCurrent() != RenderPreviewMode.SCREENS) {
@@ -236,6 +257,45 @@ public class DeviceMenuAction extends FlatComboAction {
     }
 
     return group;
+  }
+
+  private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
+    for (final Device device : devices) {
+      if (device.getId().equals("Nexus 5")) {
+        // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
+        // fixed in that revision
+        Configuration configuration = myRenderContext.getConfiguration();
+        if (configuration != null) {
+          IAndroidTarget target = configuration.getTarget();
+          if (target == null) {
+            continue;
+          }
+          AndroidVersion version = target.getVersion();
+          if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
+            continue;
+          }
+        }
+      }
+      String label = getLabel(device, true /*nexus*/);
+      Icon icon = FormFactor.getFormFactor(device).getIcon();
+      group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+    }
+  }
+
+  private void addDeviceSection(@NotNull DefaultActionGroup group,
+                                @Nullable Device current,
+                                @NotNull Map<FormFactor, List<Device>> deviceMap,
+                                boolean reverse,
+                                @NotNull FormFactor factor) {
+    List<Device> generic = deviceMap.get(factor);
+    if (reverse) {
+      Collections.reverse(generic);
+    }
+    for (final Device device : generic) {
+      String label = getLabel(device, false /*nexus*/);
+      Icon icon = FormFactor.getFormFactor(device).getIcon();
+      group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+    }
   }
 
   private String getLabel(Device device, boolean isNexus) {
@@ -257,6 +317,7 @@ public class DeviceMenuAction extends FlatComboAction {
     public SetDeviceAction(@NotNull RenderContext renderContext,
                            @NotNull final String title,
                            @NotNull final Device device,
+                           @Nullable Icon defaultIcon,
                            final boolean select) {
       super(renderContext, title);
       myDevice = device;
@@ -264,6 +325,8 @@ public class DeviceMenuAction extends FlatComboAction {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
       } else if (ConfigurationAction.isBetterMatchLabel(title)) {
         getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
+      } else if (defaultIcon != null) {
+        getTemplatePresentation().setIcon(defaultIcon);
       }
     }
 
@@ -280,7 +343,7 @@ public class DeviceMenuAction extends FlatComboAction {
       Device prevDevice = configuration.getDevice();
       State prevState = configuration.getDeviceState();
       String newState = prevState != null ? prevState.getName() : null;
-      if (prevDevice != null && prevState != null && configuration.getDeviceState() == prevDevice.getDefaultState() &&
+      if (prevDevice != null && prevState != null && prevState.isDefaultState() &&
           !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
           configuration.getEditedConfig().getScreenOrientationQualifier() == null) {
         VirtualFile file = configuration.getFile();

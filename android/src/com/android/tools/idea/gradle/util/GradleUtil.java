@@ -17,15 +17,17 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,11 +41,16 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.util.Processor;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
@@ -63,13 +70,20 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
@@ -87,10 +101,11 @@ public final class GradleUtil {
   @NonNls private static final String GRADLE_EXECUTABLE_NAME =
     SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WIN : SdkConstants.FN_GRADLE_UNIX;
 
-  @NonNls private static final String GRADLEW_PROPERTIES_PATH =
+  @NonNls public static final String GRADLEW_PROPERTIES_PATH =
     FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
+  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   /**
@@ -106,7 +121,11 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  // This is temporary, until the model returns more outputs per artifact.
+  /**
+   * This is temporary, until the model returns more outputs per artifact.
+   * Deprecating since the model 0.13 provides multiple outputs per artifact if split apks are enabled.
+   */
+  @Deprecated
   @NotNull
   public static AndroidArtifactOutput getOutput(@NotNull AndroidArtifact artifact) {
     Collection<AndroidArtifactOutput> outputs = artifact.getOutputs();
@@ -230,37 +249,24 @@ public final class GradleUtil {
    * @param gradleVersion  the Gradle version to update the property to.
    * @param propertiesFile the given Gradle wrapper properties file.
    * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
-   *         correct value.
+   * correct value.
    * @throws IOException if something goes wrong when saving the file.
    */
   public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
-    Properties properties = loadGradleWrapperProperties(propertiesFile);
+    Properties properties = PropertiesUtil.getProperties(propertiesFile);
     String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion, false);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (property != null && (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
       return false;
     }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistributionUrl);
-    FileOutputStream out = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      out = new FileOutputStream(propertiesFile);
-      properties.store(out, null);
-      return true;
-    }
-    finally {
-      try {
-        Closeables.close(out, true);
-      }
-      catch (IOException unexpected) {
-        LOG.info(unexpected);
-      }
-    }
+    PropertiesUtil.savePropertiesToFile(properties, propertiesFile, null);
+    return true;
   }
 
   @Nullable
   public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
-    Properties properties = loadGradleWrapperProperties(propertiesFile);
+    Properties properties = PropertiesUtil.getProperties(propertiesFile);
     String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (url == null) {
       return null;
@@ -270,26 +276,6 @@ public final class GradleUtil {
       return m.group(1);
     }
     return null;
-  }
-
-  @NotNull
-  private static Properties loadGradleWrapperProperties(@NotNull File propertiesFile) throws IOException {
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(propertiesFile);
-      properties.load(fileInputStream);
-      return properties;
-    }
-    finally {
-      try {
-        Closeables.close(fileInputStream, true);
-      }
-      catch (IOException unexpected) {
-        LOG.info(unexpected);
-      }
-    }
   }
 
   @NotNull
@@ -497,7 +483,7 @@ public final class GradleUtil {
    * <p/>
    * E.g. ":module" becomes "module" and ":directory:module" is converted to "directory/module"
    */
-  @NotNull @VisibleForTesting
+  @NotNull
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
     List<String> segments = getPathSegments(name);
     return FileUtil.join(segments.toArray(new String[segments.size()]));
@@ -517,7 +503,7 @@ public final class GradleUtil {
    * Prefixes string with colon if there isn't one already there.
    */
   @Nullable
-  @Contract ("null -> null;!null -> !null")
+  @Contract("null -> null;!null -> !null")
   public static String makeAbsolute(String string) {
     if (string == null) {
       return null;
@@ -537,7 +523,6 @@ public final class GradleUtil {
    * Tests if the Gradle path is valid and return index of the offending
    * character or -1 if none.
    * <p/>
-
    */
   public static int isValidGradlePath(@NotNull String gradlePath) {
     return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
@@ -546,9 +531,7 @@ public final class GradleUtil {
   /**
    * Checks if the project already has a module with given Gradle path.
    */
-  public static boolean hasModule(@Nullable Project project,
-                                  @NotNull String gradlePath,
-                                  boolean checkProjectFolder) {
+  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath, boolean checkProjectFolder) {
     if (project == null) {
       return false;
     }
@@ -589,5 +572,237 @@ public final class GradleUtil {
     for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
       preferences.unregisterExtension(toRemove);
     }
+  }
+
+  /**
+   * Attempts to figure out the Gradle version of the given distribution.
+   *
+   * @param gradleHomePath the path of the directory containing the Gradle distribution.
+   * @return the Gradle version of the given distribution, or {@code null} if it was not possible to obtain the version.
+   */
+  @Nullable
+  public static FullRevision getGradleVersion(@NotNull File gradleHomePath) {
+    File libDirPath = new File(gradleHomePath, "lib");
+
+    for (File child : FileUtil.notNullize(libDirPath.listFiles())) {
+      FullRevision version = getGradleVersionFromJar(child);
+      if (version != null) {
+        return version;
+      }
+    }
+
+    return null;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static FullRevision getGradleVersionFromJar(@NotNull File libraryJarFile) {
+    String fileName = libraryJarFile.getName();
+    Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
+    if (matcher.matches()) {
+      // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
+      String version = matcher.group(2);
+      try {
+        return FullRevision.parseRevision(version);
+      }
+      catch (NumberFormatException e) {
+        LOG.warn(String.format("Unable to parse version '%1$s' (obtained from file '%2$s')", version, fileName));
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Creates the Gradle wrapper in the project at the given directory.
+   *
+   * @param projectDirPath the project's root directory.
+   * @param gradleVersion the version of Gradle to use. If not specified, this method will use the latest supported version of Gradle.
+   * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
+   * not created (e.g. the template files for the wrapper were not found.)
+   * @throws IOException any unexpected I/O error.
+   *
+   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   */
+  public static boolean createGradleWrapper(@NotNull File projectDirPath, @Nullable String gradleVersion) throws IOException {
+    File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
+    if (!projectWrapperDirPath.isDirectory()) {
+      File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
+      if (!wrapperSrcDirPath.exists()) {
+        for (File root : TemplateManager.getExtraTemplateRootFolders()) {
+          wrapperSrcDirPath = new File(root, FD_GRADLE_WRAPPER);
+          if (wrapperSrcDirPath.exists()) {
+            break;
+          }
+          else {
+            wrapperSrcDirPath = null;
+          }
+        }
+      }
+      if (wrapperSrcDirPath == null) {
+        return false;
+      }
+      FileUtil.copyDirContent(wrapperSrcDirPath, projectDirPath);
+    }
+    File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectDirPath);
+    String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
+    updateGradleDistributionUrl(version, wrapperPropertiesFile);
+    return true;
+  }
+
+  @Nullable
+  public static String getSupportedGradleVersion(@NotNull Project project) {
+    FullRevision modelVersion = getResolvedAndroidGradleModelVersion(project);
+    if (modelVersion != null) {
+      return getSupportedGradleVersion(modelVersion);
+    }
+    return null;
+  }
+
+  @Nullable
+  public static String getSupportedGradleVersion(@NotNull FullRevision modelVersion) {
+    if (modelVersion.getMajor() == 0) {
+      return modelVersion.getMinor() >= 13 ? SdkConstants.GRADLE_LATEST_VERSION : SdkConstants.GRADLE_MINIMUM_VERSION;
+    }
+    return null;
+  }
+
+  /**
+   * Finds the version of the Android Gradle plug-in being used in the given project.
+   * <p>
+   * The version is returned as it is specified in build files if it does not use "+" notation.
+   * </p>
+   * <p>
+   * If the version is using "+" notation for the "micro" portion, this method replaces the "+" with a zero. For example: "0.13.+" will be
+   * returned as "0.13.0". In practice, the micro portion of the version is not used.
+   * </p>
+   * <p>
+   * If the version in build files is "+" or uses "+" for the major or minor portions, this method will find the latest version in the local
+   * Gradle cache.
+   * </p>
+   *
+   * @param project the given project.
+   * @return the version of the Android Gradle plug-in being used in the given project. (or an approximation.)
+   */
+  @Nullable
+  public static FullRevision getResolvedAndroidGradleModelVersion(@NotNull Project project) {
+    VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) {
+      // This is default project.
+      return null;
+    }
+    final Ref<FullRevision> modelVersionRef = new Ref<FullRevision>();
+    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+      @Override
+      public boolean process(VirtualFile virtualFile) {
+        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          File fileToCheck = VfsUtilCore.virtualToIoFile(virtualFile);
+          try {
+            String contents = FileUtil.loadFile(fileToCheck);
+            FullRevision version = getResolvedAndroidGradleModelVersion(contents);
+            if (version != null) {
+              modelVersionRef.set(version);
+              return false; // we found the model version. Stop.
+            }
+          }
+          catch (IOException e) {
+            LOG.warn("Failed to read contents of " + fileToCheck.getPath());
+          }
+        }
+        return true;
+      }
+    });
+
+    return modelVersionRef.get();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents) {
+    GradleCoordinate found = null;
+
+    GroovyLexer lexer = new GroovyLexer();
+    lexer.start(fileContents);
+    while (lexer.getTokenType() != null) {
+      IElementType type = lexer.getTokenType();
+      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
+        String text = StringUtil.unquoteString(lexer.getTokenText());
+        if (text.startsWith(SdkConstants.GRADLE_PLUGIN_NAME)) {
+          found = GradleCoordinate.parseCoordinateString(text);
+          if (found != null) {
+            break;
+          }
+        }
+      }
+      lexer.advance();
+    }
+
+    if (found != null) {
+      String revision = getAndroidGradleModelVersion(found);
+      if (StringUtil.isNotEmpty(revision)) {
+        try {
+          return FullRevision.parseRevision(revision);
+        }
+        catch (NumberFormatException ignored) {
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getAndroidGradleModelVersion(@NotNull GradleCoordinate coordinate) {
+    String revision = coordinate.getFullRevision();
+    if (StringUtil.isNotEmpty(revision)) {
+      if (!coordinate.acceptsGreaterRevisions()) {
+        return revision;
+      }
+
+      // For the Android plug-in we don't care about the micro version. Major and minor only matter.
+      int major = coordinate.getMajorVersion();
+      int minor = coordinate.getMinorVersion();
+      if (coordinate.getMicroVersion() == -1 && major >= 0 && minor > 0) {
+        return major + "." + minor + "." + 0;
+      }
+    }
+    GradleCoordinate latest = findLatestVersionInGradleCache(coordinate, null);
+    return latest != null ? latest.getFullRevision() : null;
+  }
+
+  @Nullable
+  public static GradleCoordinate findLatestVersionInGradleCache(@NotNull GradleCoordinate original, @Nullable String filter) {
+    List<GradleCoordinate> coordinates = Lists.newArrayList();
+    File gradleCache = new File(SystemProperties.getUserHome(), FileUtil.join(DOT_GRADLE, "caches"));
+    if (gradleCache.exists()) {
+      String groupId = original.getGroupId();
+      String artifactId = original.getArtifactId();
+      for (File moduleDir : FileUtil.notNullize(gradleCache.listFiles())) {
+        if (!moduleDir.getName().startsWith("modules-") || !moduleDir.isDirectory()) {
+          continue;
+        }
+        for (File metadataDir : FileUtil.notNullize(moduleDir.listFiles())) {
+          if (!metadataDir.getName().startsWith("metadata-") || !metadataDir.isDirectory()) {
+            continue;
+          }
+          File versionDir = new File(metadataDir, FileUtil.join("descriptors", groupId, artifactId));
+          if (!versionDir.isDirectory()) {
+            continue;
+          }
+          for (File version : FileUtil.notNullize(versionDir.listFiles())) {
+            String name = version.getName();
+            if ((filter == null || name.startsWith(filter)) && !name.isEmpty() && Character.isDigit(name.charAt(0))) {
+              GradleCoordinate found = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + name);
+              if (found != null) {
+                coordinates.add(found);
+              }
+            }
+          }
+        }
+      }
+      if (!coordinates.isEmpty()) {
+        Collections.sort(coordinates, GradleCoordinate.COMPARE_PLUS_LOWER);
+        return coordinates.get(coordinates.size() - 1);
+      }
+    }
+    return null;
   }
 }

@@ -65,6 +65,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   private JPanel myNorthPanel;
   private JPanel myCustomHeaderPanel;
   private JPanel myTitlePanel;
+  private JPanel mySouthPanel;
   private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
 
   /**
@@ -89,7 +90,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myIcon.setIcon(icon);
     int fontHeight = myMessageLabel.getFont().getSize();
     myTitleLabel.setBorder(BorderFactory.createEmptyBorder(fontHeight, 0, fontHeight, 0));
-    myMessageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, fontHeight, 0));
+    mySouthPanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     if (getTitleBackgroundColor() != null) {
       myTitlePanel.setBackground(getTitleBackgroundColor());
       myNorthPanel.setBackground(getTitleBackgroundColor());
@@ -102,15 +103,14 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     JComponent header = getHeader();
     if (header != null) {
       myCustomHeaderPanel.add(header, BorderLayout.CENTER);
-      header.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
       myCustomHeaderPanel.setVisible(true);
       myCustomHeaderPanel.repaint();
-      myTitlePanel.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+      myTitlePanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     } else {
-      Insets topSegmentInsets = new Insets(DynamicWizard.STUDIO_WIZARD_TOP_INSET,
-                                           DynamicWizard.STUDIO_WIZARD_INSETS.left,
-                                           DynamicWizard.STUDIO_WIZARD_INSETS.bottom,
-                                           DynamicWizard.STUDIO_WIZARD_INSETS.right);
+      Insets topSegmentInsets = new Insets(WizardConstants.STUDIO_WIZARD_TOP_INSET,
+                                           WizardConstants.STUDIO_WIZARD_INSETS.left,
+                                           WizardConstants.STUDIO_WIZARD_INSETS.bottom,
+                                           WizardConstants.STUDIO_WIZARD_INSETS.right);
       myNorthPanel.setBorder(new EmptyBorder(topSegmentInsets));
     }
 
@@ -134,7 +134,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
       myFocusListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-          updateDescription((JComponent)evt.getNewValue());
+          if (evt.getNewValue() instanceof Component) {
+            updateDescription((Component)evt.getNewValue());
+          }
         }
       };
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
@@ -147,8 +149,15 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
   }
 
-  private void updateDescription(JComponent focusedComponent) {
-    myState.put(KEY_DESCRIPTION, myControlDescriptions.get(focusedComponent));
+  private String getDescriptionText(Component component) {
+    while (component instanceof Component && !myControlDescriptions.containsKey(component)) {
+      component = component.getParent();
+    }
+    return component != null ? myControlDescriptions.get(component) : "";
+  }
+
+  private void updateDescription(Component focusedComponent) {
+    myState.put(KEY_DESCRIPTION, getDescriptionText(focusedComponent));
   }
 
   @Override
@@ -159,8 +168,13 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   protected final void setBodyComponent(JComponent component) {
-    component.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+    component.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     myRootPane.add(component, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  protected String getTitle() {
+    return myTitle;
   }
 
   @Override

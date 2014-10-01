@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.invoker.messages;
 
+import com.android.tools.idea.ui.MultilineColoredTreeCellRenderer;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.errorTreeView.*;
-import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.EmptyIcon;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -28,9 +29,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
 * Renders elements in the "Messages" window. This renderer does not add the message type as a prefix (e.g. "Information:");
 */
-class MessageTreeRenderer extends MultilineTreeCellRenderer {
+class MessageTreeRenderer extends MultilineColoredTreeCellRenderer {
   @Override
-  protected void initComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+  protected void initComponent(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
     ErrorTreeElement element = getElement(value);
 
     if (element != null) {
@@ -52,24 +53,26 @@ class MessageTreeRenderer extends MultilineTreeCellRenderer {
     }
     else if (element instanceof SimpleMessageElement || element instanceof NavigatableMessageElement) {
       ErrorTreeElementKind kind = element.getKind();
-      switch (kind) {
-        case ERROR:
-          icon = AllIcons.General.BalloonError;
-          break;
-        case WARNING:
-          icon = AllIcons.General.BalloonWarning;
-          break;
-        case INFO:
-          icon = AllIcons.General.BalloonInformation;
-          break;
-        default:
-          icon = EmptyIcon.ICON_16;
-      }
+      icon = getIconFor(kind);
     }
     if (icon == null) {
       icon = EmptyIcon.ICON_16;
     }
     setIcon(icon);
+  }
+
+  @NotNull
+  private static Icon getIconFor(@NotNull ErrorTreeElementKind kind) {
+    switch (kind) {
+      case ERROR:
+        return AllIcons.General.BalloonError;
+      case WARNING:
+        return AllIcons.General.BalloonWarning;
+      case INFO:
+        return AllIcons.General.BalloonInformation;
+      default:
+        return EmptyIcon.ICON_16;
+    }
   }
 
   @Nullable

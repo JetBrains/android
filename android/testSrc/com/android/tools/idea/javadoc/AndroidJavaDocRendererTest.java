@@ -233,6 +233,21 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</body></html>");
   }
 
+  public void testAlphaColor() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/values2.xml", "res/values/values2.xml");
+    checkJavadoc("/javadoc/colors/layout3.xml", "res/layout/layout.xml",
+                 "<html><body>" +
+                 "<table style=\"background-color:rgb(0,0,0);color:white;width:200px;text-align:center;vertical-align:middle;\" " +
+                 "border=\"0\">" +
+                 "<tr height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\">#80000000" +
+                 "</td>" +
+                 "</tr>" +
+                 "</table><BR/>\n" +
+                 "@color/my_color => #80000000<BR/>\n" +
+                 "</body></html>");
+  }
+
   public void testColorsAndResolution() {
     // This test checks
     //  - invoking XML documentation from an XML text node
@@ -251,6 +266,21 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</table><BR/>\n" +
                  "@color/first => @color/second => @color/third => third.xml => @color/fourth => #aa44aa<BR/>\n" +
                  "</body></html>");
+  }
+
+  public void testStyle() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
+    checkJavadoc("/javadoc/styles/layout.xml", "res/layout/layout.xml",
+                 "<html><body><BR/>\n" +
+                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>\n" +
+                 "<BR/>\n" +
+                 "<hr><B>TextAppearance.Medium</B>:<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;<B>textColor</B> = ?textColorPrimary<BR/>\n" +
+                 "<table style=\"background-color:rgb(0,0,0);color:white;width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;<B>textStyle</B> = normal&nbsp;&nbsp;&nbsp;&nbsp;<B>textSize</B> = 18sp<BR/>\n" +
+                 "Inherits from: @android:style/TextAppearance:<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;<B>textColorHighlight</B> = #FFFF9200&nbsp;&nbsp;&nbsp;&nbsp;<B>textColorLink</B> = #5C5CFF</body></html>");
   }
 
   // TODO: Test flavor docs

@@ -77,6 +77,9 @@ public abstract class IdeaSourceProvider {
   public abstract Set<VirtualFile> getJniDirectories();
 
   @NotNull
+  public abstract Set<VirtualFile> getJniLibsDirectories();
+
+  @NotNull
   public abstract Set<VirtualFile> getResDirectories();
 
   @NotNull
@@ -155,6 +158,12 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
+    public Set<VirtualFile> getJniLibsDirectories() {
+      return convertFileSet(myProvider.getJniLibsDirectories());
+    }
+
+    @NotNull
+    @Override
     public Set<VirtualFile> getResDirectories() {
       // TODO: Perform some caching; this method gets called a lot!
       return convertFileSet(myProvider.getResDirectories());
@@ -165,11 +174,36 @@ public abstract class IdeaSourceProvider {
     public Set<VirtualFile> getAssetsDirectories() {
       return convertFileSet(myProvider.getAssetsDirectories());
     }
+
+    /**
+     * Compares another source provider with this for equality. Returns true if the specified object is also a Gradle source provider,
+     * has the same name, and the same set of source locations.
+     */
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Gradle that = (Gradle)o;
+      if (!myProvider.getName().equals(that.getName())) return false;
+      if (!myProvider.getManifestFile().getPath().equals(that.myProvider.getManifestFile().getPath())) return false;
+
+      return true;
+    }
+
+    /**
+     * Returns the hash code for this source provider. The hash code simply provides the hash of the manifest file's location,
+     * but this follows the required contract that if two source providers are equal, their hash codes will be the same.
+     */
+    @Override
+    public int hashCode() {
+      return myProvider.getManifestFile().getPath().hashCode();
+    }
   }
 
   /** {@linkplain IdeaSourceProvider} for a legacy (non-Gradle) Android project */
   private static class Legacy extends IdeaSourceProvider {
-    private final AndroidFacet myFacet;
+    @NotNull private final AndroidFacet myFacet;
 
     private Legacy(@NotNull AndroidFacet facet) {
       myFacet = facet;
@@ -226,6 +260,12 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
+    public Set<VirtualFile> getJniLibsDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
     public Set<VirtualFile> getResDirectories() {
       String resRelPath = myFacet.getProperties().RES_FOLDER_RELATIVE_PATH;
       final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), resRelPath, true);
@@ -243,10 +283,25 @@ public abstract class IdeaSourceProvider {
       assert dir != null;
       return Collections.singleton(dir);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Legacy that = (Legacy)o;
+      return myFacet.equals(that.myFacet);
+    }
+
+    @Override
+    public int hashCode() {
+      return myFacet.hashCode();
+    }
+
   }
 
   /**
-   * Returns an iterable of source providers, in the overlay order (meaning that later providers
+   * Returns a list of source providers, in the overlay order (meaning that later providers
    * override earlier providers when they redefine resources) for the currently selected variant.
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
@@ -254,17 +309,17 @@ public abstract class IdeaSourceProvider {
    * The overlay source order is defined by the Android Gradle plugin.
    */
   @NotNull
-  public static Iterable<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
+  public static List<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject()) {
-      return Collections.singletonList(facet.getMainIdeaSourceSet());
+      return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
 
     List<IdeaSourceProvider> providers = Lists.newArrayList();
 
-    providers.add(facet.getMainIdeaSourceSet());
-    List<IdeaSourceProvider> flavorSourceSets = facet.getIdeaFlavorSourceSets();
-    if (flavorSourceSets != null) {
-      for (IdeaSourceProvider provider : flavorSourceSets) {
+    providers.add(facet.getMainIdeaSourceProvider());
+    List<IdeaSourceProvider> flavorSourceProviders = facet.getIdeaFlavorSourceProviders();
+    if (flavorSourceProviders != null) {
+      for (IdeaSourceProvider provider : flavorSourceProviders) {
         providers.add(provider);
       }
     }
@@ -274,15 +329,37 @@ public abstract class IdeaSourceProvider {
       providers.add(multiProvider);
     }
 
-    IdeaSourceProvider buildTypeSourceSet = facet.getIdeaBuildTypeSourceSet();
-    if (buildTypeSourceSet != null) {
-      providers.add(buildTypeSourceSet);
+    IdeaSourceProvider buildTypeSourceProvider = facet.getIdeaBuildTypeSourceProvider();
+    if (buildTypeSourceProvider != null) {
+      providers.add(buildTypeSourceProvider);
     }
 
     IdeaSourceProvider variantProvider = facet.getIdeaVariantSourceProvider();
     if (variantProvider != null) {
       providers.add(variantProvider);
     }
+
+    return providers;
+  }
+
+  @NotNull
+  public static List<IdeaSourceProvider> getCurrentTestSourceProviders(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject()) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+
+    providers.addAll(facet.getMainIdeaTestSourceProviders());
+    providers.addAll(facet.getIdeaFlavorTestSourceProviders());
+
+    //TODO: Does this make sense?
+    //providers.addAll(facet.getIdeaMultiFlavorTestSourceProviders());
+
+    providers.addAll(facet.getIdeaBuildTypeTestSourceProvider());
+
+    //TODO: Does this make sense?
+    //providers.addAll(facet.getIdeaVariantTestSourceProvider());
 
     return providers;
   }
@@ -417,7 +494,7 @@ public abstract class IdeaSourceProvider {
   @NotNull
   public static List<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
-      return Collections.singletonList(facet.getMainSourceSet());
+      return Collections.singletonList(facet.getMainSourceProvider());
     }
 
     AndroidProject androidProject = facet.getIdeaAndroidProject().getDelegate();
@@ -425,7 +502,7 @@ public abstract class IdeaSourceProvider {
     List<SourceProvider> providers = Lists.newArrayList();
 
     // Add main source set
-    providers.add(facet.getMainSourceSet());
+    providers.add(facet.getMainSourceProvider());
 
     // Add all flavors
     Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
@@ -459,9 +536,8 @@ public abstract class IdeaSourceProvider {
   }
 
   /**
-   * Returns an iterable of all IDEA source providers, for the given facet,
-   * in the overlay order (meaning that later providers
-   * override earlier providers when they redefine resources.)
+   * Returns a list of all IDEA source providers, for the given facet, in the overlay order
+   * (meaning that later providers override earlier providers when they redefine resources.)
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
    * <p>
@@ -571,14 +647,14 @@ public abstract class IdeaSourceProvider {
       }
       return false;
     } else {
-      return candidate.equals(facet.getMainIdeaSourceSet().getManifestFile());
+      return candidate.equals(facet.getMainIdeaSourceProvider().getManifestFile());
     }
   }
 
   /** Returns the manifest files in the given module */
   @NotNull
   public static List<VirtualFile> getManifestFiles(@NotNull AndroidFacet facet) {
-    VirtualFile main = facet.getMainIdeaSourceSet().getManifestFile();
+    VirtualFile main = facet.getMainIdeaSourceProvider().getManifestFile();
     if (!facet.isGradleProject()) {
       return main != null ? Collections.singletonList(main) : Collections.<VirtualFile>emptyList();
     }
@@ -637,6 +713,13 @@ public abstract class IdeaSourceProvider {
     @Override
     public List<VirtualFile> apply(IdeaSourceProvider provider) {
       return Lists.newArrayList(provider.getJniDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> JNI_LIBS_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getJniLibsDirectories());
     }
   };
 

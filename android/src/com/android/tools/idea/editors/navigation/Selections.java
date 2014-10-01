@@ -17,16 +17,27 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
 import com.android.navigation.Dimension;
+import com.android.navigation.NavigationModel.Event;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
+import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.rendering.RenderedView;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.Point;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Map;
 
-import com.android.navigation.NavigationModel.Event;
 import static com.android.tools.idea.editors.navigation.NavigationView.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
 
@@ -47,6 +58,9 @@ class Selections {
     protected abstract void paintOver(Graphics g);
 
     protected abstract void remove();
+
+    protected void configureInspector(Inspector inspector) {
+    }
   }
 
   private static class EmptySelection extends Selection {
@@ -72,12 +86,46 @@ class Selections {
     }
   }
 
+  private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
+                                                          HyperlinkLabel link, final String className) {
+    link.setOpaque(false);
+    if (className == null) {
+      return;
+    }
+    link.setHyperlinkText(className.substring(1 + className.lastIndexOf('.')));
+    link.addHyperlinkListener(new HyperlinkListener() {
+      @Override
+      public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
+        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.myConfiguration.getModule(), className);
+        if (psiClass != null) {
+          AndroidRootComponent.launchEditor(renderingParameters, psiClass.getContainingFile(), false);
+        }
+      }
+    });
+  }
+
+  private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
+                                                   HyperlinkLabel link, @Nullable final String xmlFileName, final boolean isMenu) {
+    link.setOpaque(false);
+    link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
+    link.addHyperlinkListener(new HyperlinkListener() {
+      @Override
+      public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
+        PsiFile layoutXmlFile =
+          NavigationView.getLayoutXmlFile(isMenu, xmlFileName, renderingParameters.myConfiguration, renderingParameters.myProject);
+        AndroidRootComponent.launchEditor(renderingParameters, layoutXmlFile, false);
+      }
+    });
+  }
+
   static class ComponentSelection<T extends Component> extends Selection {
+    protected final RenderingParameters myRenderingParameters;
     protected final T myComponent;
     protected final Transition myTransition;
     protected final NavigationModel myNavigationModel;
 
-    ComponentSelection(NavigationModel navigationModel, T component, Transition transition) {
+    ComponentSelection(RenderingParameters renderingParameters, NavigationModel navigationModel, T component, Transition transition) {
+      myRenderingParameters = renderingParameters;
       myNavigationModel = navigationModel;
       myComponent = component;
       myTransition = transition;
@@ -113,21 +161,45 @@ class Selections {
     protected void remove() {
       myNavigationModel.remove(myTransition);
     }
+
+    @Override
+    protected void configureInspector(Inspector inspector) {
+      TransitionInspector transitionInspector = new TransitionInspector();
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, myTransition.getSource().getState().getClassName());
+      {
+        JComboBox comboBox = transitionInspector.gesture;
+        comboBox.addItem(Transition.PRESS);
+        comboBox.addItem(Transition.SWIPE);
+        comboBox.setSelectedItem(myTransition.getType());
+        comboBox.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent itemEvent) {
+            myTransition.setType((String)itemEvent.getItem());
+            myNavigationModel.getListeners().notify(Event.update(Transition.class));
+          }
+        });
+      }
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.destination,
+                                          myTransition.getDestination().getState().getClassName());
+      inspector.setInspectorComponent(transitionInspector.container);
+    }
   }
 
   static class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
     protected final Point myMouseDownLocation;
     protected final Point myOrigComponentLocation;
+    @NotNull
     private final State myState;
     private final Transform myTransform;
 
     AndroidRootComponentSelection(NavigationModel navigationModel,
                                   AndroidRootComponent component,
-                                  Point mouseDownLocation,
                                   Transition transition,
-                                  State state,
+                                  RenderingParameters renderingParameters,
+                                  Point mouseDownLocation,
+                                  @NotNull State state,
                                   Transform transform) {
-      super(navigationModel, component, transition);
+      super(renderingParameters, navigationModel, component, transition);
       myMouseDownLocation = mouseDownLocation;
       myOrigComponentLocation = myComponent.getLocation();
       myState = state;
@@ -158,6 +230,58 @@ class Selections {
     protected Selection finaliseSelectionLocation(Point location) {
       moveTo(location, true);
       return this;
+    }
+
+    @Override
+    protected void configureInspector(final Inspector inspector) {
+      myState.accept(new State.Visitor<Void>() {
+        @Override
+        public Void visit(ActivityState state) {
+          final Module module = myRenderingParameters.myConfiguration.getModule();
+          ActivityInspector activityInspector = new ActivityInspector();
+          {
+            HyperlinkLabel link = activityInspector.classNameLabel;
+            final String className = myState.getClassName();
+            configureHyperLinkLabelForClassName(myRenderingParameters, link, className);
+          }
+          {
+            HyperlinkLabel link = activityInspector.xmlFileNameLabel;
+            configureHyperlinkForXMLFile(myRenderingParameters, link, Analyser.getXMLFileName(module, myState.getClassName(), true), false);
+          }
+          {
+            JPanel fragmentList = activityInspector.fragmentList;
+            fragmentList.removeAll();
+            fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
+            for (FragmentEntry entry : state.getFragments()) {
+              HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
+              configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
+              fragmentList.add(hyperlinkLabel);
+            }
+          }
+          {
+            JPanel propertyList = activityInspector.propertyList;
+            propertyList.removeAll();
+            propertyList.setLayout(new BoxLayout(propertyList, BoxLayout.Y_AXIS));
+            final String className = myState.getClassName();
+            PsiClass psiClass = Utilities.getPsiClass(module, className);
+            for (String propertyName : Analyser.findProperties(psiClass)) {
+              JLabel label = new JLabel(propertyName);
+              label.setOpaque(false);
+              propertyList.add(label);
+            }
+          }
+          inspector.setInspectorComponent(activityInspector.container);
+          return null;
+        }
+
+        @Override
+        public Void visit(MenuState state) {
+          MenuInspector menuInspector = new MenuInspector();
+          configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
+          inspector.setInspectorComponent(menuInspector.container);
+          return null;
+        }
+      });
     }
   }
 

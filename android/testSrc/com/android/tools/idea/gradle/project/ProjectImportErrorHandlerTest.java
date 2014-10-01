@@ -60,4 +60,36 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertNotNull(realCause);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
+
+  public void testGetUserFriendlyErrorWithOutOfMemoryError() {
+    OutOfMemoryError rootCause = new OutOfMemoryError("Java heap space");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
+    assertEquals("Out of memory: Java heap space", realCause.getMessage());
+  }
+
+  public void testGetUserFriendlyErrorWithNoSuchMethodError() {
+    NoSuchMethodError rootCause = new NoSuchMethodError("org.slf4j.spi.LocationAwareLogger.log");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
+    assertEquals("Unable to find method 'org.slf4j.spi.LocationAwareLogger.log'.", realCause.getMessage());
+  }
+
+  public void testGetUserFriendlyErrorWithClassNotFoundException() {
+    ClassNotFoundException rootCause = new ClassNotFoundException("com.android.utils.ILogger");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
+    assertEquals("Unable to load class 'com.android.utils.ILogger'.", realCause.getMessage());
+  }
+
+  public void testGetUserFriendlyErrorWithClassNotFoundExceptionWithLongerMessage() {
+    ClassNotFoundException rootCause = new ClassNotFoundException("com.novoda.gradle.robolectric.RobolectricPlugin not found.");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
+    assertEquals("Unable to load class 'com.novoda.gradle.robolectric.RobolectricPlugin'.", realCause.getMessage());
+  }
 }

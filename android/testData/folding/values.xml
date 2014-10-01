@@ -42,5 +42,6 @@
     <item quantity="one">Quantity One</item>
     <item quantity="few">Quantity Few</item>
   </plurals>
+  <integer name="shortint">1</integer>
 
 </resources>

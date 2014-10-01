@@ -85,19 +85,14 @@ public class BuilderExecutionSettingsTest extends TestCase {
     System.setProperty(USE_GRADLE_VERBOSE_LOGGING, "true");
     System.setProperty(GRADLE_CONFIGURATION_ON_DEMAND, "true");
 
-    System.setProperty(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, "2");
     System.setProperty(GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + 0, "--stacktrace");
     System.setProperty(GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + 1, "--offline");
-
-    System.setProperty(GRADLE_DAEMON_JVM_OPTION_COUNT, "2");
 
     String xmx = "-Xmx2048m";
     System.setProperty(GRADLE_DAEMON_JVM_OPTION_PREFIX + 0, xmx);
 
     String maxPermSize = "-XX:MaxPermSize=512m";
     System.setProperty(GRADLE_DAEMON_JVM_OPTION_PREFIX + 1, maxPermSize);
-
-    System.setProperty(HTTP_PROXY_PROPERTY_COUNT, "4");
 
     String httpProxyHost = "proxy.android.com";
     System.setProperty(HTTP_PROXY_PROPERTY_PREFIX + 0, "http.proxyHost:" + httpProxyHost);
@@ -109,9 +104,8 @@ public class BuilderExecutionSettingsTest extends TestCase {
     System.setProperty(HTTP_PROXY_PROPERTY_PREFIX + 2, "randomText");
     System.setProperty(HTTP_PROXY_PROPERTY_PREFIX + 3, "randomText:");
 
-    System.setProperty(MODULES_TO_BUILD_PROPERTY_COUNT, "2");
-    System.setProperty(MODULES_TO_BUILD_PROPERTY_PREFIX + 0, "main");
-    System.setProperty(MODULES_TO_BUILD_PROPERTY_PREFIX + 1, "lib");
+    System.setProperty(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, ":main:assemble");
+    System.setProperty(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 1, ":lib:assemble");
 
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
     assertEquals(gradleHomeDirPath, pathOf(settings.getGradleHomeDir()));
@@ -129,10 +123,10 @@ public class BuilderExecutionSettingsTest extends TestCase {
     assertTrue(vmOptions.contains("-Dhttp.proxyHost=" + httpProxyHost));
     assertTrue(vmOptions.contains("-Dhttp.proxyPort=" + httpProxyPort));
 
-    List<String> modulesToBuildNames = settings.getModulesToBuildNames();
+    List<String> modulesToBuildNames = settings.getGradleTasksToInvoke();
     assertEquals(2, modulesToBuildNames.size());
-    assertTrue(modulesToBuildNames.contains("main"));
-    assertTrue(modulesToBuildNames.contains("lib"));
+    assertTrue(modulesToBuildNames.contains(":main:assemble"));
+    assertTrue(modulesToBuildNames.contains(":lib:assemble"));
 
     List<String> commandLineOptions = settings.getCommandLineOptions();
     assertEquals(2, commandLineOptions.size());

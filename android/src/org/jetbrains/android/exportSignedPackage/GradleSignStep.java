@@ -19,6 +19,7 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -26,6 +27,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ArrayUtil;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -38,14 +40,14 @@ import java.util.List;
 import java.util.Set;
 
 public class GradleSignStep extends ExportSignedPackageWizardStep {
+  @NonNls private static final String PROPERTY_APK_PATH = "ExportApk.ApkPath";
+  @NonNls private static final String PROPERTY_BUILD_TYPE = "ExportApk.BuildType";
+  @NonNls private static final String PROPERTY_FLAVORS = "ExportApk.Flavors";
+
   private JPanel myContentPanel;
   private TextFieldWithBrowseButton myApkPathField;
   private JComboBox myBuildTypeCombo;
   private JBList myFlavorsList;
-
-  private static File ourLastApkFolder;
-  private static String ourLastSelectedBuildType;
-  private static List<String> ourLastSelectedFlavors;
 
   private final ExportSignedPackageWizard myWizard;
   private final DefaultListModel myFlavorsListModel = new DefaultListModel();
@@ -67,12 +69,15 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   public void _init() {
     myIdeaAndroidProject = myWizard.getFacet().getIdeaAndroidProject();
 
+    PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
+    String lastSelectedBuildType = properties.getValue(PROPERTY_BUILD_TYPE);
+
     myBuildTypeComboModel.removeAllElements();
     Set<String> buildTypes = myIdeaAndroidProject == null ? Collections.<String>emptySet() : myIdeaAndroidProject.getBuildTypes();
     for (String buildType : buildTypes) {
       myBuildTypeComboModel.addElement(buildType);
 
-      if ((ourLastSelectedBuildType == null && buildType.equals("release")) || buildType.equals(ourLastSelectedBuildType)) {
+      if ((lastSelectedBuildType == null && buildType.equals("release")) || buildType.equals(lastSelectedBuildType)) {
         myBuildTypeComboModel.setSelectedItem(buildType);
       }
     }
@@ -92,28 +97,33 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     }
 
     TIntArrayList lastSelectedIndices = new TIntArrayList(productFlavors.size());
+    String[] flavors = properties.getValues(PROPERTY_FLAVORS);
+    Set<String> lastSelectedFlavors = flavors == null ? Collections.<String>emptySet() : Sets.newHashSet(flavors);
 
     for (int i = 0; i < productFlavors.size(); i++) {
       String flavor = productFlavors.get(i);
       myFlavorsListModel.addElement(flavor);
 
-      if (ourLastSelectedFlavors != null && ourLastSelectedFlavors.contains(flavor)) {
+      if (lastSelectedFlavors.contains(flavor)) {
         lastSelectedIndices.add(i);
       }
     }
 
     myFlavorsList.setSelectedIndices(lastSelectedIndices.toNativeArray());
 
-    if (ourLastApkFolder == null) {
+    String lastApkFolderPath = properties.getValue(PROPERTY_APK_PATH);
+    File lastApkFolder;
+    if (lastApkFolderPath != null) {
+      lastApkFolder = new File(lastApkFolderPath);
+    }
+    else {
       if (myIdeaAndroidProject == null) {
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourLastApkFolder = VfsUtilCore.virtualToIoFile(myWizard.getProject().getBaseDir());
+        lastApkFolder = VfsUtilCore.virtualToIoFile(myWizard.getProject().getBaseDir());
       } else {
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourLastApkFolder = VfsUtilCore.virtualToIoFile(myIdeaAndroidProject.getRootDir());
+        lastApkFolder = VfsUtilCore.virtualToIoFile(myIdeaAndroidProject.getRootDir());
       }
     }
-    myApkPathField.setText(ourLastApkFolder.getAbsolutePath());
+    myApkPathField.setText(lastApkFolder.getAbsolutePath());
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
   }
@@ -153,14 +163,10 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myWizard.setApkPath(apkFolder);
     myWizard.setGradleOptions((String)myBuildTypeCombo.getSelectedItem(), flavors);
 
-    //noinspection AssignmentToStaticFieldFromInstanceMethod
-    ourLastApkFolder = new File(apkFolder);
-
-    //noinspection AssignmentToStaticFieldFromInstanceMethod
-    ourLastSelectedFlavors = flavors;
-
-    //noinspection AssignmentToStaticFieldFromInstanceMethod
-    ourLastSelectedBuildType = (String)myBuildTypeCombo.getSelectedItem();
+    PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
+    properties.setValue(PROPERTY_APK_PATH, apkFolder);
+    properties.setValues(PROPERTY_FLAVORS, ArrayUtil.toStringArray(flavors));
+    properties.setValue(PROPERTY_BUILD_TYPE, (String)myBuildTypeCombo.getSelectedItem());
   }
 
   @Override

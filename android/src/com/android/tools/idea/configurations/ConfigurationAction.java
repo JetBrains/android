@@ -83,13 +83,13 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
         VirtualFile file = myRenderContext.getVirtualFile();
         assert file != null;
         ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getAppResources(module, true), file);
-        VirtualFile best = matcher.getBestFileMatch();
-        if (best != null && !best.equals(file)) {
+        List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
+        if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
           // Switch files, and leave this configuration alone
-          pickedBetterMatch(best, file);
+          pickedBetterMatch(matchingFiles.get(0), file);
           AndroidFacet facet = AndroidFacet.getInstance(module);
           assert facet != null;
-          updateConfiguration(facet.getConfigurationManager().getConfiguration(best), true /*commit*/);
+          updateConfiguration(facet.getConfigurationManager().getConfiguration(matchingFiles.get(0)), true /*commit*/);
           return;
         }
       }

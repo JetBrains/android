@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="key1">Key 1 default</string>
+    <string name="key2">Key 2 default</string>
+    <string name="key3" translatable="true">Key 3 default</string>
+    <!-- <string name="key4">Key 4 default</string> -->
+    <string name="key5" translatable="false">Key 5 default</string>
+    <string name="key6" translatable="false">Key 6 default, but has translation in fr</string>
+</resources>

@@ -19,8 +19,10 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.*;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -35,6 +37,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -61,33 +64,36 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
   public static final Key<TemplateEntry> KEY_SELECTED_TEMPLATE = createKey("selected.template", PATH, TemplateEntry.class);
   public static final Key<AndroidVersion> KEY_MIN_SDK = createKey(TemplateMetadata.ATTR_MIN_API, PATH, AndroidVersion.class);
+  public static final Key<AndroidVersion> KEY_TARGET_API = createKey(TemplateMetadata.ATTR_TARGET_API, PATH, AndroidVersion.class);
   public static final Key<Integer> KEY_BUILD_SDK = createKey(TemplateMetadata.ATTR_BUILD_API, PATH, Integer.class);
   public static final Key<String> KEY_PACKAGE_NAME = createKey(TemplateMetadata.ATTR_PACKAGE_NAME, PATH, String.class);
   public static final Key<SourceProvider> KEY_SOURCE_PROVIDER = createKey("source.provider", PATH, SourceProvider.class);
+  public static final Key<String> KEY_SOURCE_PROVIDER_NAME = createKey(ATTR_SOURCE_PROVIDER_NAME, PATH, String.class);
   public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PACKAGE_NAME);
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS);
-  private static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
+  public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
+  public static final Set<Key<String>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
+
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
   @Nullable private final ActivityGalleryStep myGalleryStep;
-  private final TemplateParameterStep2 myParameterStep;
+  private TemplateParameterStep2 myParameterStep;
   private final boolean myIsNewModule;
+  private IconStep myAssetStudioStep;
   private VirtualFile myTargetFolder;
   @Nullable private File myTemplate;
+  private final Map<String, Object> myPredefinedParameterValues;
+  private final Disposable myParentDisposable;
 
   /**
    * Creates a new instance of the wizard path.
    */
-  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
-                                @NotNull Map<String, Object> predefinedParameterValues,
-                                @NotNull Disposable parentDisposable) {
-    this(targetFolder, null, predefinedParameterValues, parentDisposable);
-  }
-
   public AddAndroidActivityPath(@Nullable VirtualFile targetFolder, @Nullable File template,
                                 Map<String, Object> predefinedParameterValues,
                                 Disposable parentDisposable) {
     myTemplate = template;
+    myPredefinedParameterValues = predefinedParameterValues;
+    myParentDisposable = parentDisposable;
     myIsNewModule = false;
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
     FormFactorUtils.FormFactor formFactor = getFormFactor(targetFolder);
@@ -97,8 +103,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     else {
       myGalleryStep = null;
     }
-    myParameterStep = new TemplateParameterStep2(formFactor, predefinedParameterValues,
-                                                 myTargetFolder, parentDisposable, KEY_PACKAGE_NAME);
   }
 
   private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
@@ -245,15 +249,14 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     assert javaPath != null;
     // Calculate package name
-    paths.put(TemplateMetadata.ATTR_PACKAGE_ROOT, packageName);
+    paths.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
     String relativePackageDir = packageName.replace('.', File.separatorChar);
     File srcOut = new File(javaDir, relativePackageDir);
     File testOut = new File(testDir, relativePackageDir);
     paths.put(ATTR_TEST_DIR, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
     paths.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getAbsolutePath()));
-    paths.put(ATTR_APPLICATION_PACKAGE, gradleProject.computePackageName());
+    paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module, false).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
-    paths.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
     return paths;
   }
 
@@ -294,13 +297,16 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    assert platform != null;
-    myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getFeatureLevel());
+
+    if (platform != null) {
+      myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getFeatureLevel());
+    }
 
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
 
     myState.put(KEY_MIN_SDK, minSdkVersion);
+    myState.put(KEY_TARGET_API, moduleInfo.getTargetSdkVersion());
     myState.put(KEY_PACKAGE_NAME, getInitialPackageName(module, facet));
     myState.put(KEY_OPEN_EDITORS, true);
     if (myGalleryStep != null) {
@@ -312,21 +318,41 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       assert templateMetadata != null;
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }
-    addStep(myParameterStep);
+    SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
+    myParameterStep = new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues,
+                                                 myParentDisposable, KEY_PACKAGE_NAME, sourceProviders);
+    myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, null, myParentDisposable);
 
-    // TODO Assets support
-    //myAssetSetStep = new AssetSetStep(myState, myProject, myModule, null, this, myTargetFolder);
-    //Disposer.register(getDisposable(), myAssetSetStep);
-    //mySteps.add(myAssetSetStep);
-    //myAssetSetStep.setVisible(false);
+    addStep(myParameterStep);
+    addStep(myAssetStudioStep);
   }
+
+  @NotNull
+  public static SourceProvider[] getSourceProviders(@Nullable Module module, @Nullable VirtualFile targetDirectory) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        List<SourceProvider> providers;
+        if (targetDirectory != null) {
+          providers = IdeaSourceProvider.getSourceProvidersForFile(facet, targetDirectory, facet.getMainSourceProvider());
+        }
+        else {
+          providers = IdeaSourceProvider.getAllSourceProviders(facet);
+        }
+        return ArrayUtil.toObjectArray(providers, SourceProvider.class);
+      }
+    }
+    return new SourceProvider[0];
+  }
+
 
   /**
    * Initial package name is either a package user selected when invoking the wizard or default package for the module.
    */
   private String getInitialPackageName(Module module, AndroidFacet facet) {
     if (myTargetFolder != null) {
-      List<SourceProvider> sourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceSet());
+      List<SourceProvider> sourceProviders =
+        IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceProvider());
       File targetDirectoryFile = VfsUtilCore.virtualToIoFile(myTargetFolder);
       if (sourceProviders.size() > 0 && IdeaSourceProvider.containsFile(sourceProviders.get(0), targetDirectoryFile)) {
         File srcDirectory = findSrcDirectory(sourceProviders.get(0));
@@ -338,9 +364,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
         }
       }
     }
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    assert gradleProject != null;
-    return gradleProject.computePackageName();
+    return getApplicationPackageName();
   }
 
   @NotNull
@@ -364,10 +388,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
     saveRecentValues(project, parameterMap);
     template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
-    // TODO Assets support
-    //if (myAssetSetStep.isStepVisible()) {
-    //  myAssetSetStep.createAssets(myModule);
-    //}
+    myAssetStudioStep.createAssets();
     if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
       TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
     }
@@ -379,6 +400,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     Map<String, Object> parameterValueMap = Maps.newHashMap();
     parameterValueMap.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, myIsNewModule);
     parameterValueMap.putAll(getDirectories());
+    for (Key<?> parameter : IMPLICIT_PARAMETERS) {
+      parameterValueMap.put(parameter.name, myState.get(parameter));
+    }
     for (Parameter parameter : template.getParameters()) {
       parameterValueMap.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
     }
@@ -392,7 +416,17 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     if (moduleRoot != null) {
       parameterValueMap.put(TemplateMetadata.ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     }
+    if (Objects.equal(getApplicationPackageName(), parameterValueMap.get(TemplateMetadata.ATTR_PACKAGE_NAME))) {
+      parameterValueMap.remove(ATTR_APPLICATION_PACKAGE);
+    }
     return parameterValueMap;
+  }
+
+  private String getApplicationPackageName() {
+    //noinspection ConstantConditions
+    IdeaAndroidProject gradleProject = AndroidFacet.getInstance(getModule()).getIdeaAndroidProject();
+    assert gradleProject != null;
+    return gradleProject.computePackageName();
   }
 
   private Map<String, Object> getDirectories() {
@@ -421,6 +455,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     String minSdkName = minSdkVersion.getApiString();
 
     templateParameters.put(ATTR_MIN_API, minSdkName);
+    templateParameters.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     templateParameters.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
     templateParameters.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
@@ -439,7 +474,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
-    templateParameters.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
+    templateParameters.put(FormFactorUtils.ATTR_MODULE_NAME, moduleName);
 
     return templateParameters;
   }

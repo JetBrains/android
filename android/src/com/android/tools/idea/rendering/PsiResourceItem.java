@@ -25,6 +25,9 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.google.common.base.Splitter;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -40,7 +43,7 @@ import java.util.Collections;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.*;
 
-class PsiResourceItem extends ResourceItem {
+public class PsiResourceItem extends ResourceItem {
   private final XmlTag myTag;
   private PsiFile myFile;
 
@@ -66,7 +69,16 @@ class PsiResourceItem extends ResourceItem {
           }
         }
       }
-      return new FolderConfiguration();
+
+      String qualifiers = getQualifiers();
+      if (qualifiers.isEmpty()) {
+        return new FolderConfiguration();
+      }
+      FolderConfiguration fromQualifiers = FolderConfiguration.getConfigFromQualifiers(Splitter.on('-').split(qualifiers));
+      if (fromQualifiers == null) {
+        return new FolderConfiguration();
+      }
+      return fromQualifiers;
     }
     return source.getFolderConfiguration();
   }
@@ -182,7 +194,7 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(new TextResourceValue(type, name, isFrameworks));
+        value = parseTextValue(new PsiTextResourceValue(type, name, isFrameworks));
         break;
       default:
         value = parseValue(new ResourceValue(type, name, isFrameworks));
@@ -300,7 +312,10 @@ class PsiResourceItem extends ResourceItem {
     return value;
   }
 
-  private static String getTextContent(@NonNull XmlTag tag) {
+  /**
+   * Returns the text content of a given tag
+   */
+  public static String getTextContent(@NonNull XmlTag tag) {
     // We can't just use tag.getValue().getTrimmedText() here because we need to remove
     // intermediate elements such as <xliff> text:
     // TODO: Make sure I correct handle HTML content for XML items in <string> nodes!
@@ -321,16 +336,11 @@ class PsiResourceItem extends ResourceItem {
   }
 
   @NonNull
-  private TextResourceValue parseTextValue(@NonNull TextResourceValue value) {
+  private PsiTextResourceValue parseTextValue(@NonNull PsiTextResourceValue value) {
     assert myTag != null;
     String text = getTextContent(myTag);
     text = ValueXmlHelper.unescapeResourceString(text, true, true);
     value.setValue(text);
-
-    if (myTag.getSubTags().length > 0) {
-      value.setRawXmlValue(myTag.getValue().getText());
-    }
-
     return value;
   }
 
@@ -410,7 +420,7 @@ class PsiResourceItem extends ResourceItem {
   }
 
   @Nullable
-  XmlTag getTag() {
+  public XmlTag getTag() {
     return myTag;
   }
 
@@ -429,5 +439,29 @@ class PsiResourceItem extends ResourceItem {
   @Override
   public String toString() {
     return super.toString() + ": " + (myTag != null ? getTextContent(myTag) : "null");
+  }
+
+  private class PsiTextResourceValue extends TextResourceValue {
+    public PsiTextResourceValue(ResourceType type, String name, boolean isFramework) {
+      super(type, name, isFramework);
+    }
+
+    @Override
+    public String getRawXmlValue() {
+      if (myTag != null && myTag.isValid()) {
+        if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+          return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+            @Override
+            public String compute() {
+              return myTag.getValue().getText();
+            }
+          });
+        }
+        return myTag.getValue().getText();
+      }
+      else {
+        return getValue();
+      }
+    }
   }
 }

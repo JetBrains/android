@@ -16,9 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,7 +35,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
 
   private ModuleResourceRepository(@NotNull AndroidFacet facet,
-                                   @NotNull List<ResourceFolderRepository> delegates) {
+                                   @NotNull List<? extends LocalResourceRepository> delegates) {
     super(facet.getModule().getName(), delegates);
     myFacet = facet;
   }
@@ -94,11 +92,14 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
 
     ResourceFolderManager folderManager = facet.getResourceFolderManager();
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
-    List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
+    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
     for (VirtualFile resourceDirectory : resourceDirectories) {
       ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
       resources.add(repository);
     }
+
+    DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet);
+    resources.add(dynamicResources);
 
     // We create a ModuleResourceRepository even if resources.isEmpty(), because we may
     // dynamically add children to it later (in updateRoots)
@@ -166,7 +167,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    */
   @VisibleForTesting
   @NotNull
-  static ModuleResourceRepository createForTest(@NotNull final AndroidFacet facet, @NotNull List<VirtualFile> resourceDirectories) {
+  public static ModuleResourceRepository createForTest(@NotNull final AndroidFacet facet, @NotNull List<VirtualFile> resourceDirectories) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
     for (VirtualFile resourceDirectory : resourceDirectories) {

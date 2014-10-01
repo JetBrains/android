@@ -173,11 +173,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   protected void deleteManifest() throws IOException {
+    deleteManifest(myModule);
+  }
+
+  protected void deleteManifest(final Module module) throws IOException {
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertNotNull(facet);
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        String manifestRelativePath = myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
-        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(myModule, manifestRelativePath, true);
+        String manifestRelativePath = facet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
+        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(module, manifestRelativePath, true);
         if (manifest != null) {
           try {
             manifest.delete(this);

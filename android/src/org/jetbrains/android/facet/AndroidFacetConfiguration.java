@@ -29,10 +29,7 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +39,8 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * @author Eugene.Kudelevsky
@@ -79,7 +78,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public AndroidPlatform getAndroidPlatform() {
     final Module module = myFacet.getModule();
     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-    if (moduleSdk != null && moduleSdk.getSdkType().equals(AndroidSdkType.getInstance())) {
+    if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)moduleSdk.getSdkAdditionalData();
       return data != null ? data.getAndroidPlatform() : null;
     }

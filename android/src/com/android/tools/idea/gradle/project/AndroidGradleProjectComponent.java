@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -31,7 +30,6 @@ import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
@@ -57,6 +55,9 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
@@ -105,7 +106,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
-    boolean isGradleProject = Projects.isGradleProject(myProject);
+    boolean isGradleProject = isGradleProject(myProject);
     if (isGradleProject) {
       configureGradleProject(true);
     }
@@ -124,6 +125,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   }
 
   private void showMigrateToGradleWarning() {
+    String errMsg = "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.";
     NotificationHyperlink moreInfoHyperlink = new OpenMigrationToGradleUrlHyperlink();
     NotificationHyperlink doNotShowAgainHyperlink = new NotificationHyperlink("do.not.show", "Don't show this message again.") {
       @Override
@@ -131,17 +133,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         PropertiesComponent.getInstance(myProject).setValue(SHOW_MIGRATE_TO_GRADLE_POPUP, Boolean.FALSE.toString());
       }
     };
-    NotificationListener notificationListener = new CustomNotificationListener(myProject, moreInfoHyperlink, doNotShowAgainHyperlink);
-
-    // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
-    // 'Event Log' tool window, which respects "\n".)
-    String errMsg =
-      "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.<br>\n" +
-      moreInfoHyperlink.toString() + "<br>\n" +
-      doNotShowAgainHyperlink.toString();
 
     AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
-    notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, notificationListener);
+    notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, moreInfoHyperlink, doNotShowAgainHyperlink);
   }
 
   public void configureGradleProject(boolean reImportProject) {
@@ -178,8 +172,17 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   @Override
   public void projectClosed() {
-    if (Projects.isGradleProject(myProject)) {
-      AndroidGradleProjectData.save(myProject);
+    if (isGradleProject(myProject)) {
+      if (lastGradleSyncFailed(myProject)) {
+        // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
+        // last sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the
+        // project did not change, and if we don't force a sync, the project will use the cached state and it would look like there are
+        // no errors.
+        AndroidGradleProjectData.removeFrom(myProject);
+      }
+      else {
+        AndroidGradleProjectData.save(myProject);
+      }
     }
     if (myDisposable != null) {
       Disposer.dispose(myDisposable);
@@ -194,7 +197,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   public void checkForSupportedModules() {
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    if (modules.length == 0 || !Projects.isGradleProject(myProject)) {
+    if (modules.length == 0 || !isGradleProject(myProject)) {
       return;
     }
     final List<Module> unsupportedModules = new ArrayList<Module>();

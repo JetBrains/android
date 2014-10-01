@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -25,9 +34,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
@@ -114,7 +126,16 @@ public class RenderLogger extends LayoutLog {
    * @return true if there were problems during the render
    */
   public boolean hasProblems() {
-    return myHaveExceptions || myFidelityWarnings != null || myMessages != null ||
+    return hasErrors() || myFidelityWarnings != null;
+  }
+
+  /**
+   * Are there any logged errors during the render? (warnings are ignored)
+   *
+   * @return true if there were errors during the render
+   */
+  public boolean hasErrors() {
+    return myHaveExceptions || myMessages != null ||
            myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }
@@ -146,7 +167,13 @@ public class RenderLogger extends LayoutLog {
     String description = describe(message);
 
     if (LOG_ALL) {
-      LOG.error("%1$s: %2$s", myName, description);
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        LOG.error(String.format("%1$s: %2$s", myName, description));
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
 
     // Workaround: older layout libraries don't provide a tag for this error
@@ -172,7 +199,13 @@ public class RenderLogger extends LayoutLog {
   public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
     String description = describe(message);
     if (LOG_ALL) {
-      LOG.error("%1$s: %2$s", throwable, myName, description);
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        LOG.error(String.format("%1$s: %2$s", myName, description), throwable);
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
@@ -186,6 +219,10 @@ public class RenderLogger extends LayoutLog {
         return;
       }
 
+      if (throwable instanceof NoSuchMethodError && "java.lang.System.arraycopy([CI[CII)V".equals(message)) {
+        addMessage(getProblemForIssue73732(throwable));
+        return;
+      }
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       } else if (message == null) {
@@ -204,6 +241,27 @@ public class RenderLogger extends LayoutLog {
           builder.addLink("Open Issue 59732", "http://b.android.com/59732");
           builder.add(", ");
           ShowExceptionFix detailsFix = new ShowExceptionFix(getModule().getProject(), throwable);
+          builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
+          builder.add(")");
+          addMessage(problem);
+          return;
+        } else if (stackTrace.length >= 2 &&
+                   stackTrace[0].getClassName().equals("android.support.v7.widget.RecyclerView") &&
+                   stackTrace[0].getMethodName().equals("onMeasure") &&
+                   stackTrace[1].getClassName().equals("android.view.View") &&
+                   throwable.toString().equals("java.lang.NullPointerException")) {
+          RenderProblem.Html problem = RenderProblem.create(WARNING);
+          String issue = "72117";
+          problem.tag(issue);
+          problem.throwable(throwable);
+          HtmlBuilder builder = problem.getHtmlBuilder();
+          builder.add("The new RecyclerView does not yet work in Studio. We are working on a fix. ");
+          // TODO: Add more specific error message here when we know where we are fixing it, e.g. either
+          // to update their layoutlib (if we work around it there), or a new version of the recyclerview AAR.
+          builder.add(" (");
+          builder.addLink("Open Issue " + issue, "http://b.android.com/" + issue);
+          builder.add(", ");
+          ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
           builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
           builder.add(")");
           addMessage(problem);
@@ -381,6 +439,19 @@ public class RenderLogger extends LayoutLog {
       return;
     }
 
+    // TODO: Remove me
+    if ("colorfilter".equals(tag)) {
+      // L layoutlib requires this for actionbar but does not render it yet; for now, silently fix it
+      // Fixed in revision 4, we can remove this check soon
+      return;
+    }
+    else if ("broken".equals(tag) &&
+             ("Unable to load font AndroidEmoji.ttf".equals(message) ||
+              "Unable to load font NotoSansSymbols-Regular-Subsetted.ttf".equals(message))) {
+      // Not yet working. Will be fixed in layoutlib L+.
+      return;
+    }
+
     String description = describe(message);
     if (myFidelityWarningStrings != null && myFidelityWarningStrings.contains(description)) {
       // Exclude duplicates
@@ -388,14 +459,20 @@ public class RenderLogger extends LayoutLog {
     }
 
     if (LOG_ALL) {
-      LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
 
     if (throwable != null) {
       myHaveExceptions = true;
     }
 
-    RenderProblem error = new RenderProblem.Deferred(ERROR, tag, description, throwable);
+    RenderProblem error = RenderProblem.createDeferred(ERROR, tag, description, throwable);
     error.setClientData(description);
     if (myFidelityWarnings == null) {
       myFidelityWarnings = new ArrayList<RenderProblem>();
@@ -577,5 +654,65 @@ public class RenderLogger extends LayoutLog {
 
   void setCredential(@Nullable Object credential) {
     myCredential = credential;
+  }
+
+  @NotNull
+  private RenderProblem.Html getProblemForIssue73732(Throwable throwable) {
+    RenderProblem.Html problem = RenderProblem.create(ERROR);
+    problem.tag("73732");
+    problem.throwable(throwable);
+    HtmlBuilder builder = problem.getHtmlBuilder();
+    builder.add("There are some known bugs in this version of the rendering library. Until a new version is available, use the " +
+                "rendering library from L-preview.");
+    if (myModule == null) {
+      // Shouldn't really happen, but just in case...
+      return problem;
+    }
+    ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
+    builder.addLink(" ", "Show Exception", ".", getLinkManager().createRunnableLink(detailsFix));
+    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    if (platform == null) {
+      // Again, shouldn't happen.
+      return problem;
+    }
+    // Check if L-preview is installed.
+    final AndroidSdkData sdkData = platform.getSdkData();
+    final IAndroidTarget targetL = sdkData.findTargetByApiLevel("L");
+    if (targetL != null) {
+      // L-preview found.
+      builder.addLink(" Click ", "here", " to use L-preview.", getLinkManager().createRunnableLink(new Runnable() {
+        @Override
+        public void run() {
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          if (facet != null) {
+            facet.getConfigurationManager().setTarget(targetL);
+          }
+        }
+      }));
+      return problem;
+    }
+    builder.addLink(" Click ", "here", " to install L-preview SDK Platform", getLinkManager().createRunnableLink(new Runnable() {
+      @Override
+      public void run() {
+        IPkgDesc lPreviewLib =
+          PkgDesc.Builder.newPlatform(new AndroidVersion(21, "L"), new MajorRevision(4), FullRevision.NOT_SPECIFIED).create();
+        List<IPkgDesc> requested = Lists.newArrayList(lPreviewLib);
+        SdkQuickfixWizard wizard = new SdkQuickfixWizard(myModule.getProject(), myModule, requested);
+        wizard.init();
+        if (wizard.showAndGet()) {
+          // Force target to be recomputed.
+          sdkData.getLocalSdk().clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          if (facet != null) {
+            facet.getConfigurationManager().setTarget(null);
+          }
+          // http://b.android.com/76622
+          Messages.showInfoMessage(myModule.getProject(),
+                                   "Note: Due to a bug, you may need to restart the IDE for the new LayoutLibrary to take full effect.",
+                                   "Restart Recommended");
+        }
+      }
+    }));
+    return problem;
   }
 }

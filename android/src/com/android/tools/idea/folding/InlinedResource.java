@@ -109,6 +109,11 @@ class InlinedResource implements ModificationTracker {
             }
             if (myType == ResourceType.STRING || myElement instanceof XmlAttributeValue) {
               return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+            } else if (text.length() <= 1) {
+              // Don't just inline empty or one-character replacements: they can't be expanded by a mouse click
+              // so are hard to use without knowing about the folding keyboard shortcut to toggle folding.
+              // This is similar to how IntelliJ 14 handles call parameters
+              return myKey + ": " + text;
             } else {
               return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0);
             }

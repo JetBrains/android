@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="my_typo">Welcome to <warning>te<caret>h</warning> app</string>
+</resources>

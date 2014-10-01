@@ -17,6 +17,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.wizard.NewModuleWizard;
+import com.android.tools.idea.wizard.NewModuleWizardDynamic;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -43,12 +44,9 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
 
   public static void createModule(@Nullable Project project, boolean performGradleSyncAfter) {
     if (project != null) {
-      NewModuleWizard dialog = NewModuleWizard.createNewModuleWizard(project);
+      NewModuleWizardDynamic dialog = new NewModuleWizardDynamic(project, null);
+      dialog.init();
       dialog.show();
-      if (!dialog.isOK()) {
-        return;
-      }
-      dialog.createModule(performGradleSyncAfter);
     }
   }
 }

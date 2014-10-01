@@ -55,7 +55,7 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       @NotNull
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-        return AndroidDrawableDomUtil.getPossibleRoots();
+        return AndroidDrawableDomUtil.getPossibleRoots(facet);
       }
     });
 

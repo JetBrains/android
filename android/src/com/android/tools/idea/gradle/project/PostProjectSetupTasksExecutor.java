@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -29,10 +31,10 @@ import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.OpenFileHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
@@ -47,8 +49,10 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -56,6 +60,8 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -69,6 +75,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -76,12 +83,15 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.Projects.hasErrors;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.intellij.notification.NotificationType.INFORMATION;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 public class PostProjectSetupTasksExecutor {
   private static boolean ourSdkVersionWarningShown;
@@ -106,10 +116,17 @@ public class PostProjectSetupTasksExecutor {
 
     boolean checkJdkVersion = true;
 
+    Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+        Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+        if (sdk != null && !invalidAndroidSdks.contains(sdk) && isMissingAndroidLibrary(sdk)) {
+          invalidAndroidSdks.add(sdk);
+        }
+
         IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
         Collection<String> unresolved = androidProject.getDelegate().getUnresolvedDependencies();
         messages.reportUnresolvedDependencies(unresolved, module);
@@ -132,11 +149,56 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
+    if (!invalidAndroidSdks.isEmpty()) {
+      reinstallMissingPlatforms(invalidAndroidSdks);
+    }
+
     findAndShowVariantConflicts();
     addSdkLinkIfNecessary();
     checkSdkVersion(myProject);
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+  }
+
+  private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
+    if (isAndroidSdk(sdk)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
+        // annotations.jar and res folder.
+        if (!library.exists()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+
+    List<AndroidVersion> versionsToInstall = Lists.newArrayList();
+    List<String> missingPlatforms = Lists.newArrayList();
+
+    for (Sdk sdk : invalidAndroidSdks) {
+      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
+      if (additionalData instanceof AndroidSdkAdditionalData) {
+        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
+        if (platform != null) {
+          missingPlatforms.add("'" + platform + "'");
+          AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
+          if (version != null) {
+            versionsToInstall.add(version);
+          }
+        }
+      }
+    }
+
+    if (!versionsToInstall.isEmpty()) {
+      String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
+      String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
+      Message msg = new Message(group, Message.Type.ERROR, text);
+      messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
+    }
   }
 
   public void onProjectSyncCompletion() {
@@ -156,7 +218,7 @@ public class PostProjectSetupTasksExecutor {
     }
 
     attachSourcesToLibraries();
-    ensureAllModulesHaveSdk();
+    ensureAllModulesHaveValidSdks();
     Projects.enforceExternalBuild(myProject);
 
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
@@ -186,21 +248,53 @@ public class PostProjectSetupTasksExecutor {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
-  private void ensureAllModulesHaveSdk() {
+  private void ensureAllModulesHaveValidSdks() {
+    Set<Sdk> androidSdks = Sets.newHashSet();
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
       ModifiableRootModel model = moduleRootManager.getModifiableModel();
-      try {
-        if (model.getSdk() == null) {
-          Sdk jdk = DefaultSdks.getDefaultJdk();
-          model.setSdk(jdk);
+
+      Sdk sdk = model.getSdk();
+      if (sdk != null) {
+        if (isAndroidSdk(sdk)) {
+          androidSdks.add(sdk);
         }
+        model.dispose();
+        continue;
+      }
+      try {
+        Sdk jdk = DefaultSdks.getDefaultJdk();
+        model.setSdk(jdk);
       }
       finally {
         model.commit();
       }
     }
+
+    for (Sdk sdk: androidSdks) {
+      refreshLibrariesIn(sdk);
+    }
+  }
+
+  // After a sync, the contents of an IDEA SDK does not get refreshed. This is an issue when an IDEA SDK is corrupt (e.g. missing libraries
+  // like android.jar) and then it is restored by installing the missing platform from within the IDE (using a "quick fix.") After the
+  // automatic project sync (triggered by the SDK restore) the contents of the SDK are not refreshed, and references to Android classes are
+  // not found in editors. Removing and adding the libraries effectively refreshes the contents of the IDEA SDK, and references in editors
+  // work again.
+  private static void refreshLibrariesIn(@NotNull Sdk sdk) {
+    VirtualFile[] libraries = sdk.getRootProvider().getFiles(OrderRootType.CLASSES);
+
+    SdkModificator sdkModificator = sdk.getSdkModificator();
+    sdkModificator.removeRoots(OrderRootType.CLASSES);
+    sdkModificator.commitChanges();
+
+    sdkModificator = sdk.getSdkModificator();
+    for (VirtualFile library : libraries) {
+      sdkModificator.addRoot(library, OrderRootType.CLASSES);
+    }
+    sdkModificator.commitChanges();
   }
 
   private void attachSourcesToLibraries() {
@@ -438,12 +532,8 @@ public class PostProjectSetupTasksExecutor {
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
-      CustomNotificationListener listener = new CustomNotificationListener(project, hyperlink);
-
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-
-      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available." + "<br>\n" + hyperlink.toString();
-      notification.showBalloon("Android SDK Tools", message, INFORMATION, listener);
+      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
+      AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       ourSdkVersionWarningShown = true;
     }
   }
@@ -460,7 +550,7 @@ public class PostProjectSetupTasksExecutor {
     AndroidProject androidProject = model.getDelegate();
     String compileTarget = androidProject.getCompileTarget();
     // TODO this is good for now, adjust this in the future to deal with 22, 23, etc.
-    if ("android-21".equals(compileTarget)) {
+    if ("android-L".equals(compileTarget) || "android-21".equals(compileTarget)) {
       Sdk jdk = DefaultSdks.getDefaultJdk();
       if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
@@ -469,7 +559,7 @@ public class PostProjectSetupTasksExecutor {
           hyperlinks.add(new OpenSdkSettingsHyperlink((AndroidProjectSettingsService)service));
         }
         Message msg;
-        String text = "compileSdkVersion 21 requires compiling with JDK 7";
+        String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
         VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
         if (buildFile != null) {
           hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));

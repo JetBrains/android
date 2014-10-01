@@ -56,8 +56,12 @@ class GradleOutputForwarder {
   }
 
   void close() {
-    try { Closeables.close(myOutput, true); } catch (IOException ignored) {}
-    try { Closeables.close(myStdErr, true); } catch (IOException ignored) {}
+    try {
+      Closeables.close(myOutput, true /* swallowIOException */);
+      Closeables.close(myStdErr, true /* swallowIOException */);
+    } catch (IOException e) {
+      // Cannot happen
+    }
   }
 
   @NotNull

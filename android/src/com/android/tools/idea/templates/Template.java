@@ -17,13 +17,11 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.manifmerger.*;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
 import com.android.ide.common.xml.XmlPrettyPrinter;
-import com.android.manifmerger.ICallback;
-import com.android.manifmerger.ManifestMerger;
-import com.android.manifmerger.MergerLog;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -352,6 +350,8 @@ public class Template {
           break;
         case EXTERNAL:
           break;
+        case CUSTOM:
+          break;
       }
     }
     convertApisToInt(args);
@@ -588,7 +588,11 @@ public class Template {
     boolean ok;
     String fileName = targetFile.getName();
     if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-      modified = ok = mergeManifest(currentDocument, fragment);
+      XmlDocument mergedDocument = mergeManifest(targetFile, sourceXml);
+      modified = ok = mergedDocument != null;
+      if (ok) {
+        currentDocument = mergedDocument.getXml();
+      }
     } else {
       // Merge plain XML files
       String parentFolderName = targetFile.getParentFile().getName();
@@ -733,27 +737,37 @@ public class Template {
   }
 
   /** Merges the given manifest fragment into the given manifest file */
-  private static boolean mergeManifest(@NotNull Document currentManifest, @NotNull Document fragment) {
-    // Transfer package element from manifest to merged in root; required by
-    // manifest merger
-    Element fragmentRoot = fragment.getDocumentElement();
-    Element manifestRoot = currentManifest.getDocumentElement();
-    if (fragmentRoot == null || manifestRoot == null) {
-      return false;
+  @Nullable
+  private static XmlDocument mergeManifest(@NotNull File targetManifest, @NotNull String mergeText) {
+    File tempFile = null;
+    try {
+      tempFile = FileUtil.createTempFile("manifmerge", ".xml");
+      FileUtil.writeToFile(tempFile, mergeText);
+      MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest,new StdLogger(StdLogger.Level.INFO),
+                                                         ManifestMerger2.MergeType.APPLICATION).
+          addLibraryManifest(tempFile).merge();
+      if (mergeReport.getMergedDocument().isPresent()) {
+        return mergeReport.getMergedDocument().get();
+      }
+      return null;
     }
-    String pkg = fragmentRoot.getAttribute(ATTR_PACKAGE);
-    if (pkg == null || pkg.isEmpty()) {
-      pkg = manifestRoot.getAttribute(ATTR_PACKAGE);
-      if (pkg != null && !pkg.isEmpty()) {
-        fragmentRoot.setAttribute(ATTR_PACKAGE, pkg);
+    catch (IOException e) {
+      LOG.error(e);
+    }
+    catch (ManifestMerger2.MergeFailureException e) {
+      LOG.error(e);
+      try {
+        FileUtil.appendToFile(tempFile, String.format("<!--%s-->", e.getMessage()));
+      }
+      catch (IOException e1) {
+        LOG.error(e1);
+      }
+    } finally {
+      if (tempFile != null) {
+        tempFile.delete();
       }
     }
-
-    ManifestMerger merger = new ManifestMerger(MergerLog.wrapSdkLog(new StdLogger(StdLogger.Level.INFO)), new AdtManifestMergeCallback())
-      .setExtractPackagePrefix(true);
-    return currentManifest != null &&
-           fragment != null &&
-           merger.process(currentManifest, fragment);
+    return null;
   }
 
   private static String mergeGradleSettingsFile(@NotNull String source, @NotNull String dest) throws IOException, TemplateException {
@@ -946,7 +960,13 @@ public class Template {
       copyDirectory(sourceFile, destFolder);
     }
     else {
-      VfsUtilCore.copyFile(this, sourceFile, destFolder, dest.getName());
+      com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(sourceFile);
+      if (document != null) {
+        writeFile(document.getText(), dest);
+      }
+      else {
+        VfsUtilCore.copyFile(this, sourceFile, destFolder, dest.getName());
+      }
     }
   }
 

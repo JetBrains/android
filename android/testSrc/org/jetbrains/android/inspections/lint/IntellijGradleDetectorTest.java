@@ -76,7 +76,7 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
   }
 
   public void testPackage() throws Exception {
-    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
@@ -95,41 +95,6 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, "Suppress: Add //noinspection GradlePath");
   }
 
-  public void testNoApplyPlugin() throws Exception {
-    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
-    doTest(inspection, null);
-  }
-
-  public void testNoAndroidStatement() throws Exception {
-    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
-    doTest(inspection, null);
-  }
-
-  public void testTopLevelDependenciesBlock() throws Exception {
-    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
-    doTest(inspection, null);
-  }
-
-  public void testTopLevelRepositoriesBlock() throws Exception {
-    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
-    doTest(inspection, null);
-  }
-
-  public void testBadDependenciesInBuildscriptBlock() throws Exception {
-    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
-    doTest(inspection, null);
-  }
-
-  public void testDependenciesInAndroidBlock() throws Exception {
-    AndroidLintGradleMisplacedStatementInspection inspection = new AndroidLintGradleMisplacedStatementInspection();
-    doTest(inspection, null);
-  }
-
-  public void testRepositoriesInDependenciesBlock() throws Exception {
-    AndroidLintGradleMisplacedStatementInspection inspection = new AndroidLintGradleMisplacedStatementInspection();
-    doTest(inspection, null);
-  }
-
   public void testStringInt() throws Exception {
     AndroidLintStringShouldBeIntInspection inspection = new AndroidLintStringShouldBeIntInspection();
     doTest(inspection, null);
@@ -137,6 +102,18 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
 
   public void testDeprecatedPluginId() throws Exception {
     AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
+  public void testSuppressLine2() throws Exception {
+    // Tests that issues on line 2, which are suppressed with a comment on line 1, are correctly
+    // handled (until recently, the suppression comment on the first line did not work)
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
+  public void testIgnoresGStringsInDependencies() throws Exception {
+    AndroidLintGradleCompatiblePluginInspection inspection = new AndroidLintGradleCompatiblePluginInspection();
     doTest(inspection, null);
   }
 

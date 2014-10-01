@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -1360,6 +1360,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     mySessionQueue.sendFlush();
   }
 
+  @VisibleForTesting
+  public boolean isRenderPending() {
+    return !mySessionQueue.isEmpty() && !mySessionQueue.isFlushing();
+  }
+
   @Override
   @NotNull
   public UsageType getType() {
@@ -1438,6 +1443,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public BufferedImage getRenderedImage() {
     return myRootView != null ? myRootView.getImage() : null;
+  }
+
+  @Nullable
+  @Override
+  public RenderResult getLastResult() {
+    return myRenderResult;
   }
 
   @Override

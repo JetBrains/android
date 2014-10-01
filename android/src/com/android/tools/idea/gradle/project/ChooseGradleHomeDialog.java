@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.sdklib.repository.FullRevision;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -23,6 +25,7 @@ import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -37,11 +40,17 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.io.File;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
+
 /**
  * Dialog where users select the path of the local Gradle installation to use when importing a project.
  */
 public class ChooseGradleHomeDialog extends DialogWrapper {
+  @VisibleForTesting
+  public static final String VALIDATION_MESSAGE_CLIENT_PROPERTY = "validation.message";
+
   @NotNull private final GradleInstallationManager myInstallationManager;
+  @Nullable private final String myMinimumGradleVersion;
 
   private TextFieldWithBrowseButton myGradleHomePathField;
   private JBLabel myGradleHomeLabel;
@@ -49,7 +58,12 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   private JXLabel myDescriptionLabel;
 
   public ChooseGradleHomeDialog() {
+    this(null);
+  }
+
+  public ChooseGradleHomeDialog(@Nullable String minimumGradleVersion) {
     super(null);
+    myMinimumGradleVersion = minimumGradleVersion;
     myInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
     init();
     initValidation();
@@ -98,9 +112,13 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     LocationSettingType locationSettingType = validateLocation();
     switch (locationSettingType) {
       case EXPLICIT_CORRECT:
+        ValidationInfo validationInfo = validateMinimumGradleVersion();
+        if (validationInfo != null) {
+          return validationInfo;
+        }
         return super.doValidate();
       default:
-        return new ValidationInfo(locationSettingType.getDescription(GradleConstants.SYSTEM_ID), myGradleHomePathField.getTextField());
+        return newPathIsInvalidInfo(locationSettingType.getDescription(GradleConstants.SYSTEM_ID));
     }
   }
 
@@ -110,10 +128,47 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     if (gradleHome.isEmpty()) {
       return LocationSettingType.UNKNOWN;
     }
-    File gradleHomePath = new File(FileUtil.toSystemDependentName(gradleHome));
+    File gradleHomePath = getGradleHomePath(gradleHome);
     return myInstallationManager.isGradleSdkHome(gradleHomePath)
            ? LocationSettingType.EXPLICIT_CORRECT
            : LocationSettingType.EXPLICIT_INCORRECT;
+  }
+
+  @Nullable
+  private ValidationInfo validateMinimumGradleVersion() {
+    if (!StringUtil.isEmpty(myMinimumGradleVersion)) {
+      // When we reach this point we know the path entered is a valid Gradle home path. Now we need to verify the version of Gradle at that
+      // location is equal or greater than the one in myMinimumGradleVersion.
+      FullRevision minimum = FullRevision.parseRevision(myMinimumGradleVersion);
+
+      File gradleHomePath = getGradleHomePath(getEnteredGradleHomePath());
+      FullRevision current = getGradleVersion(gradleHomePath);
+
+      if (current == null) {
+        return newPathIsInvalidInfo("Unable to detect Gradle version");
+      }
+
+      if (minimum.compareTo(current) > 0) {
+        return newPathIsInvalidInfo(String.format("Gradle %1$s or newer is required", myMinimumGradleVersion));
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  private ValidationInfo newPathIsInvalidInfo(@NotNull String msg) {
+    storeErrorMessage(msg);
+    JTextField textField = myGradleHomePathField.getTextField();
+    return new ValidationInfo(msg, textField);
+  }
+
+  private void storeErrorMessage(@NotNull String msg) {
+    myGradleHomePathField.putClientProperty(VALIDATION_MESSAGE_CLIENT_PROPERTY, msg);
+  }
+
+  @NotNull
+  private static File getGradleHomePath(@NotNull String gradleHome) {
+    return new File(FileUtil.toSystemDependentName(gradleHome));
   }
 
   public void storeLastUsedGradleHome() {

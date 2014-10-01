@@ -23,13 +23,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
@@ -72,27 +70,68 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     assertEquals(expected.getStringCollection(), actual.getStringCollection());
     assertEquals(expected.getBooleanList(), actual.getBooleanList());
     assertEquals(expected.getStringSet(), actual.getStringSet());
+
     assertProxyCollectionEquals(expected.getProxyCollection(), actual.getProxyCollection());
     assertProxyCollectionEquals(expected.getProxyList(), actual.getProxyList());
     assertProxyCollectionEquals(expected.getMapToProxy(), actual.getMapToProxy());
+
+    UnsupportedMethodException exception = null;
+    try {
+      expected.doesNotExist();
+      fail("Original method should throw.");
+    }
+    catch (UnsupportedMethodException e) {
+      // Expected.
+      exception = e;
+    }
+
+    try {
+      actual.doesNotExist();
+      fail("Reproxy should also throw.");
+    }
+    catch (UnsupportedMethodException e) {
+      assertEquals(e.getClass(), exception.getClass());
+      assertEquals(e.getMessage(), exception.getMessage());
+    }
+  }
+
+  private static MyInterface createProxyInstance(boolean recurse) {
+    final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
+    return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
+        @Override
+        public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+          try {
+            return method.invoke(delegate, objects);
+          } catch (InvocationTargetException e) {
+            throw e.getCause();
+          }
+        }
+      });
+  }
+
+  private static void assertTypeIsSupported(Package reproxy, Class<?> clazz) {
+    if (!clazz.isPrimitive() && clazz.getPackage().equals(reproxy)) {
+      for (Method method : clazz.getMethods()) {
+        if (Modifier.isPublic(method.getModifiers())) {
+          assertTypeIsSupported(reproxy, method.getReturnType());
+        }
+      }
+    }
+    else {
+      assertTrue("Unsupported type " + clazz, AndroidGradleProjectData.isSupported(clazz));
+    }
   }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    final MyInterfaceImpl delegate = new MyInterfaceImpl();
-    myProxy =
-      (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
-        @Override
-        public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-          return method.invoke(delegate, objects);
-        }
-      });
+    myProxy = createProxyInstance(true);
   }
 
   public void testReproxy() throws Exception {
     MyInterface reproxy = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
     assertNotSame(reproxy, myProxy);
+    assertNotNull(reproxy);
     assertProxyEquals(myProxy, reproxy);
   }
 
@@ -117,24 +156,12 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
   public void testToString() throws Exception {
     MyInterface reproxy = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
     assertNotNull(myProxy.toString());
+    assertNotNull(reproxy);
     assertNotNull(reproxy.toString());
   }
 
   public void testSupportedTypes() throws Exception {
     assertTypeIsSupported(AndroidProject.class.getPackage(), AndroidProject.class);
-  }
-
-  private void assertTypeIsSupported(Package reproxy, Class<?> clazz) {
-    if (!clazz.isPrimitive() && clazz.getPackage().equals(reproxy)) {
-      for (Method method : clazz.getMethods()) {
-        if (Modifier.isPublic(method.getModifiers())) {
-          assertTypeIsSupported(reproxy, method.getReturnType());
-        }
-      }
-    }
-    else {
-      assertTrue("Unsupported type " + clazz, AndroidGradleProjectData.isSupported(clazz));
-    }
   }
 
   public void testEndToEnd() throws Exception {
@@ -176,7 +203,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     ois.close();
 
     // Clear the sync state to make sure we set it correctly.
-    syncState.setLastGradleSyncTimestamp(-1L);
+    syncState.resetTimestamp();
     assertTrue(newData.applyTo(project));
 
     assertEquals(previousSyncTime, syncState.getLastGradleSyncTimestamp());
@@ -186,6 +213,24 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     Map<String, AndroidGradleProjectData.ModuleData> newModules = newData.getModuleData();
     newModules.remove(moduleName);
     assertFalse(newData.applyTo(project));
+  }
+
+  public void testNewMethod() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    MyInterface reproxy = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
+
+    assertNotNull(reproxy);
+    InvocationHandler handler = Proxy.getInvocationHandler(reproxy);
+    assertTrue(handler instanceof AndroidGradleProjectData.WrapperInvocationHandler);
+    AndroidGradleProjectData.WrapperInvocationHandler wrapper = (AndroidGradleProjectData.WrapperInvocationHandler)handler;
+    Method m = MyInterface.class.getMethod("getString");
+    wrapper.values.remove(m.toGenericString());
+
+    try {
+      reproxy.getString();
+      fail("Removed method should throw an exception");
+    } catch (UnsupportedMethodException e) {
+      // Expected.
+    }
   }
 
   interface MyInterface {
@@ -212,6 +257,8 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     @Nullable
     Map<String, Collection<MyInterface>> getMapToProxy();
+
+    boolean doesNotExist() throws UnsupportedMethodException;
   }
 
   static class MyInterfaceImpl implements MyInterface {
@@ -220,10 +267,6 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     MyInterfaceImpl(boolean recurse) {
       this.recurse = recurse;
-    }
-
-    MyInterfaceImpl() {
-      this(true);
     }
 
     @Override
@@ -248,7 +291,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     @Override
     public Collection<MyInterface> getProxyCollection() {
-      return recurse ? Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)) : null;
+      return recurse ? Sets.newHashSet(createProxyInstance(false)) : null;
     }
 
     @Override
@@ -258,7 +301,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     @Override
     public List<MyInterface> getProxyList() {
-      return recurse ? Lists.<MyInterface>newArrayList(new MyInterfaceImpl(false)) : null;
+      return recurse ? Lists.newArrayList(createProxyInstance(false)) : null;
     }
 
     @Override
@@ -270,8 +313,13 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     public Map<String, Collection<MyInterface>> getMapToProxy() {
       if (!recurse) return null;
 
-      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two", Lists
-        .<MyInterface>newArrayList(new MyInterfaceImpl(false), new MyInterfaceImpl(false)));
+      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two",
+                                                              Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
+    }
+
+    @Override
+    public boolean doesNotExist() throws UnsupportedMethodException {
+      throw new UnsupportedMethodException("This method doesn't exist");
     }
   }
 }

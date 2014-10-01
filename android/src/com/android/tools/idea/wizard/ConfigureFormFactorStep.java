@@ -15,22 +15,11 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.sdk.SdkVersionInfo;
-import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.templates.TemplateUtils;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.intellij.ide.util.PropertiesComponent;
+
+import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
@@ -38,51 +27,46 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
  */
 public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescription {
-
   public static final String MIN_SDK_STRING = "Minimum SDK";
   private static final Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
   public static final Key<Integer> NUM_ENABLED_FORM_FACTORS_KEY = createKey("NumberOfEnabledFormFactors", WIZARD, Integer.class);
 
-
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
   private JBLabel myHelpMeChooseLabel = new JBLabel("Help Me Choose");
-  private List<AndroidTargetComboBoxItem> myTargets = Lists.newArrayList();
-  private Set<AndroidVersion> myInstalledVersions = Sets.newHashSet();
+
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
-  private Map<FormFactor, JComboBox> myFormFactorApiSelectors = Maps.newEnumMap(FormFactor.class);
-  private IAndroidTarget myHighestInstalledApiTarget;
-  private Map<FormFactor, IPkgDesc> myInstallRequests = Maps.newEnumMap(FormFactor.class);
+  private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms require separate SDKs",
@@ -95,7 +79,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   @Override
   public void init() {
     super.init();
-    initializeTargets();
 
     myHelpMeChooseLabel.addMouseListener(new MouseInputAdapter() {
       @Override
@@ -105,7 +88,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         myChooseApiLevelDialog.show();
         if (myChooseApiLevelDialog.isOK()) {
           int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
-          setSelectedItem(myFormFactorApiSelectors.get(MOBILE), Integer.toString(minApiLevel));
+          myFormFactorApiSelectors.get(MOBILE).setSelectedItem(Integer.toString(minApiLevel));
         }
       }
     });
@@ -155,7 +138,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     TemplateManager manager = TemplateManager.getInstance();
     List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
     GridLayoutManager gridLayoutManager = new GridLayoutManager(applicationTemplates.size() * 2 + 1, 2);
-    gridLayoutManager.setVGap(10);
+    gridLayoutManager.setVGap(5);
     gridLayoutManager.setHGap(10);
     myFormFactorPanel.setLayout(gridLayoutManager);
 
@@ -177,33 +160,27 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       c.setFill(GridConstraints.FILL_NONE);
       c.setAnchor(GridConstraints.ANCHOR_WEST);
       JCheckBox inclusionCheckBox = new JCheckBox(formFactor.toString());
-      if (row == 0) {
-        myState.put(FormFactorUtils.getInclusionKey(formFactor), true);
-      }
       myFormFactorPanel.add(inclusionCheckBox, c);
       register(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox);
-      c.setRow(++row);
-      JBLabel minSdkLabel = new JBLabel(MIN_SDK_STRING);
-      c.setIndent(inclusionCheckBox.getIconTextGap());
-      myFormFactorPanel.add(minSdkLabel, c);
-      c.setIndent(0);
-      c.setColumn(1);
-      c.setFill(GridConstraints.FILL_HORIZONTAL);
-      ComboBox minSdkComboBox = new ComboBox();
-      populateComboBox(minSdkComboBox, metadata.getMinSdk());
+      FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, metadata.getMinSdk());
+      FormFactorApiComboBox minSdkComboBox = controls.getMinSdkCombo();
+      minSdkComboBox.setName(formFactor.id + ".minSdk");
+      controls.layout(myFormFactorPanel, ++row, inclusionCheckBox.getIconTextGap());
+      minSdkComboBox.register(this);
+      myFormFactorApiSelectors.put(formFactor, controls);
 
-      // Check for a saved value for the min api level
-      Key<String> minApiKey = getMinApiKey(formFactor);
-      String savedApiLevel = PropertiesComponent.getInstance().getValue(FormFactorUtils.getPropertiesComponentMinSdkKey(formFactor), "15");
-      myState.put(minApiKey, savedApiLevel);
-      register(getTargetComboBoxKey(formFactor), minSdkComboBox, TARGET_COMBO_BINDING);
+      // If we don't have any valid targets for the given form factor, disable that form factor
+      if (minSdkComboBox.getItemCount() == 0) {
+        inclusionCheckBox.setSelected(false);
+        inclusionCheckBox.setEnabled(false);
+        inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
+      } else if (row == 1) {
+        myState.put(FormFactorUtils.getInclusionKey(formFactor), true);
+      }
 
-      setSelectedItem(minSdkComboBox, savedApiLevel);
-
-      myFormFactorPanel.add(minSdkComboBox, c);
-      myFormFactorApiSelectors.put(formFactor, minSdkComboBox);
       if (formFactor.equals(MOBILE)) {
         c.setRow(++row);
+        c.setColumn(1);
         c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
         c.setFill(GridConstraints.FILL_NONE);
         myFormFactorPanel.add(myHelpMeChooseLabel, c);
@@ -212,63 +189,11 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
   }
 
-  private void populateComboBox(@NotNull JComboBox comboBox, int minSdk) {
-    for (AndroidTargetComboBoxItem target : myTargets) {
-      if (target.apiLevel >= minSdk) {
-        comboBox.addItem(target);
-      }
-    }
-  }
-
-  private void initializeTargets() {
-    IAndroidTarget[] targets = getCompilationTargets();
-
-    if (AndroidSdkUtils.isAndroidSdkAvailable()) {
-      String[] knownVersions = TemplateUtils.getKnownVersions();
-
-      for (int i = 0; i < knownVersions.length; i++) {
-        AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(knownVersions[i], i + 1);
-        myTargets.add(targetInfo);
-      }
-    }
-
-    myHighestInstalledApiTarget = null;
-    for (IAndroidTarget target : targets) {
-      if (myHighestInstalledApiTarget == null ||
-          target.getVersion().getFeatureLevel() > myHighestInstalledApiTarget.getVersion().getFeatureLevel() &&
-          !target.getVersion().isPreview()) {
-        myHighestInstalledApiTarget = target;
-      }
-      if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {
-        AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
-        myTargets.add(targetInfo);
-        myInstalledVersions.add(targetInfo.target.getVersion());
-      }
-    }
-  }
-
-  private void populateApiLevels(@NotNull FormFactor formFactor, int apiLevel, @Nullable IAndroidTarget apiTarget) {
-    Key<String> buildApiKey = FormFactorUtils.getBuildApiKey(formFactor);
-    Key<Integer> buildApiLevelKey = FormFactorUtils.getBuildApiLevelKey(formFactor);
-    Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(formFactor);
-    Key<String> targetApiStringKey = FormFactorUtils.getTargetApiStringKey(formFactor);
-    if (apiLevel >= 1) {
-      if (apiTarget == null) {
-        myState.put(buildApiKey, Integer.toString(apiLevel));
-      } else if (apiTarget.getOptionalLibraries() != null) {
-        myState.put(buildApiKey, AndroidTargetHash.getTargetHashString(apiTarget));
-      } else {
-        myState.put(buildApiKey, TemplateMetadata.getBuildApiString(apiTarget.getVersion()));
-      }
-      myState.put(buildApiLevelKey, apiLevel);
-      if (apiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        myState.put(targetApiLevelKey, apiLevel);
-        if (apiTarget != null) {
-          myState.put(targetApiStringKey, apiTarget.getVersion().getApiString());
-        } else {
-          myState.put(targetApiStringKey, Integer.toString(apiLevel));
-        }
-      }
+  @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
+      FormFactorApiComboBox.loadInstalledVersions();
     }
   }
 
@@ -278,34 +203,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     // Persist the min API level choices on a per-form factor basis
     int enabledFormFactors = 0;
     for (FormFactor formFactor : myFormFactors) {
-      Key<AndroidTargetComboBoxItem> key = getTargetComboBoxKey(formFactor);
-      if (modified.contains(key)) {
-        AndroidTargetComboBoxItem targetItem = myState.get(key);
-        if (targetItem == null) {
-          continue;
-        }
-        myState.put(getMinApiKey(formFactor), targetItem.id.toString());
-        myState.put(getMinApiLevelKey(formFactor), targetItem.apiLevel);
-        IAndroidTarget target = targetItem.target;
-        if (target != null && (target.getVersion().isPreview() || !target.isPlatform())) {
-          // Make sure we set target and build to the preview version as well
-          populateApiLevels(formFactor, targetItem.apiLevel, target);
-        } else {
-          populateApiLevels(formFactor, myHighestInstalledApiTarget.getVersion().getFeatureLevel(), myHighestInstalledApiTarget);
-        }
-        // Check to see if this is installed. If not, request that we install it
-        if (myInstallRequests.containsKey(formFactor)) {
-          // First remove the last request, no need to install more than one platform
-          myState.listRemove(INSTALL_REQUESTS_KEY, myInstallRequests.get(formFactor));
-        }
-        if (target != null && !myInstalledVersions.contains(target.getVersion())) {
-          IPkgDesc platformDescription = PkgDesc.Builder.newPlatform(target.getVersion(), new MajorRevision(target.getRevision()),
-                                                                    target.getBuildToolInfo().getRevision()).create();
-          myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
-          myInstallRequests.put(formFactor, platformDescription);
-        }
-        PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), targetItem.id.toString());
-      }
       Boolean included = myState.get(getInclusionKey(formFactor));
       // Disable api selection for non-enabled form factors and check to see if only one is selected
       if (included != null) {
@@ -314,42 +211,43 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
         if (included) {
           enabledFormFactors++;
+          FormFactorSdkControls controls = myFormFactorApiSelectors.get(formFactor);
+          if (controls != null) {
+            controls.getMinSdkCombo().deriveValues(myState, modified);
+          }
         }
       }
     }
     myState.put(NUM_ENABLED_FORM_FACTORS_KEY, enabledFormFactors);
   }
 
+  @Override
+  public boolean validate() {
+    setErrorHtml("");
+    Integer enabledFormFactors = myState.get(NUM_ENABLED_FORM_FACTORS_KEY);
+    if (enabledFormFactors == null || enabledFormFactors < 1) {
+      // Don't allow an empty project
+      setErrorHtml("At least one form factor must be selected.");
+      return false;
+    }
+    for (FormFactor formFactor : myFormFactors) {
+      Boolean included = myState.get(getInclusionKey(formFactor));
+      // Disable api selection for non-enabled form factors and check to see if only one is selected
+      if (included != null && included) {
+        if (myState.get(getMinApiKey(formFactor)) == null) {
+          // Don't allow the user to continue unless all minAPIs are chosen
+          setErrorHtml("Each form factor must have a Minimum SDK level selected.");
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   @NotNull
   @Override
   public String getStepName() {
     return "Configure Form Factors";
-  }
-
-  @NotNull
-  @VisibleForTesting
-  IAndroidTarget[] getCompilationTargets() {
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null) {
-      return new IAndroidTarget[0];
-    }
-    return getCompilationTargets(sdkData);
-  }
-
-  @NotNull
-  public static IAndroidTarget[] getCompilationTargets(@NotNull AndroidSdkData sdkData) {
-    IAndroidTarget[] targets = sdkData.getTargets();
-    List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
-
-    for (IAndroidTarget target : targets) {
-      if (!target.isPlatform() &&
-          (target.getOptionalLibraries() == null ||
-           target.getOptionalLibraries().length == 0)) {
-        continue;
-      }
-      list.add(target);
-    }
-    return list.toArray(new IAndroidTarget[list.size()]);
   }
 
   @Nullable
@@ -370,73 +268,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
   }
 
-  private static final ComponentBinding<AndroidTargetComboBoxItem, JComboBox> TARGET_COMBO_BINDING =
-    new ComponentBinding<AndroidTargetComboBoxItem, JComboBox>() {
-    @Override
-    public void setValue(@Nullable AndroidTargetComboBoxItem newValue, @NotNull JComboBox component) {
-      component.setSelectedItem(newValue);
-    }
-
-    @Nullable
-    @Override
-    public AndroidTargetComboBoxItem getValue(@NotNull JComboBox component) {
-      return (AndroidTargetComboBoxItem)component.getItemAt(component.getSelectedIndex());
-    }
-
-    @Override
-    public void addActionListener(@NotNull ActionListener listener, @NotNull JComboBox component) {
-      component.addActionListener(listener);
-    }
-  };
-
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myPanel;
-  }
-
-  public static class AndroidTargetComboBoxItem extends ComboBoxItem {
-    public int apiLevel = -1;
-    public IAndroidTarget target = null;
-
-    public AndroidTargetComboBoxItem(@NotNull String label, int apiLevel) {
-      super(Integer.toString(apiLevel), label, 1, 1);
-      this.apiLevel = apiLevel;
-    }
-
-    public AndroidTargetComboBoxItem(@NotNull IAndroidTarget target) {
-      super(getId(target), getLabel(target), 1, 1);
-      this.target = target;
-      apiLevel = target.getVersion().getFeatureLevel();
-    }
-
-    @NotNull
-    @VisibleForTesting
-    static String getLabel(@NotNull IAndroidTarget target) {
-      if (target.isPlatform()
-          && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        if (target.getVersion().isPreview()) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
-        }
-        String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-        if (name == null) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel());
-        } else {
-          return name;
-        }
-      } else {
-        return TemplateUtils.getTargetLabel(target);
-      }
-    }
-
-    @NotNull
-    private static String getId(@NotNull IAndroidTarget target) {
-      return target.getVersion().getApiString();
-    }
-
-    @Override
-    public String toString() {
-      return label;
-    }
   }
 
   @Nullable
@@ -448,6 +282,50 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   @Override
   @Nullable
   protected JBColor getTitleTextColor() {
-    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
+  }
+
+  private static final class FormFactorSdkControls {
+    private final JLabel myLabel;
+    private final FormFactorApiComboBox myMinSdkCombobox;
+
+    public FormFactorSdkControls(FormFactor formFactor, int minApi) {
+      myLabel = new JLabel(MIN_SDK_STRING);
+      myMinSdkCombobox = new FormFactorApiComboBox(formFactor, minApi);
+    }
+
+    public void setEnabled(boolean enabled) {
+      for (JComponent component : ImmutableSet.of(myLabel, myMinSdkCombobox)) {
+        component.setEnabled(enabled);
+      }
+    }
+
+    public void setSelectedItem(String item) {
+      ScopedDataBinder.setSelectedItem(myMinSdkCombobox, item);
+    }
+
+    public JLabel getLabel() {
+      return myLabel;
+    }
+
+    public FormFactorApiComboBox getMinSdkCombo() {
+      return myMinSdkCombobox;
+    }
+
+    private void layout(JPanel panel, int row, int ident) {
+      GridConstraints c = new GridConstraints();
+      c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
+      c.setRow(row);
+      c.setColumn(0);
+      c.setFill(GridConstraints.FILL_NONE);
+      c.setAnchor(GridConstraints.ANCHOR_WEST);
+      c.setRow(row);
+      c.setIndent(ident);
+      panel.add(myLabel, c);
+      c.setIndent(0);
+      c.setColumn(1);
+      c.setFill(GridConstraints.FILL_HORIZONTAL);
+      panel.add(myMinSdkCombobox, c);
+    }
   }
 }

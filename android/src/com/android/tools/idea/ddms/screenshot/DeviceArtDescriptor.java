@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -228,6 +229,11 @@ public class DeviceArtDescriptor {
     return getArtDescriptor(orientation).getReflectionFile();
   }
 
+  @Nullable
+  public File getMask(@NotNull ScreenOrientation orientation) {
+    return getArtDescriptor(orientation).getMaskFile();
+  }
+
   public double getAspectRatio(ScreenOrientation orientation) {
     return getArtDescriptor(orientation).getAspectRatio();
   }
@@ -242,6 +248,19 @@ public class DeviceArtDescriptor {
       return true;
     }
 
+    // Not all devices are available in all orientations
+    if (orientation == ScreenOrientation.PORTRAIT && myPortrait == null) {
+      return false;
+    } else if (orientation == ScreenOrientation.LANDSCAPE && myLandscape == null) {
+      return false;
+    }
+
+    // Don't support framing images smaller than our screen size (we don't want to stretch the image)
+    Dimension screenSize = getArtDescriptor(orientation).getScreenSize();
+    if (image.getWidth() < screenSize.getWidth() || image.getHeight() < screenSize.getHeight()) {
+      return false;
+    }
+
     // Make sure that the aspect ratio is nearly identical to the image aspect ratio
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     double descriptorAspectRatio = getAspectRatio(orientation);
@@ -254,6 +273,7 @@ public class DeviceArtDescriptor {
     private final String myShadowName;
     private final String myBackgroundName;
     private final String myReflectionName;
+    private final String myMaskName;
     private final Dimension myScreenSize;
     private final Point myScreenPos;
     private final Dimension myFrameSize;
@@ -278,6 +298,7 @@ public class DeviceArtDescriptor {
       myBackgroundName = getFileName(element, "back");
       myShadowName = getFileName(element, "shadow");
       myReflectionName = getFileName(element, "lights");
+      myMaskName = getFileName(element, "mask");
     }
 
     @Nullable
@@ -367,17 +388,22 @@ public class DeviceArtDescriptor {
 
     @Nullable
     public File getBackgroundFile() {
-      return myBackgroundName != null ? new File(myDevice.getBaseFolder(), myBackgroundName) : null;
+      return !StringUtil.isEmpty(myBackgroundName) ? new File(myDevice.getBaseFolder(), myBackgroundName) : null;
     }
 
     @Nullable
     public File getShadowFile() {
-      return myShadowName != null ? new File(myDevice.getBaseFolder(), myShadowName) : null;
+      return !StringUtil.isEmpty(myShadowName) ? new File(myDevice.getBaseFolder(), myShadowName) : null;
     }
 
     @Nullable
     public File getReflectionFile() {
-      return myReflectionName != null ? new File(myDevice.getBaseFolder(), myReflectionName) : null;
+      return !StringUtil.isEmpty(myReflectionName) ? new File(myDevice.getBaseFolder(), myReflectionName) : null;
+    }
+
+    @Nullable
+    public File getMaskFile() {
+      return !StringUtil.isEmpty(myMaskName) ? new File(myDevice.getBaseFolder(), myMaskName) : null;
     }
 
     public double getAspectRatio() {

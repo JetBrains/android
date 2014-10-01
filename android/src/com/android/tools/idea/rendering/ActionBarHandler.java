@@ -27,10 +27,12 @@ import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
@@ -52,13 +54,7 @@ import static com.android.SdkConstants.*;
  */
 public class ActionBarHandler extends ActionBarCallback {
   private static final String ON_CREATE_OPTIONS_MENU = "onCreateOptionsMenu";                   //$NON-NLS-1$
-  private static final String ATTR_MENU = "menu";                                               //$NON-NLS-1$
-  private static final String ATTR_NAV_MODE = "actionBarNavMode";                               //$NON-NLS-1$
   private static final Pattern MENU_FIELD_PATTERN = Pattern.compile("R\\.menu\\.([a-z0-9_]+)"); //$NON-NLS-1$
-
-  // The attribute values for ATTR_NAV_MODE.
-  private static final String VALUE_NAV_MODE_TABS = "tabs";                                     //$NON-NLS-1$
-  private static final String VALUE_NAV_MODE_LIST = "list";                                     //$NON-NLS-1$
 
   private final Object myCredential;
   @NotNull
@@ -84,7 +80,7 @@ public class ActionBarHandler extends ActionBarCallback {
   /** Flag which controls whether we should be showing the menu */
   private static boolean ourShowMenu = false;
 
-  public static boolean isShowingMenu(@Nullable RenderContext context) {
+  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable RenderContext context) {
     return ourShowMenu;
   }
 
@@ -113,43 +109,49 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      XmlFile xmlFile = myRenderService.getPsiFile();
+      final XmlFile xmlFile = myRenderService.getPsiFile();
       String commaSeparatedMenus = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         myMenus = new ArrayList<String>();
         Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
       } else {
-        String context = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
-        if (context != null && !context.isEmpty()) {
-          // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
-          // This is just a simple textual search; we need to replace this with a proper model lookup.
-          boolean startsWithDot = context.charAt(0) == '.';
-          if (startsWithDot || context.indexOf('.') == -1) {
-            // Prepend application package
-            String pkg = ManifestInfo.get(myRenderService.getModule(), false).getPackage();
-            context = startsWithDot ? pkg + context : pkg + '.' + context;
-          }
-          Project project = xmlFile.getProject();
-          PsiClass clz = JavaPsiFacade.getInstance(project).findClass(context, GlobalSearchScope.allScope(project));
-          if (clz != null) {
-            for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
-              String matchText = method.getText();
-              Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
-              Set<String> menus = Sets.newTreeSet();
-              int index = 0;
-              while (true) {
-                if (matcher.find(index)) {
-                  menus.add(matcher.group(1));
-                  index = matcher.end();
-                } else {
-                  break;
+        final String fqn = AndroidPsiUtils.getDeclaredContextFqcn(myRenderService.getModule(), xmlFile);
+        if (fqn != null) {
+          ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
+            public void run() {
+              // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
+              // This is just a simple textual search; we need to replace this with a proper model lookup.
+              Project project = xmlFile.getProject();
+              PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
+              if (clz != null) {
+                for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
+                  if (method instanceof PsiCompiledElement) {
+                    continue;
+                  }
+                  // TODO: This should instead try to use the GotoRelated implementation's notion
+                  // of associated activities; see what is done in
+                  // AndroidMissingOnClickHandlerInspection. However, the AndroidGotoRelatedProvider
+                  // will first need to properly handle menus.
+                  String matchText = method.getText();
+                  Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
+                  Set<String> menus = Sets.newTreeSet();
+                  int index = 0;
+                  while (true) {
+                    if (matcher.find(index)) {
+                      menus.add(matcher.group(1));
+                      index = matcher.end();
+                    } else {
+                      break;
+                    }
+                  }
+                  if (!menus.isEmpty()) {
+                    myMenus = new ArrayList<String>(menus);
+                  }
                 }
               }
-              if (!menus.isEmpty()) {
-                myMenus = new ArrayList<String>(menus);
-              }
             }
-          }
+          });
         }
       }
 

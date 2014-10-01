@@ -85,7 +85,15 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     return validateAndroidSdk(path).getFirst();
   }
 
-  public static Pair<Boolean,String> validateAndroidSdk(@Nullable String path) {
+  /**
+   * Indicates whether the given path belongs to a valid Android SDK.
+   *
+   * @param path the given path.
+   * @return a pair where the first value is {@code true} if the path belongs to a valid Android SDK. If pair's first value is
+   * {@code false}, the second value will be a non-null explaining why the path is not valid.
+   */
+  @NotNull
+  public static Pair<Boolean, String> validateAndroidSdk(@Nullable String path) {
     if (path == null) {
       return Pair.create(Boolean.FALSE, "");
     }
@@ -101,6 +109,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
       return Pair.create(Boolean.FALSE, "SDK does not contain any platforms");
     }
 
+    //noinspection ConstantConditions
     return Pair.create(Boolean.TRUE, null);
   }
 

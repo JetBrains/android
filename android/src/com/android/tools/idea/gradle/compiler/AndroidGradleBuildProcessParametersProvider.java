@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -26,6 +28,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
@@ -33,7 +36,6 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -88,12 +90,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     // Add command-line options.
     String[] commandLineOptions = buildConfiguration.getCommandLineOptions();
-    jvmArgs.add(createJvmArg(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, commandLineOptions.length));
     int optionCount = 0;
     for (String option : commandLineOptions) {
-      String name = GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + optionCount;
+      String name = GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + optionCount++;
       jvmArgs.add(createJvmArg(name, option));
-      optionCount++;
     }
   }
 
@@ -127,12 +127,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     if (jvmOptions != null && !jvmOptions.isEmpty()) {
       CommandLineTokenizer tokenizer = new CommandLineTokenizer(jvmOptions);
       while(tokenizer.hasMoreTokens()) {
-        String name = GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount;
+        String name = GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount++;
         jvmArgs.add(createJvmArg(name, tokenizer.nextToken()));
-        jvmOptionCount++;
       }
     }
-    jvmArgs.add(createJvmArg(GRADLE_DAEMON_JVM_OPTION_COUNT, jvmOptionCount));
   }
 
   private static void addHttpProxySettings(@NotNull List<String> jvmArgs) {
@@ -143,8 +141,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @VisibleForTesting
   static void populateHttpProxyProperties(List<String> jvmArgs, List<KeyValue<String, String>> properties) {
     int propertyCount = properties.size();
-    jvmArgs.add(createJvmArg(HTTP_PROXY_PROPERTY_COUNT, propertyCount));
-
     for (int i = 0; i < propertyCount; i++) {
       KeyValue<String, String> property = properties.get(i);
       String name = HTTP_PROXY_PROPERTY_PREFIX + i;
@@ -159,26 +155,31 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       buildMode = BuildMode.DEFAULT_BUILD_MODE;
     }
     jvmArgs.add(createJvmArg(BUILD_MODE, buildMode.toString()));
-    populateModulesToBuild(buildMode, jvmArgs);
+    populateGradleTasksToInvoke(buildMode, jvmArgs);
   }
 
   @VisibleForTesting
-  void populateModulesToBuild(@NotNull BuildMode buildMode, @NotNull List<String> jvmArgs) {
-    String[] modulesToBuild = getModulesToBuild(buildMode);
-    int moduleCount = modulesToBuild == null ? 0 : modulesToBuild.length;
-    jvmArgs.add(createJvmArg(MODULES_TO_BUILD_PROPERTY_COUNT, moduleCount));
-    for (int i = 0; i < moduleCount; i++) {
-      String name = MODULES_TO_BUILD_PROPERTY_PREFIX + i;
-      jvmArgs.add(createJvmArg(name, modulesToBuild[i]));
+  void populateGradleTasksToInvoke(@NotNull BuildMode buildMode, @NotNull List<String> jvmArgs) {
+    if (buildMode == BuildMode.ASSEMBLE_TRANSLATE) {
+      jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME));
+      return;
+    }
+    BuildSettings buildSettings = BuildSettings.getInstance(myProject);
+    Module[] modulesToBuild = buildSettings.getModulesToBuild();
+
+    if (modulesToBuild == null || (buildMode == BuildMode.ASSEMBLE && Projects.lastGradleSyncFailed(myProject))) {
+      jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME));
+      return;
+    }
+
+    GradleInvoker.TestCompileType testCompileType = GradleInvoker.getTestCompileType(buildSettings.getRunConfigurationTypeId());
+
+    List<String> tasks = GradleInvoker.findTasksToExecute(modulesToBuild, buildMode, testCompileType);
+    int taskCount = tasks.size();
+    for (int i = 0; i < taskCount; i++) {
+      String name = GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + i;
+      jvmArgs.add(createJvmArg(name, tasks.get(i)));
     }
   }
 
-  @Nullable
-  private String[] getModulesToBuild(@NotNull BuildMode buildMode) {
-    if (buildMode.equals(BuildMode.ASSEMBLE_TRANSLATE) || (buildMode.equals(BuildMode.ASSEMBLE) && Projects.lastGradleSyncFailed(myProject))) {
-      return null;
-    }
-    BuildSettings buildSettings = BuildSettings.getInstance(myProject);
-    return buildSettings.getModulesToBuildNames();
-  }
 }

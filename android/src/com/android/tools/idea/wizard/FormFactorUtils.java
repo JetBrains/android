@@ -15,57 +15,75 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.INVALID_FILENAME_CHARS;
-import static com.android.tools.idea.wizard.ConfigureFormFactorStep.AndroidTargetComboBoxItem;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 
 /**
  * Utility methods for dealing with Form Factors in Wizards.
  */
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
+  public static final String ATTR_MODULE_NAME = "projectName";
 
-  public static enum FormFactor {
-    MOBILE("Mobile", AndroidIcons.Wizards.FormFactorPhoneTabletLight,
-                     AndroidIcons.Wizards.FormFactorPhoneTabletDark,
-                     "Phone and Tablet"),
-    WEAR("Wear", AndroidIcons.Wizards.FormFactorWearLight, AndroidIcons.Wizards.FormFactorWearDark, "Wear"),
-    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlassLight, AndroidIcons.Wizards.FormFactorGlassDark, "Glass");
+  /** TODO: Turn into an enum and combine with {@link com.android.tools.idea.configurations.DeviceMenuAction.FormFactor} */
+  public static class FormFactor {
+    public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
+                                                           Lists.newArrayList("20", "Glass"), null);
+    public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear", 20,
+                                                         null, Lists.newArrayList("20"));
+    public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass", 19,
+                                                          null, Lists.newArrayList("Glass"));
+    public static final FormFactor TV = new FormFactor("TV", AndroidIcons.Wizards.FormFactorTV, "TV", 21,
+                                                       Lists.newArrayList("20"), null);
+
+    private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
+        .put(MOBILE.id, MOBILE)
+        .put(WEAR.id, WEAR)
+        .put(GLASS.id, GLASS)
+        .put(TV.id, TV).build();
 
     public final String id;
-    @Nullable private final Icon myLightIcon;
-    @Nullable private final Icon myDarkIcon;
+    @Nullable private final Icon myIcon;
     @Nullable private String displayName;
+    public final int defaultApi;
+    @NotNull private final List<String> myApiBlacklist;
+    @NotNull private final List<String> myApiWhitelist;
 
-    FormFactor(@NotNull String id, @Nullable Icon lightIcon, @Nullable Icon darkIcon, @Nullable String displayName) {
+    FormFactor(@NotNull String id, @Nullable Icon icon, @Nullable String displayName, @NotNull int defaultApi,
+               @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
       this.id = id;
-      myLightIcon = lightIcon;
-      myDarkIcon = darkIcon;
+      myIcon = icon;
       this.displayName = displayName;
+      this.defaultApi = defaultApi;
+      myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
+      myApiWhitelist = apiWhitelist != null ? apiWhitelist : Collections.<String>emptyList();
     }
 
     @Nullable
     public static FormFactor get(@NotNull String id) {
-      for (FormFactor formFactor : FormFactor.values()) {
-        if (id.equalsIgnoreCase(formFactor.id)) {
-          return formFactor;
-        }
+      if (myFormFactors.containsKey(id)) {
+        return myFormFactors.get(id);
       }
-      return null;
+      return new FormFactor(id, null, id, 1, null, null);
     }
 
     @Override
@@ -75,7 +93,11 @@ public class FormFactorUtils {
 
     @Nullable
     public Icon getIcon() {
-      return UIUtil.isUnderDarcula() ? myDarkIcon : myLightIcon;
+      return myIcon;
+    }
+
+    public static Iterator<FormFactor> iterator() {
+      return myFormFactors.values().iterator();
     }
   }
 
@@ -140,5 +162,49 @@ public class FormFactorUtils {
     String name = formFactor.id.replaceAll(INVALID_FILENAME_CHARS, "");
     name = name.replaceAll("\\s", "_");
     return name.toLowerCase();
+  }
+
+  public static Predicate<AndroidTargetComboBoxItem> getMinSdkComboBoxFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
+    return new Predicate<AndroidTargetComboBoxItem>() {
+      @Override
+      public boolean apply(@Nullable AndroidTargetComboBoxItem input) {
+        if (input == null) {
+          return false;
+        }
+        if (!formFactor.myApiWhitelist.isEmpty()) {
+          // If a whitelist is present, only allow things on the whitelist
+          for (String filterItem : formFactor.myApiWhitelist) {
+            if (matches(filterItem, input)) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        // If we don't have a whitelist, let's check the blacklist
+        for (String filterItem : formFactor.myApiBlacklist) {
+          if (matches(filterItem, input)) {
+            return false;
+          }
+        }
+
+        // Finally, we'll check that the minSDK is honored
+        return input.apiLevel >= minSdkLevel || (input.target != null && input.target.getVersion().isPreview());
+      }
+    };
+  }
+
+  /**
+   * @return true iff the filterItem is a string which matches the string representation of the box item apiLevel,
+   * or the target name contains the filterItem.
+   */
+  private static boolean matches(@NotNull String filterItem, @NotNull AndroidTargetComboBoxItem input) {
+    if (Integer.toString(input.apiLevel).equals(filterItem)) {
+      return true;
+    }
+    if (input.target != null && input.target.getName().contains(filterItem)) {
+      return true;
+    }
+    return false;
   }
 }

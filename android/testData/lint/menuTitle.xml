@@ -1,0 +1,7 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <<error descr="Menu items should specify a `title`">it<caret>em</error>
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"  />
+
+</menu>

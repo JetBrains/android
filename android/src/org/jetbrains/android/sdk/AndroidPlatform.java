@@ -17,6 +17,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * Created by IntelliJ IDEA.
@@ -81,7 +84,7 @@ public class AndroidPlatform {
 
   @Nullable
   public static AndroidPlatform parse(@NotNull Sdk sdk) {
-    if (!(sdk.getSdkType().equals(AndroidSdkType.getInstance()))) {
+    if (!isAndroidSdk(sdk)) {
       return null;
     }
     String sdkPath = sdk.getHomePath();
@@ -193,6 +196,10 @@ public class AndroidPlatform {
 
   public int getApiLevel() {
     return myTarget.getVersion().getApiLevel();
+  }
+
+  public AndroidVersion getApiVersion() {
+    return myTarget.getVersion();
   }
 
   /** Looks up the platform for a given module */

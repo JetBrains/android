@@ -64,7 +64,22 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testVersionConditional2() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testFieldWithinCall() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testCatchClause() throws Exception {
+    // Ensure that we flag uses in catch clauses; regression test for
+    // https://code.google.com/p/android/issues/detail?id=74900
+    // We're testing with OperationApplicationException instead of
+    // ReflectiveOperationException since the bundled SDK used by the unit tests
+    // is older and doesn't have API 19 data.
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
   }
@@ -74,8 +89,9 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  // This test does not yet work reliably; need to ensure correct JDK 7 loading.
   @Ignore
-  public void testTryWithResources() throws Exception {
+  public void DISABLEDtestTryWithResources() throws Exception {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
 
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();

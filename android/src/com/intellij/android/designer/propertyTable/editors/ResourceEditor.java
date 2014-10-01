@@ -86,7 +86,7 @@ public class ResourceEditor extends PropertyEditor {
         public void itemStateChanged(ItemEvent e) {
           if (!myIgnoreCheckBoxValue) {
             myBooleanResourceValue = null;
-            fireValueCommitted(true, true);
+            fireValueCommitted(false, true);
           }
         }
       });
@@ -138,7 +138,7 @@ public class ResourceEditor extends PropertyEditor {
       textField.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          fireValueCommitted(true, true);
+          fireValueCommitted(false, true);
         }
       });
       textField.getDocument().addDocumentListener(
@@ -149,6 +149,7 @@ public class ResourceEditor extends PropertyEditor {
           }
         }
       );
+      selectTextOnFocusGain(textField);
     }
 
     if (myCheckBox == null) {
@@ -169,6 +170,18 @@ public class ResourceEditor extends PropertyEditor {
       @Override
       public void focusGained(FocusEvent e) {
         myEditor.getChildComponent().requestFocus();
+      }
+    });
+  }
+
+  public static void selectTextOnFocusGain(JTextField textField) {
+    textField.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent focusEvent) {
+        Object source = focusEvent.getSource();
+        if (source instanceof JTextField) {
+          ((JTextField)source).selectAll();
+        }
       }
     });
   }

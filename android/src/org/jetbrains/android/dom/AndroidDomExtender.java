@@ -45,10 +45,7 @@ import org.jetbrains.android.dom.color.ColorStateListItem;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.drawable.*;
-import org.jetbrains.android.dom.layout.Fragment;
-import org.jetbrains.android.dom.layout.Include;
-import org.jetbrains.android.dom.layout.LayoutElement;
-import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
@@ -83,6 +80,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static final MyAttributeProcessor ourLayoutAttrsProcessor = new MyAttributeProcessor() {
     @Override
     public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
+      // Mark layout_width and layout_height required - if the context calls for it
+      String localName = attrName.getLocalName();
+      if (!(ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName))) {
+        return;
+      }
       if ((element instanceof LayoutViewElement || element instanceof Fragment) &&
           SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
         XmlElement xmlElement = element.getXmlElement();
@@ -92,6 +94,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
             !TABLE_ROW.equals(tagName) &&
             !VIEW_INCLUDE.equals(tagName) &&
             !REQUEST_FOCUS.equals(tagName) &&
+            !TAG.equals(tagName) &&
             (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
           String parentTagName = parentTag != null ? parentTag.getName() : null;
@@ -99,8 +102,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
               !TABLE_LAYOUT.equals(parentTagName) &&
               !VIEW_MERGE.equals(parentTagName) &&
               !GRID_LAYOUT.equals(parentTagName) &&
-              !FQCN_GRID_LAYOUT_V7.equals(parentTagName) &&
-              (ATTR_LAYOUT_WIDTH.equals(attrName.getLocalName()) || ATTR_LAYOUT_HEIGHT.equals(attrName.getLocalName()))) {
+              !FQCN_GRID_LAYOUT_V7.equals(parentTagName)) {
             extension.addCustomAnnotation(new MyRequired());
           }
         }
@@ -479,6 +481,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     else if (element instanceof Fragment) {
       registerAttributes(facet, element, new String[]{"Fragment"}, callback, ourLayoutAttrsProcessor, skipAttrNames);
+    } else if (element instanceof Tag) {
+      registerAttributes(facet, element, "ViewTag", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      return;
     }
     else {
       String tagName = tag.getName();
@@ -667,6 +672,20 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     else if (element instanceof AnimationListItem) {
       registerAttributes(facet, element, "AnimationDrawableItem", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
+    else if (element instanceof AnimatedStateListTransition) {
+      registerAttributes(facet, element, "AnimatedStateListDrawableTransition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
+    /* Being considered:
+    else if (element instanceof VectorPath) {
+      registerAttributes(facet, element, "VectorDrawablePath", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
+    else if (element instanceof VectorViewport) {
+      registerAttributes(facet, element, "VectorDrawableViewport", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
+    else if (element instanceof VectorSize) {
+      registerAttributes(facet, element, "VectorDrawableSize", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
+    */
   }
 
   public static void registerExtensionsForTransition(final AndroidFacet facet,

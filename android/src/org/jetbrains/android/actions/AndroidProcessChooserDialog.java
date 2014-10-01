@@ -15,9 +15,13 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -176,7 +180,12 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
             value = ((IDevice)userObject).getName();
           }
           else if (userObject instanceof Client) {
-            value = ((Client)userObject).getClientData().getClientDescription();
+            final ClientData clientData = ((Client)userObject).getClientData();
+            String description = clientData.getClientDescription();
+            if (clientData.isValidUserId() && clientData.getUserId() != 0) {
+              description += " (user " + Integer.toString(clientData.getUserId()) + ")";
+            }
+            value = description;
           }
         }
 
@@ -242,7 +251,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       @Override
       public void run() {
         final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myProject);
-        if (debugBridge != null && AndroidSdkUtils.isDdmsCorrupted(debugBridge)) {
+        if (debugBridge != null && AdbService.isDdmsCorrupted(debugBridge)) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -365,6 +374,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           collectProcessNames(xmlElement, result);
         }
       }
+      final IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+      if (androidProject != null) {
+        collectApplicationIds(androidProject, result);
+      }
     }
 
     return result;
@@ -383,6 +396,16 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         }
       }
     });
+  }
+
+  private static void collectApplicationIds(IdeaAndroidProject androidProject, Set<String> result) {
+    final Collection<Variant> allVariants = androidProject.getDelegate().getVariants();
+    for (Variant v : allVariants) {
+      String applicationId = v.getMergedFlavor().getApplicationId();
+      if (applicationId != null) {
+        result.add(applicationId);
+      }
+    }
   }
 
   @Override

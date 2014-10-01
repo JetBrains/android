@@ -40,7 +40,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 /**
  * Value object which holds the current state of the wizard pages for
  * {@link NewTemplateObjectWizard}-derived wizards.
+ *
+ * Deprecated. Use {@link ScopedStateStore} and {@link ScopedDataBinder} instead.
  */
+@Deprecated
 public class TemplateWizardState implements Function<String, Object> {
   /*
    * TODO: The parameter handling code needs to be completely rewritten. It's extremely fragile now. When it's rewritten, it needs to take
@@ -115,7 +118,7 @@ public class TemplateWizardState implements Function<String, Object> {
   @VisibleForTesting
   public void populateDirectoryParameters() throws IOException {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
+    File moduleRoot = new File(projectRoot, getString(FormFactorUtils.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
     File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
 
@@ -165,13 +168,6 @@ public class TemplateWizardState implements Function<String, Object> {
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
     if (mavenUrl != null) {
       put(ATTR_MAVEN_URL, mavenUrl);
-    }
-
-    if (!myParameters.containsKey(ATTR_RELATIVE_PACKAGE)) {
-      String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
-      if (pkg != null){
-        myParameters.put(ATTR_PACKAGE_ROOT, pkg);
-      }
     }
 
     populateRelativePackage(null);

@@ -46,4 +46,6 @@ public interface LayoutViewElement extends LayoutElement {
   List<Fragment> getFragments();
 
   List<View> getViews();
+
+  List<Tag> getTags();
 }

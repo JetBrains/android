@@ -16,9 +16,11 @@
 
 package org.jetbrains.android.intentions;
 
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.utils.XmlUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
@@ -53,6 +55,7 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -131,7 +134,14 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
               String typeName = resourceType.getName();
               for (String type : types) {
                 if (typeName.equals(type)) {
-                  return ((XmlAttributeValue)element).getValue();
+                  // This returns the XML attribute text, except for the surrounding quotes
+                  String attributeText = ((XmlAttributeValue)element).getValue();
+                  if (attributeText != null) {
+                    // We want to turn &quot; etc back into " in the XML string definition; the entity
+                    // usage was just to escape XML, not a part of the text
+                    return ValueXmlHelper.unescapeResourceString(attributeText, true, true);
+                  }
+                  return null;
                 }
               }
             }
@@ -232,6 +242,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     UndoUtil.markPsiFileForUndo(file);
+    AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
   }
 
   private static void createJavaResourceReference(final Module module,

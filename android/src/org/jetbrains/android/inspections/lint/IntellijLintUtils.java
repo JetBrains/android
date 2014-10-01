@@ -24,7 +24,6 @@ import com.android.tools.lint.detector.api.*;
 import com.google.common.base.Splitter;
 import com.intellij.debugger.engine.JVMNameUtil;
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
@@ -101,6 +100,9 @@ public class IntellijLintUtils {
     }
     LintRequest request = context.getDriver().getRequest();
     Project project = ((IntellijLintRequest)request).getProject();
+    if (project.isDisposed()) {
+      return null;
+    }
     return PsiManager.getInstance(project).findFile(file);
   }
 
@@ -349,10 +351,10 @@ public class IntellijLintUtils {
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
     if (facet.isGradleProject()) {
       List<File> resDirectories = new ArrayList<File>();
-      resDirectories.addAll(facet.getMainSourceSet().getResDirectories());
-      List<SourceProvider> flavorSourceSets = facet.getFlavorSourceSets();
-      if (flavorSourceSets != null) {
-        for (SourceProvider provider : flavorSourceSets) {
+      resDirectories.addAll(facet.getMainSourceProvider().getResDirectories());
+      List<SourceProvider> flavorSourceProviders = facet.getFlavorSourceProviders();
+      if (flavorSourceProviders != null) {
+        for (SourceProvider provider : flavorSourceProviders) {
           for (File file : provider.getResDirectories()) {
             if (file.isDirectory()) {
               resDirectories.add(file);
@@ -361,9 +363,9 @@ public class IntellijLintUtils {
         }
       }
 
-      SourceProvider buildTypeSourceSet = facet.getBuildTypeSourceSet();
-      if (buildTypeSourceSet != null) {
-        for (File file : buildTypeSourceSet.getResDirectories()) {
+      SourceProvider buildTypeSourceProvider = facet.getBuildTypeSourceProvider();
+      if (buildTypeSourceProvider != null) {
+        for (File file : buildTypeSourceProvider.getResDirectories()) {
           if (file.isDirectory()) {
             resDirectories.add(file);
           }
@@ -372,7 +374,7 @@ public class IntellijLintUtils {
 
       return resDirectories;
     } else {
-      return new ArrayList<File>(facet.getMainSourceSet().getResDirectories());
+      return new ArrayList<File>(facet.getMainSourceProvider().getResDirectories());
     }
   }
 

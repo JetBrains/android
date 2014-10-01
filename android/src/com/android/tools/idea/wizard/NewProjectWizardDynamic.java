@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,31 +36,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
  * Presents a wizard to the user to create a new project.
  */
 public class NewProjectWizardDynamic extends DynamicWizard {
-
-  public static final Key<String> GRADLE_VERSION_KEY = createKey(TemplateMetadata.ATTR_GRADLE_VERSION, WIZARD, String.class);
-  public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
-  public static final Key<Boolean> USE_PER_MODULE_REPOS_KEY = createKey(TemplateMetadata.ATTR_PER_MODULE_REPOS, WIZARD, Boolean.class);
-  public static final Key<Boolean> IS_NEW_PROJECT_KEY = createKey(ATTR_IS_NEW_PROJECT, WIZARD, Boolean.class);
-  public static final Key<Boolean> IS_GRADLE_PROJECT_KEY = createKey(ATTR_IS_GRADLE, WIZARD, Boolean.class);
-  public static final Key<String> SDK_DIR_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
-  public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
-
   private static final String ERROR_MSG_TITLE = "Error in New Project Wizard";
   private final List<File> myFilesToOpen = Lists.newArrayList();
 
@@ -77,34 +66,47 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
-      throw new IllegalStateException(msg);
     }
+    addPaths();
+    initState();
+    super.init();
+  }
+
+  /**
+   * Add the steps for this wizard
+   */
+  protected void addPaths() {
     addPath(new ConfigureAndroidProjectPath(getDisposable()));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
     }
+  }
+
+  /**
+   * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
+   */
+  protected void initState() {
     ScopedStateStore state = getState();
-    state.put(GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
-    state.put(GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_LATEST_VERSION);
-    state.put(USE_PER_MODULE_REPOS_KEY, false);
-    state.put(IS_NEW_PROJECT_KEY, true);
-    state.put(IS_GRADLE_PROJECT_KEY, true);
+    state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
+    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
+    state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
+    state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
     try {
-      state.put(DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
+      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
     }
     catch (Exception e) {
       LOG.error("Could not create default debug keystore: " + e.getMessage());
-      state.put(DEBUG_KEYSTORE_SHA_1_KEY, "");
+      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, "");
     }
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkData != null) {
-      state.put(SDK_DIR_KEY, sdkData.getLocation().getPath());
+      state.put(WizardConstants.SDK_DIR_KEY, sdkData.getLocation().getPath());
     }
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
     if (mavenUrl != null) {
-      state.put(MAVEN_URL_KEY, mavenUrl);
+      state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
-    super.init();
   }
 
   @Override
@@ -131,16 +133,34 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     // Collect files to open
-    for (DynamicWizardPath path : myPaths) {
+    for (AndroidStudioWizardPath path : myPaths) {
       if (path instanceof NewFormFactorModulePath) {
         myFilesToOpen.addAll(((NewFormFactorModulePath)path).getFilesToOpen());
       }
     }
 
+    // Pick the highest language level of all the modules/form factors.
+    // We have to pick the language level up front while creating the project rather than
+    // just reacting to it during sync, because otherwise the user gets prompted with
+    // a changing-language-level-requires-reopening modal dialog box and have to reload
+    // the project
+    LanguageLevel initialLanguageLevel = null;
+    Iterator<FormFactor> iterator = FormFactor.iterator();
+    while (iterator.hasNext()) {
+      FormFactor factor = iterator.next();
+      Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
+      if (version != null) {
+        LanguageLevel level = LanguageLevel.parse(version.toString());
+        if (level != null && (initialLanguageLevel == null || level.isAtLeast(initialLanguageLevel))) {
+          initialLanguageLevel = level;
+        }
+      }
+    }
+
     try {
-      projectImporter.importProject(projectName, rootLocation, new NewProjectImportGradleSyncListener() {
+      projectImporter.importNewlyCreatedProject(projectName, rootLocation, new NewProjectImportGradleSyncListener() {
         @Override
-        public void syncEnded(@NotNull final Project project) {
+        public void syncSucceeded(@NotNull final Project project) {
           // Open files -- but wait until the Android facets are available, otherwise for example
           // the layout editor won't add Design tabs to the file
           StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
@@ -160,7 +180,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         private boolean openTemplateFiles(Project project) {
           return TemplateUtils.openEditors(project, myFilesToOpen, true);
         }
-      });
+      }, null, initialLanguageLevel);
     }
     catch (IOException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);

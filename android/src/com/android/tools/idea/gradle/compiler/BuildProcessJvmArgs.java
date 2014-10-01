@@ -28,9 +28,7 @@ public final class BuildProcessJvmArgs {
   @NonNls private static final String JVM_ARG_PREFIX = "com.android.studio.gradle.";
 
   @NonNls public static final String GRADLE_DAEMON_JVM_OPTION_PREFIX = JVM_ARG_PREFIX +  "daemon.jvm.option.";
-  @NonNls public static final String GRADLE_DAEMON_JVM_OPTION_COUNT = GRADLE_DAEMON_JVM_OPTION_PREFIX + "count";
   @NonNls public static final String GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX = JVM_ARG_PREFIX + "daemon.command.line.option.";
-  @NonNls public static final String GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT = GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + "count";
   @NonNls public static final String GRADLE_HOME_DIR_PATH = JVM_ARG_PREFIX + "home.path";
   @NonNls public static final String GRADLE_JAVA_HOME_DIR_PATH = JVM_ARG_PREFIX + "java.home.path";
   @NonNls public static final String GRADLE_OFFLINE_BUILD_MODE = JVM_ARG_PREFIX + "offline.mode";
@@ -41,8 +39,6 @@ public final class BuildProcessJvmArgs {
   @NonNls public static final String USE_GRADLE_VERBOSE_LOGGING = JVM_ARG_PREFIX + "use.verbose.logging";
   @NonNls public static final String BUILD_MODE = JVM_ARG_PREFIX + "build.mode";
   @NonNls public static final String HTTP_PROXY_PROPERTY_PREFIX = JVM_ARG_PREFIX + "proxy.property.";
-  @NonNls public static final String HTTP_PROXY_PROPERTY_COUNT = HTTP_PROXY_PROPERTY_PREFIX  + "count";
   @NonNls public static final String HTTP_PROXY_PROPERTY_SEPARATOR = ":";
-  @NonNls public static final String MODULES_TO_BUILD_PROPERTY_PREFIX = JVM_ARG_PREFIX + "modules.";
-  @NonNls public static final String MODULES_TO_BUILD_PROPERTY_COUNT = MODULES_TO_BUILD_PROPERTY_PREFIX + "count";
+  @NonNls public static final String GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX = JVM_ARG_PREFIX + "gradle.tasks.";
 }
