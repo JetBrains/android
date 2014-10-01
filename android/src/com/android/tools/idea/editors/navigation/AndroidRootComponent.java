@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -120,6 +121,7 @@ public class AndroidRootComponent extends JComponent {
           }
           return myCachedRenderedView;
         }
+
         private int getDx() {
           RenderedView menu = getRenderedView();
           return (menu == null) ? 0 : menu.x;
@@ -259,6 +261,10 @@ public class AndroidRootComponent extends JComponent {
         RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
         final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
         if (service != null) {
+          if (!myIsMenu) {
+            // Don't show menus in the layout view
+            service.getLayoutlibCallback().getActionBarCallback().setMenuIdNames(Collections.<String>emptyList());
+          }
           RenderResult renderedResult = service.render();
           if (renderedResult != null) {
             RenderSession session = renderedResult.getSession();
