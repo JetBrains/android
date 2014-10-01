@@ -30,6 +30,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
