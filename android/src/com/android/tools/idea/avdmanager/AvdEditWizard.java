@@ -86,6 +86,7 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(BACK_CAMERA_KEY, DEFAULT_CAMERA);
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
+    state.put(USE_HOST_GPU_KEY, true);
   }
 
   /**
@@ -127,7 +128,10 @@ public class AvdEditWizard extends DynamicWizard {
     if (sdCardLocation != null) {
       state.put(USE_EXISTING_SD_CARD, true);
     }
-    state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(properties.get(SCALE_SELECTION_KEY.name)));
+    String scale = properties.get(SCALE_SELECTION_KEY.name);
+    if (scale != null) {
+      state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(scale));
+    }
     state.put(USE_HOST_GPU_KEY, fromIniString(properties.get(USE_HOST_GPU_KEY.name)));
     state.put(USE_SNAPSHOT_KEY, fromIniString(properties.get(USE_SNAPSHOT_KEY.name)));
     state.put(FRONT_CAMERA_KEY, properties.get(FRONT_CAMERA_KEY.name));
