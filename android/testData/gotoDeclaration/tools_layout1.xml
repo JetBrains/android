@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/picture3"
+    tools:context="p1.p2.M<caret>yActivity">
+  <TextView tools:text="@string/hello"/>
+</LinearLayout>
