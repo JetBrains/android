@@ -80,6 +80,7 @@ public class DeviceArtDescriptor {
       "plugins" + File.separatorChar + "android" + File.separatorChar,
       ".." + File.separator + "adt" + File.separator + "idea" + File.separator + "android" + File.separatorChar,
       "android" + File.separatorChar + "android" + File.separatorChar,
+      "community" + File.separatorChar + "android" + File.separatorChar + "android" + File.separatorChar,
     };
 
     for (String p : paths) {
