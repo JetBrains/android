@@ -284,6 +284,41 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }
   }
 
+  /**
+   * Finds the Run button in the IDE interface.
+   *
+   * @return ActionButtonFixture for the run button.
+   */
+  @NotNull
+  public ActionButtonFixture findRunApplicationButton() {
+    return findActionButtonByActionId("Run");
+  }
+
+  public void debugApp(@NotNull String appName) throws ClassNotFoundException {
+    selectApp(appName);
+    findActionButtonByActionId("Debug").click();
+  }
+
+  public void runApp(@NotNull String appName) throws ClassNotFoundException {
+    selectApp(appName);
+    findActionButtonByActionId("Run").click();
+  }
+
+  @NotNull
+  public ChooseDeviceDialogFixture findChooseDeviceDialog() {
+    return ChooseDeviceDialogFixture.find(this, robot);
+  }
+
+  @NotNull
+  public RunToolWindowFixture getRunToolWindow() {
+    return new RunToolWindowFixture(this);
+  }
+
+  @NotNull
+  public DebugToolWindowFixture getDebugToolWindow() {
+    return new DebugToolWindowFixture(this);
+  }
+
   protected void selectProjectMakeAction() {
     JMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
     robot.click(makeProjectMenuItem);
@@ -462,6 +497,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public AndroidToolWindowFixture getAndroidToolWindow() {
+    return new AndroidToolWindowFixture(getProject(), robot);
+  }
+
+  @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
     return new MessagesToolWindowFixture(getProject(), robot);
   }
@@ -629,5 +669,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     @Override
     public void dispose() {
     }
+  }
+
+  private void selectApp(@NotNull String appName) throws ClassNotFoundException {
+    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot, this);
+    comboBoxActionFixture.selectApp(appName);
   }
 }
