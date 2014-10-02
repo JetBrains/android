@@ -123,12 +123,12 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
   @NotNull private final Object myMessageViewLock = new Object();
+  private final GradleInvoker myInvoker;
   @Nullable private GradleBuildTreeViewPanel myErrorTreeView;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
   @NotNull private final List<String> myGradleTasks;
   @NotNull private final List<String> myCommandLineArguments;
-  @NotNull private final GradleInvoker.AfterGradleInvocationTask[] myAfterGradleInvocationTasks;
 
   private volatile int myErrorCount;
   private volatile int myWarningCount;
@@ -140,14 +140,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private CloseListener myCloseListener;
 
-  GradleTasksExecutor(@NotNull Project project,
+  GradleTasksExecutor(@NotNull GradleInvoker invoker,
+                      @NotNull Project project,
                       @NotNull List<String> gradleTasks,
-                      @NotNull List<String> commandLineArguments,
-                      @NotNull GradleInvoker.AfterGradleInvocationTask[] afterGradleInvocationTasks) {
+                      @NotNull List<String> commandLineArguments) {
     super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
+    myInvoker = invoker;
     myGradleTasks = gradleTasks;
     myCommandLineArguments = commandLineArguments;
-    myAfterGradleInvocationTasks = afterGradleInvocationTasks;
   }
 
   @Override
@@ -328,7 +328,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           boolean buildSuccessful = buildError == null;
           GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, buildMessages, buildSuccessful);
-          for (GradleInvoker.AfterGradleInvocationTask task : myAfterGradleInvocationTasks) {
+          for (GradleInvoker.AfterGradleInvocationTask task : myInvoker.getAfterInvocationTasks()) {
             task.execute(result);
           }
         }
