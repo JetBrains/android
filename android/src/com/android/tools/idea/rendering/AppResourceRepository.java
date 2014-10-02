@@ -20,8 +20,8 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -99,6 +99,19 @@ public class AppResourceRepository extends MultiResourceRepository {
     facet.addListener(new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
+        repository.updateRoots();
+      }
+    });
+
+    // Add notification listener for builds, so we can update extracted AARs, if necessary.
+    // This is necessary because after sync, but before the source generation build target has completed,
+    // we can look for but not find the exploded AAR directories. When the build is done we need to revisit
+    // this and create them if necessary.
+    // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
+    // optimize this to only check changes in AAR files
+    ProjectBuilder.getInstance(facet.getModule().getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
+      @Override
+      protected void buildFinished() {
         repository.updateRoots();
       }
     });
