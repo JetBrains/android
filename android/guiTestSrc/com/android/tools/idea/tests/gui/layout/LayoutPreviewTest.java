@@ -367,8 +367,24 @@ public class LayoutPreviewTest extends GuiTestCase {
     renderErrors.performSuggestion("Build");
     preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
-  }
 
+    // Now make some changes to the file which updates the modification timestamp of the source. However,
+    // also edit them back and save again (which still leaves a new modification timestamp). Gradle will
+    // *not* rebuild if the file contents have not changed (it uses checksums rather than file timestamps).
+    // Make sure that we don't get render errors in this scenario! (Regression test for http://b.android.com/76676)
+    editor.open("app/src/main/java/com/android/tools/tests/layout/MyButton.java", EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("extends Button {", null, true));
+    editor.enterText(" ");
+    editor.invokeAction(EditorFixture.EditorAction.SAVE);
+    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    editor.invokeAction(EditorFixture.EditorAction.SAVE);
+    editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    renderErrors.requireHaveRenderError("The MyButton custom view has been edited more recently than the last build");
+    renderErrors.performSuggestion("Build"); // this build won't do anything this time, since Gradle notices checksum has not changed
+    preview.waitForNextRenderToFinish();
+    preview.requireRenderSuccessful(); // but our build timestamp check this time will mask the out of date warning
+  }
 
   @Test
   @IdeGuiTest(closeProjectBeforeExecution = true)
