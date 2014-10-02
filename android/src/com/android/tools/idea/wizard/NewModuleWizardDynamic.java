@@ -27,9 +27,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.JComponent;
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -58,6 +60,12 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
       getState().put(PROJECT_LOCATION_KEY, project.getBasePath());
     }
     ConfigureAndroidProjectPath.putSdkDependentParams(getState());
+  }
+
+  @Nullable
+  protected static JComponent buildHeader() {
+    return DynamicWizardStep.createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
+                                                    AndroidIcons.Wizards.NewProjectMascotGreen, "New Module");
   }
 
   @Override
