@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -47,25 +48,25 @@ public class AvdSummaryAction extends AvdUiAction {
       return;
     }
 
-    StringBuilder sb = new StringBuilder();
-    sb.append("<html>");
-    sb.append("<br>Name: ").append(info.getName());
-    sb.append("<br>CPU/ABI: ").append(AvdInfo.getPrettyAbiType(info));
+    HtmlBuilder htmlBuilder = new HtmlBuilder();
+    htmlBuilder.openHtmlBody();
+    htmlBuilder.addHtml("<br>Name: ").add(info.getName());
+    htmlBuilder.addHtml("<br>CPU/ABI: ").add(AvdInfo.getPrettyAbiType(info));
 
-    sb.append("<br>Path: ").append(info.getDataFolderPath());
+    htmlBuilder.addHtml("<br>Path: ").add(info.getDataFolderPath());
 
     if (info.getStatus() != AvdInfo.AvdStatus.OK) {
-      sb.append("<br>Error: ").append(info.getErrorMessage());
+      htmlBuilder.addHtml("<br>Error: ").add(info.getErrorMessage());
     } else {
       IAndroidTarget target = info.getTarget();
       AndroidVersion version = target.getVersion();
-      sb.append("<br>Target: ").append(String.format("%s (API level %s)", target.getName(), version.getApiString()));
+      htmlBuilder.addHtml("<br>Target: ").add(String.format("%1$s (API level %2$s)", target.getName(), version.getApiString()));
 
       // display some extra values.
       Map<String, String> properties = info.getProperties();
       String skin = properties.get(AvdManager.AVD_INI_SKIN_NAME);
       if (skin != null) {
-        sb.append("<br>Skin: ").append(skin);
+        htmlBuilder.addHtml("<br>Skin: ").add(skin);
       }
 
       String sdcard = properties.get(AvdManager.AVD_INI_SDCARD_SIZE);
@@ -73,12 +74,12 @@ public class AvdSummaryAction extends AvdUiAction {
         sdcard = properties.get(AvdManager.AVD_INI_SDCARD_PATH);
       }
       if (sdcard != null) {
-        sb.append("<br>SD Card: ").append(sdcard);
+        htmlBuilder.addHtml("<br>SD Card: ").add(sdcard);
       }
 
       String snapshot = properties.get(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
       if (snapshot != null) {
-        sb.append("<br>Snapshot: ").append(snapshot);
+        htmlBuilder.addHtml("<br>Snapshot: ").add(snapshot);
       }
 
       // display other hardware
@@ -95,17 +96,17 @@ public class AvdSummaryAction extends AvdUiAction {
 
       if (copy.size() > 0) {
         for (Map.Entry<String, String> entry : copy.entrySet()) {
-          sb.append("<br>").append(entry.getKey()).append(": ").append(entry.getValue());
+          htmlBuilder.addHtml("<br>").add(entry.getKey()).add(": ").add(entry.getValue());
         }
       }
     }
-    sb.append("</html>");
+    htmlBuilder.closeHtmlBody();
     String[] options = {"Copy to Clipboard and Close", "Close"};
     int i = JOptionPane
-      .showOptionDialog(null, sb.toString(), "Details for " + info.getName(), JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
+      .showOptionDialog(null, htmlBuilder.getHtml(), "Details for " + info.getName(), JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
                         null, options, options[1]);
     if (i == 0) {
-      CopyPasteManager.getInstance().setContents(new StringSelection(StringUtil.stripHtml(sb.toString(), true)));
+      CopyPasteManager.getInstance().setContents(new StringSelection(StringUtil.stripHtml(htmlBuilder.getHtml(), true)));
     }
   }
 

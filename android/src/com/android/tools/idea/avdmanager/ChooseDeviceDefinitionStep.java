@@ -60,13 +60,13 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
 
   private void updateEditButton(@Nullable Device selectedDevice) {
     if (selectedDevice == null) {
-      myEditDeviceButton.setText("Create Device");
+      myEditDeviceButton.setText("Create Device...");
       myEditDeviceButton.setAction(myCreateDeviceAction);
     } else if (DeviceManagerConnection.isUserDevice(selectedDevice)) {
-      myEditDeviceButton.setText("Edit Device");
+      myEditDeviceButton.setText("Edit Device...");
       myEditDeviceButton.setAction(myEditDeviceAction);
     } else {
-      myEditDeviceButton.setText("Clone Device");
+      myEditDeviceButton.setText("Clone Device...");
       myEditDeviceButton.setAction(myCloneDeviceAction);
     }
   }
