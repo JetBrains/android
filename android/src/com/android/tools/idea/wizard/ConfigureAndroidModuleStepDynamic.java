@@ -201,6 +201,6 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
   @Nullable
   @Override
   protected JComponent getHeader() {
-    return null;
+    return NewModuleWizardDynamic.buildHeader();
   }
 }
