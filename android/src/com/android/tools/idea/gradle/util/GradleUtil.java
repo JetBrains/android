@@ -115,8 +115,8 @@ public final class GradleUtil {
    * experiments, Gradle only failed with slashes. This list may grow if
    * we find any other unsupported characters.
    */
-  public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
-  public static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
+  private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
+  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
   }
@@ -281,7 +281,7 @@ public final class GradleUtil {
   @NotNull
   private static String getGradleDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     String suffix = binOnly ? "bin" : "all";
-    return String.format("http://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
+    return String.format("https://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
   }
 
   @Nullable
