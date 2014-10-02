@@ -15,22 +15,9 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.wizard.ScopedStateStore;
-import com.google.common.base.Objects;
-
 /**
- * Reports progress of the SDK verification.
+ * Interface for paths that have a long-running operation running after the wizard completes.
  */
-public class VerifySdkStep extends ProgressStep {
-  private final ScopedStateStore.Key<Boolean> myKeyShouldDownload;
-
-  public VerifySdkStep(ScopedStateStore.Key<Boolean> keyShouldDownload) {
-    super("Android SDK Verification", "Verifying necessary Android SDK components");
-    myKeyShouldDownload = keyShouldDownload;
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return !Objects.equal(Boolean.TRUE, myState.get(myKeyShouldDownload));
-  }
+public interface LongRunningOperationPath {
+  void runLongOperation(ProgressStep progressStep);
 }

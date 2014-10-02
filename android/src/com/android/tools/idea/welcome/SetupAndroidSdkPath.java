@@ -40,7 +40,6 @@ public class SetupAndroidSdkPath extends DynamicWizardPath {
   protected void init() {
     myState.put(KEY_SHOULD_DOWNLOAD, true);
     addStep(new SdkLocationStep(KEY_SHOULD_DOWNLOAD, KEY_EXISTING_SDK_LOCATION));
-    addStep(new VerifySdkStep(KEY_SHOULD_DOWNLOAD));
     addStep(new SdkComponentsStep(KEY_SHOULD_DOWNLOAD, KEY_DOWNLOAD_SDK_LOCATION));
   }
 

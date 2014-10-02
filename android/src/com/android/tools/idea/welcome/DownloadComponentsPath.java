@@ -33,7 +33,6 @@ public class DownloadComponentsPath extends DynamicWizardPath {
   @Override
   protected void init() {
     addStep(new LicenseAgreementStep(myDisposable));
-    addStep(new DownloadProgressStep());
   }
 
   @NotNull

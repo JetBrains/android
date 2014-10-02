@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.DynamicWizardHost;
-import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.wizard.*;
+import com.google.common.collect.Iterables;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Wizard to setup Android Studio before the first run
@@ -27,6 +27,7 @@ public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup";
   private static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
+  private boolean myDone = false;
 
   public FirstRunWizard(DynamicWizardHost host) {
     super(null, null, WIZARD_TITLE, host);
@@ -40,14 +41,49 @@ public class FirstRunWizard extends DynamicWizard {
     addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
     addPath(new SetupAndroidSdkPath(KEY_CUSTOM_INSTALL));
     addPath(new SetupEmulatorPath(KEY_CUSTOM_INSTALL));
-    addPath(new DownloadComponentsPath(getDisposable()));
-
+    addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     super.init();
+  }
+
+  // We need to show progress page before proceeding closing the wizard.
+  @Override
+  public void doFinishAction() {
+    final Iterable<LongRunningOperationPath> filter = Iterables.filter(myPaths, LongRunningOperationPath.class);
+    if (Iterables.isEmpty(filter) || myDone) {
+      super.doFinishAction();
+    }
+    else if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
+      myHost.shakeWindow();
+    }
+    else {
+      new WizardCompletionAction().execute();
+      final ProgressStep progressStep = new ProgressStep(getDisposable());
+      showStep(progressStep);
+      myHost.runSensitiveOperation(progressStep.getProgressIndicator(), true, new Runnable() {
+        @Override
+        public void run() {
+          doLongRunningOperation(filter, progressStep);
+        }
+      });
+    }
+  }
+
+  private void doLongRunningOperation(Iterable<LongRunningOperationPath> filter, @NotNull ProgressStep progressStep) {
+    try {
+      for (LongRunningOperationPath path : filter) {
+        if (progressStep.isCanceled()) {
+          break;
+        }
+        path.runLongOperation(progressStep);
+      }
+    }
+    finally {
+      myDone = true;
+    }
   }
 
   @Override
   public void performFinishingActions() {
-
   }
 
   @Override
