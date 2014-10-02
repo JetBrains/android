@@ -25,7 +25,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +65,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private JPanel myRootPanel;
   private JCheckBox myHasHardwareButtons;
   private JCheckBox myHasHardwareKeyboard;
-  private LabelWithEditLink myDeviceName;
+  private JTextField myDeviceName;
   private JBLabel myHelpAndErrorLabel;
 
   /**
@@ -94,8 +96,22 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   }
 
   private void createUIComponents() {
+    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
+      @Override
+      public ListCellRenderer getRenderer() {
+        return new ColoredListCellRenderer() {
+          @Override
+          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+            append(((Navigation)value).getShortDisplayValue());
+          }
+        };
+      }
+    };
 
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class));
+    myHelpAndErrorLabel = new JBLabel();
+    myHelpAndErrorLabel.setBackground(JBColor.background());
+    myHelpAndErrorLabel.setForeground(JBColor.foreground());
+    myHelpAndErrorLabel.setOpaque(true);
   }
 
   @Override
@@ -588,11 +604,11 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
    * Bind our controls to their state store keys
    */
   private void registerComponents() {
-    register(DEVICE_NAME_KEY, myDeviceName, LABEL_WITH_EDIT_LINK_COMPONENT_BINDING);
-    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
+    register(DEVICE_NAME_KEY, myDeviceName);
+    setControlDescription(myDeviceName, "Name of the Device Profile");
 
     register(DIAGONAL_SCREENSIZE_KEY, myDiagonalScreenSize, DOUBLE_BINDING);
-    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
+    setControlDescription(myDiagonalScreenSize, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
     register(RESOLUTION_WIDTH_KEY, myScreenResolutionWidth, INT_BINDING);
     setControlDescription(myScreenResolutionWidth, "The total number of physical pixels on a screen. " +
                                                    "When adding support for multiple screens, applications do not work directly " +
@@ -719,27 +735,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       component.addItemListener(listener);
     }
   };
-
-  public static final ComponentBinding<String, LabelWithEditLink> LABEL_WITH_EDIT_LINK_COMPONENT_BINDING =
-    new ComponentBinding<String, LabelWithEditLink>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
-        newValue = newValue == null ? "" : newValue;
-        component.setText(newValue);
-      }
-
-      @Nullable
-      @Override
-      public String getValue(@NotNull LabelWithEditLink component) {
-        return component.getText();
-      }
-
-      @Nullable
-      @Override
-      public Document getDocument(@NotNull LabelWithEditLink component) {
-        return component.getDocument();
-      }
-    };
 
   @NotNull
   @Override
