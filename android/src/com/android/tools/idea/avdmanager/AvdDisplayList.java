@@ -19,6 +19,7 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -26,7 +27,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.psi.util.FileTypeUtils;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
@@ -79,7 +79,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   public AvdDisplayList() {
-    myModel.setColumnInfos(ourColumnInfos);
+    myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
     myTable = new TableView<AvdInfo>();
     myTable.setModelAndUpdateColumns(myModel);
@@ -235,33 +235,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   /**
-   * Replaces underscores with spaces and capitalizes first letter of each word
-   */
-  private static String getPrettyDeviceName(@NotNull AvdInfo info) {
-    String name = info.getDeviceName();
-    StringBuilder sb = new StringBuilder(name.length());
-    int n = name.length();
-
-    boolean upperCaseNext = false;
-    for (int i = 0; i < n; i++) {
-      char c = name.charAt(i);
-      if (c == '_') {
-        upperCaseNext = true;
-        c = ' ';
-      } else if (upperCaseNext || i == 0) {
-        c = Character.toUpperCase(c);
-        upperCaseNext = false;
-      }
-      sb.append(c);
-    }
-    return sb.toString();
-  }
-
-  /**
    * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
    * the cell value in that column for a given row item.
    */
-  private final ColumnInfo[] ourColumnInfos = new ColumnInfo[] {
+  private final ColumnInfo[] myColumnInfos = new ColumnInfo[] {
     new AvdIconColumnInfo("Type") {
       @Nullable
       @Override
@@ -273,7 +250,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Nullable
       @Override
       public String valueOf(AvdInfo info) {
-        return getPrettyDeviceName(info);
+        return AvdManagerConnection.getAvdDisplayName(info);
       }
     },
     new AvdColumnInfo("Resolution") {
