@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
@@ -111,14 +112,29 @@ public class NewProjectTest extends GuiTestCase {
 
   @Test
   @IdeGuiTest
+  public void testRenderResourceInitialization() throws IOException {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=76966
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("9").create();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.requireName("activity_a.xml");
+    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    assertNotNull("Layout editor was not showing", layoutEditor);
+    layoutEditor.waitForNextRenderToFinish();
+    projectFrame.invokeProjectMake();
+    layoutEditor.waitForNextRenderToFinish();
+    layoutEditor.requireRenderSuccessful();
+    projectFrame.waitForBackgroundTasksToFinish();
+  }
+
+  @Test
+  @IdeGuiTest
   public void testLanguageLevelForApi21() {
     // Verifies that creating a project with L will set the language level correctly
     // both in the generated Gradle model as well as in the synced project and modules
 
     // "20+" here should change to 21 as soon as L goes out of preview state
-    IdeFrameFixture projectFrame = newProject("Test Application").withMinSdk("20+")
-      // just to speed up the test: type as little as possible
-      .withActivity("A").withCompanyDomain("C").withName("P").withPackageName("a.b").create();
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("20+").create();
 
     IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
     AndroidProject model = appAndroidProject.getDelegate();
@@ -194,6 +210,14 @@ public class NewProjectTest extends GuiTestCase {
      */
     NewProjectDescriptor withCompanyDomain(@NotNull String domain) {
       myDomain = domain;
+      return this;
+    }
+
+    /**
+     * Picks brief names in order to make the test execute faster (less slow typing in name text fields)
+     */
+    NewProjectDescriptor withBriefNames() {
+      withActivity("A").withCompanyDomain("C").withName("P").withPackageName("a.b");
       return this;
     }
 
