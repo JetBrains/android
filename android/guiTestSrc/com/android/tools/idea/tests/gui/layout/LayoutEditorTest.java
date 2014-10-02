@@ -103,7 +103,55 @@ public class LayoutEditorTest extends GuiTestCase {
     // make sure XML source was escaped properly
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("android:text=\"", null, true));
-    assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"",
-                 editor.getCurrentLineContents(true, false, 0));
+    assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"", editor.getCurrentLineContents(true, false, 0));
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testDeletion() throws Exception {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    LayoutEditorFixture layout = editor.getLayoutEditor(false);
+    assertNotNull(layout);
+    layout.waitForNextRenderToFinish();
+
+    // Find and click the first text view
+    LayoutEditorComponentFixture textView = layout.findView("TextView", 0);
+    textView.click();
+
+    assertEquals("Device Screen\n" +
+                 "    RelativeLayout\n" +
+                 "        *TextView - @string/hello_world\n", layout.describeComponentTree(true));
+
+    projectFrame.invokeMenuPath("Edit", "Delete");
+
+    layout.waitForNextRenderToFinish();
+    layout.requireComponentTree("Device Screen\n" +
+                                "    *RelativeLayout\n", true);
+
+    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+
+    layout.waitForNextRenderToFinish();
+    layout.requireComponentTree("Device Screen\n" +
+                                "    RelativeLayout\n" +
+                                "        TextView - @string/hello_world\n", false);
+
+
+    // Check that we can't delete the root component
+    LayoutEditorComponentFixture relativeLayout = layout.findView("RelativeLayout", 0);
+    relativeLayout.click();
+
+    layout.requireComponentTree("Device Screen\n" +
+                                "    *RelativeLayout\n" +
+                                "        TextView - @string/hello_world\n", true);
+
+    projectFrame.invokeMenuPath("Edit", "Delete");
+
+    layout.requireComponentTree("Device Screen\n" +
+                                "    RelativeLayout\n" + // still there!
+                                "        TextView - @string/hello_world\n", false);
   }
 }

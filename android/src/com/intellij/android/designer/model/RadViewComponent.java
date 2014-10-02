@@ -340,6 +340,11 @@ public class RadViewComponent extends RadVisualComponent {
   }
 
   @Override
+  public boolean canDelete() {
+    return !isBackground() && super.canDelete();
+  }
+
+  @Override
   public void delete() throws Exception {
     IdManager idManager = IdManager.get(this);
     if (idManager != null) {
