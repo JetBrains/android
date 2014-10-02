@@ -60,7 +60,7 @@ public class GradleUtilTest extends TestCase {
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneBin() throws IOException {
@@ -72,12 +72,12 @@ public class GradleUtilTest extends TestCase {
                 "distributionPath=wrapper/dists\n" +
                 "zipStoreBase=GRADLE_USER_HOME\n" +
                 "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneAll() throws IOException {
@@ -89,12 +89,12 @@ public class GradleUtilTest extends TestCase {
                 "distributionPath=wrapper/dists\n" +
                 "zipStoreBase=GRADLE_USER_HOME\n" +
                 "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
   }
 
   public void testReplaceGradleWrapper() throws IOException {
@@ -106,12 +106,12 @@ public class GradleUtilTest extends TestCase {
                 "distributionPath=wrapper/dists\n" +
                 "zipStoreBase=GRADLE_USER_HOME\n" +
                 "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testUpdateGradleDistributionUrl() {
