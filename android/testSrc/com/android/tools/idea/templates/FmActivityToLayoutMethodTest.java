@@ -47,4 +47,12 @@ public class FmActivityToLayoutMethodTest extends TestCase {
   public void test4() throws Exception {
     check("", "");
   }
+
+  public void test5() throws Exception {
+    check("a", "activity_a");
+  }
+
+  public void test6() throws Exception {
+    check("A", "activity_a");
+  }
 }
