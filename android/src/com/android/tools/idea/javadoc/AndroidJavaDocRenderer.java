@@ -67,22 +67,44 @@ import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_IND
 import static org.jetbrains.android.util.AndroidUtils.hasImageExtension;
 
 public class AndroidJavaDocRenderer {
-  /** Renders the Javadoc for a resource of given type and name. */
+  /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource.  */
   @Nullable
-  public static String render(@NotNull Module module, @NotNull ResourceType type, @NotNull String name, boolean framework) {
-    return render(module, ResourceUrl.create(type, name, framework, false));
+  public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type, @NotNull String name, boolean framework) {
+    return render(module, configuration, ResourceUrl.create(type, name, framework, false));
   }
 
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
-  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
-    ResourceValueRenderer renderer = ResourceValueRenderer.create(url.type, module);
+  public static String render(@NotNull Module module, @NotNull ResourceType type, @NotNull String name, boolean framework) {
+    return render(module, null, type, name, framework);
+  }
+
+  /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource. */
+  @Nullable
+  public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceUrl url) {
+    ResourceValueRenderer renderer = ResourceValueRenderer.create(url.type, module, configuration);
     boolean framework = url.framework;
     if (renderer == null || framework && renderer.getFrameworkResources() == null || !framework && renderer.getAppResources() == null) {
       return null;
     }
 
     return renderer.render(url);
+  }
+
+  /** Renders the Javadoc for a resource of given type and name. */
+  @Nullable
+  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
+    return render(module, null, url);
+  }
+
+  /** Renders the Javadoc for a color resource and name. */
+  public static String renderColor(Module module, @NotNull Color color) {
+    ColorValueRenderer renderer = (ColorValueRenderer) ResourceValueRenderer.create(ResourceType.COLOR, module, null);
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.openHtmlBody();
+    renderer.renderColorToHtml(builder, color);
+    builder.closeHtmlBody();
+    return builder.getHtml();
   }
 
   /** Combines external javadoc into the documentation rendered by the {@link #render} method */
@@ -124,13 +146,18 @@ public class AndroidJavaDocRenderer {
 
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
+    protected final Configuration myConfiguration;
     protected FrameworkResources myFrameworkResources;
     protected AppResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
 
-    protected ResourceValueRenderer(Module module) {
+    protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
+      myConfiguration = configuration;
+    }
+    protected ResourceValueRenderer(Module module) {
+      this(module, null);
     }
 
     public void setSmall(boolean small) {
@@ -142,20 +169,21 @@ public class AndroidJavaDocRenderer {
 
     /** Creates a renderer suitable for the given resource type */
     @Nullable
-    public static ResourceValueRenderer create(@NotNull ResourceType type, @NotNull Module module) {
+    public static ResourceValueRenderer create(@NotNull ResourceType type, @NotNull Module module, @Nullable Configuration configuration) {
       switch (type) {
         case ATTR:
         case STRING:
         case DIMEN:
         case INTEGER:
         case BOOL:
-          return new TextValueRenderer(module);
+        case STYLE:
+          return new TextValueRenderer(module, configuration);
         case ARRAY:
-          return new ArrayRenderer(module);
+          return new ArrayRenderer(module, configuration);
         case DRAWABLE:
-          return new DrawableValueRenderer(module);
+          return new DrawableValueRenderer(module, configuration);
         case COLOR:
-          return new ColorValueRenderer(module);
+          return new ColorValueRenderer(module, configuration);
         default:
           // Ignore
           return null;
@@ -505,6 +533,13 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public ResourceResolver getResolver(boolean createIfNecessary) {
       if (myResourceResolver == null && createIfNecessary) {
+        if (myConfiguration != null) {
+          myResourceResolver = myConfiguration.getResourceResolver();
+          if (myResourceResolver != null) {
+            return myResourceResolver;
+          }
+        }
+
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
         if (facet != null) {
           VirtualFile layout = AndroidColorAnnotator.pickLayoutFile(myModule, facet);
@@ -556,8 +591,8 @@ public class AndroidJavaDocRenderer {
   }
 
   private static class TextValueRenderer extends ResourceValueRenderer {
-    private TextValueRenderer(Module module) {
-      super(module);
+    private TextValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
+      super(module, configuration);
     }
 
     @Nullable
@@ -587,7 +622,7 @@ public class AndroidJavaDocRenderer {
             Color color = ResourceHelper.parseColor(value);
             if (color != null) {
               found = true;
-              ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule);
+              ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
               assert renderer != null;
               ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
               resolved.setValue(value);
@@ -598,7 +633,7 @@ public class AndroidJavaDocRenderer {
             File f = new File(value);
             if (f.exists()) {
               found = true;
-              ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule);
+              ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
               ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
               resolved.setValue(value);
@@ -616,7 +651,7 @@ public class AndroidJavaDocRenderer {
                 if (value2 != null) {
                   ResourceUrl resourceUrl = ResourceUrl.parse(value2);
                   if (resourceUrl != null && !resourceUrl.theme) {
-                    ResourceValueRenderer renderer = create(resourceUrl.type, myModule);
+                    ResourceValueRenderer renderer = create(resourceUrl.type, myModule, myConfiguration);
                     if (renderer != null && renderer.getClass() != this.getClass()) {
                       found = true;
                       ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
@@ -703,7 +738,7 @@ public class AndroidJavaDocRenderer {
                 }
               }
 
-              ResourceValueRenderer renderer = create(url.type, myModule);
+              ResourceValueRenderer renderer = create(url.type, myModule, myConfiguration);
               if (renderer != null && renderer.getClass() != this.getClass()) {
                 builder.newline();
                 renderer.setSmall(true);
@@ -736,8 +771,8 @@ public class AndroidJavaDocRenderer {
   }
 
   private static class ArrayRenderer extends ResourceValueRenderer {
-    private ArrayRenderer(Module module) {
-      super(module);
+    private ArrayRenderer(@NotNull Module module, @Nullable Configuration configuration) {
+      super(module, configuration);
     }
 
     @Nullable
@@ -780,8 +815,8 @@ public class AndroidJavaDocRenderer {
   }
 
   private static class DrawableValueRenderer extends ResourceValueRenderer {
-    private DrawableValueRenderer(Module module) {
-      super(module);
+    private DrawableValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
+      super(module, configuration);
     }
 
     @Nullable
@@ -840,8 +875,8 @@ public class AndroidJavaDocRenderer {
   }
 
   private static class ColorValueRenderer extends ResourceValueRenderer {
-    private ColorValueRenderer(Module module) {
-      super(module);
+    private ColorValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
+      super(module, configuration);
     }
 
     @Nullable
@@ -861,31 +896,7 @@ public class AndroidJavaDocRenderer {
       ResourceItemResolver resolver = createResolver(item);
       Color color = resolveValue(resolver, resourceValue, url);
       if (color != null) {
-        int width = 200;
-        int height = 100;
-        if (mySmall) {
-          int divisor = 3;
-          width /= divisor;
-          height /= divisor;
-        }
-
-        String colorString = String.format(Locale.US, "rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
-        String foregroundColor = ColorUtil.isDark(color) ? "white" : "black";
-        String css = "background-color:" + colorString + ";color:" + foregroundColor +
-                     ";width:" + width + "px;text-align:center;vertical-align:middle;";
-        // Use <table> tag such that we can center the color text (Java's HTML renderer doesn't support
-        // vertical-align:middle on divs)
-        builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
-        builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\">");
-        builder.addHtml("#");
-        int alpha = color.getAlpha();
-        // If not opaque, include alpha
-        if (alpha != 255) {
-            String alphaString = Integer.toHexString(alpha);
-            builder.addHtml((alphaString.length() < 2 ? "0" : "") + alphaString);
-        }
-        builder.addHtml(ColorUtil.toHex(color));
-        builder.addHtml("</td></tr></table>");
+        renderColorToHtml(builder, color);
       } else if (item.value != null && item.value.getValue() != null) {
         builder.add(item.value.getValue());
       }
@@ -895,6 +906,34 @@ public class AndroidJavaDocRenderer {
         assert lookupChain != null;
         displayChain(url, lookupChain, builder, true, false);
       }
+    }
+
+    public void renderColorToHtml(@NotNull HtmlBuilder builder, @NotNull Color color) {
+      int width = 200;
+      int height = 100;
+      if (mySmall) {
+        int divisor = 3;
+        width /= divisor;
+        height /= divisor;
+      }
+
+      String colorString = String.format(Locale.US, "rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
+      String foregroundColor = ColorUtil.isDark(color) ? "white" : "black";
+      String css = "background-color:" + colorString +
+                   ";width:" + width + "px;text-align:center;vertical-align:middle;";
+      // Use <table> tag such that we can center the color text (Java's HTML renderer doesn't support
+      // vertical-align:middle on divs)
+      builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
+      builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
+      builder.addHtml("#");
+      int alpha = color.getAlpha();
+      // If not opaque, include alpha
+      if (alpha != 255) {
+          String alphaString = Integer.toHexString(alpha);
+          builder.addHtml((alphaString.length() < 2 ? "0" : "") + alphaString);
+      }
+      builder.addHtml(ColorUtil.toHex(color));
+      builder.addHtml("</td></tr></table>");
     }
   }
 

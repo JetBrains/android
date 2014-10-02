@@ -601,7 +601,7 @@ public class RenderedPanel extends JPanel implements Disposable {
 
   public void zoomActual() {
     myZoomToFit = false;
-    if (myRenderResult.getImage() != null) {
+    if (myRenderResult != null && myRenderResult.getImage() != null) {
       myRenderResult.getImage().zoomActual();
     }
     doRevalidate();
