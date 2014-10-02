@@ -81,124 +81,10 @@
                 </constraints>
                 <properties/>
               </component>
-              <grid id="2ad47" binding="myMemoryAndStoragePanel" layout-manager="GridLayoutManager" row-count="6" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="0" left="0" bottom="0" right="0"/>
-                <constraints>
-                  <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="6249a" class="com.intellij.ui.components.JBLabel" binding="myMemoryAndStorageLabel">
-                    <constraints>
-                      <grid row="0" column="0" row-span="5" col-span="1" vsize-policy="0" hsize-policy="2" anchor="9" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="100" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <enabled value="true"/>
-                      <horizontalTextPosition value="10"/>
-                      <text value="&lt;html&gt;Memory&lt;br&gt;and&lt;br&gt;Storage&lt;/html&gt;"/>
-                    </properties>
-                  </component>
-                  <component id="dae13" class="com.intellij.ui.components.JBLabel" binding="myRamLabel">
-                    <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="RAM:"/>
-                    </properties>
-                  </component>
-                  <component id="121c" class="com.intellij.ui.components.JBLabel" binding="myVmHeapLabel">
-                    <constraints>
-                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="VM heap:"/>
-                    </properties>
-                  </component>
-                  <component id="8cfb5" class="com.intellij.ui.components.JBLabel" binding="myInternalStorageLabel">
-                    <constraints>
-                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Internal Storage:"/>
-                    </properties>
-                  </component>
-                  <grid id="e383a" binding="mySdCardSettings" layout-manager="CardLayout" hgap="0" vgap="0">
-                    <constraints>
-                      <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="200" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="9259c" class="com.android.tools.idea.avdmanager.StorageField" binding="myNewSdCardStorage">
-                        <constraints>
-                          <card name="newsdcard"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="aab12" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myExistingSdCard">
-                        <constraints>
-                          <card name="existingsdcard"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                  <component id="39de9" class="com.intellij.ui.components.JBLabel" binding="mySdCardLabel">
-                    <constraints>
-                      <grid row="3" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <anchor value="e383a"/>
-                      <text value="SD card:"/>
-                    </properties>
-                  </component>
-                  <component id="425c7" class="com.intellij.ui.components.JBLabel" binding="myToggleSdCardSettingsLabel">
-                    <constraints>
-                      <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="f00bb" class="com.android.tools.idea.avdmanager.StorageField" binding="myRamStorage">
-                    <constraints>
-                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="200" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="30000" class="com.android.tools.idea.avdmanager.StorageField" binding="myVmHeapStorage">
-                    <constraints>
-                      <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="200" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="3d6cc" class="com.android.tools.idea.avdmanager.StorageField" binding="myInternalStorage">
-                    <constraints>
-                      <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="200" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="f70fa" class="javax.swing.JSeparator">
-                    <constraints>
-                      <grid row="5" column="0" row-span="1" col-span="3" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                </children>
-              </grid>
               <grid id="6207e" binding="myStartupOptionsPanel" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="8" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -410,7 +296,7 @@
               <grid id="38c9" binding="myPerformancePanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="9" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -454,44 +340,6 @@
                   </component>
                 </children>
               </grid>
-              <grid id="98027" binding="mySkinPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="0" left="0" bottom="0" right="0"/>
-                <constraints>
-                  <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="23bad" class="com.intellij.ui.components.JBLabel">
-                    <constraints>
-                      <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="100" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <text value="&lt;html&gt;Custom&lt;br&gt;skin definition&lt;/html&gt;"/>
-                    </properties>
-                  </component>
-                  <component id="d01b7" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myCustomSkinPath">
-                    <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="91c98" class="javax.swing.JSeparator">
-                    <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="80264" class="com.intellij.ui.HyperlinkLabel" binding="myHardwareSkinHelpLabel" custom-create="true">
-                    <constraints>
-                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                </children>
-              </grid>
               <component id="77e15" class="com.intellij.ui.components.JBLabel">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -515,6 +363,158 @@
                 </constraints>
                 <properties/>
               </component>
+              <grid id="70d60" binding="myMemoryAndStoragePanel" layout-manager="GridLayoutManager" row-count="6" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="9" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="827b0" class="com.intellij.ui.components.JBLabel" binding="myMemoryAndStorageLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="5" col-span="1" vsize-policy="0" hsize-policy="2" anchor="9" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="100" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="&lt;html&gt;Memory&lt;br&gt;and&lt;br&gt;Storage&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <component id="57934" class="com.intellij.ui.components.JBLabel" binding="myRamLabel">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="RAM:"/>
+                    </properties>
+                  </component>
+                  <component id="6b1e9" class="com.intellij.ui.components.JBLabel" binding="myVmHeapLabel">
+                    <constraints>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="VM heap:"/>
+                    </properties>
+                  </component>
+                  <component id="89fc4" class="com.intellij.ui.components.JBLabel" binding="myInternalStorageLabel">
+                    <constraints>
+                      <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Internal Storage:"/>
+                    </properties>
+                  </component>
+                  <grid id="c919e" binding="mySdCardSettings" layout-manager="CardLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="200" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="dd59d" class="com.android.tools.idea.avdmanager.StorageField" binding="myNewSdCardStorage">
+                        <constraints>
+                          <card name="newsdcard"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="66df9" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myExistingSdCard">
+                        <constraints>
+                          <card name="existingsdcard"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                    </children>
+                  </grid>
+                  <component id="95158" class="com.intellij.ui.components.JBLabel" binding="mySdCardLabel">
+                    <constraints>
+                      <grid row="4" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <anchor value="e383a"/>
+                      <text value="SD card:"/>
+                    </properties>
+                  </component>
+                  <component id="fa3d" class="com.intellij.ui.components.JBLabel" binding="myToggleSdCardSettingsLabel">
+                    <constraints>
+                      <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="a77d" class="com.android.tools.idea.avdmanager.StorageField" binding="myRamStorage">
+                    <constraints>
+                      <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="200" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="9541c" class="com.android.tools.idea.avdmanager.StorageField" binding="myVmHeapStorage">
+                    <constraints>
+                      <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="200" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="b5a06" class="com.android.tools.idea.avdmanager.StorageField" binding="myInternalStorage">
+                    <constraints>
+                      <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="200" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="ea6fd" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="92d7e" binding="mySkinPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="8" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="14ec1" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="100" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <text value="&lt;html&gt;Custom&lt;br&gt;skin definition&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <component id="6a25d" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myCustomSkinPath">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="61e9" class="com.intellij.ui.HyperlinkLabel" binding="myHardwareSkinHelpLabel" custom-create="true">
+                    <constraints>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="50051" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
             </children>
           </grid>
         </children>
