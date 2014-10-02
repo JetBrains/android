@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -137,7 +138,7 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
