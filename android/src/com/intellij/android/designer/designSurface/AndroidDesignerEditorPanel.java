@@ -629,8 +629,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     });
   }
 
+  @VisibleForTesting
   @Nullable
-  private DesignerToolWindow getToolWindow() {
+  public DesignerToolWindow getToolWindow() {
     try {
       // This method sometimes returns null. We don't want to bother the user with that; the worst that
       // can happen is that the property view is not updated.

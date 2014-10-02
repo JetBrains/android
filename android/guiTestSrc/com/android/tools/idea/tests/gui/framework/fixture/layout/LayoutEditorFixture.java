@@ -20,15 +20,24 @@ import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.designer.DesignerToolWindow;
+import com.intellij.designer.componentTree.AttributeWrapper;
+import com.intellij.designer.componentTree.ComponentTree;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleColoredRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.TreeModel;
 import java.awt.*;
 import java.util.Collections;
 import java.util.Comparator;
@@ -199,6 +208,87 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
     for (RadComponent child : component.getChildren()) {
       if (child instanceof RadViewComponent) {
         addComponents(tag, (RadViewComponent)child, components);
+      }
+    }
+  }
+
+  /**
+   * Checks that the component tree matches a given description
+   *
+   * @param showSelected if true, mark selected items in the description
+   */
+  public void requireComponentTree(String description, boolean showSelected) {
+    assertEquals(description, describeComponentTree(showSelected));
+  }
+
+  /**
+   * Describes the current state of the component tree
+   *
+   * @param showSelected if true, mark selected items in the description
+   * @return a description of the component tree
+   */
+  public String describeComponentTree(final boolean showSelected) {
+    final StringBuilder sb = new StringBuilder(100);
+    DesignerToolWindow toolWindow = myPanel.getToolWindow();
+    if (toolWindow != null) {
+      final ComponentTree componentTree = toolWindow.getComponentTree();
+      final TreeModel model = componentTree.getModel();
+      final Object root = model.getRoot();
+      if (root != null) {
+        GuiActionRunner.execute(new GuiTask() {
+          @Override
+          protected void executeInEDT() throws Throwable {
+            SimpleColoredRenderer renderer = new SimpleColoredRenderer();
+            AttributeWrapper wrapper = new AttributeWrapper() {
+              @Override
+              public SimpleTextAttributes getAttribute(SimpleTextAttributes attributes) {
+                return SimpleTextAttributes.REGULAR_ATTRIBUTES;
+              }
+            };
+            if (componentTree.isRootVisible()) {
+              describe(renderer, wrapper, componentTree, model, root, showSelected, 0);
+            } else {
+              for (int i = 0, n = model.getChildCount(root); i < n; i++) {
+                Object child = model.getChild(root, i);
+                describe(renderer, wrapper, componentTree, model, child, showSelected, 0);
+              }
+            }
+            SimpleColoredComponent.ColoredIterator iterator = renderer.iterator();
+            while (iterator.hasNext()) {
+              iterator.next();
+              sb.append(iterator.getFragment());
+            }
+          }
+        });
+      }
+    }
+    return sb.toString();
+  }
+
+  private void describe(SimpleColoredRenderer renderer, AttributeWrapper wrapper, ComponentTree componentTree, TreeModel model,
+                        Object node, boolean showSelected, int depth) {
+    SimpleTextAttributes style = wrapper.getAttribute(SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    for (int i = 0; i < depth; i++) {
+      renderer.append("    ", style);
+    }
+
+    RadComponent component = componentTree.extractComponent(node);
+    if (component != null) {
+
+      if (showSelected && myPanel.getSurfaceArea().isSelected(component)) {
+        renderer.append("*");
+      }
+      myPanel.getTreeDecorator().decorate(component, renderer, wrapper, true);
+    }
+    else {
+      renderer.append("<missing component>", style);
+    }
+    renderer.append("\n", style);
+
+    if (!model.isLeaf(node)) {
+      for (int i = 0, n = model.getChildCount(node); i < n; i++) {
+        Object child = model.getChild(node, i);
+        describe(renderer, wrapper, componentTree, model, child, showSelected, depth + 1);
       }
     }
   }
