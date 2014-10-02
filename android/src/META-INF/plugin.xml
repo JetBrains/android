@@ -138,6 +138,9 @@
     <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
+    <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
+      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -225,6 +228,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.allocations.AllocationsEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.hprof.HprofEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
 
     <runConfigurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
@@ -597,6 +601,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.ProjectSyncStatusNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.UnimportedModuleNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
     <compileServer.plugin classpath="sdklib.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
@@ -709,6 +714,9 @@
   <project-components>
     <component>
       <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.editors.theme.ThemeEditorReopener</implementation-class>
     </component>
   </project-components>
 
