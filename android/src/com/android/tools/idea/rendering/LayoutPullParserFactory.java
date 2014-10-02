@@ -161,6 +161,13 @@ public class LayoutPullParserFactory {
       setAndroidAttr(imageView, ATTR_BACKGROUND, background);
     }
 
+    // Allow tools:scaleType in drawable XML files to manually set the scale type. This is useful
+    // when the drawable looks poor in the default scale type. (http://b.android.com/76267)
+    String scaleType = AndroidPsiUtils.getRootTagAttributeSafely(file, ATTR_SCALE_TYPE, TOOLS_URI);
+    if (scaleType != null && !scaleType.isEmpty()) {
+      setAndroidAttr(imageView, ATTR_SCALE_TYPE, scaleType);
+    }
+
     return new DomPullParser(document.getDocumentElement());
   }
 
