@@ -78,6 +78,11 @@ public class GradleInvoker {
     myAfterTasks.remove(task);
   }
 
+  @NotNull
+  AfterGradleInvocationTask[] getAfterInvocationTasks() {
+    return myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
+  }
+
   public void cleanProject() {
     setProjectBuildMode(BuildMode.CLEAN);
 
@@ -182,8 +187,7 @@ public class GradleInvoker {
       @Override
       public void run() {
         FileDocumentManager.getInstance().saveAllDocuments();
-        AfterGradleInvocationTask[] afterGradleInvocationTasks = myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
-        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, gradleTasks, commandLineArguments, afterGradleInvocationTasks);
+        GradleTasksExecutor executor = new GradleTasksExecutor(GradleInvoker.this, myProject, gradleTasks, commandLineArguments);
         executor.queue();
       }
     });
