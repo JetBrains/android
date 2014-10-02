@@ -64,6 +64,7 @@ public class AvdManagerConnection {
     }
   };
   private static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
+  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   private static AvdManager ourAvdManager;
   private static Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
   private static File ourEmulatorBinary;
@@ -431,5 +432,13 @@ public class AvdManagerConnection {
       return true;
     }
     return false;
+  }
+
+  public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
+    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
+    if (displayName == null) {
+      displayName = avdInfo.getName().replaceAll("[_-]+", " ");
+    }
+    return displayName;
   }
 }
