@@ -348,6 +348,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
     if (newStep != null) {
       showStep(newStep);
+    } else {
+      LOG.error("Stepped into Path " + myCurrentPath + " which returned a null step");
     }
   }
 
@@ -375,6 +377,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
     if (newStep != null) {
       showStep(newStep);
+    } else {
+      LOG.error("Stepped into Path " + myCurrentPath + " which returned a null step");
     }
   }
 

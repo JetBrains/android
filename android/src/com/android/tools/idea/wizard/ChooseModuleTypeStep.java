@@ -288,6 +288,7 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
       }
       myIsSynchronizingSelection = false;
       saveState(myPanel);
+      invokeUpdate(SELECTED_MODULE_TYPE_KEY);
     }
   }
 }
