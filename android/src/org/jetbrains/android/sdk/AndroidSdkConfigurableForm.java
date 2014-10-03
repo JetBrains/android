@@ -93,6 +93,10 @@ class AndroidSdkConfigurableForm {
         Map<OrderRootType, String[]> configuredRoots = new HashMap<OrderRootType, String[]>();
 
         for (OrderRootType type : OrderRootType.getAllTypes()) {
+          if (!AndroidSdkType.getInstance().isRootTypeApplicable(type)) {
+            continue;
+          }
+
           final VirtualFile[] oldRoots = sdkModificator.getRoots(type);
           final String[] oldRootPaths = new String[oldRoots.length];
 

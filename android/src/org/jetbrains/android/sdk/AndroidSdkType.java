@@ -22,6 +22,9 @@ import com.android.tools.idea.sdk.Jdks;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
+import com.intellij.openapi.roots.AnnotationOrderRootType;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -226,6 +229,14 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   @Override
   public String getDefaultDocumentationUrl(@NotNull Sdk sdk) {
     return DEFAULT_EXTERNAL_DOCUMENTATION_URL;
+  }
+
+  @Override
+  public boolean isRootTypeApplicable(OrderRootType type) {
+    return type == OrderRootType.CLASSES ||
+           type == OrderRootType.SOURCES ||
+           type == JavadocOrderRootType.getInstance() ||
+           type == AnnotationOrderRootType.getInstance();
   }
 
   @Nullable
