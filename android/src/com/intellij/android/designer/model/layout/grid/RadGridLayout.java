@@ -37,6 +37,7 @@ import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.android.designer.designSurface.RootView;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -166,22 +167,31 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
     return this;
   }
 
+  /**
+   * Returns the list of components to be displayed in the caption area (editor borders).
+   * @param mainArea The {@link EditableArea} instance where the caption is being displayed.
+   * @param horizontal true if this is for the horizontal border or false for the vertical.
+   */
   @NotNull
   @Override
   public List<RadComponent> getCaptionChildren(EditableArea mainArea, boolean horizontal) {
     RadGridLayoutComponent container = getGridComponent();
     GridInfo gridInfo = container.getGridInfo();
     List<RadComponent> components = new ArrayList<RadComponent>();
+    RootView nativeComponent = (RootView)((RadViewComponent)container.getRoot()).getNativeComponent();
+    // If the image has a frame, we need to offset the hints to make them match with the device image.
+    boolean hasFrame = nativeComponent.getRenderedImage() != null && nativeComponent.getRenderedImage().getImageBounds() != null;
 
     if (horizontal) {
       int[] lines = gridInfo.vLines;
       boolean[] emptyColumns = gridInfo.emptyColumns;
+      int offset = hasFrame ? (int)(nativeComponent.getShiftX() / nativeComponent.getScale()) : 0;
 
       for (int i = 0; i < lines.length - 1; i++) {
         components.add(new RadCaptionGridColumn(mainArea,
                                                 container,
                                                 i,
-                                                lines[i],
+                                                offset + lines[i],
                                                 lines[i + 1] - lines[i],
                                                 emptyColumns[i]));
       }
@@ -189,12 +199,13 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
     else {
       int[] lines = gridInfo.hLines;
       boolean[] emptyRows = gridInfo.emptyRows;
+      int offset = hasFrame ? (int)(nativeComponent.getShiftY() / nativeComponent.getScale()) : 0;
 
       for (int i = 0; i < lines.length - 1; i++) {
         components.add(new RadCaptionGridRow(mainArea,
                                              container,
                                              i,
-                                             lines[i],
+                                             offset + lines[i],
                                              lines[i + 1] - lines[i],
                                              emptyRows[i]));
       }
