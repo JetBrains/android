@@ -15,63 +15,40 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
+import com.intellij.openapi.diagnostic.Logger;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+public class DeviceEditWizardFixture extends AbstractWizardFixture {
 
-public class AvdEditWizardFixture extends AbstractWizardFixture {
-
-  public static AvdEditWizardFixture find(@NotNull Robot robot) {
+  public static DeviceEditWizardFixture find(@NotNull Robot robot) {
     JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
-        return "Virtual Device Configuration".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Hardware Profile Configuration".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
-    return new AvdEditWizardFixture(robot, dialog);
+    return new DeviceEditWizardFixture(robot, dialog);
   }
 
-  public AvdEditWizardFixture(@NotNull Robot robot, @NotNull JDialog target) {
+  public DeviceEditWizardFixture(Robot robot, JDialog target) {
     super(robot, target);
   }
 
-  public ChooseDeviceDefinitionStepFixture getChooseDeviceDefinitionStep() {
-    JRootPane rootPane = findStepWithTitle("Select Hardware");
-    return new ChooseDeviceDefinitionStepFixture(robot, rootPane);
-  }
-
-  public ChooseSystemImageStepFixture getChooseSystemImageStep() {
-    JRootPane rootPane = findStepWithTitle("System Image");
-    return new ChooseSystemImageStepFixture(robot, rootPane);
-  }
-
-  public ConfigureAvdOptionsStepFixture getConfigureAvdOptionsStep() {
-    JRootPane rootPane = findStepWithTitle("Configure AVD");
-    return new ConfigureAvdOptionsStepFixture(robot, rootPane);
+  public ConfigureDeviceOptionsStepFixture getConfigureDeviceOptionsStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Hardware Profile");
+    return new ConfigureDeviceOptionsStepFixture(robot, rootPane);
   }
 
   @NotNull
-  public AvdEditWizardFixture clickNext() {
-    JButton button = findButtonByText("Next");
-    robot.click(button);
-    return this;
-  }
-
-  @NotNull
-  public AvdEditWizardFixture clickFinish() {
+  public DeviceEditWizardFixture clickFinish() {
     JButton button = findButtonByText("Finish");
-    robot.click(button);
-    return this;
-  }
-
-  @NotNull
-  public AvdEditWizardFixture clickCancel() {
-    JButton button = findButtonByText("Cancel");
     robot.click(button);
     return this;
   }
