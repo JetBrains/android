@@ -38,9 +38,13 @@ import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
+import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -934,9 +938,11 @@ public class Template {
 
     return name;
   }
-  private static String format(@NotNull String contents, File to) {
-    // TODO: Implement this
-    return contents;
+  private String format(@NotNull String contents, File to) {
+    FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
+    PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, contents);
+    CodeStyleManager.getInstance(myProject).reformat(file);
+    return file.getText();
   }
 
   /** Copy a template resource */
