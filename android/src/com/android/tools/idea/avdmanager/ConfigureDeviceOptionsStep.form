@@ -68,6 +68,7 @@
                   <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
+                  <labelFor value="50a2c"/>
                   <text value="Screensize:"/>
                 </properties>
               </component>
@@ -164,12 +165,6 @@
                 <properties>
                   <text value="&lt;html&gt;Supported&lt;br&gt;device states&lt;/html&gt;"/>
                 </properties>
-              </component>
-              <component id="ae4e6" class="javax.swing.JComboBox" binding="myNavigationControlsCombo" custom-create="true" default-binding="true">
-                <constraints>
-                  <grid row="8" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
               </component>
               <component id="8e290" class="javax.swing.JCheckBox" binding="myHasHardwareKeyboard">
                 <constraints>
@@ -269,6 +264,7 @@
                   <component id="cb8b8" class="com.intellij.ui.components.JBLabel">
                     <constraints/>
                     <properties>
+                      <labelFor value="7994a"/>
                       <text value="Resolution:"/>
                     </properties>
                   </component>
@@ -281,6 +277,7 @@
                   <component id="77a1a" class="com.intellij.ui.components.JBLabel">
                     <constraints/>
                     <properties>
+                      <labelFor value="ccec5"/>
                       <text value="x"/>
                     </properties>
                   </component>
@@ -319,6 +316,21 @@
                   </component>
                 </children>
               </grid>
+              <component id="ae4e6" class="javax.swing.JComboBox" binding="myNavigationControlsCombo" custom-create="true" default-binding="true">
+                <constraints>
+                  <grid row="8" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="f5052" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <labelFor value="ae4e6"/>
+                  <text value="Navigation Style"/>
+                </properties>
+              </component>
             </children>
           </grid>
         </children>

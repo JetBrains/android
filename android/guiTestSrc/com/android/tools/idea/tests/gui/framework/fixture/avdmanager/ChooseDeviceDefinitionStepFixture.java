@@ -26,8 +26,11 @@ import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.ComponentFixture;
+import org.fest.swing.fixture.JOptionPaneFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,5 +60,37 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     TableCell cell = deviceListFixture.cell(deviceName);
     deviceListFixture.selectCell(cell);
     return this;
+  }
+
+  public ChooseDeviceDefinitionStepFixture removeDeviceByName(@NotNull final String deviceName) {
+    final TableView deviceList = robot.finder().find(target, new GenericTypeMatcher<TableView>(TableView.class) {
+      @Override
+      protected boolean isMatching(TableView component) {
+        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
+      }
+    });
+    JTableFixture deviceListFixture = new JTableFixture(robot, deviceList);
+
+    TableCell cell = deviceListFixture.cell(deviceName);
+    deviceListFixture.click(cell, MouseButton.RIGHT_BUTTON);
+
+    JPopupMenu popupMenu = robot.findActivePopupMenu();
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot, popupMenu);
+    contextMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(JMenuItem component) {
+        return "Delete".equals(component.getText());
+      }
+    }).click();
+
+    JOptionPaneFixture optionPaneFixture = new JOptionPaneFixture(robot);
+    optionPaneFixture.yesButton().click();
+    return this;
+  }
+
+  public DeviceEditWizardFixture createNewDevice() {
+    JButton newDeviceButton = robot.finder().find(target, JButtonMatcher.withText("New Hardware Profile").andShowing());
+    robot.click(newDeviceButton);
+    return DeviceEditWizardFixture.find(robot);
   }
 }

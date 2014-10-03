@@ -39,6 +39,7 @@ public class DeviceEditWizard extends DynamicWizard {
     super(null, null, "Create hardware profile");
     myDeviceTemplate = deviceTemplate;
     myForceCreation = forceCreation;
+    setTitle("Hardware Profile Configuration");
   }
 
   @Override

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
@@ -51,9 +51,9 @@ public class AvdListDialogTest extends GuiTestCase {
     avdManagerDialog.close();
 
     // Ensure the AVD was created
-    avdManagerDialog.selectAvdByName("Nexus 7 2013");
+    avdManagerDialog.selectAvdByName("Nexus 7 2013 API 19");
     // Then clean it up
-    avdManagerDialog.deleteAvdByName("Nexus 7 2013");
+    avdManagerDialog.deleteAvdByName("Nexus 7 2013 API 19");
   }
 
   @Test
@@ -62,7 +62,7 @@ public class AvdListDialogTest extends GuiTestCase {
     IdeFrameFixture ideFrame = openSimpleApplication();
     makeNexus5(ideFrame);
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
-    AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5");
+    AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 19");
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
 
     configureAvdOptionsStep.showAdvancedSettings();
@@ -92,6 +92,6 @@ public class AvdListDialogTest extends GuiTestCase {
 
   public static void removeNexus5(@NotNull IdeFrameFixture ideFrame) {
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
-    avdManagerDialog.deleteAvdByName("Nexus 5");
+    avdManagerDialog.deleteAvdByName("Nexus 5 API 19");
   }
 }
