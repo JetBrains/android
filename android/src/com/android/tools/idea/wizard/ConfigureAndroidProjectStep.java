@@ -64,12 +64,11 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
         "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
 
 
-  protected TextFieldWithBrowseButton myProjectLocation;
-  protected JTextField myAppName;
-  protected JPanel myPanel;
-  protected JTextField myCompanyDomain;
-  protected LabelWithEditLink myPackageName;
-  protected JLabel myProjectLocationLabel;
+  private TextFieldWithBrowseButton myProjectLocation;
+  private JTextField myAppName;
+  private JPanel myPanel;
+  private JTextField myCompanyDomain;
+  private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
     this("Configure your new project", disposable);
