@@ -105,6 +105,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<Parameter, List<JComponent>>();
   private final StringEvaluator myEvaluator = new StringEvaluator();
   private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
+  private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
 
   /**
    * Creates a new template parameters wizard step.
@@ -388,6 +389,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   @SuppressWarnings("unchecked")
   private void register(Parameter parameter, JComponent dataComponent) {
+    myDataComponentParameters.put(dataComponent, parameter);
     Key<?> key = getParameterKey(parameter);
     if (dataComponent instanceof JCheckBox) {
       register((Key<Boolean>)key, (JCheckBox)dataComponent);
@@ -473,7 +475,32 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     super.deriveValues(modified);
     if (myCurrentTemplate != null) {
       updateStateWithDefaults(myCurrentTemplate.getParameters());
+      updateControlsEnabled();
       updateControlsVisibility();
+    }
+  }
+
+  private void updateControlsEnabled() {
+    if (myUpdatingDefaults) {
+      return;
+    }
+    Map<String, Object> contextValues = getContextValues();
+    for (Parameter parameter : myCurrentTemplate.getParameters()) {
+      String enabledStr = parameter.enabled;
+      if (!StringUtil.isEmpty(enabledStr)) {
+        boolean enabled = myEvaluator.evaluateBooleanExpression(enabledStr, contextValues, true);
+        List<JComponent> components = myParameterComponents.get(parameter);
+        if (components != null) {
+          for (JComponent component : components) {
+            Parameter componentParameter = myDataComponentParameters.get(component);
+            if (componentParameter != null) {
+              myState.remove(getParameterKey(componentParameter));
+              updateStateWithDefaults(Sets.newHashSet(componentParameter));
+            }
+            component.setEnabled(enabled);
+          }
+        }
+      }
     }
   }
 

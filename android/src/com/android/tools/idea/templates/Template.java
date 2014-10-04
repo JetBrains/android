@@ -151,6 +151,7 @@ public class Template {
   public static final String ATTR_AT = "at";
   public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
+  public static final String ATTR_ENABLED = "enabled";
   public static final String ATTR_SOURCE_URL = "href";
   public static final String ATTR_TEMPLATE_MERGE_STRATEGY = "templateMergeStrategy";
   public static final String VALUE_MERGE_STRATEGY_REPLACE = "replace";
