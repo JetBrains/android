@@ -21,16 +21,20 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -41,6 +45,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
+import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 
 /**
  * The {@linkplain LayoutPullParserFactory} is responsible for creating
@@ -48,10 +53,8 @@ import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V
  */
 public class LayoutPullParserFactory {
   static final boolean DEBUG = false;
-  private static final String TAG_APPWIDGET_PROVIDER = "appwidget-provider";
-  private static final String TAG_PREFERENCE_SCREEN = "PreferenceScreen";
 
-  public static boolean isSupported(PsiFile file) {
+  public static boolean isSupported(@NotNull PsiFile file) {
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
     if (folderType == null) {
       return false;
@@ -63,16 +66,34 @@ public class LayoutPullParserFactory {
         return true;
       case XML:
         if (file instanceof XmlFile) {
+          ApplicationManager.getApplication().assertReadAccessAllowed();
           XmlTag rootTag = ((XmlFile)file).getRootTag();
           if (rootTag != null) {
             String tag = rootTag.getName();
-            return tag.equals(TAG_APPWIDGET_PROVIDER);
+            return tag.equals(TAG_APPWIDGET_PROVIDER) || (tag.equals(TAG_PREFERENCE_SCREEN) && prefCapableTargetInstalled(file));
           }
         }
         return false;
       default:
         return false;
     }
+  }
+
+  /** Returns if a target capable of rendering preferences file is found. */
+  private static boolean prefCapableTargetInstalled(@NotNull PsiFile file) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(file);
+    if (module != null) {
+      AndroidPlatform platform = AndroidPlatform.getPlatform(module);
+      if (platform != null) {
+        for (IAndroidTarget target : platform.getSdkData().getTargets()) {
+          AndroidVersion version = target.getVersion();
+          if (version.getFeatureLevel() >= PREFERENCES_MIN_API && !version.isPreview()) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Nullable
@@ -124,7 +145,10 @@ public class LayoutPullParserFactory {
             renderService.setDecorations(false);
             return createWidgetParser(rootTag);
           } else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
-            // Preferences: TODO
+            RenderLogger logger = renderService.getLogger();
+            Set<XmlTag> expandNodes = renderService.getExpandNodes();
+            HardwareConfig hardwareConfig = renderService.getHardwareConfigHelper().getConfig();
+            return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
           }
         }
         return null;
