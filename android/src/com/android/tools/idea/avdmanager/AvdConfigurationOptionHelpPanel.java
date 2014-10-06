@@ -159,9 +159,11 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(VM_HEAP_STORAGE_KEY, "The amount of RAM available to Java virtual machine (VM) to allocate to running apps on the device. " +
                              "A larger VM heap allows application to run longer between garbage collection event.").
     put(INTERNAL_STORAGE_KEY, "The amount of non-removable space available to store data on the device.").
-    put(SD_CARD_STORAGE_KEY, "The amount of removable space available to store data on the device. ").
+    put(SD_CARD_STORAGE_KEY, "The amount of removable space available to store data on the device. " +
+                             "We recommend at least 100MB in order to use the camera in the emulator.").
     put(EXISTING_SD_LOCATION, "Choose a file path to an existing SD Card image. Using an external SD Card is useful when sharing " +
-                              "SD Card data (pictures, media, files, etc.) between Android Virtual Devices. ").
+                              "SD Card data (pictures, media, files, etc.) between Android Virtual Devices. " +
+                              "See http://developer.android.com/tools/help/mksdcard.html for more details. ").
     put(SCALE_SELECTION_KEY, "Enables you to test your application on a screen that uses a resolution or density not supported by the " +
                              "built-in AVD skins, you can create an AVD that uses a custom resolution by selecting one of the scale values.").
     put(DEFAULT_ORIENTATION_KEY, "Sets the initial orientation of the device. During AVD emulation you can also rotate the device screen. ").
