@@ -41,6 +41,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
@@ -940,13 +941,14 @@ public class Template {
     return name;
   }
   private String format(@NotNull String contents, File to) {
-    if (myProject == null) {
-      // Project creation: no current project to read code style settings from yet
-      return contents;
+    Project project = myProject;
+    if (project == null) {
+      // Project creation: no current project to read code style settings from yet, so use defaults
+      project = ProjectManagerEx.getInstanceEx().getDefaultProject();
     }
     FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
-    PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, contents);
-    CodeStyleManager.getInstance(myProject).reformat(file);
+    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(to.getName(), type, contents);
+    CodeStyleManager.getInstance(project).reformat(file);
     return file.getText();
   }
 
