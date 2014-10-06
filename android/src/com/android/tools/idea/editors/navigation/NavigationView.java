@@ -946,7 +946,11 @@ public class NavigationView extends JComponent {
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
-        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, getNamedParent(leaf), this);
+        RenderedView namedParent = getNamedParent(leaf);
+        if (namedParent == null) {
+          return Selections.NULL;
+        }
+        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, namedParent, this);
       }
     }
     else {
