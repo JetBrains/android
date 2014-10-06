@@ -109,7 +109,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     } else {
       Insets topSegmentInsets = new Insets(WizardConstants.STUDIO_WIZARD_TOP_INSET,
                                            WizardConstants.STUDIO_WIZARD_INSETS.left,
-                                           WizardConstants.STUDIO_WIZARD_INSETS.bottom,
+                                           0,
                                            WizardConstants.STUDIO_WIZARD_INSETS.right);
       myNorthPanel.setBorder(new EmptyBorder(topSegmentInsets));
     }
@@ -168,7 +168,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   protected final void setBodyComponent(JComponent component) {
-    component.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
+    Insets insets = WizardConstants.STUDIO_WIZARD_INSETS;
+    insets.top = insets.bottom;
+    component.setBorder(new EmptyBorder(insets));
     myRootPane.add(component, BorderLayout.CENTER);
   }
 
