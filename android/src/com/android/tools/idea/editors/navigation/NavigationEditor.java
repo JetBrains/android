@@ -301,7 +301,6 @@ public class NavigationEditor implements FileEditor {
             deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
             orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
             disabled = false;
-
           }
         };
         {
@@ -344,19 +343,23 @@ public class NavigationEditor implements FileEditor {
     group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(false);
+        myDesigner.zoom(-1);
       }
     });
-    group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidIcons.ZoomActual) {
+    group.add(new AnAction(null, "Fit to screen", AndroidIcons.ZoomActual) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.setScale(1);
+        java.awt.Dimension pref = myDesigner.getPreferredSize();
+        Container parent = myDesigner.getParent();
+        float ratio = Math.max((float)pref.width / parent.getWidth(), (float)pref.height / parent.getHeight());
+        double power = Math.log(1 / ratio) / Math.log(NavigationView.ZOOM_FACTOR);
+        myDesigner.zoom((int) Math.floor(power));
       }
     });
     group.add(new AnAction(null, "Zoom In (+)", AndroidIcons.ZoomIn) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(true);
+        myDesigner.zoom(1);
       }
     });
 
@@ -452,9 +455,9 @@ public class NavigationEditor implements FileEditor {
       }.addChildrenFor(state);
     }
     for (State root : unattached) {
-        stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
-        location.x += UNATTACHED_STRIDE.width;
-        location.y += UNATTACHED_STRIDE.height;
+      stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
+      location.x += UNATTACHED_STRIDE.width;
+      location.y += UNATTACHED_STRIDE.height;
     }
   }
 

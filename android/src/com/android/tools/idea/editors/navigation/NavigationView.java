@@ -70,7 +70,7 @@ public class NavigationView extends JComponent {
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = new JBColor(Gray.get(170), Gray.get(50));
   private static final Color SNAP_GRID_LINE_COLOR_MAJOR = new JBColor(Gray.get(160), Gray.get(40));
 
-  private static final float ZOOM_FACTOR = 1.1f;
+  public static final float ZOOM_FACTOR = 1.1f;
 
   // Snap grid
   private static final int MINOR_SNAP = 32;
@@ -279,8 +279,8 @@ public class NavigationView extends JComponent {
     repaint();
   }
 
-  public void zoom(boolean in) {
-    setScale(myTransform.myScale * (in ? ZOOM_FACTOR : 1 / ZOOM_FACTOR));
+  public void zoom(int n) {
+    setScale(myTransform.myScale * (float) Math.pow(ZOOM_FACTOR, n));
   }
 
   private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
