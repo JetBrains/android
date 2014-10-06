@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
     });
     myEditButtonContainer.setBackground(JBColor.background());
     myEditDeviceButton.setBackground(JBColor.background());
+    myDeviceDefinitionList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
     updateEditButton(null);
   }
 
@@ -112,5 +114,17 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
   @Override
   public void refreshDevices() {
     myDeviceDefinitionList.refreshDevices();
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }

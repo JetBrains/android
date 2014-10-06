@@ -20,6 +20,7 @@ import com.android.sdklib.devices.*;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.LabelWithEditLink;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -745,5 +746,17 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }
