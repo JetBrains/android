@@ -940,6 +940,10 @@ public class Template {
     return name;
   }
   private String format(@NotNull String contents, File to) {
+    if (myProject == null) {
+      // Project creation: no current project to read code style settings from yet
+      return contents;
+    }
     FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
     PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, contents);
     CodeStyleManager.getInstance(myProject).reformat(file);
