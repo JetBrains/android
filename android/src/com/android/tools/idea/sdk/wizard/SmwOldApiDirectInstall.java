@@ -422,7 +422,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
               myTextArea1.setText(current + fAddLine);
               if (fAddLine.contains("Nothing was installed")) {
                 myBackgroundSuccess = false;
-              } else if (fAddLine.contains("Failed")) {
+              } else if (fAddLine.contains("Failed") || fAddLine.contains("The package filter removed all packages")) {
                 myBackgroundSuccess = false;
               } else if (fAddLine.contains("Done") && !fAddLine.contains("othing")) {
                 myBackgroundSuccess = Boolean.TRUE;
