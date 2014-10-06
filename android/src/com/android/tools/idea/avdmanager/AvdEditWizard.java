@@ -87,7 +87,7 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
     state.put(USE_HOST_GPU_KEY, true);
-    state.put(SD_CARD_STORAGE_KEY, new Storage(30, Storage.Unit.MiB));
+    state.put(SD_CARD_STORAGE_KEY, new Storage(100, Storage.Unit.MiB));
   }
 
   /**

@@ -212,7 +212,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check Ram
     Storage ram = myState.get(RAM_STORAGE_KEY);
     if (ram == null || ram.getSizeAsUnit(Unit.MiB) < 128) {
-      setErrorState("RAM must be a numeric (integer) value of at least 128Mb. Recommendation is 1Gb.",
+      setErrorState("RAM must be a numeric (integer) value of at least 128MB. Recommendation is 1GB.",
                     myMemoryAndStorageLabel, myRamLabel, myRamStorage);
       valid = false;
     }
@@ -220,7 +220,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check VM Heap
     Storage vmHeap = myState.get(VM_HEAP_STORAGE_KEY);
     if (vmHeap == null || vmHeap.getSizeAsUnit(Unit.MiB) < 16) {
-      setErrorState("VM Heap must be a numeric (integer) value of at least 16Mb.",
+      setErrorState("VM Heap must be a numeric (integer) value of at least 16MB.",
                     myMemoryAndStorageLabel, myVmHeapLabel, myVmHeapStorage);
       valid = false;
     }
@@ -228,7 +228,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check Internal Storage
     Storage internal = myState.get(INTERNAL_STORAGE_KEY);
     if (internal == null || internal.getSizeAsUnit(Unit.MiB) < 200) {
-      setErrorState("Internal storage must be a numeric (integer) value of at least 200Mb.",
+      setErrorState("Internal storage must be a numeric (integer) value of at least 200MB.",
                     myMemoryAndStorageLabel, myInternalStorageLabel, myInternalStorage);
       valid = false;
     }
@@ -244,8 +244,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     } else {
       Storage sdCard = myState.get(SD_CARD_STORAGE_KEY);
-      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 30 || sdCard.getSizeAsUnit(Unit.GiB) > 1023)) {
-        setErrorState("The SD card must be between 30Mb and 1023Gb",
+      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 10)) {
+        setErrorState("The SD card must be larger than 10MB",
                       myMemoryAndStorageLabel, mySdCardLabel, myNewSdCardStorage);
         valid = false;
       }
