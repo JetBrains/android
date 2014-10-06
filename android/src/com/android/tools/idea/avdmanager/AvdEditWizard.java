@@ -87,6 +87,7 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
     state.put(USE_HOST_GPU_KEY, true);
+    state.put(SD_CARD_STORAGE_KEY, new Storage(30, Storage.Unit.MiB));
   }
 
   /**
@@ -138,6 +139,7 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(BACK_CAMERA_KEY, properties.get(BACK_CAMERA_KEY.name));
     state.put(NETWORK_LATENCY_KEY, properties.get(NETWORK_LATENCY_KEY.name));
     state.put(NETWORK_SPEED_KEY, properties.get(NETWORK_SPEED_KEY.name));
+    state.put(DISPLAY_NAME_KEY, AvdManagerConnection.getAvdDisplayName(avdInfo));
 
     String skinPath = properties.get(CUSTOM_SKIN_FILE_KEY.name);
     if (skinPath != null) {

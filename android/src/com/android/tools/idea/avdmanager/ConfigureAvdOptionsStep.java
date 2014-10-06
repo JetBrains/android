@@ -103,6 +103,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private JPanel mySkinPanel;
   private TextFieldWithBrowseButton myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
+  private JTextField myAvdDisplayName;
   private Set<JComponent> myAdvancedOptionsComponents;
 
   // Labels used for the advanced settings toggle button
@@ -301,6 +302,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
    * Bind components to their specified keys and help messaging.
    */
   private void registerComponents() {
+    register(DISPLAY_NAME_KEY, myAvdDisplayName);
     register(DEVICE_DEFINITION_KEY, myDeviceName, DEVICE_NAME_BINDING);
     register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
@@ -338,6 +340,26 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         @Override
         protected Storage getStorage(@NotNull Device device) {
           return calculateVmHeap(device);
+        }
+      });
+
+      registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
+        @Nullable
+        @Override
+        public Set<Key<?>> getTriggerKeys() {
+          return makeSetOf(DEVICE_DEFINITION_KEY, SYSTEM_IMAGE_KEY);
+        }
+
+        @Nullable
+        @Override
+        public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+          Device device = state.get(DEVICE_DEFINITION_KEY);
+          SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
+          if (device != null && systemImage != null) { // Should always be the case
+            return String.format(Locale.getDefault(), "%1$s API %2$d",
+                                 device.getDisplayName(), systemImage.target.getVersion().getApiLevel());
+          }
+          return null; // Should never occur
         }
       });
     }
