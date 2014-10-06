@@ -268,12 +268,11 @@ public final class GradleUtil {
   public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
     Properties properties = PropertiesUtil.getProperties(propertiesFile);
     String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (url == null) {
-      return null;
-    }
-    Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-    if (m.matches()) {
-      return m.group(1);
+    if (url != null) {
+      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+      if (m.matches()) {
+        return m.group(1);
+      }
     }
     return null;
   }
