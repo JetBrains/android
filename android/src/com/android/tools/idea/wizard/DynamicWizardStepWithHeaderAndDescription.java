@@ -36,6 +36,8 @@ import java.util.WeakHashMap;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSETS;
+import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
 
 /**
  * Base class for wizard steps with standard design.
@@ -90,7 +92,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myIcon.setIcon(icon);
     int fontHeight = myMessageLabel.getFont().getSize();
     myTitleLabel.setBorder(BorderFactory.createEmptyBorder(fontHeight, 0, fontHeight, 0));
-    mySouthPanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
+    mySouthPanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
     if (getTitleBackgroundColor() != null) {
       myTitlePanel.setBackground(getTitleBackgroundColor());
       myNorthPanel.setBackground(getTitleBackgroundColor());
@@ -105,12 +107,12 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
       myCustomHeaderPanel.add(header, BorderLayout.CENTER);
       myCustomHeaderPanel.setVisible(true);
       myCustomHeaderPanel.repaint();
-      myTitlePanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
+      myTitlePanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
     } else {
       Insets topSegmentInsets = new Insets(WizardConstants.STUDIO_WIZARD_TOP_INSET,
-                                           WizardConstants.STUDIO_WIZARD_INSETS.left,
+                                           STUDIO_WIZARD_INSET_SIZE,
                                            0,
-                                           WizardConstants.STUDIO_WIZARD_INSETS.right);
+                                           STUDIO_WIZARD_INSET_SIZE);
       myNorthPanel.setBorder(new EmptyBorder(topSegmentInsets));
     }
 
@@ -168,9 +170,10 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   protected final void setBodyComponent(JComponent component) {
-    Insets insets = WizardConstants.STUDIO_WIZARD_INSETS;
-    insets.top = insets.bottom;
-    component.setBorder(new EmptyBorder(insets));
+    component.setBorder(new EmptyBorder(new Insets(STUDIO_WIZARD_INSET_SIZE,
+                                                   STUDIO_WIZARD_INSET_SIZE,
+                                                   STUDIO_WIZARD_INSET_SIZE,
+                                                   STUDIO_WIZARD_INSET_SIZE)));
     myRootPane.add(component, BorderLayout.CENTER);
   }
 
