@@ -19,29 +19,22 @@ import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.Processor;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,76 +56,13 @@ final class PreSyncChecks {
       return true;
     }
 
-    try {
-      if (hasEmptySettingsFile(project) && isMultiModuleProject(project)) {
-        String msg = "The project seems to have more than one module (or sub-project) " +
-                     "but the file 'settings.gradle' does not specify any of them.\n\n" +
-                     "Click 'OK' to continue, but the sync operation may not finish due to a possible bug in Gradle.";
-        int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
-        return answer == Messages.OK;
-      }
-    }
-    catch (IOException e) {
-      // Failed to read settings.gradle, ask user if she would like to continue.
-      String msg = "Failed to read contents of settings.gradle file: " + e.getMessage() + ".\n" +
-                   "Would you like to continue? (Project sync may never stop if the file is empty.)";
-      int answer = Messages.showYesNoDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getErrorIcon());
-      return answer == Messages.YES;
-    }
-
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Don't check Gradle settings in unit tests. They should be set up properly.
       FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
       ensureCorrectGradleSettings(project, modelVersion);
     }
+
     return true;
-  }
-
-  @VisibleForTesting
-  static boolean hasEmptySettingsFile(@NotNull Project project) throws IOException {
-    File settingsFile = new File(project.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
-    if (!settingsFile.isFile()) {
-      return false;
-    }
-    String text = FileUtil.loadFile(settingsFile);
-    if (StringUtil.isEmptyOrSpaces(text)) {
-      // empty file (maybe with spaces only)
-      return true;
-    }
-
-    GroovyLexer lexer = new GroovyLexer();
-    lexer.start(text);
-    while (lexer.getTokenType() != null) {
-      IElementType type = lexer.getTokenType();
-      if (type == GroovyTokenTypes.mIDENT && "include".equals(lexer.getTokenText())) {
-        // most likely this is a module (e.g. include ":app")
-        return false;
-      }
-      lexer.advance();
-    }
-    return true;
-  }
-
-  private static boolean isMultiModuleProject(@NotNull Project project) {
-    VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) {
-      // At this point this should not happen. We already perform this check before getting here.
-      return false;
-    }
-    final AtomicInteger buildFileCounter = new AtomicInteger();
-    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
-      @Override
-      public boolean process(VirtualFile virtualFile) {
-        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          int count = buildFileCounter.addAndGet(1);
-          if (count > 1) {
-            return false; // We know this is multi-module project. Stop.
-          }
-        }
-        return true;
-      }
-    });
-    return buildFileCounter.get() > 1;
   }
 
   private static void ensureCorrectGradleSettings(@NotNull Project project, @Nullable FullRevision modelVersion) {
