@@ -35,6 +35,7 @@ public class WizardConstants {
   // Colors
   public static final JBColor ANDROID_NPW_TITLE_COLOR = new JBColor(0x689F38, 0xFFFFFF);
   public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x689F38, 0x356822);
+  public static final JBColor ANDROID_NPW_HEADER_TEXT_COLOR = new JBColor(0xFFFFFF, 0xAAAAAA);
 
   // Dimensions
   public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, 12, 12, 12);

@@ -168,6 +168,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
+    myOrientationToggle.setOpaque(false);
   }
 
   /**
@@ -710,5 +711,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
     @Nullable
     protected abstract Storage getStorage(@NotNull Device device);
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }
