@@ -230,6 +230,9 @@ public class NavigationView extends JComponent {
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
+        if (destinationRoot.isMenu) {
+          return null;
+        }
         RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
         RenderedView namedEndLeaf = getNamedParent(endLeaf);
 
@@ -255,9 +258,11 @@ public class NavigationView extends JComponent {
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
-        RenderedView endLeaf = getRenderedView(destinationRoot, location);
-        RenderedView namedEndLeaf = getNamedParent(endLeaf);
-        return getBounds(destinationRoot, namedEndLeaf);
+        if (!destinationRoot.isMenu) {
+          RenderedView endLeaf = getRenderedView(destinationRoot, location);
+          RenderedView namedEndLeaf = getNamedParent(endLeaf);
+          return getBounds(destinationRoot, namedEndLeaf);
+        }
       }
     }
     return new Rectangle(location);

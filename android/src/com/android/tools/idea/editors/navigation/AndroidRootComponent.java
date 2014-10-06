@@ -46,7 +46,7 @@ public class AndroidRootComponent extends JComponent {
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myLayoutFile;
-  private final boolean myIsMenu;
+  public final boolean isMenu;
 
   @NotNull Transform transform = createTransform(1);
   private Image myScaledImage;
@@ -56,7 +56,7 @@ public class AndroidRootComponent extends JComponent {
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
     myRenderingParameters = renderingParameters;
     myLayoutFile = psiFile;
-    myIsMenu = isMenu;
+    this.isMenu = isMenu;
   }
 
   public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
@@ -87,7 +87,7 @@ public class AndroidRootComponent extends JComponent {
       return;
     }
     myRenderResult = renderResult;
-    if (myIsMenu) {
+    if (isMenu) {
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
@@ -109,7 +109,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   private Transform createTransform(float scale) {
-    if (myIsMenu) {
+    if (isMenu) {
       return new Transform(scale) {
         private boolean myCachedRenderedViewValid = false;
         private RenderedView myCachedRenderedView;
@@ -193,7 +193,7 @@ public class AndroidRootComponent extends JComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    return transform.modelToView(myIsMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
+    return transform.modelToView(isMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
   }
 
   @Nullable
@@ -215,7 +215,7 @@ public class AndroidRootComponent extends JComponent {
   public void paintComponent(Graphics g) {
     Image scaledImage = getScaledImage();
     if (scaledImage != null) {
-      if (myIsMenu) {
+      if (isMenu) {
         Point point = transform.modelToView(com.android.navigation.Point.ORIGIN);
         g.drawImage(scaledImage, point.x, point.y, null);
       }
@@ -261,7 +261,7 @@ public class AndroidRootComponent extends JComponent {
         RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
         final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
         if (service != null) {
-          if (!myIsMenu) {
+          if (!isMenu) {
             // Don't show menus in the layout view
             service.getLayoutlibCallback().getActionBarCallback().setMenuIdNames(Collections.<String>emptyList());
           }
