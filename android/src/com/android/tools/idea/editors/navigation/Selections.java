@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.annotations.NonNull;
 import com.android.navigation.*;
 import com.android.navigation.Dimension;
 import com.android.navigation.NavigationModel.Event;
@@ -22,6 +23,7 @@ import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.rendering.RenderedView;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.HyperlinkLabel;
@@ -40,6 +42,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.editors.navigation.NavigationView.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
+import static com.android.tools.idea.editors.navigation.Utilities.sum;
 
 class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
@@ -87,7 +90,8 @@ class Selections {
   }
 
   private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
-                                                          HyperlinkLabel link, final String className) {
+                                                          HyperlinkLabel link,
+                                                          final String className) {
     link.setOpaque(false);
     if (className == null) {
       return;
@@ -105,7 +109,9 @@ class Selections {
   }
 
   private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
-                                                   HyperlinkLabel link, @Nullable final String xmlFileName, final boolean isMenu) {
+                                                   HyperlinkLabel link,
+                                                   @Nullable final String xmlFileName,
+                                                   final boolean isMenu) {
     link.setOpaque(false);
     link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
     link.addHyperlinkListener(new HyperlinkListener() {
@@ -165,7 +171,8 @@ class Selections {
     @Override
     protected void configureInspector(Inspector inspector) {
       TransitionInspector transitionInspector = new TransitionInspector();
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, myTransition.getSource().getState().getClassName());
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source,
+                                          myTransition.getSource().getState().getClassName());
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
@@ -206,13 +213,36 @@ class Selections {
       myTransform = transform;
     }
 
+    @Nullable
+    private static Transition findTransition(NavigationModel navigationModel, @NonNull Condition<Transition> condition) {
+      for (Transition transition : navigationModel.getTransitions()) {
+        if (condition.value(transition)) {
+          return transition;
+        }
+      }
+      return null;
+    }
+
     private void moveTo(Point location, boolean snap) {
-      Point newLocation = Utilities.add(diff(location, myMouseDownLocation), myOrigComponentLocation);
+      Point newLocation = sum(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
         newLocation = Utilities.snap(newLocation, myTransform.modelToView(Dimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
-      myComponent.setLocation(newLocation);
-      myNavigationModel.getStateToLocation().put(myState, myTransform.viewToModel(newLocation));
+      Map<State, com.android.navigation.Point> stateToLocation = myNavigationModel.getStateToLocation();
+      Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
+      stateToLocation.put(myState, myTransform.viewToModel(newLocation));
+      final Locator src = Locator.of(myState, null);
+      Transition menuTransition = findTransition(myNavigationModel, new Condition<Transition>() {
+        @Override
+        public boolean value(Transition transition) {
+          return src.equals(transition.getSource()) && transition.getDestination().getState() instanceof MenuState;
+        }
+      });
+      if (menuTransition != null) {
+        State menuState = menuTransition.getDestination().getState();
+        Point delta = diff(newLocation, oldLocation);
+        stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
+      }
       myNavigationModel.getListeners().notify(Event.update(Map.class)); // just avoid State.class, which would trigger reload
     }
 
