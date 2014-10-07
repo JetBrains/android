@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.Property;
 
-public class Entry<K, V> {
-  public final K key;
-  public final V value;
+public class StatePointEntry {
+  public final State state;
+  public final ModelPoint point;
 
-  public Entry(@Property("key") K key, @Property("value") V value) {
-    this.key = key;
-    this.value = value;
+  public StatePointEntry(@Property("state") State state, @Property("point") ModelPoint point) {
+    this.state = state;
+    this.point = point;
   }
 }

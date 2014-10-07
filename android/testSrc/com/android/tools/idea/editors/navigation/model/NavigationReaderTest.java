@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
 import junit.framework.TestCase;
 

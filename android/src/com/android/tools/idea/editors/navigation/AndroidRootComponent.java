@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.model.ModelDimension;
+import com.android.tools.idea.editors.navigation.model.ModelPoint;
 import com.android.tools.idea.rendering.*;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -183,12 +185,12 @@ public class AndroidRootComponent extends JComponent {
     return findMenu(hierarchy.getRoots());
   }
 
-  private static com.android.navigation.Dimension size(@Nullable RenderedView view) {
+  private static ModelDimension size(@Nullable RenderedView view) {
     if (view == null) {
       //return com.android.navigation.Dimension.ZERO;
-      return new com.android.navigation.Dimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
+      return new ModelDimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
     }
-    return new com.android.navigation.Dimension(view.w, view.h);
+    return new ModelDimension(view.w, view.h);
   }
 
   @Override
@@ -216,7 +218,7 @@ public class AndroidRootComponent extends JComponent {
     Image scaledImage = getScaledImage();
     if (scaledImage != null) {
       if (isMenu) {
-        Point point = transform.modelToView(com.android.navigation.Point.ORIGIN);
+        Point point = transform.modelToView(ModelPoint.ORIGIN);
         g.drawImage(scaledImage, point.x, point.y, null);
       }
       else {

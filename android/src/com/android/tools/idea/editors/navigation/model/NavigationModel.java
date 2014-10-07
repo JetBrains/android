@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Transient;
@@ -54,7 +54,7 @@ public class NavigationModel {
 
   private final ArrayList<State> states = new ArrayList<State>();
   private final ArrayList<Transition> transitions = new ArrayList<Transition>();
-  private final Map<State, Point> stateToLocation = new HashMap<State, Point>();
+  private final Map<State, ModelPoint> stateToLocation = new HashMap<State, ModelPoint>();
 
   // todo change return type to List<State>
   @Transient
@@ -68,25 +68,25 @@ public class NavigationModel {
   }
 
   @Transient
-  public Map<State, Point> getStateToLocation() {
+  public Map<State, ModelPoint> getStateToLocation() {
     return stateToLocation;
   }
 
-  private static Entry<State, Point> toEntry(Map.Entry<State, Point> entry) {
-    return new Entry<State, Point>(entry.getKey(), entry.getValue());
+  private static StatePointEntry toEntry(Map.Entry<State, ModelPoint> entry) {
+    return new StatePointEntry(entry.getKey(), entry.getValue());
   }
 
-  public Collection<Entry<State,Point>> getLocations() {
-    Collection<Entry<State, Point>> result = new ArrayList<Entry<State, Point>>();
-    for (Map.Entry<State, Point> entry : stateToLocation.entrySet()) {
+  public Collection<StatePointEntry> getLocations() {
+    Collection<StatePointEntry> result = new ArrayList<StatePointEntry>();
+    for (Map.Entry<State, ModelPoint> entry : stateToLocation.entrySet()) {
       result.add(toEntry(entry));
     }
     return result;
   }
 
-  public void setLocations(Collection<Entry<State,Point>> locations) {
-    for (Entry<State, Point> entry : locations) {
-      stateToLocation.put(entry.key, entry.value);
+  public void setLocations(Collection<StatePointEntry> locations) {
+    for (StatePointEntry entry : locations) {
+      stateToLocation.put(entry.state, entry.point);
     }
   }
 
