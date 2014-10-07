@@ -17,8 +17,6 @@ package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,25 +26,24 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Hashtable;
+
+import static com.android.tools.idea.welcome.Haxm.UI_UNITS;
 
 /**
  * Wizard page for setting up Intel® HAXM settings for Mac OS X platform
  */
-public final class MacEmulatorSettingsStep extends FirstRunWizardStep {
+public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private static final int MAJOR_TICKS = 4;
   private static final int MINOR_TICKS = 512;
   // Smallest adjustment user will be able to make with a slider (if the RAM size is small enough)
   private static final int MAX_TICK_RESOLUTION = 32; //Mb
   private static final int MIN_EMULATOR_MEMORY = 512; //Mb
 
-  private static final Logger LOG = Logger.getInstance(MacEmulatorSettingsStep.class);
   private final ScopedStateStore.Key<Integer> myKeyEmulatorMemory;
   private final int myRecommendedMemorySize;
+  private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
+  private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
   private JPanel myRoot;
   private JButton myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
@@ -54,12 +51,16 @@ public final class MacEmulatorSettingsStep extends FirstRunWizardStep {
   private JLabel myUnitLabel;
   private JButton myRecommended;
 
-  public MacEmulatorSettingsStep(ScopedStateStore.Key<Integer> keyEmulatorMemory) {
+  public HaxmInstallSettingsStep(ScopedStateStore.Key<Boolean> keyCustomInstall,
+                                 ScopedStateStore.Key<Boolean> keyInstallHaxm,
+                                 ScopedStateStore.Key<Integer> keyEmulatorMemory) {
     super("Emulator Settings");
-    myUnitLabel.setText(SetupEmulatorPath.UI_UNITS.toString());
+    myKeyCustomInstall = keyCustomInstall;
+    myKeyInstallHaxm = keyInstallHaxm;
+    myUnitLabel.setText(UI_UNITS.toString());
     myKeyEmulatorMemory = keyEmulatorMemory;
-    final long memorySize = getMemorySize();
-    WelcomeUIUtils.makeButtonAHyperlink(myIntelHAXMDocumentationButton, SetupEmulatorPath.HAXM_URL);
+    final long memorySize = Haxm.getMemorySize();
+    WelcomeUIUtils.makeButtonAHyperlink(myIntelHAXMDocumentationButton, FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
     myRecommendedMemorySize = setupSliderAndSpinner(memorySize, myMemorySlider, myMemorySize);
     setComponent(myRoot);
     myRecommended.addActionListener(new ActionListener() {
@@ -72,7 +73,7 @@ public final class MacEmulatorSettingsStep extends FirstRunWizardStep {
 
   @SuppressWarnings({"UseOfObsoleteCollectionType", "unchecked"})
   private static int setupSliderAndSpinner(long memorySize, JSlider slider, JSpinner spinner) {
-    int recommendedMemorySize = getRecommendedMemoryAllocation(memorySize);
+    int recommendedMemorySize = FirstRunWizardDefaults.getRecommendedHaxmMemory(memorySize);
     int maxMemory = Math.max(getMaxMemoryAllocation(memorySize), recommendedMemorySize);
 
     int ticks = Math.min(maxMemory / MAX_TICK_RESOLUTION, MINOR_TICKS);
@@ -86,7 +87,7 @@ public final class MacEmulatorSettingsStep extends FirstRunWizardStep {
     slider.setMajorTickSpacing(maxMemory / MAJOR_TICKS);
 
     Hashtable labels = new Hashtable();
-    int totalMemory = (int)(memorySize / SetupEmulatorPath.UI_UNITS.getNumberOfBytes());
+    int totalMemory = (int)(memorySize / UI_UNITS.getNumberOfBytes());
     int labelSpacing = totalMemory / MAJOR_TICKS;
     // Avoid overlapping
     int minDistanceBetweenLabels = labelSpacing / 4;
@@ -126,68 +127,20 @@ public final class MacEmulatorSettingsStep extends FirstRunWizardStep {
     else {
       maxMemory = memorySize / 2;
     }
-    return (int)(maxMemory / SetupEmulatorPath.UI_UNITS.getNumberOfBytes());
-  }
-
-  private static int getRecommendedMemoryAllocation(long memorySize) {
-    final long GB = Storage.Unit.GiB.getNumberOfBytes();
-    final long defaultMemory;
-    if (memorySize > 4 * GB) {
-      defaultMemory = 2 * GB;
-    }
-    else {
-      if (memorySize > 2 * GB) {
-        defaultMemory = GB;
-      }
-      else {
-        defaultMemory = GB / 2;
-      }
-    }
-    return (int)(defaultMemory / SetupEmulatorPath.UI_UNITS.getNumberOfBytes());
+    return (int)(maxMemory / UI_UNITS.getNumberOfBytes());
   }
 
   private static String getMemoryLabel(int memorySize) {
-    return new Storage(memorySize * SetupEmulatorPath.UI_UNITS.getNumberOfBytes()).toString();
-  }
-
-  private static long getMemorySize() {
-    OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
-    // This is specific to JDKs derived from Oracle JDK (including OpenJDK and Apple JDK among others).
-    // Other then this, there's no standard way of getting memory size
-    // without adding 3rd party libraries or using native code.
-    try {
-      Class<?> oracleSpecificMXBean = Class.forName("com.sun.management.OperatingSystemMXBean");
-      Method getPhysicalMemorySizeMethod = oracleSpecificMXBean.getMethod("getTotalPhysicalMemorySize");
-      Object result = getPhysicalMemorySizeMethod.invoke(osMXBean);
-      if (result instanceof Number) {
-        return ((Number)result).longValue();
-      }
-    }
-    catch (ClassNotFoundException e) {
-      // Unsupported JDK
-    }
-    catch (NoSuchMethodException e) {
-      // Unsupported JDK
-    }
-    catch (InvocationTargetException e) {
-      LOG.error(e);
-    }
-    catch (IllegalAccessException e) {
-      LOG.error(e);
-    }
-    // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.
-    return 32L * (1 << 30);
+    return new Storage(memorySize * UI_UNITS.getNumberOfBytes()).toString();
   }
 
   @Override
   public boolean isStepVisible() {
-    return SystemInfo.isMac;
+    return Boolean.TRUE.equals(myState.get(myKeyCustomInstall)) && !Boolean.FALSE.equals(myState.get(myKeyInstallHaxm));
   }
 
   @Override
   public void init() {
-    myState.put(myKeyEmulatorMemory, myRecommendedMemorySize);
-
     register(myKeyEmulatorMemory, myMemorySlider);
     register(myKeyEmulatorMemory, myMemorySize, new SpinnerBinding());
   }
