@@ -16,8 +16,12 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
-import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.wizard.DynamicWizard;
+import com.android.tools.idea.wizard.DynamicWizardHost;
+import com.android.tools.idea.wizard.SingleStepPath;
 import com.google.common.collect.Iterables;
+import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,8 +29,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup";
-  private static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
-    ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
+
   private boolean myDone = false;
 
   public FirstRunWizard(DynamicWizardHost host) {
@@ -38,9 +41,7 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
     addPath(new SetupJdkPath());
-    addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
-    addPath(new SetupAndroidSdkPath(KEY_CUSTOM_INSTALL));
-    addPath(new SetupEmulatorPath(KEY_CUSTOM_INSTALL));
+    addPath(new InstallComponentsPath());
     addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     super.init();
   }
@@ -62,13 +63,21 @@ public class FirstRunWizard extends DynamicWizard {
       myHost.runSensitiveOperation(progressStep.getProgressIndicator(), true, new Runnable() {
         @Override
         public void run() {
-          doLongRunningOperation(filter, progressStep);
+          try {
+            doLongRunningOperation(filter, progressStep);
+          }
+          catch (WizardException e) {
+            Logger.getInstance(getClass()).error(e);
+            progressStep.showConsole();
+            progressStep.print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+          }
         }
       });
     }
   }
 
-  private void doLongRunningOperation(Iterable<LongRunningOperationPath> filter, @NotNull ProgressStep progressStep) {
+  private void doLongRunningOperation(Iterable<LongRunningOperationPath> filter, @NotNull ProgressStep progressStep)
+    throws WizardException {
     try {
       for (LongRunningOperationPath path : filter) {
         if (progressStep.isCanceled()) {
