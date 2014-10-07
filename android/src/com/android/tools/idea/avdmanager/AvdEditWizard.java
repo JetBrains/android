@@ -66,7 +66,6 @@ public class AvdEditWizard extends DynamicWizard {
       initDefaultInfo();
     }
     addPath(new AvdConfigurationPath(getDisposable()));
-    addPath(new SdkComponentInstallPath(getDisposable()));
     addPath(new SingleStepPath(new ConfigureAvdOptionsStep(getDisposable())));
 
     super.init();
