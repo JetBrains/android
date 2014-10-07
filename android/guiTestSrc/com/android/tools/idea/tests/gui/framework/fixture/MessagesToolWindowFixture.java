@@ -17,8 +17,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.ide.errorTreeView.*;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
+import com.intellij.openapi.externalSystem.service.notification.NotificationMessageElement;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.pom.Navigatable;
 import com.intellij.ui.content.Content;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -30,13 +33,15 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.TreeCellEditor;
+import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
+import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
@@ -203,6 +208,24 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       }
       assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
       return new HyperlinkFixture(myRobot, editorComponent, url);
+    }
+
+    @NotNull
+    public MessageFixture requireLocation(File filePath, int line) {
+      assertThat(myTarget).isInstanceOf(NotificationMessageElement.class);
+      NotificationMessageElement element = (NotificationMessageElement)myTarget;
+
+      Navigatable navigatable = element.getNavigatable();
+      assertThat(navigatable).isInstanceOf(OpenFileDescriptor.class);
+
+      OpenFileDescriptor descriptor = (OpenFileDescriptor)navigatable;
+      File actualPath = virtualToIoFile(descriptor.getFile());
+      assertTrue(String.format("Expected:'%1$s' but was:'%2$s'", filePath.getPath(), actualPath.getPath()),
+                 filesEqual(filePath, actualPath));
+
+      assertThat((descriptor.getLine() + 1)).as("line").isEqualTo(line); // descriptor line is zero-based.
+
+      return this;
     }
   }
 
