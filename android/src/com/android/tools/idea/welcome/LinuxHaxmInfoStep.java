@@ -23,14 +23,14 @@ import javax.swing.*;
 /**
  * Provides guidance for setting up Intel® HAXM on Linux platform.
  */
-public class LinuxEmulatorSettingsStep extends FirstRunWizardStep {
+public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JButton myLink;
 
-  public LinuxEmulatorSettingsStep() {
+  public LinuxHaxmInfoStep() {
     super("Emulator Settings");
     setComponent(myRoot);
-    WelcomeUIUtils.makeButtonAHyperlink(myLink, SetupEmulatorPath.HAXM_URL);
+    WelcomeUIUtils.makeButtonAHyperlink(myLink, FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
   }
 
   @Override
