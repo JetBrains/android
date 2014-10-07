@@ -35,7 +35,7 @@ import java.io.IOException;
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
 
-  public static Point add(Point p1, Point p2) {
+  public static Point sum(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
   }
 
@@ -68,7 +68,7 @@ public class Utilities {
   }
 
   public static Point midPoint(Point p1, Point p2) {
-    return scale(add(p1, p2), 0.5f);
+    return scale(sum(p1, p2), 0.5f);
   }
 
   public static Point midPoint(Dimension size) {
@@ -88,7 +88,7 @@ public class Utilities {
     Point diff = diff(p, centre);
     boolean horizontal = Math.abs((float)diff.y / diff.x) < Math.abs((float)r.height / r.width);
     float scale = horizontal ? (float)r.width / 2 / diff.x : (float)r.height / 2 / diff.y;
-    return add(centre, scale(diff, Math.abs(scale)));
+    return sum(centre, scale(diff, Math.abs(scale)));
   }
 
   public static Point centre(@NotNull Rectangle r) {
