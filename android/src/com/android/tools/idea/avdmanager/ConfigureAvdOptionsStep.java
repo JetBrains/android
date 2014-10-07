@@ -642,7 +642,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myOrientationToggle.setEnabled(device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
   }
 
-  private static Storage calculateVmHeap(@NotNull Device device) {
+  public static Storage calculateVmHeap(@NotNull Device device) {
     // Set the default VM heap size. This is based on the Android CDD minimums for each
     // screen size and density.
     Screen s = device.getDefaultHardware().getScreen();
