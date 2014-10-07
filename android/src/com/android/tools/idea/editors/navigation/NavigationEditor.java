@@ -433,7 +433,7 @@ public class NavigationEditor implements FileEditor {
         Container parent = myDesigner.getParent();
         float ratio = Math.max((float)pref.width / parent.getWidth(), (float)pref.height / parent.getHeight());
         double power = Math.log(1 / ratio) / Math.log(NavigationView.ZOOM_FACTOR);
-        myDesigner.zoom((int) Math.floor(power));
+        myDesigner.zoom((int)Math.floor(power));
       }
     });
     group.add(new AnAction(null, "Zoom In (+)", AndroidIcons.ZoomIn) {
@@ -535,9 +535,11 @@ public class NavigationEditor implements FileEditor {
       }.addChildrenFor(state);
     }
     for (State root : unattached) {
-      stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
-      location.x += UNATTACHED_STRIDE.width;
-      location.y += UNATTACHED_STRIDE.height;
+      if (!stateToLocation.containsKey(root)) {
+        stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
+        location.x += UNATTACHED_STRIDE.width;
+        location.y += UNATTACHED_STRIDE.height;
+      }
     }
   }
 
