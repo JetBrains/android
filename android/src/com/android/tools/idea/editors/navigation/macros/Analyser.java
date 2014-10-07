@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.navigation.*;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.Utilities;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.android.navigation.Utilities.getPropertyName;
+import static com.android.tools.idea.editors.navigation.model.Utilities.getPropertyName;
 import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")

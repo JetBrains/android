@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
-
-import com.android.annotations.NonNull;
+package com.android.tools.idea.editors.navigation.model;
 
 public abstract class State {
   public abstract static class Visitor<T> {
@@ -28,15 +26,6 @@ public abstract class State {
   public abstract String getClassName();
 
   public abstract String getXmlResourceName();
-
-  @Deprecated
-  @NonNull
-  public Point getLocation() {
-    return Point.ORIGIN;
-  }
-  @Deprecated
-  public void setLocation(@NonNull Point location) {
-  }
 
   @Override
   public abstract boolean equals(Object o);
