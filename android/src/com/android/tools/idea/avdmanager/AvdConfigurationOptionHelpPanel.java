@@ -155,7 +155,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
   private static Map<Key<?>, String> DESCRIPTIONS = ImmutableMap.<Key<?>, String>builder().
     put(RAM_STORAGE_KEY, "The amount of physical RAM on the device.\n" +
                          "1 MB = 1024 KB\n" +
-                         "1 GB = 1025 MB").
+                         "1 GB = 1024 MB").
     put(VM_HEAP_STORAGE_KEY, "The amount of RAM available to Java virtual machine (VM) to allocate to running apps on the device. " +
                              "A larger VM heap allows application to run longer between garbage collection event.").
     put(INTERNAL_STORAGE_KEY, "The amount of non-removable space available to store data on the device.").

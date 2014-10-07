@@ -16,8 +16,14 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
+import com.android.sdklib.devices.Abi;
+import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -38,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
@@ -53,12 +58,12 @@ import java.util.List;
  * Displays a list of system images currently installed and allows selection of one
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
-
-  private static final Logger LOG = Logger.getInstance(SystemImageList.class);
+  private final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
+  private final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
 
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
+  private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final LocalSdk mySdk;
-
   private TableView<AvdWizardConstants.SystemImageDescription> myTable = new TableView<AvdWizardConstants.SystemImageDescription>();
   private ListTableModel<AvdWizardConstants.SystemImageDescription> myModel = new ListTableModel<AvdWizardConstants.SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
@@ -89,14 +94,23 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     southPanel.add(myRefreshButton);
+    southPanel.add(myInstallLatestVersionButton);
     myRefreshButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         refreshImages(true);
       }
     });
+    myInstallLatestVersionButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        installForDevice();
+      }
+    });
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
+    myTable.getRowSorter().toggleSortOrder(2);
+    myTable.getRowSorter().toggleSortOrder(2);
   }
 
   public void refreshImages(boolean forceRefresh) {
@@ -143,6 +157,21 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     } else {
       myTable.clearSelection();
     }
+  }
+
+  private void installForDevice() {
+    int apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+    List<IPkgDesc> requestedPackages = Lists.newArrayListWithCapacity(3);
+    requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), SystemImage.DEFAULT_TAG,
+                                                    Abi.X86.toString(), new MajorRevision(1)).create());
+    requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), WEAR_TAG,
+                                                    Abi.X86.toString(), new MajorRevision(1)).create());
+    requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), TV_TAG,
+                                                    Abi.X86.toString(), new MajorRevision(1)).create());
+    SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
+    sdkQuickfixWizard.init();
+    sdkQuickfixWizard.show();
+    refreshImages(true);
   }
 
   /**
