@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.navigation.*;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
@@ -61,7 +61,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.*;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
-  public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
+  public static final ModelDimension GAP = new ModelDimension(500, 100);
   private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
   private static final Color TRIGGER_BACKGROUND_COLOR = new JBColor(Gray.get(200), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = new JBColor(Gray.get(180), Gray.get(60));
@@ -421,7 +421,7 @@ public class NavigationView extends JComponent {
 
   private void drawGrid(Graphics g, Color c, Dimension modelSize, int width, int height) {
     g.setColor(c);
-    Dimension viewSize = myTransform.modelToView(com.android.navigation.Dimension.create(modelSize));
+    Dimension viewSize = myTransform.modelToView(ModelDimension.create(modelSize));
     if (viewSize.width < MIN_GRID_LINE_SEPARATION || viewSize.height < MIN_GRID_LINE_SEPARATION) {
       return;
     }
@@ -878,21 +878,21 @@ public class NavigationView extends JComponent {
     setPreferredSize();
   }
 
-  private static com.android.navigation.Point getMaxLoc(Collection<com.android.navigation.Point> locations) {
+  private static ModelPoint getMaxLoc(Collection<ModelPoint> locations) {
     int maxX = 0;
     int maxY = 0;
-    for (com.android.navigation.Point location : locations) {
+    for (ModelPoint location : locations) {
       maxX = Math.max(maxX, location.x);
       maxY = Math.max(maxY, location.y);
     }
-    return new com.android.navigation.Point(maxX, maxY);
+    return new ModelPoint(maxX, maxY);
   }
 
   private void setPreferredSize() {
-    com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
-    com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
-    com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStateToLocation().values());
-    Dimension max = myTransform.modelToView(new com.android.navigation.Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
+    ModelDimension size = myRenderingParams.getDeviceScreenSize();
+    ModelDimension gridSize = new ModelDimension(size.width + GAP.width, size.height + GAP.height);
+    ModelPoint maxLoc = getMaxLoc(myNavigationModel.getStateToLocation().values());
+    Dimension max = myTransform.modelToView(new ModelDimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
     setPreferredSize(max);
   }
 

@@ -13,24 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
-import java.util.ArrayList;
+import com.android.annotations.NonNull;
 
-class Stack<T> extends ArrayList<T> {
-    public void push(T a) {
-        add(a);
-    }
-
-    public T getLast() {
-        return get(size() - 1);
-    }
-
-    public T getLast(int i) {
-        return get(size() - 1 - i);
-    }
-
-    public T pop() {
-        return remove(size() - 1);
-    }
+public interface Listener<E> {
+  void notify(@NonNull E event);
 }
