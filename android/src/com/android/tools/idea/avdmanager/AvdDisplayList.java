@@ -550,7 +550,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public String valueOf(AvdInfo avdInfo) {
       Storage size = getSize(avdInfo);
-      return String.format(Locale.getDefault(), "%1$d MB", size.getSizeAsUnit(Storage.Unit.MiB));
+      String unitString = "MB";
+      Long value = size.getSizeAsUnit(Storage.Unit.MiB);
+      if (value > 1024) {
+        unitString = "GB";
+        value = size.getSizeAsUnit(Storage.Unit.GiB);
+      }
+      return String.format(Locale.getDefault(), "%1$d %2$s", value, unitString);
     }
 
     @Nullable
