@@ -48,9 +48,8 @@ public final class DownloadOperation extends PreinstallOperation {
       }
       catch (IOException e) {
         String details = StringUtil.isEmpty(e.getMessage()) ? "." : (": " + e.getMessage());
-        String prompt = String.format("Unable to download Android Studio components%s " +
-                                      "Please check your Internet connection and retry.", details);
-        promptToRetry(prompt, "Unable to download Android Studio components: ", e);
+        String message = WelcomeUIUtils.getMessageWithDetails("Unable to download Android Studio components", details);
+        promptToRetry(message + " Please check your Internet connection and retry.", message, e);
       }
     }
     while (true);

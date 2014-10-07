@@ -16,11 +16,14 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -101,5 +104,18 @@ public final class WelcomeUIUtils {
     numberInstance.setRoundingMode(RoundingMode.HALF_UP);
     numberInstance.setMaximumFractionDigits(digits);
     return numberInstance.format(number);
+  }
+
+  /**
+   * Appends details to the message if they are not empty.
+   */
+  public static String getMessageWithDetails(@NotNull String message, @Nullable String details) {
+    if (StringUtil.isEmptyOrSpaces(details)) {
+      return message + ".";
+    }
+    else {
+      String dotIfNeeded = details.trim().endsWith(".") ? "" : ".";
+      return message + ": " + details + dotIfNeeded;
+    }
   }
 }
