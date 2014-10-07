@@ -44,7 +44,7 @@ public class SingleStepPath extends DynamicWizardPath {
 
   @Override
   public boolean readyToLeavePath() {
-    return canGoNext();
+    return super.readyToLeavePath() && canGoNext();
   }
 
   @Override
