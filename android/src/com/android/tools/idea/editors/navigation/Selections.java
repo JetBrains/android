@@ -165,7 +165,6 @@ class Selections {
 
     @Override
     protected void remove() {
-      myNavigationModel.remove(myTransition);
     }
 
     @Override
@@ -248,11 +247,6 @@ class Selections {
     @Override
     protected void moveTo(Point location) {
       moveTo(location, false);
-    }
-
-    @Override
-    protected void remove() {
-      myNavigationModel.removeState(myState);
     }
 
     @Override
