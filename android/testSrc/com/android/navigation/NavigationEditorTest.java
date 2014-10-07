@@ -16,12 +16,14 @@
 package com.android.navigation;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -59,7 +61,9 @@ public class NavigationEditorTest extends AndroidGradleTestCase {
   }
 
   private NavigationModel getNavigationModel(String deviceQualifier) {
-    VirtualFile navFile = Utilities.getNavigationFile(myModule.getProject().getBaseDir(), deviceQualifier, "main.nvg.xml");
+    Project project = myModule.getProject();
+    VirtualFile navFile = Utilities.getNavigationFile(project.getBaseDir(), myModule.getName(), deviceQualifier,
+                                                      NavigationEditor.NAVIGATION_FILE_NAME);
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(navFile);
     Analyser analyser = new Analyser(myModule);
     return analyser.getNavigationModel(configuration);

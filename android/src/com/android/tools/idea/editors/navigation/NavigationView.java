@@ -31,7 +31,6 @@ import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -43,7 +42,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,45 +109,6 @@ public class NavigationView extends JComponent {
 
   private boolean showRollover = false;
   private boolean mDrawGrid = false;
-
-  /* In projects with one module with an AndroidFacet, return that module. */
-  @Nullable
-  private static Module getAndroidModule(@NotNull Project project, @NotNull NavigationEditor.ErrorHandler handler) {
-    Module result = null;
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        continue;
-      }
-      if (result == null) {
-        result = module;
-      }
-      else {
-        handler.handleError("", "Sorry, Navigation Editor does not yet support multiple module projects. ");
-        return null;
-      }
-    }
-    return result;
-  }
-
-  @Nullable
-  public static RenderingParameters getRenderingParams(@NotNull Project project,
-                                                       @NotNull VirtualFile file,
-                                                       @NotNull NavigationEditor.ErrorHandler handler) {
-    Module module = getAndroidModule(project, handler);
-    if (module == null) {
-      return null;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-    Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
-    String themeName = manifestInfo.getManifestTheme();
-    configuration.setTheme(themeName);
-    return new RenderingParameters(project, configuration, facet);
-  }
 
   public NavigationView(RenderingParameters renderingParams, NavigationModel model, SelectionModel selectionModel) {
     myRenderingParams = renderingParams;
@@ -385,6 +344,7 @@ public class NavigationView extends JComponent {
     return result;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   private static Map<String, ViewInfo> createViewNameToViewInfo(@NotNull ViewInfo root) {
     final Map<String, ViewInfo> result = new HashMap<String, ViewInfo>();
     new Object() {
