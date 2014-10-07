@@ -532,6 +532,10 @@ public class NavigationView extends JComponent {
       if (!horizontal && !vertical) {
         throw new UnsupportedOperationException();
       }
+      // Components are perfectly aligned, the 'mid line' has zero length and the transition is shown with no 'dog-leg'.
+      if (horizontal && vertical) {
+        return a;
+      }
       return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
