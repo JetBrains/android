@@ -176,7 +176,6 @@ class Selections {
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
-        comboBox.addItem(Transition.SWIPE);
         comboBox.setSelectedItem(myTransition.getType());
         comboBox.addItemListener(new ItemListener() {
           @Override
@@ -359,7 +358,7 @@ class Selections {
 
     @Override
     protected Selection finaliseSelectionLocation(Point mouseUpLocation) {
-      Transition transition = myNavigationEditor.getTransition(mySourceComponent, myNamedLeaf, mouseUpLocation);
+      Transition transition = myNavigationEditor.createTransition(mySourceComponent, myNamedLeaf, mouseUpLocation);
       if (transition != null) {
         myNavigationModel.add(transition);
       }
