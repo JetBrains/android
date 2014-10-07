@@ -1037,7 +1037,7 @@ public class NavigationView extends JComponent {
                 Point dropLocation = diff(dropLoc, midPoint(size));
                 myNavigationModel.getStateToLocation().put(state, myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 execute(state, execute);
-                dropLoc = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+                dropLoc = Utilities.sum(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
           }
