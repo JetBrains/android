@@ -176,7 +176,11 @@ public class AvdEditWizard extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
-    ScopedStateStore state = getState();
+    createAvd(myAvdInfo, getState(), myForceCreate);
+  }
+
+  @Nullable
+  public static AvdInfo createAvd(@Nullable AvdInfo avdInfo, @NotNull ScopedStateStore state, boolean forceCreate) {
     Device device = state.get(DEVICE_DEFINITION_KEY);
     assert device != null; // Validation should be done by individual steps
     SystemImageDescription systemImageDescription = state.get(SYSTEM_IMAGE_KEY);
@@ -237,11 +241,11 @@ public class AvdEditWizard extends DynamicWizard {
 
     boolean isCircular = DeviceDefinitionPreview.isCircular(device);
 
-    String avdName = calculateAvdName(myAvdInfo, device, myForceCreate);
+    String avdName = calculateAvdName(avdInfo, device, forceCreate);
 
     // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
-    if (myAvdInfo != null && !myForceCreate) {
-      IAndroidTarget target = myAvdInfo.getTarget();
+    if (avdInfo != null && !forceCreate) {
+      IAndroidTarget target = avdInfo.getTarget();
       if (target != null) {
 
         int oldApiLevel = target.getVersion().getApiLevel();
@@ -253,15 +257,15 @@ public class AvdEditWizard extends DynamicWizard {
           int result = JOptionPane
             .showConfirmDialog(null, message, "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
           if (result == JOptionPane.YES_OPTION) {
-            AvdManagerConnection.wipeUserData(myAvdInfo);
+            AvdManagerConnection.wipeUserData(avdInfo);
           } else {
-            return; // Cancel the edit operation
+            return null; // Cancel the edit operation
           }
         }
       }
     }
 
-    AvdManagerConnection.createOrUpdateAvd(myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
+   return AvdManagerConnection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
                                            skinFile, hardwareProperties, false);
   }
 
