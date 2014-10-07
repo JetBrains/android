@@ -226,7 +226,8 @@ public class RepositoryUrlManager {
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
   @Nullable
-  private String getLatestVersionFromMavenMetadata(File metadataFile, @Nullable final String filterPrefix, boolean includePreviews) {
+  private String getLatestVersionFromMavenMetadata(final File metadataFile, @Nullable final String filterPrefix,
+                                                   final boolean includePreviews) {
     String xml = readTextFile(metadataFile);
     final List<GradleCoordinate> versions = Lists.newLinkedList();
     try {
@@ -244,11 +245,16 @@ public class RepositoryUrlManager {
         public void characters(char[] ch, int start, int length) throws SAXException {
           // Get the version and compare it to the current known max version
           if (inVersionTag) {
+            inVersionTag = false;
             String revision = new String(ch, start, length);
-            if (filterPrefix == null || revision.startsWith(filterPrefix)) {
+            //noinspection StatementWithEmptyBody
+            if (!includePreviews && "5.2.08".equals(revision) && metadataFile.getPath().contains(PLAY_SERVICES_ID)) {
+              // This version (despite not having -rcN in its version name is actually a preview
+              // (See https://code.google.com/p/android/issues/detail?id=75292)
+              // Ignore it
+            } else if (filterPrefix == null || revision.startsWith(filterPrefix)) {
               versions.add(GradleCoordinate.parseVersionOnly(revision));
             }
-            inVersionTag = false;
           }
         }
       });
