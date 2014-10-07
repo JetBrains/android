@@ -124,16 +124,22 @@ public class AndroidGradleProjectData implements Serializable {
     if (!ENABLED) {
       return;
     }
+    boolean cacheSaved = false;
     try {
       AndroidGradleProjectData data = createFrom(project);
       if (data != null) {
         File file = getProjectStateFile(project);
         FileUtil.ensureExists(file.getParentFile());
         data.saveTo(file);
+        cacheSaved = true;
       }
     }
     catch (IOException e) {
       LOG.info(String.format("Error while saving persistent state from project '%1$s'", project.getName()), e);
+    }
+    if (!cacheSaved) {
+      LOG.info("Failed to generate new cache. Deleting the old one.");
+      removeFrom(project);
     }
   }
 
