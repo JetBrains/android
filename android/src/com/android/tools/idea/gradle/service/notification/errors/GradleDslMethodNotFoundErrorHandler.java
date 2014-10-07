@@ -34,7 +34,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -49,26 +48,28 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
                              @NotNull NotificationData notification,
                              @NotNull Project project) {
     String firstLine = message.get(0);
-    NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
-    NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(notification);
+
 
     if (firstLine != null && firstLine.startsWith(ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) {
-      String newMsg = firstLine + "\nPossible causes:<ul>" +
-                      String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
-                                    project.getName()) +
-                      gradleSettingsHyperlink.toHtml() + "</li>"  +
-                      "<li>The build file may be missing a Gradle plugin." +
-                      (applyGradlePluginHyperlink != null ? "\n" + applyGradlePluginHyperlink.toHtml() : "") + "</li>";
-      String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
-      notification.setTitle(title);
-      notification.setMessage(newMsg);
-      notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+      String filePath = notification.getFilePath();
+      final VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
+      if (virtualFile != null && SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+        NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
+        NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
 
-      if (applyGradlePluginHyperlink != null) {
+        String newMsg = firstLine + "\nPossible causes:<ul>" +
+                        String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
+                                      project.getName()) + gradleSettingsHyperlink.toHtml() + "</li>"  +
+                        "<li>The build file may be missing a Gradle plugin.\n" +  applyGradlePluginHyperlink.toHtml() + "</li>";
+        String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
+        notification.setTitle(title);
+        notification.setMessage(newMsg);
+        notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+
         addNotificationListener(notification, project, gradleSettingsHyperlink, applyGradlePluginHyperlink);
       }
       else {
-        addNotificationListener(notification, project, gradleSettingsHyperlink);
+        updateNotification(notification, project, error.getMessage());
       }
       return true;
     }
@@ -104,13 +105,9 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
     return (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
   }
 
-  @Nullable
-  private static NotificationHyperlink getApplyGradlePluginHyperlink(@NotNull final NotificationData notification) {
-    String filePath = notification.getFilePath();
-    final VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
-    if (virtualFile == null || !SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-      return null;
-    }
+  @NotNull
+  private static NotificationHyperlink getApplyGradlePluginHyperlink(@NotNull final VirtualFile virtualFile,
+                                                                     @NotNull final NotificationData notification) {
     return new NotificationHyperlink("apply.gradle.plugin", "Apply Gradle plugin") {
       @Override
       protected void execute(@NotNull Project project) {
