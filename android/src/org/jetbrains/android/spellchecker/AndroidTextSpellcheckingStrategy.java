@@ -20,12 +20,13 @@ import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
@@ -36,28 +37,22 @@ import static com.android.SdkConstants.*;
  * over 80 spelling errors from these files!
  */
 public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
-  private PsiFile myLastPsiFile;
+  private VirtualFile myLastFile;
   private boolean myLastIgnore;
 
   @Override
   public boolean isMyContext(@NotNull PsiElement element) {
     PsiFile file = element.getContainingFile();
-    if (file == null) {
-      return false;
-    }
-
-    return isIgnored(file);
+    return file != null && isIgnored(file);
   }
 
-  private boolean isIgnored(@Nullable PsiFile psiFile) {
-    if (psiFile == null) {
-      return false;
-    }
-    if (psiFile == myLastPsiFile) {
+  private boolean isIgnored(@NotNull PsiFile psiFile) {
+    VirtualFile virtualFile = PsiUtilCore.getVirtualFile(psiFile);
+    if (virtualFile == myLastFile) {
       return myLastIgnore;
     }
 
-    myLastPsiFile = psiFile;
+    myLastFile = virtualFile;
 
     FileType fileType = psiFile.getFileType();
     if (fileType == FileTypes.PLAIN_TEXT) {
