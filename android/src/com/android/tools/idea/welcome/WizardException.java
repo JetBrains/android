@@ -16,8 +16,14 @@
 package com.android.tools.idea.welcome;
 
 /**
- * Interface for paths that have a long-running operation running after the wizard completes.
+ * Signals a failure in the wizard.
  */
-public interface LongRunningOperationPath {
-  void runLongOperation(ProgressStep progressStep) throws WizardException;
+public final class WizardException extends Exception {
+  public WizardException(String message) {
+    super(message);
+  }
+
+  public WizardException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }
