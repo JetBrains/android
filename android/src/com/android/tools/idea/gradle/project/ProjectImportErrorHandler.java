@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler;
 import com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -49,6 +51,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
   private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
+
+  private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
 
   @Override
   @Nullable
@@ -178,5 +182,57 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
     }
     return false;
+  }
+
+  // The default implementation in IDEA only retrieves the location in build.gradle files. This implementation also handle location in
+  // settings.gradle file.
+  @Override
+  @Nullable
+  public String getLocationFrom(@NotNull Throwable error) {
+    String errorToString = error.toString();
+    if (errorToString.contains("LocationAwareException")) {
+      // LocationAwareException is never passed, but converted into a PlaceholderException that has the toString value of the original
+      // LocationAwareException.
+      String location = error.getMessage();
+      if (location != null && (location.startsWith("Build file '") || location.startsWith("Settings file '"))) {
+        // Only the first line contains the location of the error. Discard the rest.
+        String[] lines = StringUtil.splitByLines(location);
+        return lines.length > 0 ? lines[0] : null;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  @NotNull
+  public ExternalSystemException createUserFriendlyError(@NotNull String msg, @Nullable String location, @NotNull String... quickFixes) {
+    if (!StringUtil.isEmpty(location)) {
+      Pair<String, Integer> pair = getErrorLocation(location);
+      if (pair != null) {
+        return new LocationAwareExternalSystemException(msg, pair.first, pair.getSecond(), quickFixes);
+      }
+    }
+    return new ExternalSystemException(msg, null, quickFixes);
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static Pair<String, Integer> getErrorLocation(@NotNull String location) {
+    Matcher matcher = ERROR_LOCATION_PATTERN.matcher(location);
+    if (matcher.matches()) {
+      String filePath = matcher.group(1);
+      int line = -1;
+      String lineAsText = matcher.group(3);
+      if (lineAsText != null) {
+        try {
+          line = Integer.parseInt(lineAsText);
+        }
+        catch (NumberFormatException e) {
+          // ignored.
+        }
+      }
+      return Pair.create(filePath, line);
+    }
+    return null;
   }
 }

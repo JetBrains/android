@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
@@ -160,7 +161,7 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
-  public void testGradleDslMethodNotFound() throws IOException {
+  public void testGradleDslMethodNotFoundInBuildFile() throws IOException {
     final IdeFrameFixture projectFrame = openSimpleApplication();
 
     File topLevelBuildFile = new File(projectFrame.getProjectPath(), FN_BUILD_GRADLE);
@@ -174,6 +175,9 @@ public class GradleSyncTest extends GuiTestCase {
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
                                                                          firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
 
+    final EditorFixture editor = projectFrame.getEditor();
+    editor.close();
+
     // Verify that at least we offer some sort of hint.
     HyperlinkFixture openGradleWrapperFileHyperlink = message.findHyperlink("Open Gradle wrapper file");
     openGradleWrapperFileHyperlink.click();
@@ -181,9 +185,27 @@ public class GradleSyncTest extends GuiTestCase {
     Pause.pause(new Condition("Wait for gradle-wrapper.properties is opened") {
       @Override
       public boolean test() {
-        VirtualFile currentFile = projectFrame.getEditor().getCurrentFile();
+        VirtualFile currentFile = editor.getCurrentFile();
         return currentFile != null && currentFile.getName().equals("gradle-wrapper.properties");
       }
     }, SHORT_TIMEOUT);
+  }
+
+  @Test @IdeGuiTest
+  public void testGradleDslMethodNotFoundInSettingsFile() throws IOException {
+    final IdeFrameFixture projectFrame = openSimpleApplication();
+
+    File settingsFile = new File(projectFrame.getProjectPath(), FN_SETTINGS_GRADLE);
+    assertThat(settingsFile).isFile();
+    writeToFile(settingsFile, "incude ':app'");
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
+                                                                         firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
+
+    // Ensure the error message contains the location of the error.
+    message.requireLocation(settingsFile, 1);
   }
 }
