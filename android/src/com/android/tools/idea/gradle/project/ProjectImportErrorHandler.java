@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSd
 import com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -39,6 +40,7 @@ import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
+  public static final String GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
 
   private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
@@ -65,6 +67,12 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
+    }
+
+    final String rootCauseText = rootCause.toString();
+    if (StringUtil.startsWith(rootCauseText, "org.gradle.api.internal.MissingMethodException")) {
+      String method = parseMissingMethod(rootCauseText);
+      return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
     }
 
     if (rootCause instanceof UnknownHostException) {
