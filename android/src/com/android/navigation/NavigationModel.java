@@ -17,6 +17,7 @@ package com.android.navigation;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Transient;
+import com.android.annotations.Nullable;
 
 import java.util.*;
 
@@ -150,6 +151,16 @@ public class NavigationModel {
       }
     }
     return menus;
+  }
+
+  @Nullable
+  public Transition findTransitionWithSource(@NonNull Locator source) {
+    for (Transition transition : getTransitions()) {
+      if (source.equals(transition.getSource())) {
+        return transition;
+      }
+    }
+    return null;
   }
 
   public void clear() {

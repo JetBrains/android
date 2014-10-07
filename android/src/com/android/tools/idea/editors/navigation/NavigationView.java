@@ -184,7 +184,7 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  Transition getTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
+  Transition createTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
     Component destComponent = getComponentAt(mouseUpLocation);
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
@@ -198,7 +198,7 @@ public class NavigationView extends JComponent {
         Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
         Locator sourceLocator = Locator.of(rootComponentToState.get(sourceComponent), getViewId(namedSourceLeaf));
         Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), getViewId(namedEndLeaf));
-        return new Transition("", sourceLocator, destinationLocator);
+        return new Transition(Transition.PRESS, sourceLocator, destinationLocator);
       }
     }
     return null;
@@ -244,7 +244,7 @@ public class NavigationView extends JComponent {
   }
 
   public void zoom(int n) {
-    setScale(myTransform.myScale * (float) Math.pow(ZOOM_FACTOR, n));
+    setScale(myTransform.myScale * (float)Math.pow(ZOOM_FACTOR, n));
   }
 
   private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
@@ -900,8 +900,8 @@ public class NavigationView extends JComponent {
     Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
     if (component instanceof AndroidRootComponent) {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
+      State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
       if (!shiftDown) {
-        State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
         if (state == null) {
           return Selections.NULL;
         }
@@ -913,6 +913,9 @@ public class NavigationView extends JComponent {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
         RenderedView namedParent = getNamedParent(leaf);
         if (namedParent == null) {
+          return Selections.NULL;
+        }
+        if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
         return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, namedParent, this);
