@@ -1217,6 +1217,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       rootView.updateSize();
     }
     revalidate();
+
+    myHorizontalCaption.update();
+    myVerticalCaption.update();
+
     super.viewZoomed();
   }
 
