@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
-public class Dimension {
-  public static final Dimension ZERO = new Dimension(0, 0);
+import com.android.annotations.Property;
 
-  public final int width;
-  public final int height;
+public class ModelPoint {
+  public static final ModelPoint ORIGIN = new ModelPoint(0, 0);
 
-  public Dimension(int width, int height) {
-    this.width = width;
-    this.height = height;
-  }
+  public final int x;
+  public final int y;
 
-  public static Dimension create(java.awt.Dimension size) {
-    return new Dimension(size.width, size.height);
+  public ModelPoint(@Property("x") int x, @Property("y") int y) {
+    this.x = x;
+    this.y = y;
   }
 }

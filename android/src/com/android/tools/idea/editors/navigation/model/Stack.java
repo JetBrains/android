@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Property;
+import java.util.ArrayList;
 
-public class Point {
-  public static final Point ORIGIN = new Point(0, 0);
+class Stack<T> extends ArrayList<T> {
+    public void push(T a) {
+        add(a);
+    }
 
-  public final int x;
-  public final int y;
+    public T getLast() {
+        return get(size() - 1);
+    }
 
-  public Point(@Property("x") int x, @Property("y") int y) {
-    this.x = x;
-    this.y = y;
-  }
+    public T getLast(int i) {
+        return get(size() - 1 - i);
+    }
+
+    public T pop() {
+        return remove(size() - 1);
+    }
 }

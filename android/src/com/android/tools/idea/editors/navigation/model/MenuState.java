@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.Property;
-import com.android.annotations.Transient;
-import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 
-import java.util.ArrayList;
-import java.util.List;
+public class MenuState extends State {
+  private final String xmlResourceName;
 
-public class ActivityState extends State {
-  private final String className;
-  private String xmlResourceName;
-  private List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
-
-  public ActivityState(@Property("className") String className) {
-    this.className = className;
+  public MenuState(@NonNull @Property("xmlResourceName") String xmlResourceName) {
+    this.xmlResourceName = xmlResourceName;
   }
 
   @Override
@@ -38,20 +31,16 @@ public class ActivityState extends State {
     return visitor.visit(this);
   }
 
-  @NonNull
+  @Nullable
   @Override
   public String getClassName() {
-    return className;
+    return null;
   }
 
-  @Nullable
+  @NonNull
   @Override
   public String getXmlResourceName() {
     return xmlResourceName;
-  }
-
-  public void setXmlResourceName(String xmlResourceName) {
-    this.xmlResourceName = xmlResourceName;
   }
 
   @Override
@@ -59,25 +48,21 @@ public class ActivityState extends State {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ActivityState that = (ActivityState)o;
+    MenuState menuState = (MenuState)o;
 
-    if (!className.equals(that.className)) return false;
+    if (!xmlResourceName.equals(menuState.xmlResourceName)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    return className.hashCode();
+    return xmlResourceName.hashCode();
   }
 
   @Override
   public String toString() {
-    return "ActivityState{" + className + '}';
+    return "MenuState{" + xmlResourceName + '}';
   }
 
-  @Transient
-  public List<FragmentEntry> getFragments() {
-    return fragments;
-  }
 }

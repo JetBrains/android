@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.NonNull;
+public class ModelDimension {
+  public static final ModelDimension ZERO = new ModelDimension(0, 0);
 
-import java.util.ArrayList;
+  public final int width;
+  public final int height;
 
-public class EventDispatcher<E> extends ArrayList<Listener<E>> implements Listener<E> {
-  private boolean myNotificationEnabled = true;
-
-  public boolean isNotificationEnabled() {
-    return myNotificationEnabled;
+  public ModelDimension(int width, int height) {
+    this.width = width;
+    this.height = height;
   }
 
-  public void setNotificationEnabled(boolean notificationEnabled) {
-    this.myNotificationEnabled = notificationEnabled;
-  }
-
-  @Override
-  public void notify(@NonNull E event) {
-    if (myNotificationEnabled) {
-      for (Listener<E> listener : this) {
-        listener.notify(event);
-      }
-    }
+  public static ModelDimension create(java.awt.Dimension size) {
+    return new ModelDimension(size.width, size.height);
   }
 }

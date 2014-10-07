@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.annotations.NonNull;
-import com.android.navigation.*;
-import com.android.navigation.Dimension;
-import com.android.navigation.NavigationModel.Event;
+import com.android.tools.idea.editors.navigation.model.*;
+import com.android.tools.idea.editors.navigation.model.ModelDimension;
+import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.rendering.RenderedView;
@@ -224,9 +224,9 @@ class Selections {
     private void moveTo(Point location, boolean snap) {
       Point newLocation = sum(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myTransform.modelToView(Dimension.create(NavigationView.MIDDLE_SNAP_GRID)));
+        newLocation = Utilities.snap(newLocation, myTransform.modelToView(ModelDimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
-      Map<State, com.android.navigation.Point> stateToLocation = myNavigationModel.getStateToLocation();
+      Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
       Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
       stateToLocation.put(myState, myTransform.viewToModel(newLocation));
       final Locator src = Locator.of(myState, null);

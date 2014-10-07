@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

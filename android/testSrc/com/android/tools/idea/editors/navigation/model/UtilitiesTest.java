@@ -1,4 +1,4 @@
-package com.android.navigation;
+package com.android.tools.idea.editors.navigation.model;
 
 import junit.framework.TestCase;
 import com.android.tools.idea.editors.navigation.Utilities;
