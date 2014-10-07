@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -121,13 +121,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           return currentValue;
         }
         Integer selectedApi = selectedItem.apiLevel;
-        return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                                                  "By targeting API %d and later, your app will run on approximately <b>%.1f%%</b> of the " +
-                                                  "devices that are active on the Google Play Store. " +
-                                                  "<span color=\"#%s\">Help me choose.</span></html>", selectedApi,
-                             myChooseApiLevelDialog.getSupportedDistributionForApiLevel(selectedApi) * 100,
-                             Integer.toHexString(JBColor.blue.getRGB()).substring(2)
-        );
+        return String.format(
+          Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
+                               "By targeting API %d and later, your app will run on approximately <b>%.1f%%</b> of the " +
+                               "devices that are active on the Google Play Store. " +
+                               "<span color=\"#%s\">Help me choose.</span></html>", selectedApi,
+          DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100,
+          Integer.toHexString(JBColor.blue.getRGB()).substring(2));
       }
     });
 
