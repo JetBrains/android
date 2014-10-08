@@ -758,13 +758,13 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private static JComponent getPressGestureIcon() {
+  private JComponent getPressGestureIcon() {
     return new JComponent() {
-      private Dimension SIZE = new Dimension(24, 24);
+      private ModelDimension SIZE = new ModelDimension(100, 100);
 
       @Override
       public Dimension getPreferredSize() {
-        return SIZE;
+        return myTransform.modelToView(SIZE);
       }
 
       @Override
@@ -772,7 +772,7 @@ public class NavigationView extends JComponent {
         RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         ((Graphics2D)g).setRenderingHints(rh);
         g.setColor(GESTURE_ICON_COLOR);
-        g.fillOval(0, 0, SIZE.width - 1, SIZE.height - 1);
+        g.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
       }
     };
   }
@@ -787,7 +787,7 @@ public class NavigationView extends JComponent {
     return result;
   }
 
-  private static Component createEditorFor(final Transition transition) {
+  private Component createEditorFor(final Transition transition) {
     String gesture = transition.getType();
     return gesture.equals(Transition.PRESS) ? getPressGestureIcon() : getSwipeGestureIcon();
   }
