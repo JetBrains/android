@@ -24,6 +24,7 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 
 import java.awt.*;
 import java.io.File;
@@ -115,6 +116,10 @@ public class AvdWizardConstants {
   static final Font STANDARD_FONT = new Font("Sans", Font.PLAIN, 12);
   static final Font FIGURE_FONT = new Font("Sans", Font.PLAIN, 10);
   static final Font TITLE_FONT = new Font("Sans", Font.BOLD, 16);
+
+  // Tags
+  public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
+  public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
 
   public static final class SystemImageDescription {
     public IAndroidTarget target;

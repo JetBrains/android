@@ -54,13 +54,13 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.List;
 
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.TV_TAG;
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
+
 /**
  * Displays a list of system images currently installed and allows selection of one
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
-  private final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
-  private final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
-
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final LocalSdk mySdk;
