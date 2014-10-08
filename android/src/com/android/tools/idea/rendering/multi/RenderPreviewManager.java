@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering.multi;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
@@ -1073,7 +1073,7 @@ public class RenderPreviewManager implements Disposable {
       return;
     }
     List<Device> devices = configuration.getConfigurationManager().getDevices();
-    boolean canScaleNinePatch = configuration.supports(Capability.FIXED_SCALABLE_NINE_PATCH);
+    boolean canScaleNinePatch = configuration.supports(Features.FIXED_SCALABLE_NINE_PATCH);
 
     // TODO: Only do this if there is no *better* fit for the other orientation
     Device currentDevice = configuration.getDevice();

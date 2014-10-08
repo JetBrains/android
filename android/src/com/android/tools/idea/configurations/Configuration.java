@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
@@ -38,6 +38,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1037,7 +1038,7 @@ public class Configuration implements Disposable {
    * @param capability the capability to check
    * @return true if the capability is supported
    */
-  public boolean supports(Capability capability) {
+  public boolean supports(@MagicConstant(flagsFromClass = Features.class) int capability) {
     IAndroidTarget target = getTarget();
     if (target != null) {
       return RenderService.supportsCapability(getModule(), target, capability);
