@@ -37,7 +37,7 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   }
 
   @Nullable
-  private static Icon getFormFactorsImage(JComponent component) {
+  public static Icon getFormFactorsImage(JComponent component) {
     BufferedImage image = null;
     Graphics2D graphics = null;
     int x = 0;
