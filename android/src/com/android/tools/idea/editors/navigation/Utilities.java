@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +34,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 
@@ -298,5 +300,26 @@ public class Utilities {
       }
     }
     return null;
+  }
+
+  public static <I, O> O[] map(I[] a, Function<I, O> f, Class<O> resultType) {
+    //noinspection unchecked
+    O[] result = (O[])Array.newInstance(resultType, a.length);
+    for (int i = 0; i < result.length; i++) {
+      result[i] = f.fun(a[i]);
+    }
+    return result;
+  }
+
+  public static <I, O> O[] map(I[] a, Function<I, O> f) {
+    try {
+      //noinspection unchecked
+      Class<O> type = (Class<O>)f.getClass().getMethod("fun", a.getClass().getComponentType()).getReturnType();
+      return map(a, f, type);
+
+    }
+    catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
