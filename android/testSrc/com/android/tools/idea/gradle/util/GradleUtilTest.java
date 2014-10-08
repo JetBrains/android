@@ -22,11 +22,13 @@ import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import junit.framework.TestCase;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import static com.android.SdkConstants.*;
 
@@ -199,5 +201,67 @@ public class GradleUtilTest extends TestCase {
                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
+  }
+
+  public void testInvokeGradleNonBackwardCompatibleMethod() throws Exception {
+    String result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<String>() {
+      @Override
+      public String call() throws Exception {
+        return "Hello";
+      }
+    });
+    assertEquals("Hello", result);
+  }
+
+  public void testInvokeGradleNonBackwardCompatibleMethodThrowingNoSuchMethodError() throws Exception {
+    String result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<String>() {
+      @Override
+      public String call() throws Exception {
+        throw new NoSuchMethodError();
+      }
+    });
+    assertNull(result);
+  }
+
+  public void testInvokeGradleNonBackwardCompatibleMethodThrowingUnsupportedMethodException() throws Exception {
+    String result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<String>() {
+      @Override
+      public String call() throws Exception {
+        throw new UnsupportedMethodException("Testing");
+      }
+    });
+    assertNull(result);
+  }
+
+  public void testInvokeGradleNonBackwardCompatibleMethodThrowingUncaughtRuntimeException() {
+    //noinspection ThrowableInstanceNeverThrown
+    final RuntimeException expected = new RuntimeException();
+    try {
+      GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<String>() {
+        @Override
+        public String call() throws Exception {
+          throw expected;
+        }
+      });
+    }
+    catch (Exception e) {
+      assertSame(expected, e);
+    }
+  }
+
+  public void testInvokeGradleNonBackwardCompatibleMethodThrowingUncaughtException() {
+    //noinspection ThrowableInstanceNeverThrown
+    final Exception expected = new Exception();
+    try {
+      GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<String>() {
+        @Override
+        public String call() throws Exception {
+          throw expected;
+        }
+      });
+    }
+    catch (Exception e) {
+      assertSame(expected, e);
+    }
   }
 }

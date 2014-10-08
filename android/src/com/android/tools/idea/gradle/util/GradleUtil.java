@@ -55,6 +55,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
@@ -78,6 +79,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -801,6 +803,32 @@ public final class GradleUtil {
         Collections.sort(coordinates, GradleCoordinate.COMPARE_PLUS_LOWER);
         return coordinates.get(coordinates.size() - 1);
       }
+    }
+    return null;
+  }
+
+  /**
+   * Invokes the given task (which is assumed to invoke a non-backwards compatible method in Gradle or the Android Gradle plug-in) and
+   * ignores any {@link java.lang.NoSuchMethodError} or {@link org.gradle.tooling.model.UnsupportedMethodException} caught during the task
+   * invocation. If any of these exceptions is caught, this method will simply return {@code null}.
+   *
+   * @param task the task to invoke.
+   * @param <T> the type returned by the task.
+   * @return the value returned by the given task, or {@code null} if the task is invoking does it not defined in Gradle or the Android
+   * Gradle plug-in.
+   * @throws Exception any checked exception thrown by the task execution.
+   */
+  @Nullable
+  public static <T> T invokeGradleNonBackwardCompatibleMethod(@NotNull Callable<T> task) throws Exception {
+    try {
+      return task.call();
+    }
+    catch (NoSuchMethodError e) {
+      // https://code.google.com/p/android/issues/detail?id=77060
+      // Method may not exist in the version of Gradle or the Android plugin used by the project.
+    }
+    catch (UnsupportedMethodException e) {
+      // Method may not exist in the version of Gradle or the Android plugin used by the project.
     }
     return null;
   }
