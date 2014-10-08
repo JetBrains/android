@@ -54,6 +54,8 @@ public class AndroidRootComponent extends JComponent {
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
+  private boolean myCachedMenuValid = false;
+  private RenderedView myCachedMenu;
 
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
     myRenderingParameters = renderingParameters;
@@ -90,6 +92,7 @@ public class AndroidRootComponent extends JComponent {
     }
     myRenderResult = renderResult;
     if (isMenu) {
+      myCachedMenuValid = false;
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
@@ -110,27 +113,25 @@ public class AndroidRootComponent extends JComponent {
     invalidate2();
   }
 
+  @Nullable
+  private RenderedView getCachedMenu() {
+    if (!myCachedMenuValid) {
+      myCachedMenu = getMenu(myRenderResult);
+      myCachedMenuValid = true;
+    }
+    return myCachedMenu;
+  }
+
   private Transform createTransform(float scale) {
     if (isMenu) {
       return new Transform(scale) {
-        private boolean myCachedRenderedViewValid = false;
-        private RenderedView myCachedRenderedView;
-
-        private RenderedView getRenderedView() {
-          if (!myCachedRenderedViewValid) {
-            myCachedRenderedView = getMenu(myRenderResult);
-            myCachedRenderedViewValid = true;
-          }
-          return myCachedRenderedView;
-        }
-
         private int getDx() {
-          RenderedView menu = getRenderedView();
+          RenderedView menu = getCachedMenu();
           return (menu == null) ? 0 : menu.x;
         }
 
         private int getDy() {
-          RenderedView menu = getRenderedView();
+          RenderedView menu = getCachedMenu();
           return (menu == null) ? 0 : menu.y;
         }
 
