@@ -91,7 +91,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -114,6 +113,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1037,25 +1037,40 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.12.x, whichever is earlier (b.android.com/76248)
-  private static boolean hasSplitsModel(@NotNull AndroidArtifactOutput androidArtifactOutput) {
+  private static boolean hasSplitsModel(@NotNull final AndroidArtifactOutput androidArtifactOutput) {
     try {
-      androidArtifactOutput.getAbiFilter();
-      return true;
+      Boolean result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Boolean>() {
+        @Override
+        public Boolean call() throws Exception {
+          androidArtifactOutput.getAbiFilter();
+          return true;
+        }
+      });
+      if (result != null) {
+        return result;
+      }
     }
-    catch (UnsupportedMethodException e) {
-      return false;
+    catch (Exception e) {
+      // ignored. Callable does not throw checked exceptions.
     }
+    return false;
   }
 
   // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.13.x, whichever is earlier (b.android.com/76248)
   @Nullable
-  private static Set<String> getVariantAbiFilters(@NotNull AndroidArtifact artifact) {
+  private static Set<String> getVariantAbiFilters(@NotNull final AndroidArtifact artifact) {
     try {
-      return artifact.getAbiFilters();
+      return GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Set<String>>() {
+        @Override
+        @Nullable
+        public Set<String> call() throws Exception {
+          return artifact.getAbiFilters();
+        }
+      });
+    } catch (Exception e) {
+      // ignored. Callable does not throw checked exception.
     }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
+    return null;
   }
 
   private boolean checkPackageNames() {
