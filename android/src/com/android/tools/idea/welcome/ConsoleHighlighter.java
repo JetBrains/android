@@ -35,6 +35,7 @@ import com.intellij.openapi.editor.highlighter.HighlighterClient;
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,10 +47,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Keeps track of attributes for ranges and has some special support for tracking process output.
  */
 public final class ConsoleHighlighter extends DocumentAdapter implements EditorHighlighter {
-  private Document myDocument;
-  // Note that this may only grow - as we do not edit/truncate the output.
-  // We only use this for predefined processes that we know won't dump too
-  // much output.
   private List<HighlightRange> myRanges = Lists.newArrayListWithCapacity(1024);
   private boolean myIsUpdatePending = false;
   private StringBuilder myPendingStrings = new StringBuilder(4096);
@@ -86,12 +83,13 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
   }
 
   private void appendToDocument() {
-    if (myDocument != null) {
-      String pendingString = getPendingString();
-      myDocument.insertString(myDocument.getTextLength(), pendingString);
+    Document document = myEditor.getDocument();
+    if (document != null) {
+      String pendingString = StringUtil.convertLineSeparators(getPendingString());
+      document.insertString(document.getTextLength(), pendingString);
       if (myEditor instanceof Editor) {
         Editor editor = (Editor)myEditor;
-        int lineCount = myDocument.getLineCount();
+        int lineCount = document.getLineCount();
         editor.getScrollingModel().scrollTo(new LogicalPosition(lineCount - 1, 0), ScrollType.MAKE_VISIBLE);
       }
     }
@@ -111,7 +109,6 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
   @Override
   public void setEditor(@NotNull HighlighterClient editor) {
     myEditor = editor;
-    myDocument = editor.getDocument();
   }
 
   @Override
@@ -154,7 +151,7 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
 
   public void clear() {
     clearHighlightedState();
-    myDocument.setText("");
+    myEditor.getDocument().setText("");
   }
 
   private synchronized void clearHighlightedState() {
@@ -183,16 +180,6 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
 
   private class ProcessOutputProcessor extends ProcessAdapter {
     private AtomicBoolean mySkipped = new AtomicBoolean(false);
-
-    @Override
-    public void processTerminated(final ProcessEvent event) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          print(String.format("Process completed: %d", event.getExitCode()), ConsoleViewContentType.NORMAL_OUTPUT.getAttributes());
-        }
-      });
-    }
 
     @Override
     public void onTextAvailable(final ProcessEvent event, final Key outputType) {
@@ -250,7 +237,7 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
 
     @Override
     public Document getDocument() {
-      return myDocument;
+      return myEditor.getDocument();
     }
   }
 }

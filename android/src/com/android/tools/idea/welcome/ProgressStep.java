@@ -18,12 +18,13 @@ package com.android.tools.idea.welcome;
 import com.intellij.execution.impl.ConsoleViewUtil;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.ide.util.DelegatingProgressIndicator;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -47,6 +48,7 @@ public final class ProgressStep extends FirstRunWizardStep {
   private JLabel myLabel;
   private JPanel myConsole;
   private ProgressIndicator myProgressIndicator;
+  private double myFraction = 0;
 
   public ProgressStep(@NotNull Disposable parent) {
     super("Downloading Components");
@@ -91,6 +93,9 @@ public final class ProgressStep extends FirstRunWizardStep {
     return myShowDetailsButton;
   }
 
+  /**
+   * @return progress indicator that will report the progress to this wizard step.
+   */
   @NotNull
   public synchronized ProgressIndicator getProgressIndicator() {
     if (myProgressIndicator == null) {
@@ -125,16 +130,68 @@ public final class ProgressStep extends FirstRunWizardStep {
     return getProgressIndicator().isCanceled();
   }
 
+  /**
+   * Displays console widget if one was not visible already
+   */
   public void showConsole() {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        myShowDetailsButton.getParent().remove(myShowDetailsButton);
-        myConsoleEditor.getComponent().setVisible(true);
+        JComponent editorComponent = myConsoleEditor.getComponent();
+        if (!editorComponent.isVisible()) {
+          myShowDetailsButton.getParent().remove(myShowDetailsButton);
+          editorComponent.setVisible(true);
+        }
       }
     });
   }
 
+  /**
+   * Runs the computable under progress manager but only gives a portion of the progress bar to it.
+   */
+  public void run(final Runnable runnable, double progressPortion) {
+    ProgressIndicator progress = new ProgressPortionReporter(getProgressIndicator(), myFraction, progressPortion);
+    ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress);
+  }
+
+  private void setFraction(double fraction) {
+    myFraction = fraction;
+    myProgressBar.setMaximum(1000);
+    myProgressBar.setValue((int)(1000 * fraction));
+  }
+
+  /**
+   * Progress indicator that scales task to only use a portion of the parent indicator.
+   */
+  public static class ProgressPortionReporter extends DelegatingProgressIndicator {
+    private final double myStart;
+    private final double myPortion;
+
+    public ProgressPortionReporter(@NotNull ProgressIndicator indicator, double start, double portion) {
+      super(indicator);
+      myStart = start;
+      myPortion = portion;
+    }
+
+    @Override
+    public void start() {
+      setFraction(0);
+    }
+
+    @Override
+    public void stop() {
+      setFraction(myPortion);
+    }
+
+    @Override
+    public void setFraction(double fraction) {
+      super.setFraction(myStart + (fraction * myPortion));
+    }
+  }
+
+  /**
+   * Progress indicator integration for this wizard step
+   */
   private class ProgressIndicatorIntegration extends ProgressIndicatorBase {
     @Override
     public void start() {
@@ -165,14 +222,20 @@ public final class ProgressStep extends FirstRunWizardStep {
         public void run() {
           myLabel.setText(null);
           myProgressBar.setVisible(false);
+          showConsole();
         }
       });
       super.stop();
     }
 
     @Override
-    public void setIndeterminate(boolean indeterminate) {
-      myProgressBar.setIndeterminate(indeterminate);
+    public void setIndeterminate(final boolean indeterminate) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          myProgressBar.setIndeterminate(indeterminate);
+        }
+      });
     }
 
     @Override
@@ -180,8 +243,7 @@ public final class ProgressStep extends FirstRunWizardStep {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          myProgressBar.setMaximum(1000);
-          myProgressBar.setValue((int)(1000 * fraction));
+          ProgressStep.this.setFraction(fraction);
         }
       });
     }

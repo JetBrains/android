@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,6 +100,20 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
     } else {
       return null;
     }
+  }
+
+  /**
+   * Get a value from our state store. If value in the store is missing or is null, defaultValue is returned.
+   *
+   * @param key the unique id for the value to retrieve.
+   * @param defaultValue value to be returned if the value for the key is missing.
+   * @return a pair where the first object is the requested value and the second is the scoped key of that value.
+   *         will return Pair<null, null> if no value exists in the state for the given key.
+   */
+  @NotNull
+  public <T> T getNotNull(@NotNull Key<T> key, @NotNull T defaultValue) {
+    T value = get(key);
+    return value == null ? defaultValue : value;
   }
 
   /**
