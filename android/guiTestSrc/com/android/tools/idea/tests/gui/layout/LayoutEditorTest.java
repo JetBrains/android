@@ -104,6 +104,27 @@ public class LayoutEditorTest extends GuiTestCase {
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("android:text=\"", null, true));
     assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"", editor.getCurrentLineContents(true, false, 0));
+
+    // Check the resource reference symbols escaping
+    // https://code.google.com/p/android/issues/detail?id=73101
+    editor.selectEditorTab(EditorFixture.Tab.DESIGN);
+    // If it's not a valid resource reference, escape the initial symbol.
+    property.enterValue("@");
+    property.requireValue("\\@");
+    property.requireXmlValue("\\@");
+    property.enterValue("?");
+    property.requireValue("\\?");
+    property.requireXmlValue("\\?");
+    property.enterValue("@string"); // Incomplete reference.
+    property.requireValue("\\@string");
+    property.requireXmlValue("\\@string");
+    // Try a valid references.
+    property.enterValue("@string/valid_ref");
+    property.requireValue("@string/valid_ref");
+    property.requireXmlValue("@string/valid_ref");
+    property.enterValue("?android:attr");
+    property.requireValue("?android:attr");
+    property.requireXmlValue("?android:attr");
   }
 
   @Test

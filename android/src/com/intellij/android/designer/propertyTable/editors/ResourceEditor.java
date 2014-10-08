@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.propertyTable.editors;
 
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -51,6 +52,8 @@ import java.awt.event.*;
 import java.util.EnumSet;
 import java.util.Set;
 
+import static com.android.SdkConstants.*;
+
 /**
  * @author Alexander Lobas
  */
@@ -64,6 +67,7 @@ public class ResourceEditor extends PropertyEditor {
   private boolean myIgnoreCheckBoxValue;
   private String myBooleanResourceValue;
   private final boolean myIsDimension;
+  private final boolean myIsString;
 
   public ResourceEditor(Set<AttributeFormat> formats, String[] values) {
     this(convertTypes(formats), formats, values);
@@ -72,6 +76,7 @@ public class ResourceEditor extends PropertyEditor {
   public ResourceEditor(@Nullable ResourceType[] types, Set<AttributeFormat> formats, @Nullable String[] values) {
     myTypes = types;
     myIsDimension = formats.contains(AttributeFormat.Dimension);
+    myIsString = formats.contains(AttributeFormat.String);
 
     if (formats.contains(AttributeFormat.Boolean)) {
       myCheckBox = new JCheckBox();
@@ -292,19 +297,26 @@ public class ResourceEditor extends PropertyEditor {
       return null;
     }
     if (myIsDimension &&
-        !value.startsWith("@") &&
-        !value.endsWith("dip") &&
-        !value.equalsIgnoreCase("wrap_content") &&
-        !value.equalsIgnoreCase("fill_parent") &&
-        !value.equalsIgnoreCase("match_parent")) {
+        !value.startsWith(PREFIX_RESOURCE_REF) &&
+        !value.endsWith(UNIT_DIP) &&
+        !value.equalsIgnoreCase(VALUE_WRAP_CONTENT) &&
+        !value.equalsIgnoreCase(VALUE_FILL_PARENT) &&
+        !value.equalsIgnoreCase(VALUE_MATCH_PARENT)) {
       if (value.length() <= 2) {
-        return value + "dp";
+        return value + UNIT_DP;
       }
       int index = value.length() - 2;
       String dimension = value.substring(index);
       if (ArrayUtil.indexOf(ResourceRenderer.DIMENSIONS, dimension) == -1) {
-        return value + "dp";
+        return value + UNIT_DP;
       }
+    }
+
+    // If it looks like a reference, don't escape it.
+    if (myIsString &&
+        (value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) &&
+        ResourceUrl.parse(value) == null) {
+      return "\\" + value;
     }
     return value;
   }
