@@ -674,6 +674,18 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintGradleCompatibleInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.compatible"), GradleDetector.COMPATIBILITY);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String before = GradleDetector.getOldValue(GradleDetector.COMPATIBILITY, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.COMPATIBILITY, message, RAW);
+      if (before != null && after != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
 
   public static class AndroidLintGradleCompatiblePluginInspection extends AndroidLintInspectionBase {
