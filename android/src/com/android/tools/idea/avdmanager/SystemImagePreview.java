@@ -16,8 +16,11 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.stats.Distribution;
+import com.android.tools.idea.stats.DistributionService;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
@@ -28,7 +31,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDescription;
 
@@ -37,16 +45,39 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDe
  * launch graphic, platform and API level, and target CPU architecture.
  */
 public class SystemImagePreview extends JPanel {
+  private static final Logger LOG = Logger.getInstance(SystemImagePreview.class);
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
   private static final int FIGURE_PADDING = 3;
   private SystemImageDescription myImageDescription;
+  private Distribution myDistribution;
   private static final int PADDING = 20;
+
+  public SystemImagePreview() {
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
+        if (myDistribution != null && mouseEvent.getY() > getHeight() - PADDING - standardFontHeight) {
+          try {
+            Desktop.getDesktop().browse(new URI(myDistribution.getUrl()));
+          } catch (URISyntaxException e) {
+            LOG.error("Syntax exception in url for distribution " + myDistribution.getVersion().toShortString());
+          } catch (IOException e) {
+            LOG.error("IOException trying to open url " + myDistribution.getUrl());
+          }
+        }
+      }
+    });
+  }
 
   /**
    * Set the image to display.
    */
   public void setImage(@Nullable SystemImageDescription image) {
     myImageDescription = image;
+    if (image != null) {
+      myDistribution = DistributionService.getInstance().getDistributionForApiLevel(image.target.getVersion().getApiLevel());
+    }
     repaint();
   }
 
@@ -142,6 +173,14 @@ public class SystemImagePreview extends JPanel {
       infoSegmentY += stringHeight * 2;
       g2d.setFont(AvdWizardConstants.TITLE_FONT);
       g2d.drawString("This API Level is Deprecated", PADDING, infoSegmentY);
+    }
+
+    if (myDistribution != null) {
+      // Paint the help link
+      g2d.setFont(AvdWizardConstants.STANDARD_FONT);
+      g2d.setColor(JBColor.BLUE);
+      g2d.drawString("? See documentation for Android " + myDistribution.getVersion().toShortString() + " APIs", PADDING,
+                     getHeight() - PADDING);
     }
   }
 
