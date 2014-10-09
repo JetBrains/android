@@ -455,6 +455,8 @@ public class Configuration implements Disposable {
                   return device;
                 }
               }
+            } else if ("Kotlin".equals(myFile.getFileType().getName())) {
+              return device;
             }
           }
         }
