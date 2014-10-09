@@ -39,7 +39,7 @@ import java.awt.event.ActionListener;
 /**
  * Wizard step with progress bar and "more details" button.
  */
-public final class ProgressStep extends FirstRunWizardStep {
+public abstract class ProgressStep extends FirstRunWizardStep {
   private final ConsoleHighlighter myHighlighter;
   private final EditorEx myConsoleEditor;
   private JPanel myRoot;
@@ -81,6 +81,18 @@ public final class ProgressStep extends FirstRunWizardStep {
   public void init() {
     // Do nothing
   }
+
+  @Override
+  public void onEnterStep() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        execute();
+      }
+    });
+  }
+
+  protected abstract void execute();
 
   @Nullable
   @Override
