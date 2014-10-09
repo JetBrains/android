@@ -178,8 +178,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     myActive = true;
     myPsiChangeListener.setInitialize();
-    myPsiChangeListener.activate();
-    myPsiChangeListener.addRequest();
   }
 
   private void initializeConfiguration() {
