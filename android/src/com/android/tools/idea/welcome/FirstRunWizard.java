@@ -16,13 +16,15 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.wizard.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.SingleStepPath;
-import com.google.common.collect.Iterables;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Wizard to setup Android Studio before the first run
@@ -30,7 +32,11 @@ import org.jetbrains.annotations.NotNull;
 public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup";
 
-  private boolean myDone = false;
+  /**
+   * On the first user click on finish button, we show progress step & perform setup.
+   * Second attempt will close the wizard.
+   */
+  private final AtomicInteger myFinishClicks = new AtomicInteger(0);
 
   public FirstRunWizard(DynamicWizardHost host) {
     super(null, null, WIZARD_TITLE, host);
@@ -43,51 +49,31 @@ public class FirstRunWizard extends DynamicWizard {
     addPath(new SetupJdkPath());
     addPath(new InstallComponentsPath());
     addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
+    addPath(new SingleStepPath(new SetupProgressStep()));
     super.init();
   }
 
   // We need to show progress page before proceeding closing the wizard.
   @Override
   public void doFinishAction() {
-    final Iterable<LongRunningOperationPath> filter = Iterables.filter(myPaths, LongRunningOperationPath.class);
-    if (Iterables.isEmpty(filter) || myDone) {
-      super.doFinishAction();
-    }
-    else if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
-      myHost.shakeWindow();
+    if (myFinishClicks.incrementAndGet() == 1) {
+      doNextAction();
     }
     else {
-      new WizardCompletionAction().execute();
-      final ProgressStep progressStep = new ProgressStep(getDisposable());
-      showStep(progressStep);
-      myHost.runSensitiveOperation(progressStep.getProgressIndicator(), true, new Runnable() {
-        @Override
-        public void run() {
-          try {
-            doLongRunningOperation(filter, progressStep);
-          }
-          catch (WizardException e) {
-            Logger.getInstance(getClass()).error(e);
-            progressStep.showConsole();
-            progressStep.print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-          }
-        }
-      });
+      assert myFinishClicks.get() <= 2; // Should not take more then 2 clicks
+      super.doFinishAction();
     }
   }
 
-  private void doLongRunningOperation(Iterable<LongRunningOperationPath> filter, @NotNull ProgressStep progressStep)
+  private void doLongRunningOperation(@NotNull ProgressStep progressStep)
     throws WizardException {
-    try {
-      for (LongRunningOperationPath path : filter) {
-        if (progressStep.isCanceled()) {
-          break;
-        }
-        path.runLongOperation(progressStep);
+    for (AndroidStudioWizardPath path : myPaths) {
+      if (progressStep.isCanceled()) {
+        break;
       }
-    }
-    finally {
-      myDone = true;
+      if (path instanceof LongRunningOperationPath) {
+        ((LongRunningOperationPath)path).runLongOperation(progressStep);
+      }
     }
   }
 
@@ -98,5 +84,42 @@ public class FirstRunWizard extends DynamicWizard {
   @Override
   protected String getWizardActionDescription() {
     return "Android Studio Setup";
+  }
+
+  private class SetupProgressStep extends ProgressStep {
+    public SetupProgressStep() {
+      super(FirstRunWizard.this.getDisposable());
+    }
+
+    @Override
+    protected void execute() {
+      myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
+        @Override
+        public void run() {
+          try {
+            doLongRunningOperation(SetupProgressStep.this);
+          }
+          catch (WizardException e) {
+            Logger.getInstance(getClass()).error(e);
+            showConsole();
+            print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+          }
+        }
+      });
+    }
+
+    @Override
+    public boolean canGoPrevious() {
+      return false;
+    }
+
+    /**
+     * The goal is not to show this step until the user completes the wizard. So this page is
+     * only shown once, after the user clicks finish for the first time.
+     */
+    @Override
+    public boolean isStepVisible() {
+      return myFinishClicks.get() == 1;
+    }
   }
 }
