@@ -19,15 +19,11 @@ package org.jetbrains.android.uipreview;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
-import com.android.tools.idea.rendering.HoverOverlay;
-import com.android.tools.idea.rendering.IncludeOverlay;
-import com.android.tools.idea.rendering.Overlay;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -70,9 +66,18 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   private final List<Overlay> myOverlays = Arrays.asList(myHover, new IncludeOverlay(this));
 
   public AndroidLayoutPreviewToolWindowForm(AndroidLayoutPreviewToolWindowManager toolWindowManager) {
+    this(toolWindowManager, null);
+  }
+
+  public AndroidLayoutPreviewToolWindowForm(AndroidLayoutPreviewToolWindowManager toolWindowManager,
+                                            @Nullable AnAction refreshRenderAction) {
     Disposer.register(this, myPreviewPanel);
 
     myToolWindowManager = toolWindowManager;
+
+    if (refreshRenderAction==null) {
+      refreshRenderAction = new RefreshRenderAction(this);
+    }
 
     final DefaultActionGroup actionGroup = new DefaultActionGroup();
     actionGroup.add(new ZoomToFitAction());
@@ -81,7 +86,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     actionGroup.add(new ZoomInAction());
     actionGroup.add(new ZoomOutAction());
     actionGroup.addSeparator();
-    actionGroup.add(new RefreshRenderAction(this));
+    actionGroup.add(refreshRenderAction);
     actionGroup.add(new SaveScreenshotAction(this));
     myActionToolBar = ActionManager.getInstance().createActionToolbar("LayoutPreview", actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
@@ -232,7 +237,11 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   @Nullable
   @Override
   public XmlFile getXmlFile() {
-    return (XmlFile)myFile;
+    if (myFile instanceof XmlFile) {
+      return (XmlFile) myFile;
+    } else {
+      return null;
+    }
   }
 
   @Nullable
@@ -373,6 +382,14 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   @Override
   public boolean isSelected(@NotNull XmlTag tag) {
     return myPreviewPanel.isSelected(tag);
+  }
+
+  public JPanel getSecondToolBarPanel() {
+    return mySecondToolBarPanel;
+  }
+
+  public void setUseInteractiveSelector(boolean useInteractiveSelector) {
+    myPreviewPanel.setUseInteractiveSelector(useInteractiveSelector);
   }
 
   // ---- Implements ConfigurationListener ----
