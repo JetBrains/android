@@ -95,6 +95,11 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, "Suppress: Add //noinspection GradlePath");
   }
 
+  public void testBadPlayServicesVersion() throws Exception {
+    AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
+    doTest(inspection, "Change to 6.1.11");
+  }
+
   public void testStringInt() throws Exception {
     AndroidLintStringShouldBeIntInspection inspection = new AndroidLintStringShouldBeIntInspection();
     doTest(inspection, null);
