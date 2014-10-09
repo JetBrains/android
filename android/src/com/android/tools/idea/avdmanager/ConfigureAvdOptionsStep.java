@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.SdkConstants;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -253,9 +254,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     }
 
-    File skinDir = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinDir != null) {
-      File layoutFile = new File(skinDir, "layout");
+    String skinPath = myState.get(CUSTOM_SKIN_PATH_KEY);
+    if (skinPath != null && !skinPath.isEmpty()) {
+      File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorState("The skin directory does not point to a valid skin.",
                       mySkinDefinitionLabel, myCustomSkinPath);
@@ -497,9 +498,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         if (path == null || path.isEmpty()) {
           Device device = state.get(DEVICE_DEFINITION_KEY);
           if (device != null) {
-            File file = device.getDefaultHardware().getSkinFile();
-            if (file != null) {
-              path = file.getAbsolutePath();
+            File skinFile = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
+            if (skinFile != null) {
+              path = skinFile.getPath();
             }
           }
         }
