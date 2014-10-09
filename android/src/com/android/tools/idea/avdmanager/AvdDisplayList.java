@@ -478,7 +478,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
-      myWidth = numVisibleActions == -1 ? -1 : 45 * numVisibleActions + 50;
+      myWidth = numVisibleActions == -1 ? -1 : 45 * numVisibleActions + 75;
     }
 
     public AvdActionsColumnInfo(@NotNull String name) {

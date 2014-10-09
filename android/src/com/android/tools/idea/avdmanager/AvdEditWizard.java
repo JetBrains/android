@@ -159,12 +159,16 @@ public class AvdEditWizard extends DynamicWizard {
     }
     String numString = iniString.substring(0, iniString.length() - 1);
     char unitChar = iniString.charAt(iniString.length() - 1);
-    Storage.Unit selectedUnit = Storage.Unit.B;
+    Storage.Unit selectedUnit = null;
     for (Storage.Unit u : Storage.Unit.values()) {
       if (u.toString().charAt(0) == unitChar) {
         selectedUnit = u;
         break;
       }
+    }
+    if (selectedUnit == null) {
+      selectedUnit = Storage.Unit.MiB; // Values expressed without a unit read as MB
+      numString = iniString;
     }
     try {
       long numLong = Long.parseLong(numString);
@@ -202,7 +206,7 @@ public class AvdEditWizard extends DynamicWizard {
       userEditedProperties.remove(EXISTING_SD_LOCATION.name);
       Storage storage = state.get(SD_CARD_STORAGE_KEY);
       if (storage != null) {
-        sdCard = toIniString(storage);
+        sdCard = toIniString(storage, false);
       }
     }
 
@@ -218,7 +222,11 @@ public class AvdEditWizard extends DynamicWizard {
       @Override
       public String transformEntry(String key, Object value) {
         if (value instanceof Storage) {
-          return toIniString((Storage)value);
+          if (key.equals(AvdWizardConstants.RAM_STORAGE_KEY.name) || key.equals(AvdWizardConstants.VM_HEAP_STORAGE_KEY.name)) {
+            return toIniString((Storage)value, true);
+          } else {
+            return toIniString((Storage)value, false);
+          }
         } else if (value instanceof  Boolean) {
           return toIniString((Boolean)value);
         } else if (value instanceof AvdScaleFactor) {
@@ -309,9 +317,10 @@ public class AvdEditWizard extends DynamicWizard {
    * Example: 10M or 1G
    */
   @NotNull
-  private static String toIniString(@NotNull Storage storage) {
-    Storage.Unit unit = storage.getAppropriateUnits();
-    return String.format("%1$d%2$c", storage.getSizeAsUnit(unit), unit.toString().charAt(0));
+  private static String toIniString(@NotNull Storage storage, boolean convertToMb) {
+    Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
+    String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
+    return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }
 
   /**
