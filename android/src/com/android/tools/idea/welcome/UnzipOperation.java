@@ -19,7 +19,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.io.ZipUtil;
 
@@ -47,9 +46,8 @@ public final class UnzipOperation extends PreinstallOperation {
       }
       catch (IOException e) {
         String failure = String.format("Unable to unzip file %1$s", archive.getName());
-        String cause = e.getMessage();
-        String message = failure + (StringUtil.isEmptyOrSpaces(cause) ? "." : ": " + cause);
-        promptToRetry(message, failure + ":", e);
+        String message = WelcomeUIUtils.getMessageWithDetails(failure, e.getMessage());
+        promptToRetry(message + " Make sure you have enough disk space on destination drive and retry.", message, e);
       }
     }
     while (true);
@@ -70,6 +68,7 @@ public final class UnzipOperation extends PreinstallOperation {
           break;
         }
         File first = myContext.getDownloadLocation(description);
+        assert first != null;
         myContext.setExpandedLocation(description, unzip(first, myContext.getTempDirectory()));
         done += first.length();
         progressIndicator.setFraction(1.0 * done / allFiles);

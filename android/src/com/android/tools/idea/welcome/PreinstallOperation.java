@@ -69,12 +69,11 @@ public abstract class PreinstallOperation {
         response.set(i == Messages.YES);
       }
     }, application.getAnyModalityState());
-    String error = failureDescription + e.getMessage();
     if (!response.get()) {
-      throw new WizardException(error, e);
+      throw new WizardException(failureDescription, e);
     }
     else {
-      myContext.getProgressStep().print(error + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+      myContext.getProgressStep().print(failureDescription + "\n", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 
