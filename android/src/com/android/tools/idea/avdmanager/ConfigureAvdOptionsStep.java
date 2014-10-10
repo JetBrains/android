@@ -455,6 +455,30 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
                                                  getProject(), skinChooserDescriptor);
     setControlDescription(myCustomSkinPath, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
 
+    registerValueDeriver(CUSTOM_SKIN_PATH_KEY, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
+      }
+
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
+        String path = state.get(CUSTOM_SKIN_PATH_KEY);
+        if (path == null || path.isEmpty()) {
+          Device device = state.get(DEVICE_DEFINITION_KEY);
+          if (device != null) {
+            File file = device.getDefaultHardware().getSkinFile();
+            if (file != null) {
+              path = file.getAbsolutePath();
+            }
+          }
+        }
+        return path;
+      }
+    });
+
     registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
       @Nullable
       @Override

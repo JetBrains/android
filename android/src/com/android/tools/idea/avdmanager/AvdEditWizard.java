@@ -242,6 +242,9 @@ public class AvdEditWizard extends DynamicWizard {
     }));
 
     File skinFile = state.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinFile == null) {
+      skinFile = device.getDefaultHardware().getSkinFile();
+    }
 
     // Add any values that we can calculate
     hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(false));
