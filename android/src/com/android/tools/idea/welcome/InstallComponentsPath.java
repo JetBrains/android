@@ -43,7 +43,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public static final InstallableComponent[] COMPONENTS = createComponents();
 
   private static InstallableComponent[] createComponents() {
-    return new InstallableComponent[0];
+    if (SystemInfo.isWindows || SystemInfo.isMac) {
+      return new InstallableComponent[]{new Haxm(KEY_CUSTOM_INSTALL)};
+    }
+    else {
+      return new InstallableComponent[0];
+    }
   }
 
   private static File createTempDir() throws WizardException {
@@ -65,6 +70,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       for (DynamicWizardStep step : component.createSteps()) {
         addStep(step);
       }
+    }
+    if (SystemInfo.isLinux) {
+      addStep(new LinuxHaxmInfoStep());
     }
   }
 
