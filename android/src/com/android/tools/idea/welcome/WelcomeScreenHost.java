@@ -74,10 +74,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   private static void setMargin(JButton button) {
     // Aqua LnF does a good job of setting proper margin between buttons. Setting them specifically causes them be 'square' style instead of
     // 'rounded', which is expected by apple users.
-    if (!SystemInfo.isMac) {
-      if (BUTTON_MARGINS == null) {
-        return;
-      }
+    if (!SystemInfo.isMac && BUTTON_MARGINS != null) {
       button.setMargin(BUTTON_MARGINS);
     }
   }
@@ -153,7 +150,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
 
   @Override
   public void shakeWindow() {
-
+    // Do nothing
   }
 
   @Override

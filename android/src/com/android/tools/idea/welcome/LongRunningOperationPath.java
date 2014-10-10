@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.welcome;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Interface for paths that have a long-running operation running after the wizard completes.
  */
 public interface LongRunningOperationPath {
-  void runLongOperation(ProgressStep progressStep) throws WizardException;
+  void runLongOperation(@NotNull ProgressStep progressStep) throws WizardException;
 }

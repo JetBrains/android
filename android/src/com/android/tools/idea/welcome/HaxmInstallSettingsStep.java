@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,7 +137,9 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return Boolean.TRUE.equals(myState.get(myKeyCustomInstall)) && !Boolean.FALSE.equals(myState.get(myKeyInstallHaxm));
+    return !SystemInfo.isLinux &&
+           Boolean.TRUE.equals(myState.get(myKeyCustomInstall)) &&
+           !Boolean.FALSE.equals(myState.get(myKeyInstallHaxm));
   }
 
   @Override

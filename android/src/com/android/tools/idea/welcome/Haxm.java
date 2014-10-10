@@ -142,6 +142,11 @@ public final class Haxm extends InstallableComponent {
   }
 
   @Override
+  public boolean shouldSetup() {
+    return false; // HAXM is not mandatory
+  }
+
+  @Override
   public void perform(@NotNull InstallContext context, @NotNull ScopedStateStore parameters) throws WizardException {
     ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
     progressIndicator.setIndeterminate(true);
