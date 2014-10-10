@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
@@ -87,6 +88,11 @@ public final class AndroidSdk extends InstallableComponent {
   }
 
   @Override
+  public boolean shouldSetup() {
+    return DefaultSdks.getEligibleAndroidSdks().isEmpty();
+  }
+
+  @Override
   public void perform(@NotNull InstallContext downloaded, @NotNull ScopedStateStore parameters) throws WizardException {
     ProgressStep progressStep = downloaded.getProgressStep();
     ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
@@ -108,6 +114,7 @@ public final class AndroidSdk extends InstallableComponent {
         }
       }
       progressStep.print(String.format("Android SDK was installed to %s", destination), ConsoleViewContentType.SYSTEM_OUTPUT);
+      DefaultSdks.setDefaultAndroidHome(destination);
     }
     catch (IOException e) {
       throw new WizardException(WelcomeUIUtils.getMessageWithDetails("Unable to install Android SDK", e.getMessage()), e);

@@ -37,17 +37,23 @@ public class FirstRunWizard extends DynamicWizard {
    * Second attempt will close the wizard.
    */
   private final AtomicInteger myFinishClicks = new AtomicInteger(0);
+  private final SetupJdkPath myJdkPath = new SetupJdkPath();
+  private final InstallComponentsPath myComponentsPath = new InstallComponentsPath();
 
   public FirstRunWizard(DynamicWizardHost host) {
     super(null, null, WIZARD_TITLE, host);
     setTitle(WIZARD_TITLE);
   }
 
+  public static boolean isNeeded() {
+    return SetupJdkPath.isNeeded() || InstallComponentsPath.isNeeded();
+  }
+
   @Override
   public void init() {
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
-    addPath(new SetupJdkPath());
-    addPath(new InstallComponentsPath());
+    addPath(myJdkPath);
+    addPath(myComponentsPath);
     addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     addPath(new SingleStepPath(new SetupProgressStep()));
     super.init();
