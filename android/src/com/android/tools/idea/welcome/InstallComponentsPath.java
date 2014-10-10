@@ -96,7 +96,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       descriptions.addAll(component.getFilesToDownloadAndExpand());
     }
     InstallContext installContext = new InstallContext(tempDirectory, descriptions, progressStep);
-    List<PreinstallOperation> preinstallOperations = ImmutableList.of();
+    List<PreinstallOperation> preinstallOperations = ImmutableList.of(new DownloadOperation(installContext),
+                                                                      new UnzipOperation(installContext));
     try {
       for (PreinstallOperation operation : preinstallOperations) {
         if (!operation.execute()) {
