@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class FirstRunWizardDefaults {
   public static final String HAXM_INSTALLER_ARCHIVE_FILE_NAME = "haxm.zip";
   public static final String HAXM_DOCUMENTATION_URL = "http://www.intel.com/software/android/";
+  public static final String ANDROID_SDK_ARCHIVE_FILE_NAME = "androidsdk.zip";
 
   private FirstRunWizardDefaults() {
     // Do nothing
@@ -57,5 +58,33 @@ public class FirstRunWizardDefaults {
       }
     }
     return (int)(defaultMemory / Haxm.UI_UNITS.getNumberOfBytes());
+  }
+
+  /**
+   * @return Android SDK download URL
+   */
+  @NotNull
+  public static String getSdkDownloadUrl() {
+    return "https://github.com/FezVrasta/bootstrap-material-design/archive/master.zip";
+  }
+
+  /**
+   * @return Default Android SDK install location
+   */
+  @NotNull
+  public static String getDefaultSdkLocation() {
+    // TODO Need exact paths
+    if (SystemInfo.isWindows) {
+      return "C:\\Android SDK";
+    }
+    else if (SystemInfo.isLinux) {
+      return "/usr/local/androidsdk";
+    }
+    else if (SystemInfo.isMac) {
+      return String.format("%s/Android SDK", System.getProperty("user.home"));
+    }
+    else {
+      throw new IllegalStateException("Unsupported OS");
+    }
   }
 }
