@@ -96,7 +96,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   @Override
-  public void runLongOperation(ProgressStep progressStep) throws WizardException {
+  public void runLongOperation(@NotNull ProgressStep progressStep) throws WizardException {
     List<InstallableComponent> selectedComponents = getSelectedComponents();
     File tempDirectory = createTempDir();
 
@@ -127,5 +127,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public boolean performFinishingActions() {
     // Everything happens after wizard completion
     return true;
+  }
+
+  public static boolean isNeeded() {
+    for (InstallableComponent component : createComponents()) {
+      if (component.shouldSetup()) {
+        return true;
+      }
+    }
+    return false;
   }
 }
