@@ -85,7 +85,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     for (AvdUiAction action : actions) {
       JComponent actionLabel;
       // Add extra items to the overflow menu
-      if (numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
+      if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
         JBMenuItem menuItem = new JBMenuItem(action);
         menuItem.setText(action.getText());
         myOverflowMenu.add(menuItem);
@@ -101,16 +101,14 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       actionLabel.setBorder(myMargins);
       myButtonActionMap.put(actionLabel, action);
     }
-    if (!errorState) {
-      myOverflowMenuButton.setBorder(myMargins);
-      add(myOverflowMenuButton);
-      myOverflowMenuButton.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          myOverflowMenu.show(myOverflowMenuButton, e.getX(), e.getY());
-        }
-      });
-    }
+    myOverflowMenuButton.setBorder(myMargins);
+    add(myOverflowMenuButton);
+    myOverflowMenuButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myOverflowMenu.show(myOverflowMenuButton, e.getX(), e.getY());
+      }
+    });
   }
 
   @NotNull
@@ -119,8 +117,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
                             new EditAvdAction(this),
                             new DuplicateAvdAction(this),
                             //new ExportAvdAction(this), // TODO: implement export/import
-                            new ShowAvdOnDiskAction(this),
                             new WipeAvdDataAction(this),
+                            new ShowAvdOnDiskAction(this),
+                            new AvdSummaryAction(this),
                             new DeleteAvdAction(this));
   }
 

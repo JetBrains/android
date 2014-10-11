@@ -32,7 +32,14 @@ import java.util.Set;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 
 /**
- * Represents a portion of the flow through a wizard. Each path consists of a linear progression of
+ * DynamicWizardPath
+ * A DynamicWizardPath is the modular portion of the workflow. It is responsible for maintaining a list of steps and for
+ * advancing through them. A path must provide a name, and a function which executes any actions that should take place when
+ * the path has finished. Additionally, each path can override {@link #isPathVisible()} to set whether the path is shown to the user,
+ * and {@link #isPathRequired()} to signify whether the path is optional. All optional paths should be placed at the end of a
+ * wizard and the wizard will signify that it can finish if the only paths left in its workflow are optional ones.
+
+ * Each path consists of a linear progression of
  * steps which may be hidden or shown individually. The path itself can be hidden or shown as a whole.
  * Paths are meant to represent sequential portions of a wizard flow as well as branches. For example, consider
  * a workflow where the user begins in Path A, and then based on choices made during the steps in Path A, will be presented with
@@ -353,6 +360,8 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   }
 
   /**
+   * This string is used by the wizard framework to uniquely identify this path
+   * and will not be shown to the user.
    * @return the name of this path.
    */
   @NotNull

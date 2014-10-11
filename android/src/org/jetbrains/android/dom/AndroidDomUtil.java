@@ -337,8 +337,23 @@ public class AndroidDomUtil {
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
     String localName = attribute.getLocalName();
-    ResourceManager manager =
-      facet.getResourceManager(attribute.getNamespace().equals(SdkConstants.NS_RESOURCES) ? SYSTEM_RESOURCE_PACKAGE : null);
+    String namespace = attribute.getNamespace();
+    boolean isFramework = namespace.equals(ANDROID_URI);
+    if (!isFramework && TOOLS_URI.equals(namespace)) {
+      // Treat tools namespace attributes as aliases for Android namespaces: see http://tools.android.com/tips/layout-designtime-attributes
+      isFramework = true;
+
+      // However, there are some attributes with other meanings: http://tools.android.com/tech-docs/tools-attributes
+      // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
+      if (ATTR_CONTEXT.equals(localName)
+          || ATTR_IGNORE.equals(localName)
+          || ATTR_LOCALE.equals(localName)
+          || ATTR_TARGET_API.equals(localName)) {
+        return null;
+      }
+    }
+
+    ResourceManager manager = facet.getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
@@ -349,7 +364,7 @@ public class AndroidDomUtil {
   }
 
   @NotNull
-  public static Collection<String> removeUnambigiousNames(@NotNull Map<String, PsiClass> viewClassMap) {
+  public static Collection<String> removeUnambiguousNames(@NotNull Map<String, PsiClass> viewClassMap) {
     final Map<String, String> class2Name = new HashMap<String, String>();
 
     for (String tagName : viewClassMap.keySet()) {

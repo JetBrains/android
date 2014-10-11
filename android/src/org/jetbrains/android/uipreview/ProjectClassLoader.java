@@ -7,6 +7,7 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
@@ -14,7 +15,6 @@ import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -223,7 +223,15 @@ public final class ProjectClassLoader extends RenderClassLoader {
               // Check timestamp
               File sourceFile = VfsUtilCore.virtualToIoFile(virtualFile);
               long sourceFileModified = sourceFile.lastModified();
-              if (sourceFileModified > classFileModified) {
+
+              AndroidFacet facet = AndroidFacet.getInstance(myModule);
+              // User modifications on the source file might not always result on a new .class file.
+              // If it's a gradle project, we use the project modification time instead to display the warning
+              // more reliably.
+              long lastBuildTimestamp = facet != null && facet.isGradleProject()
+                                        ? PostProjectBuildTasksExecutor.getInstance(myModule.getProject()).getLastBuildTimestamp()
+                                        : classFileModified;
+              if (sourceFileModified > lastBuildTimestamp) {
                 modified = true;
               }
             }

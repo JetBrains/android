@@ -15,8 +15,11 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.google.common.collect.Lists;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadComponentVisitor;
 import com.intellij.lang.LanguageNamesValidation;
@@ -29,28 +32,27 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
 /**
- * @author Alexander Lobas
+ * The ID manager is responsible for assigning and reassigning id's for layout widgets
  */
 public class IdManager {
-  public static final String KEY = "IdManager";
-
-  private final Set<String> myIdList = new HashSet<String>();
-
-  @Nullable
-  public static IdManager get(RadComponent component) {
-    return RadModelBuilder.getIdManager(component);
+  /** Returns an ID manager */
+  @NotNull
+  public static IdManager get() {
+    return new IdManager();
   }
 
+  /** Looks up the id base name from the given id attribute value, e.g. for {@code @+id/foo} this returns {@code foo} */
   @Nullable
   public static String getIdName(@Nullable String idValue) {
     if (idValue != null) {
@@ -65,31 +67,41 @@ public class IdManager {
     return null;
   }
 
-  public void addComponent(RadViewComponent component) {
-    String idValue = getIdName(component.getId());
-    if (idValue != null) {
-      myIdList.add(idValue);
-    }
+  /** Looks up the existing set of id's reachable from the component's context */
+  private static Collection<String> getIds(RadViewComponent component) {
+    XmlTag tag = component.getTag();
+    Module module = AndroidPsiUtils.getModuleSafely(tag);
+    return getIds(module);
   }
 
-  public void removeComponent(RadViewComponent component, boolean withChildren) {
-    String idValue = getIdName(component.getId());
-    if (idValue != null) {
-      myIdList.remove(idValue); // Uh oh. What if it appears more than once? This would incorrectly assume it's no longer there! Needs to be a list or have a count!
-    }
-
-    if (withChildren) {
-      for (RadComponent child : component.getChildren()) {
-        removeComponent((RadViewComponent)child, true);
+  /** Looks up the existing set of id's reachable from the given module */
+  private static Collection<String> getIds(@Nullable Module module) {
+    if (module != null) {
+      AppResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+      if (resources != null) {
+        return resources.getItemsOfType(ResourceType.ID);
       }
     }
+
+    return Collections.emptyList();
   }
 
-  public void clearIds() {
-    myIdList.clear();
+  /**
+   * Assign a suitable new and unique id to the given component.
+   */
+  @NotNull
+  public String assignId(RadViewComponent component) {
+    XmlTag tag = component.getTag();
+    Collection<String> idList = getIds(AndroidPsiUtils.getModuleSafely(tag));
+    return assignId(component, idList);
   }
 
-  public String createId(RadViewComponent component) {
+  /**
+   * Assign a suitable new and unique id to the given component. The set of
+   * existing id's is provided in the given list.
+   */
+  @NotNull
+  public String assignId(RadViewComponent component, Collection<String> idList) {
     String idValue = StringUtil.decapitalize(component.getMetaModel().getTag());
 
     XmlTag tag = component.getTag();
@@ -106,7 +118,7 @@ public class IdManager {
     NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
 
     Project project = tag.getProject();
-    while (myIdList.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
+    while (idList.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
       ++index;
       if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
         nextIdValue = idValue;
@@ -115,7 +127,6 @@ public class IdManager {
       }
     }
 
-    myIdList.add(nextIdValue);
     String newId = NEW_ID_PREFIX + idValue + (index == 0 ? "" : Integer.toString(index));
     tag.setAttribute(ATTR_ID, ANDROID_URI, newId);
     return newId;
@@ -144,28 +155,41 @@ public class IdManager {
     return true;
   }
 
+  /**
+   * Ensure that the given component <b>hierarchy</b> has unique id's and that
+   * widgets which need an id have been assigned one.
+   * <p>
+   * This is most important after copy/paste. If you copy a component hierarchy,
+   * and then paste a second copy, all the ids must be changed to be unique, and
+   * more importantly, all the <b>references</b> to these components must be updated
+   * as well!
+   *
+   * @param container the root container to recursively update
+   */
   public void ensureIds(final RadViewComponent container) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
         final List<Pair<Pair<String, String>, String>> replaceList = new ArrayList<Pair<Pair<String, String>, String>>();
+        final List<String> idList = Lists.newArrayList(getIds(container));
 
         container.accept(new RadComponentVisitor() {
           @Override
           public void endVisit(RadComponent component) {
             RadViewComponent viewComponent = (RadViewComponent)component;
-            String idValue = getIdName(viewComponent.getId());
+            String id = viewComponent.getId();
+            String idName = getIdName(id);
             if (component == container) {
-              createId(viewComponent);
+              if (idName != null || needsDefaultId(viewComponent)) {
+                id = assignId(viewComponent, idList);
+                idList.add(getIdName(id));
+              }
             }
-            else if (idValue != null && myIdList.contains(idValue)) {
-              createId(viewComponent);
-              replaceList.add(Pair.create(
-                new Pair<String, String>(ID_PREFIX + idValue, NEW_ID_PREFIX + idValue),
-                viewComponent.getId()));
-            }
-            else {
-              addComponent(viewComponent);
+            else if (idName != null && idList.contains(idName)) {
+              id = assignId(viewComponent, idList);
+              idList.add(getIdName(id));
+              // Rename all @id/ and @+id/ references from the old name to the new name
+              replaceList.add(Pair.create(Pair.create(ID_PREFIX + idName, NEW_ID_PREFIX + idName), id));
             }
           }
         }, true);
@@ -177,7 +201,8 @@ public class IdManager {
     });
   }
 
-  public static void replaceIds(RadViewComponent container, final List<Pair<Pair<String, String>, String>> replaceList) {
+  /** For strings A, B and C in {@code Pair<Pair<A,B>,C>} this will replace occurrences of A or B with C */
+  private static void replaceIds(RadViewComponent container, final List<Pair<Pair<String, String>, String>> replaceList) {
     container.accept(new RadComponentVisitor() {
       @Override
       public void endVisit(RadComponent component) {

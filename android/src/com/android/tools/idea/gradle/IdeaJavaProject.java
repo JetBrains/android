@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.ContainerUtil;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -33,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 public class IdeaJavaProject {
   @NotNull private final String myModuleName;
@@ -42,7 +42,7 @@ public class IdeaJavaProject {
   @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
   @Nullable private final File myBuildFolderPath;
 
-  public IdeaJavaProject(@NotNull IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
+  public IdeaJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
     myModuleName = ideaModule.getName();
     myContentRoots = getContentRoots(ideaModule, extendedModel);
     myDependencies = getDependencies(ideaModule);
@@ -51,10 +51,15 @@ public class IdeaJavaProject {
     // find "build" folder.
     File buildFolderPath = null;
     try {
-      buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
+      buildFolderPath = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<File>() {
+        @Override
+        public File call() {
+          return ideaModule.getGradleProject().getBuildDirectory();
+        }
+      });
     }
-    catch (UnsupportedMethodException e) {
-      // Method "getBuildDirectory" was introduced in Gradle 2.0. We'll get this exception when the project uses an older Gradle version.
+    catch (Exception e) {
+      // ignore. The Callable does not throw any checked exception.
     }
 
     // TODO remove this workaround for getting the path of build folder once the Android Gradle plug-in supports Gradle 2.0.

@@ -284,13 +284,74 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }
   }
 
+  /**
+   * Finds the Run button in the IDE interface.
+   *
+   * @return ActionButtonFixture for the run button.
+   */
+  @NotNull
+  public ActionButtonFixture findRunApplicationButton() {
+    return findActionButtonByActionId("Run");
+  }
+
+  public void debugApp(@NotNull String appName) throws ClassNotFoundException {
+    selectApp(appName);
+    findActionButtonByActionId("Debug").click();
+  }
+
+  public void runApp(@NotNull String appName) throws ClassNotFoundException {
+    selectApp(appName);
+    findActionButtonByActionId("Run").click();
+  }
+
+  @NotNull
+  public ChooseDeviceDialogFixture findChooseDeviceDialog() {
+    return ChooseDeviceDialogFixture.find(this, robot);
+  }
+
+  @NotNull
+  public RunToolWindowFixture getRunToolWindow() {
+    return new RunToolWindowFixture(this);
+  }
+
+  @NotNull
+  public DebugToolWindowFixture getDebugToolWindow() {
+    return new DebugToolWindowFixture(this);
+  }
+
   protected void selectProjectMakeAction() {
-    JMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
-    robot.click(makeProjectMenuItem);
+    invokeMenuPath("Build", "Make Project");
+  }
+
+  /**
+   * Invokes an action by menu path
+   *
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
+   */
+  public void invokeMenuPath(@NotNull String... path) {
+    JMenuItem menuItem = findActionMenuItem(path);
+    robot.click(menuItem);
+  }
+
+  /**
+   * Invokes an action by menu path (where each segment is a regular expression). This is particularly
+   * useful when the menu items can change dynamically, such as the labels of Undo actions, Run actions,
+   * etc.
+   *
+   * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
+   */
+  public void invokeMenuPathRegex(@NotNull String... path) {
+    JMenuItem menuItem = findActionMenuItem(true, path);
+    robot.click(menuItem);
   }
 
   @NotNull
   private JMenuItem findActionMenuItem(@NotNull String... path) {
+    return findActionMenuItem(false, path);
+  }
+
+  @NotNull
+  private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
     Container root = target;
@@ -299,7 +360,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       JMenuItem found = robot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
         protected boolean isMatching(JMenuItem menuItem) {
-          return segment.equals(menuItem.getText());
+          return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
         }
       });
       if (i < segmentCount - 1) {
@@ -462,6 +523,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public AndroidToolWindowFixture getAndroidToolWindow() {
+    return new AndroidToolWindowFixture(getProject(), robot);
+  }
+
+  @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
     return new MessagesToolWindowFixture(getProject(), robot);
   }
@@ -602,8 +668,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public InspectionsFixture inspectCode() {
-    JMenuItem makeProjectMenuItem = findActionMenuItem("Analyze", "Inspect Code...");
-    robot.click(makeProjectMenuItem);
+    invokeMenuPath("Analyze", "Inspect Code...");
 
     //final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -629,5 +694,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     @Override
     public void dispose() {
     }
+  }
+
+  private void selectApp(@NotNull String appName) throws ClassNotFoundException {
+    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot, this);
+    comboBoxActionFixture.selectApp(appName);
   }
 }
