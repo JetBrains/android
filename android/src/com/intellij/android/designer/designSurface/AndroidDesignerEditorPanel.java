@@ -127,7 +127,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private RenderPreviewTool myPreviewTool;
   private RenderResult myRenderResult;
   private PropertyParser myPropertyParser;
-  private final IdManager myIdManager = new IdManager();
 
   @Nullable private Configuration myConfiguration;
   private int myConfigurationDirty;
@@ -1268,10 +1267,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return target;
   }
 
-  public IdManager getIdManager() {
-    return myIdManager;
-  }
-
   /**
    * Layered pane which shows the rendered image, as well as (if applicable) an error message panel on top of the rendering
    * near the bottom
@@ -1411,7 +1406,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     component.repaint();
   }
 
-  protected void layoutParent() {
+  private void layoutParent() {
     if (myRootView != null) {
       ((JComponent)myRootView.getParent()).revalidate();
     }
