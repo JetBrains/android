@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.google.common.collect.Maps;
+import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.RootView;
 import com.intellij.designer.ModuleProvider;
@@ -29,6 +30,8 @@ import com.intellij.designer.model.MetaManager;
 import com.intellij.designer.model.MetaModel;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
@@ -57,7 +60,6 @@ public class RadModelBuilder {
   // Special tag defined in the meta model file (views-meta-model.xml) defining the root node, shown as "Device Screen"
   public static final String ROOT_NODE_TAG = "<root>";
 
-  private final IdManager myIdManager;
   private final MetaManager myMetaManager;
   private final PropertyParser myPropertyParser;
   private final Map<XmlTag,RadViewComponent> myTagToComponentMap = Maps.newIdentityHashMap();
@@ -68,7 +70,6 @@ public class RadModelBuilder {
   public RadModelBuilder(@NotNull AndroidDesignerEditorPanel designer, @NotNull PropertyParser propertyParser) {
     myDesigner = designer;
     myMetaManager = ViewsMetaManager.getInstance(designer.getProject());
-    myIdManager = designer.getIdManager();
     myPropertyParser = propertyParser;
   }
 
@@ -84,7 +85,26 @@ public class RadModelBuilder {
 
   @NotNull
   public static AndroidDesignerEditorPanel getDesigner(@NotNull RadComponent component) {
-    return component.getRoot().getClientProperty(DESIGNER_KEY);
+    AndroidDesignerEditorPanel designer = component.getRoot().getClientProperty(DESIGNER_KEY);
+    if (designer == null) {
+      // This should not normally happen, but it has shown up in a few crash logs.
+      // Perhaps it can happen if a component is queried after it has been detached from its root
+      // (though it was not clear from the crash logs how that could happen). Simply
+      // try to work a little harder to guess the designer from the current editor in that
+      // case.
+      if (component instanceof RadViewComponent) {
+        Project project = ((RadViewComponent)component).getTag().getProject();
+        for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+          if (editor instanceof AndroidDesignerEditor) {
+            return (AndroidDesignerEditorPanel)((AndroidDesignerEditor)editor).getDesignerPanel();
+          }
+        }
+      }
+
+      assert false;
+    }
+
+    return designer;
   }
 
   @Nullable
@@ -104,12 +124,7 @@ public class RadModelBuilder {
     return provider != null ? provider.getProject() : null;
   }
 
-  @Nullable
-  public static IdManager getIdManager(@NotNull RadComponent component) {
-    return getDesigner(component).getIdManager();
-  }
-
-  @Nullable
+  @NotNull
   public static XmlFile getXmlFile(@NotNull RadComponent component) {
     return getDesigner(component).getXmlFile();
   }
@@ -161,9 +176,10 @@ public class RadModelBuilder {
     return root;
   }
 
-  protected void updateClientProperties(RenderResult result, RootView nativeComponent, RadViewComponent root) {
+  protected void updateClientProperties(@NotNull RenderResult result, RootView nativeComponent, RadViewComponent root) {
     root.setNativeComponent(nativeComponent);
     // Stash reference for the component decorator so it can show the included context
+    //noinspection ConstantConditions
     root.setClientProperty(ATTR_RENDER_IN, result.getIncludedWithin());
   }
 
@@ -272,7 +288,6 @@ public class RadModelBuilder {
           }
 
           component = RadComponentOperations.createComponent(tag, metaModel);
-          myIdManager.addComponent(component);
           loadProperties = true;
         }
         catch (Throwable e) {

@@ -46,7 +46,6 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.IncludeReference.ATTR_RENDER_IN;
-import static com.intellij.android.designer.model.RadModelBuilder.ROOT_NODE_TAG;
 
 /**
  * @author Alexander Lobas
@@ -133,10 +132,7 @@ public class RadViewComponent extends RadVisualComponent {
   public String ensureId() {
     String id = getId();
     if (id == null) {
-      IdManager idManager = IdManager.get(this);
-      if (idManager != null) {
-        id = idManager.createId(this);
-      }
+      id = IdManager.get().assignId(this);
     }
     return id;
   }
@@ -346,11 +342,6 @@ public class RadViewComponent extends RadVisualComponent {
 
   @Override
   public void delete() throws Exception {
-    IdManager idManager = IdManager.get(this);
-    if (idManager != null) {
-      idManager.removeComponent(this, true);
-    }
-
     if (getParent() != null) {
       removeFromParent();
     }
