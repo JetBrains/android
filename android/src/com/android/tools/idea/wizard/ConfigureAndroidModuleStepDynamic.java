@@ -15,50 +15,85 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.Document;
 import java.util.Set;
 
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
+import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
+import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 
 /**
  * Configuration for a new Android module
  */
-public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectStep {
+public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHeaderAndDescription {
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidModuleStepDynamic.class);
 
   private CreateModuleTemplate myModuleType;
   private FormFactorApiComboBox mySdkControls;
   private Project myProject;
+  private JTextField myModuleName;
+  private JPanel myPanel;
+  private JTextField myAppName;
+  private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidModuleStepDynamic(@Nullable Project project, @Nullable Disposable parentDisposable) {
-    super("Configure your new module", parentDisposable);
+    super("Configure your new module", null, null, parentDisposable);
     myProject = project;
+    setBodyComponent(myPanel);
   }
 
   @Override
   public void init() {
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     super.init();
-    myProjectLocation.setVisible(false);
-    myProjectLocationLabel.setVisible(false);
-    deregister(myProjectLocation);
-    unregisterValueDeriver(PROJECT_LOCATION_KEY);
-    myProjectLocation.setText(projectLocation);
     myState.put(PROJECT_LOCATION_KEY, projectLocation);
+    register(FormFactorUtils.getModuleNameKey(getModuleType().formFactor), myModuleName);
+    CreateModuleTemplate moduleType = getModuleType();
+    mySdkControls.init(moduleType.formFactor, moduleType.templateMetadata.getMinSdk());
+    mySdkControls.register(this);
+
+    register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
+    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName, new ComponentBinding<String, LabelWithEditLink>() {
+      @Override
+      public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
+        newValue = newValue == null ? "" : newValue;
+        component.setText(newValue);
+      }
+
+      @Nullable
+      @Override
+      public String getValue(@NotNull LabelWithEditLink component) {
+        return component.getText();
+      }
+
+      @Nullable
+      @Override
+      public Document getDocument(@NotNull LabelWithEditLink component) {
+        return component.getDocument();
+      }
+    });
+    registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
+
+    myState.put(WizardConstants.APPLICATION_NAME_KEY,
+                myState.get(WizardConstants.IS_LIBRARY_KEY)? "My Library" : "My Application");
+    String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
+    myState.put(WizardConstants.COMPANY_DOMAIN_KEY, savedCompanyDomain);
+    super.init();
+  }
+
+  private void createUIComponents() {
+    mySdkControls = new FormFactorApiComboBox();
   }
 
   @Override
@@ -68,21 +103,6 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
     if (moduleType != null && moduleType.formFactor != null && moduleType.templateMetadata != null) {
       myModuleType = moduleType;
       registerValueDeriver(FormFactorUtils.getModuleNameKey(moduleType.formFactor), ourModuleNameDeriver);
-
-      if (mySdkControls != null) {
-        // Remove existing SDK combo if we have one
-        deregister(mySdkControls);
-        myPanel.remove(mySdkControls);
-      }
-      mySdkControls = new FormFactorApiComboBox(moduleType.formFactor, moduleType.templateMetadata.getMinSdk());
-      GridConstraints constraints = new GridConstraints();
-      constraints.setColumn(0);
-      constraints.setRow(3);
-      myPanel.add(new JBLabel(ConfigureFormFactorStep.MIN_SDK_STRING), constraints);
-      constraints.setColumn(1);
-      constraints.setFill(GridConstraints.FILL_HORIZONTAL);
-      myPanel.add(mySdkControls, constraints);
-      mySdkControls.register(this);
     } else {
       LOG.error("init() Called on ConfigureAndroidModuleStepDynamic with an incorrect selected ModuleType");
     }
@@ -140,47 +160,30 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
       if (appName == null) {
         appName = myModuleType.formFactor.toString();
       }
-      return computeModuleName(appName);
+      return WizardUtils.computeModuleName(appName, getProject());
     }
   };
 
-  @NotNull
-  @VisibleForTesting
-  String computeModuleName(@NotNull String appName) {
-    String moduleName = appName.toLowerCase().replaceAll(INVALID_FILENAME_CHARS, "");
-    moduleName = moduleName.replaceAll("\\s", "");
-
-    if (!isUniqueModuleName(moduleName)) {
-      int i = 2;
-      while (!isUniqueModuleName(moduleName + Integer.toString(i))) {
-        i++;
-      }
-      moduleName += Integer.toString(i);
-    }
-    return moduleName;
-  }
-
-  @VisibleForTesting
-  static boolean isValidModuleName(@NotNull String moduleName) {
-    if (!moduleName.replaceAll(INVALID_FILENAME_CHARS, "").equals(moduleName)) {
+  protected boolean validateAppName() {
+    String appName = myState.get(APPLICATION_NAME_KEY);
+    if (appName == null || appName.isEmpty()) {
+      setErrorHtml("Please enter an application name (shown in launcher), or a descriptive name for your library");
       return false;
-    }
-    for (String s : Splitter.on('.').split(moduleName)) {
-      if (INVALID_MSFT_FILENAMES.contains(s.toLowerCase())) {
-        return false;
-      }
+    } else if (Character.isLowerCase(appName.charAt(0))) {
+      setErrorHtml("The application name for most apps begins with an uppercase letter");
     }
     return true;
   }
 
-  private boolean isUniqueModuleName(@NotNull String moduleName) {
-    if (myProject == null) {
-      return true;
-    }
-    // Check our modules
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module m : moduleManager.getModules()) {
-      if (m.getName().equalsIgnoreCase(moduleName)) {
+  protected boolean validatePackageName() {
+    String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
+    if (packageName == null) {
+      setErrorHtml("Please enter a package name (This package uniquely identifies your application or library)");
+      return false;
+    } else {
+      String message = AndroidUtils.validateAndroidPackageName(packageName);
+      if (message != null) {
+        setErrorHtml("Invalid package name: " + message);
         return false;
       }
     }
@@ -201,6 +204,11 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
   @Nullable
   @Override
   protected JComponent getHeader() {
-    return null;
+    return NewModuleWizardDynamic.buildHeader();
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myAppName;
   }
 }

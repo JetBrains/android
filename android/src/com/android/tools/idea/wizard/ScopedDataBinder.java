@@ -42,6 +42,56 @@ import static com.android.tools.idea.wizard.ScopedStateStore.*;
 
 /**
  * A data binding class that links Swing UI elements to a {@link ScopedStateStore}.
+ * Provides data bindings between Swing JComponents of various types and a ScopedStateStore.
+ * Components may be registered in a 2-way binding by calling
+ * {@link #register(com.android.tools.idea.wizard.ScopedStateStore.Key, javax.swing.JCheckBox)}.
+ * Once registered, any change to the state store will trigger an update of the UI, and any update of the UI will automatically
+ * enter the value into the state store.
+ *
+ * <h3>Built in bindings</h3>
+ * The ScopedDataBinder provides built-in bindings for:
+ * <ul>
+ *   <li>JTextField</li>
+ *   <li>JComboBox</li>
+ *   <li>JRadioButton</li>
+ *   <li>JCheckbox</li>
+ *   <li>JSlider</li>
+ *   <li>JSpinner</li>
+ *   <li>TextFieldWithBrowseButton (from IntelliJPlatform)</li>
+ *   <li>ColorPanel</li>
+ * </ul>
+ *
+ * Additional components (including custom built components) that inherit from JComponent can be registered by providing an
+ * implementation of the {@link ComponentBinding} class which allows clients to provide custom getValue/setValue functions for an
+ * additional component type.
+ *
+ * <h3>Value Derivation</h3>
+ * One of the primary advantages of the databinding system provided by TemplateWizardStep is the derivation step that it provides in
+ * the update process. Values can depend on other values and receive automatic updates when their dependencies changed.
+ * The ScopedDataBinder provides this through the registration of {@link ValueDeriver}s. These derivers provide a filterset of keys which
+ * they subscribe to, and a function that will be called on each matching update.
+ *
+ * For example, the following ValueDeriver will be invoked whenever the value associated with the keys “operand1” or “operand2” is changed
+ * in the state store, and the value returned by deriveValue() will be stored in the state store for the key “result”
+ * <p>
+ * <pre>
+ * {@code
+ * registerValueDeriver(DERIVED_KEY, new ValueDeriver <String>() {
+ *   @Nullable
+ *   @Override
+ *   public Set<Key<?>> getTriggerKeys() {
+ *     return makeSetOf(OPERAND_1_KEY, OPERAND_2_KEY);
+ *   }
+ *
+ *   @NotNull
+ *   @Override
+ *   public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
+ *     return state.get(OPERAND_1_KEY) + state.get(OPERAND_2_KEY);
+ *   }
+ * });
+ * }
+ * </pre>
+ * Value derivation cannot be cyclical. Each key may only be touched once per update cycle.
  */
 public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, FocusListener, ChangeListener, ActionListener,
                                          DocumentListener, ItemListener {

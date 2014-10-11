@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.navigation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.model.ModelDimension;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ import java.awt.*;
 import static com.android.tools.idea.editors.navigation.Utilities.ZERO_SIZE;
 import static com.android.tools.idea.editors.navigation.Utilities.notNull;
 
-class RenderingParameters {
+public class RenderingParameters {
   @NotNull final Project myProject;
   @NotNull final Configuration myConfiguration;
   @NotNull final AndroidFacet myFacet;
@@ -38,8 +39,12 @@ class RenderingParameters {
     this.myFacet = facet;
   }
 
-  com.android.navigation.Dimension getDeviceScreenSize() {
-    return com.android.navigation.Dimension.create(getDeviceScreenSize1());
+  public RenderingParameters withConfiguration(Configuration configuration) {
+    return new RenderingParameters(myProject, configuration, myFacet);
+  }
+
+  ModelDimension getDeviceScreenSize() {
+    return ModelDimension.create(getDeviceScreenSize1());
   }
 
   private Dimension getDeviceScreenSize1() {

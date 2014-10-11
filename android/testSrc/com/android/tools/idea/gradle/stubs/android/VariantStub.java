@@ -100,7 +100,7 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public ProductFlavor getMergedFlavor() {
-    throw new UnsupportedOperationException();
+    return new ProductFlavorStub("merged");
   }
 
   public void addProductFlavors(@NotNull String... flavorNames) {

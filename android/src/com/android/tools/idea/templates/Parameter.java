@@ -210,6 +210,13 @@ public class Parameter {
   public final String visibility;
 
   /**
+   * A template expression using other template parameters for dynamically changing
+   * whether this parameter is enabled for the user.
+   */
+  @Nullable
+  public final String enabled;
+
+  /**
    * A URL for externally sourced values.
    */
   @Nullable
@@ -243,6 +250,7 @@ public class Parameter {
     initial = parameter.getAttribute(ATTR_DEFAULT);
     suggest = parameter.getAttribute(ATTR_SUGGEST);
     visibility = parameter.getAttribute(ATTR_VISIBILITY);
+    enabled = parameter.getAttribute(ATTR_ENABLED);
     sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
@@ -281,6 +289,7 @@ public class Parameter {
     initial = null;
     suggest = null;
     visibility = null;
+    enabled = null;
     sourceUrl = null;
     name = id;
     help = null;

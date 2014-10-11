@@ -127,7 +127,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private RenderPreviewTool myPreviewTool;
   private RenderResult myRenderResult;
   private PropertyParser myPropertyParser;
-  private final IdManager myIdManager = new IdManager();
 
   @Nullable private Configuration myConfiguration;
   private int myConfigurationDirty;
@@ -178,8 +177,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     myActive = true;
     myPsiChangeListener.setInitialize();
-    myPsiChangeListener.activate();
-    myPsiChangeListener.addRequest();
   }
 
   private void initializeConfiguration() {
@@ -629,8 +626,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     });
   }
 
+  @VisibleForTesting
   @Nullable
-  private DesignerToolWindow getToolWindow() {
+  public DesignerToolWindow getToolWindow() {
     try {
       // This method sometimes returns null. We don't want to bother the user with that; the worst that
       // can happen is that the property view is not updated.
@@ -1216,6 +1214,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       rootView.updateSize();
     }
     revalidate();
+
+    myHorizontalCaption.update();
+    myVerticalCaption.update();
+
     super.viewZoomed();
   }
 
@@ -1263,10 +1265,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     }
 
     return target;
-  }
-
-  public IdManager getIdManager() {
-    return myIdManager;
   }
 
   /**
@@ -1408,7 +1406,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     component.repaint();
   }
 
-  protected void layoutParent() {
+  private void layoutParent() {
     if (myRootView != null) {
       ((JComponent)myRootView.getParent()).revalidate();
     }
