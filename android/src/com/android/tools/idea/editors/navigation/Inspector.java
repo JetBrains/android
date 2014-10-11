@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.annotations.NonNull;
-import com.android.navigation.Listener;
+import com.android.tools.idea.editors.navigation.model.Listener;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;

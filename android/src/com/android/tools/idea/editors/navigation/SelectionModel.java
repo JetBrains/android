@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.navigation.EventDispatcher;
+import com.android.tools.idea.editors.navigation.model.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 public class SelectionModel {

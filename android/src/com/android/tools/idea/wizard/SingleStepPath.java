@@ -33,6 +33,21 @@ public class SingleStepPath extends DynamicWizardPath {
   }
 
   @Override
+  public boolean canGoNext() {
+    return myStep.canGoNext();
+  }
+
+  @Override
+  public boolean canGoPrevious() {
+    return myStep.canGoPrevious();
+  }
+
+  @Override
+  public boolean readyToLeavePath() {
+    return super.readyToLeavePath() && canGoNext();
+  }
+
+  @Override
   public boolean isPathVisible() {
     return myStep.isStepVisible();
   }

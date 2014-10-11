@@ -30,15 +30,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
@@ -51,11 +46,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -74,7 +67,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
@@ -456,90 +448,14 @@ public class GradleProjectImporter {
     project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, false);
     project.putUserData(Projects.HAS_WRONG_JDK, false);
 
-    final Application application = ApplicationManager.getApplication();
-    final boolean isTest = application.isUnitTestMode();
-
     PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
 
-    myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
-      @Override
-      public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
-        assert projectInfo != null;
-        Runnable runnable = new Runnable() {
-          @Override
-          public void run() {
-            populateProject(project, projectInfo);
-            if (!isTest || !ourSkipSetupFromTest) {
-              if (newProject) {
-                Projects.open(project);
-              }
-              if (!isTest) {
-                project.save();
-              }
-            }
-            if (newProject) {
-              // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-              // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
-              // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
-              // listeners to be registered.
-              AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
-              projectComponent.configureGradleProject(false);
-            }
-            if (listener != null) {
-              listener.syncSucceeded(project);
-            }
-          }
-        };
-        if (application.isUnitTestMode()) {
-          runnable.run();
-        }
-        else {
-          application.invokeLater(runnable);
-        }
-      }
-
-      @Override
-      public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
-        if (errorDetails != null) {
-          LOG.warn(errorDetails);
-        }
-        String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
-        LOG.info(newMessage);
-
-        GradleSyncState.getInstance(project).syncFailed(newMessage);
-
-        if (listener != null) {
-          listener.syncFailed(project, newMessage);
-        }
-      }
-    }, progressExecutionMode);
+    myDelegate.importProject(project, new ProjectSetUpTask(project, newProject, listener), progressExecutionMode);
   }
-
-  private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
-    StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
-      @Override
-      public void run() {
-        ExternalSystemApiUtil.executeProjectChangeAction(new DisposeAwareProjectChange(newProject) {
-          @Override
-          public void execute() {
-            ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
-              @Override
-              public void run() {
-                ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
-                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */);
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {

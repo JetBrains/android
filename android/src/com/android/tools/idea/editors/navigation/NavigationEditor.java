@@ -16,14 +16,15 @@
 
 package com.android.tools.idea.editors.navigation;
 
-import com.android.navigation.Dimension;
-import com.android.navigation.*;
-import com.android.navigation.NavigationModel.Event;
-import com.android.navigation.NavigationModel.Event.Operation;
+import com.android.SdkConstants;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
+import com.android.tools.idea.editors.navigation.model.*;
+import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
+import com.android.tools.idea.editors.navigation.model.NavigationModel.Event.Operation;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -36,6 +37,7 @@ import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,7 +56,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
@@ -68,6 +69,10 @@ import static com.android.tools.idea.editors.navigation.NavigationView.GAP;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationEditor implements FileEditor {
+  public static final String NAVIGATION_DIRECTORY = ".navigation";
+  public static final String DEFAULT_RESOURCE_FOLDER = SdkConstants.FD_RES_RAW;
+  public static final String NAVIGATION_FILE_NAME = "main.nvg.xml";
+
   private static final String TOOLBAR = "NavigationEditorToolbar";
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
   private static final boolean DEBUG = false;
@@ -75,81 +80,98 @@ public class NavigationEditor implements FileEditor {
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
   private static final NavigationModel.Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
-  private static final com.android.navigation.Dimension UNATTACHED_STRIDE = new com.android.navigation.Dimension(50, 50);
+  private static final ModelDimension UNATTACHED_STRIDE = new ModelDimension(50, 50);
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
-  @Nullable
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private SelectionModel mySelectionModel = new SelectionModel();
   private final VirtualFile myFile;
   private JComponent myComponent;
-  private Inspector myInspector;
   private CodeGenerator myCodeGenerator;
   private boolean myModified;
   private boolean myPendingFileSystemChanges;
   private Analyser myAnalyser;
-  private final Listener<NavigationModel.Event> myNavigationModelListener;
-  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
+  private Listener<NavigationModel.Event> myNavigationModelListener;
+  private ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private VirtualFileAdapter myVirtualFileListener;
   private final ErrorHandler myErrorHandler;
+  private FileDocumentManagerListener mySaveListener;
+
+  @Nullable
+  public static RenderingParameters getRenderingParams(@NotNull Project project, @NotNull VirtualFile file, @NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
+    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+    String themeName = manifestInfo.getManifestTheme();
+    configuration.setTheme(themeName);
+    return new RenderingParameters(project, configuration, facet);
+  }
 
   public NavigationEditor(Project project, VirtualFile file) {
-    // Listen for 'Save All' events
-    FileDocumentManagerListener saveListener = new FileDocumentManagerAdapter() {
-      @Override
-      public void beforeAllDocumentsSaving() {
-        try {
-          saveFile();
-        }
-        catch (IOException e) {
-          LOG.error("Unexpected exception while saving navigation file", e);
-        }
-      }
-    };
-    project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
     myFile = file;
     myErrorHandler = new ErrorHandler();
-    myRenderingParams = NavigationView.getRenderingParams(project, file, myErrorHandler);
-    if (myRenderingParams != null) {
-      Configuration configuration = myRenderingParams.myConfiguration;
+    Module[] androidModules = Utilities.getAndroidModules(project);
+    String moduleName = file.getParent().getParent().getName();
+    Module module = Utilities.findModule(androidModules, moduleName);
+    if (module == null) {
+      String errorMessage =
+        NAVIGATION_DIRECTORY.equals(moduleName) ? "Old navigation file" : "Android module \"" + moduleName + "\" not found";
+      myErrorHandler.handleError("", errorMessage);
+    }
+    else {
+      initFor(project, file, module);
+    }
+    createListeners();
+    project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, mySaveListener);
+  }
+
+  private void initFor(Project project, VirtualFile file, Module module) {
+    init(file, getRenderingParams(project, file, module));
+  }
+
+  private void init(VirtualFile navigationModelFile, @Nullable RenderingParameters renderingParams) {
+    if (renderingParams != null) {
+      myRenderingParams = renderingParams;
+      Configuration configuration = renderingParams.myConfiguration;
       Module module = configuration.getModule();
       myAnalyser = new Analyser(module);
-      try {
-        myNavigationModel = read(file);
-        myCodeGenerator = new CodeGenerator(myNavigationModel, module);
-        NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel, mySelectionModel);
-        // Create UI
+      myNavigationModel = read(navigationModelFile);
+      myCodeGenerator = new CodeGenerator(myNavigationModel, module);
+      NavigationView editor = new NavigationView(renderingParams, myNavigationModel, mySelectionModel);
+      // Create UI
+      {
+        JPanel panel = new JPanel(new BorderLayout());
         {
-          JPanel panel = new JPanel(new BorderLayout());
+          JComponent toolBar = createToolbar(editor);
+          panel.add(toolBar, BorderLayout.NORTH);
+        }
+        {
+          Splitter splitPane = new Splitter();
+          splitPane.setDividerWidth(1);
+          splitPane.setShowDividerIcon(false);
+          splitPane.setProportion(.8f);
           {
-            JComponent toolBar = createToolbar(editor);
-            panel.add(toolBar, BorderLayout.NORTH);
+            JBScrollPane scrollPane = new JBScrollPane(editor);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+            splitPane.setFirstComponent(scrollPane);
           }
           {
-            JSplitPane splitPane = new JSplitPane();
-            {
-              JBScrollPane scrollPane = new JBScrollPane(editor);
-              scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-              splitPane.setLeftComponent(scrollPane);
-            }
-            {
-              myInspector = new Inspector(mySelectionModel);
-              splitPane.setRightComponent(new JBScrollPane(myInspector.container));
-            }
-            splitPane.setDividerLocation(.7);
-            panel.add(splitPane);
+            Inspector inspector = new Inspector(mySelectionModel);
+            splitPane.setSecondComponent(new JBScrollPane(inspector.container));
           }
-          myComponent = panel;
+          panel.add(splitPane);
         }
-      }
-      catch (FileReadException e) {
-        myErrorHandler.handleError("Invalid Navigation File", e.getMessage());
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        myComponent = panel;
       }
     }
+  }
+
+  private void createListeners() {
+    // NavigationModel listener
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
@@ -163,7 +185,21 @@ public class NavigationEditor implements FileEditor {
         }
       }
     };
-    myNavigationModel.getListeners().add(myNavigationModelListener);
+
+    // Document listener to listen for 'Save All' events
+    mySaveListener = new FileDocumentManagerAdapter() {
+      @Override
+      public void beforeAllDocumentsSaving() {
+        try {
+          saveFile();
+        }
+        catch (IOException e) {
+          LOG.error("Unexpected exception while saving navigation file", e);
+        }
+      }
+    };
+
+    // Virtual File listener
     myVirtualFileListener = new VirtualFileAdapter() {
       private void somethingChanged(String changeType, @NotNull VirtualFileEvent event) {
         if (DEBUG) System.out.println("NavigationEditor: fileListener:: " + changeType + ": " + event);
@@ -186,6 +222,7 @@ public class NavigationEditor implements FileEditor {
       }
     };
 
+    // Resource folder listener
     myResourceFolderListener = new ResourceFolderManager.ResourceFolderListener() {
       @Override
       public void resourceFoldersChanged(@NotNull AndroidFacet facet,
@@ -262,15 +299,49 @@ public class NavigationEditor implements FileEditor {
 
   // See  AndroidDesignerActionPanel
 
+  private static String[] getModuleNames(Module[] modules) {
+    String[] result = new String[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      result[i] = modules[i].getName();
+    }
+    return result;
+  }
+
   protected JComponent createToolbar(NavigationView myDesigner) {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    // the UI below is a temporary hack to show UX / dev. rel
+
+    // UI for module and configuration selection
     {
       final String dirName = myFile.getParent().getName();
+      final Module module = myRenderingParams.myFacet.getModule();
 
       JPanel combos = new JPanel(new FlowLayout());
-      //combos.add(new JLabel(dirName));
+      final Module[] androidModules = Utilities.getAndroidModules(myRenderingParams.myProject);
+      // Module selector
+      if (androidModules.length > 1) {
+        final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
+        moduleSelector.setSelectedItem(module.getName());
+        moduleSelector.addActionListener(new ActionListener() {
+          boolean disabled = false;
+
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            if (disabled) {
+              return;
+            }
+            int selectedIndex = moduleSelector.getSelectedIndex();
+            Module newModule = androidModules[selectedIndex];
+            new AndroidShowNavigationEditor()
+              .showNavigationEditor(myRenderingParams.myProject, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
+            disabled = true;
+            moduleSelector.setSelectedItem(module.getName());
+            disabled = false;
+          }
+        });
+        combos.add(moduleSelector);
+      }
+      // Configuration selector
       {
         final String phone = "phone";
         final String tablet = "tablet";
@@ -293,12 +364,12 @@ public class NavigationEditor implements FileEditor {
             Object orientation = orientationSelector.getSelectedItem();
             Object orientationQualifier = (orientation == landscape) ? "-land" : "";
             new AndroidShowNavigationEditor()
-              .showNavigationEditor(myRenderingParams.myProject, "raw" + deviceQualifier + orientationQualifier, "main.nvg.xml");
+              .showNavigationEditor(myRenderingParams.myProject, module, "raw" + deviceQualifier + orientationQualifier,
+                                    NAVIGATION_FILE_NAME);
             disabled = true;
             deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
             orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
             disabled = false;
-
           }
         };
         {
@@ -312,17 +383,18 @@ public class NavigationEditor implements FileEditor {
       }
       panel.add(combos, BorderLayout.CENTER);
     }
-
+    // Zoom controls
     {
       ActionManager actionManager = ActionManager.getInstance();
       ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
       panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
-      {
-        HyperlinkLabel label = new HyperlinkLabel();
-        label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
-        label.setHyperlinkText("   ", "What's this?", "");
-        panel.add(label, BorderLayout.WEST);
-      }
+    }
+    // Link to on-line help
+    {
+      HyperlinkLabel label = new HyperlinkLabel();
+      label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
+      label.setHyperlinkText("   ", "What's this?", "");
+      panel.add(label, BorderLayout.WEST);
     }
 
     return panel;
@@ -341,26 +413,30 @@ public class NavigationEditor implements FileEditor {
     group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(false);
+        myDesigner.zoom(-1);
       }
     });
-    group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidIcons.ZoomActual) {
+    group.add(new AnAction(null, "Fit to screen", AndroidIcons.ZoomActual) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.setScale(1);
+        java.awt.Dimension pref = myDesigner.getPreferredSize();
+        Container parent = myDesigner.getParent();
+        float ratio = Math.max((float)pref.width / parent.getWidth(), (float)pref.height / parent.getHeight());
+        double power = Math.log(1 / ratio) / Math.log(NavigationView.ZOOM_FACTOR);
+        myDesigner.zoom((int)Math.floor(power));
       }
     });
     group.add(new AnAction(null, "Zoom In (+)", AndroidIcons.ZoomIn) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(true);
+        myDesigner.zoom(1);
       }
     });
 
     return group;
   }
 
-  private static NavigationModel read(VirtualFile file) throws FileReadException {
+  private static NavigationModel read(VirtualFile file) {
     try {
       InputStream inputStream = file.getInputStream();
       if (inputStream.available() == 0) {
@@ -369,7 +445,7 @@ public class NavigationEditor implements FileEditor {
       return (NavigationModel)new XMLReader(inputStream).read();
     }
     catch (Exception e) {
-      throw new FileReadException(e);
+      return new NavigationModel(); // the file is in an old format. It's just x/y values; discard and start with a fresh model
     }
   }
 
@@ -413,10 +489,10 @@ public class NavigationEditor implements FileEditor {
 
   private void layoutStatesWithUnsetLocations(NavigationModel navigationModel) {
     Collection<State> states = navigationModel.getStates();
-    final Map<State, com.android.navigation.Point> stateToLocation = navigationModel.getStateToLocation();
+    final Map<State, ModelPoint> stateToLocation = navigationModel.getStateToLocation();
     final Set<State> visited = new HashSet<State>();
-    Dimension size = myRenderingParams.getDeviceScreenSize();
-    Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
+    ModelDimension size = myRenderingParams.getDeviceScreenSize();
+    ModelDimension gridSize = new ModelDimension(size.width + GAP.width, size.height + GAP.height);
     final Point location = new Point(GAP.width, GAP.height);
     final int gridWidth = gridSize.width;
     final int gridHeight = gridSize.height;
@@ -432,7 +508,7 @@ public class NavigationEditor implements FileEditor {
         public void addChildrenFor(State source) {
           visited.add(source);
           if (!stateToLocation.containsKey(source)) {
-            stateToLocation.put(source, new com.android.navigation.Point(location.x, location.y));
+            stateToLocation.put(source, new ModelPoint(location.x, location.y));
           }
           List<State> children = findDestinationsFor(source, visited);
           location.x += gridWidth;
@@ -449,9 +525,11 @@ public class NavigationEditor implements FileEditor {
       }.addChildrenFor(state);
     }
     for (State root : unattached) {
-        stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
+      if (!stateToLocation.containsKey(root)) {
+        stateToLocation.put(root, new ModelPoint(location.x, location.y));
         location.x += UNATTACHED_STRIDE.width;
         location.y += UNATTACHED_STRIDE.height;
+      }
     }
   }
 
@@ -510,6 +588,7 @@ public class NavigationEditor implements FileEditor {
       updateNavigationModelFromProject();
       VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
       getResourceFolderManager(facet).addListener(myResourceFolderListener);
+      myNavigationModel.getListeners().add(myNavigationModelListener);
     }
   }
 
@@ -519,6 +598,7 @@ public class NavigationEditor implements FileEditor {
       AndroidFacet facet = myRenderingParams.myFacet;
       VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileListener);
       getResourceFolderManager(facet).removeListener(myResourceFolderListener);
+      myNavigationModel.getListeners().remove(myNavigationModelListener);
     }
   }
 

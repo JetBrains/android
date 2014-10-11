@@ -15,43 +15,117 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.wizard.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardHost;
-import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.SingleStepPath;
+import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Wizard to setup Android Studio before the first run
  */
 public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup";
-  private static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
-    ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
+
+  /**
+   * On the first user click on finish button, we show progress step & perform setup.
+   * Second attempt will close the wizard.
+   */
+  private final AtomicInteger myFinishClicks = new AtomicInteger(0);
+  private final SetupJdkPath myJdkPath = new SetupJdkPath();
+  private final InstallComponentsPath myComponentsPath = new InstallComponentsPath();
 
   public FirstRunWizard(DynamicWizardHost host) {
     super(null, null, WIZARD_TITLE, host);
     setTitle(WIZARD_TITLE);
   }
 
+  public static boolean isNeeded() {
+    return SetupJdkPath.isNeeded() || InstallComponentsPath.isNeeded();
+  }
+
   @Override
   public void init() {
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
-    addPath(new SetupJdkPath());
-    addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
-    addPath(new SetupAndroidSdkPath(KEY_CUSTOM_INSTALL));
-    addPath(new SetupEmulatorPath(KEY_CUSTOM_INSTALL));
-    addPath(new DownloadComponentsPath(getDisposable()));
-
+    addPath(myJdkPath);
+    addPath(myComponentsPath);
+    addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
+    addPath(new SingleStepPath(new SetupProgressStep()));
     super.init();
+  }
+
+  // We need to show progress page before proceeding closing the wizard.
+  @Override
+  public void doFinishAction() {
+    if (myFinishClicks.incrementAndGet() == 1) {
+      doNextAction();
+    }
+    else {
+      assert myFinishClicks.get() <= 2; // Should not take more then 2 clicks
+      super.doFinishAction();
+    }
+  }
+
+  private void doLongRunningOperation(@NotNull ProgressStep progressStep)
+    throws WizardException {
+    for (AndroidStudioWizardPath path : myPaths) {
+      if (progressStep.isCanceled()) {
+        break;
+      }
+      if (path instanceof LongRunningOperationPath) {
+        ((LongRunningOperationPath)path).runLongOperation(progressStep);
+      }
+    }
   }
 
   @Override
   public void performFinishingActions() {
-
   }
 
   @Override
   protected String getWizardActionDescription() {
     return "Android Studio Setup";
+  }
+
+  private class SetupProgressStep extends ProgressStep {
+    public SetupProgressStep() {
+      super(FirstRunWizard.this.getDisposable());
+    }
+
+    @Override
+    protected void execute() {
+      myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
+        @Override
+        public void run() {
+          try {
+            doLongRunningOperation(SetupProgressStep.this);
+          }
+          catch (WizardException e) {
+            Logger.getInstance(getClass()).error(e);
+            showConsole();
+            print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+          }
+        }
+      });
+    }
+
+    @Override
+    public boolean canGoPrevious() {
+      return false;
+    }
+
+    /**
+     * The goal is not to show this step until the user completes the wizard. So this page is
+     * only shown once, after the user clicks finish for the first time.
+     */
+    @Override
+    public boolean isStepVisible() {
+      return myFinishClicks.get() == 1;
+    }
   }
 }

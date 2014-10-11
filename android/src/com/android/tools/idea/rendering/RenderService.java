@@ -242,12 +242,12 @@ public class RenderService implements IImageFactory {
         }
         break;
       case 20: revision = 1; break;
-      case 19: revision = 3; break;
-      case 18: revision = 2; break;
-      case 17: revision = 2; break;
-      case 16: revision = 4; break;
-      case 15: revision = 3; break;
-      case 14: revision = 3; break;
+      case 19: revision = 4; break;
+      case 18: revision = 3; break;
+      case 17: revision = 3; break;
+      case 16: revision = 5; break;
+      case 15: revision = 5; break;
+      case 14: revision = 4; break;
       case 13: revision = 1; break;
       case 12: revision = 3; break;
       case 11: revision = 2; break;

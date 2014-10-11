@@ -33,10 +33,14 @@ import java.io.File;
 public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
 
-  @Override
-  public boolean isPathVisible() {
+  public static boolean isNeeded() {
     Sdk defaultJdk = DefaultSdks.getDefaultJdk();
     return defaultJdk == null || !Jdks.isApplicableJdk(defaultJdk, LanguageLevel.JDK_1_7);
+  }
+
+  @Override
+  public boolean isPathVisible() {
+    return isNeeded();
   }
 
   @Override

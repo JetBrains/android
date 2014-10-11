@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.welcome.FirstRunWelcomeStep;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 
@@ -36,6 +37,7 @@ public class EmptyAvdListPanel extends JPanel {
   private JButton myCreateAVirtualDeviceButton;
   private JPanel myRootPane;
   private JBLabel myDashboardText;
+  private JBLabel myIcons;
 
   public EmptyAvdListPanel(AvdUiAction.AvdInfoProvider provider) {
     super(false);
@@ -53,6 +55,7 @@ public class EmptyAvdListPanel extends JPanel {
       }
     });
     myDashboardText.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    myIcons.setIcon(FirstRunWelcomeStep.getFormFactorsImage(myIcons));
   }
 
   private void createUIComponents() {

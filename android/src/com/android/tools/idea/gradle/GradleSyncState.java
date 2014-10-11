@@ -38,7 +38,6 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -215,7 +214,7 @@ public class GradleSyncState {
     File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
     if (settingsFilePath.exists()) {
       VirtualFile settingsFile = VfsUtil.findFileByIoFile(settingsFilePath, true);
-      if (fileDocumentManager.isFileModified(settingsFile)) {
+      if (settingsFile != null && fileDocumentManager.isFileModified(settingsFile)) {
         return true;
       }
       if (settingsFilePath.lastModified() > referenceTimeInMillis) {
