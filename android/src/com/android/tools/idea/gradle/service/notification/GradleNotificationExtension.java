@@ -40,6 +40,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   public GradleNotificationExtension() {
     this(Arrays.asList(new GradleDslMethodNotFoundErrorHandler(),
                        new Gradle2RequiredErrorHandler(),
+                       new ErrorOpeningZipFileErrorHandler(),
                        new UnsupportedModelVersionErrorHandler(),
                        new FailedToParseSdkErrorHandler(),
                        new GradleSettingsErrorHandler(),
