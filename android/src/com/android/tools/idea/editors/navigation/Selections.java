@@ -281,18 +281,6 @@ class Selections {
               fragmentList.add(hyperlinkLabel);
             }
           }
-          {
-            JPanel propertyList = activityInspector.propertyList;
-            propertyList.removeAll();
-            propertyList.setLayout(new BoxLayout(propertyList, BoxLayout.Y_AXIS));
-            final String className = myState.getClassName();
-            PsiClass psiClass = Utilities.getPsiClass(module, className);
-            for (String propertyName : Analyser.findProperties(psiClass)) {
-              JLabel label = new JLabel(propertyName);
-              label.setOpaque(false);
-              propertyList.add(label);
-            }
-          }
           inspector.setInspectorComponent(activityInspector.container);
           return null;
         }
