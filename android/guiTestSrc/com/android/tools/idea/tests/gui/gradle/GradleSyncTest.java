@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
@@ -33,16 +32,13 @@ import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -136,13 +132,9 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSync();
 
-    MessageDialogFixture messageDialog = findGradleSyncMessageDialog(myRobot);
-    String message = messageDialog.getMessage();
-    assertThat(message).startsWith("The project seems to have more than one module (or sub-project) " +
-                                   "but the file 'settings.gradle' does not specify any of them.");
-    messageDialog.clickCancel(); // Do not continue with sync.
-
-    assertTrue(lastGradleSyncFailed(projectFrame.getProject()));
+    // Sync should be successful for multi-module projects with an empty settings.gradle file.
+    projectFrame.requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
   }
 
   @Test @IdeGuiTest
