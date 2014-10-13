@@ -22,13 +22,15 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
+import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Strings.nullToEmpty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
@@ -62,6 +64,23 @@ public class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   public MessageDialogFixture clickOk() {
     findAndClickOkButton(this);
     return this;
+  }
+
+  public MessageDialogFixture clickButton(@NotNull String text) {
+    findAndClickButton(this, text);
+    return this;
+  }
+
+  public void requireMessage(@NotNull String message) {
+    assertEquals(message, getMessage());
+  }
+
+  public void requireMessageContains(@NotNull String message) {
+    assertTrue(getMessage() + " does not contain expected message fragment " + message, getMessage().contains(message));
+  }
+
+  public void requireMessageMatches(@NotNull @RegExp String pattern) {
+    assertTrue(getMessage() + " does not match expected pattern " + pattern, getMessage().matches(pattern));
   }
 
   @NotNull

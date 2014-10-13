@@ -16,8 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Ref;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.reflect.reference.TypeRef;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +29,7 @@ import javax.swing.*;
 import java.lang.ref.WeakReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -50,9 +53,53 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
     return null;
   }
 
+  public static class DialogAndWrapper<T extends DialogWrapper> {
+    public final JDialog dialog;
+    public final T wrapper;
+
+    public DialogAndWrapper(@NotNull JDialog dialog, @NotNull T wrapper) {
+      this.dialog = dialog;
+      this.wrapper = wrapper;
+    }
+  }
+
+  @NotNull
+  public static <T extends DialogWrapper> DialogAndWrapper<T> find(@NotNull Robot robot, @NotNull final Class<T> clz) {
+    return find(robot, clz, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(JDialog component) {
+        return component.isShowing();
+      }
+    });
+  }
+
+  @NotNull
+  public static <T extends DialogWrapper> DialogAndWrapper<T> find(@NotNull Robot robot, @NotNull final Class<T> clz,
+                                                                   @NotNull final GenericTypeMatcher<JDialog> matcher) {
+    final Ref<T> wrapperRef = new Ref<T>();
+    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(JDialog dialog) {
+        if (matcher.matches(dialog)) {
+          T wrapper = getDialogWrapperFrom(dialog, clz);
+          if (wrapper != null) {
+            wrapperRef.set(wrapper);
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+    return new DialogAndWrapper<T>(dialog, wrapperRef.get());
+  }
+
   protected IdeaDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull T dialogWrapper) {
     super(robot, target);
     myDialogWrapper = dialogWrapper;
+  }
+
+  protected IdeaDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<T> dialogAndWrapper) {
+    this(robot, dialogAndWrapper.dialog, dialogAndWrapper.wrapper);
   }
 
   @NotNull
