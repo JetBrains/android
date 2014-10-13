@@ -41,11 +41,13 @@ public class AndroidAarDepsBuildTarget extends AndroidBuildTarget {
     final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
 
     for (JpsLibrary library : libraries) {
-      final Pair<File,File> pair = AndroidJpsUtil.getResDirAndClassesJarIfAar(library);
-      final File classesJarFile = pair != null ? pair.getSecond() : null;
+      final Pair<File, List<File>> pair = AndroidJpsUtil.getResDirAndJarsIfAar(library);
+      final List<File> jars = pair != null ? pair.getSecond() : null;
 
-      if (classesJarFile != null) {
-        result.add(new BuildRootDescriptorImpl(this, classesJarFile));
+      if (jars != null) {
+        for (File jar : jars) {
+          result.add(new BuildRootDescriptorImpl(this, jar));
+        }
       }
     }
     return result;
