@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android.builder;
 
+import com.android.SdkConstants;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -103,6 +104,23 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
         if (depAssetsDir != null && (!checkExistence || depAssetsDir.exists())) {
           result.add(depAssetsDir.getPath());
         }
+      }
+      collectAssetDirsFromAarDeps(extension.getModule(), result);
+    }
+  }
+
+  private static void collectAssetDirsFromAarDeps(@NotNull JpsModule module, @NotNull Collection<String> result) {
+    final List<String> resDirsFromAarDeps = new ArrayList<String>();
+    AndroidJpsUtil.collectResDirectoriesFromAarDeps(module, resDirsFromAarDeps);
+
+    if (resDirsFromAarDeps.isEmpty()) {
+      return;
+    }
+    for (String path : resDirsFromAarDeps) {
+      final File assetsSibling = new File(new File(path).getParentFile(), SdkConstants.FD_ASSETS);
+
+      if (assetsSibling.isDirectory()) {
+        result.add(assetsSibling.getPath());
       }
     }
   }
