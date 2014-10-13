@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -59,26 +58,11 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
-    final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
-    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(JDialog dialog) {
-        if (!matcher.matches(dialog)) {
-          return false;
-        }
-        FileChooserDialogImpl wrapper = getDialogWrapperFrom(dialog, FileChooserDialogImpl.class);
-        if (wrapper != null) {
-          wrapperRef.set(wrapper);
-          return true;
-        }
-        return false;
-      }
-    });
-    return new FileChooserDialogFixture(robot, dialog, wrapperRef.get());
+    return new FileChooserDialogFixture(robot, find(robot, FileChooserDialogImpl.class, matcher));
   }
 
-  private FileChooserDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull FileChooserDialogImpl dialogWrapper) {
-    super(robot, target, dialogWrapper);
+  private FileChooserDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<FileChooserDialogImpl> dialogAndWrapper) {
+    super(robot, dialogAndWrapper);
   }
 
   @NotNull
