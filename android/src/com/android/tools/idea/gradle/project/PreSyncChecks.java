@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -26,7 +25,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -34,16 +32,9 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 final class PreSyncChecks {
-  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN =
-    Pattern.compile("http://services\\.gradle\\.org/distributions/gradle-(.+)-(.+)\\.zip");
-
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
-
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
 
   private PreSyncChecks() {
@@ -79,6 +70,10 @@ final class PreSyncChecks {
       (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
     if (usingWrapper) {
       attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion, project);
+      if (gradleSettings != null) {
+        // Do this just to ensure that the right distribution type is set.
+        gradleSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
+      }
     }
     else if (distributionType == DistributionType.LOCAL) {
       attemptToUseSupportedLocalGradle(modelVersion, gradleSettings, project);
@@ -160,25 +155,18 @@ final class PreSyncChecks {
       return;
     }
 
-    Properties wrapperProperties = null;
+    String gradleVersion = null;
     try {
-      wrapperProperties = PropertiesUtil.getProperties(wrapperPropertiesFile);
+      gradleVersion = GradleUtil.getGradleWrapperVersion(wrapperPropertiesFile);
     }
     catch (IOException e) {
       LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
     }
 
-    if (wrapperProperties == null) {
+    if (gradleVersion == null) {
       // There is a wrapper, but the Gradle version could not be read. Continue with sync.
       return;
     }
-    String url = wrapperProperties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY);
-    Matcher matcher = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-    if (!matcher.matches()) {
-      // Could not get URL of Gradle distribution. Continue with sync.
-      return;
-    }
-    String gradleVersion = matcher.group(1);
     FullRevision gradleRevision = FullRevision.parseRevision(gradleVersion);
 
     if (!isSupportedGradleVersion(modelVersion, gradleRevision)) {
