@@ -41,7 +41,7 @@ import static com.android.tools.idea.editors.navigation.model.Utilities.getPrope
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analyser {
-  private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
+  private static final Logger LOG = Logger.getInstance(Analyser.class.getName());
   private static final String[] ID_PREFIXES = {"@+id/", "@android:id/"};
   private static final boolean DEBUG = false;
 
