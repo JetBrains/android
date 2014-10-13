@@ -378,6 +378,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                  JarFileSystem.JAR_SEPARATOR;
     final String resDirUrl = VfsUtilCore.pathToUrl(aarDirPath + "/" + SdkConstants.FD_RES);
     final Set<String> urlsToAdd = new HashSet<String>(Arrays.asList(classesJarUrl, resDirUrl));
+    collectJarsInAarLibsFolder(aarDirPath, urlsToAdd);
 
     for (String url : aarLibModel.getUrls(OrderRootType.CLASSES)) {
       if (!urlsToAdd.remove(url)) {
@@ -386,6 +387,25 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
     for (String url : urlsToAdd) {
       aarLibModel.addRoot(url, OrderRootType.CLASSES);
+    }
+  }
+
+  private static void collectJarsInAarLibsFolder(@NotNull String aarDirPath, @NotNull Set<String> urlsToAdd) {
+    final File libsFolder = new File(aarDirPath, SdkConstants.LIBS_FOLDER);
+
+    if (!libsFolder.isDirectory()) {
+      return;
+    }
+    final File[] children = libsFolder.listFiles();
+
+    if (children != null) {
+      for (File child : children) {
+        if (FileUtilRt.extensionEquals(child.getName(), "jar")) {
+          final String url = VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, FileUtil.
+            toSystemIndependentName(child.getPath())) + JarFileSystem.JAR_SEPARATOR;
+          urlsToAdd.add(url);
+        }
+      }
     }
   }
 
