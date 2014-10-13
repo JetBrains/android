@@ -32,15 +32,16 @@ import com.android.utils.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
@@ -276,7 +277,8 @@ public class GradleImport {
     }
   }
 
-  private static String escapeGroovyStringLiteral(String s) {
+  @NotNull
+  public static String escapeGroovyStringLiteral(@NotNull String s) {
     StringBuilder sb = new StringBuilder(s.length() + 5);
     for (int i = 0, n = s.length(); i < n; i++) {
       char c = s.charAt(i);
