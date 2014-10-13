@@ -296,7 +296,7 @@ public class AndroidJpsUtil {
         if (item instanceof JpsLibraryDependency) {
           final JpsLibrary library = ((JpsLibraryDependency)item).getLibrary();
 
-          if (library != null && (withAarDeps || getResDirAndClassesJarIfAar(library) == null)) {
+          if (library != null && (withAarDeps || getResDirAndJarsIfAar(library) == null)) {
             for (JpsLibraryRoot root : library.getRoots(JpsOrderRootType.COMPILED)) {
               final File file = JpsPathUtil.urlToFile(root.getUrl());
 
@@ -937,7 +937,7 @@ public class AndroidJpsUtil {
         runtimeOnly().productionOnly().getLibraries();
 
     for (JpsLibrary lib : libs) {
-      final Pair<File, File> pair = getResDirAndClassesJarIfAar(lib);
+      final Pair<File, List<File>> pair = getResDirAndJarsIfAar(lib);
       final File resDir = pair != null ? pair.getFirst() : null;
 
       if (resDir != null) {
@@ -947,7 +947,7 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  public static Pair<File, File> getResDirAndClassesJarIfAar(@NotNull JpsLibrary lib) {
+  public static Pair<File, List<File>> getResDirAndJarsIfAar(@NotNull JpsLibrary lib) {
     final List<File> files = lib.getFiles(JpsOrderRootType.COMPILED);
 
     if (files.size() == 1) {
@@ -957,20 +957,34 @@ public class AndroidJpsUtil {
         return Pair.create(file, null);
       }
     }
-    else if (files.size() == 2) {
+    else if (files.size() >= 2) {
       File resDir = null;
       File classesJar = null;
+      List<File> allJars = new ArrayList<File>();
 
       for (File file : files) {
-        if (file.isDirectory() && SdkConstants.FD_RES.equals(file.getName())) {
-          resDir = file;
+        if (file.isDirectory()) {
+          if (SdkConstants.FD_RES.equals(file.getName())) {
+            resDir = file;
+          }
+          else {
+            return null;
+          }
         }
-        else if (file.isFile() && SdkConstants.FN_CLASSES_JAR.equals(file.getName())) {
-          classesJar = file;
+        else if (file.isFile()) {
+          if (SdkConstants.FN_CLASSES_JAR.equals(file.getName())) {
+            classesJar = file;
+          }
+          if (FileUtilRt.extensionEquals(file.getName(), "jar")) {
+            allJars.add(file);
+          }
+          else {
+            return null;
+          }
         }
       }
       if (resDir != null && classesJar != null && FileUtil.pathsEqual(resDir.getParent(), classesJar.getParent())) {
-        return Pair.create(resDir, classesJar);
+        return Pair.create(resDir, allJars);
       }
     }
     return null;

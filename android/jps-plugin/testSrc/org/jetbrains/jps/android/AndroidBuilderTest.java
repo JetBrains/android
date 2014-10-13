@@ -1083,6 +1083,11 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     checkMakeUpToDate(executor);
+
+    appAarLib.addRoot(getProjectPath("myaar/libs/myjar.jar"), JpsOrderRootType.COMPILED);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
+    checkMakeUpToDate(executor);
   }
 
   private void addMavenResourcesConf(MavenProjectConfiguration mavenConf, String appNames) {
