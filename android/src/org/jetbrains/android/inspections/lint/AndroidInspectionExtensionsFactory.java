@@ -33,12 +33,12 @@ public class AndroidInspectionExtensionsFactory extends InspectionExtensionsFact
   }
 
   @Override
-  public boolean isToCheckMember(PsiElement element, String id) {
+  public boolean isToCheckMember(@NotNull PsiElement element, @NotNull String id) {
     return true;
   }
 
   @Override
-  public String getSuppressedInspectionIdsIn(PsiElement element) {
+  public String getSuppressedInspectionIdsIn(@NotNull PsiElement element) {
     return null;
   }
 
