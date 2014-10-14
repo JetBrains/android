@@ -107,8 +107,9 @@ public class NavigationView extends JComponent {
 
   // Configuration
 
-  private boolean showRollover = false;
-  private boolean mDrawGrid = false;
+  private boolean myShowRollover = false;
+  @SuppressWarnings("FieldCanBeLocal")
+  private boolean myDrawGrid = false;
 
   public NavigationView(RenderingParameters renderingParams, NavigationModel model, SelectionModel selectionModel) {
     myRenderingParams = renderingParams;
@@ -392,7 +393,7 @@ public class NavigationView extends JComponent {
 
   private void setMouseLocation(Point mouseLocation) {
     myMouseLocation = mouseLocation;
-    if (showRollover) {
+    if (myShowRollover) {
       repaint();
     }
   }
@@ -459,7 +460,7 @@ public class NavigationView extends JComponent {
     super.paintComponent(g);
 
     // draw background
-    if (mDrawGrid) {
+    if (myDrawGrid) {
       g.drawImage(getBackGroundImage(), 0, 0, null);
     }
     else {
@@ -639,7 +640,9 @@ public class NavigationView extends JComponent {
   }
 
   public void paintTransitions(Graphics g) {
-    for (Transition transition : myNavigationModel.getTransitions()) {
+    // make copy to avoid concurrent modification exception if paint is called while build is in process
+    ArrayList<Transition> copy = new ArrayList<Transition>(myNavigationModel.getTransitions());
+    for (Transition transition : copy) {
       drawTransition(g, transition);
     }
   }
@@ -667,7 +670,7 @@ public class NavigationView extends JComponent {
   }
 
   private void paintRollover(Graphics2D lineGraphics) {
-    if (myMouseLocation == null || !showRollover) {
+    if (myMouseLocation == null || !myShowRollover) {
       return;
     }
     Component component = getComponentAt(myMouseLocation);
@@ -826,9 +829,9 @@ public class NavigationView extends JComponent {
     return file == null ? null : PsiManager.getInstance(project).findFile(file);
   }
 
-  private RenderingParameters getActivityRenderingParameters(Module module, VirtualFile virtualFile, String className) {
+  private RenderingParameters getActivityRenderingParameters(Module module, String className) {
     ManifestInfo manifestInfo = ManifestInfo.get(module, false);
-    Configuration configuration = myRenderingParams.myFacet.getConfigurationManager().getConfiguration(virtualFile);
+    Configuration configuration = myRenderingParams.myConfiguration.clone();
     String theme = manifestInfo.getManifestTheme();
     ManifestInfo.ActivityAttributes activityAttributes = manifestInfo.getActivityAttributes(className);
     if (activityAttributes != null) {
@@ -849,7 +852,7 @@ public class NavigationView extends JComponent {
     }
     else {
       PsiFile psiFile = PsiManager.getInstance(myRenderingParams.myProject).findFile(virtualFile);
-      RenderingParameters params = isMenu ? myRenderingParams : getActivityRenderingParameters(module, virtualFile, state.getClassName());
+      RenderingParameters params = isMenu ? myRenderingParams : getActivityRenderingParameters(module, state.getClassName());
       return new AndroidRootComponent(params, psiFile, isMenu);
     }
   }

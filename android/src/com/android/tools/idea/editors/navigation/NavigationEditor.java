@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.editors.navigation.model.NavigationModel.Event.Operation;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -48,6 +47,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.Function;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -71,6 +71,7 @@ import static com.android.tools.idea.editors.navigation.NavigationView.GAP;
 public class NavigationEditor implements FileEditor {
   public static final String NAVIGATION_DIRECTORY = ".navigation";
   public static final String DEFAULT_RESOURCE_FOLDER = SdkConstants.FD_RES_RAW;
+  public static final String LAYOUT_DIR_NAME = SdkConstants.FD_RES_LAYOUT;
   public static final String NAVIGATION_FILE_NAME = "main.nvg.xml";
 
   private static final String TOOLBAR = "NavigationEditorToolbar";
@@ -85,7 +86,6 @@ public class NavigationEditor implements FileEditor {
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
-  private SelectionModel mySelectionModel = new SelectionModel();
   private final VirtualFile myFile;
   private JComponent myComponent;
   private CodeGenerator myCodeGenerator;
@@ -95,8 +95,24 @@ public class NavigationEditor implements FileEditor {
   private Listener<NavigationModel.Event> myNavigationModelListener;
   private ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private VirtualFileAdapter myVirtualFileListener;
-  private final ErrorHandler myErrorHandler;
   private FileDocumentManagerListener mySaveListener;
+
+  @Nullable
+  private static VirtualFile findLayoutFile(List<VirtualFile> resourceDirectories, String navigationDirectoryName) {
+    String qualifier = removePrefixIfPresent(DEFAULT_RESOURCE_FOLDER, navigationDirectoryName);
+    String layoutDirName = LAYOUT_DIR_NAME + qualifier;
+    for (VirtualFile root : resourceDirectories) {
+      for (VirtualFile dir : root.getChildren()) {
+        if (dir.isDirectory() && dir.getName().equals(layoutDirName)) {
+          VirtualFile[] children = dir.getChildren();
+          if (children.length != 0) {
+            return children[0];
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   @Nullable
   public static RenderingParameters getRenderingParams(@NotNull Project project, @NotNull VirtualFile file, @NotNull Module module) {
@@ -104,70 +120,67 @@ public class NavigationEditor implements FileEditor {
     if (facet == null) {
       return null;
     }
-    Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
-    String themeName = manifestInfo.getManifestTheme();
-    configuration.setTheme(themeName);
+    List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
+    VirtualFile layoutFile = findLayoutFile(resourceDirectories, file.getParent().getName());
+    if (layoutFile == null) {
+      return null;
+    }
+    Configuration configuration = facet.getConfigurationManager().getConfiguration(layoutFile);
     return new RenderingParameters(project, configuration, facet);
   }
 
   public NavigationEditor(Project project, VirtualFile file) {
     myFile = file;
-    myErrorHandler = new ErrorHandler();
     Module[] androidModules = Utilities.getAndroidModules(project);
     String moduleName = file.getParent().getParent().getName();
     Module module = Utilities.findModule(androidModules, moduleName);
     if (module == null) {
-      String errorMessage =
-        NAVIGATION_DIRECTORY.equals(moduleName) ? "Old navigation file" : "Android module \"" + moduleName + "\" not found";
-      myErrorHandler.handleError("", errorMessage);
+      String errorMessage = NAVIGATION_DIRECTORY.equals(moduleName)
+                            ? "Legacy navigation editor file: please remove the file and/or close this editor"
+                            : "Android module \"" + moduleName + "\" not found";
+      myComponent = createErrorComponent("", errorMessage);
+      return;
     }
-    else {
-      initFor(project, file, module);
+    RenderingParameters renderingParams = getRenderingParams(project, file, module);
+    if (renderingParams == null) {
+      myComponent = createErrorComponent("", "Invalid file name: please remove the file and/or close this editor");
+      return;
     }
+    myRenderingParams = renderingParams;
+    myAnalyser = new Analyser(module);
+    myNavigationModel = read(file);
+    myCodeGenerator = new CodeGenerator(myNavigationModel, module);
+    myComponent = createUI(renderingParams, myNavigationModel, myFile.getParent().getName());
     createListeners();
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, mySaveListener);
   }
 
-  private void initFor(Project project, VirtualFile file, Module module) {
-    init(file, getRenderingParams(project, file, module));
-  }
-
-  private void init(VirtualFile navigationModelFile, @Nullable RenderingParameters renderingParams) {
-    if (renderingParams != null) {
-      myRenderingParams = renderingParams;
-      Configuration configuration = renderingParams.myConfiguration;
-      Module module = configuration.getModule();
-      myAnalyser = new Analyser(module);
-      myNavigationModel = read(navigationModelFile);
-      myCodeGenerator = new CodeGenerator(myNavigationModel, module);
-      NavigationView editor = new NavigationView(renderingParams, myNavigationModel, mySelectionModel);
-      // Create UI
-      {
-        JPanel panel = new JPanel(new BorderLayout());
-        {
-          JComponent toolBar = createToolbar(editor);
-          panel.add(toolBar, BorderLayout.NORTH);
-        }
-        {
-          Splitter splitPane = new Splitter();
-          splitPane.setDividerWidth(1);
-          splitPane.setShowDividerIcon(false);
-          splitPane.setProportion(.8f);
-          {
-            JBScrollPane scrollPane = new JBScrollPane(editor);
-            scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-            splitPane.setFirstComponent(scrollPane);
-          }
-          {
-            Inspector inspector = new Inspector(mySelectionModel);
-            splitPane.setSecondComponent(new JBScrollPane(inspector.container));
-          }
-          panel.add(splitPane);
-        }
-        myComponent = panel;
-      }
+  @NotNull
+  private static JPanel createUI(RenderingParameters renderingParams, NavigationModel navigationModel, String dirName) {
+    SelectionModel selectionModel = new SelectionModel();
+    NavigationView editor = new NavigationView(renderingParams, navigationModel, selectionModel);
+    JPanel panel = new JPanel(new BorderLayout());
+    {
+      JComponent toolBar = createToolbar(getActions(editor), renderingParams, dirName);
+      panel.add(toolBar, BorderLayout.NORTH);
     }
+    {
+      Splitter splitPane = new Splitter();
+      splitPane.setDividerWidth(1);
+      splitPane.setShowDividerIcon(false);
+      splitPane.setProportion(.8f);
+      {
+        JBScrollPane scrollPane = new JBScrollPane(editor);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+        splitPane.setFirstComponent(scrollPane);
+      }
+      {
+        Inspector inspector = new Inspector(selectionModel);
+        splitPane.setSecondComponent(new JBScrollPane(inspector.container));
+      }
+      panel.add(splitPane);
+    }
+    return panel;
   }
 
   private void createListeners() {
@@ -235,26 +248,21 @@ public class NavigationEditor implements FileEditor {
     };
   }
 
-  public class ErrorHandler {
-    public void handleError(String title, String errorMessage) {
-      myNavigationModel = new NavigationModel();
-      {
-        JPanel panel = new JPanel(new BorderLayout());
-        {
-          JLabel label = new JLabel(title);
-          label.setFont(label.getFont().deriveFont(30f));
-          label.setHorizontalAlignment(SwingConstants.CENTER);
-          panel.add(label, BorderLayout.NORTH);
-        }
-        {
-          JLabel label = new JLabel(errorMessage);
-          label.setFont(label.getFont().deriveFont(20f));
-          label.setHorizontalAlignment(SwingConstants.CENTER);
-          panel.add(label, BorderLayout.CENTER);
-        }
-        myComponent = new JBScrollPane(panel);
-      }
+  private static JComponent createErrorComponent(String title, String errorMessage) {
+    JPanel panel = new JPanel(new BorderLayout());
+    {
+      JLabel label = new JLabel(title);
+      label.setFont(label.getFont().deriveFont(30f));
+      label.setHorizontalAlignment(SwingConstants.CENTER);
+      panel.add(label, BorderLayout.NORTH);
     }
+    {
+      JLabel label = new JLabel(errorMessage);
+      label.setFont(label.getFont().deriveFont(20f));
+      label.setHorizontalAlignment(SwingConstants.CENTER);
+      panel.add(label, BorderLayout.CENTER);
+    }
+    return new JBScrollPane(panel);
   }
 
   private static ResourceFolderManager getResourceFolderManager(AndroidFacet facet) {
@@ -307,86 +315,98 @@ public class NavigationEditor implements FileEditor {
     return result;
   }
 
-  protected JComponent createToolbar(NavigationView myDesigner) {
+  private static String removePrefixIfPresent(String prefix, String s) {
+    return s.startsWith(prefix) ? s.substring(prefix.length()) : s;
+  }
+
+  private static String[] resourceDirectoryNames(AndroidFacet facet, String type) {
+    List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
+    List<String> qualifiers = new ArrayList<String>();
+    for (VirtualFile root : resourceDirectories) {
+      for (VirtualFile dir : root.getChildren()) {
+        String name = dir.getName();
+        if (name.startsWith(type) && dir.isDirectory() && dir.getChildren().length != 0) {
+          qualifiers.add(name);
+        }
+      }
+    }
+    return qualifiers.toArray(new String[qualifiers.size()]);
+  }
+
+  private static String[] getDisplayNames(String[] dirNames) {
+    return Utilities.map(dirNames, new Function<String, String>() {
+      @Override
+      public String fun(String s) {
+        return DEFAULT_RESOURCE_FOLDER + s.substring(LAYOUT_DIR_NAME.length());
+      }
+    });
+  }
+
+  private static JComponent createToolbar(ActionGroup actions, final RenderingParameters renderingParams, String dirName) {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     // UI for module and configuration selection
     {
-      final String dirName = myFile.getParent().getName();
-      final Module module = myRenderingParams.myFacet.getModule();
+      final Module module = renderingParams.myFacet.getModule();
 
       JPanel combos = new JPanel(new FlowLayout());
-      final Module[] androidModules = Utilities.getAndroidModules(myRenderingParams.myProject);
+      final Module[] androidModules = Utilities.getAndroidModules(renderingParams.myProject);
       // Module selector
       if (androidModules.length > 1) {
         final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
-        moduleSelector.setSelectedItem(module.getName());
+        final String originalSelection = module.getName();
+        moduleSelector.setSelectedItem(originalSelection);
         moduleSelector.addActionListener(new ActionListener() {
           boolean disabled = false;
 
           @Override
-          public void actionPerformed(ActionEvent actionEvent) {
+          public void actionPerformed(ActionEvent event) {
             if (disabled) {
               return;
             }
             int selectedIndex = moduleSelector.getSelectedIndex();
             Module newModule = androidModules[selectedIndex];
-            new AndroidShowNavigationEditor()
-              .showNavigationEditor(myRenderingParams.myProject, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
+            AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
+            newEditor.showNavigationEditor(renderingParams.myProject, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
             disabled = true;
-            moduleSelector.setSelectedItem(module.getName());
+            moduleSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
             disabled = false;
           }
         });
         combos.add(moduleSelector);
       }
       // Configuration selector
-      {
-        final String phone = "phone";
-        final String tablet = "tablet";
-        final ComboBox deviceSelector = new ComboBox(new Object[]{phone, tablet});
-        final String portrait = "portrait";
-        final String landscape = "landscape";
-        final ComboBox orientationSelector = new ComboBox(new Object[]{portrait, landscape});
-        deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
-        orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
-        ActionListener actionListener = new ActionListener() {
+      String[] dirNames = resourceDirectoryNames(renderingParams.myFacet, LAYOUT_DIR_NAME);
+      String[] navDirNames = getDisplayNames(dirNames);
+      if (dirNames.length > 1) {
+        final ComboBox deviceSelector = new ComboBox(navDirNames);
+        final String originalSelection = dirName;
+        deviceSelector.setSelectedItem(originalSelection);
+        deviceSelector.addActionListener(new ActionListener() {
           boolean disabled = false;
 
           @Override
-          public void actionPerformed(ActionEvent actionEvent) {
+          public void actionPerformed(ActionEvent event) {
             if (disabled) {
               return;
             }
-            Object device = deviceSelector.getSelectedItem();
-            Object deviceQualifier = (device == tablet) ? "-sw600dp" : "";
-            Object orientation = orientationSelector.getSelectedItem();
-            Object orientationQualifier = (orientation == landscape) ? "-land" : "";
-            new AndroidShowNavigationEditor()
-              .showNavigationEditor(myRenderingParams.myProject, module, "raw" + deviceQualifier + orientationQualifier,
-                                    NAVIGATION_FILE_NAME);
+            String dirName = (String) deviceSelector.getSelectedItem();
+            AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
+            newEditor.showNavigationEditor(renderingParams.myProject, module, dirName, NAVIGATION_FILE_NAME);
             disabled = true;
-            deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
-            orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
+            deviceSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
             disabled = false;
           }
-        };
-        {
-          deviceSelector.addActionListener(actionListener);
-          combos.add(deviceSelector);
-        }
-        {
-          orientationSelector.addActionListener(actionListener);
-          combos.add(orientationSelector);
-        }
+        });
+        combos.add(deviceSelector);
       }
       panel.add(combos, BorderLayout.CENTER);
     }
     // Zoom controls
     {
       ActionManager actionManager = ActionManager.getInstance();
-      ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
+      ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, actions, true);
       panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
     }
     // Link to on-line help
@@ -398,12 +418,6 @@ public class NavigationEditor implements FileEditor {
     }
 
     return panel;
-  }
-
-  private static class FileReadException extends Exception {
-    private FileReadException(Throwable throwable) {
-      super(throwable);
-    }
   }
 
   // See AndroidDesignerActionPanel
@@ -419,7 +433,7 @@ public class NavigationEditor implements FileEditor {
     group.add(new AnAction(null, "Fit to screen", AndroidIcons.ZoomActual) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        java.awt.Dimension pref = myDesigner.getPreferredSize();
+        Dimension pref = myDesigner.getPreferredSize();
         Container parent = myDesigner.getParent();
         float ratio = Math.max((float)pref.width / parent.getWidth(), (float)pref.height / parent.getHeight());
         double power = Math.log(1 / ratio) / Math.log(NavigationView.ZOOM_FACTOR);
@@ -637,6 +651,9 @@ public class NavigationEditor implements FileEditor {
     }
   }
 
+  /**
+   * {@link #deselectNotify()} is called before this so we don't need to repeat de-registration of listeners here
+   */
   @Override
   public void dispose() {
     try {
@@ -645,8 +662,6 @@ public class NavigationEditor implements FileEditor {
     catch (IOException e) {
       LOG.error("Unexpected exception while saving navigation file", e);
     }
-
-    myNavigationModel.getListeners().remove(myNavigationModelListener);
   }
 
   @Nullable
