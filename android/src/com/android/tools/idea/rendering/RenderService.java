@@ -83,7 +83,6 @@ import java.util.Set;
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
-import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.INFORMATION;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
@@ -213,10 +212,11 @@ public class RenderService implements IImageFactory {
     }
 
     if (TAG_PREFERENCE_SCREEN.equals(getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-      // This should never happen. We've already removed the incompatible targets from the target menu.
-      assert false : "Trying to render preferences with an incompatible target.";
-      // However, if it does occur, just log a plain error message.
-      logger.addMessage(RenderProblem.createPlain(ERROR, "Trying to render preferences with an incompatible target."));
+      // This means that user is using an outdated version of layoutlib. A warning to update has already been
+      // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
+      logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
+                                                         "Update it using the SDK Manager"));
+
       return null;
     }
 
