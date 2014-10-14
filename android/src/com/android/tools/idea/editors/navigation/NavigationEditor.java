@@ -96,6 +96,7 @@ public class NavigationEditor implements FileEditor {
   private ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private VirtualFileAdapter myVirtualFileListener;
   private FileDocumentManagerListener mySaveListener;
+  private static final String[] EXCLUDED_PATH_SEGMENTS = new String[]{"/.idea/", "/idea/config/options/"};
 
   @Nullable
   private static VirtualFile findLayoutFile(List<VirtualFile> resourceDirectories, String navigationDirectoryName) {
@@ -104,9 +105,11 @@ public class NavigationEditor implements FileEditor {
     for (VirtualFile root : resourceDirectories) {
       for (VirtualFile dir : root.getChildren()) {
         if (dir.isDirectory() && dir.getName().equals(layoutDirName)) {
-          VirtualFile[] children = dir.getChildren();
-          if (children.length != 0) {
-            return children[0];
+          for (VirtualFile file : dir.getChildren()) {
+            String fileName = file.getName();
+            if (!fileName.startsWith(".") && fileName.endsWith(".xml")) { // Ignore files like .DS_store on mac
+              return file;
+            }
           }
         }
       }
@@ -213,10 +216,12 @@ public class NavigationEditor implements FileEditor {
     };
 
     // Virtual File listener
+    //noinspection UnusedParameters
     myVirtualFileListener = new VirtualFileAdapter() {
       private void somethingChanged(String changeType, @NotNull VirtualFileEvent event) {
-        if (DEBUG) System.out.println("NavigationEditor: fileListener:: " + changeType + ": " + event);
-        postDelayedRefresh();
+        if (!shouldIgnore(event)) {
+          postDelayedRefresh();
+        }
       }
 
       @Override
@@ -242,10 +247,56 @@ public class NavigationEditor implements FileEditor {
                                          @NotNull List<VirtualFile> folders,
                                          @NotNull Collection<VirtualFile> added,
                                          @NotNull Collection<VirtualFile> removed) {
-        if (DEBUG) System.out.println("NavigationEditor: resourceFoldersChanged" + folders);
         postDelayedRefresh();
       }
     };
+  }
+
+  /*
+  See: https://code.google.com/p/android/issues/detail?id=75755
+
+  When a Navigation Editor is active (open) in Android Studio, it registers
+  various listeners. Each of these listeners is un-registerd when the editor
+  is deactivated (so that there is no performance impact to having a
+  Navigation Editor that is closed).
+
+  One of these listeners listens to all changes to the (virtual) file system.
+
+  When Android Studio loses focus, it writes a series of files to disk to
+  preserve its state; including:
+
+  <project directory>/.navigation/app/raw/main.nvg.xml
+  <project directory>/.idea/workspace.xml
+  <app install>/idea/config/options/window.manager.xml
+  <app install>/idea/config/options/studio.build.statistics.xml
+  <app install>/idea/config/options/statistics.application.usages.xml
+  <app install>/idea/config/options/other.xml
+
+  Navigation Editor picks up the change to its own file and assumes
+  re-validates it's model against the current state of the file
+  system and repaints - causing a flicker.
+
+  IntelliJ's "workspace.xml" file also triggers a redraw the the main
+  IDE window was moved since it was made visible.
+
+  Prevent these internal IDE files from triggering a refresh of
+  Navigation Editor.
+  */
+  private static boolean shouldIgnore(VirtualFileEvent event) {
+    String fileName = event.getFileName();
+    if (NAVIGATION_FILE_NAME.equals(fileName)) {
+      return true;
+    }
+    String pathName = event.getFile().getCanonicalPath();
+    if (pathName == null) {
+      return false;
+    }
+    for (String segment : EXCLUDED_PATH_SEGMENTS) {
+      if (pathName.contains(segment)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static JComponent createErrorComponent(String title, String errorMessage) {
@@ -391,7 +442,7 @@ public class NavigationEditor implements FileEditor {
             if (disabled) {
               return;
             }
-            String dirName = (String) deviceSelector.getSelectedItem();
+            String dirName = (String)deviceSelector.getSelectedItem();
             AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
             newEditor.showNavigationEditor(renderingParams.myProject, module, dirName, NAVIGATION_FILE_NAME);
             disabled = true;
