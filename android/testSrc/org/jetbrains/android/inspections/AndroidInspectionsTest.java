@@ -27,6 +27,7 @@ public class AndroidInspectionsTest extends AndroidTestCase {
     super.setUp();
     myUnusedDeclarationToolWrapper = getUnusedDeclarationWrapper();
     myUnusedDeclarationTool = (UnusedDeclarationInspection)myUnusedDeclarationToolWrapper.getTool();
+    myUnusedDeclarationTool.setEnabledInEditor(true);
   }
 
   private static GlobalInspectionToolWrapper getUnusedDeclarationWrapper() {

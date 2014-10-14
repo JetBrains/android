@@ -2,7 +2,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.unusedSymbol.UnusedSymbolLocalInspection;
+import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
@@ -82,7 +82,7 @@ public class AndroidMenuTest extends AndroidDomTest {
   }
 
   public void testOnClickHighlightingJava() throws Throwable {
-    myFixture.enableInspections(UnusedSymbolLocalInspection.class);
+    myFixture.enableInspections(new UnusedDeclarationInspection());
     final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.checkHighlighting(true, false, false);
