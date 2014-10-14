@@ -493,7 +493,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         if (components != null) {
           for (JComponent component : components) {
             Parameter componentParameter = myDataComponentParameters.get(component);
-            if (componentParameter != null) {
+            if (!enabled && componentParameter != null) {
               myState.remove(getParameterKey(componentParameter));
               updateStateWithDefaults(Sets.newHashSet(componentParameter));
             }
