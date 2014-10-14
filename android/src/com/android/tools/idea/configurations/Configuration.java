@@ -25,6 +25,7 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.*;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -53,8 +54,15 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * etc for use when rendering a layout.
  */
 public class Configuration implements Disposable {
+
+  /** Min API version that supports preferences API rendering. */
+  public static final int PREFERENCES_MIN_API = 21;
+
   /** The associated file */
-  @Nullable VirtualFile myFile;
+  @Nullable final VirtualFile myFile;
+
+  /** The PSI File associated with myFile. */
+  @Nullable private PsiFile myPsiFile;
 
   /**
    * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} representing the state of the UI controls
@@ -175,6 +183,15 @@ public class Configuration implements Disposable {
       ScreenOrientation orientation = qualifier.getValue();
       if (orientation != null) {
         myStateName = orientation.getShortDisplayValue();
+      }
+    }
+
+    if (file != null) {
+      if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
+        myPsiFile = AndroidPsiUtils.getPsiFileSafely(manager.getProject(), file);
+        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(RenderService.getRootTagName(myPsiFile))) {
+          myTarget = manager.getTarget(PREFERENCES_MIN_API);
+        }
       }
     }
   }
@@ -340,6 +357,17 @@ public class Configuration implements Disposable {
   }
 
   /**
+   * Returns the PSI file associated with the configuration, if any
+   */
+  @Nullable
+  public PsiFile getPsiFile() {
+    if (myPsiFile == null && myFile != null) {
+      myPsiFile = AndroidPsiUtils.getPsiFileSafely(myManager.getProject(), myFile);
+    }
+    return myPsiFile;
+  }
+
+  /**
    * Returns the associated activity
    *
    * @return the activity
@@ -353,9 +381,11 @@ public class Configuration implements Disposable {
         @Nullable
         @Override
         public String compute() {
-          PsiFile file = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
-          if (file instanceof XmlFile) {
-            XmlFile xmlFile = (XmlFile)file;
+          if (myPsiFile == null) {
+            myPsiFile = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
+          }
+          if (myPsiFile instanceof XmlFile) {
+            XmlFile xmlFile = (XmlFile)myPsiFile;
             XmlTag rootTag = xmlFile.getRootTag();
             if (rootTag != null) {
               XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
@@ -579,9 +609,9 @@ public class Configuration implements Disposable {
   }
 
   /**
-   * Returns true if the current layout is locale-specific
+   * Returns true if the current layout is orientation-specific
    *
-   * @return if this configuration represents a locale-specific layout
+   * @return if this configuration represents a orientation-specific layout
    */
   public boolean isOrientationSpecificLayout() {
     return myEditedConfig.getScreenOrientationQualifier() != null;
