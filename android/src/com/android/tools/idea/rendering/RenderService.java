@@ -84,7 +84,6 @@ import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static com.intellij.lang.annotation.HighlightSeverity.INFORMATION;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
