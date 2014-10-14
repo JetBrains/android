@@ -22,6 +22,7 @@ import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.SingleStepPath;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,6 +47,11 @@ public class FirstRunWizard extends DynamicWizard {
   }
 
   public static boolean isNeeded() {
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // For now we assume that GUI tests set up the SDK (they do.) We'll revisit this once we write GUI tests for FirstRunWizard.
+      return false;
+    }
+
     return SetupJdkPath.isNeeded() || InstallComponentsPath.isNeeded();
   }
 
