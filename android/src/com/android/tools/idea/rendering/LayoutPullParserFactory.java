@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
@@ -108,7 +108,7 @@ public class LayoutPullParserFactory {
         renderService.setDecorations(false);
         return createDrawableParser(file);
       case MENU:
-        if (renderService.supportsCapability(Capability.ACTION_BAR)) {
+        if (renderService.supportsCapability(Features.ACTION_BAR)) {
           return new MenuLayoutParserFactory(renderService).render();
         }
         renderService.setRenderingMode(V_SCROLL);

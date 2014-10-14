@@ -58,6 +58,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -870,11 +871,12 @@ public class RenderService implements IImageFactory {
     return myPsiFile;
   }
 
-  public boolean supportsCapability(@NotNull Capability capability) {
+  public boolean supportsCapability(@MagicConstant(flagsFromClass = Features.class) int capability) {
     return myLayoutLib.supports(capability);
   }
 
-  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target, @NotNull Capability capability) {
+  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target,
+                                           @MagicConstant(flagsFromClass = Features.class) int capability) {
     Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module);
     if (platform != null) {
