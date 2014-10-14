@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.navigation.model;
 import com.android.annotations.NonNull;
 import com.android.annotations.Transient;
 import com.android.annotations.Nullable;
+import com.intellij.openapi.util.Condition;
 
 import java.util.*;
 
@@ -98,6 +99,7 @@ public class NavigationModel {
     listeners.notify(Event.insert(State.class));
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void removeState(State state) {
     states.remove(state);
     for (Transition t : new ArrayList<Transition>(transitions)) {
@@ -159,6 +161,31 @@ public class NavigationModel {
       if (source.equals(transition.getSource())) {
         return transition;
       }
+    }
+    return null;
+  }
+
+  @Nullable
+  public Transition findTransition(@NonNull Condition<Transition> condition) {
+    for (Transition transition : getTransitions()) {
+      if (condition.value(transition)) {
+        return transition;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public MenuState findAssociatedMenuState(State state) {
+    final Locator locator = Locator.of(state, null);
+    Transition transition = findTransition(new Condition<Transition>() {
+      @Override
+      public boolean value(Transition transition) {
+        return locator.equals(transition.getSource()) && transition.getDestination().getState() instanceof MenuState;
+      }
+    });
+    if (transition != null) {
+      return (MenuState)transition.getDestination().getState();
     }
     return null;
   }
