@@ -208,4 +208,17 @@ public class GradleSyncTest extends GuiTestCase {
     // Ensure the error message contains the location of the error.
     message.requireLocation(settingsFile, 1);
   }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=76797
+  public void testHandlingOfZipFileOpeningError() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    projectFrame.requestProjectSyncAndSimulateFailure("error in opening zip file");
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to open zip file."));
+
+    message.findHyperlink("Re-download dependencies and sync project (requires network)");
+  }
 }
