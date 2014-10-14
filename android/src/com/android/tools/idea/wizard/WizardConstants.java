@@ -16,10 +16,12 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
@@ -67,4 +69,9 @@ public class WizardConstants {
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
   public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
+  public static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet
+    .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
+        "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",
+        "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
+
 }
