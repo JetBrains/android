@@ -56,6 +56,9 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
  *
  */
 public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListener {
+  // 42 is an arbitrary number. This constant is for the number of update cycles before
+  // we decide there's circular dependency and we cannot settle down the model state.
+  public static final int MAX_UPDATE_ATTEMPTS = 42;
   Logger LOG = Logger.getInstance(DynamicWizard.class);
 
   // A queue of updates used to throttle the update() function.
@@ -78,7 +81,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   // An iterator to keep track of the user's progress through the paths.
   protected PathIterator myPathListIterator = new PathIterator(myPaths);
   private boolean myIsInitialized = false;
-  private ScopedStateStore myState;
+  protected ScopedStateStore myState;
   private JPanel myContentPanel = new JPanel(new CardLayout());
   private Map<JComponent, String> myComponentToIdMap = Maps.newHashMap();
 
@@ -94,21 +97,38 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       myUpdateQueue = null;
     } else {
-      myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, null, myHost.getDisposable(), null, false);
+      myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, null, myHost.getDisposable(), null, true);
     }
     myState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, this);
   }
 
   public void init() {
     myHost.init(this);
-
     myIsInitialized = true;
 
-    if (myCurrentPath != null) {
-      myCurrentPath.onPathStarted(true);
-      showStep(myCurrentPath.getCurrentStep());
-      myCurrentPath.updateCurrentStep();
+    if (myUpdateQueue != null) {
+      int guard = 0;
+      // Keep processing updates until model state settles down.
+      // In some cases, circular dependencies may turn this into endless loop. This is coding
+      // error so we need to detect it and report to developer.
+      while (!myUpdateQueue.isEmpty()) {
+        myUpdateQueue.flush();
+        guard++;
+        if (guard >= MAX_UPDATE_ATTEMPTS) {
+          throw new IllegalStateException("Circular dependencies detected. Model state cannot be settled down.");
+        }
+      }
     }
+    Step step = showNextStep(null);
+    assert step != null;
+  }
+
+  /**
+   * @return update queue that other components may use to submit their updates.
+   */
+  @Nullable
+  public final MergingUpdateQueue getUpdateQueue() {
+    return myUpdateQueue;
   }
 
   /**
@@ -117,19 +137,9 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   @Override
   public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
     if (myUpdateQueue != null) {
-      myUpdateQueue.cancelAllUpdates();
-      myUpdateQueue.queue(new Update("update") {
-        @Override
-        public void run() {
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              update();
-            }
-          });
-        }
-      });
-    } else {
+      myUpdateQueue.queue(new WizardUpdate());
+    }
+    else {
       // If we're not running in a context, just update immediately
       update();
     }
@@ -147,7 +157,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     if (!myUpdateInProgress) {
       myUpdateInProgress = true;
       deriveValues(myState.getRecentUpdates());
-      myState.clearRecentUpdates();
       myUpdateInProgress = false;
     }
   }
@@ -216,12 +225,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   protected final void addPath(@NotNull AndroidStudioWizardPath path) {
     myPaths.add(path);
     path.attachToWizard(this);
-    // If this is the first visible path, select it
-    if (myCurrentPath == null && path.isPathVisible()) {
-      myCurrentPath = path;
-    }
     // Rebuild the iterator to avoid concurrent modification exceptions
-    myPathListIterator = new PathIterator(myPaths, myCurrentPath);
+    myPathListIterator = new PathIterator(myPaths);
   }
 
   /**
@@ -324,31 +329,49 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * this method.
    */
   public final void doNextAction() {
-    assert myCurrentPath != null;
-    if (!myCurrentPath.canGoNext()) {
+    if (!canAdvance()) {
       myHost.shakeWindow();
       return;
     }
-
-    Step newStep;
-    if (!myCurrentPath.hasNext() && myPathListIterator.hasNext()) {
-      if (!myCurrentPath.readyToLeavePath()) {
-        myHost.shakeWindow();
-        return;
-      }
-      myCurrentPath = myPathListIterator.next();
-      myCurrentPath.onPathStarted(true /* fromBeginning */);
-      newStep = myCurrentPath.getCurrentStep();
-    } else if (myCurrentPath.hasNext()) {
-      newStep = myCurrentPath.next();
-    } else {
+    Step newStep = showNextStep(myCurrentPath);
+    if (newStep == null) {
       doFinishAction();
-      return;
+    }
+  }
+
+  @Nullable
+  private Step showNextStep(@Nullable AndroidStudioWizardPath path) {
+    Step newStep;
+    if (path != null && path.hasNext()) {
+      newStep = path.next();
+    }
+    else {
+      newStep = null;
+      while (myPathListIterator.hasNext() && newStep == null) {
+        myCurrentPath = myPathListIterator.next();
+        assert myCurrentPath != null;
+        myCurrentPath.onPathStarted(true /* fromBeginning */);
+        newStep = myCurrentPath.getCurrentStep();
+      }
     }
     if (newStep != null) {
       showStep(newStep);
-    } else {
-      LOG.error("Stepped into Path " + myCurrentPath + " which returned a null step");
+    }
+    return newStep;
+  }
+
+  /**
+   * Test if current step and/or path are ok with moving to a next step or completing the wizard.
+   */
+  private boolean canAdvance() {
+    if (myCurrentPath == null) {
+      return true;
+    }
+    else if (myCurrentPath.canGoNext()) {
+      return myCurrentPath.hasNext() || myCurrentPath.readyToLeavePath();
+    }
+    else {
+      return false;
     }
   }
 
@@ -364,19 +387,26 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
 
     Step newStep;
-    if ((myCurrentPath == null || !myCurrentPath.hasPrevious()) && myPathListIterator.hasPrevious()) {
-      myCurrentPath = myPathListIterator.previous();
-      myCurrentPath.onPathStarted(false /* fromBeginning */);
-      newStep = myCurrentPath.getCurrentStep();
-    } else if (myCurrentPath.hasPrevious()) {
+    if (myCurrentPath == null || !myCurrentPath.hasPrevious()) {
+      newStep = null;
+      while (myPathListIterator.hasPrevious() && newStep == null) {
+        myCurrentPath = myPathListIterator.previous();
+        assert myCurrentPath != null;
+        myCurrentPath.onPathStarted(false /* fromBeginning */);
+        newStep = myCurrentPath.getCurrentStep();
+      }
+    }
+    else if (myCurrentPath.hasPrevious()) {
       newStep = myCurrentPath.previous();
-    } else {
+    }
+    else {
       myHost.close(true);
       return;
     }
     if (newStep != null) {
       showStep(newStep);
-    } else {
+    }
+    else {
       LOG.error("Stepped into Path " + myCurrentPath + " which returned a null step");
     }
   }
@@ -486,15 +516,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
     public PathIterator(ArrayList<AndroidStudioWizardPath> list) {
       myList = list;
-      myCurrentIndex = 0;
-    }
-
-    public PathIterator(ArrayList<AndroidStudioWizardPath> list, AndroidStudioWizardPath currentLocation) {
-      this(list);
-      int index = myList.indexOf(currentLocation);
-      if (currentLocation != null && index != -1) {
-        myCurrentIndex = index;
-      }
+      myCurrentIndex = -1;
     }
 
     /**
@@ -587,6 +609,23 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     @Override
     protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
       return DynamicWizard.this.getUndoConfirmationPolicy();
+    }
+  }
+
+  private class WizardUpdate extends Update {
+    public WizardUpdate() {
+      super("Wizard Update");
+    }
+
+    @NotNull
+    @Override
+    public Object[] getEqualityObjects() {
+      return new Object[]{DynamicWizard.this};
+    }
+
+    @Override
+    public void run() {
+      update();
     }
   }
 }
