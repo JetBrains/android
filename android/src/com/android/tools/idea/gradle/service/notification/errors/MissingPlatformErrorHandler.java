@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service.notification.errors;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
@@ -27,6 +28,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -55,6 +57,8 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
       missingPlatform = matcher.matches();
     }
     if (missingPlatform) {
+      String loadError = null;
+
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       String platform = matcher.group(2);
 
@@ -67,7 +71,11 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
         if (version != null) {
           // Is the platform installed?
-          if (localAndroidSdk.getPkgInfo(PkgType.PKG_PLATFORM, version) == null) {
+          LocalPkgInfo pkgInfo = localAndroidSdk.getPkgInfo(PkgType.PKG_PLATFORM, version);
+          if (pkgInfo != null) {
+            loadError = pkgInfo.getLoadError();
+          }
+          if (pkgInfo == null || StringUtil.isNotEmpty(loadError)) {
             hyperlinks.add(new InstallPlatformHyperlink(version));
           }
         }
@@ -80,7 +88,13 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
           hyperlinks.add(new OpenAndroidSdkManagerHyperlink());
         }
       }
-      updateNotification(notification, project, error.getMessage(), hyperlinks);
+
+      String newMsg = error.getMessage();
+      if (StringUtil.isNotEmpty(loadError)) {
+        newMsg = newMsg + "\nPossible cause: " + loadError;
+      }
+
+      updateNotification(notification, project, newMsg, hyperlinks);
       return true;
     }
     return false;
