@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
@@ -33,16 +34,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertNotNull;
 
 public abstract class ToolWindowFixture {
   @NotNull protected final ToolWindow myToolWindow;
   @NotNull protected final Robot myRobot;
 
-  protected ToolWindowFixture(@NotNull String toolWindowId, @NotNull Project project, @NotNull Robot robot) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-    assertNotNull("Could not find tool window " + toolWindowId, toolWindow);
-    myToolWindow = toolWindow;
+  protected ToolWindowFixture(@NotNull final String toolWindowId, @NotNull final Project project, @NotNull Robot robot) {
+    final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
+    Pause.pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
+      @Override
+      public boolean test() {
+        ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
+        toolWindowRef.set(toolWindow);
+        return toolWindow != null;
+      }
+    }, SHORT_TIMEOUT);
+    myToolWindow = toolWindowRef.get();
     myRobot = robot;
   }
 
