@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.SessionParamsFlags;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
@@ -81,7 +82,10 @@ import java.util.Set;
 
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
+import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.INFORMATION;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -205,6 +209,14 @@ public class RenderService implements IImageFactory {
     catch (IOException e) {
       final String message = e.getMessage();
       logger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e);
+      return null;
+    }
+
+    if (TAG_PREFERENCE_SCREEN.equals(getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+      // This should never happen. We've already removed the incompatible targets from the target menu.
+      assert false : "Trying to render preferences with an incompatible target.";
+      // However, if it does occur, just log a plain error message.
+      logger.addMessage(RenderProblem.createPlain(ERROR, "Trying to render preferences with an incompatible target."));
       return null;
     }
 
@@ -594,6 +606,8 @@ public class RenderService implements IImageFactory {
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
 
+    params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(myPsiFile));
+
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
     // for an extended view info, re-render in the same session, and then set a flag
@@ -777,6 +791,17 @@ public class RenderService implements IImageFactory {
   /** Returns true if the given file can be rendered */
   public static boolean canRender(@Nullable PsiFile file) {
     return file != null && LayoutPullParserFactory.isSupported(file);
+  }
+
+  @Nullable
+  public static String getRootTagName(@NotNull PsiFile file) {
+    if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
+      if (file instanceof XmlFile) {
+        XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));
+        return rootTag == null ? null : rootTag.getName();
+      }
+    }
+    return null;
   }
 
   private static final Object RENDERING_LOCK = new Object();
