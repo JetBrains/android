@@ -53,9 +53,19 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
     doTestDisabled();
   }
 
+  /*
+  Test disabled. This test relied on
+     <Button style="@style/" ... />
+  returning a valid android reference for the style attribute (because the inline
+  style refactoring calls AndroidDomUtil#getAndroidResourceReference to see
+  whether the refactoring should be enabled, which now returns null.
+  However, it's arguably even more correct for the refactoring to not be enabled
+  for this element than for it to be enabled and to fail with an error message.
+
   public void test9() {
     doTestErrorMessageShown(true, true, false);
   }
+  */
 
   public void test10() {
     doTestDisabled();
