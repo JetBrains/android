@@ -899,6 +899,15 @@ public class NavigationView extends JComponent {
     setPreferredSize(max);
   }
 
+  private void bringToFront(@Nullable State state) {
+    if (state != null) {
+      AndroidRootComponent menuComponent = getStateComponentAssociation().keyToValue.get(state);
+      if (menuComponent != null) {
+        setComponentZOrder(menuComponent, 0);
+      }
+    }
+  }
+
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
     Component component = getComponentAt(mouseDownLocation);
     if (component instanceof NavigationView) {
@@ -912,7 +921,8 @@ public class NavigationView extends JComponent {
         if (state == null) {
           return Selections.NULL;
         }
-        setComponentZOrder(androidRootComponent, 0);
+        bringToFront(state);
+        bringToFront(myNavigationModel.findAssociatedMenuState(state));
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition, myRenderingParams,
                                                             mouseDownLocation, state, myTransform);
       }
