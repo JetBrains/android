@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
 import java.io.File;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +44,7 @@ import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
   public static final String GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found";
+  public static final String CONNECTION_PERMISSION_DENIED_PREFIX = "Connection to the Internet denied.";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
 
   private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
@@ -77,6 +79,14 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (StringUtil.startsWith(rootCauseText, "org.gradle.api.internal.MissingMethodException")) {
       String method = parseMissingMethod(rootCauseText);
       return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
+    }
+
+    if (rootCause instanceof SocketException) {
+      String message = rootCause.getMessage();
+      if (message != null && message.contains("Permission denied: connect")) {
+        // Location of build.gradle is useless for this error. Omitting it.
+        return createUserFriendlyError(CONNECTION_PERMISSION_DENIED_PREFIX, null);
+      }
     }
 
     if (rootCause instanceof UnknownHostException) {
