@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.SdkConstants;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
+import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.LabelWithEditLink;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
@@ -196,7 +197,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
     File skinFile = defaultHardware.getSkinFile();
     if (skinFile != null) {
-      myState.put(CUSTOM_SKIN_PATH_KEY, skinFile.getAbsolutePath());
+      myState.put(CUSTOM_SKIN_PATH_KEY, skinFile.getPath());
     }
   }
 
@@ -257,6 +258,22 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       return false;
     }
 
+    File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinPath == null && myState.containsKey(CUSTOM_SKIN_PATH_KEY)) {
+      String pathStr = myState.get(CUSTOM_SKIN_PATH_KEY);
+      if (pathStr != null && !pathStr.isEmpty()) {
+        skinPath = new File(pathStr);
+      }
+    }
+    if (skinPath != null && !skinPath.isAbsolute()) {
+      skinPath = new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), skinPath.getPath());
+    }
+    if (skinPath != null) {
+      File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
+      if (!layoutFile.isFile()) {
+        setErrorHtml("The skin directory does not point to a valid skin.");
+      }
+    }
     return myState.get(DEVICE_DEFINITION_KEY) != null;
   }
 
@@ -699,11 +716,8 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       @Override
       public File deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable File currentValue) {
         String path = state.get(CUSTOM_SKIN_PATH_KEY);
-        if (path != null) {
-          File file = new File(path);
-          if (file.isDirectory()) {
-            return file;
-          }
+        if (path != null && !path.isEmpty()) {
+          return new File(path);
         }
         return null;
       }

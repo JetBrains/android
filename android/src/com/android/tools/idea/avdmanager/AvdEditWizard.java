@@ -20,11 +20,12 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.tools.idea.sdk.wizard.SdkComponentInstallPath;
+import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.SingleStepPath;
@@ -243,7 +244,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     File skinFile = state.get(CUSTOM_SKIN_FILE_KEY);
     if (skinFile == null) {
-      skinFile = device.getDefaultHardware().getSkinFile();
+      skinFile = getHardwareSkinPath(device.getDefaultHardware());
     }
 
     // Add any values that we can calculate
@@ -278,6 +279,18 @@ public class AvdEditWizard extends DynamicWizard {
 
    return AvdManagerConnection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
                                            skinFile, hardwareProperties, false);
+  }
+
+  @Nullable
+  public static File getHardwareSkinPath(@NotNull Hardware hardware) {
+    File path = hardware.getSkinFile();
+    if (path != null && !path.isAbsolute()) {
+      File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
+      if (resourceDir != null) {
+        path = new File(resourceDir, path.getPath());
+      }
+    }
+    return path;
   }
 
   @NotNull
