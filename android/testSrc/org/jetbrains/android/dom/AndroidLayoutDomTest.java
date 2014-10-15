@@ -902,6 +902,11 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testResourceValidationErrors() throws Throwable {
+    copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
+    doTestHighlighting();
+  }
+
   public void testAttrReferences1() throws Throwable {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     doTestHighlighting();
