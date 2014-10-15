@@ -1218,12 +1218,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     @NonNull
     @Override
-    public Set<File> getJniDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NonNull
-    @Override
     public Set<File> getResDirectories() {
       String resRelPath = getProperties().RES_FOLDER_RELATIVE_PATH;
       final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(getModule(), resRelPath, true);
@@ -1240,6 +1234,18 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @NonNull
     @Override
     public Collection<File> getJniLibsDirectories() {
+      return Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
+    public Collection<File> getCDirectories() {
+      return Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
+    public Collection<File> getCppDirectories() {
       return Collections.emptyList();
     }
   }

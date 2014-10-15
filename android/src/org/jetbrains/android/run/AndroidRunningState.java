@@ -17,7 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.build.SplitOutput;
+import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
@@ -927,7 +927,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             AndroidArtifact testArtifactInfo = ideaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
             if (testArtifactInfo != null) {
               AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
-              File testApk = output.getOutputFile();
+              File testApk = output.getMainOutputFile().getOutputFile();
               if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
                 return false;
               }
@@ -1020,19 +1020,19 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     // is in use by this project.
     if (!hasSplitsModel(outputs.get(0))) {
       LOG.info("Using older Gradle model w/o information about split apks");
-      return outputs.get(0).getOutputFile();
+      return outputs.get(0).getMainOutputFile().getOutputFile();
     }
     else {
       List<String> abis = device.getAbis();
       int density = device.getDensity();
       Set<String> variantAbiFilters = getVariantAbiFilters(mainArtifact);
-      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
-      if (output == null) {
+      List<File> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
+      if (apkFiles.isEmpty()) {
         String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
         LOG.error(message);
         return null;
       }
-      return output.getOutputFile();
+      return apkFiles.get(0);
     }
   }
 
@@ -1042,7 +1042,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       Boolean result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Boolean>() {
         @Override
         public Boolean call() throws Exception {
-          androidArtifactOutput.getAbiFilter();
+          androidArtifactOutput.getMainOutputFile().getFilter(OutputFile.ABI);
           return true;
         }
       });
