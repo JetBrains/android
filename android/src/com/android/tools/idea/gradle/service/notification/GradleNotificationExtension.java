@@ -60,6 +60,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                        new ClassLoadingErrorHandler(),
                        new ObjectStreamErrorHandler(),
                        new ConnectionPermissionDeniedErrorHandler(),
+                       new DaemonContextMismatchErrorHandler(),
                        new GenericErrorHandler()));
   }
 
