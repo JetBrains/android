@@ -49,7 +49,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testUnsupportedGradleVersion() throws IOException {
     // Open the project without updating the version of the plug-in
-    File projectPath = setUpProject("OldAndroidPlugin", true, false /* do not update plug-in version to 0.13 */, "1.12");
+    File projectPath = setUpProject("OldAndroidPlugin", true, false /* do not update plug-in version to 0.14 */, "1.12");
     IdeFrameFixture projectFrame = openProject(projectPath);
 
     // Ensure we have an old, unsupported Gradle in the wrapper.
@@ -60,9 +60,10 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSyncAndExpectFailure();
 
     MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("The project is using an unsupported version of Gradle"));
+    MessageFixture msg = syncMessages.findMessage(ERROR,
+                                                  firstLineStartingWith("The project is using an unsupported version of the Android Gradle"));
 
-    HyperlinkFixture hyperlink = message.findHyperlink("Fix Gradle wrapper and re-import project");
+    HyperlinkFixture hyperlink = msg.findHyperlink("Fix plug-in version and re-import project");
     hyperlink.click();
 
     projectFrame.waitForGradleProjectSyncToFinish();

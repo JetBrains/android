@@ -1014,61 +1014,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return null;
     }
 
-    // version 0.13 of the Gradle builder model introduces new APIs. We first need to check which version
-    // is in use by this project.
-    if (!hasSplitsModel(outputs.get(0))) {
-      LOG.info("Using older Gradle model w/o information about split apks");
-      return outputs.get(0).getMainOutputFile().getOutputFile();
+    List<String> abis = device.getAbis();
+    int density = device.getDensity();
+    Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
+    List<File> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
+    if (apkFiles.isEmpty()) {
+      String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
+      LOG.error(message);
+      return null;
     }
-    else {
-      List<String> abis = device.getAbis();
-      int density = device.getDensity();
-      Set<String> variantAbiFilters = getVariantAbiFilters(mainArtifact);
-      List<File> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
-      if (apkFiles.isEmpty()) {
-        String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
-        LOG.error(message);
-        return null;
-      }
-      return apkFiles.get(0);
-    }
-  }
-
-  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.12.x, whichever is earlier (b.android.com/76248)
-  private static boolean hasSplitsModel(@NotNull final AndroidArtifactOutput androidArtifactOutput) {
-    try {
-      Boolean result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          androidArtifactOutput.getMainOutputFile().getFilter(OutputFile.ABI);
-          return true;
-        }
-      });
-      if (result != null) {
-        return result;
-      }
-    }
-    catch (Exception e) {
-      // ignored. Callable does not throw checked exceptions.
-    }
-    return false;
-  }
-
-  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.13.x, whichever is earlier (b.android.com/76248)
-  @Nullable
-  private static Set<String> getVariantAbiFilters(@NotNull final AndroidArtifact artifact) {
-    try {
-      return GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Set<String>>() {
-        @Override
-        @Nullable
-        public Set<String> call() throws Exception {
-          return artifact.getAbiFilters();
-        }
-      });
-    } catch (Exception e) {
-      // ignored. Callable does not throw checked exception.
-    }
-    return null;
+    return apkFiles.get(0);
   }
 
   private boolean checkPackageNames() {
