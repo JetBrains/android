@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.editors.navigation.model.ModelDimension;
 import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
@@ -23,7 +22,6 @@ import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.rendering.RenderedView;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.HyperlinkLabel;
@@ -211,16 +209,6 @@ class Selections {
       myTransform = transform;
     }
 
-    @Nullable
-    private static Transition findTransition(NavigationModel navigationModel, @NonNull Condition<Transition> condition) {
-      for (Transition transition : navigationModel.getTransitions()) {
-        if (condition.value(transition)) {
-          return transition;
-        }
-      }
-      return null;
-    }
-
     private void moveTo(Point location, boolean snap) {
       Point newLocation = sum(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
@@ -229,15 +217,8 @@ class Selections {
       Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
       Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
       stateToLocation.put(myState, myTransform.viewToModel(newLocation));
-      final Locator src = Locator.of(myState, null);
-      Transition menuTransition = findTransition(myNavigationModel, new Condition<Transition>() {
-        @Override
-        public boolean value(Transition transition) {
-          return src.equals(transition.getSource()) && transition.getDestination().getState() instanceof MenuState;
-        }
-      });
-      if (menuTransition != null) {
-        State menuState = menuTransition.getDestination().getState();
+      MenuState menuState = myNavigationModel.findAssociatedMenuState(myState);
+      if (menuState != null) {
         Point delta = diff(newLocation, oldLocation);
         stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
       }
