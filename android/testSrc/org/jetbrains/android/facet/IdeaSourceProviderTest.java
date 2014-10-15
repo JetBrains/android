@@ -329,8 +329,11 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     sb.append("Renderscript Directories: ");
     sb.append(fileSetToString(sourceProvider.getRenderscriptDirectories(), baseFile));
     sb.append('\n');
-    sb.append("JNI Directories: ");
-    sb.append(fileSetToString(sourceProvider.getJniDirectories(), baseFile));
+    sb.append("C Directories: ");
+    sb.append(fileSetToString(sourceProvider.getCDirectories(), baseFile));
+    sb.append('\n');
+    sb.append("Cpp Directories: ");
+    sb.append(fileSetToString(sourceProvider.getCppDirectories(), baseFile));
     sb.append('\n');
     sb.append("Resources Directories: ");
     sb.append(fileSetToString(sourceProvider.getResourcesDirectories(), baseFile));
@@ -368,8 +371,11 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     sb.append("Renderscript Directories: ");
     sb.append(fileSetToString(sourceProvider.getRenderscriptDirectories(), baseFile));
     sb.append('\n');
-    sb.append("JNI Directories: ");
-    sb.append(fileSetToString(sourceProvider.getJniDirectories(), baseFile));
+    sb.append("C Directories: ");
+    sb.append(fileSetToString(sourceProvider.getCDirectories(), baseFile));
+    sb.append('\n');
+    sb.append("Cpp Directories: ");
+    sb.append(fileSetToString(sourceProvider.getCppDirectories(), baseFile));
     sb.append('\n');
     sb.append("Resources Directories: ");
     sb.append(fileSetToString(sourceProvider.getResourcesDirectories(), baseFile));

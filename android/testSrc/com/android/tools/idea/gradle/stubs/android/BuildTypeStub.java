@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.NonNull;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
+import com.android.builder.model.SigningConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +89,12 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   public boolean isEmbedMicroApp() {
+    throw new UnsupportedOperationException();
+  }
+
+  @com.android.annotations.Nullable
+  @Override
+  public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
   }
 

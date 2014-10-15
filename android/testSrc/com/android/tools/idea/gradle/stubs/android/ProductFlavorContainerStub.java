@@ -52,7 +52,8 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     mySourceProvider.addAidlDirectory("src/" + flavorName + "/aidl");
     mySourceProvider.addAssetsDirectory("src/" + flavorName + "/assets");
     mySourceProvider.addJavaDirectory("src/" + flavorName + "/java");
-    mySourceProvider.addJniDirectory("src/" + flavorName + "/jni");
+    mySourceProvider.addCDirectory("src/" + flavorName + "/c");
+    mySourceProvider.addCppDirectory("src/" + flavorName + "/cpp");
     mySourceProvider.addRenderscriptDirectory("src/" + flavorName + "/renderscript");
     mySourceProvider.addResDirectory("src/" + flavorName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + flavorName + "/resources");
@@ -63,7 +64,8 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     myInstrumentationTestSourceProvider.addAidlDirectory("src/instrumentTest" + nameSuffix + "/aidl");
     myInstrumentationTestSourceProvider.addAssetsDirectory("src/instrumentTest" + nameSuffix + "/assets");
     myInstrumentationTestSourceProvider.addJavaDirectory("src/instrumentTest" + nameSuffix + "/java");
-    myInstrumentationTestSourceProvider.addJniDirectory("src/instrumentTest" + nameSuffix + "/jni");
+    myInstrumentationTestSourceProvider.addCDirectory("src/instrumentTest" + nameSuffix + "/c");
+    myInstrumentationTestSourceProvider.addCppDirectory("src/instrumentTest" + nameSuffix + "/cpp");
     myInstrumentationTestSourceProvider.addRenderscriptDirectory("src/instrumentTest" + nameSuffix + "/renderscript");
     myInstrumentationTestSourceProvider.addResDirectory("src/instrumentTest" + nameSuffix + "/rs");
     myInstrumentationTestSourceProvider.addResourcesDirectory("src/instrumentTest" + nameSuffix + "/resources");
