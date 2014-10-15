@@ -161,7 +161,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
           //noinspection ConstantConditions
           if (classesFolder == null) {
             AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifactInfo);
-            File file = output.getOutputFile();
+            File file = output.getMainOutputFile().getOutputFile();
             File buildFolder = file.getParentFile().getParentFile();
             classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
           }
