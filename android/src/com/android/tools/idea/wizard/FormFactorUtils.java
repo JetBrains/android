@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -24,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -206,5 +209,43 @@ public class FormFactorUtils {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Create an image showing icons for each of the available form factors.
+   * @param component Icon will be drawn in the context of the given {@code component}
+   * @param requireEmulator If true, only include icons for form factors that have an emulator available.
+   * @return The new Icon
+   */
+  @Nullable
+  public static Icon getFormFactorsImage(JComponent component, boolean requireEmulator) {
+    int width = 0;
+    int height = 0;
+    for (DeviceMenuAction.FormFactor formFactor : DeviceMenuAction.FormFactor.values()) {
+      Icon icon = formFactor.getLargeIcon();
+      height = icon.getIconHeight();
+      if (!requireEmulator || formFactor.hasEmulator()) {
+        width += formFactor.getLargeIcon().getIconWidth();
+      }
+    }
+    //noinspection UndesirableClassUsage
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = image.createGraphics();
+    int x = 0;
+    for (DeviceMenuAction.FormFactor formFactor : DeviceMenuAction.FormFactor.values()) {
+      if (requireEmulator && !formFactor.hasEmulator()) {
+        continue;
+      }
+      Icon icon = formFactor.getLargeIcon();
+      icon.paintIcon(component, graphics, x, 0);
+      x += icon.getIconWidth();
+    }
+    if (graphics != null) {
+      graphics.dispose();
+      return new ImageIcon(image);
+    }
+    else {
+      return null;
+    }
   }
 }
