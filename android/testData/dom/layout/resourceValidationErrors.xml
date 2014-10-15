@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- OK -->
+    <TextView android:id="@+id/my_name" />
+    <TextView android:background="@null" />
+    <TextView android:text="" />
+    <TextView android:padding="1dp" />
+    <TextView android:text="@android:string/cancel" />
+    <TextView android:id="?myAttr"/>
+    <TextView android:id="?android:absListViewStyle" />
+
+    <!-- ERRORS -->
+    <TextView android:id="<error descr="''' is not a valid resource name character">?myAttr'</error>"/>
+    <TextView android:id="<error descr="'+' is not a valid resource name character">@+id/g+login</error>" />
+    <TextView android:id="<error descr="Resource name cannot be a Java keyword (new)">@+id/new</error>" />
+    <TextView android:id="<error descr="Resource name cannot be a Java keyword (null)">@string/null</error>" />
+    <TextView android:id="<error descr="Unknown resource type strings">@strings/name</error>" />
+    <TextView android:id="<error descr="Missing resource name">@string/</error>" />
+    <TextView android:id="<error descr="Missing resource type">@</error>" />
+    <TextView android:id="<error descr="Missing resource type">@android:</error>" />
+    <TextView android:id="<error descr="Missing resource name">@android:string/</error>" />
+
+</GridLayout>
