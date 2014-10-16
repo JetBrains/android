@@ -53,7 +53,7 @@ import java.util.Set;
  */
 public class SdkComponentsStep extends FirstRunWizardStep {
   private final InstallableComponent[] myInstallableComponents;
-  private final ScopedStateStore.Key<Boolean> myKeyShouldDownload;
+  private final ScopedStateStore.Key<Boolean> myKeyInstallSdk;
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
@@ -66,14 +66,14 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private boolean myUserEditedPath = false;
 
   public SdkComponentsStep(InstallableComponent[] components,
-                           ScopedStateStore.Key<Boolean> keyShouldDownload,
+                           ScopedStateStore.Key<Boolean> keyInstallSdk,
                            ScopedStateStore.Key<String> sdkDownloadPathKey) {
     super("SDK Settings");
 
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
-    myKeyShouldDownload = keyShouldDownload;
+    myKeyInstallSdk = keyInstallSdk;
     mySdkDownloadPathKey = sdkDownloadPathKey;
     myComponentDescription.setEditable(false);
     myComponentDescription.setContentType("text/html");
@@ -165,20 +165,12 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     return file;
   }
 
-  @Override
-  public boolean validate() {
-    String error = validatePath(myState.get(mySdkDownloadPathKey));
-    setErrorHtml(myUserEditedPath ? error : null);
-    return error == null;
-  }
-
   @Nullable
-  private String validatePath(@Nullable String path) {
+  public static String validateDestinationPath(@Nullable String path, long componentsSize) {
     if (StringUtil.isEmpty(path)) {
       return "Path is empty";
     }
     else {
-      myUserEditedPath = true;
       File file = new File(path);
       while (file != null && !file.exists()) {
         if (!PathUtil.isValidFileName(file.getName())) {
@@ -194,13 +186,23 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         return "Selected location is not writeable";
       }
       else {
-        long size = getComponentsSize();
-        if (size >= diskSpace) {
+        if (componentsSize >= diskSpace) {
           return "Not enough disk space";
         }
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean validate() {
+    String path = myState.get(mySdkDownloadPathKey);
+    if (!StringUtil.isEmpty(path)) {
+      myUserEditedPath = true;
+    }
+    String error = validateDestinationPath(path, getComponentsSize());
+    setErrorHtml(myUserEditedPath ? error : null);
+    return error == null;
   }
 
   @Override
@@ -286,7 +288,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return myState.getNotNull(myKeyShouldDownload, false);
+    InstallerData data = InstallerData.get(myState);
+    boolean hasSdk = data.hasValidSdkLocation();
+    Boolean shouldInstallSdk = myState.getNotNull(myKeyInstallSdk, true);
+    return !hasSdk && shouldInstallSdk;
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
@@ -330,6 +335,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         myCheckBox.setEnabled(installableComponent.isOptional());
         myCheckBox.setText(installableComponent.getLabel());
         myCheckBox.setSelected(isSelected((InstallableComponent)value));
+        //noinspection ConstantConditions
         while (installableComponent.getParent() != null) {
           indent++;
           installableComponent = installableComponent.getParent();
