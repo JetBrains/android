@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.SystemProperties;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
@@ -31,31 +37,52 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_1_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
+import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
-  public void testUnsupportedGradleVersion() throws IOException {
+  public void testUnsupportedPluginAndGradleVersion() throws IOException {
     // Open the project without updating the version of the plug-in
-    File projectPath = setUpProject("OldAndroidPlugin", true, false /* do not update plug-in version to 0.14 */, "1.12");
-    IdeFrameFixture projectFrame = openProject(projectPath);
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
-    // Ensure we have an old, unsupported Gradle in the wrapper.
-    File wrapperPropertiesFile = findWrapperPropertiesFile(projectFrame.getProject());
+    final Project project = projectFrame.getProject();
+
+    // Use old, unsupported plugin version.
+    File buildFilePath = new File(project.getBasePath(), SdkConstants.FN_BUILD_GRADLE);
+    final VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
+    assertNotNull(buildFile);
+    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+      @Override
+      public void run() {
+        new GradleBuildFile(buildFile, project).setValue(PLUGIN_VERSION, "0.12.+");
+      }
+    });
+
+    // Use old, unsupported Gradle in the wrapper.
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
     assertNotNull(wrapperPropertiesFile);
-    updateGradleDistributionUrl("1.5", wrapperPropertiesFile);
+    updateGradleDistributionUrl("1.12", wrapperPropertiesFile);
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
@@ -257,5 +284,93 @@ public class GradleSyncTest extends GuiTestCase {
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("The newly created daemon"));
 
     message.findHyperlink("Open JDK Settings");
+  }
+
+  @Test @IdeGuiTest
+  public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    projectFrame.useLocalGradleDistribution(getUnsupportedGradleHome())
+                .requestProjectSync();
+
+    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
+    findGradleSyncMessageDialog(myRobot).clickCancel();
+
+    String gradleHome = System.getProperty(GRADLE_2_1_HOME_PROPERTY);
+    if (isEmpty(gradleHome)) {
+      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_1_HOME_PROPERTY));
+    }
+
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome))
+                          .clickOk()
+                          .requireNotShowing();
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+  }
+
+  @Test @IdeGuiTest
+  public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    projectFrame.deleteGradleWrapper()
+                .useLocalGradleDistribution(getUnsupportedGradleHome())
+                .requestProjectSync();
+
+    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
+    findGradleSyncMessageDialog(myRobot).clickCancel();
+
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    chooseGradleHomeDialog.clickCancel();
+
+    projectFrame.waitForGradleProjectSyncToFail();
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessagesToolWindowFixture.MessageFixture msg =
+      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
+    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click();
+
+    projectFrame.waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
+  }
+
+  @Test @IdeGuiTest
+  public void testCreateWrapperWhenLocalDistributionPathIsNotSet() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    projectFrame.deleteGradleWrapper()
+      .useLocalGradleDistribution("")
+      .requestProjectSync();
+
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    findGradleSyncMessageDialog(myRobot).clickOk();
+
+    projectFrame.waitForGradleProjectSyncToFinish()
+      .requireGradleWrapperSet();
+  }
+
+  @Test @IdeGuiTest
+  public void testCreateWrapperWhenLocalDistributionPathDoesNotExist() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
+    projectFrame.deleteGradleWrapper()
+      .useLocalGradleDistribution(nonExistingDirPath.getPath())
+      .requestProjectSync();
+
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    findGradleSyncMessageDialog(myRobot).clickOk();
+
+    projectFrame.waitForGradleProjectSyncToFinish()
+      .requireGradleWrapperSet();
+  }
+
+  @NotNull
+  private static String getUnsupportedGradleHome() {
+    String unsupportedGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
+    if (isEmpty(unsupportedGradleHome)) {
+      fail("Please specify the path of a local, Gradle 1.12 distribution using the system property " + quote(GRADLE_1_12_HOME_PROPERTY));
+    }
+    return unsupportedGradleHome;
   }
 }
