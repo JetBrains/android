@@ -50,7 +50,7 @@ layouts {
     part2 {
       name device
       x 514
-      y 350
+      y 1885
       rotation 3
     }
   }
