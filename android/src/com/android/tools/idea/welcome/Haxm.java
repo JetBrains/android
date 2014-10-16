@@ -56,6 +56,7 @@ public final class Haxm extends InstallableComponent {
     .createFileDescription(FirstRunWizardDefaults.getHaxmDownloadUrl(), FirstRunWizardDefaults.HAXM_INSTALLER_ARCHIVE_FILE_NAME);
 
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
+  private ScopedStateStore myState;
 
   public Haxm(ScopedStateStore.Key<Boolean> isCustomInstall) {
     super("SDK Emulator Extra - Intel® HAXM", 2306867, KEY_INSTALL_HAXM);
@@ -132,6 +133,7 @@ public final class Haxm extends InstallableComponent {
 
   @Override
   public void init(ScopedStateStore state) {
+    myState = state;
     state.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     state.put(KEY_INSTALL_HAXM, true);
   }
@@ -147,11 +149,16 @@ public final class Haxm extends InstallableComponent {
   }
 
   @Override
-  public void perform(@NotNull InstallContext context, @NotNull ScopedStateStore parameters) throws WizardException {
+  public boolean hasVisibleStep() {
+    return true;
+  }
+
+  @Override
+  public void perform(@NotNull InstallContext context) throws WizardException {
     ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
     progressIndicator.setIndeterminate(true);
     progressIndicator.setText("Running Intel® HAXM installer");
-    int memorySize = parameters.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+    int memorySize = myState.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     File sourceLocation = context.getExpandedLocation(myHaxmInstaller);
     GeneralCommandLine commandLine;
     if (SystemInfo.isMac) {
