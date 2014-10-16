@@ -750,9 +750,12 @@ public class ConfigurationMatcher {
       mDensitySort.put(Density.HIGH.getDpiValue(), 1);
       mDensitySort.put(Density.MEDIUM.getDpiValue(), 2);
       mDensitySort.put(Density.XHIGH.getDpiValue(), 3);
+      mDensitySort.put(Density.DPI_400.getDpiValue(), 4);
       mDensitySort.put(Density.XXHIGH.getDpiValue(), 4);
-      mDensitySort.put(Density.TV.getDpiValue(), 5);
-      mDensitySort.put(Density.LOW.getDpiValue(), 6);
+      mDensitySort.put(Density.DPI_560.getDpiValue(), 6);
+      mDensitySort.put(Density.XXXHIGH.getDpiValue(), 7);
+      mDensitySort.put(Density.TV.getDpiValue(), 8);
+      mDensitySort.put(Density.LOW.getDpiValue(), 9);
 
       mIdRank = idRank;
     }
