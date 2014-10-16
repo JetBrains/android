@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.welcome.FirstRunWelcomeStep;
-import com.intellij.ui.JBColor;
+import com.android.tools.idea.wizard.FormFactorUtils;
 import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -55,7 +52,7 @@ public class EmptyAvdListPanel extends JPanel {
       }
     });
     myDashboardText.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    myIcons.setIcon(FirstRunWelcomeStep.getFormFactorsImage(myIcons));
+    myIcons.setIcon(FormFactorUtils.getFormFactorsImage(myIcons, true));
   }
 
   private void createUIComponents() {

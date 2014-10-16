@@ -153,6 +153,10 @@ public class DeviceMenuAction extends FlatComboAction {
           return AndroidIcons.FormFactors.Mobile_128;
       }
     }
+
+    public boolean hasEmulator() {
+      return this != GLASS;
+    }
   }
 
   @Override
