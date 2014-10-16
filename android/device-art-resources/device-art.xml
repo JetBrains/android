@@ -31,14 +31,28 @@
                  back="back.png" lights="fore.png" mask="mask.png"/>
   </device>
 
-  <device id="tv_1080p" name="Android TV 1080p" url="TBD" physicalSize="48" physicalHeight="27" density="XHDPI">
+  <device id="tv_1080p" name="Android TV 1080p" url="http://www.google.com/nexus/player/" physicalSize="48" physicalHeight="27" density="XHDPI">
     <orientation name="land" size="2090,1255" screenPos="85,59" screenSize="1920,1080" shadow="shadow.png"
                  back="back.png" lights="fore.png"/>
   </device>
 
-  <device id="tv_720p" name="Android TV 720p" url="TBD" physicalSize="47.9" physicalHeight="27.0" density="TVDPI">
+  <device id="tv_720p" name="Android TV 720p" url="http://www.google.com/nexus/player/" physicalSize="47.9" physicalHeight="27.0" density="TVDPI">
     <orientation name="land" size="1394,837" screenPos="57,39" screenSize="1280,720" shadow="shadow.png"
                  back="back.png" lights="fore.png"/>
+  </device>
+
+  <device id="nexus_9" name="Nexus 9" url="http://www.google.com/nexus/9/" physicalSize="9" physicalHeight="9" density="XHDPI">
+    <orientation name="port" size="2233,3075" screenPos="348,514" screenSize="1536,2048" crop="129,250,1978,2631" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="3075,2233" screenPos="514,350" screenSize="2048,1536" crop="113,250,2854,1785" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="nexus_6" name="Nexus 6" url="http://www.google.com/nexus/6/" physicalSize="6" physicalHeight="6" density="560DPI">
+    <orientation name="port" size="2092,3512" screenPos="325,489" screenSize="1440,2560" crop="96,250,1896,3054" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="3512,2092" screenPos="489,327" screenSize="2560,1440" crop="171,251,3142,1639" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
   </device>
 
   <device id="nexus_5" name="Nexus 5" url="http://www.google.com/nexus/5/" physicalSize="5" physicalHeight="5.43" density="XXHDPI">
