@@ -123,7 +123,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
                                                                     ScopedStateStore.Scope.STEP, String.class);
 
   public ConfigureAvdOptionsStep(@Nullable Disposable parentDisposable) {
-    super("Configure AVD", null, null, parentDisposable);
+    super("Android Virtual Device (AVD)", "Verify Configuration", null, parentDisposable);
     myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
     setBodyComponent(myRoot);
     registerAdvancedOptionsVisibility();
