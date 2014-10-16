@@ -32,6 +32,7 @@ import java.io.File;
  */
 public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
+  private JdkLocationStep myJdkLocationStep = new JdkLocationStep(KEY_JDK_LOCATION);
 
   public static boolean isNeeded() {
     Sdk defaultJdk = DefaultSdks.getDefaultJdk();
@@ -45,7 +46,8 @@ public class SetupJdkPath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    addStep(new JdkLocationStep(KEY_JDK_LOCATION));
+    myState.put(KEY_JDK_LOCATION, InstallerData.get(myState).getJavaDir());
+    addStep(myJdkLocationStep);
   }
 
   @NotNull
