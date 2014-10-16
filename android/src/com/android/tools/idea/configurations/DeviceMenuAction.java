@@ -261,21 +261,6 @@ public class DeviceMenuAction extends FlatComboAction {
 
   private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
     for (final Device device : devices) {
-      if (device.getId().equals("Nexus 5")) {
-        // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
-        // fixed in that revision
-        Configuration configuration = myRenderContext.getConfiguration();
-        if (configuration != null) {
-          IAndroidTarget target = configuration.getTarget();
-          if (target == null) {
-            continue;
-          }
-          AndroidVersion version = target.getVersion();
-          if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
-            continue;
-          }
-        }
-      }
       String label = getLabel(device, true /*nexus*/);
       Icon icon = FormFactor.getFormFactor(device).getIcon();
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
