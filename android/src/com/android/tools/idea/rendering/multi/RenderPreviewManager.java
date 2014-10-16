@@ -1136,7 +1136,7 @@ public class RenderPreviewManager implements Disposable {
             interesting = false;
           }
 
-          if (!canScaleNinePatch && d == Density.TV) {
+          if (!canScaleNinePatch && d != null && !d.isRecommended()) {
             interesting = false;
           }
         }
