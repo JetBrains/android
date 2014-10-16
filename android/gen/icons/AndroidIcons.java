@@ -225,5 +225,6 @@ public class AndroidIcons {
     public static final Icon IceCreamSandwich = load("/icons/versions/IceCreamSandwich.png"); // 512x512
     public static final Icon JellyBean = load("/icons/versions/Jelly Bean.png"); // 512x512
     public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 512x512
+    public static final Icon Lollipop = load("/icons/versions/Lollipop.png");
   }
 }
