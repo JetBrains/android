@@ -15,8 +15,19 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.Required;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.resources.ResourceValue;
 
-@DefinesXml
-public interface VectorViewport extends DrawableDomElement {
+public interface AnimatedVectorTarget extends DrawableDomElement {
+  @Required
+  AndroidAttributeValue<String> getName();
+
+  @Convert(ResourceReferenceConverter.class)
+  @Required
+  @AndroidResourceType("anim")
+  AndroidAttributeValue<ResourceValue> getAnimation();
 }
