@@ -675,17 +675,18 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     else if (element instanceof AnimatedStateListTransition) {
       registerAttributes(facet, element, "AnimatedStateListDrawableTransition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
-    /* Being considered:
     else if (element instanceof VectorPath) {
       registerAttributes(facet, element, "VectorDrawablePath", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
-    else if (element instanceof VectorViewport) {
-      registerAttributes(facet, element, "VectorDrawableViewport", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    else if (element instanceof VectorGroup) {
+      registerAttributes(facet, element, "VectorDrawableGroup", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
-    else if (element instanceof VectorSize) {
-      registerAttributes(facet, element, "VectorDrawableSize", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    else if (element instanceof VectorClipPath) {
+      registerAttributes(facet, element, "VectorDrawableClipPath", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
-    */
+    else if (element instanceof AnimatedVectorTarget) {
+      registerAttributes(facet, element, "AnimatedVectorDrawableTarget", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
   }
 
   public static void registerExtensionsForTransition(final AndroidFacet facet,
