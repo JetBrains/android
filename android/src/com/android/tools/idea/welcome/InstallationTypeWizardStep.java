@@ -51,4 +51,8 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
     return myStandardRadioButton;
   }
 
+  @Override
+  public boolean isStepVisible() {
+    return !InstallerData.get(myState).exists();
+  }
 }
