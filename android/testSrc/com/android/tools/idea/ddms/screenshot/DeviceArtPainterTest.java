@@ -39,7 +39,6 @@ public class DeviceArtPainterTest extends TestCase {
     generateCropData();
   }
 
-
   public void testRendering() throws Exception {
     // This test is disabled but code is preserved here; this is handy for quickly checking rendering results
     // when tweaking the code to assemble composite images. (Make sure you also turn off the thumbnail cache first!
