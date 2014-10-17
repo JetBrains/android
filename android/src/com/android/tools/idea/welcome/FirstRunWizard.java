@@ -22,7 +22,6 @@ import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.SingleStepPath;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,11 +46,6 @@ public class FirstRunWizard extends DynamicWizard {
   }
 
   public static boolean isNeeded() {
-    if (AndroidPlugin.isGuiTestingMode()) {
-      // For now we assume that GUI tests set up the SDK (they do.) We'll revisit this once we write GUI tests for FirstRunWizard.
-      return false;
-    }
-
     return SetupJdkPath.isNeeded() || InstallComponentsPath.isNeeded();
   }
 
@@ -60,7 +54,12 @@ public class FirstRunWizard extends DynamicWizard {
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
     addPath(myJdkPath);
     addPath(myComponentsPath);
-    addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
+    addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable()){
+      @Override
+      public boolean isStepVisible() {
+        return super.isStepVisible() && !InstallerData.get(myState).exists();
+      }
+    }));
     addPath(new SingleStepPath(new SetupProgressStep()));
     super.init();
   }
@@ -77,7 +76,7 @@ public class FirstRunWizard extends DynamicWizard {
     }
   }
 
-  private void doLongRunningOperation(@NotNull ProgressStep progressStep)
+  private void doLongRunningOperation(@NotNull final ProgressStep progressStep)
     throws WizardException {
     for (AndroidStudioWizardPath path : myPaths) {
       if (progressStep.isCanceled()) {
