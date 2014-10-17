@@ -427,6 +427,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
+    item = (AndroidTargetComboBoxItem)myCompileWith.getSelectedItem();
+    if (item != null) {
+      myTemplateState.put(ATTR_BUILD_API, item.apiLevel);
+      if (item.target != null) {
+        myTemplateState.put(ATTR_BUILD_API_STRING, item.target.getVersion().getApiString());
+      } else {
+        myTemplateState.put(ATTR_BUILD_API_STRING, Integer.toString(item.apiLevel));
+      }
+    }
+
     if (myTemplateState.myModified.contains(ATTR_PACKAGE_NAME) &&
         !computePackagePrefix(myTemplateState.getString(ATTR_PACKAGE_NAME)).equals(myPackagePrefix)) {
       // The package prefix has been changed by the user. Save it for next time
