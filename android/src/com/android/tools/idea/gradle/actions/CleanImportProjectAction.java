@@ -18,9 +18,8 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
-import com.intellij.ide.RecentProjectsManagerBase;
+import com.intellij.ide.RecentProjectsManagerImpl;
 import com.intellij.ide.impl.ProjectUtil;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
@@ -110,7 +109,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
   private static void close(@NotNull Project project) {
     String projectName = project.getName();
     ProjectUtil.closeAndDispose(project);
-    RecentProjectsManagerBase.getInstance().updateLastProjectPath();
+    RecentProjectsManagerImpl.getInstance().updateLastProjectPath();
     WelcomeFrame.showIfNoProjectOpened();
     LOG.info(String.format("Closed project '%1$s'.", projectName));
   }
