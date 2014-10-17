@@ -22,6 +22,8 @@ import com.intellij.testFramework.LightIdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+
 import static com.android.tools.idea.wizard.DynamicWizardPathTest.DummyDynamicWizardPath;
 import static com.android.tools.idea.wizard.DynamicWizardStepTest.DummyDynamicWizardStep;
 
@@ -69,8 +71,20 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     assertEquals(2, myWizard.myPaths.size());
   }
 
-  public void testNavigation() throws Exception {
+  public void testInvisibleFirstPage() {
+    final LabelStep visibleStep = new LabelStep(true);
+    DynamicWizard wizard = new VisibilityTestWizard(new LabelStep(false), new LabelStep(false), visibleStep);
+    wizard.init();
+    assertEquals(1, wizard.getVisibleStepCount(), 1);
+    assertEquals(visibleStep, wizard.myCurrentPath.getCurrentStep());
+  }
 
+  public void testVisibleFirstPage() {
+    final LabelStep visibleStep = new LabelStep(true);
+    DynamicWizard wizard = new VisibilityTestWizard(visibleStep, new LabelStep(false), new LabelStep(false), new LabelStep(true));
+    wizard.init();
+    assertEquals(1, wizard.getVisibleStepCount(), 2);
+    assertEquals(visibleStep, wizard.myCurrentPath.getCurrentStep());
   }
 
   public static class DummyDynamicWizard extends DynamicWizard {
@@ -87,6 +101,78 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     @Override
     protected String getWizardActionDescription() {
       return "Nothing is Done";
+    }
+  }
+
+  private static class LabelStep extends DynamicWizardStep {
+    private final JLabel myLabel = new JLabel("a label");
+    private final boolean myIsVisible;
+
+    public LabelStep(boolean isVisible) {
+      myIsVisible = isVisible;
+    }
+
+    @Override
+    public void init() {
+    }
+
+    @Override
+    public boolean isStepVisible() {
+      return myIsVisible;
+    }
+
+    @NotNull
+    @Override
+    public JComponent getComponent() {
+      return myLabel;
+    }
+
+    @Override
+    public JComponent getPreferredFocusedComponent() {
+      return myLabel;
+    }
+
+    @Nullable
+    @Override
+    public JLabel getMessageLabel() {
+      return myLabel;
+    }
+
+    @NotNull
+    @Override
+    public String getStepName() {
+      return "visible step";
+    }
+  }
+
+  private class VisibilityTestWizard extends DynamicWizard {
+    private final DynamicWizardStep[] mySteps;
+
+    public VisibilityTestWizard(DynamicWizardStep... steps) {
+      super(null, null, "test wizard");
+      mySteps = steps;
+    }
+
+    @Override
+    public void init() {
+      for (DynamicWizardStep step : mySteps) {
+        addPath(new SingleStepPath(step) {
+          @Override
+          public boolean isPathVisible() {
+            return true;
+          }
+        });
+      }
+      super.init();
+    }
+
+    @Override
+    public void performFinishingActions() {
+    }
+
+    @Override
+    protected String getWizardActionDescription() {
+      return getName();
     }
   }
 }
