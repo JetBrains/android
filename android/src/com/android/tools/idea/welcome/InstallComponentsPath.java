@@ -21,6 +21,7 @@ import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.download.DownloadableFileDescription;
@@ -41,6 +42,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.PATH, Boolean.class);
   public static final InstallableComponent[] COMPONENTS = createComponents();
+  private static final Logger LOG = Logger.getInstance(InstallComponentsPath.class);
+  private InstallationTypeWizardStep myInstallationTypeWizardStep;
 
   private static InstallableComponent[] createComponents() {
     AndroidSdk androidSdk = new AndroidSdk(KEY_CUSTOM_INSTALL);
@@ -63,16 +66,29 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return tempDirectory;
   }
 
+  public static boolean isNeeded() {
+    for (InstallableComponent component : createComponents()) {
+      if (component.shouldSetup()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   protected void init() {
-    addStep(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL));
+    boolean handoff = InstallerData.get(myState).exists();
+    if (!handoff) {
+      myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL);
+      addStep(myInstallationTypeWizardStep);
+    }
     for (InstallableComponent component : COMPONENTS) {
       component.init(myState);
       for (DynamicWizardStep step : component.createSteps()) {
         addStep(step);
       }
     }
-    if (SystemInfo.isLinux) {
+    if (SystemInfo.isLinux && !handoff) {
       addStep(new LinuxHaxmInfoStep());
     }
   }
@@ -115,7 +131,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       }
       progressStep.getProgressIndicator().setIndeterminate(true);
       for (InstallableComponent component : selectedComponents) {
-        component.perform(installContext, myState);
+        component.perform(installContext);
       }
     }
     finally {
@@ -129,10 +145,25 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return true;
   }
 
-  public static boolean isNeeded() {
-    for (InstallableComponent component : createComponents()) {
-      if (component.shouldSetup()) {
+  @Override
+  public boolean isPathVisible() {
+    return isNeeded();
+  }
+
+  public boolean showsStep() {
+    if (isPathVisible()) {
+      if (myInstallationTypeWizardStep != null && myInstallationTypeWizardStep.isStepVisible()) {
         return true;
+      }
+      try {
+        for (InstallableComponent component : getSelectedComponents()) {
+          if (component.hasVisibleStep()) {
+            return true;
+          }
+        }
+      }
+      catch (WizardException e) {
+        LOG.error(e);
       }
     }
     return false;

@@ -63,4 +63,8 @@ public class SetupJdkPath extends DynamicWizardPath {
     DefaultSdks.setDefaultJavaHome(new File(path));
     return true;
   }
+
+  public boolean showsStep() {
+    return isPathVisible() && myJdkLocationStep.isStepVisible();
+  }
 }
