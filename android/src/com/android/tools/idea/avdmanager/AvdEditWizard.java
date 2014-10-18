@@ -288,6 +288,8 @@ public class AvdEditWizard extends DynamicWizard {
       File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
       if (resourceDir != null) {
         path = new File(resourceDir, path.getPath());
+      } else {
+        return null;
       }
     }
     return path;
