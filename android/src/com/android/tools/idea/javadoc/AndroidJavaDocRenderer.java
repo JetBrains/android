@@ -19,6 +19,7 @@ package com.android.tools.idea.javadoc;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
@@ -61,6 +62,7 @@ import java.util.*;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static org.jetbrains.android.util.AndroidUtils.hasImageExtension;
 
@@ -659,18 +661,19 @@ public class AndroidJavaDocRenderer {
 
       Set<String> masked = Sets.newHashSet();
       while (styleValue != null) {
-        for (String name : styleValue.getNames()) {
+        for (ItemResourceValue itemResourceValue : styleValue.getValues()) {
+          String name = itemResourceValue.getName();
           if (masked.contains(name)) {
             continue;
           }
           masked.add(name);
-          ResourceValue v = styleValue.findValue(name, true);
-          if (v == null) {
-            v = styleValue.findValue(name, false);
-          }
+          ResourceValue v = styleValue.getItem(name, itemResourceValue.isFrameworkAttr());
           String value = v != null ? v.getValue() : null;
 
           builder.addNbsps(4);
+          if (itemResourceValue.isFrameworkAttr()) {
+            builder.add(PREFIX_ANDROID);
+          }
           builder.addBold(name).add(" = ").add(v != null ? v.getValue() : "null");
           if (v != null && v.getValue() != null) {
             ResourceUrl url = ResourceUrl.parse(v.getValue());
@@ -714,6 +717,8 @@ public class AndroidJavaDocRenderer {
                 builder.add(value);
                 builder.newline();
               }
+            } else {
+              builder.newline();
             }
           }
           else {
