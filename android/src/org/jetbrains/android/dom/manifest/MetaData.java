@@ -15,20 +15,22 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.converters.MetadataValueConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
 /**
  * DOM element representing "meta-data" Android manifest element.
  */
-public interface MetaData extends ManifestElementWithName {
+interface MetaData extends ManifestElementWithName {
+
   AndroidAttributeValue<String> getName();
 
-  @Convert(ResourceReferenceConverter.class)
-  AndroidAttributeValue<ResourceValue> getValue();
+  @Convert(MetadataValueConverter.class)
+  @ExtendClass("android.app.Activity")
+  AndroidAttributeValue<Object> getValue();
 
   @Convert(ResourceReferenceConverter.class)
   AndroidAttributeValue<ResourceValue> getResource();
