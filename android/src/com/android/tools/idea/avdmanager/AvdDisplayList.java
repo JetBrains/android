@@ -19,12 +19,12 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IdeBorderFactory;
@@ -63,6 +63,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   public static final String NONEMPTY = "nonempty";
   public static final String EMPTY = "empty";
 
+  private final Project myProject;
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
 
@@ -78,7 +79,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
-  public AvdDisplayList() {
+  public AvdDisplayList(@Nullable Project project) {
+    myProject = project;
     myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
     myTable = new TableView<AvdInfo>();
@@ -149,6 +151,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     } else {
       ((CardLayout)myCenterCardPanel.getLayout()).show(myCenterCardPanel, NONEMPTY);
     }
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myProject;
   }
 
   private final MouseAdapter myEditingListener = new MouseAdapter() {

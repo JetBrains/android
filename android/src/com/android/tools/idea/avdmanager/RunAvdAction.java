@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
@@ -26,8 +25,6 @@ import java.awt.event.ActionEvent;
  * Run an Android virtual device
  */
 public class RunAvdAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
-
   public RunAvdAction(@NotNull AvdInfoProvider provider) {
     super(provider, "Run", "Launch this AVD in the emulator", AllIcons.Actions.Execute);
   }
@@ -37,7 +34,7 @@ public class RunAvdAction extends AvdUiAction {
     AvdInfo avdInfo = getAvdInfo();
     if (avdInfo != null) {
       if (!avdInfo.isRunning()) {
-        AvdManagerConnection.startAvd(avdInfo);
+        AvdManagerConnection.startAvd(myAvdInfoProvider.getProject(), avdInfo);
       }
     }
   }
