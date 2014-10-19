@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +29,7 @@ import java.util.Map;
  * Abstract base class for AVD editing actions
  */
 public abstract class AvdUiAction implements Action {
-  @NotNull private final AvdInfoProvider myAvdInfoProvider;
+  @NotNull protected final AvdInfoProvider myAvdInfoProvider;
   @NotNull private final String myText;
   @NotNull private final String myDescription;
   @NotNull private final Icon myIcon;
@@ -38,6 +39,9 @@ public abstract class AvdUiAction implements Action {
     @Nullable
     AvdInfo getAvdInfo();
     void refreshAvds();
+
+    @Nullable
+    Project getProject();
   }
 
   public AvdUiAction(@NotNull AvdInfoProvider avdInfoProvider, @NotNull String text, @NotNull String description, @NotNull Icon icon) {
