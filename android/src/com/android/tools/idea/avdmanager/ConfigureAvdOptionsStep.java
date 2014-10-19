@@ -51,7 +51,9 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
@@ -360,7 +362,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         @Nullable
         @Override
         protected Storage getStorage(@NotNull Device device) {
-          return device.getDefaultHardware().getRam();
+          return AvdBuilder.getDefaultRam(device.getDefaultHardware());
         }
       });
 

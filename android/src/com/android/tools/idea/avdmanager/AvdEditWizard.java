@@ -31,6 +31,7 @@ import com.android.tools.idea.wizard.SingleStepPath;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +42,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 
@@ -276,8 +278,30 @@ public class AvdEditWizard extends DynamicWizard {
       }
     }
 
-   return AvdManagerConnection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
-                                           skinFile, hardwareProperties, false);
+    return createWithProgress(avdInfo, device, systemImageDescription, orientation, hardwareProperties, sdCard, skinFile, isCircular,
+                              avdName);
+  }
+
+  @Nullable
+  private static AvdInfo createWithProgress(@Nullable final AvdInfo avdInfo,
+                                            @NotNull final Device device,
+                                            @NotNull final SystemImageDescription systemImageDescription,
+                                            @NotNull final ScreenOrientation orientation,
+                                            @NotNull final Map<String, String> hardwareProperties,
+                                            @Nullable final String sdCard,
+                                            @Nullable final File skinFile,
+                                            final boolean isCircular,
+                                            @NotNull final String avdName) {
+    final AtomicReference<AvdInfo> infoReference = new AtomicReference<AvdInfo>();
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        infoReference.set(AvdManagerConnection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular,
+                                                                 sdCard, skinFile, hardwareProperties, false));
+      }
+    }, "Creating/Updating AVD...", false, null, null);
+
+    return infoReference.get();
   }
 
   @NotNull

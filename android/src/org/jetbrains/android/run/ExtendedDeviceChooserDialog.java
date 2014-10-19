@@ -85,7 +85,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       }
     });
 
-    myAvdCombo = new AvdComboBox(false, true) {
+    myAvdCombo = new AvdComboBox(myProject, false, true) {
       @Override
       public Module getModule() {
         return facet.getModule();

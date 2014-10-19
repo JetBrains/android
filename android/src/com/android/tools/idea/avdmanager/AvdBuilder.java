@@ -21,6 +21,7 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.MajorRevision;
@@ -47,6 +48,8 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.SD_CARD_STORA
  * UI-less builder for creating AVDs
  */
 public class AvdBuilder {
+  /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
+  private static final int MAX_RAM_MB = 1536;
   private static final Logger LOG = Logger.getInstance(AvdBuilder.class);
 
   private final ScopedStateStore myState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null);
@@ -127,10 +130,30 @@ public class AvdBuilder {
   @NotNull
   public AvdBuilder setDevice(@NotNull Device device) {
     myState.put(DEVICE_DEFINITION_KEY, device);
-    myState.put(RAM_STORAGE_KEY, device.getDefaultHardware().getRam());
+    myState.put(RAM_STORAGE_KEY, getDefaultRam(device.getDefaultHardware()));
     myState.put(VM_HEAP_STORAGE_KEY, ConfigureAvdOptionsStep.calculateVmHeap(device));
     myState.put(DEFAULT_ORIENTATION_KEY, device.getDefaultState().getOrientation());
     return this;
+  }
+
+  /**
+   * Get the default amount of ram to use for the given hardware in an AVD. This is typically
+   * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
+   * is usually detrimental to development system performance and most likely not needed by the
+   * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
+   * apps running simultaneously)
+   *
+   * @param hardware the hardware to look up the default amount of RAM on
+   * @return the amount of RAM to default an AVD to for the given hardware
+   */
+  @NotNull
+  public static Storage getDefaultRam(@NotNull Hardware hardware) {
+    Storage ram = hardware.getRam();
+    if (ram.getSizeAsUnit(Storage.Unit.MiB) >= MAX_RAM_MB) {
+      return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
+    }
+
+    return ram;
   }
 
   @NotNull
