@@ -16,10 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
+import com.google.common.base.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -27,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ui.GeometryUtil;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +74,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
    * Size of the image. Currently all images will be scaled to this size, this
    * may change as we get more requirements.
    */
-  @NotNull private Dimension myThumbnailSize;
+  @NotNull private Dimension myThumbnailSize = new Dimension(128, 128);
   /**
    * Index of the selected item or -1 if none
    */
@@ -102,7 +98,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
   /**
    * Obtains string label for the model object.
    */
-  @NotNull private Function<? super E, String> myLabelProvider;
+  @NotNull private Function<? super E, String> myLabelProvider = Functions.toStringFunction();
 
   public ASGallery() {
     this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0));
@@ -369,7 +365,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
    */
   public void setCellMargin(@Nullable Insets cellMargin) {
     cellMargin = cellMargin == null ? DEFAULT_CELL_MARGIN : cellMargin;
-    if (Objects.equal(cellMargin, myCellMargin)) {
+    if (!Objects.equal(cellMargin, myCellMargin)) {
       Insets oldInsets = myCellMargin;
       myCellMargin = cellMargin;
       firePropertyChange("cellMargin", oldInsets, cellMargin);
