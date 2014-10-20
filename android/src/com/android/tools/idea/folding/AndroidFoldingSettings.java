@@ -15,22 +15,14 @@
  */
 package com.android.tools.idea.folding;
 
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.*;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 @State(
-  name="AndroidFoldingSettings",
-  storages= {
-    @Storage(
-      file = StoragePathMacros.APP_CONFIG + "/editor.codeinsight.xml"
-    )}
+  name = "AndroidFoldingSettings",
+  storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/editor.codeinsight.xml")
 )
-public class AndroidFoldingSettings implements PersistentStateComponent<AndroidFoldingSettings>, ExportableComponent {
-
+public class AndroidFoldingSettings implements PersistentStateComponent<AndroidFoldingSettings> {
   public static AndroidFoldingSettings getInstance() {
     return ServiceManager.getService(AndroidFoldingSettings.class);
   }
@@ -44,18 +36,6 @@ public class AndroidFoldingSettings implements PersistentStateComponent<AndroidF
   }
 
   @SuppressWarnings({"WeakerAccess"}) public boolean COLLAPSE_ANDROID_TEXT = true;
-
-  @Override
-  @NotNull
-  public File[] getExportFiles() {
-    return new File[]{PathManager.getOptionsFile("editor.codeinsight")};
-  }
-
-  @Override
-  @NotNull
-  public String getPresentableName() {
-    return "Code Folding Settings";
-  }
 
   @Override
   public AndroidFoldingSettings getState() {
