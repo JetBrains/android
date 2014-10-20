@@ -172,7 +172,8 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
       public Image apply(ModuleTemplate input) {
         return iconToImage(input.getIcon());
       }
-    }, Functions.toStringFunction(), new Dimension(150, 150));
+    }, Functions.toStringFunction(), new Dimension(128, 128));
+    myFormFactorGallery.setCellMargin(new Insets(0, 25, 0, 25)); // Margins so the text is not clipped
   }
 
   private static class TemplateListCellRenderer implements ListCellRenderer {
