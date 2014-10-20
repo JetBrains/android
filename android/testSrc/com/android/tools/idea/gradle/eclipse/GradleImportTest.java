@@ -500,7 +500,12 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  + "* src/com/example/android/apis/app/ISecondary.aidl => app/src/main/aidl/com/example/android/apis/app/ISecondary.aidl\n"
                                  + "* tests/src/ => app/src/androidTest/java/\n"
                                  + MSG_FOOTER,
-                                 true /* checkBuild */);
+
+                                 // Temporarily disabled: As of build tools 21, aapt no longer allows the (invalid) references
+                                 // to @+android:id in the samples, so building fails. The samples need to be updated, so don't
+                                 // attempt to build them for now.
+                                 //true /* checkBuild */);
+                                 false /* checkBuild */);
 
     deleteDir(imported);
   }
