@@ -200,7 +200,7 @@ public class WizardUtils {
     if (file.isFile()) {
       return ValidationResult.error(ValidationResult.Message.PROJECT_LOC_IS_FILE);
     } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
-      return ValidationResult.error(ValidationResult.Message.NON_EMPTY_DIR);
+      return ValidationResult.warn(ValidationResult.Message.NON_EMPTY_DIR);
     }
     if (file.getParent() == null) {
       return ValidationResult.error(ValidationResult.Message.PROJECT_IS_FILE_SYSTEM_ROOT);
