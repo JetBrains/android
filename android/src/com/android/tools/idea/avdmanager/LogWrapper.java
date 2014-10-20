@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wraps an IntelliJ style logger and presents an ILogger interface to SDKLib
@@ -45,7 +46,7 @@ public class LogWrapper implements ILogger {
   }
 
   @Override
-  public void error(Throwable t, String errorFormat, Object... args) {
+  public void error(@Nullable Throwable t, @Nullable String errorFormat, Object... args) {
     if (t != null) {
       myLog.error(t);
     }
