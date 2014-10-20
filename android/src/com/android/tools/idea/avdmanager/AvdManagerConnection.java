@@ -24,25 +24,27 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ExecutionStatus;
 import org.jetbrains.android.util.StringBuildingOutputProcessor;
-import org.jetbrains.android.util.WaitingStrategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 
@@ -240,7 +243,25 @@ public class AvdManagerConnection {
       return;
     }
     final String avdName = info.getName();
+
+    // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
+    // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
+    // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
+    // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
     if (info.isRunning()) {
+      String baseFolder;
+      try {
+        baseFolder = ourAvdManager.getBaseAvdFolder();
+      }
+      catch (AndroidLocation.AndroidLocationException e) {
+        baseFolder = "$HOME";
+      }
+
+      String message = String.format("AVD %1$s is already running.\n" +
+                                     "If that is not the case, delete the files at\n" +
+                                     "   %2$s/%1$s.avd/*.lock\n" +
+                                     "and try again.", avdName, baseFolder);
+      Messages.showErrorDialog(project, message, "AVD Manager");
       return;
     }
 
@@ -277,41 +298,45 @@ public class AvdManagerConnection {
 
         commandLine.addParameters("-avd", avdName);
 
-        final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
-        ExecutionStatus status;
+        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine);
+        ProcessHandler processHandler;
         try {
-          status = AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(1000));
-          if (status == ExecutionStatus.TIMEOUT) {
-
-            // It takes >= 8 seconds to start the Emulator. Display a small
-            // progress indicator otherwise it seems like the action wasn't invoked and users tend
-            // to click multiple times on it, ending up with several instances of the manager
-            // window.
-            try {
-              p.start();
-              p.setText("Starting AVD...");
-              for (double d = 0; d < 1; d += 1.0 / 80) {
-                p.setFraction(d);
-                //noinspection BusyWait
-                Thread.sleep(100);
-              }
-            }
-            catch (InterruptedException ignore) {
-            }
-            finally {
-              p.stop();
-            }
-
-            return;
-          }
+          processHandler = runner.start();
         }
         catch (ExecutionException e) {
-          IJ_LOG.error(e);
+          IJ_LOG.error("Error launching emulator", e);
           return;
         }
-        final String message = processor.getMessage();
 
-        if (message.toLowerCase().contains("error") || status == ExecutionStatus.ERROR && !message.trim().isEmpty()) {
+        ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
+        processHandler.addProcessListener(collector);
+
+        // It takes >= 8 seconds to start the Emulator. Display a small
+        // progress indicator otherwise it seems like the action wasn't invoked and users tend
+        // to click multiple times on it, ending up with several instances of the manager
+        // window.
+        try {
+          p.start();
+          p.setText("Starting AVD...");
+          for (double d = 0; d < 1; d += 1.0 / 80) {
+            p.setFraction(d);
+            //noinspection BusyWait
+            Thread.sleep(100);
+            if (processHandler.isProcessTerminated()) {
+              break;
+            }
+          }
+        }
+        catch (InterruptedException ignore) {
+        }
+        finally {
+          p.stop();
+        }
+
+        processHandler.removeProcessListener(collector);
+        final String message = collector.getText();
+
+        if (message.toLowerCase().contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
