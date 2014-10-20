@@ -79,11 +79,17 @@ public class AndroidIcons {
     public static final Icon Mobile_32 = load("/icons/formfactors/phone_tablet_32.png"); // 32x32
     public static final Icon Tv_32 = load("/icons/formfactors/tv_32.png");         // 32x32
 
-    public static final Icon Wear_128 = load("/icons/wear_128.png"); // 128x128
-    public static final Icon Car_128 = load("/icons/car_128.png");   // 128x128
-    public static final Icon Glass_128 = load("/icons/glass_128.png"); // 128x128
-    public static final Icon Mobile_128 = load("/icons/mobile_128.png"); // 128x128
-    public static final Icon Tv_128 = load("/icons/tv_128.png"); // 128x128
+    public static final Icon Wear_64 = load("/icons/formfactors/64/wear.png");           // 64x64
+    public static final Icon Car_64 = load("/icons/formfactors/64/car.png");             // 64x64
+    public static final Icon Glass_64 = load("/icons/formfactors/64/glass.png");         // 64x64
+    public static final Icon Mobile_64 = load("/icons/formfactors/64/phone_tablet.png"); // 64x64
+    public static final Icon Tv_64 = load("/icons/formfactors/64/tv.png");               // 64x64
+
+    public static final Icon Wear_128 = load("/icons/wear_128.png");                     // 128x128
+    public static final Icon Car_128 = load("/icons/car_128.png");                       // 128x128
+    public static final Icon Glass_128 = load("/icons/glass_128.png");                   // 128x128
+    public static final Icon Mobile_128 = load("/icons/mobile_128.png");                 // 128x128
+    public static final Icon Tv_128 = load("/icons/tv_128.png");                         // 128x128
   }
 
   public static class Configs {
@@ -135,10 +141,6 @@ public class AndroidIcons {
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
-    public static final Icon FormFactorPhoneTablet = load("/icons/wizards/phone_tablet.png"); // 64x64
-    public static final Icon FormFactorWear = load("/icons/wizards/wear.png"); // 64x64
-    public static final Icon FormFactorGlass = load("/icons/wizards/glass.png"); // 64x64
-    public static final Icon FormFactorTV = load("/icons/wizards/tv.png"); // 64x64
     public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
     public static final Icon FirstRunWizard = load("/icons/wizards/welcome_material.png"); // 80x80
