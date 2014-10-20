@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.bluetooth.le.ScanFilter android.os.ParcelUuid getServiceDataUuid()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter android.os.ParcelUuid getServiceUuid()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter android.os.ParcelUuid getServiceUuidMask()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter byte[] getManufacturerData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter byte[] getManufacturerDataMask()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter byte[] getServiceData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter byte[] getServiceDataMask()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter java.lang.String getDeviceAddress()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanFilter java.lang.String getDeviceName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanRecord byte[] getManufacturerSpecificData(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanRecord byte[] getServiceData(android.os.ParcelUuid)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanRecord java.lang.String getDeviceName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.bluetooth.le.ScanResult android.bluetooth.le.ScanRecord getScanRecord()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

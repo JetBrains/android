@@ -3,6 +3,15 @@
   <item name="android.net.DhcpInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.net.LinkAddress void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.LinkProperties java.lang.String getInterfaceName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.LinkProperties void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.net.LocalServerSocket android.net.LocalSocket accept()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -19,6 +28,12 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.net.Proxy java.lang.String getHost(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.RouteInfo android.net.LinkAddress getDestination()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.RouteInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket()">
