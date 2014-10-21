@@ -50,6 +50,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.List;
@@ -109,8 +110,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     });
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
-    myTable.getRowSorter().toggleSortOrder(2);
-    myTable.getRowSorter().toggleSortOrder(2);
+    myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
   }
 
   public void refreshImages(boolean forceRefresh) {
@@ -230,7 +230,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Nullable
       @Override
       public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        return systemImage.target.getFullName();
+        IdDisplay tag = systemImage.systemImage.getTag();
+        String name = systemImage.target.getFullName();
+        return tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag.getDisplay());
       }
     },
   };
