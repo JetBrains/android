@@ -85,6 +85,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private JPanel myPanel;
   private SearchTextField mySearchTextField;
   private List<DeviceDefinitionSelectionListener> myListeners = Lists.newArrayList();
+  private List<DeviceCategorySelectionListener> myCategoryListeners = Lists.newArrayList();
   private List<Device> myDevices;
   private Device myDefaultDevice;
 
@@ -199,6 +200,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myListeners.add(listener);
   }
 
+  public void addCategoryListener(@NotNull DeviceCategorySelectionListener listener) {
+    myCategoryListeners.add(listener);
+  }
+
   public void removeSelectionListener(@NotNull DeviceDefinitionSelectionListener listener) {
     myListeners.remove(listener);
   }
@@ -250,6 +255,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       if (!myModel.getItems().equals(newItems)) {
         myModel.setItems(newItems);
         setSelectedDevice(myDefaultCategoryDeviceMap.get(selectedCategory));
+        for (DeviceCategorySelectionListener listener : myCategoryListeners) {
+          listener.onCategorySelectionChanged(selectedCategory, newItems);
+        }
       }
     }
   }
@@ -575,5 +583,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   public interface DeviceDefinitionSelectionListener {
     void onDeviceSelectionChanged(@Nullable Device selectedDevice);
+  }
+
+  public interface DeviceCategorySelectionListener {
+    void onCategorySelectionChanged(@Nullable String category, @Nullable List<Device> devices);
   }
 }
