@@ -32,11 +32,13 @@ import java.awt.*;
  * Display existing AVDs and offer actions for editing/creating.
  */
 public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoProvider {
+  private final Project myProject;
   private AvdDisplayList myAvdDisplayList;
 
   public AvdListDialog(@Nullable Project project) {
     super(project);
-    myAvdDisplayList = new AvdDisplayList();
+    myProject = project;
+    myAvdDisplayList = new AvdDisplayList(project);
     myAvdDisplayList.setBorder(ourDefaultBorder);
     setTitle("AVD Manager");
     Window window = getWindow();
@@ -74,6 +76,12 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   @Override
   public void refreshAvds() {
     myAvdDisplayList.refreshAvds();
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myProject;
   }
 
   @Override
