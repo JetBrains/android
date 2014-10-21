@@ -22,6 +22,7 @@ import com.intellij.android.designer.model.grid.GridInsertType;
 import com.intellij.android.designer.model.layout.grid.RadGridLayoutComponent;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.model.RadComponent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -81,37 +82,42 @@ public class GridLayoutOperation extends GridOperation {
     }
 
     RadViewComponent nextComponent = getNextComponent(components, myRow, myColumn);
+    switch (myInsertType) {
+      case in_cell:
+        if (!myContext.isMove()) {
+          execute(myContext, container, myComponents, nextComponent);
+          RadGridLayoutComponent.setCellIndex(editComponent, myRow, myColumn, true, true);
+          return;
+        }
 
-    if (myInsertType == GridInsertType.in_cell) {
-      if (!myContext.isMove()) {
-        execute(myContext, container, myComponents, nextComponent);
-        RadGridLayoutComponent.setCellIndex(editComponent, myRow, myColumn, true, true);
-        return;
-      }
+        components = insertComponent(components, nextComponent, false, false, false, false);
+        break;
 
-      components = insertComponent(components, nextComponent, false, false, false, false);
-    }
-    else if (myInsertType == GridInsertType.before_h_cell || myInsertType == GridInsertType.after_h_cell) {
-      components = insertComponent(components, nextComponent,
-                                   true, myInsertType == GridInsertType.after_h_cell,
-                                   false, false);
-    }
-    else if (myInsertType == GridInsertType.before_v_cell || myInsertType == GridInsertType.after_v_cell) {
-      components = insertComponent(components, nextComponent, false, false,
-                                   true, myInsertType == GridInsertType.after_v_cell);
-    }
-    else {
-      components = insertComponent(components, nextComponent,
-                                   true,
-                                   myInsertType == GridInsertType.corner_bottom_left || myInsertType == GridInsertType.corner_bottom_right,
-                                   true,
-                                   myInsertType == GridInsertType.corner_top_right || myInsertType == GridInsertType.corner_bottom_right);
+      case before_h_cell:
+      case after_h_cell:
+        components = insertComponent(components, nextComponent,
+                                     true, myInsertType == GridInsertType.after_h_cell,
+                                     false, false);
+        break;
+
+      case before_v_cell:
+      case after_v_cell:
+        components = insertComponent(components, nextComponent, false, false,
+                                     true, myInsertType == GridInsertType.after_v_cell);
+        break;
+
+      default:
+        components = insertComponent(components, nextComponent,
+                                     true,
+                                     myInsertType == GridInsertType.corner_bottom_left || myInsertType == GridInsertType.corner_bottom_right,
+                                     true,
+                                     myInsertType == GridInsertType.corner_top_right || myInsertType == GridInsertType.corner_bottom_right);
     }
 
     validateLayoutParams(components);
   }
 
-  public static void validateLayoutParams(RadComponent[][] components) throws Exception {
+  public static void validateLayoutParams(@NotNull RadComponent[][] components) throws Exception {
     for (int i = 0; i < components.length; i++) {
       RadComponent[] rowComponents = components[i];
       for (int j = 0; j < rowComponents.length; j++) {
@@ -123,8 +129,8 @@ public class GridLayoutOperation extends GridOperation {
     }
   }
 
-  private RadComponent[][] insertComponent(RadComponent[][] components,
-                                           RadViewComponent nextComponent,
+  private RadComponent[][] insertComponent(@NotNull RadComponent[][] components,
+                                           @Nullable RadViewComponent nextComponent,
                                            boolean insertRow,
                                            boolean afterRow,
                                            boolean insertColumn,
@@ -173,7 +179,7 @@ public class GridLayoutOperation extends GridOperation {
     return components;
   }
 
-  public static void shiftRowSpan(GridInfo gridInfo, int row, int inc) {
+  public static void shiftRowSpan(@NotNull GridInfo gridInfo, int row, int inc) {
     if (row >= gridInfo.rowCount - 1) {
       return;
     }
@@ -195,7 +201,7 @@ public class GridLayoutOperation extends GridOperation {
     }
   }
 
-  private static RadComponent[][] insertRow(RadComponent[][] components, int row) {
+  private static RadComponent[][] insertRow(@NotNull RadComponent[][] components, int row) {
     RadComponent[][] newComponents = new RadComponent[components.length + 1][];
 
     System.arraycopy(components, 0, newComponents, 0, row);
@@ -206,7 +212,7 @@ public class GridLayoutOperation extends GridOperation {
     return newComponents;
   }
 
-  public static void shiftColumnSpan(GridInfo gridInfo, int column, int inc) {
+  public static void shiftColumnSpan(@NotNull GridInfo gridInfo, int column, int inc) {
     if (column >= gridInfo.columnCount - 1) {
       return;
     }
@@ -228,7 +234,7 @@ public class GridLayoutOperation extends GridOperation {
     }
   }
 
-  private static void insertColumn(RadComponent[][] components, int column) {
+  private static void insertColumn(@NotNull RadComponent[][] components, int column) {
     for (int i = 0; i < components.length; i++) {
       RadComponent[] rowComponents = components[i];
       RadComponent[] newRowComponents = new RadComponent[rowComponents.length + 1];
@@ -241,7 +247,7 @@ public class GridLayoutOperation extends GridOperation {
   }
 
   @Nullable
-  public static RadViewComponent getNextComponent(RadComponent[][] components, int row, int column) {
+  public static RadViewComponent getNextComponent(@NotNull RadComponent[][] components, int row, int column) {
     RadComponent[] rowComponents = components[row];
 
     for (int i = column + 1; i < rowComponents.length; i++) {
