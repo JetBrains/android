@@ -6,6 +6,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -21,13 +22,10 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.ComponentBasedErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,8 +43,10 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final Alarm myAlarm = new Alarm(this);
   private final JBPopupMenu myMenu;
   private String[] myOldAvds = ArrayUtil.EMPTY_STRING_ARRAY;
+  private final Project myProject;
 
-  public AvdComboBox(boolean addEmptyElement, boolean showNotLaunchedOnly) {
+  public AvdComboBox(@Nullable Project project, boolean addEmptyElement, boolean showNotLaunchedOnly) {
+    myProject = project;
     myAddEmptyElement = addEmptyElement;
     myShowNotLaunchedOnly = showNotLaunchedOnly;
 
@@ -55,7 +55,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     openManagerMenuItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        RunAndroidAvdManagerAction.openAvdManager();
+        RunAndroidAvdManagerAction.openAvdManager(myProject);
       }
     });
     myMenu.add(openManagerMenuItem);

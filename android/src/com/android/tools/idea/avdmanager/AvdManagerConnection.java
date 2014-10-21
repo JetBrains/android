@@ -33,6 +33,9 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressWindow;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -60,7 +63,7 @@ public class AvdManagerConnection {
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG) {
     @Override
     public void error(Throwable t, String errorFormat, Object... args) {
-      IJ_LOG.error(String.format(errorFormat, args), t);
+      IJ_LOG.error(errorFormat != null ? String.format(errorFormat, args) : "", t);
     }
   };
   private static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
@@ -232,7 +235,7 @@ public class AvdManagerConnection {
   /**
    * Launch the given AVD in the emulator.
    */
-  public static void startAvd(@NotNull final AvdInfo info) {
+  public static void startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
     if (!initIfNecessary()) {
       return;
     }
@@ -246,7 +249,7 @@ public class AvdManagerConnection {
     final String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
     final String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
 
-    final ProgressWindow p = new ProgressWindow(false, true, null);
+    final ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
@@ -256,7 +259,11 @@ public class AvdManagerConnection {
         GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.setExePath(ourEmulatorBinary.getPath());
 
-        if (scaleFactor != null) {
+        // Don't explicitly set auto since that seems to be the default behavior, but when set
+        // can cause the emulator to fail to launch with this error message:
+        //  "could not get monitor DPI resolution from system. please use -dpi-monitor to specify one"
+        // (this happens on OSX where we don't have a reliable, Retina-correct way to get the dpi)
+        if (scaleFactor != null && !"auto".equals(scaleFactor)) {
           commandLine.addParameters("-scale", scaleFactor);
         }
 
@@ -270,20 +277,20 @@ public class AvdManagerConnection {
 
         commandLine.addParameters("-avd", avdName);
 
-
         final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
+        ExecutionStatus status;
         try {
-          if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(1000)) ==
-              ExecutionStatus.TIMEOUT) {
+          status = AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(1000));
+          if (status == ExecutionStatus.TIMEOUT) {
 
-            // It takes about 2 seconds to start the Emulator. Display a small
+            // It takes >= 8 seconds to start the Emulator. Display a small
             // progress indicator otherwise it seems like the action wasn't invoked and users tend
             // to click multiple times on it, ending up with several instances of the manager
             // window.
             try {
               p.start();
               p.setText("Starting AVD...");
-              for (double d = 0; d < 1; d += 1.0 / 20) {
+              for (double d = 0; d < 1; d += 1.0 / 80) {
                 p.setFraction(d);
                 //noinspection BusyWait
                 Thread.sleep(100);
@@ -304,11 +311,11 @@ public class AvdManagerConnection {
         }
         final String message = processor.getMessage();
 
-        if (message.toLowerCase().contains("error")) {
+        if (message.toLowerCase().contains("error") || status == ExecutionStatus.ERROR && !message.trim().isEmpty()) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              IJ_LOG.error("Cannot launch AVD in emulator.\nOutput:\n" + message, avdName);
+              Messages.showErrorDialog(project, "Cannot launch AVD in emulator.\nOutput:\n" + message, avdName);
             }
           });
         }

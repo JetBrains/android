@@ -20,11 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -51,6 +53,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   public interface AvdRefreshProvider {
     void refreshAvds();
+    @Nullable Project getProject();
   }
 
   public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, AvdRefreshProvider refreshProvider) {
@@ -132,6 +135,12 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @Override
   public void refreshAvds() {
     myRefreshProvider.refreshAvds();
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myRefreshProvider.getProject();
   }
 
   public void showPopup(@NotNull Component c, @NotNull MouseEvent e) {
