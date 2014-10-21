@@ -145,7 +145,13 @@ public class SystemImagePreview extends JPanel {
     g2d.drawString(myImageDescription.target.getVersionName(), infoSegmentX, infoSegmentY);
 
     // Paint the vendor name
-    String vendorName = myImageDescription.target.getVendor();
+    String vendorName;
+    String tag = myImageDescription.systemImage.getTag().getId();
+    if (tag.equals("android-wear") || tag.equals("android-tv")) {
+      vendorName = "Android";
+    } else {
+      vendorName = myImageDescription.target.getVendor();
+    }
     if (metrics.stringWidth(vendorName) > 128) {
       // Split into two lines
       Iterable<String> parts = Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().split(vendorName);
