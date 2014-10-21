@@ -16,16 +16,26 @@
 package com.intellij.android.designer.model.grid;
 
 /**
- * @author Alexander Lobas
+ * Defines the position of the drop position detection.
+ * @see com.intellij.android.designer.designSurface.layout.grid.GridOperation#calculateGridInfo
  */
 public enum GridInsertType {
+  /** Drop position is well within the cell or in an empty cell. */
   in_cell,
+  /** In an existing cell with components, before the components in the Y axis (top) */
   before_h_cell,
+  /** In an existing cell with components, after the components in the Y axis (bottom) */
   after_h_cell,
+  /** In an existing cell with components, before the components in the X axis (left) */
   before_v_cell,
+  /** In an existing cell with components, after the components in the X axis (right) */
   after_v_cell,
+  /** In an existing cell, top left side. */
   corner_top_left,
+  /** In an existing cell, top right side. */
   corner_top_right,
+  /** In an existing cell, bottom left side. */
   corner_bottom_left,
+  /** In an existing cell, bottom right side. */
   corner_bottom_right
 }
