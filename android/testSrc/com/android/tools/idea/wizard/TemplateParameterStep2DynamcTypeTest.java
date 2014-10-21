@@ -15,17 +15,14 @@
 */
 package com.android.tools.idea.wizard;
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.LightIdeaTestCase;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -35,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
 import javax.swing.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -110,43 +106,7 @@ public final class TemplateParameterStep2DynamcTypeTest extends LightIdeaTestCas
     Document document = XmlUtils.parseDocumentSilently(METADATA_XML, false);
     assert document != null;
     myTemplateMetadata = new TemplateMetadata(document);
-    DynamicWizard dynamicWizard = new DynamicWizard(null, null, "Test Wizard") {
-      @Override
-      public void init() {
-        super.init();
-        addPath(new DynamicWizardPath() {
-          @Override
-          protected void init() {
-            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE, ImmutableMap.<String, Object>of(), null,
-                                                AddAndroidActivityPath.KEY_PACKAGE_NAME, new SourceProvider[0]);
-            addStep(myStep);
-          }
-
-          @NotNull
-          @Override
-          public String getPathName() {
-            return "Test Path";
-          }
-
-          @Override
-          public boolean performFinishingActions() {
-            return false;
-          }
-        });
-      }
-
-      @Override
-      protected String getWizardActionDescription() {
-        return "Test Wizard Completion";
-      }
-
-      @Override
-      public void performFinishingActions() {
-        // Do nothing
-      }
-    };
-    Disposer.register(getTestRootDisposable(), dynamicWizard.getDisposable());
-    dynamicWizard.init();
+    myStep = TemplateParameterStep2Test.createTemplateParameterStepInWizard(myTemplateMetadata, getTestRootDisposable());
     myStep.init();
   }
 
