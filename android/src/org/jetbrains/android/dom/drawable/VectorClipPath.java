@@ -18,5 +18,5 @@ package org.jetbrains.android.dom.drawable;
 import com.intellij.util.xml.DefinesXml;
 
 @DefinesXml
-public interface VectorSize extends DrawableDomElement {
+public interface VectorClipPath extends DrawableDomElement {
 }
