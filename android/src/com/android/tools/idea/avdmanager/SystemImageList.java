@@ -17,13 +17,15 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
+import com.android.sdklib.internal.repository.packages.*;
+import com.android.sdklib.internal.repository.sources.SdkSource;
+import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.descriptors.*;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -31,12 +33,17 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.ui.SingleSelectionModel;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +53,19 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.font.TextLayout;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.TV_TAG;
@@ -63,13 +76,21 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
+  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", true);
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final LocalSdk mySdk;
+  private final RemoteSdk myRemoteSdk;
   private TableView<AvdWizardConstants.SystemImageDescription> myTable = new TableView<AvdWizardConstants.SystemImageDescription>();
   private ListTableModel<AvdWizardConstants.SystemImageDescription> myModel = new ListTableModel<AvdWizardConstants.SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
-  private Predicate<ISystemImage> myFilter;
-
+  private Predicate<AvdWizardConstants.SystemImageDescription> myFilter;
+  private static final Logger LOG = Logger.getInstance(SystemImageList.class);
+  private static final ILogger ILOG = new LogWrapper(LOG) {
+    @Override
+    public void error(Throwable t, String errorFormat, Object... args) {
+      LOG.error(String.format(errorFormat, args), t);
+    }
+  };
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -85,17 +106,36 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       throw new RuntimeException("No SDK Found");
     }
     mySdk = androidSdkData.getLocalSdk();
+    myRemoteSdk = androidSdkData.getRemoteSdk();
     myModel.setColumnInfos(ourColumnInfos);
     myModel.setSortable(true);
     refreshImages(true);
     myTable.setModelAndUpdateColumns(myModel);
-    myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myTable.setSelectionModel(new SingleSelectionModel() {
+      @Override
+      public void setSelectionInterval(int index0, int index1) {
+        AvdWizardConstants.SystemImageDescription description = myTable.getRow(index0);
+        if (description == null || description.isRemote()) {
+          return;
+        }
+        super.setSelectionInterval(index0, index1);
+      }
+    });
     myTable.setRowSelectionAllowed(true);
+    myTable.addMouseListener(editorListener);
+    myTable.addMouseMotionListener(editorListener);
     setLayout(new BorderLayout());
     add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
-    JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    southPanel.add(myRefreshButton);
-    southPanel.add(myInstallLatestVersionButton);
+    JPanel southPanel = new JPanel(new BorderLayout());
+    southPanel.add(myRefreshButton, BorderLayout.EAST);
+    southPanel.add(myShowRemoteCheckbox, BorderLayout.WEST);
+    myShowRemoteCheckbox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myModel.fireTableDataChanged();
+      }
+    });
+
     myRefreshButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -110,7 +150,54 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     });
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
-    myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
+    TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>> sorter =
+      new TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>>(myModel);
+    sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
+    sorter.setRowFilter(new RowFilter<ListTableModel<AvdWizardConstants.SystemImageDescription>, Integer>() {
+      @Override
+      public boolean include(Entry<? extends ListTableModel<AvdWizardConstants.SystemImageDescription>, ? extends Integer> entry) {
+        return !myModel.getRowValue(entry.getIdentifier()).isRemote() || myShowRemoteCheckbox.isSelected();
+      }
+    });
+    myTable.setRowSorter(sorter);
+  }
+
+  private final MouseAdapter editorListener = new MouseAdapter() {
+    @Override
+    public void mouseMoved(MouseEvent e) {
+      possiblySwitchEditors(e);
+    }
+    @Override
+    public void mouseEntered(MouseEvent e) {
+      possiblySwitchEditors(e);
+    }
+    @Override
+    public void mouseExited(MouseEvent e) {
+      possiblySwitchEditors(e);
+    }
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      possiblySwitchEditors(e);
+    }
+  };
+
+  private void possiblySwitchEditors(MouseEvent e) {
+    Point p = e.getPoint();
+    int row = myTable.rowAtPoint(p);
+    int col = myTable.columnAtPoint(p);
+    if (row != myTable.getEditingRow() || col != myTable.getEditingColumn()) {
+      if (myTable.isEditing()) {
+        TableCellEditor editor = myTable.getCellEditor();
+        if (!editor.stopCellEditing()) {
+          editor.cancelCellEditing();
+        }
+      }
+      if (!myTable.isEditing()) {
+        if (row != -1 && col != -1 && myTable.isCellEditable(row, col)) {
+          myTable.editCellAt(row, col);
+        }
+      }
+    }
   }
 
   public void refreshImages(boolean forceRefresh) {
@@ -119,21 +206,69 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
     List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
     List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
+
+    class ImageFingerprint {
+      IdDisplay tag;
+      String abiType;
+      AndroidVersion version;
+
+      @Override
+      public int hashCode() {
+        return ((tag == null ? 0 : tag.hashCode()) * 37 + abiType.hashCode()) * 37 + version.hashCode();
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (!(obj instanceof ImageFingerprint)) {
+          return false;
+        }
+        ImageFingerprint other = (ImageFingerprint)obj;
+        return tag.equals(other.tag) && abiType.equals(other.abiType) && version.equals(other.version);
+      }
+    }
+
+    Set<ImageFingerprint> seen = Sets.newHashSet();
     for (IAndroidTarget target : targets) {
       ISystemImage[] systemImages = target.getSystemImages();
       if (systemImages != null) {
         for (ISystemImage image : systemImages) {
           // If we don't have a filter or this image passes the filter
-          if (myFilter == null || myFilter.apply(image)) {
-            items.add(new AvdWizardConstants.SystemImageDescription(target, image));
+          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          if (myFilter == null || myFilter.apply(desc)) {
+            items.add(desc);
+            ImageFingerprint si = new ImageFingerprint();
+            si.tag = image.getTag();
+            si.abiType = image.getAbiType();
+            si.version = target.getVersion();
+            seen.add(si);
           }
         }
       }
     }
+
+    SdkSources sources = myRemoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, ILOG);
+    myRemoteSdk.fetch(sources, ILOG);
+    for (SdkSource source : sources.getAllSources()) {
+      for (com.android.sdklib.internal.repository.packages.Package pack : source.getPackages()) {
+        if (!(pack instanceof SystemImagePackage)) {
+          continue;
+        }
+        AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(pack);
+        ImageFingerprint probe = new ImageFingerprint();
+        probe.version = desc.getVersion();
+        probe.tag = desc.getTag();
+        probe.abiType = desc.getAbiType();
+        // If we don't have a filter or this image passes the filter
+        if (!seen.contains(probe) && (myFilter == null || myFilter.apply(desc))) {
+          items.add(desc);
+        }
+      }
+    }
+
     myModel.setItems(items);
   }
 
-  public void setFilter(Predicate<ISystemImage> filter) {
+  public void setFilter(Predicate<AvdWizardConstants.SystemImageDescription> filter) {
     myFilter = filter;
   }
 
@@ -141,15 +276,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myListeners.add(listener);
   }
 
-  public void removeSelectionListener(SystemImageSelectionListener listener) {
-    myListeners.remove(listener);
-  }
-
   public void setSelectedImage(@Nullable AvdWizardConstants.SystemImageDescription selectedImage) {
     if (selectedImage != null) {
       for (AvdWizardConstants.SystemImageDescription listItem : myModel.getItems()) {
-        if (selectedImage.target.getVersion().equals(listItem.target.getVersion()) &&
-            selectedImage.systemImage.getAbiType().equals(listItem.systemImage.getAbiType())) {
+        if (selectedImage.getVersion().equals(listItem.getVersion()) &&
+            selectedImage.getAbiType().equals(listItem.getAbiType())) {
           myTable.setSelection(ImmutableSet.of(listItem));
           return;
         }
@@ -190,13 +321,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
    * the cell value in that column for a given row item.
    */
-  private static final ColumnInfo[] ourColumnInfos = new ColumnInfo[] {
+  private final ColumnInfo[] ourColumnInfos = new ColumnInfo[] {
     new SystemImageColumnInfo("Release Name") {
       @Nullable
       @Override
       public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        String codeName = SdkVersionInfo.getCodeName(systemImage.target.getVersion().getApiLevel());
-        String maybeDeprecated = systemImage.target.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ?
+        String codeName = SdkVersionInfo.getCodeName(systemImage.getVersion().getApiLevel());
+        String maybeDeprecated = systemImage.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ?
                                  " (Deprecated)" : "";
         return codeName == null ? "Unknown" : codeName + maybeDeprecated;
       }
@@ -205,7 +336,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Nullable
       @Override
       public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        return systemImage.target.getVersion().getApiString();
+        return systemImage.getVersion().getApiString();
       }
 
       @Nullable
@@ -214,7 +345,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         return new Comparator<AvdWizardConstants.SystemImageDescription>() {
           @Override
           public int compare(AvdWizardConstants.SystemImageDescription o1, AvdWizardConstants.SystemImageDescription o2) {
-            return o1.target.getVersion().getApiLevel() - o2.target.getVersion().getApiLevel();
+            return o1.getVersion().getApiLevel() - o2.getVersion().getApiLevel();
           }
         };
       }
@@ -223,16 +354,16 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Nullable
       @Override
       public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        return systemImage.systemImage.getAbiType();
+        return systemImage.getAbiType();
       }
     },
     new SystemImageColumnInfo("Target") {
       @Nullable
       @Override
       public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        IdDisplay tag = systemImage.systemImage.getTag();
-        String name = systemImage.target.getFullName();
-        return tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag.getDisplay());
+        IdDisplay tag = systemImage.getTag();
+        String name = systemImage.getName();
+        return tag == null || tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag);
       }
     },
   };
@@ -244,7 +375,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * of the string displayed by the {@link com.intellij.ui.components.JBLabel} rendered as the cell component. An explicit width may be used
    * by calling the overloaded constructor, otherwise the column will auto-scale to fill available space.
    */
-  public abstract static class SystemImageColumnInfo extends ColumnInfo<AvdWizardConstants.SystemImageDescription, String> {
+  public abstract class SystemImageColumnInfo extends ColumnInfo<AvdWizardConstants.SystemImageDescription, String> {
     private final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
 
     private final int myWidth;
@@ -258,22 +389,108 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       this(name, -1);
     }
 
+    @Override
+    public boolean isCellEditable(AvdWizardConstants.SystemImageDescription systemImageDescription) {
+      return systemImageDescription.isRemote();
+    }
+
     @Nullable
     @Override
-    public TableCellRenderer getRenderer(AvdWizardConstants.SystemImageDescription o) {
-      return new TableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-          JBLabel label = new JBLabel((String)value);
-          label.setBorder(myBorder);
-          if (table.getSelectedRow() == row) {
-            label.setBackground(table.getSelectionBackground());
-            label.setForeground(table.getSelectionForeground());
-            label.setOpaque(true);
-          }
-          return label;
+    public TableCellEditor getEditor(AvdWizardConstants.SystemImageDescription o) {
+      return new SystemImageDescriptionRenderer(o);
+    }
+
+    @Nullable
+    @Override
+    public TableCellRenderer getRenderer(final AvdWizardConstants.SystemImageDescription o) {
+      return new SystemImageDescriptionRenderer(o);
+    }
+
+    private class SystemImageDescriptionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
+      private AvdWizardConstants.SystemImageDescription image;
+
+      SystemImageDescriptionRenderer(AvdWizardConstants.SystemImageDescription o) {
+        image = o;
+      }
+
+      @Override
+      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        if (table.getSelectedRow() == row) {
+          panel.setBackground(table.getSelectionBackground());
+          panel.setForeground(table.getSelectionForeground());
+          panel.setOpaque(true);
         }
-      };
+        else {
+          panel.setBackground(table.getBackground());
+          panel.setForeground(table.getForeground());
+          panel.setOpaque(true);
+        }
+        JBLabel label = new JBLabel((String)value);
+        Font labelFont = UIUtil.getLabelFont();
+        if (column == 0) {
+          label.setFont(labelFont.deriveFont(Font.BOLD));
+        }
+        if (image.isRemote()) {
+          label.setFont(labelFont.deriveFont(label.getFont().getStyle() | Font.ITALIC));
+          label.setForeground(UIUtil.getLabelDisabledForeground());
+          // on OS X the actual text width isn't computed correctly. Compensating for that..
+          if (!label.getText().isEmpty()) {
+            int fontMetricsWidth = label.getFontMetrics(label.getFont()).stringWidth(label.getText());
+            TextLayout l = new TextLayout(label.getText(), label.getFont(), label.getFontMetrics(label.getFont()).getFontRenderContext());
+            int offset = (int)Math.ceil(l.getBounds().getWidth()) - fontMetricsWidth;
+            if (offset > 0) {
+              label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, offset));
+            }
+          }
+        }
+        panel.add(label);
+        if (image.isRemote() && column == 0) {
+          JBLabel link = new JBLabel("Download");
+          link.setBackground(table.getBackground());
+          link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+          link.setForeground(JBColor.BLUE);
+          link.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+              IPkgDesc remote = image.getRemotePackage().getPkgDesc();
+              IPkgDesc request = null;
+              if (remote.getType().equals(PkgType.PKG_SYS_IMAGE)) {
+                request =
+                  PkgDesc.Builder.newSysImg(remote.getAndroidVersion(), remote.getTag(), remote.getPath(), remote.getMajorRevision())
+                    .create();
+              }
+              else if (remote.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
+                request = PkgDesc.Builder.newAddonSysImg(image.getVersion(), remote.getVendor(), image.getTag(), image.getAbiType(),
+                                                         (MajorRevision)image.getRemotePackage().getRevision()).create();
+              }
+              List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
+              SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
+              sdkQuickfixWizard.init();
+              sdkQuickfixWizard.show();
+              refreshImages(true);
+            }
+          });
+          panel.add(link);
+        }
+        return panel;
+      }
+
+      @Override
+      public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        return getTableCellRendererComponent(table, value, isSelected, false, row, column);
+      }
+
+      @Override
+      public Object getCellEditorValue() {
+        return null;
+      }
+
+      @Override
+      public boolean isCellEditable(EventObject e) {
+        return true;
+      }
+
     }
 
     @Nullable
