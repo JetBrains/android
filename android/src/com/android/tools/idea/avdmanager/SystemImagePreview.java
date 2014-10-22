@@ -29,7 +29,6 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
@@ -83,9 +82,11 @@ public class SystemImagePreview extends JPanel {
    * Set the image to display.
    */
   public void setImage(@Nullable SystemImageDescription image) {
-    myImageDescription = image;
-    if (image != null) {
-      myDistribution = DistributionService.getInstance().getDistributionForApiLevel(image.target.getVersion().getApiLevel());
+    if (image == null || !image.isRemote()) {
+      myImageDescription = image;
+    }
+    if (image != null && !image.isRemote()) {
+      myDistribution = DistributionService.getInstance().getDistributionForApiLevel(image.getVersion().getApiLevel());
     }
     repaint();
   }
@@ -134,7 +135,7 @@ public class SystemImagePreview extends JPanel {
     g2d.drawString("API Level", infoSegmentX, infoSegmentY);
     infoSegmentY += stringHeight;
     g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    g2d.drawString(myImageDescription.target.getVersion().getApiString(), infoSegmentX, infoSegmentY);
+    g2d.drawString(myImageDescription.getVersion().getApiString(), infoSegmentX, infoSegmentY);
     infoSegmentY += PADDING;
 
     // Paint the platform version
@@ -143,15 +144,15 @@ public class SystemImagePreview extends JPanel {
     g2d.drawString("Android", infoSegmentX, infoSegmentY);
     infoSegmentY += stringHeight;
     g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    g2d.drawString(myImageDescription.target.getVersionName(), infoSegmentX, infoSegmentY);
+    g2d.drawString(myImageDescription.getVersionName(), infoSegmentX, infoSegmentY);
 
     // Paint the vendor name
     String vendorName;
-    String tag = myImageDescription.systemImage.getTag().getId();
+    String tag = myImageDescription.getTag().getId();
     if (tag.equals("android-wear") || tag.equals("android-tv")) {
       vendorName = "Android";
     } else {
-      vendorName = myImageDescription.target.getVendor();
+      vendorName = myImageDescription.getVendor();
     }
     if (metrics.stringWidth(vendorName) > 128) {
       // Split into two lines
@@ -181,10 +182,10 @@ public class SystemImagePreview extends JPanel {
     g2d.drawString("System Image", infoSegmentX, infoSegmentY);
     infoSegmentY += stringHeight;
     g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    g2d.drawString(myImageDescription.systemImage.getAbiType(), infoSegmentX, infoSegmentY);
+    g2d.drawString(myImageDescription.getAbiType(), infoSegmentX, infoSegmentY);
 
     // If this API level is deprecated, paint a warning
-    if (myImageDescription.target.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
+    if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
       infoSegmentY += stringHeight * 2;
       g2d.setFont(AvdWizardConstants.TITLE_FONT);
       g2d.drawString("This API Level is Deprecated", PADDING, infoSegmentY);
@@ -192,7 +193,7 @@ public class SystemImagePreview extends JPanel {
 
 
     // If this system image is not x86, paint a warning
-    if (detectHaxmInstallation(false) && !myImageDescription.systemImage.getAbiType().startsWith(Abi.X86.toString())) {
+    if (detectHaxmInstallation(false) && !myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
       infoSegmentY += stringHeight * 2;
       g2d.setFont(AvdWizardConstants.TITLE_FONT);
       g2d.drawString("Consider using a x86 System Image", PADDING, infoSegmentY);
@@ -213,7 +214,7 @@ public class SystemImagePreview extends JPanel {
    * @return the codename for the given System Image's API level
    */
   public static String getCodeName(@NotNull SystemImageDescription description) {
-    return SdkVersionInfo.getCodeName(description.target.getVersion().getApiLevel());
+    return SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
   }
 
   /**
