@@ -38,4 +38,10 @@ public class EventDispatcher<E> extends ArrayList<Listener<E>> implements Listen
       }
     }
   }
+
+  @Override
+  public boolean add(Listener<E> listener) {
+    //noinspection SimplifiableConditionalExpression
+    return !contains(listener) ? super.add(listener) : false;
+  }
 }
