@@ -17,21 +17,14 @@ package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiMethod;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class Macros {
-  private static final String DEFINE_ASSIGNMENT =
-    "void macro(String $fragmentName, Void $messageController) {" +
-    "    getFragment($fragmentName, $messageController);" +
-    "}";
+  private static final String CREATE_INTENT =
+    "void macro(Context context, Class activityClass) { new Intent(context, activityClass); }";
 
   private static final String DEFINE_INNER_CLASS =
     "void macro(Class $Interface, Void $method, Class $Type, Object $arg, final Statement $f) {" +
@@ -88,7 +81,11 @@ public class Macros {
     "    context.startActivity(new Intent(context, activityClass).putExtra(name, value));" +
     "}";
 
-  public final PsiMethod defineAssignment;
+  private static final String FIND_VIEW_BY_ID =
+    "void macro(int $id) { findViewById(R.id.$id);}";
+
+  public static final String FIND_FRAGMENT_BY_TAG =
+    "void macro(void $fragmentManager, int $tag) { $fragmentManager.findFragmentByTag($tag);}";
 
   public final MultiMatch createIntent;
   public final MultiMatch installClickAndCallMacro;
@@ -99,32 +96,6 @@ public class Macros {
   public final MultiMatch findFragmentByTag;
   private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
   private final Project myProject;
-
-  private static PsiMethod[] getMethodsByName(String templateName, String methodName, Project project) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    final PsiElementFactory factory = facade.getElementFactory();
-    ClassLoader classLoader = Macros.class.getClassLoader();
-    try {
-      InputStream inputStream = classLoader.getResourceAsStream("/navigationTemplates/" + templateName + ".java.template");
-      try {
-        int available = inputStream.available();
-        byte[] buffer = new byte[available];
-        assert available == inputStream.read(buffer);
-        String text = new String(buffer);
-        int start = text.indexOf("{");
-        int end = text.lastIndexOf("}");
-        String body = text.substring(start + 1, end);
-        PsiClass psiClass = factory.createClassFromText(body, null); //todo consider providing a context
-        return psiClass.findMethodsByName(methodName, false);
-      }
-      finally {
-        inputStream.close();
-      }
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   public static Macros getInstance(Project project) {
     Macros result = ourProjectToMacros.get(project);
@@ -144,30 +115,20 @@ public class Macros {
 
   private Macros(Project project) {
     myProject = project;
-    defineAssignment = getMethodFromText(DEFINE_ASSIGNMENT);
-    PsiMethod defineInnerClassMacro = getMethodFromText(DEFINE_INNER_CLASS);
 
-    PsiMethod installClickMacro = getMethodFromText(INSTALL_CLICK_LISTENER);
-    PsiMethod installMenuItemClickMacro = getMethodFromText(INSTALL_MENU_ITEM_CLICK);
-    PsiMethod installItemClickMacro = getMethodFromText(INSTALL_ITEM_CLICK_LISTENER);
+    createIntent = createMacro(CREATE_INTENT);
+    findViewById = createMacro(FIND_VIEW_BY_ID);
+    findFragmentByTag = createMacro(FIND_FRAGMENT_BY_TAG);
 
-    PsiMethod getMenuItemMacro = getMethodFromText(GET_MENU_ITEM);
+    installClickAndCallMacro = createMacro(INSTALL_CLICK_LISTENER);
 
-    PsiMethod launchActivityMacro = getMethodFromText(LAUNCH_ACTIVITY);
-    PsiMethod launchActivityMacro2 = getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG);
+    installItemClickAndCallMacro = createMacro(INSTALL_ITEM_CLICK_LISTENER);
 
-    createIntent = createMacro("void macro(Context context, Class activityClass) { new Intent(context, activityClass); }");
-    installClickAndCallMacro = new MultiMatch(installClickMacro);
-    installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
+    installMenuItemOnGetMenuItemAndLaunchActivityMacro = createMacro(INSTALL_MENU_ITEM_CLICK);
+    installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMethodFromText(GET_MENU_ITEM));
+    installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$f", getMethodFromText(LAUNCH_ACTIVITY));
 
-    findViewById = createMacro("void findViewById(int $id) { findViewById(R.id.$id);}");
-    findFragmentByTag = createMacro("void findViewById(void $fragmentManager, int $tag) { $fragmentManager.findFragmentByTag($tag);}");
-
-    installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
-    installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMenuItemMacro);
-    installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$f", launchActivityMacro);
-
-    defineInnerClassToLaunchActivityMacro = new MultiMatch(defineInnerClassMacro);
-    defineInnerClassToLaunchActivityMacro.addSubMacro("$f", launchActivityMacro2);
+    defineInnerClassToLaunchActivityMacro = createMacro(DEFINE_INNER_CLASS);
+    defineInnerClassToLaunchActivityMacro.addSubMacro("$f", getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG));
   }
 }
