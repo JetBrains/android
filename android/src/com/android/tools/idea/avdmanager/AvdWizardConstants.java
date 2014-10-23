@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
@@ -24,7 +25,11 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.repository.packages.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
@@ -122,12 +127,95 @@ public class AvdWizardConstants {
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
 
   public static final class SystemImageDescription {
-    public IAndroidTarget target;
-    public ISystemImage systemImage;
+    private IAndroidTarget target;
+    private ISystemImage systemImage;
+    private com.android.sdklib.internal.repository.packages.Package remotePackage;
 
     public SystemImageDescription(IAndroidTarget target, ISystemImage systemImage) {
       this.target = target;
       this.systemImage = systemImage;
+    }
+
+    public SystemImageDescription(com.android.sdklib.internal.repository.packages.Package remotePackage) {
+      this.remotePackage = remotePackage;
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return super.equals(obj);
+    }
+
+    @Nullable
+    public AndroidVersion getVersion() {
+      if (target != null) {
+        return target.getVersion();
+      } else {
+        return remotePackage.getPkgDesc().getAndroidVersion();
+      }
+    }
+
+    public com.android.sdklib.internal.repository.packages.Package getRemotePackage() {
+      return remotePackage;
+    }
+
+    public boolean isRemote() {
+      return remotePackage != null;
+    }
+
+    @Nullable
+    public String getAbiType() {
+      if (systemImage != null) {
+        return systemImage.getAbiType();
+      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE) {
+        return remotePackage.getPkgDesc().getPath();
+      } else {
+        return "";
+      }
+    }
+
+    @Nullable
+    public IdDisplay getTag() {
+      if (systemImage != null) {
+        return systemImage.getTag();
+      }
+      return remotePackage.getPkgDesc().getTag();
+    }
+
+    public String getName() {
+      if (target != null) {
+        return target.getFullName();
+      }
+      return remotePackage.getDescription();
+    }
+
+    public String getVendor() {
+      if (target != null) {
+        return target.getVendor();
+      }
+      return "";
+    }
+
+    public String getVersionName() {
+      if (target != null) {
+        return target.getVersionName();
+      }
+      return "";
+    }
+
+    public IAndroidTarget getTarget() {
+      return target;
+    }
+
+    public File[] getSkins() {
+      if (target != null) {
+        return target.getSkins();
+      }
+      return new File[0];
     }
   }
 }
