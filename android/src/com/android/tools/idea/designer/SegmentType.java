@@ -16,6 +16,7 @@
 package com.android.tools.idea.designer;
 
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.model.layout.TextDirection;
 import com.intellij.designer.utils.Position;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,14 @@ import java.awt.*;
  * A segment type describes the different roles or positions a segment can have in a node
  */
 public enum SegmentType {
+  /**
+   * Segment is on start side (left if LTR, right if RTL).
+   */
+  @NotNull START,
+  /**
+   * Segment is on end side (right if LTR, left if RTL).
+   */
+  @NotNull END,
   /**
    * Segment is on the left edge
    */
@@ -70,11 +79,23 @@ public enum SegmentType {
    * @param bounds the bounds of the node
    * @return the X coordinate for an edge of this type given its bounds
    */
-  public int getX(@SuppressWarnings("UnusedParameters") @Nullable RadViewComponent node, @NotNull Rectangle bounds) {
+  public int getX(@NotNull TextDirection textDirection,
+                  @SuppressWarnings("UnusedParameters") @Nullable RadViewComponent node,
+                  @NotNull Rectangle bounds) {
+    SegmentType me = this;
+    switch(this) {
+      case START:
+        me = textDirection == TextDirection.RIGHT_TO_LEFT ? RIGHT : LEFT;
+        break;
+      case END:
+        me = textDirection == TextDirection.RIGHT_TO_LEFT ? LEFT : RIGHT;
+        break;
+    }
+
     // We pass in the bounds rather than look it up via node.getBounds() because
     // during a resize or move operation, we call this method to look up proposed
     // bounds rather than actual bounds
-    switch (this) {
+    switch (me) {
       case RIGHT:
         return bounds.x + bounds.width;
       case TOP:

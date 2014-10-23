@@ -37,8 +37,12 @@ enum ConstraintType {
   ALIGN_BOTTOM(ATTR_LAYOUT_ALIGN_BOTTOM, null, SegmentType.BOTTOM, null, SegmentType.BOTTOM, false, true, false, false),
   ALIGN_LEFT(ATTR_LAYOUT_ALIGN_LEFT, SegmentType.LEFT, null, SegmentType.LEFT, null, false, false, true, false),
   ALIGN_RIGHT(ATTR_LAYOUT_ALIGN_RIGHT, SegmentType.RIGHT, null, SegmentType.RIGHT, null, false, false, true, false),
+  LAYOUT_ALIGN_START(ATTR_LAYOUT_ALIGN_START, SegmentType.START, null, SegmentType.START, null, false, false, true, false),
+  LAYOUT_ALIGN_END(ATTR_LAYOUT_ALIGN_END, SegmentType.END, null, SegmentType.END, null, false, false, true, false),
   LAYOUT_LEFT_OF(ATTR_LAYOUT_TO_LEFT_OF, SegmentType.RIGHT, null, SegmentType.LEFT, null, false, false, true, true),
   LAYOUT_RIGHT_OF(ATTR_LAYOUT_TO_RIGHT_OF, SegmentType.LEFT, null, SegmentType.RIGHT, null, false, false, true, true),
+  LAYOUT_ALIGN_START_OF(ATTR_LAYOUT_TO_START_OF, SegmentType.START, null, SegmentType.START, null, false, false, true, false),
+  LAYOUT_ALIGN_END_OF(ATTR_LAYOUT_TO_END_OF, SegmentType.END, null, SegmentType.END, null, false, false, true, false),
   ALIGN_PARENT_TOP(ATTR_LAYOUT_ALIGN_PARENT_TOP, null, SegmentType.TOP, null, SegmentType.TOP, true, true, false, false),
   ALIGN_BASELINE(ATTR_LAYOUT_ALIGN_BASELINE, null, SegmentType.BASELINE, null, SegmentType.BASELINE, false, true, false, false),
   ALIGN_PARENT_LEFT(ATTR_LAYOUT_ALIGN_PARENT_LEFT, SegmentType.LEFT, null, SegmentType.LEFT, null, true, false, true, false),
@@ -223,6 +227,20 @@ enum ConstraintType {
         break;
       case BASELINE:
         return ALIGN_BASELINE;
+      case START:
+        switch (to) {
+          case START:
+            return LAYOUT_ALIGN_START;
+          case END:
+            return LAYOUT_ALIGN_END_OF;
+        }
+      case END:
+        switch (to) {
+          case START:
+            return LAYOUT_ALIGN_START_OF;
+          case END:
+            return LAYOUT_ALIGN_END;
+        }
     }
 
     return null;
