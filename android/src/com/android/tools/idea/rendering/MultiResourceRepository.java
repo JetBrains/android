@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
@@ -31,7 +30,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
+@SuppressWarnings({
+  "deprecation",  // Deprecated com.android.util.Pair is required by ProjectCallback interface
+  "SynchronizeOnThis"})
 public abstract class MultiResourceRepository extends LocalResourceRepository {
   protected List<? extends LocalResourceRepository> myChildren;
   private long[] myModificationCounts;
@@ -64,7 +65,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   private void clearCache() {
     myItems = null;
-    myCachedTypeMaps.clear();
+    synchronized (this) {
+      myCachedTypeMaps.clear();
+    }
   }
 
   public List<? extends LocalResourceRepository> getChildren() {
@@ -117,17 +120,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
     // Should I assert !create here? If we try to manipulate the cache it won't work right...
-    ListMultimap<String, ResourceItem> map = myCachedTypeMaps.get(type);
-    if (map != null) {
-      return map;
+    synchronized (this) {
+      ListMultimap<String, ResourceItem> map = myCachedTypeMaps.get(type);
+      if (map != null) {
+        return map;
+      }
     }
 
     if (myChildren.size() == 1) {
       return myChildren.get(0).getItems().get(type);
     }
 
-    map = ArrayListMultimap.create();
-    myCachedTypeMaps.put(type, map);
+    ListMultimap<String, ResourceItem> map = ArrayListMultimap.create();
 
     // Merge all items of the given type
     for (int i = myChildren.size() - 1; i >= 0; i--) {
@@ -165,6 +169,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
     }
 
+    synchronized (this) {
+      myCachedTypeMaps.put(type, map);
+    }
+
     return map;
   }
 
@@ -196,12 +204,14 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   public void invalidateCache(@NotNull LocalResourceRepository repository, @Nullable ResourceType... types) {
     assert myChildren.contains(repository) : repository;
 
-    if (types == null || types.length == 0) {
-      myCachedTypeMaps.clear();
-    }
-    else {
-      for (ResourceType type : types) {
-        myCachedTypeMaps.remove(type);
+    synchronized (this) {
+      if (types == null || types.length == 0) {
+        myCachedTypeMaps.clear();
+      }
+      else {
+        for (ResourceType type : types) {
+          myCachedTypeMaps.remove(type);
+        }
       }
     }
     myItems = null;
