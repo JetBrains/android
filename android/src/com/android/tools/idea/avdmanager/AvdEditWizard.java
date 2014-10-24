@@ -255,7 +255,10 @@ public class AvdEditWizard extends DynamicWizard {
 
     boolean isCircular = DeviceDefinitionPreview.isCircular(device);
 
-    String avdName = calculateAvdName(avdInfo, hardwareProperties, device, forceCreate);
+    String avdName = state.get(AvdWizardConstants.AVD_ID_KEY);
+    if (avdName == null || avdName.isEmpty()) {
+      avdName = calculateAvdName(avdInfo, hardwareProperties, device, forceCreate);
+    }
 
     // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
     if (avdInfo != null && !forceCreate) {
@@ -349,11 +352,26 @@ public class AvdEditWizard extends DynamicWizard {
       String manufacturer = device.getManufacturer().replace(' ', '_');
       candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
     }
+    return cleanAvdName(candidateBase, true);
+  }
+
+  /**
+   * Get a version of {@code candidateBase} modified such that it is a valid filename. Invalid characters will be
+   * removed, and if requested the name will be made unique.
+   *
+   * @param candidateBase the name on which to base the avd name.
+   * @param uniquify if true, _n will be appended to the name if necessary to make the name unique, where n is the first
+   *                 number that makes the filename unique.
+   * @return The modified filename.
+   */
+  public static String cleanAvdName(@NotNull String candidateBase, boolean uniquify) {
     candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
     String candidate = candidateBase;
-    int i = 1;
-    while (AvdManagerConnection.avdExists(candidate)) {
-      candidate = String.format("%1$s_%2$d", candidateBase, i++);
+    if (uniquify) {
+      int i = 1;
+      while (AvdManagerConnection.avdExists(candidate)) {
+        candidate = String.format("%1$s_%2$d", candidateBase, i++);
+      }
     }
     return candidate;
   }

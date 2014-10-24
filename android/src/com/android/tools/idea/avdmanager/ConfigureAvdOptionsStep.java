@@ -108,7 +108,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JTextField myAvdDisplayName;
   private JBLabel mySkinDefinitionLabel;
+  private JTextField myAvdId;
+  private JLabel myAvdIdLabel;
   private Set<JComponent> myAdvancedOptionsComponents;
+  private String myOriginalName;
 
   // Labels used for the advanced settings toggle button
   private static final String ADVANCED_SETTINGS = "Advanced Settings";
@@ -196,6 +199,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     registerComponents();
     deregister(getDescriptionText());
     getDescriptionText().setVisible(false);
+    Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
+    myOriginalName = editMode != null && editMode? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
   }
 
   @Override
@@ -335,6 +340,24 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
    */
   private void registerComponents() {
     register(DISPLAY_NAME_KEY, myAvdDisplayName);
+    register(AVD_ID_KEY, myAvdId);
+    registerValueDeriver(AVD_ID_KEY, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<Key<?>> getTriggerKeys() {
+        return makeSetOf(DISPLAY_NAME_KEY);
+      }
+
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+        String displayName = state.get(DISPLAY_NAME_KEY);
+        if (displayName != null) {
+          return AvdEditWizard.cleanAvdName(displayName, !displayName.equals(myOriginalName));
+        }
+        return "";
+      }
+    });
     register(DEVICE_DEFINITION_KEY, myDeviceName, DEVICE_NAME_BINDING);
     register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
@@ -416,7 +439,23 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
 
+    registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<Key<?>> getTriggerKeys() {
+        return makeSetOf(DISPLAY_NAME_KEY);
+      }
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state,
+                                @Nullable Key changedKey,
+                                @Nullable String currentValue) {
+        return state.get(DISPLAY_NAME_KEY);
+      }
+    });
+
     register(DEFAULT_ORIENTATION_KEY, myOrientationToggle, ORIENTATION_BINDING);
+
     setControlDescription(myOrientationToggle, myAvdConfigurationOptionHelpPanel.getDescription(DEFAULT_ORIENTATION_KEY));
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
       @Override
@@ -674,7 +713,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents = ImmutableSet.<JComponent>of(myMemoryAndStoragePanel, myCameraPanel, myNetworkPanel,
-                                                              mySkinPanel);
+                                                              mySkinPanel, myAvdIdLabel, myAvdId);
   }
 
   /**

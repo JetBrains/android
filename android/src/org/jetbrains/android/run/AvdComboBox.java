@@ -3,7 +3,9 @@ package org.jetbrains.android.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.avdmanager.AvdBuilder;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -42,7 +44,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final boolean myShowNotLaunchedOnly;
   private final Alarm myAlarm = new Alarm(this);
   private final JBPopupMenu myMenu;
-  private String[] myOldAvds = ArrayUtil.EMPTY_STRING_ARRAY;
+  private IdDisplay[] myOldAvds = new IdDisplay[0];
   private final Project myProject;
 
   public AvdComboBox(@Nullable Project project, boolean addEmptyElement, boolean showNotLaunchedOnly) {
@@ -134,7 +136,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    final String[] newAvds;
+    final IdDisplay[] newAvds;
 
     if (facet != null) {
       final Set<String> filteringSet = new HashSet<String>();
@@ -150,21 +152,22 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
         }
       }
 
-      final List<String> newAvdList = new ArrayList<String>();
+      final List<IdDisplay> newAvdList = new ArrayList<IdDisplay>();
       if (myAddEmptyElement) {
-        newAvdList.add("");
+        newAvdList.add(new IdDisplay("", ""));
       }
       for (AvdInfo avd : facet.getAllAvds()) {
-        final String avdName = avd.getName();
+        String displayName = avd.getProperties().get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+        final String avdName = displayName == null || displayName.isEmpty() ? avd.getName() : displayName;
         if (!filteringSet.contains(avdName)) {
-          newAvdList.add(avdName);
+          newAvdList.add(new IdDisplay(avd.getName(), avdName));
         }
       }
 
-      newAvds = ArrayUtil.toStringArray(newAvdList);
+      newAvds = ArrayUtil.toObjectArray(newAvdList, IdDisplay.class);
     }
     else {
-      newAvds = ArrayUtil.EMPTY_STRING_ARRAY;
+      newAvds = new IdDisplay[0];
     }
 
     if (!Arrays.equals(myOldAvds, newAvds)) {
