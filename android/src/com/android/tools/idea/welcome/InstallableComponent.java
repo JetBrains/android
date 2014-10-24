@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.intellij.util.download.DownloadableFileDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Set;
 
 /**
@@ -85,14 +87,12 @@ public abstract class InstallableComponent {
     }
   }
 
-  public abstract void perform(@NotNull InstallContext downloaded) throws WizardException;
-
   @NotNull
-  public abstract Set<DownloadableFileDescription> getFilesToDownloadAndExpand();
+  public abstract PkgDesc.Builder[] getRequiredSdkPackages();
 
-  public abstract void init(ScopedStateStore state);
+  public abstract void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep);
 
   public abstract DynamicWizardStep[] createSteps();
 
-  public abstract boolean hasVisibleStep();
+  public abstract void configure(@NotNull InstallContext installContext, @NotNull File sdk);
 }
