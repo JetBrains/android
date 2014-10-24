@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -52,7 +53,7 @@ import static com.android.tools.idea.rendering.RenderService.AttributeFilter;
  */
 public class LayoutPsiPullParser extends LayoutPullParser {
   @NotNull
-  private final RenderLogger myLogger;
+  private final LayoutLog myLogger;
 
   @NotNull
   private final List<Element> myNodeStack = new ArrayList<Element>();
@@ -116,11 +117,11 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   /** Use one of the {@link #create} factory methods instead */
-  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger) {
+  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull LayoutLog logger) {
     this(AndroidPsiUtils.getRootTagSafely(file), logger);
   }
 
-  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull RenderLogger logger) {
+  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull LayoutLog logger) {
     myLogger = logger;
 
     if (root != null) {
@@ -755,12 +756,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     @Nullable
     private final AttributeFilter myFilter;
 
-    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull RenderLogger logger, @Nullable AttributeFilter filter) {
+    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull LayoutLog logger, @Nullable AttributeFilter filter) {
       super(root, logger);
       this.myFilter = filter;
     }
 
-    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull RenderLogger logger, @Nullable AttributeFilter filter) {
+    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull LayoutLog logger, @Nullable AttributeFilter filter) {
       super(file, logger);
       this.myFilter = filter;
     }
