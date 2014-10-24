@@ -389,7 +389,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
           SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
           if (device != null && systemImage != null) { // Should always be the case
             return String.format(Locale.getDefault(), "%1$s API %2$d",
-                                 device.getDisplayName(), systemImage.target.getVersion().getApiLevel());
+                                 device.getDisplayName(), systemImage.getVersion().getApiLevel());
           }
           return null; // Should never occur
         }
@@ -628,7 +628,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     @Override
     public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
       if (newValue != null) {
-        component.setText(newValue.target.getFullName() + " " + newValue.systemImage.getAbiType());
+        component.setText(newValue.getName() + " " + newValue.getAbiType());
       }
     }
   };
