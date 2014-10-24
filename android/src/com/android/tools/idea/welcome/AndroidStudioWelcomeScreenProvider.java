@@ -35,6 +35,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
 
   @Override
   public boolean isAvailable() {
-    return FirstRunWizard.isNeeded() && Boolean.getBoolean(DEBUG_SYSTEM_PROPERTY);
+    AndroidFirstRunPersistentData instance = AndroidFirstRunPersistentData.getInstance();
+    return !instance.isSdkUpToDate() && Boolean.getBoolean(DEBUG_SYSTEM_PROPERTY);
   }
 }
