@@ -53,7 +53,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
         }
         String deviceTagId = myCurrentDevice.getTagId();
         if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
-          return true;
+          return input.getTag() == null || input.getTag().getId().equals(SystemImage.DEFAULT_TAG.getId());
         }
         return deviceTagId.equals(input.getTag().getId());
       }
