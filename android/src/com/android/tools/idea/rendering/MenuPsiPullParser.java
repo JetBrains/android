@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.LayoutLog;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -31,7 +32,7 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
   // List of attributes to omit.
   private static final String[] FILTERS = {"onClick", "actionViewClass", "actionLayout"};
 
-  public MenuPsiPullParser(XmlFile file, RenderLogger logger) {
+  public MenuPsiPullParser(XmlFile file, LayoutLog logger) {
     super(file, logger, new RenderService.AttributeFilter() {
       @Nullable
       @Override
