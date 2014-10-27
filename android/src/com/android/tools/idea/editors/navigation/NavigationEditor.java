@@ -552,30 +552,54 @@ public class NavigationEditor implements FileEditor {
     return myFile.isValid();
   }
 
-  private void layoutStatesWithUnsetLocations(NavigationModel navigationModel) {
-    Collection<State> states = navigationModel.getStates();
+  private static void modifyCount(Map<State, Integer> m, Locator l, int delta) {
+    State s = l.getState();
+    m.put(s, m.get(s) + delta);
+  }
+
+  private static List<State> getStatesInOrder(final NavigationModel navigationModel) {
+    List<State> states = navigationModel.getStates();
+    final Map<State, Integer> ioCounts = new HashMap<State, Integer>();
+    for (State s : states) {
+      ioCounts.put(s, 0);
+    }
+    for (Transition t : navigationModel.getTransitions()) {
+      modifyCount(ioCounts, t.getSource(), -1);
+      modifyCount(ioCounts, t.getDestination(), 1);
+    }
+    Collections.sort(states, new Comparator<State>() {
+      @Override
+      public int compare(State s1, State s2) {
+        return ioCounts.get(s1) - ioCounts.get(s2);
+      }
+    });
+    return states;
+  }
+
+  private static void layoutStatesWithUnsetLocations(final NavigationModel navigationModel, ModelDimension size) {
+    List<State> states = getStatesInOrder(navigationModel);
     final Map<State, ModelPoint> stateToLocation = navigationModel.getStateToLocation();
     final Set<State> visited = new HashSet<State>();
-    ModelDimension size = myRenderingParams.getDeviceScreenSize();
     ModelDimension gridSize = new ModelDimension(size.width + GAP.width, size.height + GAP.height);
     final Point location = new Point(GAP.width, GAP.height);
     final int gridWidth = gridSize.width;
     final int gridHeight = gridSize.height;
     // Gather childless roots and deal with them differently, there could be many of them
-    Set<State> transitionStates = getTransitionStates();
+    Set<State> transitionStates = getTransitionStates(navigationModel);
     Collection<State> unattached = getNonTransitionStates(states, transitionStates);
     visited.addAll(unattached);
     for (State state : states) {
-      if (visited.contains(state)) {
-        continue;
-      }
       new Object() {
         public void addChildrenFor(State source) {
+          if (visited.contains(source)) {
+            return;
+          }
           visited.add(source);
           if (!stateToLocation.containsKey(source)) {
             stateToLocation.put(source, new ModelPoint(location.x, location.y));
           }
-          List<State> children = findDestinationsFor(source, visited);
+          List<State> children = navigationModel.findDestinationsFor(source);
+          children.removeAll(visited);
           location.x += gridWidth;
           if (children.isEmpty()) {
             location.y += gridHeight;
@@ -598,9 +622,9 @@ public class NavigationEditor implements FileEditor {
     }
   }
 
-  private Set<State> getTransitionStates() {
+  private static Set<State> getTransitionStates(NavigationModel navigationModel) {
     Set<State> result = new HashSet<State>();
-    for (Transition transition : myNavigationModel.getTransitions()) {
+    for (Transition transition : navigationModel.getTransitions()) {
       State source = transition.getSource().getState();
       State destination = transition.getDestination().getState();
       result.add(source);
@@ -615,19 +639,6 @@ public class NavigationEditor implements FileEditor {
     return unattached;
   }
 
-  private List<State> findDestinationsFor(State source, Set<State> visited) {
-    java.util.List<State> result = new ArrayList<State>();
-    for (Transition transition : myNavigationModel.getTransitions()) {
-      if (transition.getSource().getState() == source) {
-        State destination = transition.getDestination().getState();
-        if (!visited.contains(destination)) {
-          result.add(destination);
-        }
-      }
-    }
-    return result;
-  }
-
   private void updateNavigationModelFromProject() {
     if (DEBUG) System.out.println("NavigationEditor: updateNavigationModelFromProject...");
     if (myRenderingParams == null || myRenderingParams.myProject.isDisposed()) {
@@ -639,7 +650,7 @@ public class NavigationEditor implements FileEditor {
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
     myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myRenderingParams.myConfiguration);
-    layoutStatesWithUnsetLocations(myNavigationModel);
+    layoutStatesWithUnsetLocations(myNavigationModel, myRenderingParams.getDeviceScreenSize());
     listeners.setNotificationEnabled(notificationWasEnabled);
 
     myModified = false;
@@ -694,7 +705,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   private void saveFile() throws IOException {
-    if (myModified) {
+    if (myModified && myFile.isWritable()) {
       ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
       new XMLWriter(stream).write(myNavigationModel);
       myFile.setBinaryContent(stream.toByteArray());
