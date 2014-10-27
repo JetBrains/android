@@ -20,15 +20,17 @@ import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
 public class DeviceArtDescriptorTest extends TestCase {
-  public void test1() throws FileNotFoundException {
+  public void test1() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
     assertEquals(17, specs.size());
@@ -74,6 +76,11 @@ public class DeviceArtDescriptorTest extends TestCase {
         if (reflectionOverlay != null) {
           assertTrue(id, reflectionOverlay.exists());
         }
+
+        verifyCompatibleImage(descriptor.getFrame(orientation));
+        verifyCompatibleImage(descriptor.getDropShadow(orientation));
+        verifyCompatibleImage(descriptor.getReflectionOverlay(orientation));
+        verifyCompatibleImage(descriptor.getMask(orientation));
       }
     }
 
@@ -112,6 +119,17 @@ public class DeviceArtDescriptorTest extends TestCase {
   private static void verifyFileExists(@Nullable File f) {
     assertNotNull(f);
     assertTrue(f.exists());
+  }
+
+  private static void verifyCompatibleImage(@Nullable File file) throws IOException {
+    if (file == null) {
+      return;
+    }
+
+    BufferedImage image = ImageIO.read(file);
+
+    // ImageIO does not handle all possible image formats; let's not use any that we don't recognize!
+    assertTrue("Unrecognized type " + file, image.getType() != BufferedImage.TYPE_CUSTOM);
   }
 
   private static DeviceArtDescriptor getDescriptorFor(@NotNull String id, List<DeviceArtDescriptor> descriptors) {
