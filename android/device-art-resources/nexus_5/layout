@@ -26,8 +26,8 @@ parts {
 }
 layouts {
   portrait {
-    width 1690
-    height 2857
+    width 1370
+    height 2405
     part1 {
       name portrait
       x 0
@@ -35,13 +35,13 @@ layouts {
     }
     part2 {
       name device
-      x 304
-      y 436
+      x 144
+      y 195
     }
   }
   landscape {
-    width 2857
-    height 1690
+    width 2497
+    height 1235
     part1 {
       name landscape
       x 0
@@ -49,8 +49,8 @@ layouts {
     }
     part2 {
       name device
-      x 436
-      y 1386
+      x 261
+      y 1145
       rotation 3
     }
   }
