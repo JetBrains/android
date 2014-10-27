@@ -29,6 +29,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -37,9 +38,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import icons.AndroidIcons;
@@ -50,6 +49,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -105,12 +105,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private JBLabel myInternalStorageLabel;
   private JBLabel mySdCardLabel;
   private JPanel mySkinPanel;
-  private TextFieldWithBrowseButton myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JTextField myAvdDisplayName;
   private JBLabel mySkinDefinitionLabel;
   private JTextField myAvdId;
   private JLabel myAvdIdLabel;
+  private SkinChooser mySkinComboBox;
   private Set<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
 
@@ -123,10 +123,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private static final String SWITCH_TO_NEW_SD_CARD = "Or create a new image...";
   private static final String SWITCH_TO_EXISTING_SD_CARD = "Or use an existing data file...";
   private Set<JComponent> myErrorStateComponents = Sets.newHashSet();
-
-  // Intermediate key for storing the string path before we convert it to a file
-  private static final Key<String> CUSTOM_SKIN_PATH_KEY = createKey(WIZARD_ONLY + "CustomSkinPath",
-                                                                    ScopedStateStore.Scope.STEP, String.class);
 
   public ConfigureAvdOptionsStep(@Nullable Disposable parentDisposable) {
     super("Android Virtual Device (AVD)", "Verify Configuration", null, parentDisposable);
@@ -210,7 +206,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     }
 
     Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
-    myOriginalName = editMode != null && editMode? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
+    editMode = editMode == null ? Boolean.FALSE : editMode;
+    myOriginalName = editMode ? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
+
+    File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinPath == null && !editMode) {
+      Device device = myState.get(DEVICE_DEFINITION_KEY);
+      if (device != null) {
+        skinPath = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
+      }
+    }
+    myState.put(CUSTOM_SKIN_FILE_KEY, skinPath != null ? skinPath : NO_SKIN);
   }
 
   private static String uniquifyDisplayName(String name) {
@@ -289,12 +295,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     }
 
-    String skinPath = myState.get(CUSTOM_SKIN_PATH_KEY);
-    if (skinPath != null && !skinPath.isEmpty()) {
-      File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
+    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinFile != null && skinFile != NO_SKIN) {
+      File layoutFile = new File(skinFile, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorState("The skin directory does not point to a valid skin.",
-                      mySkinDefinitionLabel, myCustomSkinPath);
+                      mySkinDefinitionLabel, mySkinComboBox);
         valid = false;
       }
     }
@@ -462,6 +468,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(DEVICE_DEFINITION_KEY);
       }
+
       @Nullable
       @Override
       public ScreenOrientation deriveValue(@NotNull ScopedStateStore state,
@@ -552,60 +559,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
 
-    File currentSkinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (currentSkinFile != null) {
-      myState.put(CUSTOM_SKIN_PATH_KEY, currentSkinFile.getPath());
-    }
-    register(CUSTOM_SKIN_PATH_KEY, myCustomSkinPath);
-    FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
-    myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
-                                                 getProject(), skinChooserDescriptor);
-    setControlDescription(myCustomSkinPath, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
-
-    registerValueDeriver(CUSTOM_SKIN_PATH_KEY, new ValueDeriver<String>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
-      }
-
-      @Nullable
-      @Override
-      public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-        String path = state.get(CUSTOM_SKIN_PATH_KEY);
-        if (path == null || path.isEmpty()) {
-          Device device = state.get(DEVICE_DEFINITION_KEY);
-          if (device != null) {
-            File skinFile = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
-            if (skinFile != null) {
-              path = skinFile.getPath();
-            }
-          }
-        }
-        return path;
-      }
-    });
-
-    registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
-      }
-
-      @Nullable
-      @Override
-      public File deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable File currentValue) {
-        String path = state.get(CUSTOM_SKIN_PATH_KEY);
-        if (path != null) {
-          File file = new File(path);
-          if (file.isDirectory()) {
-            return file;
-          }
-        }
-        return null;
-      }
-    });
+    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    register(CUSTOM_SKIN_FILE_KEY, mySkinComboBox, mySkinComboBox.getBinding());
+    myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
+    setControlDescription(mySkinComboBox, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
 
     invokeUpdate(null);
   }
@@ -631,6 +588,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget("");
+    mySkinComboBox = new SkinChooser(getProject());
   }
 
   @NotNull
