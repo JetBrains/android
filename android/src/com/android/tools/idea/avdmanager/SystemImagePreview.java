@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
 import com.google.common.base.CharMatcher;
@@ -29,6 +30,7 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
@@ -44,7 +46,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDescription;
 
@@ -193,12 +196,21 @@ public class SystemImagePreview extends JPanel {
 
 
     // If this system image is not x86, paint a warning
-    if (detectHaxmInstallation(false) && !myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
+    HaxmState haxmState = getHaxmState(false);
+    if (haxmState == HaxmState.NOT_INSTALLED && !myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
       infoSegmentY += stringHeight * 2;
       g2d.setFont(AvdWizardConstants.TITLE_FONT);
+      g2d.setColor(JBColor.RED);
       g2d.drawString("Consider using a x86 System Image", PADDING, infoSegmentY);
       infoSegmentY += stringHeight;
       g2d.drawString("for better emulation speed", PADDING, infoSegmentY);
+    } else if (haxmState == HaxmState.NOT_LATEST) {
+      infoSegmentY += stringHeight * 2;
+      g2d.setColor(JBColor.RED);
+      g2d.setFont(AvdWizardConstants.TITLE_FONT);
+      g2d.drawString("Newer HAXM Version Available", PADDING, infoSegmentY);
+      infoSegmentY += stringHeight;
+      g2d.drawString("(Use SDK Manager)", PADDING, infoSegmentY);
     }
 
     if (myDistribution != null) {
@@ -247,43 +259,71 @@ public class SystemImagePreview extends JPanel {
     }
   }
 
-  private static Boolean myIsHaxmInstalled;
-  private static boolean detectHaxmInstallation(boolean forceRefresh) {
-    if (myIsHaxmInstalled == null || forceRefresh) {
+  enum HaxmState { NOT_INITIALIZED, INSTALLED, NOT_INSTALLED, NOT_LATEST }
+  private static HaxmState ourHaxmState = HaxmState.NOT_INITIALIZED;
+
+  private static HaxmState getHaxmState(boolean forceRefresh) {
+    if (ourHaxmState == HaxmState.NOT_INITIALIZED || forceRefresh) {
+      ourHaxmState = computeHaxmState();
+    }
+    return ourHaxmState;
+  }
+
+  private static HaxmState computeHaxmState() {
       try {
-        // TODO: Use the IntelliJ platform lookup methods here: SystemInfo.isMac, SystemInfo.isWindows, etc
-        String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-        if (OS.contains("mac") || OS.contains("darwin")) {
-          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("/usr/sbin/kextstat | grep intel"), null);
-          myIsHaxmInstalled = Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-              return input != null && input.contains("com.intel.kext.intelhaxm");
+        if (SystemInfo.isMac) {
+          @SuppressWarnings("SpellCheckingInspection")
+          String output = ExecUtil.execAndReadLine("/usr/sbin/kextstat", "-l", "-b", "com.intel.kext.intelhaxm");
+          if (output != null && !output.isEmpty()) {
+            Pattern pattern = Pattern.compile("com\\.intel\\.kext\\.intelhaxm( \\((.+)\\))?");
+            Matcher matcher = pattern.matcher(output);
+            if (matcher.find()) {
+              if (matcher.groupCount() >= 2) {
+                String version = matcher.group(2);
+                try {
+                  FullRevision revision = FullRevision.parseRevision(version);
+                  FullRevision current = new FullRevision(1, 1, 1);
+                  if (revision.compareTo(current) < 0) {
+                    // We have the new version number, as well as the currently installed
+                    // version number here, which we could use to make a better error message.
+                    // However, these versions do not correspond to the version number we show
+                    // in the SDK manager (e.g. in the SDK version manager we show "5"
+                    // and the corresponding kernel stat version number is 1.1.1.
+                    return HaxmState.NOT_LATEST;
+                  }
+                }
+                catch (NumberFormatException e) {
+                  // Some unexpected new (or old?) format for HAXM versions; ignore since we
+                  // can't check whether it is up to date.
+                }
+              }
+              return HaxmState.INSTALLED;
             }
-          });
-        } else if (OS.contains("win")) {
-          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc query intelhaxm"), null);
-          myIsHaxmInstalled = Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
+          }
+          return HaxmState.NOT_INSTALLED;
+        } else if (SystemInfo.isWindows) {
+          @SuppressWarnings("SpellCheckingInspection")
+          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc", "query", "intelhaxm"), null);
+          return Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
             @Override
             public boolean apply(String input) {
               return input == null || !input.contains("does not exist");
             }
-          });
-        } else if (OS.contains("nux")) {
+          }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
+        } else if (SystemInfo.isUnix) {
           ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kvm-ok"), null);
-          myIsHaxmInstalled = Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
+          return Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
             @Override
             public boolean apply(String input) {
               return input != null && input.contains("KVM acceleration can be used");
             }
-          });
+          }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
         } else {
-          myIsHaxmInstalled = false;
+          assert !SystemInfo.isLinux; // should be covered by SystemInfo.isUnix
+          return HaxmState.NOT_INSTALLED;
         }
       } catch (ExecutionException e) {
-        myIsHaxmInstalled = false;
+        return HaxmState.NOT_INSTALLED;
       }
     }
-    return myIsHaxmInstalled;
-  }
 }
