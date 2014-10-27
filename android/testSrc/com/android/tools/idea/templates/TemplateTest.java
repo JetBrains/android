@@ -481,7 +481,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       return;
     }
     markChecked(templateFile, createWithProject);
-    Stopwatch stopwatch = new Stopwatch();
+    Stopwatch stopwatch = Stopwatch.createUnstarted();
     stopwatch.start();
     checkTemplate(templateFile, createWithProject);
     stopwatch.stop();
