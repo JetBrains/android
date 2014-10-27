@@ -32,6 +32,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
@@ -47,8 +49,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
 
 public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescription {
@@ -243,6 +245,11 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
           }
           myInstallFinished = true;
           invokeUpdate(null);
+
+          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(mySdkData.getLocation());
+          if (sdkDir != null) {
+            sdkDir.refresh(true, true);
+          }
         }
       });
     }

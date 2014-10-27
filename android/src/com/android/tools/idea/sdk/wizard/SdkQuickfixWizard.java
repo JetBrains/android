@@ -39,29 +39,30 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
 
 /**
  * Provides a wizard which can install a list of items.
+ * <p>
+ * Example usage:
+ * <pre>
+ * {@code
+  public static class LaunchMe extends AnAction {
+      public LaunchMe() {
+        super("Launch SDK Quickfix Wizard");
+      }
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        List<IPkgDesc> requestedPackages = Lists.newArrayListWithCapacity(3);
+        FullRevision minBuildToolsRev = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+        requestedPackages.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
+        requestedPackages.add(PkgDesc.Builder.newPlatform(new AndroidVersion(19, null), new MajorRevision(1), minBuildToolsRev).create());
+        SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
+        sdkQuickfixWizard.init();
+        sdkQuickfixWizard.show();
+      }
+    }
+ }
+ * </pre>
  */
 public class SdkQuickfixWizard extends DynamicWizard {
   private final List<IPkgDesc> myRequestedPackages;
-
-  /**
-   * Example usage. TODO: Remove this
-   */
-  public static class LaunchMe extends AnAction {
-    public LaunchMe() {
-      super("Launch SDK Quickfix Wizard");
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      List<IPkgDesc> requestedPackages = Lists.newArrayListWithCapacity(3);
-      FullRevision minBuildToolsRev = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
-      requestedPackages.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
-      requestedPackages.add(PkgDesc.Builder.newPlatform(new AndroidVersion(19, null), new MajorRevision(1), minBuildToolsRev).create());
-      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
-      sdkQuickfixWizard.init();
-      sdkQuickfixWizard.show();
-    }
-  }
 
   public SdkQuickfixWizard(@Nullable Project project, @Nullable Module module, List<IPkgDesc> requestedPackages) {
     super(project, module, "SDK Quickfix Installation");
