@@ -16,9 +16,10 @@
 package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Transient;
 import com.android.annotations.Nullable;
+import com.android.annotations.Transient;
 import com.intellij.openapi.util.Condition;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -131,27 +132,35 @@ public class NavigationModel {
     return result;
   }
 
+  public void accept(State.Visitor<Void> visitor) {
+    for (State state : states) {
+      state.accept(visitor);
+    }
+  }
+
   @Transient
   public Map<String, ActivityState> getActivities() {
-    Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
-    for (State state : states) {
-      if (state instanceof ActivityState) {
-        ActivityState activityState = (ActivityState)state;
+    final Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
+    accept(new State.BaseVisitor<Void>() {
+      @Override
+      public Void visit(ActivityState activityState) {
         activities.put(activityState.getClassName(), activityState);
+        return null;
       }
-    }
+    });
     return activities;
   }
 
   @Transient
   public Map<String, MenuState> getMenus() {
-    Map<String, MenuState> menus = new HashMap<String, MenuState>();
-    for (State state : states) {
-      if (state instanceof MenuState) {
-        MenuState menuState = (MenuState)state;
+    final Map<String, MenuState> menus = new HashMap<String, MenuState>();
+    accept(new State.BaseVisitor<Void>() {
+      @Override
+      public Void visit(MenuState menuState) {
         menus.put(menuState.getXmlResourceName(), menuState);
+        return null;
       }
-    }
+    });
     return menus;
   }
 
@@ -188,6 +197,16 @@ public class NavigationModel {
       return (MenuState)transition.getDestination().getState();
     }
     return null;
+  }
+
+  public List<State> findDestinationsFor(@NotNull State source) {
+    List<State> result = new ArrayList<State>();
+    for (Transition transition : getTransitions()) {
+      if (source.equals(transition.getSource().getState())) {
+        result.add(transition.getDestination().getState());
+      }
+    }
+    return result;
   }
 
   public void clear() {
