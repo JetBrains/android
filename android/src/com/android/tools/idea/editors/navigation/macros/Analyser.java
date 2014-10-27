@@ -317,11 +317,12 @@ public class Analyser {
     final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
     final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
     if (activityOrFragmentClass == null) {
-      // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
+      // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
       LOG.info("Class " + activityOrFragmentClassName + " not found");
       return;
     }
     final Evaluator evaluator = getEvaluator(configuration, activityClass, activityOrFragmentClass, isActivity);
+    final Map<String, ActivityState> classNameToActivityState = miniModel.classNameToActivityState;
 
     // Search for menu inflation
 
@@ -335,10 +336,10 @@ public class Analyser {
           for (PsiClass superClass = activityOrFragmentClass; superClass != null; superClass = superClass.getSuperClass()) {
             // Search for menu item bindings in the style the Navigation Editor generates them
             search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
-                   createMenuConfigProcessor(menu, miniModel.classNameToActivityState, model, "$f", true));
+                   createProcessor(model, classNameToActivityState, menu, MENU_ITEM_NAME, CLASS_NAME_2));
             // Search for switch statement style menu item bindings
             search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
-                   createMenuConfigProcessor(menu, miniModel.classNameToActivityState, model, null, false));
+                   createProcessor(model, classNameToActivityState, menu, constant(null), CLASS_NAME_1));
           }
         }
       });
@@ -353,7 +354,7 @@ public class Analyser {
         if (bindings != null) {
           String tag = bindings.get("$id").getText();
           search(args.get("$f"), evaluator, myMacros.createIntent,
-                 createProcessor(tag, miniModel.classNameToActivityState, model, fromActivityState));
+                 createProcessor(model, classNameToActivityState, fromActivityState, constant(tag), CLASS_NAME_1));
         }
       }
     });
@@ -366,7 +367,7 @@ public class Analyser {
         PsiElement $listView = args.get("$listView");
         final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
         search(args.get("$f"), evaluator, myMacros.createIntent,
-               createProcessor(viewName, miniModel.classNameToActivityState, model, fromActivityState));
+               createProcessor(model, classNameToActivityState, fromActivityState, constant(viewName), CLASS_NAME_1));
       }
     });
 
@@ -392,7 +393,7 @@ public class Analyser {
                        if (implementation != null) {
                          Evaluator evaluator = getEvaluator(configuration, activityClass, activityClass, true);
                          search(implementation.getBody(), evaluator, myMacros.createIntent,
-                                createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model, fromActivityState));
+                                createProcessor(model, classNameToActivityState, fromActivityState, constant(null), CLASS_NAME_1));
                        }
                      }
                    }
@@ -459,39 +460,59 @@ public class Analyser {
     return model;
   }
 
-  private static Processor createMenuConfigProcessor(final State fromState,
-                                                     final Map<String, ActivityState> activities,
-                                                     final NavigationModel model,
-                                                     @Nullable final String classNameLocator1,
-                                                     final boolean findMenuTag) {
-    return new Processor() {
+  /**
+   * Find a specific element from the results of an expression match.
+   */
+  private abstract static class PsiLocator<T> {
+    public abstract T locateIn(MultiMatch.Bindings<PsiElement> bindings);
+  }
+
+  private static final PsiLocator<PsiElement> CLASS_NAME_1 = new PsiLocator<PsiElement>() {
+    @Override
+    public PsiElement locateIn(MultiMatch.Bindings<PsiElement> args) {
+      return args.get("activityClass");
+    }
+  };
+
+  private static final PsiLocator<PsiElement> CLASS_NAME_2 = new PsiLocator<PsiElement>() {
+    @Override
+    public PsiElement locateIn(MultiMatch.Bindings<PsiElement> args) {
+      return args.get("$f", "activityClass");
+    }
+  };
+
+  private static final PsiLocator<String> MENU_ITEM_NAME = new PsiLocator<String>() {
+    @Override
+    // e.g. $id=PsiReferenceExpression: R.id.action_account
+    public String locateIn(MultiMatch.Bindings<PsiElement> args) {
+      return args.get("$menuItem", "$id").getLastChild().getText();
+    }
+  };
+
+  private static PsiLocator<String> constant(@Nullable final String constant) {
+    return new PsiLocator<String>() {
+      @Nullable
       @Override
-      public void process(MultiMatch.Bindings<PsiElement> args) {
-        PsiElement psiElement = classNameLocator1 == null ? args.get("activityClass") : args.get(classNameLocator1, "activityClass");
-        PsiElement activityClass = psiElement.getFirstChild();
-        String qualifiedName = getQualifiedName(activityClass);
-        if (qualifiedName != null) {
-          ActivityState toState = getActivityState(qualifiedName, activities);
-          // e.g. $id=PsiReferenceExpression: R.id.action_account
-          String menuItemName = findMenuTag ? args.get("$menuItem", "$id").getLastChild().getText() : null;
-          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, menuItemName), new Locator(toState)));
-        }
+      public String locateIn(MultiMatch.Bindings<PsiElement> args) {
+        return constant;
       }
     };
   }
 
-  private static Processor createProcessor(@Nullable final String viewName,
+  private static Processor createProcessor(final NavigationModel model,
                                            final Map<String, ActivityState> activities,
-                                           final NavigationModel model,
-                                           final ActivityState fromState) {
+                                           final State fromState,
+                                           final PsiLocator<String> fromViewIdLocator,
+                                           final PsiLocator<PsiElement> toStateClassLocator) {
     return new Processor() {
       @Override
       public void process(MultiMatch.Bindings<PsiElement> args) {
-        PsiElement activityClass = args.get("activityClass").getFirstChild();
+        PsiElement activityClass = toStateClassLocator.locateIn(args).getFirstChild();
         String qualifiedName = getQualifiedName(activityClass);
         if (qualifiedName != null) {
-          State toState = getActivityState(qualifiedName, activities);
-          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, viewName), new Locator(toState)));
+          ActivityState toState = getActivityState(qualifiedName, activities);
+          String viewId = fromViewIdLocator.locateIn(args);
+          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, viewId), new Locator(toState)));
         }
       }
     };
