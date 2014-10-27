@@ -17,6 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
@@ -103,7 +104,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
                  : SimpleTextAttributes.REGULAR_ATTRIBUTES);
         }
         else {
-          append(value.toString());
+          append(((IdDisplay)value).getDisplay());
         }
       }
     });
@@ -133,15 +134,16 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     if (savedAvd != null) {
       final ComboBoxModel model = myAvdCombo.getComboBox().getModel();
       for (int i = 0, n = model.getSize(); i < n; i++) {
-        final String item = (String)model.getElementAt(i);
-        if (savedAvd.equals(item)) {
-          avdToSelect = item;
+        final IdDisplay item = (IdDisplay)model.getElementAt(i);
+        final String id = item == null? null : item.getId();
+        if (savedAvd.equals(id)) {
+          avdToSelect = id;
           break;
         }
       }
     }
     if (avdToSelect != null) {
-      myAvdCombo.getComboBox().setSelectedItem(avdToSelect);
+      myAvdCombo.getComboBox().setSelectedItem(new IdDisplay(avdToSelect, ""));
     }
     else if (myAvdCombo.getComboBox().getModel().getSize() > 0) {
       myAvdCombo.getComboBox().setSelectedIndex(0);
@@ -181,9 +183,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
     properties.setValue(SELECTED_SERIALS_PROPERTY, AndroidRunningState.toString(myDeviceChooser.getSelectedDevices()));
 
-    final String selectedAvd = (String)myAvdCombo.getComboBox().getSelectedItem();
+    final IdDisplay selectedAvd = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
     if (selectedAvd != null) {
-      properties.setValue(SELECTED_AVD_PROPERTY, selectedAvd);
+      properties.setValue(SELECTED_AVD_PROPERTY, selectedAvd.getId());
     }
     else {
       properties.unsetValue(SELECTED_AVD_PROPERTY);
@@ -209,7 +211,8 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
   @Nullable
   public String getSelectedAvd() {
-    return (String)myAvdCombo.getComboBox().getSelectedItem();
+    IdDisplay value = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
+    return value == null ? null : value.getId();
   }
 
   public boolean isToLaunchEmulator() {

@@ -369,7 +369,11 @@ public class AvdManagerConnection {
 
     File avdFolder;
     try {
-      avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName);
+      if (currentInfo != null) {
+        avdFolder = new File(currentInfo.getDataFolderPath());
+      } else {
+        avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName);
+      }
     }
     catch (AndroidLocation.AndroidLocationException e) {
       IJ_LOG.error("Could not create AVD " + avdName, e);
@@ -400,6 +404,7 @@ public class AvdManagerConnection {
                                     device.getBootProps(),
                                     createSnapshot,
                                     false, // Remove Previous
+                                    true, // Remove ini file
                                     currentInfo != null, // edit existing
                                     SDK_LOG);
   }
