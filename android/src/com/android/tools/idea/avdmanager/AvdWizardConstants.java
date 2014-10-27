@@ -82,6 +82,7 @@ public class AvdWizardConstants {
   public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_SKIN_PATH, WIZARD, File.class);
 
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
+  public static final Key<String> AVD_ID_KEY = createKey("AvdId", WIZARD, String.class);
 
   // Device definition keys
 

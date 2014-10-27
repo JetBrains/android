@@ -17,6 +17,9 @@ package com.android.tools.idea.ddms;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
@@ -24,6 +27,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -33,13 +37,23 @@ public class DeviceRenderer {
   private DeviceRenderer() {
   }
 
-  @VisibleForTesting
   static void renderDeviceName(IDevice d, ColoredTextContainer component) {
+    renderDeviceName(d, component, null);
+  }
+
+  @VisibleForTesting
+  static void renderDeviceName(IDevice d, ColoredTextContainer component, AvdManager avdManager) {
     component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
 
     String name;
     if (d.isEmulator()) {
       String avdName = d.getAvdName();
+      if (avdManager != null) {
+        AvdInfo info = avdManager.getAvd(avdName, true);
+        if (info != null) {
+          avdName = info.getProperties().get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+        }
+      }
       if (avdName == null) {
         avdName = "unknown";
       }
@@ -87,10 +101,15 @@ public class DeviceRenderer {
   }
 
   public static class DeviceNameRenderer extends ColoredTableCellRenderer {
+    private final AvdManager myAvdManager;
+    public DeviceNameRenderer(@Nullable AvdManager avdManager) {
+      myAvdManager = avdManager;
+    }
+
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
       if (value instanceof IDevice) {
-        renderDeviceName((IDevice)value, this);
+        renderDeviceName((IDevice)value, this, myAvdManager);
       }
     }
   }
