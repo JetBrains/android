@@ -395,9 +395,8 @@ public class LayoutPreviewTest extends GuiTestCase {
     // matches the expected overlay semantics); also edits these in the Gradle file and
     // checks that the layout rendering is updated after a Gradle sync.
 
-    boolean updateAndroidPluginVersion = false;
     @SuppressWarnings("ConstantConditions")
-    File projectPath = setUpProject("LayoutTest", true, updateAndroidPluginVersion, null);
+    File projectPath = setUpProject("LayoutTest", true, true, null);
     IdeFrameFixture projectFrame = openProject(projectPath);
 
     IdeaAndroidProject project = projectFrame.getGradleProject("app");

@@ -45,6 +45,7 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
 
   public TemplateWizard(@NotNull String title, @Nullable Project project) {
     super(title, project);
+
     myProject = project;
   }
 

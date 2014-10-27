@@ -21,6 +21,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -29,12 +30,14 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * Resource repository which merges in dynamically registered resource items from the model
  */
-public class DynamicResourceValueRepository extends LocalResourceRepository implements GradleSyncListener {
+public class DynamicResourceValueRepository extends LocalResourceRepository implements GradleSyncListener,
+                                                                                       BuildVariantView.BuildVariantSelectionChangeListener {
   private final AndroidFacet myFacet;
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
 
@@ -43,6 +46,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
     myFacet = facet;
     assert facet.isGradleProject();
     facet.addListener(this);
+    BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
   }
 
   @NotNull
@@ -134,5 +138,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
 
   @Override
   public void syncSkipped(@NotNull Project project) {
+  }
+
+  // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
+
+  @Override
+  public void buildVariantSelected(@NotNull List<AndroidFacet> facets) {
+    notifyGradleSynced();
   }
 }
