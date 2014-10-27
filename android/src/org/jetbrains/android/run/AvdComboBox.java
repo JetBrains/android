@@ -43,7 +43,6 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final boolean myAddEmptyElement;
   private final boolean myShowNotLaunchedOnly;
   private final Alarm myAlarm = new Alarm(this);
-  private final JBPopupMenu myMenu;
   private IdDisplay[] myOldAvds = new IdDisplay[0];
   private final Project myProject;
 
@@ -51,40 +50,6 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     myProject = project;
     myAddEmptyElement = addEmptyElement;
     myShowNotLaunchedOnly = showNotLaunchedOnly;
-
-    myMenu = new JBPopupMenu();
-    JMenuItem openManagerMenuItem = new JMenuItem("Open AVD Manager");
-    openManagerMenuItem.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        RunAndroidAvdManagerAction.openAvdManager(myProject);
-      }
-    });
-    myMenu.add(openManagerMenuItem);
-    JMenuItem createTabletMenuItem = new JMenuItem("Create Default Nexus 7 (Tablet)");
-    createTabletMenuItem.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        AvdInfo avdInfo = AvdBuilder.createNexus7();
-        if (avdInfo != null) {
-          doUpdateAvds();
-          getComboBox().setSelectedItem(avdInfo.getName());
-        }
-      }
-    });
-    myMenu.add(createTabletMenuItem);
-    JMenuItem createPhoneMenuItem = new JMenuItem("Create Default Nexus 5 (Phone)");
-    createPhoneMenuItem.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        AvdInfo avdInfo = AvdBuilder.createNexus5();
-        if (avdInfo != null) {
-          doUpdateAvds();
-          getComboBox().setSelectedItem(avdInfo.getName());
-        }
-      }
-    });
-    myMenu.add(createPhoneMenuItem);
 
     addActionListener(new ActionListener() {
       @Override
@@ -95,7 +60,12 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
           Messages.showErrorDialog(avdComboBox, "Cannot find any configured Android SDK");
           return;
         }
-        myMenu.show(avdComboBox, avdComboBox.getX() + avdComboBox.getWidth(), avdComboBox.getY());
+        RunAndroidAvdManagerAction action = new RunAndroidAvdManagerAction();
+        action.openAvdManager(myProject);
+        AvdInfo selected = action.getSelected();
+        if (selected != null) {
+          getComboBox().setSelectedItem(new IdDisplay(selected.getName(), ""));
+        }
       }
     });
 
