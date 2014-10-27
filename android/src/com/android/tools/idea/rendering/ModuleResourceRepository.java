@@ -125,18 +125,29 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   void updateRoots(List<VirtualFile> resourceDirectories) {
+    // Non-folder repositories: Always kept last in the list
+    List<LocalResourceRepository> other = null;
+
     // Compute current roots
     Map<VirtualFile, ResourceFolderRepository> map = Maps.newHashMap();
-    for (LocalResourceRepository resources : myChildren) {
-      ResourceFolderRepository repository = (ResourceFolderRepository)resources;
-      VirtualFile resourceDir = repository.getResourceDir();
-      map.put(resourceDir, repository);
+    for (LocalResourceRepository repository : myChildren) {
+      if (repository instanceof ResourceFolderRepository) {
+        ResourceFolderRepository folderRepository = (ResourceFolderRepository)repository;
+        VirtualFile resourceDir = folderRepository.getResourceDir();
+        map.put(resourceDir, folderRepository);
+      } else {
+        assert repository instanceof DynamicResourceValueRepository;
+        if (other == null) {
+          other = Lists.newArrayList();
+        }
+        other.add(repository);
+      }
     }
 
     // Compute new resource directories (it's possible for just the order to differ, or
     // for resource dirs to have been added and/or removed)
     Set<VirtualFile> newDirs = Sets.newHashSet(resourceDirectories);
-    List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(newDirs.size());
+    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(newDirs.size() + (other != null ? other.size() : 0));
     for (VirtualFile dir : resourceDirectories) {
       ResourceFolderRepository repository = map.get(dir);
       if (repository == null) {
@@ -146,6 +157,10 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
         map.remove(dir);
       }
       resources.add(repository);
+    }
+
+    if (other != null) {
+      resources.addAll(other);
     }
 
     if (resources.equals(myChildren)) {
