@@ -347,13 +347,6 @@ public class AvdBuilder {
       }
     }
 
-    if (myState.get(DISPLAY_NAME_KEY) == null) {
-      Device device = myState.get(DEVICE_DEFINITION_KEY);
-      SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-      assert device != null && systemImage != null;
-      myState.put(DISPLAY_NAME_KEY, String.format(Locale.getDefault(), "%1$s API %2$d",
-                             device.getDisplayName(), systemImage.getVersion().getApiLevel()));
-    }
     AvdInfo avd = AvdEditWizard.createAvd(null, myState, true);
     if (avd == null) {
       throw new AvdBuilderException("Could not create AVD");
