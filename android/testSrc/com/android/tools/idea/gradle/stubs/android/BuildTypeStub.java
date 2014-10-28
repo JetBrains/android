@@ -51,12 +51,12 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  public boolean isJniDebugBuild() {
+  public boolean isJniDebuggable() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean isRenderscriptDebugBuild() {
+  public boolean isRenderscriptDebuggable() {
     throw new UnsupportedOperationException();
   }
 
@@ -78,12 +78,12 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  public boolean isRunProguard() {
+  public boolean isMinifyEnabled() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean isZipAlign() {
+  public boolean isZipAlignEnabled() {
     throw new UnsupportedOperationException();
   }
 
@@ -125,6 +125,12 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Map<String, String> getManifestPlaceholders() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public Boolean getMultiDexEnabled() {
     throw new UnsupportedOperationException();
   }
 }
