@@ -54,9 +54,7 @@ public class Analyser {
   }
 
   public NavigationModel getNavigationModel(Configuration configuration) {
-    NavigationModel result = new NavigationModel();
-    deriveAllStatesAndTransitions(result, configuration);
-    return result;
+    return deriveAllStatesAndTransitions(configuration);
   }
 
   @Nullable
@@ -418,7 +416,8 @@ public class Analyser {
     }
   }
 
-  public NavigationModel deriveAllStatesAndTransitions(NavigationModel model, Configuration configuration) {
+  private NavigationModel deriveAllStatesAndTransitions(Configuration configuration) {
+    NavigationModel model = new NavigationModel();
     Set<String> activityClassNames = getActivitiesFromManifestFile(myModule);
     if (DEBUG) {
       System.out.println("deriveAllStatesAndTransitions = " + activityClassNames);
