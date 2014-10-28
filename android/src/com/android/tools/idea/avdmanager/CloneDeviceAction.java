@@ -28,6 +28,10 @@ public class CloneDeviceAction extends DeviceUiAction {
     super(provider, "Clone");
   }
 
+  public CloneDeviceAction(@NotNull DeviceProvider provider, @NotNull String text) {
+    super(provider, text);
+  }
+
   @Override
   public boolean isEnabled() {
     return myProvider.getDevice() != null;
