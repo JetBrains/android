@@ -679,7 +679,7 @@ public class RenderService implements IImageFactory {
         @NotNull
         @Override
         public RenderResult compute() {
-          RenderSecurityManager securityManager = createSecurityManager();
+          RenderSecurityManager securityManager = RenderSecurityManagerFactory.create(myModule, getPlatform());
           securityManager.setActive(true, myCredential);
 
           try {
@@ -766,25 +766,6 @@ public class RenderService implements IImageFactory {
     }
 
     return null;
-  }
-
-  private RenderSecurityManager createSecurityManager() {
-    String projectPath = null;
-    String sdkPath = null;
-    if (RenderSecurityManager.RESTRICT_READS) {
-      projectPath = myModule.getProject().getBasePath();
-      AndroidPlatform platform = getPlatform();
-      if (platform != null) {
-        sdkPath = platform.getSdkData().getLocation().getPath();
-      }
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
-    securityManager.setLogger(new LogWrapper(RenderLogger.LOG));
-    securityManager.setAppTempDir(PathManager.getTempPath());
-
-    return securityManager;
   }
 
   /** Returns true if the given file can be rendered */
