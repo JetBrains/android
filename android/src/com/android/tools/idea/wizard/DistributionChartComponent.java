@@ -219,7 +219,7 @@ public class DistributionChartComponent extends JPanel {
       if (i < ourDistributions.size() - 1) {
         g.setColor(JBColor.foreground());
         g.setFont(VERSION_NUMBER_FONT);
-        String percentageString = new DecimalFormat("0.0%").format(.999 - percentageSum);
+        String percentageString = new DecimalFormat("0.0%").format(1.0 - percentageSum);
         int percentStringWidth = versionNumberMetrics.stringWidth(percentageString);
         g.drawString(percentageString, totalWidth - percentStringWidth - 2, bottom - 2);
         g.setColor(JBColor.darkGray);
