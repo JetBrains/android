@@ -99,4 +99,9 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
     }
     return panel;
   }
+
+  @Nullable
+  public AvdInfo getSelected() {
+    return myAvdDisplayList.getAvdInfo();
+  }
 }

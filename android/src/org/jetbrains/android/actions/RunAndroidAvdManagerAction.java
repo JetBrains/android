@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -38,6 +39,7 @@ import java.io.File;
  */
 public class RunAndroidAvdManagerAction extends AnAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidAvdManagerAction");
+  private AvdListDialog myDialog;
 
   public RunAndroidAvdManagerAction() {
     super(getName());
@@ -53,10 +55,15 @@ public class RunAndroidAvdManagerAction extends AnAction {
     openAvdManager(project);
   }
 
-  public static void openAvdManager(@Nullable Project project) {
-    AvdListDialog dialog = new AvdListDialog(project);
-    dialog.init();
-    dialog.show();
+  public void openAvdManager(@Nullable Project project) {
+    myDialog = new AvdListDialog(project);
+    myDialog.init();
+    myDialog.show();
+  }
+
+  @Nullable
+  public AvdInfo getSelected() {
+    return myDialog.getSelected();
   }
 
   public static String getName() {
