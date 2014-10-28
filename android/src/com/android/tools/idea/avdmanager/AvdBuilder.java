@@ -61,44 +61,6 @@ public class AvdBuilder {
     return new AvdBuilder();
   }
 
-  /**
-   * Create a Nexus 5 device. This is a good usage example for other clients wanting to use the Builder.
-   */
-  @Nullable
-  public static AvdInfo createNexus5() {
-    try {
-      return create()
-        .setDevice("Google", "Nexus 5")
-        .setApiLevel(19)
-        .setAbiType(Abi.X86)
-        .setDisplayName("Default Nexus 5")
-        .build();
-    }
-    catch (AvdBuilderException e) {
-      LOG.error(e);
-    }
-    return null;
-  }
-
-  /**
-   * Create a Nexus 5 device. This is a good usage example for other clients wanting to use the Builder.
-   */
-  @Nullable
-  public static AvdInfo createNexus7() {
-    try {
-      return create()
-        .setDevice("Google", "Nexus 7 2013")
-        .setApiLevel(19)
-        .setAbiType(Abi.X86)
-        .setDisplayName("Default Nexus 7")
-        .build();
-    }
-    catch (AvdBuilderException e) {
-      LOG.error(e);
-    }
-    return null;
-  }
-
   private AvdBuilder() {
     myState.put(SCALE_SELECTION_KEY, DEFAULT_SCALE);
     myState.put(NETWORK_SPEED_KEY, DEFAULT_NETWORK_SPEED);
