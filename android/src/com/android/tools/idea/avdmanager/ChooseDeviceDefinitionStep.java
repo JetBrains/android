@@ -39,9 +39,9 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
   private JButton myEditDeviceButton;
   private JPanel myEditButtonContainer;
 
-  private final EditDeviceAction myEditDeviceAction = new EditDeviceAction(this);
-  private final CreateDeviceAction myCreateDeviceAction = new CreateDeviceAction(this);
-  private final CloneDeviceAction myCloneDeviceAction = new CloneDeviceAction(this);
+  private final EditDeviceAction myEditDeviceAction = new EditDeviceAction(this, "Edit Device...");
+  private final CreateDeviceAction myCreateDeviceAction = new CreateDeviceAction(this, "Create Device...");
+  private final CloneDeviceAction myCloneDeviceAction = new CloneDeviceAction(this, "Clone Device...");
 
   public ChooseDeviceDefinitionStep(@Nullable Disposable parentDisposable) {
     super("Select Hardware", "Choose a device definition", null, parentDisposable);
@@ -62,13 +62,10 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
 
   private void updateEditButton(@Nullable Device selectedDevice) {
     if (selectedDevice == null) {
-      myEditDeviceButton.setText("Create Device...");
       myEditDeviceButton.setAction(myCreateDeviceAction);
     } else if (DeviceManagerConnection.isUserDevice(selectedDevice)) {
-      myEditDeviceButton.setText("Edit Device...");
       myEditDeviceButton.setAction(myEditDeviceAction);
     } else {
-      myEditDeviceButton.setText("Clone Device...");
       myEditDeviceButton.setAction(myCloneDeviceAction);
     }
   }
