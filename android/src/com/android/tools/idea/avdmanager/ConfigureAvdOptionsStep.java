@@ -23,6 +23,7 @@ import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.wizard.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -199,8 +200,35 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     registerComponents();
     deregister(getDescriptionText());
     getDescriptionText().setVisible(false);
+    if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
+      Device device = myState.get(DEVICE_DEFINITION_KEY);
+      SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+      assert device != null && systemImage != null;
+      String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
+      avdName = uniquifyDisplayName(avdName);
+      myState.put(DISPLAY_NAME_KEY, avdName);
+    }
+
     Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
     myOriginalName = editMode != null && editMode? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
+  }
+
+  private static String uniquifyDisplayName(String name) {
+    int suffix = 1;
+    String result = name;
+    while (findAvdWithName(result)) {
+      result = String.format("%1$s %2$d", name, ++suffix);
+    }
+    return result;
+  }
+
+  private static boolean findAvdWithName(String name) {
+    for (AvdInfo avd : AvdManagerConnection.getAvds(false)) {
+      if (AvdManagerConnection.getAvdDisplayName(avd).equals(name)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -276,6 +304,15 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     if (gpu != null && snapshot != null && gpu && snapshot) {
       setErrorState("GPU Emulation and Snapshot cannot by used simultaneously.", myUseHostGPUCheckBox, myStoreASnapshotForCheckBox);
       valid = false;
+    }
+
+    String displayName = myState.get(DISPLAY_NAME_KEY);
+    if (displayName != null) {
+      displayName = displayName.trim();
+      if (findAvdWithName(displayName)) {
+        setErrorState(String.format("An AVD with the name \"%1$s\" already exists.", displayName));
+        valid = false;
+      }
     }
 
     return valid;
