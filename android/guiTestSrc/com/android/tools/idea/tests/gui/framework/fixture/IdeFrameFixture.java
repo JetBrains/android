@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
@@ -84,6 +85,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
+import static org.jetbrains.android.AndroidPlugin.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.*;
@@ -239,6 +241,32 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
     selectProjectMakeAction();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture invokeProjectMakeWithGradleOutput(@NotNull String output) {
+    ApplicationManager.getApplication().putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, output);
+    selectProjectMakeAction();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture waitUntilFakeGradleOutputIsApplied() {
+    final Application application = ApplicationManager.getApplication();
+    if (application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null) {
+      fail("No fake gradle output is configured");
+    }
+    pause(new Condition("Waiting for fake gradle output to be applied") {
+      @Override
+      public boolean test() {
+        return application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null;
+      }
+    }, SHORT_TIMEOUT);
+    String fakeOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
+    if (fakeOutput != null) {
+      fail(String.format("Fake gradle output (%s) is not applied in %d ms", fakeOutput, SHORT_TIMEOUT.duration()));
+    }
     return this;
   }
 
