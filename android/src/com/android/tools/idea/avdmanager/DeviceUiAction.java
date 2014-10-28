@@ -48,7 +48,7 @@ public abstract class DeviceUiAction implements Action {
 
   @Override
   public Object getValue(String key) {
-    return null;
+    return Action.NAME.equals(key) ? myText : null;
   }
 
   @Override
