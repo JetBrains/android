@@ -19,13 +19,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
+import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static org.fest.assertions.Assertions.assertThat;
@@ -46,7 +46,7 @@ public class CorruptGradleDependencyTest extends GuiTestCase {
 
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
     HyperlinkFixture hyperlink = message.findHyperlink("Re-download dependencies and sync project (requires network)");
-    hyperlink.click();
+    hyperlink.click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish();
 

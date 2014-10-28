@@ -55,6 +55,7 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.util.Strings.quote;
@@ -86,12 +87,11 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture msg = syncMessages.findMessage(ERROR,
-                                                  firstLineStartingWith("The project is using an unsupported version of the Android Gradle"));
+    MessagesToolWindowFixture.AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("The project is using an unsupported version of Gradle"));
 
-    HyperlinkFixture hyperlink = msg.findHyperlink("Fix plug-in version and re-import project");
-    hyperlink.click();
+    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix Gradle wrapper and re-import project");
+    hyperlink.click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish();
   }
@@ -113,7 +113,7 @@ public class GradleSyncTest extends GuiTestCase {
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Out of memory"));
 
     // Verify that at least we offer some sort of hint.
-    HyperlinkFixture hyperlink = message.findHyperlink("Read Gradle's configuration guide");
+    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Read Gradle's configuration guide");
     hyperlink.requireUrl("http://www.gradle.org/docs/current/userguide/build_environment.html");
   }
 
@@ -209,7 +209,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Verify that at least we offer some sort of hint.
     HyperlinkFixture openGradleWrapperFileHyperlink = message.findHyperlink("Open Gradle wrapper file");
-    openGradleWrapperFileHyperlink.click();
+    openGradleWrapperFileHyperlink.click(true);
 
     Pause.pause(new Condition("Wait for gradle-wrapper.properties is opened") {
       @Override
@@ -235,7 +235,8 @@ public class GradleSyncTest extends GuiTestCase {
                                                                          firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
 
     // Ensure the error message contains the location of the error.
-    message.requireLocation(settingsFile, 1);
+    assertTrue(message instanceof MessagesToolWindowFixture.BuildMessageFixture);
+    ((MessagesToolWindowFixture.BuildMessageFixture)message).requireLocation(settingsFile, 1);
   }
 
   @Test @IdeGuiTest
@@ -328,7 +329,7 @@ public class GradleSyncTest extends GuiTestCase {
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessagesToolWindowFixture.MessageFixture msg =
       messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
-    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click();
+    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
