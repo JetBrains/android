@@ -75,7 +75,7 @@ public class NavigationEditor implements FileEditor {
   public static final String NAVIGATION_FILE_NAME = "main.nvg.xml";
 
   private static final String TOOLBAR = "NavigationEditorToolbar";
-  private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
+  private static final Logger LOG = Logger.getInstance(NavigationEditor.class.getName());
   private static final boolean DEBUG = false;
   private static final String NAME = "Navigation";
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
@@ -252,36 +252,7 @@ public class NavigationEditor implements FileEditor {
     };
   }
 
-  /*
-  See: https://code.google.com/p/android/issues/detail?id=75755
-
-  When a Navigation Editor is active (open) in Android Studio, it registers
-  various listeners. Each of these listeners is un-registerd when the editor
-  is deactivated (so that there is no performance impact to having a
-  Navigation Editor that is closed).
-
-  One of these listeners listens to all changes to the (virtual) file system.
-
-  When Android Studio loses focus, it writes a series of files to disk to
-  preserve its state; including:
-
-  <project directory>/.navigation/app/raw/main.nvg.xml
-  <project directory>/.idea/workspace.xml
-  <app install>/idea/config/options/window.manager.xml
-  <app install>/idea/config/options/studio.build.statistics.xml
-  <app install>/idea/config/options/statistics.application.usages.xml
-  <app install>/idea/config/options/other.xml
-
-  Navigation Editor picks up the change to its own file and assumes
-  re-validates it's model against the current state of the file
-  system and repaints - causing a flicker.
-
-  IntelliJ's "workspace.xml" file also triggers a redraw the the main
-  IDE window was moved since it was made visible.
-
-  Prevent these internal IDE files from triggering a refresh of
-  Navigation Editor.
-  */
+  // See: https://code.google.com/p/android/issues/detail?id=75755
   private static boolean shouldIgnore(VirtualFileEvent event) {
     String fileName = event.getFileName();
     if (NAVIGATION_FILE_NAME.equals(fileName)) {
