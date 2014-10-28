@@ -85,12 +85,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  public Boolean getRenderscriptSupportMode() {
+  public Boolean getRenderscriptSupportModeEnabled() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Boolean getRenderscriptNdkMode() {
+  public Boolean getRenderscriptNdkModeEnabled() {
     throw new UnsupportedOperationException();
   }
 
@@ -124,7 +124,7 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @com.android.annotations.Nullable
+  @Nullable
   @Override
   public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
@@ -133,6 +133,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public Map<String, String> getManifestPlaceholders() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public Boolean getMultiDexEnabled() {
     throw new UnsupportedOperationException();
   }
 

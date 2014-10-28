@@ -453,13 +453,13 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           }
           BuildType buildType = buildTypeContainer.getBuildType();
           obj.setValue(BuildFileKey.DEBUGGABLE, buildType.isDebuggable());
-          obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebugBuild());
-          obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebugBuild());
+          obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebuggable());
+          obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebuggable());
           obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
           obj.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, buildType.getApplicationIdSuffix());
           obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
-          obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isRunProguard());
-          obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlign());
+          obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isMinifyEnabled());
+          obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlignEnabled());
           results.add(obj);
         }
         break;
