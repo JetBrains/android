@@ -639,9 +639,7 @@ public class NavigationView extends JComponent {
   }
 
   public void paintTransitions(Graphics g) {
-    // make copy to avoid concurrent modification exception if paint is called while build is in process
-    ArrayList<Transition> copy = new ArrayList<Transition>(myNavigationModel.getTransitions());
-    for (Transition transition : copy) {
+    for (Transition transition : myNavigationModel.getTransitions()) {
       drawTransition(g, transition);
     }
   }
