@@ -215,6 +215,11 @@ public class NavigationModel {
     listeners.notify(Event.delete(Object.class));
   }
 
+  public void copyAllStatesAndTransitionsFrom(NavigationModel source) {
+    states.addAll(source.getStates());
+    transitions.addAll(source.getTransitions());
+  }
+
   @Transient
   public EventDispatcher<Event> getListeners() {
     return listeners;
