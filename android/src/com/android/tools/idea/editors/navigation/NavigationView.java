@@ -30,6 +30,7 @@ import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -56,9 +57,8 @@ import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
-  //private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
+  private static final Logger LOG = Logger.getInstance(NavigationView.class.getName());
   public static final ModelDimension GAP = new ModelDimension(500, 100);
   private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
   private static final Color TRIGGER_BACKGROUND_COLOR = new JBColor(Gray.get(200), Gray.get(60));
@@ -164,7 +164,7 @@ public class NavigationView extends JComponent {
       myNavigationModel.getListeners().add(new Listener<NavigationModel.Event>() {
         @Override
         public void notify(@NotNull NavigationModel.Event event) {
-          if (DEBUG) System.out.println("NavigationView:: <listener> " + myStateCacheIsValid + " " + myTransitionEditorCacheIsValid);
+          if (DEBUG) LOG.info("NavigationView:: <listener> " + myStateCacheIsValid + " " + myTransitionEditorCacheIsValid);
           if (event.operandType.isAssignableFrom(State.class)) {
             myStateCacheIsValid = false;
           }
@@ -793,7 +793,7 @@ public class NavigationView extends JComponent {
   }
 
   private void syncTransitionCache(Assoc<Transition, Component> assoc) {
-    if (DEBUG) System.out.println("NavigationView: syncTransitionCache");
+    if (DEBUG) LOG.info("NavigationView: syncTransitionCache");
     // add anything that is in the model but not in our cache
     for (Transition transition : myNavigationModel.getTransitions()) {
       if (!assoc.keyToValue.containsKey(transition)) {
@@ -869,7 +869,7 @@ public class NavigationView extends JComponent {
   }
 
   private void syncStateCache(Assoc<State, AndroidRootComponent> assoc) {
-    if (DEBUG) System.out.println("NavigationView: syncStateCache");
+    if (DEBUG) LOG.info("NavigationView: syncStateCache");
     assoc.clear();
     removeAll();
     //repaint();
@@ -933,10 +933,14 @@ public class NavigationView extends JComponent {
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
+        if (DEBUG) HierarchyUtils.display(leaf);
+        if (DEBUG) HierarchyUtils.display(leaf.view);
         RenderedView namedParent = getNamedParent(leaf);
+        if (DEBUG) HierarchyUtils.display(namedParent);
         if (namedParent == null) {
           return Selections.NULL;
         }
+        if (DEBUG) HierarchyUtils.display(namedParent.view);
         if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
