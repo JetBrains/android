@@ -644,17 +644,18 @@ public class NavigationEditor implements FileEditor {
     if (myRenderingParams == null || myRenderingParams.myProject.isDisposed()) {
       return;
     }
-    EventDispatcher<NavigationModel.Event> listeners = myNavigationModel.getListeners();
-    boolean notificationWasEnabled = listeners.isNotificationEnabled();
-    listeners.setNotificationEnabled(false);
-    myNavigationModel.clear();
-    myNavigationModel.getTransitions().clear();
-    myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myRenderingParams.myConfiguration);
-    layoutStatesWithUnsetLocations(myNavigationModel, myRenderingParams.getDeviceScreenSize());
-    listeners.setNotificationEnabled(notificationWasEnabled);
-
-    myModified = false;
-    listeners.notify(PROJECT_READ);
+    final NavigationModel newModel = myAnalyser.getNavigationModel(myRenderingParams.myConfiguration);
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        EventDispatcher<Event> listeners = myNavigationModel.getListeners();
+        myNavigationModel.clear();
+        myNavigationModel.copyAllStatesAndTransitionsFrom(newModel);
+        layoutStatesWithUnsetLocations(myNavigationModel, myRenderingParams.getDeviceScreenSize());
+        myModified = false;
+        listeners.notify(PROJECT_READ);
+      }
+    });
   }
 
   @Override
