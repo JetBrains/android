@@ -389,6 +389,7 @@ public abstract class IdeaSourceProvider {
     srcDirectories.addAll(getAssetsDirectories());
     srcDirectories.addAll(getCDirectories());
     srcDirectories.addAll(getCppDirectories());
+    srcDirectories.addAll(getJniLibsDirectories());
     return srcDirectories;
   }
 
@@ -401,6 +402,7 @@ public abstract class IdeaSourceProvider {
     srcDirectories.addAll(provider.getAssetsDirectories());
     srcDirectories.addAll(provider.getCDirectories());
     srcDirectories.addAll(provider.getCppDirectories());
+    srcDirectories.addAll(provider.getJniLibsDirectories());
     return srcDirectories;
   }
 
