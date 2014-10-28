@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -33,6 +34,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class AbstractSyncErrorHandler {
+
+  public static final ExtensionPointName<AbstractSyncErrorHandler> EP_NAME
+    = ExtensionPointName.create("org.jetbrains.android.androidSyncErrorHandler");
+
   public static final String FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT = "Failed to sync Gradle project '%1$s'";
 
   protected static final NotificationHyperlink[] EMPTY = {};

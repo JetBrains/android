@@ -38,30 +38,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private final List<AbstractSyncErrorHandler> myHandlers;
 
   public GradleNotificationExtension() {
-    this(Arrays.asList(new GradleDslMethodNotFoundErrorHandler(),
-                       new Gradle2RequiredErrorHandler(),
-                       new ErrorOpeningZipFileErrorHandler(),
-                       new UnsupportedModelVersionErrorHandler(),
-                       new FailedToParseSdkErrorHandler(),
-                       new GradleSettingsErrorHandler(),
-                       new MissingAndroidSdkErrorHandler(),
-                       new MissingAndroidSupportRepoErrorHandler(),
-                       new UnsupportedGradleVersionErrorHandler(),
-                       new SdkBuildToolsTooLowErrorHandler(),
-                       new MissingPlatformErrorHandler(),
-                       new MissingBuildToolsErrorHandler(),
-                       new InternetConnectionErrorHandler(),
-                       new MissingDependencyErrorHandler(),
-                       new CachedDependencyNotFoundErrorHandler(),
-                       new UnexpectedErrorHandler(),
-                       new UnknownHostErrorHandler(),
-                       new CorruptGradleDependencyErrorHandler(),
-                       new JavaHeapSpaceErrorHandler(),
-                       new ClassLoadingErrorHandler(),
-                       new ObjectStreamErrorHandler(),
-                       new ConnectionPermissionDeniedErrorHandler(),
-                       new DaemonContextMismatchErrorHandler(),
-                       new GenericErrorHandler()));
+    this(Arrays.asList(AbstractSyncErrorHandler.EP_NAME.getExtensions()));
   }
 
   @VisibleForTesting
