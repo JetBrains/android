@@ -25,6 +25,7 @@ import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.ProjectTopics;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -69,7 +70,9 @@ public class GradleSyncState {
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;
 
+  private volatile boolean myGradleBasedIdeProjectModificationInProgress;
   private volatile boolean mySyncInProgress;
+  private volatile boolean mySyncTransparentChangeInProgress;
 
   @NotNull
   public static GradleSyncState getInstance(@NotNull Project project) {
@@ -188,6 +191,9 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
+    if (mySyncTransparentChangeInProgress) {
+      return ThreeState.NO;
+    }
     long lastSync = getLastGradleSyncTimestamp();
     if (lastSync < 0) {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
@@ -253,6 +259,69 @@ public class GradleSyncState {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
       LOG.info(msg, e);
     }
+  }
+
+  /**
+   * There is an API method {@link #isSyncNeeded()} which simply compares <code>'*.gradle'</code> files modification stamp vs
+   * last gradle project refresh time and returns the result. I.e. it's assumed to say 'sync is needed' for a situation when
+   * one of the <code>'*.gradle'</code> files related to the current project is modified after the last project sync.
+   * <p/>
+   * However, there is a possible case that we change <code>'*.gradle'</code> config programmatically and want to consider that
+   * IDE and gradle projects are synced after that (e.g. when flushing IDE project structure changes into <code>'*.gradle'</code>
+   * config).
+   * <p/>
+   * This method helps with that - it executes given action (assuming that it changes <code>'*.gradle'</code> file(s) internally
+   * and updates current state in a way to consider that IDE and gradle projects are synced when the action completes.
+   * <p/>
+   * <b>Note:</b> it uses that behavior only when IDE and gradle projects are synced <code>before</code> given action execution.
+   * It just executes it and doesn't update internal state otherwise.
+   *
+   * @param action  an action to execute
+   */
+  public void runSyncTransparentAction(@NotNull Runnable action) {
+    boolean canRunActionTransparently = !mySyncTransparentChangeInProgress && isSyncNeeded() == ThreeState.NO;
+    if (canRunActionTransparently) {
+      mySyncTransparentChangeInProgress = true;
+    }
+    try {
+      action.run();
+    }
+    finally {
+      if (canRunActionTransparently) {
+        mySyncTransparentChangeInProgress = false;
+        myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
+      }
+    }
+  }
+
+  /**
+   * There is a possible case that IDE project structure is modified by our code. Corresponding 'project modification' events are
+   * sent then (see {@link ProjectTopics}). However, we want to differentiate between the changes made by us and all other changes.
+   * <p/>
+   * E.g. when a user, say, adds new dependency to a module we might try to propagate that change to gradle config files but we don't
+   * want to react to project structure changes triggered by gradle integration itself.
+   * <p/>
+   * The main idea is that given action is executed during the current method call and
+   * {@link #isGradleBasedIdeProjectModificationInProgress()} returns <code>true</code> during its execution.
+   *
+   * @param action  an action to execute
+   */
+  public void runIdeProjectModificationAction(@NotNull Runnable action) {
+    myGradleBasedIdeProjectModificationInProgress = true;
+    try {
+      action.run();
+    }
+    finally {
+      myGradleBasedIdeProjectModificationInProgress = false;
+    }
+  }
+
+  /**
+   * @return    <code>true</code> if gradle integration-based IDE project modification is in progress; <code>false</code> otherwise
+   * @see #runIdeProjectModificationAction(Runnable)
+   */
+  public boolean isGradleBasedIdeProjectModificationInProgress() {
+    return myGradleBasedIdeProjectModificationInProgress;
   }
 
   @VisibleForTesting
