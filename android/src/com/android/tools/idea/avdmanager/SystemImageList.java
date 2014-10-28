@@ -17,11 +17,14 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.internal.repository.packages.*;
+import com.android.sdklib.internal.repository.packages.SystemImagePackage;
 import com.android.sdklib.internal.repository.sources.SdkSource;
 import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.*;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -33,11 +36,11 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.ui.SingleSelectionModel;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SingleSelectionModel;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -62,9 +65,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextLayout;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
 import java.util.*;
 import java.util.List;
 
@@ -151,7 +151,56 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
     TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>> sorter =
-      new TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>>(myModel);
+      new TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>>(myModel) {
+        @Override
+        public Comparator<?> getComparator(int column) {
+          if (column == 1) {
+            // API levels: Sort numerically, but the column is of type String.class since
+            // it can contain preview codenames as well
+            return new Comparator<String>() {
+              @Override
+              public int compare(String s1, String s2) {
+                int api1 = -1; // not a valid API level
+                int api2 = -1;
+                try {
+                  if (!s1.isEmpty() && Character.isDigit(s1.charAt(0))) {
+                    api1 = Integer.parseInt(s1);
+                  }
+                }
+                catch (NumberFormatException e) {
+                  // ignore; still negative value
+                }
+                try {
+                  if (!s2.isEmpty() && Character.isDigit(s2.charAt(0))) {
+                    api2 = Integer.parseInt(s2);
+                  }
+                }
+                catch (NumberFormatException e) {
+                  // ignore; still negative value
+                }
+                if (api1 != -1 && api2 != -1) {
+                  return api1 - api2; // descending order
+                }
+                else if (api1 == -1) {
+                  // Only the second value is a number: Sort preview platforms to the end
+                  return 1;
+                }
+                else if (api2 == -1) {
+                  // Only the first value is a number: Sort preview platforms to the end
+                  return -1;
+                }
+                else {
+                  // Alphabetic sort when both API versions are codenames
+                  return s1.compareTo(s2);
+                }
+              }
+            };
+          }
+          // We could consider sorting
+
+          return super.getComparator(column);
+        }
+      };
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
     sorter.setRowFilter(new RowFilter<ListTableModel<AvdWizardConstants.SystemImageDescription>, Integer>() {
       @Override
