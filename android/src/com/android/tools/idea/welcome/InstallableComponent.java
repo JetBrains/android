@@ -94,7 +94,5 @@ public abstract class InstallableComponent {
 
   public abstract DynamicWizardStep[] createSteps();
 
-  public abstract boolean shouldSetup();
-
   public abstract boolean hasVisibleStep();
 }

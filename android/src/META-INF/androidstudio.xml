@@ -55,6 +55,10 @@
       <interface-class>com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent</interface-class>
       <implementation-class>com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent</implementation-class>
     </component>
+    <component>
+      <interface-class>com.android.tools.idea.welcome.AndroidFirstRunPersistentData</interface-class>
+      <implementation-class>com.android.tools.idea.welcome.AndroidFirstRunPersistentData</implementation-class>
+    </component>
   </application-components>
 
 </idea-plugin>
