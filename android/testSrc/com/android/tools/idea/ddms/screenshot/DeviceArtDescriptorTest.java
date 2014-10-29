@@ -39,12 +39,12 @@ public class DeviceArtDescriptorTest extends TestCase {
     assertNotNull(nexus4);
 
     Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
-    assertEquals(213, offsets.x);
-    assertEquals(350, offsets.y);
+    assertEquals(94, offsets.x);
+    assertEquals(187, offsets.y);
 
     offsets = nexus4.getScreenPos(ScreenOrientation.LANDSCAPE);
-    assertEquals(349, offsets.x);
-    assertEquals(214, offsets.y);
+    assertEquals(257, offsets.x);
+    assertEquals(45, offsets.y);
 
     verifyFileExists(nexus4.getFrame(ScreenOrientation.LANDSCAPE));
     verifyFileExists(nexus4.getFrame(ScreenOrientation.PORTRAIT));
@@ -64,12 +64,9 @@ public class DeviceArtDescriptorTest extends TestCase {
         assertNotNull(id, descriptor.getFrameSize(orientation));
         assertNotNull(id, descriptor.getScreenPos(orientation));
         assertNotNull(id, descriptor.getScreenSize(orientation));
-        //noinspection StatementWithEmptyBody
-        if (id.equals("phone") || id.equals("tablet") || id.startsWith("wear_") || id.startsWith("tv_")) {
-          // No crop for these
-        } else {
-          assertNotNull(id, descriptor.getCrop(orientation));
-        }
+
+        // We've pre-subtracted the crop everywhere now
+        assertNull(descriptor.getCrop(orientation));
         assertTrue(id, descriptor.getFrame(orientation).exists());
         assertTrue(id, descriptor.getDropShadow(orientation).exists());
         File reflectionOverlay = descriptor.getReflectionOverlay(orientation);
