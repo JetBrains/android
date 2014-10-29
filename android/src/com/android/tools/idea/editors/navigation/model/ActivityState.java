@@ -34,8 +34,8 @@ public class ActivityState extends State {
   }
 
   @Override
-  public <T> T accept(Visitor<T> visitor) {
-    return visitor.visit(this);
+  public void accept(Visitor visitor) {
+     visitor.visit(this);
   }
 
   @NonNull

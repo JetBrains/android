@@ -132,7 +132,7 @@ public class NavigationModel {
     return result;
   }
 
-  public void accept(State.Visitor<Void> visitor) {
+  public void accept(State.Visitor visitor) {
     for (State state : states) {
       state.accept(visitor);
     }
@@ -141,11 +141,10 @@ public class NavigationModel {
   @Transient
   public Map<String, ActivityState> getActivities() {
     final Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
-    accept(new State.BaseVisitor<Void>() {
+    accept(new State.BaseVisitor() {
       @Override
-      public Void visit(ActivityState activityState) {
+      public void visit(ActivityState activityState) {
         activities.put(activityState.getClassName(), activityState);
-        return null;
       }
     });
     return activities;
@@ -154,11 +153,10 @@ public class NavigationModel {
   @Transient
   public Map<String, MenuState> getMenus() {
     final Map<String, MenuState> menus = new HashMap<String, MenuState>();
-    accept(new State.BaseVisitor<Void>() {
+    accept(new State.BaseVisitor() {
       @Override
-      public Void visit(MenuState menuState) {
+      public void visit(MenuState menuState) {
         menus.put(menuState.getXmlResourceName(), menuState);
-        return null;
       }
     });
     return menus;
