@@ -309,7 +309,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     String displayName = myState.get(DISPLAY_NAME_KEY);
     if (displayName != null) {
       displayName = displayName.trim();
-      if (findAvdWithName(displayName)) {
+      if (!displayName.equals(myOriginalName) && findAvdWithName(displayName)) {
         setErrorState(String.format("An AVD with the name \"%1$s\" already exists.", displayName));
         valid = false;
       }
