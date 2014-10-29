@@ -101,28 +101,36 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
   }
 
   @Override
-  public String fetchExternalDocumentation(Project project, PsiElement element, List<String> docUrls) {
+  public String fetchExternalDocumentation(final Project project, final PsiElement element, final List<String> docUrls) {
     // Workaround: When you invoke completion on an android.R.type.name field in a Java class, we
     // never get a chance to provide documentation for it via generateDoc, presumably because the
     // field is recognized by an earlier documentation provider (the generic Java javadoc one?) as
     // something we have documentation for. We do however get a chance to fetch documentation for it;
     // that's this call, so in that case we insert our javadoc rendering into the fetched documentation.
-    if (isFrameworkFieldDeclaration(element)) {
-      // We don't have the original module, so just find one of the Android modules in the project.
-      // It's theoretically possible that this will point to a different Android version than the one
-      // module used by the original request.
-      Module module = guessAndroidModule(project, element);
-      PsiField field = (PsiField)element;
-      PsiClass containingClass = field.getContainingClass();
-      assert containingClass != null; // because isFrameworkFieldDeclaration returned true
-      ResourceType type = ResourceType.getEnum(containingClass.getName());
-      if (module != null && type != null) {
-        String name = field.getName();
-        String render = AndroidJavaDocRenderer.render(module, type, name, true);
-        String external = JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, new MyDocExternalFilter(project));
-        return AndroidJavaDocRenderer.injectExternalDocumentation(render, external);
+    String doc = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        if (isFrameworkFieldDeclaration(element)) {
+          // We don't have the original module, so just find one of the Android modules in the project.
+          // It's theoretically possible that this will point to a different Android version than the one
+          // module used by the original request.
+          Module module = guessAndroidModule(project, element);
+          PsiField field = (PsiField)element;
+          PsiClass containingClass = field.getContainingClass();
+          assert containingClass != null; // because isFrameworkFieldDeclaration returned true
+          ResourceType type = ResourceType.getEnum(containingClass.getName());
+          if (module != null && type != null) {
+            String name = field.getName();
+            String render = AndroidJavaDocRenderer.render(module, type, name, true);
+            String external = JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, new MyDocExternalFilter(project));
+            return AndroidJavaDocRenderer.injectExternalDocumentation(render, external);
+          }
+        }
+        return null;
       }
-    }
+    });
+    if (doc != null) return null;
+
 
     return isMyContext(element, project) ?
            JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, new MyDocExternalFilter(project)) :
