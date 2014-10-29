@@ -18,26 +18,22 @@ package com.android.tools.idea.editors.navigation.model;
 import com.android.annotations.Nullable;
 
 public abstract class State {
-  public abstract static class Visitor<T> {
-    public abstract T visit(ActivityState state);
-    public abstract T visit(MenuState state);
+  public abstract static class Visitor {
+    public abstract void visit(ActivityState state);
+    public abstract void visit(MenuState state);
   }
 
-  public static class BaseVisitor<T> extends Visitor<T> {
-    @Nullable
+  public static class BaseVisitor extends Visitor {
     @Override
-    public T visit(ActivityState state) {
-      return null;
+    public void visit(ActivityState state) {
     }
 
-    @Nullable
     @Override
-    public T visit(MenuState state) {
-      return null;
+    public void visit(MenuState state) {
     }
   }
 
-  public abstract <T> T accept(Visitor<T> visitor);
+  public abstract void accept(Visitor visitor);
 
   public abstract String getClassName();
 
