@@ -45,10 +45,6 @@ public class FirstRunWizard extends DynamicWizard {
     setTitle(WIZARD_TITLE);
   }
 
-  public static boolean isNeeded() {
-    return SetupJdkPath.isNeeded() || InstallComponentsPath.isNeeded();
-  }
-
   @Override
   public void init() {
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
@@ -90,6 +86,7 @@ public class FirstRunWizard extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
+    // Nothing
   }
 
   @Override

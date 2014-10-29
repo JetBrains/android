@@ -66,15 +66,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return tempDirectory;
   }
 
-  public static boolean isNeeded() {
-    for (InstallableComponent component : createComponents()) {
-      if (component.shouldSetup()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @Override
   protected void init() {
     boolean handoff = InstallerData.get(myState).exists();
@@ -147,7 +138,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   public boolean isPathVisible() {
-    return isNeeded();
+    return true;
   }
 
   public boolean showsStep() {

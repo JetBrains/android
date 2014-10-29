@@ -34,14 +34,10 @@ public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
   private JdkLocationStep myJdkLocationStep = new JdkLocationStep(KEY_JDK_LOCATION);
 
-  public static boolean isNeeded() {
-    Sdk defaultJdk = DefaultSdks.getDefaultJdk();
-    return defaultJdk == null || !Jdks.isApplicableJdk(defaultJdk, LanguageLevel.JDK_1_7);
-  }
-
   @Override
   public boolean isPathVisible() {
-    return isNeeded();
+    Sdk defaultJdk = DefaultSdks.getDefaultJdk();
+    return defaultJdk == null || !Jdks.isApplicableJdk(defaultJdk, LanguageLevel.JDK_1_7);
   }
 
   @Override

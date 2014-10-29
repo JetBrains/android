@@ -26,7 +26,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.download.DownloadableFileDescription;
@@ -36,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -92,12 +90,6 @@ public final class AndroidSdk extends InstallableComponent {
   }
 
   @Override
-  public boolean shouldSetup() {
-    List<Sdk> sdks = DefaultSdks.getEligibleAndroidSdks();
-    return sdks.isEmpty() || ApplicationManager.getApplication().isUnitTestMode();
-  }
-
-  @Override
   public boolean hasVisibleStep() {
     return myStep.isStepVisible();
   }
@@ -108,7 +100,7 @@ public final class AndroidSdk extends InstallableComponent {
     assert destinationPath != null;
     final File destination = new File(destinationPath);
     File source = getHandoffAndroidSdkSource();
-    if (!shouldSetup() || FileUtil.filesEqual(source, destination)) {
+    if (FileUtil.filesEqual(source, destination)) {
       return;
     }
     ProgressStep progressStep = downloaded.getProgressStep();
@@ -136,6 +128,7 @@ public final class AndroidSdk extends InstallableComponent {
             @Override
             public void run() {
               DefaultSdks.setDefaultAndroidHome(destination);
+              AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
             }
           });
         }

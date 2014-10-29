@@ -144,11 +144,6 @@ public final class Haxm extends InstallableComponent {
   }
 
   @Override
-  public boolean shouldSetup() {
-    return false; // HAXM is not mandatory
-  }
-
-  @Override
   public boolean hasVisibleStep() {
     return true;
   }
