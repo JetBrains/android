@@ -371,6 +371,28 @@ public class DomPullParser extends LayoutPullParser {
   }
 
   /**
+   * Creates an empty new document builder.
+   * <p>
+   * The new documents will not validate, will ignore comments, and will
+   * support namespaces.
+   *
+   * @return the new document builder
+   */
+  @Nullable
+  public static DocumentBuilder createNewDocumentBuilder() {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    factory.setValidating(false);
+    factory.setIgnoringComments(true);
+    try {
+      return factory.newDocumentBuilder();
+    } catch (ParserConfigurationException e) {
+      Logger.getInstance(DomPullParser.class).error(e);
+    }
+    return null;
+  }
+
+  /**
    * Creates an empty plain XML document.
    * <p>
    * The new document will not validate, will ignore comments, and will
@@ -380,18 +402,6 @@ public class DomPullParser extends LayoutPullParser {
    */
   @Nullable
   public static Document createEmptyPlainDocument() {
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    factory.setNamespaceAware(true);
-    factory.setValidating(false);
-    factory.setIgnoringComments(true);
-    DocumentBuilder builder;
-    try {
-      builder = factory.newDocumentBuilder();
-      return builder.newDocument();
-    } catch (ParserConfigurationException e) {
-      Logger.getInstance(DomPullParser.class).error(e);
-    }
-
-    return null;
+    return createNewDocumentBuilder().newDocument();
   }
 }
