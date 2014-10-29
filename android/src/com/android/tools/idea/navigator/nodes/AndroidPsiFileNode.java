@@ -18,24 +18,20 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.SdkConstants;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
+public class AndroidPsiFileNode extends PsiFileNode {
   private final IdeaSourceProvider mySourceProvider;
 
-  public AndroidPsiDirectoryNode(@NotNull Project project,
-                                 @NotNull PsiDirectory directory,
-                                 @NotNull ViewSettings settings,
-                                 @Nullable IdeaSourceProvider sourceProvider) {
-    super(project, directory, settings);
+  public AndroidPsiFileNode(Project project, PsiFile file, ViewSettings settings, IdeaSourceProvider sourceProvider) {
+    super(project, file, settings);
     mySourceProvider = sourceProvider;
   }
 
@@ -48,13 +44,13 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
     }
   }
 
+  @Nullable
   @Override
   public Comparable getSortKey() {
     String sourceProviderName = mySourceProvider == null ? "" : mySourceProvider.getName();
     return getQualifiedNameSortKey() + "-" + (SdkConstants.FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName);
   }
 
-  @Nullable
   @Override
   public Comparable getTypeSortKey() {
     return getSortKey();
@@ -63,16 +59,6 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return toTestString(getValue().getName(), mySourceProvider);
-  }
-
-  public static String toTestString(String element, IdeaSourceProvider provider) {
-    StringBuilder sb = new StringBuilder(element);
-    if (provider != null) {
-      sb.append(" (");
-      sb.append(provider.getName());
-      sb.append(")");
-    }
-    return sb.toString();
+    return AndroidPsiDirectoryNode.toTestString(getValue().getName(), mySourceProvider);
   }
 }
