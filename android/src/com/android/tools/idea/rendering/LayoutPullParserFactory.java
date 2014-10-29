@@ -299,7 +299,7 @@ public class LayoutPullParserFactory {
     return element;
   }
 
-  protected static ILegacyPullParser createEmptyParser() {
+  public static ILegacyPullParser createEmptyParser() {
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
     Element root = addRootElement(document, FRAME_LAYOUT);
