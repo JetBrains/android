@@ -17,6 +17,7 @@
 package org.jetbrains.android.run.testing;
 
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.Variant;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
@@ -296,6 +297,16 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet) {
     String runner = INSTRUMENTATION_RUNNER_CLASS.length() > 0 ? INSTRUMENTATION_RUNNER_CLASS : getRunnerFromManifest(facet);
+
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+    // if custom runner is not set in the config, then see if it is specified by gradle
+    if (runner == null && ideaAndroidProject != null) {
+      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
+      if (testRunner != null) {
+        runner = testRunner;
+      }
+    }
     return new MyApplicationLauncher(runner);
   }
 
