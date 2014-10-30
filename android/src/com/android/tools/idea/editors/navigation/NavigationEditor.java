@@ -17,6 +17,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
@@ -152,16 +153,24 @@ public class NavigationEditor implements FileEditor {
     myRenderingParams = renderingParams;
     myAnalyser = new Analyser(module);
     myNavigationModel = read(file);
-    myCodeGenerator = new CodeGenerator(myNavigationModel, module);
-    myComponent = createUI(renderingParams, myNavigationModel, myFile.getParent().getName());
+    myCodeGenerator = new CodeGenerator(myNavigationModel, module, new Listener<String>() {
+      @Override
+      public void notify(@NonNull String event) {
+        postDelayedRefresh();
+      }
+    });
+    myComponent = createUI(renderingParams, myNavigationModel, myCodeGenerator, myFile.getParent().getName());
     createListeners();
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, mySaveListener);
   }
 
   @NotNull
-  private static JPanel createUI(RenderingParameters renderingParams, NavigationModel navigationModel, String dirName) {
+  private static JPanel createUI(RenderingParameters renderingParams,
+                                 NavigationModel navigationModel,
+                                 CodeGenerator codeGenerator,
+                                 String dirName) {
     SelectionModel selectionModel = new SelectionModel();
-    NavigationView editor = new NavigationView(renderingParams, navigationModel, selectionModel);
+    NavigationView editor = new NavigationView(renderingParams, navigationModel, selectionModel, codeGenerator);
     JPanel panel = new JPanel(new BorderLayout());
     {
       JComponent toolBar = createToolbar(getActions(editor), renderingParams, dirName);
@@ -191,11 +200,6 @@ public class NavigationEditor implements FileEditor {
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
-        if (event.operation == Operation.INSERT && event.operandType == Transition.class) {
-          ArrayList<Transition> transitions = myNavigationModel.getTransitions();
-          Transition transition = transitions.get(transitions.size() - 1); // todo don't rely on this being the last
-          myCodeGenerator.implementTransition(transition);
-        }
         if (event != PROJECT_READ) { // exempt the case when we are updating the model ourselves (because of a file read)
           myModified = true;
         }
