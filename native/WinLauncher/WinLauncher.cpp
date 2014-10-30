@@ -345,16 +345,20 @@ void AddPredefinedVMOptions(std::vector<std::string>& vmOptionLines)
 
 bool LoadVMOptions()
 {
+    TCHAR moduleFileName[_MAX_PATH];
+    GetModuleFileName(NULL, moduleFileName, _MAX_PATH - 1);
+    _tcscat_s(moduleFileName, _T(".vmoptions"));
+
     TCHAR optionsFileName[_MAX_PATH];
     if (LoadString(hInst, IDS_VM_OPTIONS_PATH, optionsFileName, _MAX_PATH-1))
     {
         TCHAR fullOptionsFileName[_MAX_PATH];
         ExpandEnvironmentStrings(optionsFileName, fullOptionsFileName, _MAX_PATH-1);
+        _tcscat_s(fullOptionsFileName, _tcsrchr(moduleFileName, '\\'));
 
         if (GetFileAttributes(fullOptionsFileName) == INVALID_FILE_ATTRIBUTES)
         {
-            GetModuleFileName(NULL, fullOptionsFileName, _MAX_PATH-1);
-            _tcscat_s(fullOptionsFileName, _T(".vmoptions"));
+            _tcscpy_s(fullOptionsFileName, MAX_PATH-1, moduleFileName);
         }
 
         std::vector<std::string> vmOptionLines;
