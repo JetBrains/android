@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -31,20 +30,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.ExecutionStatus;
-import org.jetbrains.android.util.StringBuildingOutputProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,9 +47,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
+
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 
 /**
  * A wrapper class for communicating with {@link com.android.sdklib.internal.avd.AvdManager} and exposing helper functions
@@ -387,6 +382,9 @@ public class AvdManagerConnection {
 
     if (skinFolder == null && isCircular) {
       skinFolder = getRoundSkin(systemImageDescription);
+    }
+    if (FileUtil.filesEqual(skinFolder, NO_SKIN)) {
+      skinFolder = null;
     }
     if (skinFolder == null) {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
