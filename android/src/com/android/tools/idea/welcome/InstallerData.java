@@ -55,7 +55,7 @@ public class InstallerData {
 
   private static Properties readProperties() {
     Properties properties = new Properties();
-    File file = new File(PathManager.getHomePath(), "firstlaunch/firstlaunch.properties");
+    File file = new File(System.getProperty("user.home"), ".android/firstlaunch/firstlaunch.properties");
     if (file.isFile()) {
       FileInputStream stream = null;
       try {
