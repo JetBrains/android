@@ -17,6 +17,8 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.OSProcessHandler;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +26,29 @@ import org.jetbrains.annotations.NotNull;
 public class EmulatorRunner extends ExternalToolRunner {
   public EmulatorRunner(@NotNull Project project, @NotNull String consoleTitle, @NotNull GeneralCommandLine commandLine) {
     super(project, consoleTitle, commandLine);
+  }
+
+  @NotNull
+  @Override
+  protected ProcessHandler createProcessHandler(Process process) {
+
+    // Override the default process killing behavior:
+    // The emulator process should not be killed forcibly since it would leave stale lock files around.
+    // We want to preserve the behavior that once an emulator is launched, that process runs even if the IDE is closed
+    return new OSProcessHandler(process) {
+      @Override
+      protected void destroyProcessImpl() {
+        // no need to actually kill the process, we just notify the IDE that it has been killed, while the emulator runs on..
+        closeStreams();
+        notifyProcessTerminated(0);
+      }
+
+      @Override
+      public boolean isSilentlyDestroyOnClose() {
+        // do not prompt the user about whether the process should be killed
+        return true;
+      }
+    };
   }
 
   @Override
