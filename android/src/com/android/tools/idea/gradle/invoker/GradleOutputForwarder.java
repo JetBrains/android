@@ -21,6 +21,7 @@ import com.google.common.io.Closeables;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import org.gradle.tooling.BuildLauncher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,9 +48,9 @@ class GradleOutputForwarder {
     myOutput = new ByteArrayOutputStream(SIZE * 2);
   }
 
-  void attachTo(@NotNull BuildLauncher launcher) {
-    OutputStream stdout = new ConsoleAwareOutputStream(this, NORMAL_OUTPUT);
-    OutputStream stderr = new ConsoleAwareOutputStream(this, ERROR_OUTPUT);
+  void attachTo(@NotNull BuildLauncher launcher, @Nullable Listener listener) {
+    OutputStream stdout = new ConsoleAwareOutputStream(this, NORMAL_OUTPUT, listener);
+    OutputStream stderr = new ConsoleAwareOutputStream(this, ERROR_OUTPUT, listener);
 
     launcher.setStandardOutput(stdout);
     launcher.setStandardError(stderr);
@@ -101,14 +102,22 @@ class GradleOutputForwarder {
     return myOutput.toString();
   }
 
+  interface Listener {
+    void onOutput(@NotNull ConsoleViewContentType contentType, @NotNull byte[] data, int offset, int length);
+  }
+
   private static class ConsoleAwareOutputStream extends OutputStream {
     @NotNull private final GradleOutputForwarder myOutput;
     @NotNull private final ConsoleViewContentType myContentType;
+    @Nullable private final Listener myListener;
 
     ConsoleAwareOutputStream(@NotNull GradleOutputForwarder output,
-                             @NotNull ConsoleViewContentType contentType) {
+                             @NotNull ConsoleViewContentType contentType,
+                             @Nullable Listener listener)
+    {
       myOutput = output;
       myContentType = contentType;
+      myListener = listener;
     }
 
     @Override
@@ -116,7 +125,10 @@ class GradleOutputForwarder {
     }
 
     @Override
-    public void write(byte[] b, int off, int len) {
+    public void write(@NotNull byte[] b, int off, int len) {
+      if (myListener != null) {
+        myListener.onOutput(myContentType, b, off, len);
+      }
       myOutput.write(myContentType, b, off, len);
     }
   }
