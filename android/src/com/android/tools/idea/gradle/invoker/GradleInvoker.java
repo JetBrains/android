@@ -29,6 +29,8 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -172,6 +174,26 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
+    executeTasks(gradleTasks, commandLineArguments, null, null, false);
+  }
+
+  /**
+   * Asks to execute target gradle tasks.
+   *
+   * @param gradleTasks           names of the tasks to execute
+   * @param commandLineArguments  command line arguments to use for the target tasks execution
+   * @param taskId                id of the request to execute given gradle tasks (if any), e.g. there is a possible case
+   *                              that this call implies from IDE run configuration, so, it assigns a unique id to the request
+   *                              to execute target tasks
+   * @param taskListener          a listener interested in target tasks processing
+   * @param waitForCompletion     a flag which hints whether current method should return control flow before target tasks are executed
+   */
+  public void executeTasks(@NotNull final List<String> gradleTasks,
+                           @NotNull final List<String> commandLineArguments,
+                           @Nullable final ExternalSystemTaskId taskId,
+                           @Nullable final ExternalSystemTaskNotificationListener taskListener,
+                           final boolean waitForCompletion)
+  {
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
@@ -183,14 +205,20 @@ public class GradleInvoker {
       return;
     }
 
+    final GradleTasksExecutor executor = new GradleTasksExecutor(this, myProject, gradleTasks, commandLineArguments, taskId, taskListener);
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         FileDocumentManager.getInstance().saveAllDocuments();
-        GradleTasksExecutor executor = new GradleTasksExecutor(GradleInvoker.this, myProject, gradleTasks, commandLineArguments);
-        executor.queue();
       }
     });
+
+    if (waitForCompletion && !ApplicationManager.getApplication().isDispatchThread()) {
+      executor.queueAndWaitForCompletion();
+    }
+    else {
+      executor.queue();
+    }
   }
 
   public void clearConsoleAndBuildMessages() {

@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -50,10 +51,7 @@ import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.externalSystem.model.task.*;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
@@ -108,6 +106,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
+import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 
 /**
@@ -137,6 +136,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
   @NotNull private final Object myMessageViewLock = new Object();
+  @NotNull private final Object myCompletionLock  = new Object();
+  private int myCompletionCounter;
+
   private final GradleInvoker myInvoker;
   @Nullable private GradleBuildTreeViewPanel myErrorTreeView;
 
@@ -152,16 +154,24 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private volatile boolean myMessageViewIsPrepared;
   private volatile boolean myMessagesAutoActivated;
 
+  @Nullable private final ExternalSystemTaskId                   myTaskId;
+  @Nullable private final ExternalSystemTaskNotificationListener myTaskListener;
+
   private CloseListener myCloseListener;
 
   GradleTasksExecutor(@NotNull GradleInvoker invoker,
                       @NotNull Project project,
                       @NotNull List<String> gradleTasks,
-                      @NotNull List<String> commandLineArguments) {
+                      @NotNull List<String> commandLineArguments,
+                      @Nullable ExternalSystemTaskId taskId,
+                      @Nullable ExternalSystemTaskNotificationListener taskListener)
+  {
     super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
     myInvoker = invoker;
     myGradleTasks = gradleTasks;
     myCommandLineArguments = commandLineArguments;
+    myTaskId = taskId;
+    myTaskListener = taskListener;
   }
 
   @Override
@@ -271,7 +281,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myGradleTasks), null);
 
-        ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
+        final ExternalSystemTaskId id;
+        if (myTaskId == null) {
+          id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
+        }
+        else {
+          id = myTaskId;
+        }
         BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
 
         List<String> jvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
@@ -311,7 +327,16 @@ class GradleTasksExecutor extends Task.Backgroundable {
             launcher.setJavaHome(javaHome);
           }
           launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
-          output.attachTo(launcher);
+          GradleOutputForwarder.Listener outputListener = null;
+          if (myTaskId != null && myTaskListener != null) {
+            outputListener = new GradleOutputForwarder.Listener() {
+              @Override
+              public void onOutput(@NotNull ConsoleViewContentType contentType, @NotNull byte[] data, int offset, int length) {
+                myTaskListener.onTaskOutput(id, new String(data, offset, length), contentType != ERROR_OUTPUT);
+              }
+            };
+          }
+          output.attachTo(launcher, outputListener);
           launcher.run();
         }
         catch (BuildException e) {
@@ -788,6 +813,63 @@ class GradleTasksExecutor extends Task.Backgroundable {
         Messages.showErrorDialog(myProject, errMsg, STOPPING_GRADLE_MSG_TITLE);
       }
       myIndicator.cancel();
+    }
+  }
+
+  /**
+   * Regular {@link #queue()} method might return immediately if current task is executed in a separate non-calling thread.
+   * <p/>
+   * However, sometimes we want to wait for the task completion, e.g. consider a use-case when we execute an IDE run configuration.
+   * It opens dedicated run/debug tool window and displays execution output there. However, it is shown as finished as soon as
+   * control flow returns. That's why we don't want to return control flow until the actual task completion.
+   * <p/>
+   * This method allows to achieve that target - it executes gradle tasks under the IDE 'progress management system' (shows progress
+   * bar at the bottom) in a separate thread and doesn't return control flow to the calling thread until all target tasks are actually
+   * executed.
+   */
+  public void queueAndWaitForCompletion() {
+    final int counterBefore;
+    synchronized (myCompletionLock) {
+      counterBefore = myCompletionCounter;
+    }
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        queue();
+      }
+    });
+    synchronized (myCompletionLock) {
+      while (true) {
+        if (myCompletionCounter > counterBefore) {
+          break;
+        }
+        try {
+          myCompletionLock.wait();
+        }
+        catch (InterruptedException e) {
+          // Just stop waiting.
+          break;
+        }
+      }
+    }
+  }
+
+  @Override
+  public void onSuccess() {
+    super.onSuccess();
+    onCompletion();
+  }
+
+  @Override
+  public void onCancel() {
+    super.onCancel();
+    onCompletion();
+  }
+
+  private void onCompletion() {
+    synchronized (myCompletionLock) {
+      myCompletionCounter++;
+      myCompletionLock.notifyAll();
     }
   }
 
