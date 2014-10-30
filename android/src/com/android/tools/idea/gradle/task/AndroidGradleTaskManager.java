@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
     if (openProjects.length == 1 && !openProjects[0].isDefault()) {
       Project project = openProjects[0];
       if (Projects.isGradleProject(project) && Projects.isDirectGradleInvocationEnabled(project)) {
-        GradleInvoker.getInstance(project).executeTasks(taskNames);
+        GradleInvoker.getInstance(project).executeTasks(taskNames, Collections.<String>emptyList(), id, listener, true);
         return true;
       }
     }
