@@ -49,12 +49,14 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
       final boolean inSources1 = myIndex.isInLibrarySource(file1);
 
       if (inSources1 != myIndex.isInLibrarySource(file2)) {
-        // consider class A implements Runnable
-        //super class Object for class A is found in cls, super interface Runnable is found in cls as well (class A resolve scope is simple modules scope with dependencies)
-        //but super class Object for interface Runnable is already found in android sources due to condition above
+        //Consider class A implements Runnable in project source.
+        //Super class Object for class A is found in cls, super interface Runnable is found in cls as well (class A resolve scope is simple modules scope with dependencies).
+        //Super class of cls Runnable isn't explicitly specified in the cls psi, so PsiClassImplUtil.getSuperClass/getSuperTypes return java.lang.Object
+        //found via file's resolve scope (this one). So for the two hierarchies to meet in one place we should return cls Object here. 
+        //By default this resolve scope prefers sdk sources, so we need to override this behavior for Object.
 
-        //problems with class A extends ArrayList implements List are hidden because they should be shown for class ArrayList
-        //but when we open ArrayList, it is already ArrayList from android sources 
+        //The problem doesn't arise for other super class references inside Android sdk cls, 
+        //because these references are explicit and resolved via ClsJavaCodeReferenceElementImpl#resolveClassPreferringMyJar which returns cls classes despite custom Android sdk scope.
         if (!CommonClassNames.JAVA_LANG_OBJECT_SHORT.equals(file1.getNameWithoutExtension())) {
           return inSources1 ? 1 : -1;
         }
