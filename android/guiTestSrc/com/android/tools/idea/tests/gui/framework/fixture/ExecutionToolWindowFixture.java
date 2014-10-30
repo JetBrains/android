@@ -16,12 +16,17 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.intellij.execution.actions.StopAction;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
+import com.intellij.util.ui.UIUtil;
+import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Condition;
@@ -30,6 +35,7 @@ import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.List;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.swing.timing.Pause.pause;
@@ -100,6 +106,19 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       }
       myRobot.click(tabLabel);
       return myRobot.finder().findByType(tabContentType);
+    }
+
+    public boolean isExecutionInProgress() {
+      // Consider that execution is in progress if 'stop' toolbar button is enabled.
+      ActionToolbarImpl toolbar = UIUtil.findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
+      assertNotNull(toolbar);
+      List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
+      for (ActionButton button : buttons) {
+        if (button.getAction() instanceof StopAction) {
+          return Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
+        }
+      }
+      return true;
     }
   }
 

@@ -560,6 +560,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     return new MessagesToolWindowFixture(getProject(), robot);
   }
 
+  @NotNull
+  public GradleToolWindowFixture getGradleToolWindow() {
+    return new GradleToolWindowFixture(getProject(), robot);
+  }
+
   /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
   @Nullable
   public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
