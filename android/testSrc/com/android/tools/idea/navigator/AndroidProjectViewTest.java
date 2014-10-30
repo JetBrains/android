@@ -95,9 +95,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "     strings.xml (debug)\n" +
       "    styles.xml\n" +
       "  assets\n" +
-      "   raw.asset.txt\n" +
+      "   raw.asset.txt (main)\n" +
       "  rs\n" +
-      "   test.rs\n" +
+      "   test.rs (main)\n" +
       " empty (non-Android)\n" +
       " javamodule (non-Android)\n" +
       "  java\n" +
@@ -119,9 +119,10 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   values\n" +
       "    strings.xml\n" +
       "  c\n" +
-      "   hello.c\n" +
+      "   hello.c (main)\n" +
       "  jniLibs\n" +
-      "   libc.so\n" +
+      "   libc.so (main)\n" +
+      "   libm.so (debug)\n" +
       " Gradle Scripts\n" +
       "  build.gradle (Project: " + rootModuleName + ")\n" +
       "  build.gradle (Module: app)\n" +
