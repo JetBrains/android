@@ -127,6 +127,8 @@ public class AvdWizardConstants {
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
 
+  public static final File NO_SKIN = new File("_no_skin");
+
   public static final class SystemImageDescription {
     private IAndroidTarget target;
     private ISystemImage systemImage;
