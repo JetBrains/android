@@ -201,18 +201,22 @@ public class AvdEditWizard extends DynamicWizard {
     // Remove the SD card setting that we're not using
     String sdCard = null;
     Boolean useExistingSdCard = state.get(USE_EXISTING_SD_CARD);
+    boolean hasSdCard = false;
     if (useExistingSdCard != null && useExistingSdCard) {
       userEditedProperties.remove(SD_CARD_STORAGE_KEY.name);
       sdCard = state.get(EXISTING_SD_LOCATION);
       assert sdCard != null;
+      hasSdCard = true;
+      hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(true));
     } else {
       userEditedProperties.remove(EXISTING_SD_LOCATION.name);
       Storage storage = state.get(SD_CARD_STORAGE_KEY);
       if (storage != null) {
         sdCard = toIniString(storage, false);
       }
+      hasSdCard = storage != null && storage.getSize() > 0;
     }
-
+    hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
     userEditedProperties = Maps.filterEntries(userEditedProperties, new Predicate<Map.Entry<String, Object>>() {
       @Override
