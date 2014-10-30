@@ -392,21 +392,26 @@ public class AvdManagerConnection {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
 
+    if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
+      boolean success = ourAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
+      if (!success) {
+        return null;
+      }
+    }
     return ourAvdManager.createAvd(avdFolder,
-                                    avdName,
-                                    systemImageDescription.getTarget(),
-                                    systemImageDescription.getTag(),
-                                    systemImageDescription.getAbiType(),
-                                    skinFolder,
-                                    skinName,
-                                    sdCard,
-                                    hardwareProperties,
-                                    device.getBootProps(),
-                                    createSnapshot,
-                                    false, // Remove Previous
-                                    true, // Remove ini file
-                                    currentInfo != null, // edit existing
-                                    SDK_LOG);
+                                   avdName,
+                                   systemImageDescription.getTarget(),
+                                   systemImageDescription.getTag(),
+                                   systemImageDescription.getAbiType(),
+                                   skinFolder,
+                                   skinName,
+                                   sdCard,
+                                   hardwareProperties,
+                                   device.getBootProps(),
+                                   createSnapshot,
+                                   false, // Remove Previous
+                                   currentInfo != null, // edit existing
+                                   SDK_LOG);
   }
 
   @Nullable
