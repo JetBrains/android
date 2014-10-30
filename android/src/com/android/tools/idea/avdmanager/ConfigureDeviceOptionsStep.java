@@ -76,7 +76,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private JTextField myDeviceName;
   private JBLabel myHelpAndErrorLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
-  private TextFieldWithBrowseButton myCustomSkinPath;
+  private SkinChooser myCustomSkinPath;
 
   /**
    * This contains the Software for the device. Since it has no effect on the
@@ -89,9 +89,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
 
   private Device.Builder myBuilder = new Device.Builder();
 
-  // Intermediate key for storing the string path before we convert it to a file
-  private static final ScopedStateStore.Key<String> CUSTOM_SKIN_PATH_KEY = createKey(WIZARD_ONLY + "CustomSkinPath",
-                                                                                     ScopedStateStore.Scope.STEP, String.class);
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
     super("Configure Hardware Profile", null, null, parentDisposable);
     myTemplateDevice = templateDevice;
@@ -127,6 +124,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myHelpAndErrorLabel.setOpaque(true);
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget("");
+    myCustomSkinPath = new SkinChooser(getProject());
   }
 
   @Override
@@ -196,9 +194,11 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, defaultHardware.getSensors().contains(Sensor.GYROSCOPE));
     myState.put(HAS_GPS_KEY, defaultHardware.getSensors().contains(Sensor.GPS));
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
-    File skinFile = defaultHardware.getSkinFile();
+    File skinFile = AvdEditWizard.getHardwareSkinPath(defaultHardware);
     if (skinFile != null) {
-      myState.put(CUSTOM_SKIN_PATH_KEY, skinFile.getPath());
+      myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
+    } else {
+      myState.put(CUSTOM_SKIN_FILE_KEY, NO_SKIN);
     }
   }
 
@@ -226,6 +226,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, true);
     myState.put(HAS_GPS_KEY, true);
     myState.put(HAS_PROXIMITY_SENSOR_KEY, true);
+    myState.put(CUSTOM_SKIN_FILE_KEY, NO_SKIN);
   }
 
   @Override
@@ -260,16 +261,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     }
 
     File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinPath == null && myState.containsKey(CUSTOM_SKIN_PATH_KEY)) {
-      String pathStr = myState.get(CUSTOM_SKIN_PATH_KEY);
-      if (pathStr != null && !pathStr.isEmpty()) {
-        skinPath = new File(pathStr);
-      }
-    }
-    if (skinPath != null && !skinPath.isAbsolute()) {
+    if (skinPath != null && skinPath != NO_SKIN && !skinPath.isAbsolute()) {
       skinPath = new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), skinPath.getPath());
     }
-    if (skinPath != null) {
+    if (skinPath != null && skinPath != NO_SKIN) {
       File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorHtml("The skin directory does not point to a valid skin.");
@@ -438,7 +433,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       }
     }
 
-    if (refreshAll || modified.contains(CUSTOM_SKIN_PATH_KEY)) {
+    if (refreshAll || modified.contains(CUSTOM_SKIN_FILE_KEY)) {
       File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
       if (skinFile != null) {
         hardware.setSkinFile(skinFile);
@@ -707,33 +702,11 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     register(HAS_PROXIMITY_SENSOR_KEY, myHasProximitySensor);
     setControlDescription(myHasProximitySensor, "Enables proximity sensor support in emulator");
 
-    register(CUSTOM_SKIN_PATH_KEY, myCustomSkinPath);
-    FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
-    myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
-                                             getProject(), skinChooserDescriptor);
+    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    register(CUSTOM_SKIN_FILE_KEY, myCustomSkinPath, myCustomSkinPath.getBinding());
+    myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
     setControlDescription(myCustomSkinPath, "Path to a directory containing a custom skin");
-
-    registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
-      }
-
-      @Nullable
-      @Override
-      public File deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable File currentValue) {
-        String path = state.get(CUSTOM_SKIN_PATH_KEY);
-        if (path != null && !path.isEmpty()) {
-          return new File(path);
-        }
-        return null;
-      }
-    });
-
   }
-
-
 
   private static final ComponentBinding<Double, JTextField> DOUBLE_BINDING = new ComponentBinding<Double, JTextField>() {
     @Override
