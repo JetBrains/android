@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
@@ -319,6 +320,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       } else {
         resolutionHeight = 0;
       }
+
       // The diagonal DPI will be somewhere in between the X and Y dpi if
       // they differ
       double dpi = Math.sqrt(resolutionWidth * resolutionWidth + resolutionHeight * resolutionHeight) / diagonalLength;
@@ -330,7 +332,13 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
         screen.setXdpi(dpi);
 
         screen.setRatio(getScreenRatio(resolutionWidth, resolutionHeight));
-        screen.setPixelDensity(getDensity(dpi));
+        if (HardwareConfigHelper.isTv(myTemplateDevice)) {
+          // TVs can have varied densities, including much lower than the normal range.
+          // Set the density explicitly in that case.
+          screen.setPixelDensity(Density.TV);
+        } else {
+          screen.setPixelDensity(getDensity(dpi));
+        }
       }
     }
 
