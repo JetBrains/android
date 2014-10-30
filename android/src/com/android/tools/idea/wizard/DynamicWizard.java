@@ -565,14 +565,13 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
      */
     @Nullable
     public AndroidStudioWizardPath next() {
-      do {
-        myCurrentIndex++;
-      } while(myCurrentIndex < myList.size() && !myList.get(myCurrentIndex).isPathVisible());
-      if (myCurrentIndex < myList.size()) {
-        return myList.get(myCurrentIndex);
-      } else {
-        return null;
+      while (myCurrentIndex < (myList.size() - 1)) {
+        AndroidStudioWizardPath next = myList.get(++myCurrentIndex);
+        if (next.isPathVisible()) {
+          return next;
+        }
       }
+      return null;
     }
 
     /**
