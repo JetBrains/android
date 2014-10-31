@@ -17,15 +17,17 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import com.google.common.collect.Lists;
+import com.intellij.ide.projectView.TreeStructureProvider;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
@@ -36,6 +38,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -45,9 +49,7 @@ import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_1_HOME_PROPERTY;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
@@ -62,6 +64,73 @@ import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
+  @Test @IdeGuiTest
+  public void testJdkNodeModificationInProjectView() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    AndroidTreeStructureProvider treeStructureProvider = null;
+    TreeStructureProvider[] treeStructureProviders = Extensions.getExtensions(TreeStructureProvider.EP_NAME, projectFrame.getProject());
+    for (TreeStructureProvider current : treeStructureProviders) {
+      if (current instanceof AndroidTreeStructureProvider) {
+        treeStructureProvider = (AndroidTreeStructureProvider)current;
+      }
+    }
+
+    assertNotNull(treeStructureProvider);
+    final List<AbstractTreeNode> changedNodes = Lists.newArrayList();
+    treeStructureProvider.addChangeListener(new AndroidTreeStructureProvider.ChangeListener() {
+      @Override
+      public void nodeChanged(@NotNull AbstractTreeNode parent, @NotNull Collection<AbstractTreeNode> newChildren) {
+        changedNodes.add(parent);
+      }
+    });
+
+    ProjectViewFixture projectView = projectFrame.getProjectView();
+    ProjectViewFixture.PaneFixture projectPane = projectView.selectProjectPane();
+    ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
+    projectPane.expand();
+
+    Pause.pause(new Condition("Wait for 'Project View' to be customized") {
+      @Override
+      public boolean test() {
+        // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
+        // 'javax'.
+        return changedNodes.size() == 2;
+      }
+    }, LONG_TIMEOUT);
+
+    List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
+    // 2 children: 'Android SDK' and JDK nodes
+    assertThat(libraryNodes).hasSize(2);
+
+    ProjectViewFixture.NodeFixture jdkNode = null;
+    // Find JDK node.
+    for (ProjectViewFixture.NodeFixture node : libraryNodes) {
+      if (node.isJdk()) {
+        jdkNode = node;
+        break;
+      }
+    }
+    assertNotNull(jdkNode);
+
+    // Now we verify that the JDK node has only these children:
+    // - jdk
+    //   - rt.jar
+    //     - java
+    //     - javax
+    List<ProjectViewFixture.NodeFixture> jdkChildren = jdkNode.getChildren();
+    assertThat(jdkChildren).hasSize(1);
+
+    ProjectViewFixture.NodeFixture rtJarNode = jdkChildren.get(0);
+    rtJarNode.requireDirectory("rt.jar");
+
+    List<ProjectViewFixture.NodeFixture> rtJarChildren = rtJarNode.getChildren();
+    assertThat(rtJarChildren).hasSize(2);
+
+    rtJarChildren.get(0).requireDirectory("java");
+    rtJarChildren.get(1).requireDirectory("javax");
+  }
+
   @Test @IdeGuiTest
   public void testUnsupportedPluginAndGradleVersion() throws IOException {
     // Open the project without updating the version of the plug-in
