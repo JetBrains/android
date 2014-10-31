@@ -20,7 +20,7 @@ import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.SingleStepPath;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -51,13 +51,18 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     return ScopedStateStore.createKey(clazz.getName(), ScopedStateStore.Scope.STEP, clazz);
   }
 
-  private static void assertPagesVisible(InstallerData data,
-                                         boolean isWelcomeStepVisible,
-                                         boolean isJdkStepVisible,
-                                         boolean isInstallTypeStepVisible,
-                                         boolean isComponentsStepVisible,
-                                         boolean hasJdkPath,
-                                         boolean hasAndroidSdkPath) {
+  @NotNull
+  public static String getAndroidHome() {
+    return getPathChecked("ANDROID_HOME");
+  }
+
+  private void assertPagesVisible(InstallerData data,
+                                  boolean isWelcomeStepVisible,
+                                  boolean isJdkStepVisible,
+                                  boolean isInstallTypeStepVisible,
+                                  boolean isComponentsStepVisible,
+                                  boolean hasJdkPath,
+                                  boolean hasAndroidSdkPath) {
     assertVisible(new FirstRunWelcomeStep(), data, isWelcomeStepVisible);
     assertVisible(new JdkLocationStep(createKey(String.class)), data, isJdkStepVisible);
     assertVisible(new InstallationTypeWizardStep(createKey(Boolean.class)), data, isInstallTypeStepVisible);
@@ -67,13 +72,16 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     assertEquals(data.toString(), hasAndroidSdkPath, data.hasValidSdkLocation());
   }
 
-  private static void assertVisible(DynamicWizardStep step, InstallerData data, boolean expected) {
-    assertEquals(String.format("Step: %s, data: %s", step.getClass(), data), expected, SingleStepWizard.getVisibility(step, data));
+  private void assertVisible(DynamicWizardStep step, InstallerData data, boolean expected) {
+    assertEquals(String.format("Step: %s, data: %s", step.getClass(), data), expected, isStepVisible(step, data));
   }
 
-  @NotNull
-  public static String getAndroidHome() {
-    return getPathChecked("ANDROID_HOME");
+  public boolean isStepVisible(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
+    SingleStepWizard wizard = new SingleStepWizard(step, data);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
+    wizard.init();
+    return step.isStepVisible();
+
   }
 
   @Override
@@ -131,16 +139,6 @@ public final class FirstRunWizardTest extends AndroidTestBase {
       super(null, null, "Single Step Wizard");
       myStep = step;
       myData = data;
-    }
-
-    public static boolean getVisibility(DynamicWizardStep step) {
-      return getVisibility(step, new InstallerData(null, null, null));
-    }
-
-    public static boolean getVisibility(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
-      new SingleStepWizard(step, data).init();
-      return step.isStepVisible();
-
     }
 
     @Override
