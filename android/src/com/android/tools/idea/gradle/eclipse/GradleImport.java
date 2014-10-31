@@ -1116,7 +1116,7 @@ public class GradleImport {
         // User specified ProGuard rules; replicate exactly
         sb.append("    buildTypes {").append(NL);
         sb.append("        release {").append(NL);
-        sb.append("            runProguard true").append(NL);
+        sb.append("            minifyEnabled true").append(NL);
         sb.append("            proguardFiles ");
         sb.append(generateProguardFileList(localRules, sdkRules)).append(NL);
         sb.append("        }").append(NL);
@@ -1126,7 +1126,7 @@ public class GradleImport {
         // User didn't specify ProGuard rules; put in defaults (but off)
         sb.append("    buildTypes {").append(NL);
         sb.append("        release {").append(NL);
-        sb.append("            runProguard false").append(NL);
+        sb.append("            minifyEnabled false").append(NL);
         sb.append("            proguardFiles getDefaultProguardFile('proguard-" + "android.txt'), 'proguard-rules.txt'").append(NL);
         sb.append("        }").append(NL);
         sb.append("    }").append(NL);
