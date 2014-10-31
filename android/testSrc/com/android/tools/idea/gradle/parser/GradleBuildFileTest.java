@@ -695,7 +695,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "        type1 {\n" +
       "            //Comment\n" +
       "            debuggable true\n" +
-      "            runProguard methodCall() {\n" +
+      "            minifyEnabled methodCall() {\n" +
       "                whatIsThisMethodCall()\n" +
       "            }\n" +
       "            zipAlign some.expression\n" +
@@ -707,7 +707,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(1, objects.size());
     NamedObject no = objects.get(0);
     assertEquals(true, no.getValue(BuildFileKey.DEBUGGABLE));
-    assertSame(UNRECOGNIZED_VALUE, no.getValue(BuildFileKey.RUN_PROGUARD));
+    assertSame(UNRECOGNIZED_VALUE, no.getValue(BuildFileKey.MINIFY_ENABLED));
     assertSame(UNRECOGNIZED_VALUE, no.getValue(BuildFileKey.ZIP_ALIGN));
   }
 
