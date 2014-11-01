@@ -89,6 +89,8 @@ public enum BuildFileKey {
   JNI_DEBUG_BUILD("jniDebugBuild", BOOLEAN),
   RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", BOOLEAN),
   RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", INTEGER),
+  MINIFY_ENABLED("minifyEnabled", BOOLEAN),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   RUN_PROGUARD("runProguard", BOOLEAN),
   APPLICATION_ID_SUFFIX("applicationIdSuffix", STRING),
   @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
@@ -130,7 +132,7 @@ public enum BuildFileKey {
   BUILD_TYPES("android/buildTypes", null, CLOSURE,
               NamedObject.getFactory(ImmutableList
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,
-                                           RUN_PROGUARD, PROGUARD_FILE, APPLICATION_ID_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
+                                           MINIFY_ENABLED, PROGUARD_FILE, APPLICATION_ID_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
 
   static {
     SIGNING_CONFIG.myContainerType = SIGNING_CONFIGS;
