@@ -69,7 +69,8 @@ public final class TemplateParameterStep2DynamcTypeTest extends LightIdeaTestCas
                                                      TestDynamicWizardContent.class.getName() +
                                                      "\"/>\n  </extensions>");
 
-  public void testCustomControlAndBinding() {
+  // project leak detected?
+  public void disabled_testCustomControlAndBinding() {
     final String parameterName = "customtypeId";
     ScopedStateStore.Key<?> p2Key = getKeyForParameter(parameterName);
 
