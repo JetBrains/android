@@ -69,44 +69,46 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
 
     if (myTitle == null) {
       FontMetrics metrics = g2d.getFontMetrics();
-      g2d.drawString(NO_OPTION_SELECTED, (getWidth() - metrics.stringWidth(NO_OPTION_SELECTED)) / 2,
-                     (getHeight() - metrics.getHeight()) / 2);
+      g2d.drawString(NO_OPTION_SELECTED,
+                   (getWidth() - metrics.stringWidth(NO_OPTION_SELECTED)) / 2,
+                   (getHeight() - metrics.getHeight()) / 2 );
+      return;
     }
 
+    // Paint the name
+    g2d.setFont(TITLE_FONT);
+    FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
+    g2d.drawString(myTitle, PADDING, PADDING + metrics.getHeight() / 2);
+    g2d.drawLine(0, 50, getWidth(), 50);
+
+    // Paint the details.
     int stringHeight = g2d.getFontMetrics(TITLE_FONT).getHeight();
     int infoSegmentX = PADDING;
     int infoSegmentY = PADDING + stringHeight * 2;
-    int maxWidth = getWidth() - 2 * PADDING;
-    if (myTitle != null) {
-      // Paint the name
-      g2d.setFont(TITLE_FONT);
-      FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
-      g2d.drawString(myTitle, PADDING, PADDING + metrics.getHeight() / 2);
-      g2d.drawLine(0, 50, getWidth(), 50);
 
-      // Paint the details.
-      g2d.setFont(STANDARD_FONT);
+    g2d.setFont(STANDARD_FONT);
+    int maxWidth = getWidth() - 2 * PADDING;
+
+    // If there's an error message, paint it
+    if (myErrorMessage != null) {
+      g2d.setColor(JBColor.RED);
+      infoSegmentY += drawMultilineString(g2d, myErrorMessage, maxWidth, infoSegmentX, infoSegmentY);
     }
+    infoSegmentY += stringHeight;
+
     // Paint our description
     if (myDescriptionBody != null) {
       g2d.setColor(JBColor.foreground());
       for (String line : Splitter.on(CharMatcher.anyOf("\n\r")).omitEmptyStrings().split(myDescriptionBody)) {
-        infoSegmentY += drawMultilineString(g2d, line, maxWidth, infoSegmentX, infoSegmentY, false);
+        infoSegmentY += drawMultilineString(g2d, line, maxWidth, infoSegmentX, infoSegmentY);
       }
-    }
-    // If there's an error message, paint it
-    if (myErrorMessage != null) {
-      g2d.setColor(JBColor.RED);
-      int height = drawMultilineString(g2d, myErrorMessage, maxWidth, infoSegmentX, infoSegmentY, true);
-      drawMultilineString(g2d, myErrorMessage, maxWidth, infoSegmentX, getHeight() - PADDING - height, false);
     }
   }
 
   /**
    * Returns the height of the text drawn.
    */
-  private static int drawMultilineString(@NotNull Graphics2D g2d, @NotNull String fullString, int maxWidth, int startX, int startY,
-                                         boolean onlyMeasure) {
+  private static int drawMultilineString(@NotNull Graphics2D g2d, @NotNull String fullString, int maxWidth, int startX, int startY) {
     int currentY = startY;
     FontMetrics metrics = g2d.getFontMetrics();
     int stringHeight = metrics.getHeight();
@@ -115,9 +117,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     for (String part : parts) {
       if (metrics.stringWidth(currentLine + part) > maxWidth) {
         currentY += stringHeight;
-        if (!onlyMeasure) {
-          g2d.drawString(currentLine, startX, currentY);
-        }
+        g2d.drawString(currentLine, startX, currentY);
         currentLine = "";
       }
       currentLine += part + " ";
@@ -125,9 +125,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     // Flush the remaining buffer
     if (!currentLine.isEmpty()) {
       currentY += stringHeight;
-      if (!onlyMeasure) {
-        g2d.drawString(currentLine, startX, currentY);
-      }
+      g2d.drawString(currentLine, startX, currentY);
     }
     return currentY - startY;
   }
@@ -152,7 +150,6 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(USE_HOST_GPU_KEY, "Use Host GPU").
       put(USE_SNAPSHOT_KEY, "Enable Snapshot").
       put(CUSTOM_SKIN_FILE_KEY, "Custom Hardware Skin").
-      put(DISPLAY_NAME_KEY, "AVD Name").
       build();
 
   private static Map<Key<?>, String> DESCRIPTIONS = ImmutableMap.<Key<?>, String>builder().
@@ -190,7 +187,6 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(CUSTOM_SKIN_FILE_KEY, "A collection of images and configuration data that indicates how to populate the window. Each skin can have " +
                               "several \"layouts\" (e.g. \"landscape\" and \"portrait\") corresponding to different orientation " +
                               "/ physical configurations of the emulated device.\n").
-    put(DISPLAY_NAME_KEY, "The name of this AVD.").
     build();
 
   /**
