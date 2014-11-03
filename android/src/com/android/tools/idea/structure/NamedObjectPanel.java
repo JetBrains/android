@@ -183,6 +183,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
               value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.PACKAGE_NAME);
             } else if (key == BuildFileKey.TEST_APPLICATION_ID) {
               value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.TEST_PACKAGE_NAME);
+            } else if (key == BuildFileKey.MINIFY_ENABLED) {
+              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.RUN_PROGUARD);
             }
           }
 
@@ -458,7 +460,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
           obj.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, buildType.getApplicationIdSuffix());
           obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
-          obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isMinifyEnabled());
+          obj.setValue(BuildFileKey.MINIFY_ENABLED, buildType.isMinifyEnabled());
           obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlignEnabled());
           results.add(obj);
         }
