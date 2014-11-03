@@ -29,6 +29,7 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.timing.Condition;
@@ -57,13 +58,23 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
+  @Test @IdeGuiTest
+  public void testSyncDoesNotChangeDependenciesInBuildFiles() throws IOException {
+    File projectPath = setUpProject("MultiModule", true, true, null);
+    File appBuildFilePath = new File(projectPath, FileUtil.join("app", SdkConstants.FN_BUILD_GRADLE));
+    assertThat(appBuildFilePath).isFile();
+    long lastModified = appBuildFilePath.lastModified();
+    openProject(projectPath);
+    // See https://code.google.com/p/android/issues/detail?id=78628
+    assertEquals(lastModified, appBuildFilePath.lastModified());
+  }
+
   @Test @IdeGuiTest
   public void testJdkNodeModificationInProjectView() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
@@ -409,8 +420,8 @@ public class GradleSyncTest extends GuiTestCase {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
     projectFrame.deleteGradleWrapper()
-      .useLocalGradleDistribution("")
-      .requestProjectSync();
+                .useLocalGradleDistribution("")
+                .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     findGradleSyncMessageDialog(myRobot).clickOk();
@@ -425,14 +436,14 @@ public class GradleSyncTest extends GuiTestCase {
 
     File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
     projectFrame.deleteGradleWrapper()
-      .useLocalGradleDistribution(nonExistingDirPath.getPath())
-      .requestProjectSync();
+                .useLocalGradleDistribution(nonExistingDirPath.getPath())
+                .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     findGradleSyncMessageDialog(myRobot).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
-      .requireGradleWrapperSet();
+                .requireGradleWrapperSet();
   }
 
   @NotNull
