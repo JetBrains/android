@@ -66,23 +66,22 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
       <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
               icon="AndroidIcons.NavigationEditor"/>
       <action id="Android.MemoryMonitor" class="com.android.tools.idea.memory.MemoryMonitorAction" icon="AndroidIcons.MemoryMonitor"/>
-      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync" project-type="Android"/>
-      <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android" project-type="Android"/>
+      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
+      <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-          icon="AndroidIcons.AvdManager" project-type="Android"/>
+          icon="AndroidIcons.AvdManager"/>
       <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-          icon="AndroidIcons.SdkManager" project-type="Android"/>
+          icon="AndroidIcons.SdkManager"/>
       <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
+      <action id="Android.MemoryMonitor" class="com.android.tools.idea.memory.MemoryMonitorAction" icon="AndroidIcons.MemoryMonitor"/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
-
     <group id="Android.MainToolBarActionGroup">
       <separator/>
       <reference id="Android.SyncProject" />
@@ -168,8 +167,8 @@
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <projectConfigurable instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
-                         displayName="Compiler (Gradle-based Android Projects)"/>
+    <projectConfigurable groupId="build" id="gradle.compiler" parentId="project.propCompiler"
+                         provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
@@ -506,11 +505,12 @@
                 conditionClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleCondition"
                 icon="AndroidIcons.GradleConsoleToolWindow"
                 factoryClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory"/>
-    <toolWindow id="Memory Monitor"
-                anchor="bottom"
-                secondary="true"
-                icon="AndroidIcons.MemoryMonitorToolWindow"
-                factoryClass="com.android.tools.idea.memory.MemoryMonitorToolWindowFactory"/>
+    <facet.toolWindow id="Memory Monitor"
+                      facetIdList="android"
+                      anchor="bottom"
+                      secondary="true"
+                      icon="AndroidIcons.MemoryMonitorToolWindow"
+                      factoryClass="com.android.tools.idea.memory.MemoryMonitorToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
@@ -676,8 +676,6 @@
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ObjectStreamErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
   </extensions>
-
-  <!-- Layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>

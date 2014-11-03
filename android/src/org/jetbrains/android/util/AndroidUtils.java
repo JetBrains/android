@@ -27,7 +27,6 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
-import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -249,7 +248,7 @@ public class AndroidUtils {
     final Runnable r = new Runnable() {
       @Override
       public void run() {
-        final RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
+        final RunManager runManager = RunManager.getInstance(project);
         final RunnerAndConfigurationSettings settings = runManager.
           createRunConfiguration(module.getName(), AndroidRunConfigurationType.getInstance().getFactory());
         final AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
@@ -270,7 +269,7 @@ public class AndroidUtils {
           configuration.PREFERRED_AVD = preferredAvdName;
         }
         runManager.addConfiguration(settings, false);
-        runManager.setActiveConfiguration(settings);
+        runManager.setSelectedConfiguration(settings);
       }
     };
     if (!ask) {

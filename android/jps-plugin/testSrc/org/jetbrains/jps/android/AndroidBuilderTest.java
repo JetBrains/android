@@ -957,6 +957,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   }
 
   public void testMaven() throws Exception {
+    createMavenConfigFile();
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
     addPathPatterns(executor, androidSdk);
@@ -1022,7 +1023,17 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkBuildLog(executor, "expected_log_2");
   }
 
+  private void createMavenConfigFile() throws IOException {
+    final File file = new File(myDataStorageRoot, MavenProjectConfiguration.CONFIGURATION_FILE_RELATIVE_PATH);
+
+    if (!file.exists()) {
+      FileUtil.writeToFile(file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                 "<maven-project-configuration></maven-project-configuration>");
+    }
+  }
+
   public void testMaven1() throws Exception {
+    createMavenConfigFile();
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
     addPathPatterns(executor, androidSdk);
@@ -1064,6 +1075,18 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libModule.getDependenciesList().addLibraryDependency(libAarLib);
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
+    checkMakeUpToDate(executor);
+
+    final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
+    final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
+    appProps.myIncludeAssetsFromLibraries = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
+
+    appAarLib.addRoot(getProjectPath("myaar/libs/myjar.jar"), JpsOrderRootType.COMPILED);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
     checkMakeUpToDate(executor);
   }
 

@@ -16,8 +16,6 @@
 package org.jetbrains.android;
 
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.templates.TemplateManager;
-import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
