@@ -497,18 +497,27 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       final Library aarLib = ((LibraryOrderEntry)deps[2]).getLibrary();
       assertNotNull(aarLib);
       final String[] dep2Urls = aarLib.getUrls(OrderRootType.CLASSES);
-      assertEquals(2, dep2Urls.length);
-      String classesJarDep = dep2Urls[0];
-      String resDep = dep2Urls[1];
+      assertEquals(3, dep2Urls.length);
+      String classesJarDep = null;
+      String myJarDep = null;
+      String resDep = null;
 
-      if (resDep.contains("classes.jar")) {
-        final String t = resDep;
-        resDep = classesJarDep;
-        classesJarDep = t;
+      for (String url : dep2Urls) {
+        if (url.contains("classes.jar")) {
+          classesJarDep = url;
+        }
+        else if (url.contains("myjar.jar")) {
+          myJarDep = url;
+        }
+        else {
+          resDep = url;
+        }
       }
       final String extractedAarDirPath = FileUtil.toCanonicalPath(myDir.getPath() + "/project/gen-external-apklibs/com_myaar_1.0");
       assertEquals(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, extractedAarDirPath + "/classes.jar") +
                    JarFileSystem.JAR_SEPARATOR, classesJarDep);
+      assertEquals(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, extractedAarDirPath + "/libs/myjar.jar") +
+                   JarFileSystem.JAR_SEPARATOR, myJarDep);
       assertEquals(VfsUtilCore.pathToUrl(extractedAarDirPath + "/res"), resDep);
 
       assertInstanceOf(deps[3], LibraryOrderEntry.class);

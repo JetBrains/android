@@ -15,17 +15,20 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import com.android.utils.Pair;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
 
@@ -36,8 +39,7 @@ import static com.android.SdkConstants.*;
  * over 80 spelling errors from these files!
  */
 public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
-  private PsiFile myLastPsiFile;
-  private boolean myLastIgnore;
+  private final AtomicReference<Pair<VirtualFile, Boolean>> myLastVirtualFileIgnoredState = new AtomicReference<Pair<VirtualFile, Boolean>>();
 
   @Override
   public boolean isMyContext(@NotNull PsiElement element) {
@@ -46,40 +48,40 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
       return false;
     }
 
-    return isIgnored(file);
+    return isIgnored(file.getViewProvider().getVirtualFile());
   }
 
-  private boolean isIgnored(@Nullable PsiFile psiFile) {
-    if (psiFile == null) {
-      return false;
-    }
-    if (psiFile == myLastPsiFile) {
-      return myLastIgnore;
+  private boolean isIgnored(@NotNull VirtualFile virtualFile) {
+    Pair<VirtualFile, Boolean> pair = myLastVirtualFileIgnoredState.get();
+
+    if (pair != null && virtualFile.equals(pair.getFirst())) {
+      return Boolean.TRUE == pair.getSecond();
     }
 
-    myLastPsiFile = psiFile;
+    FileType fileType = virtualFile.getFileType();
+    boolean lastIgnore = false;
 
-    FileType fileType = psiFile.getFileType();
     if (fileType == FileTypes.PLAIN_TEXT) {
-      String name = psiFile.getName();
+      String name = virtualFile.getName();
       if (Comparing.equal(name, FN_RESOURCE_TEXT, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, ".gitignore", SystemInfo.isFileSystemCaseSensitive)) {
-        return myLastIgnore = true;
+        lastIgnore = true;
       }
     }
     else if (fileType == StdFileTypes.PROPERTIES) {
-      String name = psiFile.getName();
+      String name = virtualFile.getName();
       if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
-        return myLastIgnore = true;
-
+        lastIgnore = true;
       }
     }
 
-    return false;
+    myLastVirtualFileIgnoredState.lazySet(Pair.of(virtualFile, Boolean.valueOf(lastIgnore)));
+
+    return lastIgnore;
   }
 
   @NotNull

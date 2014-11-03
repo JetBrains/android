@@ -334,6 +334,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     return "Android SDK Settings";
   }
 
+  @NotNull
   @Override
   public JComponent createComponent() {
     return myContentPanel;

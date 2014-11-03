@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.memory;
 
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitorAction extends AnAction {
 
@@ -29,12 +32,21 @@ public class MemoryMonitorAction extends AnAction {
   }
 
   @Override
+  public void update(@NotNull AnActionEvent e) {
+    final Project project = e.getProject();
+    e.getPresentation().setEnabledAndVisible(
+      project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
+  }
+
+  @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getData(CommonDataKeys.PROJECT);
     if (project != null) {
       ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
       ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryMonitorToolWindowFactory.ID);
-      toolWindow.show(null);
+      if (toolWindow != null) {
+        toolWindow.show(null);
+      }
     }
   }
 }

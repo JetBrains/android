@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -59,7 +60,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.project.DumbModeAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -91,6 +92,7 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -431,7 +433,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull
   private List<GradleMessage> showMessages(@NotNull String gradleOutput) {
-    List<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(gradleOutput);
+    Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
+    List<GradleMessage> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
     for (GradleMessage msg : compilerMessages) {
       addMessage(msg, null);
     }
@@ -989,7 +992,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
-  private class ProgressIndicatorStateDelegate extends ProgressIndicatorBase {
+  private class ProgressIndicatorStateDelegate extends AbstractProgressIndicatorExBase {
     @Override
     public void cancel() {
       super.cancel();

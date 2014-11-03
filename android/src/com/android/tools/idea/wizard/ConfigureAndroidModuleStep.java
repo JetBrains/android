@@ -150,19 +150,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
     if (highest != null) {
-      myTemplateState.put(ATTR_BUILD_API, highest.getFeatureLevel());
+      myTemplateState.put(ATTR_BUILD_API, getItemId(highest));
       myTemplateState.put(ATTR_BUILD_API_STRING, getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_TARGET_API);
       myTemplateState.myModified.add(ATTR_TARGET_API_STRING);
 
-      myTemplateState.put(ATTR_TARGET_API, highest.getFeatureLevel());
+      myTemplateState.put(ATTR_TARGET_API, getItemId(highest));
       myTemplateState.put(ATTR_TARGET_API_STRING, getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_BUILD_API);
       myTemplateState.myModified.add(ATTR_BUILD_API_STRING);
-      if (highest.getFeatureLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        myTemplateState.put(ATTR_TARGET_API, highest.getFeatureLevel());
-        myTemplateState.put(ATTR_TARGET_API_STRING, highest.getApiString());
-      }
     }
 
     // If using KitKat platform tools, we can support language level
@@ -811,6 +807,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
+  private static Object getItemId(@NotNull AndroidVersion version) {
+    if (version.isPreview()) {
+      String codename = version.getCodename();
+      assert codename != null; // because isPreview()
+      return codename;
+    } else {
+      return version.getFeatureLevel();
+    }
+  }
+
   public static class SourceLevelComboBoxItem extends ComboBoxItem {
     public final LanguageLevel level;
 
@@ -840,20 +846,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       apiLevel = target.getVersion().getFeatureLevel();
     }
 
-    @NotNull
-    private static Object getId(@NotNull IAndroidTarget target) {
-      if (target.getVersion().isPreview()) {
-        String codename = target.getVersion().getCodename();
-        assert codename != null; // because isPreview()
-        return codename;
-      } else {
-        return target.getVersion().getFeatureLevel();
-      }
-    }
-
     @Override
     public String toString() {
       return label;
+    }
+
+    @NotNull
+    private static Object getId(@NotNull IAndroidTarget target) {
+      final AndroidVersion version = target.getVersion();
+      return getItemId(version);
     }
   }
 }

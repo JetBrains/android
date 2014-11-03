@@ -15,24 +15,18 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.SdkConstants;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.util.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * @author Eugene.Kudelevsky
@@ -47,6 +41,13 @@ public class RunAndroidAvdManagerAction extends AnAction {
 
   public RunAndroidAvdManagerAction(String name) {
     super(name);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    final Project project = e.getProject();
+    e.getPresentation().setEnabledAndVisible(
+      project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
   }
 
   @Override

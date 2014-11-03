@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.aapt.AaptOutputParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.*;
-import com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,11 +26,11 @@ import java.util.List;
  * Parses Gradle's build output and creates the messages to be displayed in the "Messages" tool window.
  */
 public class BuildOutputParser {
-  private static final PatternAwareOutputParser[] PARSERS = {
-    new AndroidPluginOutputParser(), new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(),
-    new BuildFailureParser(), new ManifestMergeFailureParser(), new DexExceptionParser(),
-    new JavacOutputParser(), new MergingExceptionParser()
-  };
+  private Iterable<? extends PatternAwareOutputParser> myParsers;
+
+  public BuildOutputParser(Iterable<? extends PatternAwareOutputParser> parsers) {
+    myParsers = parsers;
+  }
 
   /**
    * Parses the given Gradle output and creates the messages to be displayed in the "Messages" tool window.
@@ -57,7 +54,7 @@ public class BuildOutputParser {
         continue;
       }
       boolean handled = false;
-      for (PatternAwareOutputParser parser : PARSERS) {
+      for (PatternAwareOutputParser parser : myParsers) {
         try {
           if (parser.parse(line, outputReader, messages)) {
             handled = true;
