@@ -20,7 +20,6 @@ import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.SingleStepPath;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -78,10 +77,9 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
   public boolean isStepVisible(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
     SingleStepWizard wizard = new SingleStepWizard(step, data);
-    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
+    disposeOnTearDown(wizard.getDisposable());
     wizard.init();
     return step.isStepVisible();
-
   }
 
   @Override
