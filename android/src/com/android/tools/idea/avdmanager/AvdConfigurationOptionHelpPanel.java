@@ -153,6 +153,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(USE_SNAPSHOT_KEY, "Enable Snapshot").
       put(CUSTOM_SKIN_FILE_KEY, "Custom Hardware Skin").
       put(DISPLAY_NAME_KEY, "AVD Name").
+      put(HAS_HARDWARE_KEYBOARD_KEY, "Enable keyboard input").
       build();
 
   private static Map<Key<?>, String> DESCRIPTIONS = ImmutableMap.<Key<?>, String>builder().
@@ -191,6 +192,8 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
                               "several \"layouts\" (e.g. \"landscape\" and \"portrait\") corresponding to different orientation " +
                               "/ physical configurations of the emulated device.\n").
     put(DISPLAY_NAME_KEY, "The name of this AVD.").
+    put(HAS_HARDWARE_KEYBOARD_KEY, "Enables you to enter text input and interact with the AVD with your hardware computer keyboard " +
+                                   "instead of a of the on on-screen software keyboard.\n").
     build();
 
   /**

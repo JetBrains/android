@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.internal.repository.packages.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -93,7 +94,7 @@ public class AvdWizardConstants {
   public static final Key<Integer> RESOLUTION_HEIGHT_KEY = createKey("ResolutionHeight", STEP, Integer.class);
 
   public static final Key<Boolean> HAS_HARDWARE_BUTTONS_KEY = createKey("HasHardwareButtons", STEP, Boolean.class);
-  public static final Key<Boolean> HAS_HARDWARE_KEYBOARD_KEY = createKey("HasHardwareKeyboard", STEP, Boolean.class);
+  public static final Key<Boolean> HAS_HARDWARE_KEYBOARD_KEY = createKey(HardwareProperties.HW_KEYBOARD, WIZARD, Boolean.class);
   public static final Key<Navigation> NAVIGATION_KEY = createKey("Navigation", STEP, Navigation.class);
 
   public static final Key<Boolean> SUPPORTS_LANDSCAPE_KEY = createKey("SupportsLandscape", STEP, Boolean.class);
