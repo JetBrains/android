@@ -18,7 +18,6 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.util.PropertiesUtil;

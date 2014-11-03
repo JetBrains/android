@@ -23,7 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -230,7 +230,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   private static void addTestRunConfiguration(final AndroidFacet facet, @NotNull TargetSelectionMode mode, @Nullable String preferredAvd) {
     Project project = facet.getModule().getProject();
-    RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
+    RunManager runManager = RunManager.getInstance(project);
     Module module = facet.getModule();
     RunnerAndConfigurationSettings settings = runManager
       .createRunConfiguration(module.getName(), AndroidTestRunConfigurationType.getInstance().getFactory());
@@ -243,7 +243,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     }
 
     runManager.addConfiguration(settings, false);
-    runManager.setActiveConfiguration(settings);
+    runManager.setSelectedConfiguration(settings);
   }
 
   @Nullable
