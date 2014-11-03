@@ -51,7 +51,7 @@ public class ExternalToolRunner {
   private final String myTitle;
   private final GeneralCommandLine myCommandLine;
 
-  private OSProcessHandler myProcessHandler;
+  private ProcessHandler myProcessHandler;
 
   public ExternalToolRunner(@NotNull Project project, @NotNull String consoleTitle, @NotNull GeneralCommandLine commandLine) {
     myProject = project;
@@ -61,7 +61,7 @@ public class ExternalToolRunner {
 
   public ProcessHandler start() throws ExecutionException {
     final Process process = createProcess();
-    myProcessHandler = new OSProcessHandler(process);
+    myProcessHandler = createProcessHandler(process);
 
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
@@ -76,6 +76,11 @@ public class ExternalToolRunner {
   @NotNull
   protected Process createProcess() throws ExecutionException {
     return myCommandLine.createProcess();
+  }
+
+  @NotNull
+  protected ProcessHandler createProcessHandler(Process process) {
+    return new OSProcessHandler(process);
   }
 
   private void initConsoleUi() {
@@ -99,7 +104,7 @@ public class ExternalToolRunner {
     final RunContentDescriptor contentDescriptor = new RunContentDescriptor(consoleView, myProcessHandler, panel, myTitle);
     showConsole(defaultExecutor, contentDescriptor);
 
-    myProcessHandler.addProcessListener(new ConsoleListener(myProject, myTitle, defaultExecutor, myProcessHandler));
+    myProcessHandler.addProcessListener(new ConsoleListener(myProject, defaultExecutor, myProcessHandler));
     myProcessHandler.startNotify();
   }
 
@@ -114,23 +119,20 @@ public class ExternalToolRunner {
   }
 
   protected void showConsole(Executor defaultExecutor, RunContentDescriptor myDescriptor) {
-    // Show in run toolwindow
+    // Show in run tool window
     ExecutionManager.getInstance(myProject).getContentManager().showRunContent(defaultExecutor, myDescriptor);
   }
 
   // Listens to console output and fronts the console in case of errors
   private static class ConsoleListener extends ProcessAdapter {
     private final Project myProject;
-    private final String myTitle;
     private final Executor myExecutor;
     private final ProcessHandler myProcessHandler;
 
     public ConsoleListener(@NotNull Project project,
-                           @NotNull String title,
                            @NotNull Executor executor,
                            @NotNull ProcessHandler processHandler) {
       myProject = project;
-      myTitle = title;
       myExecutor = executor;
       myProcessHandler = processHandler;
     }
