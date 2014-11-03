@@ -238,9 +238,9 @@ class Selections {
 
     @Override
     protected void configureInspector(final Inspector inspector) {
-      myState.accept(new State.Visitor<Void>() {
+      myState.accept(new State.Visitor() {
         @Override
-        public Void visit(ActivityState state) {
+        public void visit(ActivityState state) {
           final Module module = myRenderingParameters.myConfiguration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
           {
@@ -263,15 +263,13 @@ class Selections {
             }
           }
           inspector.setInspectorComponent(activityInspector.container);
-          return null;
         }
 
         @Override
-        public Void visit(MenuState state) {
+        public void visit(MenuState state) {
           MenuInspector menuInspector = new MenuInspector();
           configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
           inspector.setInspectorComponent(menuInspector.container);
-          return null;
         }
       });
     }
