@@ -249,9 +249,13 @@ public class AvdEditWizard extends DynamicWizard {
       skinFile = getHardwareSkinPath(device.getDefaultHardware());
     }
 
-    // Add any values that we can calculate
-    hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(false));
-    hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
+    // Add defaults if they aren't already set differently
+    if (!hardwareProperties.containsKey(AvdManager.AVD_INI_SKIN_DYNAMIC)) {
+      hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(false));
+    }
+    if (!hardwareProperties.containsKey(HardwareProperties.HW_KEYBOARD)) {
+      hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
+    }
 
     boolean isCircular = DeviceDefinitionPreview.isCircular(device);
 
