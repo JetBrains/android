@@ -59,7 +59,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
     @Override
     public boolean isConversionNeeded(ModuleSettings settings) {
       final Element confElement = AndroidConversionUtil.findAndroidFacetConfigurationElement(settings);
-      return confElement != null && Boolean.parseBoolean(AndroidConversionUtil.getOptionValue(confElement, "MINIFY_ENABLED"));
+      return confElement != null && Boolean.parseBoolean(AndroidConversionUtil.getOptionValue(confElement, "RUN_PROGUARD"));
     }
 
     @Override
