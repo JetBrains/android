@@ -613,6 +613,7 @@
     <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
     -->
 
+    <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>
 

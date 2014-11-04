@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -569,6 +570,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @Nullable
   public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
     EditorNotificationPanel panel = findPanel(message);  // fails test if not found (or if null and notifications were found)
+    assertNotNull(panel);
     return new EditorNotificationPanelFixture(robot, panel);
   }
 
@@ -721,6 +723,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     });
 
     return new InspectionsFixture(robot, getProject(), tree);
+  }
+
+  @NotNull
+  public ProjectViewFixture getProjectView() {
+    ProjectView projectView = ProjectView.getInstance(getProject());
+    return new ProjectViewFixture(projectView);
   }
 
   private static class NoOpDisposable implements Disposable {
