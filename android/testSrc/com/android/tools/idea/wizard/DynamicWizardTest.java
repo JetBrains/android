@@ -150,6 +150,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
 
     public VisibilityTestWizard(DynamicWizardStep... steps) {
       super(null, null, "test wizard");
+      disposeOnTearDown(getDisposable());
       mySteps = steps;
     }
 
