@@ -637,6 +637,9 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     double difference = Double.MAX_VALUE;
     Density bucket = Density.MEDIUM;
     for (Density d : Density.values()) {
+      if (!d.isValidValueForDevice()) {
+        continue;
+      }
       if (Math.abs(d.getDpiValue() - dpi) < difference) {
         difference = Math.abs(d.getDpiValue() - dpi);
         bucket = d;
