@@ -127,7 +127,7 @@ public final class AndroidSdk extends InstallableComponent {
           application.runWriteAction(new Runnable() {
             @Override
             public void run() {
-              DefaultSdks.setDefaultAndroidHome(destination);
+              DefaultSdks.setDefaultAndroidHome(destination, null);
               AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
             }
           });

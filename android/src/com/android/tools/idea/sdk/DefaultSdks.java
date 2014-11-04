@@ -109,7 +109,7 @@ public final class DefaultSdks {
 
   /**
    * @return the first SDK it finds that matches our default naming convention. There will be several SDKs so named, one for each build
-   *         target installed in the SDK; which of those this method returns is not defined.
+   * target installed in the SDK; which of those this method returns is not defined.
    */
   @Nullable
   private static Sdk getFirstAndroidSdk() {
@@ -162,8 +162,9 @@ public final class DefaultSdks {
     }
   }
 
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path) {
-    return setDefaultAndroidHome(path, null);
+  @NotNull
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Project currentProject) {
+    return setDefaultAndroidHome(path, null, currentProject);
   }
 
   /**
@@ -198,11 +199,11 @@ public final class DefaultSdks {
    * Sets the path of Android Studio's default Android SDK. This method should be called in a write action. It is assumed that the given
    * path has been validated by {@link #isValidAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
    *
-   *
    * @param path the path of the Android SDK.
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk) {
+  @NotNull
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
     if (isValidAndroidSdkPath(path)) {
       assert ApplicationManager.getApplication().isWriteAccessAllowed();
 
@@ -234,7 +235,7 @@ public final class DefaultSdks {
       List<Sdk> sdks = createAndroidSdksForAllTargets(resolved, javaSdk);
 
       // Update the local.properties files for any open projects.
-      updateLocalPropertiesAndSync(resolved);
+      updateLocalPropertiesAndSync(resolved, currentProject);
 
       return sdks;
     }
@@ -305,7 +306,7 @@ public final class DefaultSdks {
     return androidPlatform.getTarget();
   }
 
-  private static void updateLocalPropertiesAndSync(@NotNull final File sdkHomePath) {
+  private static void updateLocalPropertiesAndSync(@NotNull final File sdkHomePath, @Nullable Project currentProject) {
     ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
     Project[] openProjects = projectManager.getOpenProjects();
     if (openProjects.length == 0) {
@@ -322,22 +323,24 @@ public final class DefaultSdks {
         LocalProperties localProperties = new LocalProperties(project);
         if (!FileUtil.filesEqual(sdkHomePath, localProperties.getAndroidSdkPath())) {
           localPropertiesToUpdate.add(Pair.create(project, localProperties));
-          projectsToUpdateNames.add("'" + project.getName() + "'");
+          if (!project.equals(currentProject)) {
+            projectsToUpdateNames.add("'" + project.getName() + "'");
+          }
         }
       }
       catch (IOException e) {
         // Exception thrown when local.properties file exists but cannot be read (e.g. no writing permissions.)
         logAndShowErrorWhenUpdatingLocalProperties(project, e, "read", sdkHomePath);
       }
-    } if (!localPropertiesToUpdate.isEmpty()) {
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    }
+    if (!localPropertiesToUpdate.isEmpty()) {
+      if (!projectsToUpdateNames.isEmpty() && !ApplicationManager.getApplication().isUnitTestMode()) {
         UIUtil.invokeAndWaitIfNeeded(new Runnable() {
           @Override
           public void run() {
-            String format =
-              "The local.properties files in projects %1$s will be modified with the path of Android Studio's default Android SDK:\n" +
-              "'%2$s'";
-            Messages.showErrorDialog(String.format(format, projectsToUpdateNames, sdkHomePath), "Sync Android SDKs");
+            String msg = "The local.properties file(s) in the project(s)\n " + projectsToUpdateNames +
+                         "\nwill be modified with the path of Android Studio's default Android Studio:\n'" + sdkHomePath + "'";
+            Messages.showErrorDialog(String.format(msg, projectsToUpdateNames, sdkHomePath), "Sync Android SDKs");
           }
         });
       }
