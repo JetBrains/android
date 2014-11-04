@@ -26,12 +26,14 @@ import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -296,24 +298,30 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
 
     SdkSources sources = myRemoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, ILOG);
-    myRemoteSdk.fetch(sources, ILOG);
-    for (SdkSource source : sources.getAllSources()) {
-      for (com.android.sdklib.internal.repository.packages.Package pack : source.getPackages()) {
-        if (!(pack instanceof SystemImagePackage)) {
-          continue;
-        }
-        AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(pack);
-        ImageFingerprint probe = new ImageFingerprint();
-        probe.version = desc.getVersion();
-        probe.tag = desc.getTag();
-        probe.abiType = desc.getAbiType();
-        // If we don't have a filter or this image passes the filter
-        if (!seen.contains(probe) && (myFilter == null || myFilter.apply(desc))) {
-          items.add(desc);
+    Multimap<PkgType, RemotePkgInfo> packages = myRemoteSdk.fetch(sources, ILOG);
+    if (packages.isEmpty()) {
+      // Couldn't get packages. Disable display.
+      myShowRemoteCheckbox.setEnabled(false);
+      myShowRemoteCheckbox.setSelected(false);
+    }
+    else {
+      for (SdkSource source : sources.getAllSources()) {
+        for (com.android.sdklib.internal.repository.packages.Package pack : source.getPackages()) {
+          if (!(pack instanceof SystemImagePackage)) {
+            continue;
+          }
+          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(pack);
+          ImageFingerprint probe = new ImageFingerprint();
+          probe.version = desc.getVersion();
+          probe.tag = desc.getTag();
+          probe.abiType = desc.getAbiType();
+          // If we don't have a filter or this image passes the filter
+          if (!seen.contains(probe) && (myFilter == null || myFilter.apply(desc))) {
+            items.add(desc);
+          }
         }
       }
     }
-
     myModel.setItems(items);
   }
 
