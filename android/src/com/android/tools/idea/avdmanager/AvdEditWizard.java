@@ -373,6 +373,9 @@ public class AvdEditWizard extends DynamicWizard {
    */
   public static String cleanAvdName(@NotNull String candidateBase, boolean uniquify) {
     candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
+    if (candidateBase.isEmpty()) {
+      candidateBase = "myavd";
+    }
     String candidate = candidateBase;
     if (uniquify) {
       int i = 1;
