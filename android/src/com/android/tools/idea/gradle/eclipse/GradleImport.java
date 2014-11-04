@@ -343,7 +343,7 @@ public class GradleImport {
    * @return true if it is known to be a source file
    */
   @VisibleForTesting
-  static boolean isTextFile(@NonNull File file) {
+  public static boolean isTextFile(@NonNull File file) {
     String name = file.getName();
     return name.endsWith(DOT_JAVA) ||
            name.endsWith(DOT_XML) ||
@@ -1491,7 +1491,7 @@ public class GradleImport {
                       @Nullable CopyHandler handler,
                       boolean updateEncoding,
                       @Nullable ImportModule sourceModule) throws IOException {
-    if (handler != null && handler.handle(source, dest)) {
+    if (handler != null && handler.handle(source, dest, updateEncoding, sourceModule)) {
       return;
     }
     if (source.isDirectory()) {
@@ -1617,8 +1617,14 @@ public class GradleImport {
     /**
      * Optionally handle the given file; returns true if the file has been
      * handled
+     *
+     * @param source         the source file/directory to copy
+     * @param dest           the destination for that file
+     * @param updateEncoding if false, do not try to rewrite encodings to UTF-8
+     * @param sourceModule   if non null, a corresponding module this source file belongs to
      */
-    boolean handle(@NonNull File source, @NonNull File dest) throws IOException;
+    boolean handle(@NonNull File source, @NonNull File dest, boolean updateEncoding, @Nullable ImportModule sourceModule)
+      throws IOException;
   }
 
   private static class ImportException extends RuntimeException {
