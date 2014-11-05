@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -31,9 +32,9 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.ECLIPSE_DOT_CLASSPATH;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.ECLIPSE_DOT_PROJECT;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static java.io.File.separator;
+import static java.io.File.separatorChar;
 
 abstract class ImportModule implements Comparable<ImportModule> {
   @SuppressWarnings("SpellCheckingInspection")
@@ -460,7 +461,44 @@ abstract class ImportModule implements Comparable<ImportModule> {
       if (srcRes != null && srcRes.exists()) {
         File destRes = new File(main, FD_RES);
         myImporter.mkdirs(destRes);
-        myImporter.copyDir(srcRes, destRes, null, true, this);
+        myImporter.copyDir(srcRes, destRes, new GradleImport.CopyHandler() {
+          @Override
+          public boolean handle(@NonNull File source, @NonNull File dest, boolean updateEncoding, @Nullable ImportModule sourceModule)
+              throws IOException {
+            // Resource files in non-value folders should use only lower case characters
+            if (hasUpperCaseExtension(dest) && !isIgnoredFile(source)) {
+              File parentFile = source.getParentFile();
+              if (parentFile != null) {
+                ResourceFolderType folderType = ResourceFolderType.getFolderType(parentFile.getName());
+                if (folderType != ResourceFolderType.VALUES) {
+                  String name = dest.getName();
+                  int dot = name.indexOf('.');
+                  if (dot != -1) {
+                    name = name.substring(0, dot) + name.substring(dot).toLowerCase(Locale.US);
+                    File destParent = dest.getParentFile();
+                    dest = destParent != null ? new File(destParent, name) : new File(name);
+                    if (updateEncoding && isTextFile(source)) {
+                      myImporter.copyTextFile(sourceModule, source, dest);
+                    } else {
+                      Files.copy(source, dest);
+                    }
+                    if (sourceModule != null) {
+                      // Just use the names rather than the full paths to make it clear that this was just
+                      // a file renaming (even though there is also a move happening for all resources including
+                      // these. In other words, instead of displaying
+                      // * res/drawable-hdpi/other_icon.PNG => app/src/main/res/drawable-hdpi/other_icon.png
+                      // we display
+                      // * other_icon.PNG => app/src/main/res/drawable-hdpi/other_icon.png
+                      myImporter.getSummary().reportMoved(sourceModule, new File(source.getName()), new File(name));
+                    }
+                    return true;
+                  }
+                }
+              }
+            }
+            return false;
+          }
+        }, true, this);
         summary.reportMoved(this, srcRes, destRes);
         recordCopiedFile(copied, srcRes);
       }
@@ -499,7 +537,8 @@ abstract class ImportModule implements Comparable<ImportModule> {
         // Handle moving .rs/.rsh/.fs files to main/rs/ and .aidl files to the
         // corresponding aidl package under main/aidl
         @Override
-        public boolean handle(@NonNull File source, @NonNull File dest) throws IOException {
+        public boolean handle(@NonNull File source, @NonNull File dest, boolean updateEncoding, @Nullable ImportModule sourceModule)
+            throws IOException {
           String sourcePath = source.getPath();
           if (sourcePath.endsWith(DOT_AIDL)) {
             File aidlDir = new File(main, FD_AIDL);
@@ -625,6 +664,25 @@ abstract class ImportModule implements Comparable<ImportModule> {
     }
 
     reportIgnored(copied);
+  }
+
+  private static boolean hasUpperCaseExtension(@NonNull File file) {
+    String path = file.getPath();
+    int index = path.lastIndexOf(separatorChar);
+    // Can be -1 (if this is just a file name, with no path); the below still works since we start from the next char (0)
+    index = path.indexOf('.', index + 1);
+    if (index == -1) {
+      return false; // no extension in the file name
+    }
+    index++;
+
+    for (; index < path.length(); index++) {
+      if (Character.isUpperCase(path.charAt(index))) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private void reportIgnored(Set<File> copied) throws IOException {
