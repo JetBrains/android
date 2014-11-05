@@ -17,6 +17,7 @@ package com.intellij.android.designer.model.layout.relative;
 
 import com.android.tools.idea.designer.Segment;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
+import com.intellij.android.designer.model.layout.TextDirection;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,20 +137,20 @@ class Match {
   }
 
   @Nullable
-  public String getRtlConstraint(boolean generateId) {
+  public String getRtlConstraint(TextDirection textDirection, boolean generateId) {
     switch (type) {
       case ALIGN_LEFT:
-        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_START);
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_LEFT, textDirection.getAttrLeft());
       case LAYOUT_LEFT_OF:
-        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_TO_START_OF);
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_TO_LEFT_OF, textDirection.getAttrLeftOf());
       case ALIGN_RIGHT:
-        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_END);
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_RIGHT, textDirection.getAttrRight());
       case LAYOUT_RIGHT_OF:
-        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_END_OF);
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_TO_RIGHT_OF, textDirection.getAttrRightOf());
       case ALIGN_PARENT_LEFT:
-        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_LEFT, ATTR_LAYOUT_ALIGN_PARENT_START);
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_LEFT, textDirection.getAttrAlignParentLeft());
       case ALIGN_PARENT_RIGHT:
-        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_RIGHT, ATTR_LAYOUT_ALIGN_PARENT_END);
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_RIGHT, textDirection.getAttrAlignParentRight());
     }
     return null;
   }
