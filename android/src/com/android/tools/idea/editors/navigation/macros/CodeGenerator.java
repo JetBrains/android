@@ -34,12 +34,15 @@ public class CodeGenerator {
     "android.content.Intent",
     "android.os.Bundle"
   };
+  public static final String TRANSITION_ADDED = "Transition added";
   public final Module module;
   public final NavigationModel navigationModel;
+  public final Listener<String> listener;
 
-  public CodeGenerator(NavigationModel navigationModel, Module module) {
+  public CodeGenerator(NavigationModel navigationModel, Module module, Listener<String> listener) {
     this.navigationModel = navigationModel;
     this.module = module;
+    this.listener = listener;
   }
 
   private ActivityState getAssociatedActivityState(MenuState menuState) {
@@ -70,6 +73,11 @@ public class CodeGenerator {
     ImportHelper importHelper = new ImportHelper(CodeStyleSettingsManager.getSettings(module.getProject()));
     addImports(importHelper, file, FRAMEWORK_IMPORTS);
     addImports(importHelper, file, classNames);
+  }
+
+  @SuppressWarnings("UnusedParameters")
+  private void notifyListeners(PsiClass psiClass) {
+    listener.notify(TRANSITION_ADDED);
   }
 
   public void implementTransition(final Transition transition) {
@@ -117,6 +125,7 @@ public class CodeGenerator {
             body.addBefore(newStatement, lastStatement);
             addImportsAsNecessary(psiClass, "android.view.Menu", "android.view.MenuItem");
             codeStyleManager.reformat(method);
+            notifyListeners(psiClass);
           }
         }.execute();
       }
@@ -149,6 +158,7 @@ public class CodeGenerator {
             body.addBefore(newStatement, lastStatement);
             addImportsAsNecessary(psiClass, "android.view.Menu");
             codeStyleManager.reformat(method);
+            notifyListeners(psiClass);
           }
         }.execute();
       }
@@ -188,6 +198,7 @@ public class CodeGenerator {
             body.addAfter(newStatement, lastStatement);
             addImportsAsNecessary(psiClass, "android.view.View");
             codeStyleManager.reformat(method);
+            notifyListeners(psiClass);
           }
         }.execute();
       }

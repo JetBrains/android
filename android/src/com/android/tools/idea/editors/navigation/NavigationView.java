@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
+import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
@@ -93,6 +94,7 @@ public class NavigationView extends JComponent {
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
   private final SelectionModel mySelectionModel;
+  private final CodeGenerator myCodeGenerator;
 
   private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
   private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
@@ -110,10 +112,14 @@ public class NavigationView extends JComponent {
   @SuppressWarnings("FieldCanBeLocal")
   private boolean myDrawGrid = false;
 
-  public NavigationView(RenderingParameters renderingParams, NavigationModel model, SelectionModel selectionModel) {
+  public NavigationView(RenderingParameters renderingParams,
+                        NavigationModel model,
+                        SelectionModel selectionModel,
+                        CodeGenerator codeGenerator) {
     myRenderingParams = renderingParams;
     myNavigationModel = model;
     mySelectionModel = selectionModel;
+    myCodeGenerator = codeGenerator;
 
     setFocusable(true);
     setLayout(null);
@@ -183,14 +189,13 @@ public class NavigationView extends JComponent {
     return c.getRenderedView(diff(location, c.getLocation()));
   }
 
-  @Nullable
-  Transition createTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
+  void createTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
     Component destComponent = getComponentAt(mouseUpLocation);
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
         if (destinationRoot.isMenu) {
-          return null;
+          return;
         }
         RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
         RenderedView namedEndLeaf = getNamedParent(endLeaf);
@@ -198,10 +203,9 @@ public class NavigationView extends JComponent {
         Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
         Locator sourceLocator = Locator.of(rootComponentToState.get(sourceComponent), getViewId(namedSourceLeaf));
         Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), getViewId(namedEndLeaf));
-        return new Transition(Transition.PRESS, sourceLocator, destinationLocator);
+        myCodeGenerator.implementTransition(new Transition(Transition.PRESS, sourceLocator, destinationLocator));
       }
     }
-    return null;
   }
 
   static Rectangle getBounds(AndroidRootComponent c, @Nullable RenderedView leaf) {
@@ -944,7 +948,7 @@ public class NavigationView extends JComponent {
         if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
-        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, namedParent, this);
+        return new Selections.RelationSelection(androidRootComponent, mouseDownLocation, namedParent, this);
       }
     }
     else {
