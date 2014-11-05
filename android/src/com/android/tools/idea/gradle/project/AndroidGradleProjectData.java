@@ -247,7 +247,7 @@ public class AndroidGradleProjectData implements Serializable {
     return false;
   }
 
-  private static boolean needsAndroidSdkSync(@NotNull Project project) {
+  private static boolean needsAndroidSdkSync(@NotNull final Project project) {
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       final File ideSdkPath = DefaultSdks.getDefaultAndroidHome();
       if (ideSdkPath != null) {
@@ -256,7 +256,7 @@ public class AndroidGradleProjectData implements Serializable {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
             @Override
             public void run() {
-              DefaultSdks.setDefaultAndroidHome(ideSdkPath, DefaultSdks.getDefaultJdk());
+              DefaultSdks.setDefaultAndroidHome(ideSdkPath, DefaultSdks.getDefaultJdk(), project);
             }
           });
           return true;

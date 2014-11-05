@@ -99,7 +99,7 @@ public final class GuiTests {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            DefaultSdks.setDefaultAndroidHome(androidSdkPath);
+            DefaultSdks.setDefaultAndroidHome(androidSdkPath, null);
           }
         });
       }

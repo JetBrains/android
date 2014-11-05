@@ -56,7 +56,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(sdkDir);
+        DefaultSdks.setDefaultAndroidHome(sdkDir, null);
         ProjectRootManager.getInstance(getProject()).setProjectSdk(DefaultSdks.getEligibleAndroidSdks().get(0));
       }
     });
