@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +68,7 @@ public class NewProjectTest extends GuiTestCase {
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(projectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_6);
     for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
-      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtension.getInstance(module);
+      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
     }
   }
@@ -133,7 +134,7 @@ public class NewProjectTest extends GuiTestCase {
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(projectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
-      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtension.getInstance(module);
+      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
     }
   }
