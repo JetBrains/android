@@ -32,7 +32,7 @@ class AdtImportSdkStep extends ProjectImportWizardStep {
     super(context);
     // TODO: Pass in a context here which allows the configurable to request
     // validation when the text field is edited
-    myConfigurable = new DefaultSdksConfigurable(null);
+    myConfigurable = new DefaultSdksConfigurable(null, null);
   }
 
   @Override
