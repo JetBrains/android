@@ -91,7 +91,7 @@ public class DefaultSdksTest extends IdeaTestCase {
     localProperties.setAndroidSdkPath("");
     localProperties.save();
 
-    List<Sdk> sdks = DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath);
+    List<Sdk> sdks = DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, null);
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
