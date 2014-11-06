@@ -19,7 +19,9 @@ import com.android.tools.idea.designer.Insets;
 import com.android.tools.idea.designer.Segment;
 import com.android.tools.idea.designer.SegmentType;
 import com.intellij.android.designer.AndroidDesignerUtils;
+import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.model.layout.TextDirection;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
@@ -48,6 +50,7 @@ import static java.lang.Math.abs;
  * like move and resize, and performs various constraint computations.
  */
 public class GuidelineHandler {
+
   /**
    * A dependency graph for the relative layout recording constraint relationships
    */
@@ -217,6 +220,11 @@ public class GuidelineHandler {
   protected String myErrorMessage;
 
   /**
+   * Is the operation running on an RTL locale?
+   */
+  protected final TextDirection myTextDirection;
+
+  /**
    * Construct a new {@link GuidelineHandler} for the given relative layout.
    *
    * @param layout the RelativeLayout to handle
@@ -224,6 +232,9 @@ public class GuidelineHandler {
   GuidelineHandler(RadViewComponent layout, OperationContext context) {
     this.layout = layout;
     myContext = context;
+
+    AndroidDesignerEditorPanel panel = AndroidDesignerUtils.getPanel(myContext.getArea());
+    myTextDirection = TextDirection.fromAndroidDesignerEditorPanel(panel);
 
     myHorizontalEdges = new ArrayList<Segment>();
     myVerticalEdges = new ArrayList<Segment>();
@@ -422,7 +433,7 @@ public class GuidelineHandler {
         return dragged == SegmentType.TOP || dragged == SegmentType.BOTTOM;
       case LEFT:
       case RIGHT:
-        return dragged == SegmentType.LEFT || dragged == SegmentType.RIGHT;
+        return dragged == SegmentType.LEFT || dragged == SegmentType.RIGHT || dragged == SegmentType.START || dragged == SegmentType.END;
 
       // Center horizontal, center vertical and Baseline only matches the same
       // type, and only within the matching distance -- no margins!
@@ -572,6 +583,8 @@ public class GuidelineHandler {
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_START);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeft());
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeftOf());
     }
 
     if (myMoveRight) {
@@ -582,6 +595,8 @@ public class GuidelineHandler {
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_END);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_LEFT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRight());
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRightOf());
     }
 
     if (myMoveTop && myCurrentTopMatch != null) {
@@ -600,7 +615,7 @@ public class GuidelineHandler {
 
     if (myMoveLeft && myCurrentLeftMatch != null) {
       String constraint = myCurrentLeftMatch.getConstraint(true);
-      String rtlConstraint = myCurrentLeftMatch.getRtlConstraint(true);
+      String rtlConstraint = myCurrentLeftMatch.getRtlConstraint(myTextDirection, true);
       if (rtlConstraint != null && supportsStartEnd()) {
         if (requiresRightLeft()) {
           applyConstraint(n, constraint);
@@ -613,7 +628,7 @@ public class GuidelineHandler {
 
     if (myMoveRight && myCurrentRightMatch != null) {
       String constraint = myCurrentRightMatch.getConstraint(true);
-      String rtlConstraint = myCurrentRightMatch.getRtlConstraint(true);
+      String rtlConstraint = myCurrentRightMatch.getRtlConstraint(myTextDirection, true);
       if (rtlConstraint != null && supportsStartEnd()) {
         if (requiresRightLeft()) {
           applyConstraint(n, constraint);
@@ -625,10 +640,26 @@ public class GuidelineHandler {
     }
 
     if (myMoveLeft) {
-      applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, getLeftMarginDp());
+      if (supportsStartEnd()) {
+        if (requiresRightLeft()) {
+          applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, getLeftMarginDp());
+        }
+        applyMargin(n, myTextDirection.getAttrMarginLeft(), getLeftMarginDp());
+      }
+      else {
+        applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, getLeftMarginDp());
+      }
     }
     if (myMoveRight) {
-      applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, getRightMarginDp());
+      if (supportsStartEnd()) {
+        if (requiresRightLeft()) {
+          applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, getRightMarginDp());
+        }
+        applyMargin(n, myTextDirection.getAttrMarginRight(), getRightMarginDp());
+      }
+      else {
+        applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, getRightMarginDp());
+      }
     }
     if (myMoveTop) {
       applyMargin(n, ATTR_LAYOUT_MARGIN_TOP, getTopMarginDp());
@@ -689,6 +720,8 @@ public class GuidelineHandler {
     for (ConstraintType type : ConstraintType.values()) {
       clearAttribute(node, ANDROID_URI, type.name);
     }
+    clearAttribute(node, ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
+    clearAttribute(node, ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
     clearAttribute(node, ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
     clearAttribute(node, ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
     clearAttribute(node, ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP);
@@ -971,8 +1004,8 @@ public class GuidelineHandler {
       }
 
       // Prefer matching top/left edges before matching bottom/right edges
-      int orientation1 = (m1.with.edgeType == SegmentType.LEFT || m1.with.edgeType == SegmentType.TOP) ? -1 : 1;
-      int orientation2 = (m2.with.edgeType == SegmentType.LEFT || m2.with.edgeType == SegmentType.TOP) ? -1 : 1;
+      int orientation1 = (myTextDirection.isLeftSegment(m1.with.edgeType) || m1.with.edgeType == SegmentType.TOP) ? -1 : 1;
+      int orientation2 = (myTextDirection.isLeftSegment(m2.with.edgeType) || m2.with.edgeType == SegmentType.TOP) ? -1 : 1;
       if (orientation1 != orientation2) {
         return orientation1 - orientation2;
       }

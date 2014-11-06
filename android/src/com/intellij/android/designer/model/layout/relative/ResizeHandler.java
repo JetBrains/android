@@ -204,10 +204,10 @@ public class ResizeHandler extends GuidelineHandler {
       assert myHorizontalEdgeType == null;
     }
 
-    if (myVerticalEdgeType == SegmentType.LEFT) {
+    if (myTextDirection.isLeftSegment(myVerticalEdgeType)) {
       vEdge = new Segment(b.x, b.y, y2(b), child, childId, myVerticalEdgeType, NO_MARGIN);
     }
-    else if (myVerticalEdgeType == SegmentType.RIGHT) {
+    else if (myTextDirection.isRightSegment(myVerticalEdgeType)) {
       vEdge = new Segment(x2(b), b.y, y2(b), child, childId, myVerticalEdgeType, NO_MARGIN);
     }
     else {
@@ -253,10 +253,10 @@ public class ResizeHandler extends GuidelineHandler {
         // Snap
         snapVertical(vEdge, match.edge.at, newBounds);
 
-        if (vEdge.edgeType == SegmentType.LEFT) {
+        if (myTextDirection.isLeftSegment(vEdge.edgeType)) {
           myCurrentLeftMatch = match;
         }
-        else if (vEdge.edgeType == SegmentType.RIGHT) {
+        else if (myTextDirection.isRightSegment(vEdge.edgeType)) {
           myCurrentRightMatch = match;
         }
         else {

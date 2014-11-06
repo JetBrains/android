@@ -19,6 +19,7 @@ import com.android.tools.idea.designer.Insets;
 import com.android.tools.idea.designer.SegmentType;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.model.layout.TextDirection;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -52,7 +53,8 @@ public class ConstraintPainter {
    * @param state        the handler state
    * @param match        the match
    */
-  static void paintConstraint(DesignerGraphics graphics, GuidelineHandler state, Match match) {
+  static void paintConstraint(
+    DesignerGraphics graphics, GuidelineHandler state, Match match) {
     RadViewComponent node = match.edge.node;
     if (node == null) {
       return;
@@ -63,7 +65,8 @@ public class ConstraintPainter {
     assert type != null;
     Rectangle sourceBounds = state.myBounds;
     paintConstraint(graphics, type, node, sourceBounds, node, targetBounds, null /* allConstraints */,
-                    true /* highlightTargetEdge */);
+                    true /* highlightTargetEdge */,
+                    state.myTextDirection);
   }
 
   /**
@@ -75,7 +78,10 @@ public class ConstraintPainter {
    * @param graphics   the graphics context to draw into
    * @param constraint The constraint to be drawn
    */
-  private static void paintConstraint(DesignerGraphics graphics, DependencyGraph.Constraint constraint, Set<DependencyGraph.Constraint> allConstraints) {
+  private static void paintConstraint(DesignerGraphics graphics,
+                                      DependencyGraph.Constraint constraint,
+                                      Set<DependencyGraph.Constraint> allConstraints,
+                                      TextDirection textDirection) {
     DependencyGraph.ViewData source = constraint.from;
     DependencyGraph.ViewData target = constraint.to;
 
@@ -89,7 +95,8 @@ public class ConstraintPainter {
     JComponent targetComponent = graphics.getTarget();
     Rectangle sourceBounds = sourceNode.getBounds(targetComponent);
     Rectangle targetBounds = targetNode.getBounds(targetComponent);
-    paintConstraint(graphics, constraint.type, sourceNode, sourceBounds, targetNode, targetBounds, allConstraints, false /* highlightTargetEdge */);
+    paintConstraint(graphics, constraint.type, sourceNode, sourceBounds, targetNode, targetBounds,
+                    allConstraints, false /* highlightTargetEdge */, textDirection);
   }
 
   /**
@@ -103,7 +110,8 @@ public class ConstraintPainter {
   public static void paintSelectionFeedback(DesignerGraphics graphics,
                                             RadViewComponent parentNode,
                                             List<? extends RadViewComponent> childNodes,
-                                            boolean showDependents) {
+                                            boolean showDependents,
+                                            TextDirection textDirection) {
 
     DependencyGraph dependencyGraph = DependencyGraph.get(parentNode);
     Set<RadViewComponent> horizontalDeps = dependencyGraph.dependsOn(childNodes, false /* vertical */);
@@ -131,18 +139,18 @@ public class ConstraintPainter {
 
       // Paint all incoming constraints
       if (showDependents) {
-        paintConstraints(graphics, view.dependedOnBy);
+        paintConstraints(graphics, view.dependedOnBy, textDirection);
       }
 
       // Paint all outgoing constraints
-      paintConstraints(graphics, view.dependsOn);
+      paintConstraints(graphics, view.dependsOn, textDirection);
     }
   }
 
   /**
    * Paints a set of constraints.
    */
-  private static void paintConstraints(DesignerGraphics graphics, List<DependencyGraph.Constraint> constraints) {
+  private static void paintConstraints(DesignerGraphics graphics, List<DependencyGraph.Constraint> constraints, TextDirection textDirection) {
     Set<DependencyGraph.Constraint> mutableConstraintSet = new HashSet<DependencyGraph.Constraint>(constraints);
 
     // WORKAROUND! Hide alignBottom attachments if we also have a alignBaseline
@@ -164,7 +172,7 @@ public class ConstraintPainter {
       // paintConstraint can digest more than one constraint, so we need to keep
       // checking to see if the given constraint is still relevant.
       if (mutableConstraintSet.contains(constraint)) {
-        paintConstraint(graphics, constraint, mutableConstraintSet);
+        paintConstraint(graphics, constraint, mutableConstraintSet, textDirection);
       }
     }
   }
@@ -180,7 +188,8 @@ public class ConstraintPainter {
                                       RadViewComponent targetNode,
                                       Rectangle targetBounds,
                                       @Nullable Set<DependencyGraph.Constraint> allConstraints,
-                                      boolean highlightTargetEdge) {
+                                      boolean highlightTargetEdge,
+                                      TextDirection textDirection) {
 
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
     SegmentType sourceSegmentTypeY = type.sourceSegmentTypeY;
@@ -201,20 +210,20 @@ public class ConstraintPainter {
 
     // Corner constraint?
     if (allConstraints != null && (type == ConstraintType.LAYOUT_ABOVE || type == ConstraintType.LAYOUT_BELOW || type == ConstraintType.LAYOUT_LEFT_OF || type == ConstraintType.LAYOUT_RIGHT_OF)) {
-      if (paintCornerConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, allConstraints)) {
+      if (paintCornerConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, allConstraints, textDirection)) {
         return;
       }
     }
 
     // Vertical constraint?
     if (sourceSegmentTypeX == SegmentType.UNKNOWN) {
-      paintVerticalConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge);
+      paintVerticalConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge, textDirection);
       return;
     }
 
     // Horizontal constraint?
     if (sourceSegmentTypeY == SegmentType.UNKNOWN) {
-      paintHorizontalConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge);
+      paintHorizontalConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge, textDirection);
       return;
     }
 
@@ -273,7 +282,8 @@ public class ConstraintPainter {
                                                Rectangle sourceBounds,
                                                RadViewComponent targetNode,
                                                Rectangle targetBounds,
-                                               Set<DependencyGraph.Constraint> allConstraints) {
+                                               Set<DependencyGraph.Constraint> allConstraints,
+                                               TextDirection textDirection) {
 
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
     SegmentType sourceSegmentTypeY = type.sourceSegmentTypeY;
@@ -323,7 +333,7 @@ public class ConstraintPainter {
       }
 
       int x1, y1, x2, y2;
-      if (sourceSegmentTypeX == SegmentType.LEFT) {
+      if (textDirection.isLeftSegment(sourceSegmentTypeX)) {
         x1 = sourceBounds.x + 1 * sourceBounds.width / 4;
       }
       else {
@@ -335,7 +345,7 @@ public class ConstraintPainter {
       else {
         y1 = sourceBounds.y + 3 * sourceBounds.height / 4;
       }
-      if (targetSegmentTypeX == SegmentType.LEFT) {
+      if (textDirection.isLeftSegment(targetSegmentTypeX)) {
         x2 = targetBounds.x + 1 * targetBounds.width / 4;
       }
       else {
@@ -386,7 +396,8 @@ public class ConstraintPainter {
                                               Rectangle sourceBounds,
                                               RadViewComponent targetNode,
                                               Rectangle targetBounds,
-                                              boolean highlightTargetEdge) {
+                                              boolean highlightTargetEdge,
+                                              TextDirection textDirection) {
     SegmentType sourceSegmentTypeY = type.sourceSegmentTypeY;
     SegmentType targetSegmentTypeY = type.targetSegmentTypeY;
     JComponent targetComponent = graphics.getTarget();
@@ -627,7 +638,8 @@ public class ConstraintPainter {
                                                 Rectangle sourceBounds,
                                                 RadViewComponent targetNode,
                                                 Rectangle targetBounds,
-                                                boolean highlightTargetEdge) {
+                                                boolean highlightTargetEdge,
+                                                TextDirection textDirection) {
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
     SegmentType targetSegmentTypeX = type.targetSegmentTypeX;
     JComponent targetComponent = graphics.getTarget();
@@ -638,8 +650,8 @@ public class ConstraintPainter {
 
     // See paintVerticalConstraint for explanations of the various cases.
 
-    int sourceX = sourceSegmentTypeX.getX(sourceNode, sourceBounds);
-    int targetX = targetSegmentTypeX == SegmentType.UNKNOWN ? sourceX : targetSegmentTypeX.getX(targetNode, targetBounds);
+    int sourceX = sourceSegmentTypeX.getX(textDirection, sourceNode, sourceBounds);
+    int targetX = targetSegmentTypeX == SegmentType.UNKNOWN ? sourceX : targetSegmentTypeX.getX(textDirection, targetNode, targetBounds);
 
     if (highlightTargetEdge && type.isRelativeToParentEdge()) {
       graphics.useStyle(DROP_ZONE_ACTIVE);
@@ -654,7 +666,7 @@ public class ConstraintPainter {
     int center = (maxTop + minBottom) / 2;
     if (center > sourceBounds.y && center < GuidelineHandler.y2(sourceBounds)) {
       // See if we should draw a margin line
-      if (targetSegmentTypeX == SegmentType.RIGHT && targetMargins.right > 5) {
+      if (textDirection.isRightSegment(targetSegmentTypeX) && targetMargins.right > 5) {
         int sharedX = targetX + targetMargins.right;
         if (sourceX > sharedX + 2) { // Skip when source falls on the margin line
           graphics.useStyle(GUIDELINE_DASHED);
@@ -671,7 +683,7 @@ public class ConstraintPainter {
         }
         return;
       }
-      else if (targetSegmentTypeX == SegmentType.LEFT && targetMargins.left > 5) {
+      else if (textDirection.isLeftSegment(targetSegmentTypeX) && targetMargins.left > 5) {
         int sharedX = targetX - targetMargins.left;
         if (sourceX < sharedX - 2) {
           graphics.useStyle(GUIDELINE_DASHED);
@@ -688,7 +700,7 @@ public class ConstraintPainter {
       }
 
       if (sourceX == targetX) {
-        if (sourceSegmentTypeX == SegmentType.RIGHT) {
+        if (textDirection.isRightSegment(sourceSegmentTypeX)) {
           sourceX -= 2 * ARROW_SIZE;
         }
         else if (sourceSegmentTypeX == SegmentType.LEFT) {
@@ -708,12 +720,12 @@ public class ConstraintPainter {
     // Segment line
 
     // Compute overlap region and pick the middle
-    int sharedX = targetSegmentTypeX == SegmentType.UNKNOWN ? sourceX : targetSegmentTypeX.getX(targetNode, targetBounds);
+    int sharedX = targetSegmentTypeX == SegmentType.UNKNOWN ? sourceX : targetSegmentTypeX.getX(textDirection, targetNode, targetBounds);
     if (type.relativeToMargin) {
-      if (targetSegmentTypeX == SegmentType.LEFT) {
+      if (textDirection.isLeftSegment(targetSegmentTypeX)) {
         sharedX -= targetMargins.left;
       }
-      else if (targetSegmentTypeX == SegmentType.RIGHT) {
+      else if (textDirection.isRightSegment(targetSegmentTypeX)) {
         sharedX += targetMargins.right;
       }
     }
@@ -755,7 +767,7 @@ public class ConstraintPainter {
 
     // Draw the line from the target to the horizontal shared edge
     int ty = GuidelineHandler.centerY(targetBounds);
-    if (targetSegmentTypeX == SegmentType.LEFT) {
+    if (textDirection.isLeftSegment(targetSegmentTypeX)) {
       int tx = targetBounds.x;
       int margin = targetMargins.left;
       if (margin == 0 || !type.relativeToMargin) {
@@ -766,7 +778,7 @@ public class ConstraintPainter {
       }
     }
     else {
-      assert targetSegmentTypeX == SegmentType.RIGHT;
+      assert textDirection.isRightSegment(targetSegmentTypeX);
       int tx = GuidelineHandler.x2(targetBounds);
       int margin = targetMargins.right;
       if (margin == 0 || !type.relativeToMargin) {
