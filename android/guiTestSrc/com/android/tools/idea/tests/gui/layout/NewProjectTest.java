@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
@@ -39,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -154,6 +156,26 @@ public class NewProjectTest extends GuiTestCase {
     }
   }
 
+  @Test
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testStillBuildingMessage() throws Exception {
+    // Creates a new project with minSdk 15, which should use appcompat.
+    // Check that if there are render-error messages on first render,
+    // they don't include "Missing Styles" (should now talk about project building instead)
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.DESIGN);
+    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    assertNotNull(layoutEditor);
+    layoutEditor.waitForNextRenderToFinish();
+
+    RenderErrorPanelFixture renderErrors = layoutEditor.getRenderErrors();
+    String html = renderErrors.getErrorHtml();
+    // We could be showing an error message, but if we do, it should *not* say missing styles
+    // (should only be showing project render errors)
+    assertFalse(html, html.contains("Missing styles"));
+  }
+
   @NotNull
   private NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
@@ -168,6 +190,7 @@ public class NewProjectTest extends GuiTestCase {
     private String myMinSdk = "19";
     private String myName = "TestProject";
     private String myDomain = "com.android";
+    private boolean myWaitForSync = true;
 
     private NewProjectDescriptor(@NotNull String name) {
       withName(name);
@@ -221,6 +244,12 @@ public class NewProjectTest extends GuiTestCase {
       return this;
     }
 
+    /** Turns off the automatic wait-for-sync that normally happens on {@link #create} */
+    NewProjectDescriptor withoutSync() {
+      myWaitForSync = false;
+      return this;
+    }
+
     /**
      * Creates a project fixture for this description
      */
@@ -245,7 +274,9 @@ public class NewProjectTest extends GuiTestCase {
       newProjectWizard.clickFinish();
 
       IdeFrameFixture projectFrame = findIdeFrame(myName, projectPath);
-      projectFrame.waitForGradleProjectSyncToFinish();
+      if (myWaitForSync) {
+        projectFrame.waitForGradleProjectSyncToFinish();
+      }
 
       return projectFrame;
     }
