@@ -629,6 +629,7 @@
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
+    <methodConflictResolver implementation="com.android.tools.idea.psi.resolve.AndroidMethodConflictResolver"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
