@@ -203,6 +203,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
       Integer newApiLevel = myState.get(NEWLY_INSTALLED_API_KEY);
+      assert newApiLevel != null;
       Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(myFormFactor);
       Integer currentTargetLevel = myState.get(targetApiLevelKey);
       if (currentTargetLevel == null || newApiLevel > currentTargetLevel) {
