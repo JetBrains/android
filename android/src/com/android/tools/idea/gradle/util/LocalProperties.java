@@ -36,6 +36,7 @@ public final class LocalProperties {
   private static final String HEADER_COMMENT = getHeaderComment();
 
   @NotNull private final File myFilePath;
+  @NotNull private final File myProjectDirPath;
   @NotNull private final Properties myProperties;
 
   @NotNull
@@ -75,6 +76,7 @@ public final class LocalProperties {
    * @throws IllegalArgumentException if there is already a directory called "local.properties" at the given path.
    */
   public LocalProperties(@NotNull File projectDirPath) throws IOException {
+    myProjectDirPath = projectDirPath;
     myFilePath = new File(projectDirPath, SdkConstants.FN_LOCAL_PROPERTIES);
     myProperties = PropertiesUtil.getProperties(myFilePath);
   }
@@ -86,7 +88,10 @@ public final class LocalProperties {
   public File getAndroidSdkPath() {
     String path = myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
     if (path != null && !path.isEmpty()) {
-     return new File(FileUtil.toSystemDependentName(path));
+      if (!FileUtil.isAbsolute(path)) {
+        path = new File(myProjectDirPath, path).getPath();
+      }
+      return new File(FileUtil.toSystemDependentName(path));
     }
     return null;
   }
