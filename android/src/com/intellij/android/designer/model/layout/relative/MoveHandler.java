@@ -50,9 +50,7 @@ public class MoveHandler extends GuidelineHandler {
    * @param elements the elements being dragged in the move operation
    * @param context  the applicable {@link com.intellij.designer.designSurface.OperationContext}
    */
-  public MoveHandler(@NotNull RadViewComponent layout,
-                     @NotNull List<RadViewComponent> elements,
-                     @NotNull OperationContext context) {
+  public MoveHandler(@NotNull RadViewComponent layout, @NotNull List<RadViewComponent> elements, @NotNull OperationContext context) {
     super(layout, context);
 
     // Compute list of nodes being dragged within the layout, if any
@@ -97,7 +95,7 @@ public class MoveHandler extends GuidelineHandler {
   @Override
   protected void snapVertical(Segment vEdge, int x, Rectangle newBounds) {
     int maxDistance = MAX_MATCH_DISTANCE;
-    if (vEdge.edgeType == SegmentType.LEFT) {
+    if (myTextDirection.isLeftSegment(vEdge.edgeType)) {
       int margin = !mySnap ? 0 : abs(newBounds.x - x);
       if (margin > maxDistance) {
         myLeftMargin = margin;
@@ -106,7 +104,7 @@ public class MoveHandler extends GuidelineHandler {
         newBounds.x = x;
       }
     }
-    else if (vEdge.edgeType == SegmentType.RIGHT) {
+    else if (myTextDirection.isRightSegment(vEdge.edgeType)) {
       int margin = !mySnap ? 0 : abs(newBounds.x - (x - newBounds.width));
       if (margin > maxDistance) {
         myRightMargin = margin;
@@ -181,9 +179,14 @@ public class MoveHandler extends GuidelineHandler {
     edge = new Segment(y2(b), b.x, x2(b), null, null, SegmentType.BOTTOM, NO_MARGIN);
     addClosest(edge, myHorizontalEdges, horizontalMatches);
 
+    // We add the LEFT and RIGHT segments. Also we add the START and END segments that will change based on the current RTL view context.
     edge = new Segment(b.x, b.y, y2(b), null, null, SegmentType.LEFT, NO_MARGIN);
     List<Match> verticalMatches = findClosest(edge, myVerticalEdges);
+    edge = new Segment(b.x, b.y, y2(b), null, null, myTextDirection.getLeftSegment(), NO_MARGIN);
+    addClosest(edge, myVerticalEdges, verticalMatches);
     edge = new Segment(x2(b), b.y, y2(b), null, null, SegmentType.RIGHT, NO_MARGIN);
+    addClosest(edge, myVerticalEdges, verticalMatches);
+    edge = new Segment(x2(b), b.y, y2(b), null, null, myTextDirection.getRightSegment(), NO_MARGIN);
     addClosest(edge, myVerticalEdges, verticalMatches);
 
     // Match center
@@ -254,10 +257,10 @@ public class MoveHandler extends GuidelineHandler {
 
       snapVertical(match.with, match.edge.at, myBounds);
 
-      if (match.with.edgeType == SegmentType.LEFT) {
+      if (myTextDirection.isLeftSegment(match.with.edgeType)) {
         myCurrentLeftMatch = match;
       }
-      else if (match.with.edgeType == SegmentType.RIGHT) {
+      else if (myTextDirection.isRightSegment(match.with.edgeType)) {
         myCurrentRightMatch = match;
       }
       else {
