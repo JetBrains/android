@@ -170,7 +170,9 @@ public class SelectSdkDialog extends DialogWrapper {
     Pair<Boolean, String> validationResult = AndroidSdkType.validateAndroidSdk(path);
     String error = validationResult.getSecond();
     if (!validationResult.getFirst()) {
-      return String.format("Invalid Android SDK (%1$s): %2$s", path, error);
+      // Show error message in new line. Long lines trigger incorrect layout rendering.
+      // See https://code.google.com/p/android/issues/detail?id=78291
+      return String.format("Invalid Android SDK path:<br>%1$s", error);
     } else {
       return null;
     }
