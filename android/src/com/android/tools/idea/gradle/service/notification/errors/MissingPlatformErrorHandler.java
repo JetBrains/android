@@ -20,8 +20,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.google.common.collect.Lists;
 import com.intellij.facet.ProjectFacetManager;
@@ -75,9 +75,7 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
           if (pkgInfo != null) {
             loadError = pkgInfo.getLoadError();
           }
-          if (pkgInfo == null || StringUtil.isNotEmpty(loadError)) {
-            hyperlinks.add(new InstallPlatformHyperlink(version));
-          }
+          hyperlinks.add(new InstallPlatformHyperlink(version));
         }
       }
       if (hyperlinks.isEmpty()) {

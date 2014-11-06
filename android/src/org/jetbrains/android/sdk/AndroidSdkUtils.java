@@ -472,12 +472,8 @@ public final class AndroidSdkUtils {
         continue;
       }
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)originalData;
-      AndroidPlatform androidPlatform = data.getAndroidPlatform();
-      if (androidPlatform == null) {
-        continue;
-      }
       String sdkHomePath = sdk.getHomePath();
-      if (!foundSdkHomePaths.contains(sdkHomePath) && targetHash.equals(androidPlatform.getTarget().hashString())) {
+      if (!foundSdkHomePaths.contains(sdkHomePath) && targetHash.equals(data.getBuildTargetHashString())) {
         if (VersionCheck.isCompatibleVersion(sdkHomePath)) {
           return sdk;
         }
@@ -489,7 +485,6 @@ public final class AndroidSdkUtils {
     }
 
     if (!notCompatibleSdks.isEmpty()) {
-      // We got here because we have SDKs but none of them have a compatible Tools version. Pick the first one.
       return notCompatibleSdks.get(0);
     }
 
