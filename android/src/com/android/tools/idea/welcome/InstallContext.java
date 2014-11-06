@@ -80,6 +80,12 @@ public class InstallContext {
     return wrapper.getResult();
   }
 
+  public void advance(double progress) {
+    if (myProgressStep != null) {
+      myProgressStep.advance(progress);
+    }
+  }
+
   @SuppressWarnings("UseOfSystemOutOrSystemErr")
   private static class TestingProgressIndicator extends ProgressIndicatorBase {
     private int previous = 0;

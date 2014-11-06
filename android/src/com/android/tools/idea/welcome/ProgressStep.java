@@ -173,6 +173,10 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myProgressBar.setValue((int)(1000 * fraction));
   }
 
+  public void advance(double progress) {
+    getProgressIndicator().setFraction(myFraction + progress);
+  }
+
   /**
    * Progress indicator that scales task to only use a portion of the parent indicator.
    */
