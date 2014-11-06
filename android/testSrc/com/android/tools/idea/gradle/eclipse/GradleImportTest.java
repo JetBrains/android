@@ -17,6 +17,8 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.jetbrains.android.AndroidTestCase;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -262,6 +264,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     new File(unhandled.getParentFile(), "unhandledDir4").mkdirs();
     new File(projectDir, "lint.xml").createNewFile();
 
+    // Make sure we handle less common file extensions: see issue 78459
+    createIcon(projectDir, "other_icon.PNG");
+    createLayout(projectDir, "other_layout.XML");
+
     // Project being imported
     assertEquals(""
                  + ".classpath\n"
@@ -280,6 +286,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "res\n"
                  + "  drawable\n"
                  + "    ic_launcher.xml\n"
+                 + "  drawable-hdpi\n"
+                 + "    other_icon.PNG\n"
+                 + "  layout\n"
+                 + "    other_layout.XML\n"
                  + "  values\n"
                  + "    strings.xml\n"
                  + "src\n"
@@ -310,6 +320,8 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  + "* lint.xml => app/lint.xml\n"
                                  + "* res/ => app/src/main/res/\n"
                                  + "* src/ => app/src/main/java/\n"
+                                 + "* other_icon.PNG => other_icon.png\n"
+                                 + "* other_layout.XML => other_layout.xml\n"
                                  + MSG_FOOTER,
                                  true /* checkBuild */);
 
@@ -328,6 +340,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "      res\n"
                  + "        drawable\n"
                  + "          ic_launcher.xml\n"
+                 + "        drawable-hdpi\n"
+                 + "          other_icon.png\n"
+                 + "        layout\n"
+                 + "          other_layout.xml\n"
                  + "        values\n"
                  + "          strings.xml\n"
                  + "build.gradle\n"
@@ -3854,9 +3870,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
               + "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n"
               + "    package=\"").append(packageName).append("\"\n"
-                                                             + "    android:versionCode=\"1\"\n"
-                                                             + "    android:versionName=\"1.0\" >\n"
-                                                             + "\n");
+              + "    android:versionCode=\"1\"\n"
+              + "    android:versionName=\"1.0\" >\n"
+              + "\n");
     if (minSdkVersion != -1 || targetSdkVersion != -1) {
       sb.append("    <uses-sdk\n");
       if (minSdkVersion >= 1) {
@@ -3956,18 +3972,39 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                 + "</resources>", strings, UTF_8);
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   private static void createDefaultIcon(File dir) throws IOException {
-    File strings = new File(dir, "res" + separator + "drawable" + separator +
-                                 "ic_launcher.xml");
+    createIcon(dir, "ic_launcher.xml");
+  }
+
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  private static void createIcon(File dir, String name) throws IOException {
+    boolean isPng = name.toLowerCase(Locale.US).endsWith(DOT_PNG);
+    String folder = isPng ? "drawable-hdpi" : "drawable";
+    File icon = new File(dir, "res" + separator + folder + separator + name);
+    icon.getParentFile().mkdirs();
+    if (isPng) {
+      //noinspection UndesirableClassUsage
+      BufferedImage image = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
+      ImageIO.write(image, "PNG", icon);
+    } else {
+      assertTrue("Unsupported file extension for " + name, name.toLowerCase(Locale.US).endsWith(DOT_XML));
+      Files.write("" +
+                  "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                  "    <solid android:color=\"#00000000\"/>\n" +
+                  "    <stroke android:width=\"1dp\" color=\"#ff000000\"/>\n" +
+                  "    <padding android:left=\"1dp\" android:top=\"1dp\"\n" +
+                  "        android:right=\"1dp\" android:bottom=\"1dp\" />\n" +
+                  "</shape>", icon, UTF_8);
+    }
+  }
+
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  private static void createLayout(File dir, String name) throws IOException {
+    File strings = new File(dir, "res" + separator + "layout" + separator + name);
     strings.getParentFile().mkdirs();
     Files.write(""
-                + "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n"
-                + "    <solid android:color=\"#00000000\"/>\n"
-                + "    <stroke android:width=\"1dp\" color=\"#ff000000\"/>\n"
-                + "    <padding android:left=\"1dp\" android:top=\"1dp\"\n"
-                + "        android:right=\"1dp\" android:bottom=\"1dp\" />\n"
-                + "</shape>", strings, UTF_8);
+                + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                + "<merge/>\n", strings, UTF_8);
   }
 
   private static void deleteDir(File root) {
