@@ -210,7 +210,6 @@ public class NavigationModel {
   public void clear() {
     states.clear();
     transitions.clear();
-    listeners.notify(Event.delete(Object.class));
   }
 
   public void copyAllStatesAndTransitionsFrom(NavigationModel source) {
