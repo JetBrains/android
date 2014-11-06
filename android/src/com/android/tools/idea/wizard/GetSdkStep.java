@@ -167,7 +167,7 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(sdkFile);
+        DefaultSdks.setDefaultAndroidHome(sdkFile, null);
       }
     });
     return true;
