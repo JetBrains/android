@@ -43,9 +43,8 @@ public class OrientationAction extends LayoutAction {
     super(designer, "Change attribute 'orientation'", null, AndroidDesignerIcons.SwitchHorizontalLinear);
     myLayout = layout;
     myDefaultHorizontal = defaultHorizontal;
-    update(getTemplatePresentation());
-
     myHorizontal = !VALUE_VERTICAL.equals(layout.getTag().getAttributeValue(ATTR_ORIENTATION, ANDROID_URI));
+    update(getTemplatePresentation());
   }
 
   @Override
