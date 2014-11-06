@@ -28,6 +28,7 @@ import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.utils.ILogger;
+import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -129,28 +130,44 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   @VisibleForTesting
-  static boolean downloadAndUnzipSdkSeed(@NotNull InstallContext context, @NotNull File destination, double progressShare) throws WizardException {
-    File file = new DownloadOperation(context, FirstRunWizardDefaults.getSdkDownloadUrl(), progressShare * 0.8).execute();
-    if (file == null) {
+  static boolean downloadAndUnzipSdkSeed(@NotNull InstallContext context, @NotNull File destination, double progressShare)
+    throws WizardException {
+    final double DOWNLOAD_OPERATION_PROGRESS_SHARE = progressShare * 0.8;
+    final double UNZIP_OPERATION_PROGRESS_SHARE = progressShare - DOWNLOAD_OPERATION_PROGRESS_SHARE;
+
+    File file = new DownloadOperation(context, FirstRunWizardDefaults.getSdkDownloadUrl(), DOWNLOAD_OPERATION_PROGRESS_SHARE).execute();
+    try {
+      return unzip(context, file, destination, UNZIP_OPERATION_PROGRESS_SHARE);
+    }
+    finally {
+      if (file != null && file.isFile() && file.getAbsolutePath().startsWith(context.getTempDirectory().getAbsolutePath())) {
+        FileUtil.delete(file);
+      }
+    }
+  }
+
+  private static boolean unzip(@NotNull InstallContext context, @Nullable File archive, @NotNull File destination, double progressShare)
+    throws WizardException {
+    if (archive == null) {
       return false;
     }
-    File unpacked = null;
     try {
       FileUtil.ensureExists(destination.getParentFile());
-      unpacked = new UnzipOperation(context, file, (progressShare * 0.2)).execute();
+      File unpacked = new UnzipOperation(context, archive, progressShare).execute();
       if (unpacked != null) {
-        FileUtil.rename(getSdkRoot(unpacked), destination);
+        try {
+          FileUtil.rename(getSdkRoot(unpacked), destination);
+        }
+        finally {
+          if (unpacked.isDirectory()) {
+            FileUtil.delete(unpacked);
+          }
+        }
         return true;
       }
     }
     catch (IOException e) {
       throw new WizardException("Unable to prepare Android SDK", e);
-    }
-    finally {
-      FileUtil.delete(file);
-      if (unpacked != null) {
-        FileUtil.delete(unpacked);
-      }
     }
     return false;
   }
@@ -164,12 +181,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return PkgDesc.Builder.newExtra(new IdDisplay(vendor, ""), path, "", null, new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV));
   }
 
-  private static void mergeRepoIntoDestination(final InstallContext context,
+  private static File mergeRepoIntoDestination(final InstallContext context,
                                                @NotNull final File repo,
                                                @NotNull final File destination,
                                                double progressRatio) throws WizardException {
     try {
-      context.run(new MergeOperation(destination, repo, context), progressRatio);
+      return context.run(new MergeOperation(destination, repo, context), progressRatio);
     }
     catch (IOException e) {
       throw new WizardException(e.getMessage(), e);
@@ -184,7 +201,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   static void setupSdkComponents(@NotNull InstallContext installContext,
                                  @NotNull File sdk,
                                  @NotNull Collection<? extends InstallableComponent> selectedComponents,
-                                 double progressShare) throws WizardException {
+                                 double progressRatio) throws WizardException {
     // TODO: Prompt about connection in handoff case?
     Set<String> packages = Sets.newHashSet();
     for (InstallableComponent component1 : selectedComponents) {
@@ -194,10 +211,27 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         }
       }
     }
-    installContext.run(new InstallComponentsOperation(installContext, sdk, packages), progressShare);
+    installContext.run(new InstallComponentsOperation(installContext, sdk, packages), progressRatio);
     for (InstallableComponent component : selectedComponents) {
       component.configure(installContext, sdk);
     }
+  }
+
+  private static void setSdkInPreferences(final File sdk) {
+    final Application application = ApplicationManager.getApplication();
+    // SDK can only be set from write action, write action can only be started from UI thread
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        application.runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            DefaultSdks.setDefaultAndroidHome(sdk, null);
+            AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
+          }
+        });
+      }
+    }, application.getAnyModalityState());
   }
 
   @Override
@@ -236,24 +270,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   public void runLongOperation() throws WizardException {
+    final double INIT_SDK_OPERATION_PROGRESS_SHARE = 0.3;
+    final double INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE = 1.0 - INIT_SDK_OPERATION_PROGRESS_SHARE;
+
     InstallContext installContext = new InstallContext(createTempDir(), myProgressStep);
-    final File sdk = initializeSdk(installContext, 0.3);
+    final File sdk = initializeSdk(installContext, INIT_SDK_OPERATION_PROGRESS_SHARE);
     if (sdk != null) {
-      final Application application = ApplicationManager.getApplication();
-      // SDK can only be set from write action, write action can only be started from UI thread
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          application.runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              DefaultSdks.setDefaultAndroidHome(sdk, null);
-              AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
-            }
-          });
-        }
-      }, application.getAnyModalityState());
-      setupSdkComponents(installContext, sdk, getSelectedComponents(), 0.7);
+      setSdkInPreferences(sdk);
+      setupSdkComponents(installContext, sdk, getSelectedComponents(), INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
     }
   }
 
@@ -277,13 +301,23 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     String destinationPath = myState.get(KEY_SDK_INSTALL_LOCATION);
     assert destinationPath != null;
     final File destination = new File(destinationPath);
+    if (destination.isFile()) {
+      throw new WizardException(String.format("Path %s does not point to a directory", destination));
+    }
+    else if (destination.isDirectory()) {
+      SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), new NullLogger());
+      if (manager != null) {
+        installContext.advance(progressRatio);
+        // We got ourselves an SDK
+        return destination;
+      }
+    }
     File handoffSource = getHandoffAndroidSdkSource();
     if (handoffSource == null) {
       return downloadAndUnzipSdkSeed(installContext, destination, progressRatio) ? destination : null;
     }
     else {
-      mergeRepoIntoDestination(installContext, handoffSource, destination, progressRatio);
-      return destination;
+      return mergeRepoIntoDestination(installContext, handoffSource, destination, progressRatio);
     }
   }
 
@@ -316,7 +350,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return isPathVisible() && (existsAndIsVisible(myInstallationTypeWizardStep) || existsAndIsVisible(mySdkComponentsStep));
   }
 
-  private static class MergeOperation implements ThrowableComputable<Void, IOException> {
+  private static class MergeOperation implements ThrowableComputable<File, IOException> {
     private final File myDestination;
     private final File myRepo;
     private final InstallContext myContext;
@@ -328,7 +362,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
 
     @Override
-    public Void compute() throws IOException {
+    public File compute() throws IOException {
       ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
       indicator.setText("Installing Android SDK");
       indicator.setIndeterminate(true);
@@ -337,7 +371,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         SdkMerger.mergeSdks(myRepo, myDestination, indicator);
       }
       myContext.print(String.format("Android SDK was installed to %s", myDestination), ConsoleViewContentType.SYSTEM_OUTPUT);
-      return null;
+      return myDestination;
     }
   }
 
