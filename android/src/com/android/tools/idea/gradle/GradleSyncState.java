@@ -163,7 +163,6 @@ public class GradleSyncState {
           }
         }
 
-        notifications.updateAllNotifications();
         BuildVariantView.getInstance(myProject).updateContents();
       }
     });
