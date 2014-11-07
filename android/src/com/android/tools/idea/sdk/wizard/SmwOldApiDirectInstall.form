@@ -66,7 +66,7 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="9f832" class="javax.swing.JTextArea" binding="myTextArea1" default-binding="true">
+          <component id="9f832" class="javax.swing.JTextArea" binding="mySdkManagerOutput" default-binding="true">
             <constraints/>
             <properties>
               <text value=""/>
