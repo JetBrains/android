@@ -18,9 +18,14 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,18 +83,20 @@ public class WizardUtils {
     }
 
     public enum Message {
-      NO_LOCATION_SPECIFIED("Please specify a project location"),
-      BAD_SLASHES("Your project location contains incorrect slashes ('\\' vs '/')"),
-      ILLEGAL_CHARACTER("Illegal character in project location path: '%1c' in filename %2s"),
-      ILLEGAL_FILENAME("Illegal filename in project location path: %s"),
-      WHITESPACE("Your project location contains whitespace. This can cause problems on some platforms and is not recommended."),
-      NON_ASCII_CHARS("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution."),
-      PATH_NOT_WRITEABLE("The path '%s' is not writeable. Please choose a new location."),
-      PROJECT_LOC_IS_FILE("There must not already be a file at the project location."),
+      NO_LOCATION_SPECIFIED("Please specify a %1s"),
+      BAD_SLASHES("Your %1s contains incorrect slashes ('\\' vs '/')"),
+      ILLEGAL_CHARACTER("Illegal character in %1s path: '%2c' in filename %3s"),
+      ILLEGAL_FILENAME("Illegal filename in %1s path: %2s"),
+      WHITESPACE("Your %1s contains whitespace. This can cause problems on some platforms and is not recommended."),
+      NON_ASCII_CHARS("Your %1s contains non-ASCII characters. This can cause problems on Windows. Proceed with caution."),
+      PATH_NOT_WRITEABLE("The path '%2s' is not writeable. Please choose a new location."),
+      PROJECT_LOC_IS_FILE("There must not already be a file at the %1s."),
       NON_EMPTY_DIR(
-        "A non-empty directory already exists at the specified project location. Existing files may be overwritten. Proceed with caution."),
-      PROJECT_IS_FILE_SYSTEM_ROOT("The project location can not be at the filesystem root"),
-      PARENT_NOT_DIR("The project location's parent directory must be a directory, not a plain file");
+        "A non-empty directory already exists at the specified %1s. Existing files may be overwritten. Proceed with caution."),
+      PROJECT_IS_FILE_SYSTEM_ROOT("The %1s can not be at the filesystem root"),
+      IS_UNDER_ANDROID_STUDIO_ROOT("Path points to a location within Android Studio installation directory"),
+      PARENT_NOT_DIR("The %1s's parent directory must be a directory, not a plain file"),
+      INSIDE_ANDROID_STUDIO("The %1s is inside %2s install location");
 
       private final String myText;
 
@@ -103,24 +110,24 @@ public class WizardUtils {
       }
     }
 
-    public static final ValidationResult OK = new ValidationResult(Status.OK, null);
+    public static final ValidationResult OK = new ValidationResult(Status.OK, null, "any");
 
     private final Status myStatus;
     private final Message myMessage;
     private final Object[] myMessageParams;
 
-    private ValidationResult(@NotNull Status status, @Nullable Message message, Object... messageParams) {
+    private ValidationResult(@NotNull Status status, @Nullable Message message, @NotNull String field, Object... messageParams) {
       myStatus = status;
       myMessage = message;
-      myMessageParams = messageParams;
+      myMessageParams = ArrayUtil.prepend(field, messageParams);
     }
 
-    public static ValidationResult warn(@NotNull Message message, Object... params) {
-      return new ValidationResult(Status.WARN, message, params);
+    public static ValidationResult warn(@NotNull Message message, String field, Object... params) {
+      return new ValidationResult(Status.WARN, message, field, params);
     }
 
-    public static ValidationResult error(@NotNull Message message, Object... params) {
-      return new ValidationResult(Status.ERROR, message, params);
+    public static ValidationResult error(@NotNull Message message, String field, Object... params) {
+      return new ValidationResult(Status.ERROR, message, field, params);
     }
 
     @Nullable
@@ -156,19 +163,24 @@ public class WizardUtils {
   }
 
   /**
-   * Will return {@link com.android.tools.idea.wizard.WizardUtils.ValidationResult.OK} if projectLocation is valid
+   * Will return {@link com.android.tools.idea.wizard.WizardUtils.ValidationResult#OK} if projectLocation is valid
    * or {@link com.android.tools.idea.wizard.WizardUtils.ValidationResult} with error if not.
    */
   @NotNull
   public static ValidationResult validateLocation(@Nullable String projectLocation) {
+    return validateLocation(projectLocation, "project location", true);
+  }
+
+  @NotNull
+  public static ValidationResult validateLocation(@Nullable String projectLocation, @NotNull String fieldName, boolean checkEmpty) {
     ValidationResult warningResult = null;
     if (projectLocation == null || projectLocation.isEmpty()) {
-      return ValidationResult.error(ValidationResult.Message.NO_LOCATION_SPECIFIED);
+      return ValidationResult.error(ValidationResult.Message.NO_LOCATION_SPECIFIED, fieldName);
     }
     // Check the separators
     if ((File.separatorChar == '/' && projectLocation.contains("\\")) ||
         (File.separatorChar == '\\' && projectLocation.contains("/"))) {
-      return ValidationResult.error(ValidationResult.Message.BAD_SLASHES);
+      return ValidationResult.error(ValidationResult.Message.BAD_SLASHES, fieldName);
     }
     // Check the individual components for not allowed characters.
     File testFile = new File(projectLocation);
@@ -176,21 +188,21 @@ public class WizardUtils {
       String filename = testFile.getName();
       if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(filename)) {
         char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
-        return ValidationResult.error(ValidationResult.Message.ILLEGAL_CHARACTER, illegalChar, filename);
+        return ValidationResult.error(ValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
       if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase())) {
-        return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, filename);
+        return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
-        warningResult = ValidationResult.warn(ValidationResult.Message.WHITESPACE);
+        warningResult = ValidationResult.warn(ValidationResult.Message.WHITESPACE, fieldName);
       }
       if (!CharMatcher.ASCII.matchesAllOf(filename)) {
-        warningResult = ValidationResult.warn(ValidationResult.Message.NON_ASCII_CHARS);
+        warningResult = ValidationResult.warn(ValidationResult.Message.NON_ASCII_CHARS, fieldName);
       }
       // Check that we can write to that location: make sure we can write into the first extant directory in the path.
       if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
         if (!testFile.getParentFile().canWrite()) {
-          return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, testFile.getParentFile().getPath());
+          return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, testFile.getParentFile().getPath());
         }
       }
       testFile = testFile.getParentFile();
@@ -198,18 +210,25 @@ public class WizardUtils {
 
     File file = new File(projectLocation);
     if (file.isFile()) {
-      return ValidationResult.error(ValidationResult.Message.PROJECT_LOC_IS_FILE);
-    } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
-      return ValidationResult.warn(ValidationResult.Message.NON_EMPTY_DIR);
+      return ValidationResult.error(ValidationResult.Message.PROJECT_LOC_IS_FILE, fieldName);
     }
     if (file.getParent() == null) {
-      return ValidationResult.error(ValidationResult.Message.PROJECT_IS_FILE_SYSTEM_ROOT);
+      return ValidationResult.error(ValidationResult.Message.PROJECT_IS_FILE_SYSTEM_ROOT, fieldName);
     }
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
-      return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR);
+      return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
+    }
+
+    String installLocation = PathManager.getHomePathFor(Application.class);
+    if (installLocation != null && FileUtil.isAncestor(new File(installLocation), file, false)) {
+      String applicationName = ApplicationNamesInfo.getInstance().getProductName();
+      return ValidationResult.error(ValidationResult.Message.INSIDE_ANDROID_STUDIO, fieldName, applicationName);
+    }
+
+    if (checkEmpty && file.exists() && TemplateUtils.listFiles(file).length > 0) {
+      return ValidationResult.warn(ValidationResult.Message.NON_EMPTY_DIR, fieldName);
     }
 
     return (warningResult == null) ? ValidationResult.OK : warningResult;
   }
-
 }
