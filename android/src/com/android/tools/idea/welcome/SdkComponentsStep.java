@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -27,8 +29,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +54,8 @@ import java.util.Set;
  * Wizard page for selecting SDK components to download.
  */
 public class SdkComponentsStep extends FirstRunWizardStep {
+  public static final String FIELD_SDK_LOCATION = "SDK location";
+
   private final InstallableComponent[] myInstallableComponents;
   private final ScopedStateStore.Key<Boolean> myKeyInstallSdk;
   private JPanel myContents;
@@ -165,44 +169,39 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     return file;
   }
 
-  @Nullable
-  public static String validateDestinationPath(@Nullable String path, long componentsSize) {
-    if (StringUtil.isEmpty(path)) {
-      return "Path is empty";
-    }
-    else {
-      File file = new File(path);
-      while (file != null && !file.exists()) {
-        if (!PathUtil.isValidFileName(file.getName())) {
-          return "Specified path is not valid";
-        }
-        file = file.getParentFile();
-      }
-    }
-    File filesystem = getTargetFilesystem(path);
-    if (filesystem != null) {
-      long diskSpace = filesystem.getUsableSpace();
-      if (diskSpace == 0) {
-        return "Selected location is not writeable";
-      }
-      else {
-        if (componentsSize >= diskSpace) {
-          return "Not enough disk space";
-        }
-      }
-    }
-    return null;
-  }
-
   @Override
   public boolean validate() {
     String path = myState.get(mySdkDownloadPathKey);
     if (!StringUtil.isEmpty(path)) {
       myUserEditedPath = true;
     }
-    String error = validateDestinationPath(path, getComponentsSize());
-    setErrorHtml(myUserEditedPath ? error : null);
-    return error == null;
+    WizardUtils.ValidationResult error = WizardUtils.validateLocation(path, FIELD_SDK_LOCATION, false);
+    String message = error.isOk() ? null : error.getFormattedMessage();
+    boolean isOk = !error.isError();
+    if (isOk) {
+      File filesystem = getTargetFilesystem(path);
+      if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
+        isOk = false;
+        message = "Target drive does not have enough free space";
+      }
+      else if (isNonEmptyNonSdk(path)) {
+        isOk = true;
+        message = "Target folder is neither empty nor does it point to an existing SDK installation.";
+      }
+    }
+    setErrorHtml(myUserEditedPath ? message : null);
+    return isOk;
+  }
+
+  private static boolean isNonEmptyNonSdk(@Nullable String path) {
+    if (path == null) {
+      return false;
+    }
+    File file = new File(path);
+    if (file.exists() && TemplateUtils.listFiles(file).length > 0) {
+      return AndroidSdkData.getSdkData(file) == null;
+    }
+    return false;
   }
 
   @Override
