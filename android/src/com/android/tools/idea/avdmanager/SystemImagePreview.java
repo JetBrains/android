@@ -217,7 +217,7 @@ public class SystemImagePreview extends JPanel {
       // Paint the help link
       g2d.setFont(AvdWizardConstants.STANDARD_FONT);
       g2d.setColor(JBColor.BLUE);
-      g2d.drawString("? See documentation for Android " + myDistribution.getVersion().toShortString() + " APIs", PADDING,
+      g2d.drawString("? - See documentation for Android " + myDistribution.getVersion().toShortString() + " APIs", PADDING,
                      getHeight() - PADDING);
     }
   }

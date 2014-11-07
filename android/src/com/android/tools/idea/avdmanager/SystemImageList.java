@@ -34,13 +34,12 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.*;
 import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -62,10 +61,8 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
+import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.util.*;
 import java.util.List;
@@ -116,11 +113,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myTable.setSelectionModel(new SingleSelectionModel() {
       @Override
       public void setSelectionInterval(int index0, int index1) {
-        AvdWizardConstants.SystemImageDescription description = myTable.getRow(index0);
-        if (description == null || description.isRemote()) {
-          return;
-        }
         super.setSelectionInterval(index0, index1);
+        TableCellEditor editor = myTable.getCellEditor();
+        if (editor != null) {
+          editor.cancelCellEditing();
+        }
+        myTable.repaint();
+        possiblySwitchEditors(index0, 0);
       }
     });
     myTable.setRowSelectionAllowed(true);
@@ -236,17 +235,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     Point p = e.getPoint();
     int row = myTable.rowAtPoint(p);
     int col = myTable.columnAtPoint(p);
+    possiblySwitchEditors(row, col);
+  }
+
+  private void possiblySwitchEditors(int row, int col) {
     if (row != myTable.getEditingRow() || col != myTable.getEditingColumn()) {
-      if (myTable.isEditing()) {
-        TableCellEditor editor = myTable.getCellEditor();
-        if (!editor.stopCellEditing()) {
-          editor.cancelCellEditing();
-        }
-      }
-      if (!myTable.isEditing()) {
-        if (row != -1 && col != -1 && myTable.isCellEditable(row, col)) {
-          myTable.editCellAt(row, col);
-        }
+      if (row != -1 && col != -1 && myTable.isCellEditable(row, col)) {
+        myTable.editCellAt(row, col);
       }
     }
   }
@@ -369,6 +364,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   @Override
   public void valueChanged(ListSelectionEvent e) {
     AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
+    if (selected != null && selected.isRemote()) {
+      selected = null;
+    }
     for (SystemImageSelectionListener listener : myListeners) {
       listener.onSystemImageSelected(selected);
     }
@@ -473,8 +471,12 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        if (table.getSelectedRow() == row) {
-          panel.setBackground(table.getSelectionBackground());
+        if (isSelected) {
+          if (image.isRemote()) {
+            panel.setBackground(UIUtil.getListUnfocusedSelectionBackground());
+          } else {
+            panel.setBackground(table.getSelectionBackground());
+          }
           panel.setForeground(table.getSelectionForeground());
           panel.setOpaque(true);
         }
@@ -489,7 +491,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
           label.setFont(labelFont.deriveFont(Font.BOLD));
         }
         if (image.isRemote()) {
-          label.setFont(labelFont.deriveFont(label.getFont().getStyle() | Font.ITALIC));
+          Font font = labelFont.deriveFont(label.getFont().getStyle() | Font.ITALIC);
+          label.setFont(font);
           label.setForeground(UIUtil.getLabelDisabledForeground());
           // on OS X the actual text width isn't computed correctly. Compensating for that..
           if (!label.getText().isEmpty()) {
@@ -500,32 +503,32 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
               label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, offset));
             }
           }
+          panel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+              if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
+                downloadImage(image);
+              }
+            }
+          });
         }
         panel.add(label);
         if (image.isRemote() && column == 0) {
-          JBLabel link = new JBLabel("Download");
+          final JBLabel link = new JBLabel("Download");
           link.setBackground(table.getBackground());
           link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
           link.setForeground(JBColor.BLUE);
+          Font font = link.getFont();
+          if (isSelected) {
+            Map<TextAttribute, Integer> attrs = Maps.newHashMap();
+            attrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+            font = font.deriveFont(attrs);
+          }
+          link.setFont(font);
           link.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-              IPkgDesc remote = image.getRemotePackage().getPkgDesc();
-              IPkgDesc request = null;
-              if (remote.getType().equals(PkgType.PKG_SYS_IMAGE)) {
-                request =
-                  PkgDesc.Builder.newSysImg(remote.getAndroidVersion(), remote.getTag(), remote.getPath(), remote.getMajorRevision())
-                    .create();
-              }
-              else if (remote.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
-                request = PkgDesc.Builder.newAddonSysImg(image.getVersion(), remote.getVendor(), image.getTag(), image.getAbiType(),
-                                                         (MajorRevision)image.getRemotePackage().getRevision()).create();
-              }
-              List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
-              SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
-              sdkQuickfixWizard.init();
-              sdkQuickfixWizard.show();
-              refreshImages(true);
+              downloadImage(image);
             }
           });
           panel.add(link);
@@ -548,6 +551,25 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         return true;
       }
 
+    }
+
+    private void downloadImage(AvdWizardConstants.SystemImageDescription image) {
+      IPkgDesc remote = image.getRemotePackage().getPkgDesc();
+      IPkgDesc request = null;
+      if (remote.getType().equals(PkgType.PKG_SYS_IMAGE)) {
+        request =
+          PkgDesc.Builder.newSysImg(remote.getAndroidVersion(), remote.getTag(), remote.getPath(), remote.getMajorRevision())
+            .create();
+      }
+      else if (remote.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
+        request = PkgDesc.Builder.newAddonSysImg(image.getVersion(), remote.getVendor(), image.getTag(), image.getAbiType(),
+                                                 (MajorRevision)image.getRemotePackage().getRevision()).create();
+      }
+      List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
+      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
+      sdkQuickfixWizard.init();
+      sdkQuickfixWizard.show();
+      refreshImages(true);
     }
 
     @Nullable
