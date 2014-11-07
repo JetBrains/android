@@ -6,6 +6,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.SdkResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.augment.AndroidInternalRClass;
@@ -48,7 +49,15 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
       final boolean inSources1 = myIndex.isInLibrarySource(file1);
 
       if (inSources1 != myIndex.isInLibrarySource(file2)) {
-        return inSources1 ? 1 : -1;
+        // consider class A implements Runnable
+        //super class Object for class A is found in cls, super interface Runnable is found in cls as well (class A resolve scope is simple modules scope with dependencies)
+        //but super class Object for interface Runnable is already found in android sources due to condition above
+
+        //problems with class A extends ArrayList implements List are hidden because they should be shown for class ArrayList
+        //but when we open ArrayList, it is already ArrayList from android sources 
+        if (!CommonClassNames.JAVA_LANG_OBJECT_SHORT.equals(file1.getNameWithoutExtension())) {
+          return inSources1 ? 1 : -1;
+        }
       }
       return super.compare(file1, file2);
     }
