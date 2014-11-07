@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.google.common.util.concurrent.Atomics;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ThrowableComputable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Operation that is executed prior to installing the application.
+ * <p>Operation that is executed prior to installing the application.</p>
+ *
+ * <p>Type argument specifies the type of the operation return value</p>
  */
-public abstract class PreinstallOperation {
+public abstract class PreinstallOperation<T> {
   protected final InstallContext myContext;
   private final double myProgressRatio;
 
@@ -39,21 +41,22 @@ public abstract class PreinstallOperation {
   /**
    * Performs the actual logic
    */
-  protected abstract void perform() throws WizardException;
+  protected abstract T perform() throws WizardException;
 
   /**
    * Runs the operation under progress indicator that only gives access to progress portion.
    */
-  public final boolean execute() throws WizardException {
-    ProgressStep myProgressStep = myContext.getProgressStep();
-    if (myProgressStep.isCanceled()) {
-      return false;
+  @Nullable
+  public final T execute() throws WizardException {
+    if (myContext.isCanceled()) {
+      return null;
     }
-    Wrapper wrapper = new Wrapper();
-    myProgressStep.run(wrapper, myProgressRatio);
-    wrapper.rethrowIfExceptionRecorded();
-    return !myProgressStep.isCanceled();
-
+    return myContext.run(new ThrowableComputable<T, WizardException>() {
+      @Override
+      public T compute() throws WizardException {
+        return perform();
+      }
+    }, myProgressRatio);
   }
 
   /**
@@ -73,28 +76,7 @@ public abstract class PreinstallOperation {
       throw new WizardException(failureDescription, e);
     }
     else {
-      myContext.getProgressStep().print(failureDescription + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-    }
-  }
-
-  private final class Wrapper implements Runnable {
-    private final AtomicReference<WizardException> myException = Atomics.newReference(null);
-
-    @Override
-    public void run() {
-      try {
-        perform();
-      }
-      catch (WizardException e) {
-        myException.set(e);
-      }
-    }
-
-    public void rethrowIfExceptionRecorded() throws WizardException {
-      WizardException exception = myException.get();
-      if (exception != null) {
-        throw exception;
-      }
+      myContext.print(failureDescription + "\n", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 }

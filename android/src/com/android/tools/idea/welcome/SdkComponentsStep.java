@@ -65,9 +65,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private TextFieldWithBrowseButton myPath;
   private boolean myUserEditedPath = false;
 
-  public SdkComponentsStep(InstallableComponent[] components,
-                           ScopedStateStore.Key<Boolean> keyInstallSdk,
-                           ScopedStateStore.Key<String> sdkDownloadPathKey) {
+  public SdkComponentsStep(@NotNull InstallableComponent[] components,
+                           @NotNull ScopedStateStore.Key<Boolean> keyInstallSdk,
+                           @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey) {
     super("SDK Settings");
 
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
