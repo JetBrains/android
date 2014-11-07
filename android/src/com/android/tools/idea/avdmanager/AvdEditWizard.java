@@ -139,6 +139,7 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(BACK_CAMERA_KEY, properties.get(BACK_CAMERA_KEY.name));
     state.put(NETWORK_LATENCY_KEY, properties.get(NETWORK_LATENCY_KEY.name));
     state.put(NETWORK_SPEED_KEY, properties.get(NETWORK_SPEED_KEY.name));
+    state.put(HAS_HARDWARE_KEYBOARD_KEY, fromIniString(properties.get(HAS_HARDWARE_KEYBOARD_KEY.name)));
     state.put(DISPLAY_NAME_KEY, AvdManagerConnection.getAvdDisplayName(avdInfo));
 
     String skinPath = properties.get(CUSTOM_SKIN_FILE_KEY.name);
