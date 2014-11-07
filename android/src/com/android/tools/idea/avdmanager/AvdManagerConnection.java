@@ -367,7 +367,7 @@ public class AvdManagerConnection {
       if (currentInfo != null) {
         avdFolder = new File(currentInfo.getDataFolderPath());
       } else {
-        avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName);
+        avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName, true);
       }
     }
     catch (AndroidLocation.AndroidLocationException e) {
