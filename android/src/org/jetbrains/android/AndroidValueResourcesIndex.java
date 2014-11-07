@@ -200,6 +200,11 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     public Set<MyResourceInfo> read(@NotNull DataInput in) throws IOException {
       final int size = in.readInt();
 
+      if (size < 0 || size > 65535) {
+        // Something is very wrong; trigger an index rebuild
+        throw new IOException("Corrupt Index: Size " + size);
+      }
+
       if (size == 0) {
         return Collections.emptySet();
       }
