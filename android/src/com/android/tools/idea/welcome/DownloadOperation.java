@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.DownloadableFileService;
 import com.intellij.util.download.FileDownloader;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,23 +30,24 @@ import java.util.List;
 /**
  * Downloads files needed to setup Android Studio.
  */
-public final class DownloadOperation extends PreinstallOperation {
+public final class DownloadOperation extends PreinstallOperation<File> {
+  private final String myUrl;
 
-  public DownloadOperation(InstallContext context) {
-    super(context, 0.7);
+  public DownloadOperation(InstallContext context, String url, double progressShare) {
+    super(context, progressShare);
+    myUrl = url;
   }
 
   @Override
-  protected void perform() throws WizardException {
+  @Nullable
+  protected File perform() throws WizardException {
     DownloadableFileService fileService = DownloadableFileService.getInstance();
-    FileDownloader downloader = fileService.createDownloader(myContext.getFilesToDownload(), "Android Studio components");
-    do {
+    DownloadableFileDescription myDescription = fileService.createFileDescription(myUrl, "components.zip");
+    FileDownloader downloader = fileService.createDownloader(ImmutableList.of(myDescription), "Android Studio components");
+    while (true) {
       try {
         List<Pair<File, DownloadableFileDescription>> result = downloader.download(myContext.getTempDirectory());
-        for (Pair<File, DownloadableFileDescription> fileDescriptionPair : result) {
-          myContext.setDownloadedLocation(fileDescriptionPair.getSecond(), fileDescriptionPair.getFirst());
-        }
-        break;
+        return result.size() == 1 ? result.get(0).getFirst() : null;
       }
       catch (IOException e) {
         String details = StringUtil.isEmpty(e.getMessage()) ? "." : (": " + e.getMessage());
@@ -52,6 +55,5 @@ public final class DownloadOperation extends PreinstallOperation {
         promptToRetry(message + " Please check your Internet connection and retry.", message, e);
       }
     }
-    while (true);
   }
 }
