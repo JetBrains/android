@@ -16,11 +16,12 @@
 package com.android.tools.idea.welcome;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Objects;
 import com.google.common.io.Closeables;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,8 @@ import java.util.Properties;
 public class InstallerData {
   @VisibleForTesting static final ScopedStateStore.Key<InstallerData> CONTEXT_KEY =
     ScopedStateStore.createKey("installer.handoff.data", ScopedStateStore.Scope.WIZARD, InstallerData.class);
+  public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.properties");
+
   @Nullable private final String myJavaDir;
   @Nullable private final String myAndroidSrc;
   @Nullable private final String myAndroidDest;
@@ -55,19 +58,24 @@ public class InstallerData {
 
   private static Properties readProperties() {
     Properties properties = new Properties();
-    File file = new File(System.getProperty("user.home"), ".android/firstlaunch/firstlaunch.properties");
-    if (file.isFile()) {
-      FileInputStream stream = null;
-      try {
-        stream = new FileInputStream(file);
-        properties.load(stream);
+    try {
+      File file = new File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES);
+      if (file.isFile()) {
+        FileInputStream stream = null;
+        try {
+          stream = new FileInputStream(file);
+          properties.load(stream);
+        }
+        catch (IOException e) {
+          Logger.getInstance(InstallerData.class).error(e);
+        }
+        finally {
+          Closeables.closeQuietly(stream);
+        }
       }
-      catch (IOException e) {
-        Logger.getInstance(InstallerData.class).error(e);
-      }
-      finally {
-        Closeables.closeQuietly(stream);
-      }
+    }
+    catch (AndroidLocation.AndroidLocationException e) {
+      Logger.getInstance(InstallerData.class).error(e);
     }
     return properties;
   }
