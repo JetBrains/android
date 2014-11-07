@@ -377,6 +377,7 @@ public final class AndroidSdkUtils {
     sdkModificator.setSdkAdditionalData(data);
 
     if (addRoots) {
+      sdkModificator.removeAllRoots();
       for (OrderRoot orderRoot : getLibraryRootsForTarget(target, androidSdk.getHomePath(), true)) {
         sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
       }

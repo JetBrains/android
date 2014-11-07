@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -48,6 +49,7 @@ import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -59,6 +61,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -66,6 +69,7 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
@@ -76,6 +80,8 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -85,6 +91,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.Projects.hasErrors;
@@ -110,8 +117,23 @@ public class PostProjectSetupTasksExecutor {
     myProject = project;
   }
 
-
   public void onProjectRestoreFromDisk() {
+    ensureValidSdks();
+
+    if (hasErrors(myProject)) {
+      addSdkLinkIfNecessary();
+      checkSdkVersion(myProject);
+      return;
+    }
+
+    findAndShowVariantConflicts();
+    addSdkLinkIfNecessary();
+    checkSdkVersion(myProject);
+
+    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+  }
+
+  public void ensureValidSdks() {
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
     boolean checkJdkVersion = true;
@@ -124,7 +146,28 @@ public class PostProjectSetupTasksExecutor {
       if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
         Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
         if (sdk != null && !invalidAndroidSdks.contains(sdk) && isMissingAndroidLibrary(sdk)) {
-          invalidAndroidSdks.add(sdk);
+          // First try to recreate SDK; workaround for issue 78072
+          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+          AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+          if (additionalData != null && sdkData != null) {
+            IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+            if (target != null) {
+              SdkModificator sdkModificator = sdk.getSdkModificator();
+              sdkModificator.removeAllRoots();
+              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
+                sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+              }
+              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+              sdkModificator.commitChanges();
+            }
+          }
+
+          // If attempting to fix up the roots in the SDK fails, install the target over again
+          // (this is a truly corrupt install, as opposed to an incorrectly synced SDK which the
+          // above workaround deals with)
+          if (isMissingAndroidLibrary(sdk)) {
+            invalidAndroidSdks.add(sdk);
+          }
         }
 
         IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
@@ -143,21 +186,9 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    if (hasErrors(myProject)) {
-      addSdkLinkIfNecessary();
-      checkSdkVersion(myProject);
-      return;
-    }
-
     if (!invalidAndroidSdks.isEmpty()) {
       reinstallMissingPlatforms(invalidAndroidSdks);
     }
-
-    findAndShowVariantConflicts();
-    addSdkLinkIfNecessary();
-    checkSdkVersion(myProject);
-
-    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
   private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
@@ -165,12 +196,12 @@ public class PostProjectSetupTasksExecutor {
       for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
         // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
         // annotations.jar and res folder.
-        if (!library.exists()) {
-          return true;
+        if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
+          return false;
         }
       }
     }
-    return false;
+    return true;
   }
 
   private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
@@ -244,6 +275,8 @@ public class PostProjectSetupTasksExecutor {
       // set default value back.
       myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
     }
+
+    ensureValidSdks();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
