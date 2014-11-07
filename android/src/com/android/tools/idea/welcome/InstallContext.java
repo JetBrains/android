@@ -15,76 +15,133 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.android.annotations.VisibleForTesting;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.download.DownloadableFileDescription;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
+import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Keeps installation process state.
  */
 public class InstallContext {
   private final File myTempDirectory;
-  @NotNull private final List<DownloadableFileDescription> myDescriptions;
-  @NotNull private final ProgressStep myProgressStep;
-  private final Map<DownloadableFileDescription, File> myDownloadLocations = Maps.newHashMap();
-  private Map<DownloadableFileDescription, File> myExpandedLocations = Maps.newHashMap();
+  @Nullable private final ProgressStep myProgressStep;
 
-  public InstallContext(@NotNull File tempDirectory, @NotNull Iterable<DownloadableFileDescription> descriptions,
-                        @NotNull ProgressStep progressStep) {
+  @VisibleForTesting
+  InstallContext(@NotNull File tempDirectory) {
+    assert ApplicationManager.getApplication().isUnitTestMode();
     myTempDirectory = tempDirectory;
-    myDescriptions = ImmutableList.copyOf(descriptions);
+    myProgressStep = null;
+  }
+
+  @SuppressWarnings("NullableProblems")
+  public InstallContext(@NotNull File tempDirectory, @NotNull ProgressStep progressStep) {
+    myTempDirectory = tempDirectory;
     myProgressStep = progressStep;
-  }
-
-  public File getExpandedLocation(DownloadableFileDescription downloadableFile) {
-    return myExpandedLocations.get(downloadableFile);
-  }
-
-  @NotNull
-  public ProgressStep getProgressStep() {
-    return myProgressStep;
-  }
-
-  public List<DownloadableFileDescription> getFilesToDownload() {
-    return myDescriptions;
-  }
-
-  public void setDownloadedLocation(DownloadableFileDescription downloadableFile, File destination) {
-    myDownloadLocations.put(downloadableFile, destination);
   }
 
   public File getTempDirectory() {
     return myTempDirectory;
   }
 
-  public void cleanup(ProgressStep step) {
-    for (File file : Iterables.concat(myDownloadLocations.values(), myExpandedLocations.values())) {
-      if (!FileUtil.delete(file)) {
-        step.print(String.format("Can't delete %s\n", file.getAbsolutePath()), ConsoleViewContentType.ERROR_OUTPUT);
+  public boolean isCanceled() {
+    return myProgressStep != null && myProgressStep.isCanceled();
+  }
+
+  @SuppressWarnings("UseOfSystemOutOrSystemErr")
+  public void print(String message, ConsoleViewContentType contentType) {
+    if (myProgressStep != null) {
+      myProgressStep.print(message, contentType);
+    }
+    else {
+      if (contentType == ConsoleViewContentType.ERROR_OUTPUT) {
+        System.err.println(message);
+      }
+      else {
+        System.out.println(message);
       }
     }
   }
 
-  public Collection<File> getDownloadedFiles() {
-    return myDownloadLocations.values();
+  public <R, E extends Exception> R run(ThrowableComputable<R, E> operation, double progressRatio) throws E {
+    Wrapper<R, E> wrapper = new Wrapper<R, E>(operation);
+    if (myProgressStep != null) {
+      myProgressStep.run(wrapper, progressRatio);
+    }
+    else {
+      ProgressManager.getInstance().executeProcessUnderProgress(wrapper, new TestingProgressIndicator());
+    }
+    return wrapper.getResult();
   }
 
-  @Nullable
-  public File getDownloadLocation(DownloadableFileDescription description) {
-    return myDownloadLocations.get(description);
+  public void advance(double progress) {
+    if (myProgressStep != null) {
+      myProgressStep.advance(progress);
+    }
   }
 
-  public void setExpandedLocation(DownloadableFileDescription description, File dir) {
-    myExpandedLocations.put(description, dir);
+  @SuppressWarnings("UseOfSystemOutOrSystemErr")
+  private static class TestingProgressIndicator extends ProgressIndicatorBase {
+    private int previous = 0;
+
+    @Override
+    public void setText(String text) {
+      System.out.println(text);
+    }
+
+    @Override
+    public void setText2(String text) {
+      System.out.println("Text2: " + text);
+    }
+
+    @Override
+    public void setFraction(double fraction) {
+      int p = (int)Math.floor(fraction * 20);
+      if (p > previous) {
+        previous = p;
+        System.out.print(".");
+      }
+    }
+  }
+
+  private static class Wrapper<R, E extends Exception> implements Runnable {
+    private final ThrowableComputable<R, E> myRunnable;
+    private volatile R myResult;
+    private volatile E myException;
+
+    public Wrapper(ThrowableComputable<R, E> runnable) {
+      myRunnable = runnable;
+    }
+
+    @Override
+    public void run() {
+      try {
+        myResult = myRunnable.compute();
+      }
+      catch (RuntimeException e) {
+        throw e;
+      }
+      catch (Exception e) {
+        // We know this is not a runtime exception, hence it is the exception from the callable prototype
+        //noinspection unchecked
+        myException = (E)e;
+      }
+    }
+
+    private R getResult() throws E {
+      if (myException != null) {
+        throw myException;
+      }
+      else {
+        return myResult;
+      }
+    }
+
   }
 }
