@@ -51,7 +51,8 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
       if (inSources1 != myIndex.isInLibrarySource(file2)) {
         // consider class A implements Runnable
         //super class Object for class A is found in cls, super interface Runnable is found in cls as well (class A resolve scope is simple modules scope with dependencies)
-        //but super class Object for interface Runnable is already found in android sources due to condition above
+        //but super class Object for interface Runnable would be already found in android sources due to current condition - that's ambiguous
+        //thus disabling condition for Object
 
         //problems with class A extends ArrayList implements List are hidden because they should be shown for class ArrayList
         //but when we open ArrayList, it is already ArrayList from android sources 
