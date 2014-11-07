@@ -73,7 +73,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private static InstallableComponent[] createComponents() {
     AndroidSdk androidSdk = new AndroidSdk();
-    if (Haxm.isSupportedOS()) {
+    if (Haxm.canRun()) {
       return new InstallableComponent[]{androidSdk, new Haxm(KEY_CUSTOM_INSTALL)};
     }
     else {
