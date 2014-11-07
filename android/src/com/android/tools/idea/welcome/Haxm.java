@@ -22,16 +22,15 @@ import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Joiner;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.roots.ui.configuration.PathUIUtils;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -47,25 +46,31 @@ public final class Haxm extends InstallableComponent {
   // In UI we cannot use longs, so we need to pick a unit other then byte
   public static final Storage.Unit UI_UNITS = Storage.Unit.MiB;
   public static final Logger LOG = Logger.getInstance(Haxm.class);
+  public static final String COMPONENT_VENDOR = "intel";
+  public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
   private static final ScopedStateStore.Key<Boolean> KEY_INSTALL_HAXM =
     ScopedStateStore.createKey("install.haxm", ScopedStateStore.Scope.PATH, Boolean.class);
   private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY_MB =
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
-  public static final String COMPONENT_VENDOR = "intel";
-  public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
+  private static long memorySize = -1;
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   private ScopedStateStore myState;
   private ProgressStep myProgressStep;
-
-  public static boolean isSupportedOS() {
-    // TODO HAXM is disabled as headless install is not in the repositories yet
-    return Boolean.getBoolean("install.haxm") && (SystemInfo.isWindows || SystemInfo.isMac);
-  }
 
 
   public Haxm(ScopedStateStore.Key<Boolean> isCustomInstall) {
     super("SDK Emulator Extra - Intel® HAXM", 2306867, KEY_INSTALL_HAXM);
     myIsCustomInstall = isCustomInstall;
+  }
+
+  public static boolean canRun() {
+    // TODO HAXM is disabled as headless install is not in the repositories yet
+    if (Boolean.getBoolean("install.haxm") && (SystemInfo.isWindows || SystemInfo.isMac)) {
+      return getMemorySize() >= Storage.Unit.GiB.getNumberOfBytes();
+    }
+    else {
+      return false;
+    }
   }
 
   @NotNull
@@ -104,6 +109,13 @@ public final class Haxm extends InstallableComponent {
   }
 
   public static long getMemorySize() {
+    if (memorySize < 0) {
+      memorySize = checkMemorySize();
+    }
+    return memorySize;
+  }
+
+  private static long checkMemorySize() {
     OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
     // This is specific to JDKs derived from Oracle JDK (including OpenJDK and Apple JDK among others).
     // Other then this, there's no standard way of getting memory size
@@ -147,8 +159,10 @@ public final class Haxm extends InstallableComponent {
 
   @Override
   public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
-    if (!isSupportedOS()) {
-      installContext.print("Unable to install Intel HAXM: unsupported OS", ConsoleViewContentType.ERROR_OUTPUT);
+    if (!canRun()) {
+      Logger.getInstance(getClass()).error("Tried to install HAXM on %s OS with %s memory size", Platform.current().name(),
+                                           String.valueOf(getMemorySize()));
+      installContext.print("Unable to install Intel HAXM", ConsoleViewContentType.ERROR_OUTPUT);
       return;
     }
     GeneralCommandLine commandLine = getCommandLine(sdk);
@@ -189,7 +203,7 @@ public final class Haxm extends InstallableComponent {
       return getWindowsHaxmInstallCommandLine(sourceLocation, memorySize);
     }
     else {
-      assert !isSupportedOS();
+      assert !canRun();
       throw new IllegalStateException("Usupported OS");
     }
   }
