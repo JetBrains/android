@@ -28,6 +28,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,6 +171,10 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myFraction = fraction;
     myProgressBar.setMaximum(1000);
     myProgressBar.setValue((int)(1000 * fraction));
+  }
+
+  public void advance(double progress) {
+    getProgressIndicator().setFraction(myFraction + progress);
   }
 
   /**

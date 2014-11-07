@@ -60,6 +60,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.util.ObjectUtils;
@@ -90,6 +91,11 @@ public final class AndroidSdkUtils {
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
   public static final String SDK_NAME_PREFIX = "Android ";
   public static final String DEFAULT_JDK_NAME = "JDK";
+
+  // TODO: Update these to a stable link
+  private static final String MAC_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
+  private static final String LINUX_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
+  private static final String WINDOWS_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
 
   private static AndroidSdkData ourSdkData;
 
@@ -894,6 +900,22 @@ public final class AndroidSdkUtils {
     } while (retry);
 
     return bridge;
+  }
+
+  /**
+   * @return URL for the Android SDK download for the current platform. <code>null</code> means the platform was not recognized
+   */
+  @Nullable
+  public static String getSdkDownloadUrl() {
+    if (SystemInfo.isLinux) {
+      return LINUX_SDK_URL;
+    } else if (SystemInfo.isWindows) {
+      return WINDOWS_SDK_URL;
+    } else if (SystemInfo.isMac) {
+      return MAC_SDK_URL;
+    } else {
+      return null;
+    }
   }
 
   private static class MyMonitorBridgeConnectionTask extends Task.Modal {
