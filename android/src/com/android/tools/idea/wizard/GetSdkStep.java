@@ -30,7 +30,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -40,6 +39,7 @@ import com.intellij.platform.templates.github.DownloadUtil;
 import com.intellij.platform.templates.github.Outcome;
 import com.intellij.platform.templates.github.ZipUtil;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,10 +58,6 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  */
 public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
   private static final Logger LOG = Logger.getInstance(GetSdkStep.class);
-  // TODO: Update these to a stable link
-  private static final String MAC_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
-  private static final String LINUX_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
-  private static final String WINDOWS_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
   private TextFieldWithBrowseButton mySdkLocationField;
   private JPanel myPanel;
   private JButton myDownloadANewSDKButton;
@@ -126,7 +122,7 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
         @Override
         public File call() throws Exception {
           ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
-          String downloadUrl = getDownloadUrl();
+          String downloadUrl = AndroidSdkUtils.getSdkDownloadUrl();
           if (downloadUrl == null) {
             setErrorHtml("We cannot recognize your OS. Please visit http://developer.android.com/sdk/index.html and select" +
                          "the appropriate SDK bundle.");
@@ -236,19 +232,6 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
       FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project)null).save(currentFile, "android_sdk");
     if (fileWrapper != null) {
       return fileWrapper.getFile().getPath();
-    } else {
-      return null;
-    }
-  }
-
-  @Nullable
-  private String getDownloadUrl() {
-    if (SystemInfo.isLinux) {
-      return LINUX_SDK_URL;
-    } else if (SystemInfo.isWindows) {
-      return WINDOWS_SDK_URL;
-    } else if (SystemInfo.isMac) {
-      return MAC_SDK_URL;
     } else {
       return null;
     }

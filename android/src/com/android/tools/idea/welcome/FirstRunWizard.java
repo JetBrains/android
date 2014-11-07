@@ -38,7 +38,7 @@ public class FirstRunWizard extends DynamicWizard {
    */
   private final AtomicInteger myFinishClicks = new AtomicInteger(0);
   private final SetupJdkPath myJdkPath = new SetupJdkPath();
-  private final InstallComponentsPath myComponentsPath = new InstallComponentsPath();
+  private InstallComponentsPath myComponentsPath;
 
   public FirstRunWizard(DynamicWizardHost host) {
     super(null, null, WIZARD_TITLE, host);
@@ -47,6 +47,8 @@ public class FirstRunWizard extends DynamicWizard {
 
   @Override
   public void init() {
+    SetupProgressStep progressStep = new SetupProgressStep();
+    myComponentsPath = new InstallComponentsPath(progressStep);
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
     addPath(myJdkPath);
     addPath(myComponentsPath);
@@ -56,7 +58,7 @@ public class FirstRunWizard extends DynamicWizard {
         return super.isStepVisible() && !InstallerData.get(myState).exists();
       }
     }));
-    addPath(new SingleStepPath(new SetupProgressStep()));
+    addPath(new SingleStepPath(progressStep));
     super.init();
   }
 
@@ -79,7 +81,7 @@ public class FirstRunWizard extends DynamicWizard {
         break;
       }
       if (path instanceof LongRunningOperationPath) {
-        ((LongRunningOperationPath)path).runLongOperation(progressStep);
+        ((LongRunningOperationPath)path).runLongOperation();
       }
     }
   }
