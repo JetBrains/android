@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
@@ -868,5 +869,65 @@ public final class GradleUtil {
       LOG.warn("Failed to set up 'local repo' Gradle init script", e);
     }
     return null;
+  }
+
+  /**
+   * Returns true if the given project depends on the given artifact, which consists of
+   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   *
+   * @param project the Gradle project to check
+   * @param artifact the artifact
+   * @return true if the project depends on the given artifact (including transitively)
+   */
+  public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
+    Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
+    return dependsOn(dependencies, artifact);
+
+  }
+
+  /**
+   * Returns true if the given dependencies include the given artifact, which consists of
+   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   *
+   * @param dependencies the Gradle dependencies object to check
+   * @param artifact the artifact
+   * @return true if the dependencies include the given artifact (including transitively)
+   */
+  public static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      if (dependsOn(library, artifact, true)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if the given library depends on the given artifact, which consists of
+   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   *
+   * @param library the Gradle library to check
+   * @param artifact the artifact
+   * @param transitively if false, checks only direct dependencies, otherwise checks transitively
+   * @return true if the project depends on the given artifact
+   */
+  public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
+    MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
+    if (resolvedCoordinates != null) {
+      String s = resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId();
+      if (artifact.equals(s)) {
+        return true;
+      }
+    }
+
+    if (transitively) {
+      for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+        if (dependsOn(dependency, artifact, true)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }
