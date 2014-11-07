@@ -16,28 +16,31 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
+import com.google.common.collect.Iterables;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.util.PathUtil;
+import com.intellij.util.Urls;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.List;
 
 /**
  * The goal is to keep all defaults in one place so it is easier to update
  * them as needed.
  */
 public class FirstRunWizardDefaults {
-  public static final String HAXM_INSTALLER_ARCHIVE_FILE_NAME = "haxm.zip";
   public static final String HAXM_DOCUMENTATION_URL = "http://www.intel.com/software/android/";
-  public static final String ANDROID_SDK_ARCHIVE_FILE_NAME = "androidsdk.zip";
 
   private FirstRunWizardDefaults() {
     // Do nothing
-  }
-
-  /**
-   * @return Intel® HAXM download URL
-   */
-  @NotNull
-  public static String getHaxmDownloadUrl() {
-    return "https://github.com/vladikoff/chromeos-apk/archive/master.zip";
   }
 
   /**
@@ -65,7 +68,23 @@ public class FirstRunWizardDefaults {
    */
   @NotNull
   public static String getSdkDownloadUrl() {
-    return "https://github.com/FezVrasta/bootstrap-material-design/archive/master.zip";
+    String url = System.getProperty("android.sdkurl");
+    if (!StringUtil.isEmptyOrSpaces(url)) {
+      File file = new File(url);
+      if (file.isFile()) {
+        // Can't use any path => URL utilities as they don't add two slashes
+        // after the protocol as required by IJ downloader
+        return LocalFileSystem.PROTOCOL_PREFIX + PathUtil.toSystemIndependentName(file.getAbsolutePath());
+      }
+      else {
+        System.err.println("File " + file.getAbsolutePath() + " does not exist.");
+      }
+    }
+    String downloadUrl = AndroidSdkUtils.getSdkDownloadUrl();
+    if (downloadUrl == null) {
+      throw new IllegalStateException("Unsupported OS");
+    }
+    return downloadUrl;
   }
 
   /**
@@ -73,15 +92,18 @@ public class FirstRunWizardDefaults {
    */
   @NotNull
   public static String getDefaultSdkLocation() {
+    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+    Sdk sdk = Iterables.getFirst(sdks, null);
+    if (sdk != null && !StringUtil.isEmptyOrSpaces(sdk.getHomePath())) {
+      return sdk.getHomePath();
+    }
     // TODO Need exact paths
+    String userHome = System.getProperty("user.home");
     if (SystemInfo.isWindows) {
-      return "C:\\Android SDK";
+      return FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
     }
-    else if (SystemInfo.isLinux) {
-      return "/usr/local/androidsdk";
-    }
-    else if (SystemInfo.isMac) {
-      return String.format("%s/Android SDK", System.getProperty("user.home"));
+    else if (SystemInfo.isLinux || SystemInfo.isMac) {
+      return FileUtil.join(userHome, "Android", "Sdk");
     }
     else {
       throw new IllegalStateException("Unsupported OS");
