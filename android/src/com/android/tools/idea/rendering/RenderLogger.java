@@ -72,6 +72,7 @@ public class RenderLogger extends LayoutLog {
 
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
+  public static final String TAG_STILL_BUILDING = "project.building";
   private static Set<String> ourIgnoredFidelityWarnings;
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
@@ -189,6 +190,8 @@ public class RenderLogger extends LayoutLog {
       if (facet != null && facet.isGradleProject()) {
         description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
                       "build is complete.\n\n" + description;
+        tag = TAG_STILL_BUILDING;
+        addTag(tag);
       }
     }
 
