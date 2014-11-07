@@ -91,6 +91,12 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
     @Override
     public Set<String> read(@NotNull DataInput in) throws IOException {
       final int size = in.readInt();
+
+      if (size < 0 || size > 65535) { // 65K: maximum number of resources for a given type
+        // Something is very wrong (corrupt index); trigger an index rebuild.
+        throw new IOException("Corrupt Index: Size " + size);
+      }
+
       final Set<String> result = new HashSet<String>(size);
 
       for (int i = 0; i < size; i++) {
