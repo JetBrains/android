@@ -109,7 +109,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     myOverflowMenuButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        myOverflowMenu.show(myOverflowMenuButton, e.getX(), e.getY());
+        myOverflowMenu.show(myOverflowMenuButton, e.getX() - myOverflowMenu.getPreferredSize().width, e.getY());
       }
     });
   }
