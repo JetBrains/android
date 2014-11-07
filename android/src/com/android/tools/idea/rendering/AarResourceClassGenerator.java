@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.ClassContext;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
@@ -189,7 +190,7 @@ public class AarResourceClassGenerator {
         Collection<String> keys = myAarResources.getItemsOfType(type);
         for (String key : keys) {
           Integer initialValue = myAppResources.getResourceId(type, key);
-          cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, key, "I",
+          cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, AndroidResourceUtil.getFieldNameByResourceName(key), "I",
                         null, initialValue).visitEnd();
         }
       }
