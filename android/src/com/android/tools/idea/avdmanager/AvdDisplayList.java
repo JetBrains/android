@@ -107,6 +107,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     newButton.setText(createAvdAction.getText());
     southPanel.add(newButton, BorderLayout.WEST);
     nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
+    myTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.getSelectionModel().addListSelectionListener(this);
     myTable.addMouseListener(myEditingListener);
     myTable.addMouseMotionListener(myEditingListener);
