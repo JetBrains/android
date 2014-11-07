@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.resources.Density;
+import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.CameraLocation;
@@ -59,6 +60,7 @@ import java.util.Set;
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
@@ -112,6 +114,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private SkinChooser mySkinComboBox;
   private JPanel myAvdDisplayNamePanel;
   private JBLabel myAvdNameLabel;
+  private JCheckBox myEnableComputerKeyboard;
+  private JPanel myKeyboardPanel;
   private Set<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
 
@@ -198,8 +202,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     registerComponents();
     deregister(getDescriptionText());
     getDescriptionText().setVisible(false);
+    Device device = myState.get(DEVICE_DEFINITION_KEY);
     if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
-      Device device = myState.get(DEVICE_DEFINITION_KEY);
       SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
       assert device != null && systemImage != null;
       String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
@@ -212,13 +216,14 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myOriginalName = editMode ? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
 
     File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinPath == null && !editMode) {
-      Device device = myState.get(DEVICE_DEFINITION_KEY);
-      if (device != null) {
-        skinPath = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
-      }
+    if (skinPath == null && !editMode && device != null) {
+      skinPath = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
     }
     myState.put(CUSTOM_SKIN_FILE_KEY, skinPath != null ? skinPath : NO_SKIN);
+
+    if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
+      myEnableComputerKeyboard.setEnabled(false);
+    }
   }
 
   private static String uniquifyDisplayName(String name) {
@@ -573,6 +578,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
     setControlDescription(mySkinComboBox, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
 
+    if (!myState.containsKey(HAS_HARDWARE_KEYBOARD_KEY)) {
+      myState.put(HAS_HARDWARE_KEYBOARD_KEY, true);
+    }
+    register(HAS_HARDWARE_KEYBOARD_KEY, myEnableComputerKeyboard);
+    setControlDescription(myEnableComputerKeyboard, myAvdConfigurationOptionHelpPanel.getDescription(HAS_HARDWARE_KEYBOARD_KEY));
+
     invokeUpdate(null);
   }
 
@@ -718,8 +729,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   };
 
   private void registerAdvancedOptionsVisibility() {
-    myAdvancedOptionsComponents =
-      ImmutableSet.<JComponent>of(myMemoryAndStoragePanel, myCameraPanel, myNetworkPanel, mySkinPanel, myAvdIdLabel, myAvdId);
+    myAdvancedOptionsComponents = ImmutableSet.<JComponent>of(myMemoryAndStoragePanel, myCameraPanel, myNetworkPanel,
+                                                              mySkinPanel, myAvdIdLabel, myAvdId, myKeyboardPanel);
   }
 
   /**
