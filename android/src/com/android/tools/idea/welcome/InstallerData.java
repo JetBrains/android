@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome;
 import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.base.Objects;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
@@ -126,7 +127,7 @@ public class InstallerData {
   }
 
   public boolean hasValidSdkLocation() {
-    return exists() && SdkComponentsStep.validateDestinationPath(getAndroidDest(), AndroidSdk.SIZE) == null;
+    return exists() && !WizardUtils.validateLocation(getAndroidDest(), SdkComponentsStep.FIELD_SDK_LOCATION, false).isError();
   }
 
   public boolean hasValidJdkLocation() {
