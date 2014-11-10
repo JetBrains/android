@@ -18,6 +18,7 @@ package org.jetbrains.android.run;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.base.Predicate;
@@ -124,9 +125,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myAvdCombo.getComboBox().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final String warning = myEmulatorRadioButton.isSelected()
-                               ? getAvdCompatibilityWarning()
-                               : null;
+        final String warning = myEmulatorRadioButton.isSelected() ? getAvdCompatibilityWarning() : null;
         resetAvdCompatibilityWarningLabel(warning);
       }
     });
@@ -180,9 +179,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   @Nullable
   private String getAvdCompatibilityWarning() {
-    final String selectedAvdName = (String)myAvdCombo.getComboBox().getSelectedItem();
+    IdDisplay selectedItem = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
 
-    if (selectedAvdName != null) {
+    if (selectedItem != null) {
+      final String selectedAvdName = selectedItem.getId();
       final Module module = getModuleSelector().getModule();
       if (module == null) {
         return null;
@@ -254,6 +254,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
             if (value == null) {
               setText("<html><font color='red'>" + avd + "</font></html>");
+            }
+            else if (value instanceof IdDisplay) {
+              setText(((IdDisplay)value).getDisplay());
+            }
+            else {
+              setText(value.toString());
             }
           }
         });
@@ -331,11 +337,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.FILTER_LOGCAT_AUTOMATICALLY = myFilterLogcatCheckBox.isSelected();
     if (myAvdComboComponent.isEnabled()) {
       JComboBox combo = myAvdCombo.getComboBox();
-      String preferredAvd = (String)combo.getSelectedItem();
+      IdDisplay preferredAvd = (IdDisplay)combo.getSelectedItem();
       if (preferredAvd == null) {
-        preferredAvd = incorrectPreferredAvd != null ? incorrectPreferredAvd : "";
+        configuration.PREFERRED_AVD = incorrectPreferredAvd != null ? incorrectPreferredAvd : "";
       }
-      configuration.PREFERRED_AVD = preferredAvd;
+      else {
+        configuration.PREFERRED_AVD = preferredAvd.getId();
+      }
     }
     myConfigurationSpecificEditor.applyTo(configuration);
   }
