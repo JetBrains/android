@@ -17,8 +17,8 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.google.common.collect.Maps;
+import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.IdeErrorsDialog;
-import com.intellij.diagnostic.LogMessageEx;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
@@ -88,8 +88,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
 
     Object data = event.getData();
 
-    if (data instanceof LogMessageEx) {
-      bean.setAttachments(((LogMessageEx)data).getAttachments());
+    if (data instanceof AbstractMessage) {
+      bean.setAttachments(((AbstractMessage)data).getAttachments());
     }
 
     List<Pair<String, String>> kv = IdeaITNProxy
