@@ -748,7 +748,7 @@ public class AndroidLintInspectionToolProvider {
       if (before != null && before.endsWith("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
-          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", before, "specific version") {
+          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", plus.getFullRevision(), "specific version") {
             @Nullable
             @Override
             protected String getNewValue() {
@@ -765,7 +765,7 @@ public class AndroidLintInspectionToolProvider {
                 if (libraryCoordinate != null) {
                   GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
                   if (available != null) {
-                    return available.toString();
+                    return available.getFullRevision();
                   }
                 }
                 // If that didn't yield any matches, try again, this time allowing preview platforms.
@@ -783,7 +783,7 @@ public class AndroidLintInspectionToolProvider {
               // Regular Gradle dependency? Look in Gradle cache
               GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter);
               if (found != null) {
-                return found.toString();
+                return found.getFullRevision();
               }
 
               return null;
