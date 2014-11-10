@@ -24,7 +24,6 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
@@ -48,7 +47,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -122,7 +120,6 @@ public class ProjectSyncMessages {
       buildFile = gradleProject.getBuildFile();
     }
 
-
     for (String dep : unresolvedDependencies) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       File androidHome = getAndroidHome(module);
@@ -130,14 +127,14 @@ public class ProjectSyncMessages {
       if (dep.startsWith("com.android.support")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
         File repository = SdkMavenRepository.ANDROID.getRepositoryLocation(androidHome, true);
-        if (repository != null) {
+        if (repository == null || !repository.isDirectory()) {
           hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
         }
       }
       else if (dep.startsWith("com.google.android.gms")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
         File repository = SdkMavenRepository.GOOGLE.getRepositoryLocation(androidHome, true);
-        if (repository != null) {
+        if (repository == null || !repository.isDirectory()) {
           hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
         }
       }
@@ -230,6 +227,7 @@ public class ProjectSyncMessages {
       requested.add(PkgDesc.Builder.newExtra(myIdDisplay, myPath, myDisplayName, null, new NoPreviewRevision(1)).create());
       SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
       wizard.init();
+      wizard.setTitle("Install Missing Components");
       if (wizard.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }

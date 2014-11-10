@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -32,11 +33,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.finder.WindowFinder;
+import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -60,10 +69,70 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
+  @Test @IdeGuiTest
+  public void testSyncMissingAppCompat() throws IOException {
+    File androidRepoPath = new File(DefaultSdks.getDefaultAndroidHome(), FileUtil.join("extras", "android", "m2repository"));
+    assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test")
+                               .isDirectory();
+
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    assertTrue("Android Support Repository deleted", FileUtil.delete(androidRepoPath));
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    MessageFixture message =
+      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to find:"));
+
+    HyperlinkFixture hyperlink = message.findHyperlink("Install Repository and sync project");
+    hyperlink.click(false);
+
+    // TODO implement a proper "SDK Quick Fix wizard" fixture that wraps a SdkQuickfixWizard
+    DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
+      @Override
+      protected boolean isMatching(Dialog dialog) {
+        return "Install Missing Components".equals(dialog.getTitle());
+      }
+    }).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
+
+    // Accept license
+    quickFixDialog.radioButton(new GenericTypeMatcher<JRadioButton>(JRadioButton.class) {
+      @Override
+      protected boolean isMatching(JRadioButton button) {
+        return "Accept".equals(button.getText());
+      }
+    }).click();
+
+    quickFixDialog.button(withText("Next")).click();
+    final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
+
+    // Wait until installation is finished. By then the "Finish" button will be enabled.
+    Pause.pause(new Condition("Android Support Repository is installed") {
+      @Override
+      public boolean test() {
+        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+          @Override
+          protected Boolean executeInEDT() {
+            return finish.target.isEnabled();
+          }
+        });
+      }
+    }, LONG_TIMEOUT);
+
+    // Installation finished. Click finish to resync project.
+    finish.click();
+
+    projectFrame.waitForGradleProjectSyncToFinish().waitForBackgroundTasksToFinish();
+
+    assertThat(androidRepoPath).as("Android Support Repository must have been reinstalled")
+                               .isDirectory();
+  }
+
   @Test @IdeGuiTest
   public void testSyncDoesNotChangeDependenciesInBuildFiles() throws IOException {
     File projectPath = setUpProject("MultiModule", true, true, null);
@@ -242,8 +311,6 @@ public class GradleSyncTest extends GuiTestCase {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
     createEmptyGradleSettingsFile(projectFrame.getProjectPath());
-
-    projectFrame.requestProjectSync();
 
     // Sync should be successful for multi-module projects with an empty settings.gradle file.
     projectFrame.requestProjectSync()
