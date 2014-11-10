@@ -696,21 +696,29 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                    Set<String> registeredSubTags,
                                                    Set<XmlName> skipAttrNames) {
     if (tagName.equals(FADE_TAG)) {
-      registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      registerAttributes(facet, element, "Fade", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
-    } else if (tagName.equals(AUTO_TRANSITION_TAG) || tagName.equals(CHANGE_BOUNDS_TAG)) {
-      registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "Fade");
     } else if (tagName.equals(TRANSITION_SET_TAG)) {
-      registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      registerAttributes(facet, element, "TransitionSet", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "TransitionSet");
 
       registerSubtags(TRANSITION_SET_TAG, TransitionSet.class, callback, registeredSubTags);
+
+      // See TransitionInflater#createTransitionFromXml:
       registerSubtags(FADE_TAG, Fade.class, callback, registeredSubTags);
-      registerSubtags(AUTO_TRANSITION_TAG, AutoTransition.class, callback, registeredSubTags);
       registerSubtags(CHANGE_BOUNDS_TAG, ChangeBounds.class, callback, registeredSubTags);
+      registerSubtags(SLIDE_TAG, Slide.class, callback, registeredSubTags);
+      registerSubtags(EXPLODE_TAG, Explode.class, callback, registeredSubTags);
+      registerSubtags(CHANGE_IMAGE_TRANSFORM_TAG, ChangeImageTransform.class, callback, registeredSubTags);
+      registerSubtags(CHANGE_TRANSFORM_TAG, ChangeTransform.class, callback, registeredSubTags);
+      registerSubtags(CHANGE_CLIP_BOUNDS_TAG, ChangeClipBounds.class, callback, registeredSubTags);
+      registerSubtags(AUTO_TRANSITION_TAG, AutoTransition.class, callback, registeredSubTags);
+      registerSubtags(RECOLOR_TAG, Recolor.class, callback, registeredSubTags);
+      registerSubtags(CHANGE_SCROLL_TAG, ChangeScroll.class, callback, registeredSubTags);
+      registerSubtags(ARC_MOTION_TAG, ArcMotion.class, callback, registeredSubTags);
+      registerSubtags(PATH_MOTION_TAG, PathMotion.class, callback, registeredSubTags);
+      registerSubtags(PATTERN_PATH_MOTION_TAG, PatternPathMotion.class, callback, registeredSubTags);
+
+      // Check whether I also have for "transition":Transition
+
     } else if (tagName.equals(TRANSITION_MANAGER_TAG)) {
       registerSubtags(TRANSITION_TAG, TransitionTag.class, callback, registeredSubTags);
     } else if (tagName.equals(TRANSITION_TAG)) {
@@ -719,7 +727,37 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerSubtags(TARGET_TAG, Target.class, callback, registeredSubTags);
     } else if (tagName.equals(TARGET_TAG)) {
       registerAttributes(facet, element, "TransitionTarget", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    } else if (tagName.equals(SLIDE_TAG)) {
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "Slide");
+    } else if (tagName.equals(CHANGE_TRANSFORM_TAG)) {
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "ChangeTransform");
+    } else if (tagName.equals(ARC_MOTION_TAG)) {
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "ArcMotion");
+    } else if (tagName.equals(PATTERN_PATH_MOTION_TAG)) {
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "PatternPathMotion");
+    } else if (tagName.equals(AUTO_TRANSITION_TAG)
+               || tagName.equals(CHANGE_BOUNDS_TAG)
+               || tagName.equals(EXPLODE_TAG)
+               || tagName.equals(CHANGE_IMAGE_TRANSFORM_TAG)
+               || tagName.equals(CHANGE_CLIP_BOUNDS_TAG)
+               || tagName.equals(RECOLOR_TAG)
+               || tagName.equals(CHANGE_SCROLL_TAG)
+               || tagName.equals(PATH_MOTION_TAG)) {
+      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, null);
     }
+  }
+
+  public static void registerTransition(AndroidFacet facet,
+                                        TransitionDomElement element,
+                                        MyCallback callback,
+                                        Set<String> registeredSubTags,
+                                        Set<XmlName> skipAttrNames,
+                                        @Nullable String specific) {
+    registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    if (specific != null) {
+      registerAttributes(facet, element, specific, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
+    registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
   }
 
   @Nullable
