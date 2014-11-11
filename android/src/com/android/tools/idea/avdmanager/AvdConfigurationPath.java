@@ -34,7 +34,7 @@ public class AvdConfigurationPath extends DynamicWizardPath {
   @Override
   protected void init() {
     addStep(new ChooseDeviceDefinitionStep(myDisposable));
-    addStep(new ChooseSystemImageStep(myDisposable));
+    addStep(new ChooseSystemImageStep(getProject(), myDisposable));
   }
 
   @Override
