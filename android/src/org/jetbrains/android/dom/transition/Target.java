@@ -26,7 +26,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 public interface Target extends TransitionDomElement {
   @Attribute("targetId") // without this it infers "target-id"
   @Convert(ResourceReferenceConverter.class)
-  @Required
   @AndroidResourceType("id")
   AndroidAttributeValue<ResourceValue> getTargetId();
 }
