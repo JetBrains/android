@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.internal.repository.packages.*;
+import com.android.sdklib.internal.repository.packages.SystemImagePackage;
 import com.android.sdklib.internal.repository.sources.SdkSource;
 import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.MajorRevision;
@@ -31,15 +31,13 @@ import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.ui.*;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -158,44 +156,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
           if (column == 1) {
             // API levels: Sort numerically, but the column is of type String.class since
             // it can contain preview codenames as well
-            return new Comparator<String>() {
-              @Override
-              public int compare(String s1, String s2) {
-                int api1 = -1; // not a valid API level
-                int api2 = -1;
-                try {
-                  if (!s1.isEmpty() && Character.isDigit(s1.charAt(0))) {
-                    api1 = Integer.parseInt(s1);
-                  }
-                }
-                catch (NumberFormatException e) {
-                  // ignore; still negative value
-                }
-                try {
-                  if (!s2.isEmpty() && Character.isDigit(s2.charAt(0))) {
-                    api2 = Integer.parseInt(s2);
-                  }
-                }
-                catch (NumberFormatException e) {
-                  // ignore; still negative value
-                }
-                if (api1 != -1 && api2 != -1) {
-                  return api1 - api2; // descending order
-                }
-                else if (api1 == -1) {
-                  // Only the second value is a number: Sort preview platforms to the end
-                  return 1;
-                }
-                else if (api2 == -1) {
-                  // Only the first value is a number: Sort preview platforms to the end
-                  return -1;
-                }
-                else {
-                  // Alphabetic sort when both API versions are codenames
-                  return s1.compareTo(s2);
-                }
-              }
-            };
+            return new ApiLevelComparator();
           }
           // We could consider sorting
 
