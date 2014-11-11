@@ -195,11 +195,9 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
       // The command-line API is a bit archaic and has some drastic limitations, one of them being that
       // it blindly re-install stuff even if already present IIRC.
 
-      String osSdkFolder = mySdkData.getLocation().getPath();
-      SdkManager sdkManager = SdkManager.createManager(osSdkFolder, myLogger);
-
+      SdkManager sdkManager = SdkManager.createManager(mySdkData.getLocalSdk());
       SdkUpdaterNoWindow upd = new SdkUpdaterNoWindow(
-        osSdkFolder,
+        mySdkData.getLocation().getPath(),
         sdkManager,
         myLogger,
         false,  // force -- The reply to any question asked by the update process.
@@ -241,6 +239,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
           if (sdkDir != null) {
             sdkDir.refresh(true, true);
           }
+          mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
         }
       });
     }
