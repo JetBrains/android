@@ -117,8 +117,10 @@ public class SystemImagePreview extends JPanel {
     g2d.setFont(AvdWizardConstants.TITLE_FONT);
     FontMetrics metrics = g.getFontMetrics(AvdWizardConstants.TITLE_FONT);
     String codeName = getCodeName(myImageDescription);
-    g2d.drawString(codeName, PADDING, PADDING + metrics.getHeight() / 2);
-    g2d.drawLine(0, 50, getWidth(), 50);
+    if (codeName != null) {
+      g2d.drawString(codeName, PADDING, PADDING + metrics.getHeight() / 2);
+      g2d.drawLine(0, 50, getWidth(), 50);
+    }
 
     // Paint our icon
     Icon icon = getIcon(codeName);
@@ -225,6 +227,7 @@ public class SystemImagePreview extends JPanel {
   /**
    * @return the codename for the given System Image's API level
    */
+  @Nullable
   public static String getCodeName(@NotNull SystemImageDescription description) {
     return SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
   }
