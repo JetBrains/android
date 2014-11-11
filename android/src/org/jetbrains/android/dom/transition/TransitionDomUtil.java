@@ -32,16 +32,36 @@ public class TransitionDomUtil {
   public static final String TARGET_TAG = "target";
   public static final String CHANGE_BOUNDS_TAG = "changeBounds";
   public static final String AUTO_TRANSITION_TAG = "autoTransition";
+  public static final String SLIDE_TAG = "slide";
+  public static final String EXPLODE_TAG = "explode";
+  public static final String CHANGE_IMAGE_TRANSFORM_TAG = "changeImageTransform";
+  public static final String CHANGE_TRANSFORM_TAG = "changeTransform";
+  public static final String CHANGE_CLIP_BOUNDS_TAG = "changeClipBounds";
+  public static final String RECOLOR_TAG = "recolor";
+  public static final String CHANGE_SCROLL_TAG = "changeScroll";
+  public static final String ARC_MOTION_TAG = "arcMotion";
+  public static final String PATH_MOTION_TAG = "pathMotion";
+  public static final String PATTERN_PATH_MOTION_TAG = "patternPathMotion";
 
   public static final String DEFAULT_ROOT = TRANSITION_MANAGER_TAG;
   private static final String[] ROOTS =
     new String[] {
       TRANSITION_MANAGER_TAG,
       TRANSITION_SET_TAG,
+      TARGETS_TAG,
       FADE_TAG,
       CHANGE_BOUNDS_TAG,
+      SLIDE_TAG,
+      EXPLODE_TAG,
+      CHANGE_IMAGE_TRANSFORM_TAG,
+      CHANGE_TRANSFORM_TAG,
+      CHANGE_CLIP_BOUNDS_TAG,
       AUTO_TRANSITION_TAG,
-      TARGETS_TAG
+      RECOLOR_TAG,
+      CHANGE_SCROLL_TAG,
+      ARC_MOTION_TAG,
+      PATH_MOTION_TAG,
+      PATTERN_PATH_MOTION_TAG
     };
 
   private TransitionDomUtil() {
