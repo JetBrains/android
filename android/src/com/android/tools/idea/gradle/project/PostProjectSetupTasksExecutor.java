@@ -23,6 +23,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
@@ -61,7 +63,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -88,6 +89,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -151,6 +153,11 @@ public class PostProjectSetupTasksExecutor {
           AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
           if (additionalData != null && sdkData != null) {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+            if (target == null) {
+              LocalSdk localSdk = sdkData.getLocalSdk();
+              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
+              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
+            }
             if (target != null) {
               SdkModificator sdkModificator = sdk.getSdkModificator();
               sdkModificator.removeAllRoots();
