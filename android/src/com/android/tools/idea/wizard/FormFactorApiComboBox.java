@@ -54,12 +54,18 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
 */
 public final class FormFactorApiComboBox extends JComboBox {
   private static final Logger LOG = Logger.getInstance(FormFactorApiComboBox.class);
+
+  // Set of installed targets and versions. TODO: These fields should not be static; that causes
+  // the versions to not stay up to date when new versions are installed.  In the constructor
+  // we've removed the lazy evaluation, so for every new FormFactorApiComboBox that we construct,
+  // this (shared) list is reinitialized. Ideally we'd make these instance lists, but there's
+  // some control flow now where a wizard page updates these lists, so without making bigger
+  // changes to the code we'll leave it this way for now.
   private static final Set<AndroidVersion> ourInstalledVersions = Sets.newHashSet();
   private static final List<AndroidTargetComboBoxItem> ourTargets = Lists.newArrayList();
   private static IAndroidTarget ourHighestInstalledApiTarget;
 
   @NotNull private FormFactor myFormFactor;
-
 
   private IPkgDesc myInstallRequest;
   private Key<String> myBuildApiKey;
@@ -77,11 +83,14 @@ public final class FormFactorApiComboBox extends JComboBox {
 
   public void init(@NotNull FormFactor formFactor, int minSdkLevel) {
     myFormFactor = formFactor;
-    if (ourHighestInstalledApiTarget == null) {
-      // Do one time initialization here
-      loadTargets();
-      loadInstalledVersions();
-    }
+
+    // These target lists used to be initialized just once. However, that resulted
+    // in a bug where after installing new targets, it keeps believing the new targets
+    // to not be available and requiring another install. We should just compute them
+    // once - it's not an expensive operation (calling both takes 1-2 ms.)
+    loadTargets();
+    loadInstalledVersions();
+
     myBuildApiKey = FormFactorUtils.getBuildApiKey(formFactor);
     myBuildApiLevelKey = FormFactorUtils.getBuildApiLevelKey(formFactor);
     myTargetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(formFactor);
@@ -362,6 +371,14 @@ public final class FormFactorApiComboBox extends JComboBox {
       } else if (ourHighestInstalledApiTarget != null) {
         state.put(myTargetApiLevelKey, ourHighestInstalledApiTarget.getVersion().getApiLevel());
         state.put(myTargetApiStringKey, ourHighestInstalledApiTarget.getVersion().getApiString());
+      }
+
+      // Are we installing a new platform (so we don't have an IAndroidTarget yet) ?
+      // If so, adjust compile and target sdk to that new platform
+      if (apiTarget != null && apiLevel > apiTarget.getVersion().getApiLevel()) {
+        state.put(myBuildApiKey, Integer.toString(apiLevel));
+        state.put(myTargetApiStringKey, Integer.toString(apiLevel));
+        // myBuildApiLevelKey is already correct
       }
     }
   }
