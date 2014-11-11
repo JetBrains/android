@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,6 +32,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -54,6 +54,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
@@ -71,6 +72,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -505,7 +507,7 @@ public final class GradleUtil {
   @NotNull
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
     List<String> segments = getPathSegments(name);
-    return FileUtil.join(segments.toArray(new String[segments.size()]));
+    return FileUtil.join(ArrayUtil.toStringArray(segments));
   }
 
   /**
@@ -836,14 +838,39 @@ public final class GradleUtil {
 
   @Nullable
   private static File getAndroidStudioLocalMavenRepoPath() {
-    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-    if (androidHomePath != null) {
-      File repoPath = new File(androidHomePath, FileUtil.join("gradle", "m2repository"));
-      if (repoPath.isDirectory()) {
-        return repoPath;
+    File repoPath = new File(getEmbeddedGradleArtifactsDirPath(), "m2repository");
+    LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
+    return repoPath.isDirectory() ? repoPath : null;
+  }
+
+  public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+    if (wrapperPropertiesFile != null) {
+      String gradleVersion = null;
+      try {
+        gradleVersion = getGradleWrapperVersion(wrapperPropertiesFile);
+      }
+      catch (IOException e) {
+        LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
+      }
+      if (gradleVersion != null && gradleVersion.equals(SdkConstants.GRADLE_STUDIO_EMBEDDED_VERSION)) {
+        File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + gradleVersion);
+        LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
+        if (embeddedPath.isDirectory()) {
+          GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+          if (gradleSettings != null) {
+            gradleSettings.setDistributionType(DistributionType.LOCAL);
+            gradleSettings.setGradleHome(embeddedPath.getPath());
+          }
+        }
       }
     }
-    return null;
+  }
+
+  @NotNull
+  private static File getEmbeddedGradleArtifactsDirPath() {
+    String homePath = PathManager.getHomePath();
+    return new File(homePath, "gradle");
   }
 
   @VisibleForTesting
