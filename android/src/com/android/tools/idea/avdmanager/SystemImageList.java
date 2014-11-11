@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.internal.repository.packages.SystemImagePackage;
+import com.android.sdklib.internal.repository.packages.*;
 import com.android.sdklib.internal.repository.sources.SdkSource;
 import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.MajorRevision;
@@ -301,7 +301,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
     else {
       for (SdkSource source : sources.getAllSources()) {
-        for (com.android.sdklib.internal.repository.packages.Package pack : source.getPackages()) {
+        com.android.sdklib.internal.repository.packages.Package[] sourcePackages = source.getPackages();
+        if (sourcePackages == null) {
+          continue;
+        }
+        for (com.android.sdklib.internal.repository.packages.Package pack : sourcePackages) {
           if (!(pack instanceof SystemImagePackage)) {
             continue;
           }
