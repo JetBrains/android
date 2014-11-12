@@ -29,8 +29,6 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myUnusedDeclarationToolWrapper = getUnusedDeclarationWrapper();
-    UnusedDeclarationInspection unusedDeclarationTool = (UnusedDeclarationInspection)myUnusedDeclarationToolWrapper.getTool();
-    unusedDeclarationTool.setEnabledInEditor(true);
   }
 
   private static GlobalInspectionToolWrapper getUnusedDeclarationWrapper() {
@@ -38,7 +36,8 @@ public class AndroidInspectionsTest extends AndroidTestCase {
     ep.presentation = UnusedDeclarationPresentation.class.getName();
     ep.implementationClass = UnusedDeclarationInspection.class.getName();
     ep.shortName = UnusedDeclarationInspectionBase.SHORT_NAME;
-    return new GlobalInspectionToolWrapper(ep);
+    UnusedDeclarationInspection tool = new UnusedDeclarationInspection(true);
+    return new GlobalInspectionToolWrapper(tool, ep);
   }
 
   public void testActivityInstantiated1() throws Throwable {
@@ -99,9 +98,9 @@ public class AndroidInspectionsTest extends AndroidTestCase {
     for (EntryPoint entryPoint : extensions) {
       if (entryPoint instanceof AndroidComponentEntryPoint) {
         try {
-          result = (AndroidComponentEntryPoint)entryPoint.clone();
+          result = (AndroidComponentEntryPoint)entryPoint;
         }
-        catch (CloneNotSupportedException e) {
+        catch (Exception e) {
           throw new RuntimeException(e);
         }
       }
