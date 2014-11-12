@@ -853,7 +853,7 @@ public final class GradleUtil {
       catch (IOException e) {
         LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
       }
-      if (gradleVersion != null && gradleVersion.equals(SdkConstants.GRADLE_STUDIO_EMBEDDED_VERSION)) {
+      if (gradleVersion != null && gradleVersion.equals(SdkConstants.GRADLE_LATEST_VERSION)) {
         File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + gradleVersion);
         LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
         if (embeddedPath.isDirectory()) {
