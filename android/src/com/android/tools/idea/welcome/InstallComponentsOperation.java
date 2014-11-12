@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -32,7 +32,9 @@ import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -113,9 +115,9 @@ public final class InstallComponentsOperation implements ThrowableComputable<Voi
     // TODO: Prompt about connection in handoff case?
     Set<String> packages = Sets.newHashSet();
     for (InstallableComponent component : myComponents) {
-      for (PkgDesc.Builder pkg : component.getRequiredSdkPackages()) {
+      for (IPkgDesc pkg : component.getRequiredSdkPackages()) {
         if (pkg != null) {
-          packages.add(pkg.create().getInstallId());
+          packages.add(pkg.getInstallId());
         }
       }
     }
@@ -147,7 +149,7 @@ public final class InstallComponentsOperation implements ThrowableComputable<Voi
         updater.updateAll(packages, true, false, null);
       }
       else {
-        myContext.print("Android SDK is up to date", ConsoleViewContentType.SYSTEM_OUTPUT);
+        myContext.print("Android SDK is up to date.\n", ConsoleViewContentType.SYSTEM_OUTPUT);
         indicator.setFraction(1.0); // 100%
       }
       return null;
