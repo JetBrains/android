@@ -16,9 +16,11 @@
 package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -56,6 +58,7 @@ import java.util.List;
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.PATH, Boolean.class);
+  public static final AndroidVersion LATEST_ANDROID_VERSION = new AndroidVersion(21, null);
   private static final ScopedStateStore.Key<String> KEY_SDK_INSTALL_LOCATION =
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
   private final ProgressStep myProgressStep;
@@ -73,10 +76,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason) {
     AndroidSdk androidSdk = new AndroidSdk();
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      return new InstallableComponent[]{androidSdk, new Haxm(KEY_CUSTOM_INSTALL)};
+      return new InstallableComponent[]{androidSdk, new Haxm(KEY_CUSTOM_INSTALL), new AndroidVirtualDevice()};
     }
     else {
-      return new InstallableComponent[]{androidSdk};
+      return new InstallableComponent[]{androidSdk, new AndroidVirtualDevice()};
     }
   }
 
@@ -175,11 +178,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Nullable
   @Contract("false, _, _ -> null;true, _, _ -> !null")
-  public static PkgDesc.Builder createExtra(boolean shouldInstallFlag, String vendor, String path) {
+  public static IPkgDesc createExtra(boolean shouldInstallFlag, IdDisplay vendor, String path) {
     if (!shouldInstallFlag) {
       return null;
     }
-    return PkgDesc.Builder.newExtra(new IdDisplay(vendor, ""), path, "", null, new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV));
+    return PkgDesc.Builder.newExtra(vendor, path, "", null,
+                                    new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV)).create();
   }
 
   private static File mergeRepoIntoDestination(final InstallContext context,
