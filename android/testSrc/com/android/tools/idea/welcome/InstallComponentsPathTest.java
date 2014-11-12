@@ -62,14 +62,16 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
   @Override
   public void setUp() throws Exception {
-    Assume.assumeTrue("Android SDK install test is disabled", Boolean.getBoolean("test.androidsdk.install"));
-    super.setUp();
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    myFixture.setUp();
-    myFixture.setTestDataPath(getTestDataPath());
-    tempDir = Files.createTempDir();
+    System.err.println("Tests in '" + getClass().getName() + "' are disabled");
+    if (false) {
+      super.setUp();
+      final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+        IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+      myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+      myFixture.setUp();
+      myFixture.setTestDataPath(getTestDataPath());
+      tempDir = Files.createTempDir();
+    }
   }
 
   @Override
@@ -79,7 +81,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     super.tearDown();
   }
 
-  public void testDownloadSeed() throws WizardException {
+  public void DISABLEDtestDownloadSeed() throws WizardException {
     File destination = new File(tempDir, "android-sdk-seed-install");
     boolean result = InstallComponentsPath.downloadAndUnzipSdkSeed(new InstallContext(tempDir), destination, 1);
     assertTrue("Operation was canceled", result);
@@ -94,7 +96,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     assertEquals("Missing folders: " + Joiner.on(", ").join(expectedDirs), 0, expectedDirs.size());
   }
 
-  public void testNewInstall() throws IOException, WizardException {
+  public void DISABLEDtestNewInstall() throws IOException, WizardException {
     File destination = new File(tempDir, getName());
     InstallContext context = new InstallContext(tempDir);
     InstallComponentsPath.downloadAndUnzipSdkSeed(context, destination, 1);
