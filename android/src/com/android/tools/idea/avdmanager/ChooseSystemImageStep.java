@@ -21,6 +21,7 @@ import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +41,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   private JPanel myPanel;
   private SystemImagePreview mySystemImagePreview;
   private Device myCurrentDevice;
+  private Project myProject;
 
-  public ChooseSystemImageStep(@Nullable Disposable parentDisposable) {
+  public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
     super("System Image", "Select a system image", null, parentDisposable);
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
@@ -114,5 +116,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   @Override
   protected JBColor getTitleTextColor() {
     return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  }
+
+  private void createUIComponents() {
+    mySystemImageList = new SystemImageList(myProject);
   }
 }
