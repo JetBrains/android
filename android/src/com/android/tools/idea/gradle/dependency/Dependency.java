@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependency;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.JavaLibrary;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -131,6 +128,10 @@ public abstract class Dependency {
 
   @NotNull
   private static String getLibraryName(@NotNull AndroidLibrary library) {
+    MavenCoordinates coordinates = library.getResolvedCoordinates();
+    if (coordinates != null) {
+      return coordinates.getArtifactId() + "-" + coordinates.getVersion();
+    }
     File bundle = library.getBundle();
     return FileUtil.getNameWithoutExtension(bundle);
   }
