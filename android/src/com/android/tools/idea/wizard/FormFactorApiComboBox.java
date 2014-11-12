@@ -214,6 +214,7 @@ public final class FormFactorApiComboBox extends JComboBox {
    * Load the definitions of the android compilation targets
    */
   private static void loadTargets() {
+    ourTargets.clear();
     IAndroidTarget[] targets = getCompilationTargets();
 
     if (AndroidSdkUtils.isAndroidSdkAvailable()) {
@@ -240,6 +241,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     IAndroidTarget[] targets = getCompilationTargets();
 
     IAndroidTarget highestInstalledTarget = null;
+    ourInstalledVersions.clear();
     for (IAndroidTarget target : targets) {
       if (highestInstalledTarget == null ||
           target.getVersion().getFeatureLevel() > highestInstalledTarget.getVersion().getFeatureLevel() &&
