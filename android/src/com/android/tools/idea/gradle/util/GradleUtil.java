@@ -843,36 +843,6 @@ public final class GradleUtil {
     return repoPath.isDirectory() ? repoPath : null;
   }
 
-  public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile != null) {
-      String gradleVersion = null;
-      try {
-        gradleVersion = getGradleWrapperVersion(wrapperPropertiesFile);
-      }
-      catch (IOException e) {
-        LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
-      }
-      if (gradleVersion != null && gradleVersion.equals(SdkConstants.GRADLE_LATEST_VERSION)) {
-        File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + gradleVersion);
-        LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-        if (embeddedPath.isDirectory()) {
-          GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
-          if (gradleSettings != null) {
-            gradleSettings.setDistributionType(DistributionType.LOCAL);
-            gradleSettings.setGradleHome(embeddedPath.getPath());
-          }
-        }
-      }
-    }
-  }
-
-  @NotNull
-  private static File getEmbeddedGradleArtifactsDirPath() {
-    String homePath = PathManager.getHomePath();
-    return new File(homePath, "gradle");
-  }
-
   @VisibleForTesting
   @Nullable
   static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
@@ -896,6 +866,38 @@ public final class GradleUtil {
       LOG.warn("Failed to set up 'local repo' Gradle init script", e);
     }
     return null;
+  }
+
+  public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+      if (wrapperPropertiesFile != null) {
+        String gradleVersion = null;
+        try {
+          gradleVersion = getGradleWrapperVersion(wrapperPropertiesFile);
+        }
+        catch (IOException e) {
+          LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
+        }
+        if (gradleVersion != null && gradleVersion.equals(SdkConstants.GRADLE_LATEST_VERSION)) {
+          File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + gradleVersion);
+          LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
+          if (embeddedPath.isDirectory()) {
+            GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+            if (gradleSettings != null) {
+              gradleSettings.setDistributionType(DistributionType.LOCAL);
+              gradleSettings.setGradleHome(embeddedPath.getPath());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @NotNull
+  private static File getEmbeddedGradleArtifactsDirPath() {
+    String homePath = PathManager.getHomePath();
+    return new File(homePath, "gradle");
   }
 
   /**
