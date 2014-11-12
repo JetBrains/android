@@ -296,7 +296,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
     },
     new AvdColumnInfo("API", 50) {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
         IAndroidTarget target = avdInfo.getTarget();
@@ -304,6 +304,22 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
           return "N/A";
         }
         return target.getVersion().getApiString();
+      }
+
+      /**
+       * We override the comparator here to sort the API levels numerically (when possible;
+       * with preview platforms codenames are compared alphabetically)
+       */
+      @Nullable
+      @Override
+      public Comparator<AvdInfo> getComparator() {
+        final ApiLevelComparator comparator = new ApiLevelComparator();
+        return new Comparator<AvdInfo>() {
+          @Override
+          public int compare(AvdInfo o1, AvdInfo o2) {
+            return comparator.compare(valueOf(o1), valueOf(o2));
+          }
+        };
       }
     },
     new AvdColumnInfo("Target") {
