@@ -17,10 +17,13 @@ package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -38,6 +41,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 /**
  * Intel® HAXM installable component
@@ -46,7 +50,7 @@ public final class Haxm extends InstallableComponent {
   // In UI we cannot use longs, so we need to pick a unit other then byte
   public static final Storage.Unit UI_UNITS = Storage.Unit.MiB;
   public static final Logger LOG = Logger.getInstance(Haxm.class);
-  public static final String COMPONENT_VENDOR = "intel";
+  public static final IdDisplay ID_INTEL = new IdDisplay("intel", "");
   public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
   private static final ScopedStateStore.Key<Boolean> KEY_INSTALL_HAXM =
     ScopedStateStore.createKey("install.haxm", ScopedStateStore.Scope.PATH, Boolean.class);
@@ -186,7 +190,10 @@ public final class Haxm extends InstallableComponent {
   }
 
   /**
-   * @return command line object or <code>null</code> if OS is not supported
+   * Create a platform-dependant command line for running the silent HAXM installer.
+   *
+   * @return command line object
+   * @throws java.lang.IllegalStateException if called on an unsupported OS
    */
   @NotNull
   private GeneralCommandLine getCommandLine(File sdk) {
@@ -194,7 +201,7 @@ public final class Haxm extends InstallableComponent {
     progressIndicator.setIndeterminate(true);
     progressIndicator.setText("Running Intel® HAXM installer");
     int memorySize = myState.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
-    String path = FileUtil.join(SdkConstants.FD_EXTRAS, COMPONENT_VENDOR, COMPONENT_PATH);
+    String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     File sourceLocation = new File(sdk, path);
     if (SystemInfo.isMac) {
       return getMacHaxmInstallCommandLine(sourceLocation, memorySize);
@@ -210,7 +217,7 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   @Override
-  public PkgDesc.Builder[] getRequiredSdkPackages() {
-    return new PkgDesc.Builder[]{InstallComponentsPath.createExtra(true, COMPONENT_VENDOR, COMPONENT_PATH)};
+  public Collection<IPkgDesc> getRequiredSdkPackages() {
+    return ImmutableList.of(InstallComponentsPath.createExtra(true, ID_INTEL, COMPONENT_PATH));
   }
 }
