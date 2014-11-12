@@ -318,6 +318,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
           commandLineArgs.addAll(myCommandLineArguments);
           GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
+          GradleUtil.attemptToUseEmbeddedGradle(project);
 
           LOG.info("Build command line options: " + commandLineArgs);
 

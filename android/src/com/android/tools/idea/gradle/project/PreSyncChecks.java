@@ -74,6 +74,7 @@ final class PreSyncChecks {
         // Do this just to ensure that the right distribution type is set.
         gradleSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
       }
+      GradleUtil.attemptToUseEmbeddedGradle(project);
     }
     else if (distributionType == DistributionType.LOCAL) {
       attemptToUseSupportedLocalGradle(modelVersion, gradleSettings, project);
@@ -168,9 +169,15 @@ final class PreSyncChecks {
       // There is a wrapper, but the Gradle version could not be read. Continue with sync.
       return;
     }
-    FullRevision gradleRevision = FullRevision.parseRevision(gradleVersion);
 
-    if (!isSupportedGradleVersion(modelVersion, gradleRevision)) {
+    FullRevision gradleRevision = null;
+    try {
+      gradleRevision = FullRevision.parseRevision(gradleVersion);
+    } catch (NumberFormatException e) {
+      // ignored;
+    }
+
+    if (gradleRevision != null && !isSupportedGradleVersion(modelVersion, gradleRevision)) {
       String newGradleVersion = GradleUtil.getSupportedGradleVersion(modelVersion);
       assert newGradleVersion != null;
       String msg = "Version " + modelVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n\n" +
