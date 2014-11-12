@@ -25,6 +25,7 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -92,8 +93,18 @@ public class IdeaContentRootStub implements IdeaContentRoot {
   }
 
   @Override
+  public DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories() {
+    return ImmutableDomainObjectSet.of(Collections.<IdeaSourceDirectory>emptyList());
+  }
+
+  @Override
   public DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories() {
     return ImmutableDomainObjectSet.of(myTestDirs);
+  }
+
+  @Override
+  public DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories() {
+    return ImmutableDomainObjectSet.of(Collections.<IdeaSourceDirectory>emptyList());
   }
 
   @Override
