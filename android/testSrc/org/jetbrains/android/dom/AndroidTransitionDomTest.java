@@ -54,6 +54,10 @@ public class AndroidTransitionDomTest extends AndroidDomTest {
     doTestHighlighting("hl2.xml");
   }
 
+  public void testHighlighting3() throws Throwable {
+    doTestHighlighting("hl3.xml");
+  }
+
   public void testAttributeNames() throws Throwable {
     toTestCompletion("an.xml", "an_after.xml");
   }
