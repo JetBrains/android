@@ -24,7 +24,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
-import com.intellij.openapi.compiler.options.ExcludedEntriesConfiguration;
+import com.intellij.openapi.compiler.options.ExcludesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -92,7 +92,7 @@ public class AndroidPrecompileTask implements CompileTask {
     }
     checkAndroidDependencies(context);
 
-    ExcludedEntriesConfiguration configuration =
+    ExcludesConfiguration configuration =
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
     Set<ExcludeEntryDescription> addedEntries = new HashSet<ExcludeEntryDescription>();
@@ -325,7 +325,7 @@ public class AndroidPrecompileTask implements CompileTask {
   }
 
   private static void unexcludeAllSourceRoots(AndroidFacet facet,
-                                              ExcludedEntriesConfiguration configuration) {
+                                              ExcludesConfiguration configuration) {
     final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(facet.getModule()).getSourceRoots();
     final Set<VirtualFile> sourceRootSet = new HashSet<VirtualFile>();
     sourceRootSet.addAll(Arrays.asList(sourceRoots));
@@ -371,7 +371,7 @@ public class AndroidPrecompileTask implements CompileTask {
   }
 
   private static void excludeAllSourceRoots(Module module,
-                                            ExcludedEntriesConfiguration configuration,
+                                            ExcludesConfiguration configuration,
                                             Collection<ExcludeEntryDescription> addedEntries) {
     Project project = module.getProject();
     VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
@@ -399,7 +399,7 @@ public class AndroidPrecompileTask implements CompileTask {
     public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
       CompilerManager.getInstance(myProject).removeCompilationStatusListener(this);
 
-      ExcludedEntriesConfiguration configuration =
+      ExcludesConfiguration configuration =
         ((CompilerConfigurationImpl)CompilerConfiguration.getInstance(myProject)).getExcludedEntriesConfiguration();
       ExcludeEntryDescription[] descriptions = configuration.getExcludeEntryDescriptions();
 
