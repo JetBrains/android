@@ -55,6 +55,7 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
   };
   private OverlayContainer myOverlayContainer;
   private boolean myIgnoreListener;
+  private boolean myUseInteractiveSelector = true;
 
   public AndroidLayoutPreviewPanel() {
     super(true);
@@ -119,7 +120,7 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
 
   @Override
   protected void selectView(@Nullable RenderedView leaf) {
-    if (myEditor != null && leaf != null && leaf.tag != null) {
+    if (myEditor != null && leaf != null && leaf.tag != null && myUseInteractiveSelector) {
       int offset = leaf.tag.getTextOffset();
       if (offset != -1) {
         Editor editor = myEditor.getEditor();
@@ -139,7 +140,7 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
   }
 
   private void updateCaret() {
-    if (myCaretModel != null && !myIgnoreListener) {
+    if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
       RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
       if (hierarchy != null) {
         int offset = myCaretModel.getOffset();
@@ -191,5 +192,9 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
       }
     }
     return false;
+  }
+
+  public void setUseInteractiveSelector(boolean useInteractiveSelector) {
+    this.myUseInteractiveSelector = useInteractiveSelector;
   }
 }
