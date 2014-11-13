@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -38,11 +40,24 @@ public class ResourceFolderRegistry {
   }
 
   @NotNull
-  public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir) {
+  public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
     ResourceFolderRepository repository = ourDirMap.get(dir);
     if (repository == null) {
+      Project project = facet.getModule().getProject();
       repository = ResourceFolderRepository.create(facet, dir);
-      PsiProjectListener.addRoot(facet.getModule().getProject(), dir, repository);
+      PsiProjectListener.addRoot(project, dir, repository);
+      // Some of the resources in the ResourceFolderRepository might actually contain pointers to the Project instance so we need
+      // to make sure we invalidate those whenever the project is closed.
+      Disposer.register(project, new Disposable() {
+        @Override
+        public void dispose() {
+          ResourceFolderRepository repository = ourDirMap.remove(dir);
+
+          if (repository != null) {
+            repository.dispose();
+          }
+        }
+      });
 
       ourDirMap.put(dir, repository);
     }
