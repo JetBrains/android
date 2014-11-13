@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
@@ -218,6 +219,15 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
     if (skinPath == null && !editMode && device != null) {
       skinPath = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
+
+      if (HardwareConfigHelper.isRound(device)) {
+        // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
+        // Therefore, turn it off by default; if a developer is deliberately trying
+        // to emulate a round device, that's probably more important than acceleration.
+        // (And with the small screen resolution of the wear devices, lack of Host GPU
+        // is less severe than say for a tablet AVD.)
+        myState.put(USE_HOST_GPU_KEY, false);
+      }
     }
     myState.put(CUSTOM_SKIN_FILE_KEY, skinPath != null ? skinPath : NO_SKIN);
 
