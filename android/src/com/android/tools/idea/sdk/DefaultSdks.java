@@ -216,9 +216,8 @@ public final class DefaultSdks {
       List<Sdk> sdksToDelete = Lists.newArrayList();
 
       File resolved = resolvePath(path);
-      String resolvedPath = resolved.getPath();
       // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
-      AndroidSdkData sdkData = AndroidSdkData.getSdkData(resolvedPath);
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(resolved, true);
       if (sdkData != null) {
         // Iterate over all current existing IJ Android SDKs
         for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
