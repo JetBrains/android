@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome;
 
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,7 +26,7 @@ import javax.swing.*;
  * Shows a wizard first time Android Studio is launched
  */
 public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenProvider {
-  public static final String DEBUG_SYSTEM_PROPERTY = "android.first.run";
+  public static final String SYSTEM_PROPERTY_DISABLE_WIZARD = "disable.android.first.run";
 
   @Nullable
   @Override
@@ -36,6 +37,6 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Override
   public boolean isAvailable() {
     AndroidFirstRunPersistentData instance = AndroidFirstRunPersistentData.getInstance();
-    return !instance.isSdkUpToDate() && Boolean.getBoolean(DEBUG_SYSTEM_PROPERTY);
+    return !AndroidPlugin.isGuiTestingMode()  && !Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD) && !instance.isSdkUpToDate();
   }
 }
