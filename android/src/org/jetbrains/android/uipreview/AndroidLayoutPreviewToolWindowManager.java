@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -113,6 +114,10 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
 
+    initListeners(project);
+  }
+
+  protected void initListeners(Project project) {
     PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
       boolean myIgnoreChildrenChanged;
 
@@ -283,7 +288,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     return true;
   }
 
-  private void update(PsiTreeChangeEvent event) {
+  protected void update(PsiTreeChangeEvent event) {
     if (isRelevant(event)) {
       getRenderingQueue().cancelAllUpdates();
       render();
@@ -301,9 +306,34 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     });
   }
 
-  private void initToolWindow() {
-    myToolWindowForm = new AndroidLayoutPreviewToolWindowForm(this);
-    final String toolWindowId = AndroidBundle.message("android.layout.preview.tool.window.title");
+  protected boolean isUseInteractiveSelector() {
+    return true;
+  }
+
+  protected String getToolWindowId() {
+    return AndroidBundle.message("android.layout.preview.tool.window.title");
+  }
+
+  protected boolean isRenderAutomatically() {
+    return true;
+  }
+
+  protected boolean isForceHideOnStart() {
+    return false;
+  }
+
+  protected ToolWindow getToolWindow() {
+    return myToolWindow;
+  }
+
+  @Nullable
+  protected AnAction getCustomRefreshRenderAction() {
+    return null;
+  }
+
+  protected void initToolWindow() {
+    myToolWindowForm = new AndroidLayoutPreviewToolWindowForm(this, getCustomRefreshRenderAction());
+    final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
     myToolWindow.setIcon(AndroidIcons.AndroidPreview);
@@ -322,7 +352,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
 
-          if (visible && !myVisible) {
+          if (visible && !myVisible && isRenderAutomatically()) {
             render();
           }
           myVisible = visible;
@@ -340,6 +370,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
     myToolWindow.setAvailable(false, null);
+    myToolWindowForm.setUseInteractiveSelector(isUseInteractiveSelector());
   }
 
   @Override
@@ -526,8 +557,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   }
 
   public boolean render() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
     if (myToolWindow == null || !myToolWindow.isVisible()) {
       return false;
     }
@@ -542,6 +571,13 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       return false;
     }
 
+    return render(psiFile, facet, false);
+  }
+
+  protected boolean render(final PsiFile psiFile, final AndroidFacet facet,
+                        @SuppressWarnings("unused") boolean forceFullRender) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    
     getRenderingQueue().queue(new Update("render") {
       @Override
       public void run() {
@@ -588,9 +624,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     }
 
     final VirtualFile layoutXmlFile = psiFile.getVirtualFile();
-    if (layoutXmlFile == null) {
-      return;
-    }
+    String loggerName = (layoutXmlFile!=null) ? layoutXmlFile.getName() : psiFile.getName();
+
     Module module = facet.getModule();
     Configuration configuration = toolWindowForm.getConfiguration();
     if (configuration == null) {
@@ -604,7 +639,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
-      final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
+      final RenderLogger logger = new RenderLogger(loggerName, module);
       final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, toolWindowForm);
       if (service != null) {
         service.useDesignMode(psiFile);
@@ -653,7 +688,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     return null;
   }
 
-  private boolean isApplicableEditor(TextEditor textEditor) {
+  protected boolean isApplicableEditor(TextEditor textEditor) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
