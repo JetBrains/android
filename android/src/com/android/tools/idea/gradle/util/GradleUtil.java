@@ -32,6 +32,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -828,7 +829,7 @@ public final class GradleUtil {
   }
 
   public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
       File repoPath = getAndroidStudioLocalMavenRepoPath();
       if (repoPath != null && repoPath.isDirectory()) {
         addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);

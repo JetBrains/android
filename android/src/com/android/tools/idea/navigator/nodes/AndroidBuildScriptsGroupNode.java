@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -119,7 +118,8 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
       }
 
       // TODO: When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
-      if (ApplicationManager.getApplication().isUnitTestMode() && child.getName().startsWith("ijinit")) {
+      if (ApplicationManager.getApplication().isUnitTestMode() &&
+          (child.getName().startsWith("ijinit") || child.getName().startsWith("asLocalRepo"))) {
         continue;
       }
 
