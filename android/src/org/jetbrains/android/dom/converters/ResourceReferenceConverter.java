@@ -18,10 +18,12 @@ package org.jetbrains.android.dom.converters;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
@@ -38,14 +40,15 @@ import org.jetbrains.android.resourceManagers.FileResourceProcessor;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.RenderResources.REFERENCE_NULL;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -277,7 +280,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @Override
   public String getErrorMessage(@Nullable String s, ConvertContext context) {
-    final ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix);
+    if (s == null || s.isEmpty()) {
+      return "Missing value";
+    }
+
+    final ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
 
     if (parsed == null || !parsed.isReference()) {
       final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
@@ -285,14 +292,20 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       if (additionalConverter != null) {
         return additionalConverter.getErrorMessage(s, context);
       }
+    } else {
+      String errorMessage = parsed.getErrorMessage();
+      if (errorMessage != null) {
+        return errorMessage;
+      }
     }
+
     return super.getErrorMessage(s, context);
   }
 
   @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
-    ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix);
+    ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
     final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
     if (parsed == null || !parsed.isReference()) {
@@ -324,7 +337,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         }
       }
       else if (resType == null && parsed.isReference()) {
-        if (myWithExplicitResourceType && !"@null".equals(s)) {
+        if (myWithExplicitResourceType && !NULL_RESOURCE.equals(s)) {
           return null;
         }
         if (myResourceTypes.size() == 1) {
@@ -382,7 +395,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         final String value = ((GenericDomValue)domElement).getStringValue();
 
         if (value != null) {
-          ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix);
+          ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);
           if (resourceValue != null) {
             String aPackage = resourceValue.getPackage();
             ResourceType resType = resourceValue.getType();
@@ -414,7 +427,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   @NotNull
   public PsiReference[] createReferences(GenericDomValue<ResourceValue> value, PsiElement element, ConvertContext context) {
-    if ("@null".equals(value.getStringValue())) {
+    if (NULL_RESOURCE.equals(value.getStringValue())) {
       return PsiReference.EMPTY_ARRAY;
     }
 

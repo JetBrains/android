@@ -140,7 +140,7 @@ public class DeviceChooser implements Disposable {
     }.installOn(myDeviceTable);
 
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
-    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer());
+    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(facet.getAvdManagerSilently()));
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {

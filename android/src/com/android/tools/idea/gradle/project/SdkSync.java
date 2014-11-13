@@ -133,7 +133,7 @@ public final class SdkSync {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath);
+            DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath, null);
           }
         });
       }

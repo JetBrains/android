@@ -954,10 +954,10 @@ public class LombokPsiConverter {
       return inlineIf;
     } else if (expression instanceof PsiClassObjectAccessExpression) {
       PsiClassObjectAccessExpression p = (PsiClassObjectAccessExpression)expression;
-      PsiTypeElement operand = p.getOperand();
-      @SuppressWarnings("ConstantConditions")
-      String fqcn = EXPAND_TYPES ? operand.getType().getCanonicalText() : operand.getText() + ".class";
-      return toSelect(fqcn, p);
+      ClassLiteral literal = new ClassLiteral();
+      bind(literal, p);
+      literal.astTypeReference(toTypeReference(p.getOperand()));
+      return literal;
     } else if (expression instanceof PsiParenthesizedExpression) {
       PsiParenthesizedExpression p = (PsiParenthesizedExpression)expression;
       PsiExpression e = p.getExpression();

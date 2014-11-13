@@ -55,8 +55,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
 
   private static final String EXAMPLE_DOMAIN = "example.com";
   public static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
-  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
-  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(INVALID_FILENAME_CHARS);
+  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
 
   @VisibleForTesting
   static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
@@ -65,12 +64,11 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
         "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
 
 
-  protected TextFieldWithBrowseButton myProjectLocation;
-  protected JTextField myAppName;
-  protected JPanel myPanel;
-  protected JTextField myCompanyDomain;
-  protected LabelWithEditLink myPackageName;
-  protected JLabel myProjectLocationLabel;
+  private TextFieldWithBrowseButton myProjectLocation;
+  private JTextField myAppName;
+  private JPanel myPanel;
+  private JTextField myCompanyDomain;
+  private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
     this("Configure your new project", disposable);
@@ -165,68 +163,9 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
 
   @Override
   public boolean validate() {
-    setErrorHtml("");
-    return validateAppName() && validatePackageName() && validateLocation();
-  }
-
-  protected boolean validateLocation() {
-    String projectLocation = myState.get(WizardConstants.PROJECT_LOCATION_KEY);
-    if (projectLocation == null || projectLocation.isEmpty()) {
-      setErrorHtml("Please specify a project location");
-      return false;
-    }
-    // Check the separators
-    if ((File.separatorChar == '/' && projectLocation.contains("\\")) ||
-        (File.separatorChar == '\\' && projectLocation.contains("/"))) {
-      setErrorHtml("Your project location contains incorrect slashes ('\\' vs '/')");
-      return false;
-    }
-    // Check the individual components for not allowed characters.
-    File testFile = new File(projectLocation);
-    while (testFile != null) {
-      String filename = testFile.getName();
-      if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(filename)) {
-        char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
-        setErrorHtml(String.format("Illegal character in project location path: '%c' in filename: %s", illegalChar, filename));
-        return false;
-      }
-      if (INVALID_MSFT_FILENAMES.contains(filename.toLowerCase())) {
-        setErrorHtml("Illegal filename in project location path: " + filename);
-        return false;
-      }
-      if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
-        setErrorHtml("Your project location contains whitespace. This can cause " + "problems on some platforms and is not recommended.");
-      }
-      if (!CharMatcher.ASCII.matchesAllOf(filename)) {
-        setErrorHtml("Your project location contains non-ASCII characters. " + "This can cause problems on Windows. Proceed with caution.");
-      }
-      // Check that we can write to that location: make sure we can write into the first extant directory in the path.
-      if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
-        if (!testFile.getParentFile().canWrite()) {
-          setErrorHtml(String.format("The path '%s' is not writeable. Please choose a new location.", testFile.getParentFile().getPath()));
-          return false;
-        }
-      }
-      testFile = testFile.getParentFile();
-    }
-
-    File file = new File(projectLocation);
-    if (file.isFile()) {
-      setErrorHtml("There must not already be a file at the project location");
-      return false;
-    } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
-      setErrorHtml("A non-empty directory already exists at the specified project location. " +
-                   "Existing files may be overwritten. Proceed with caution.");
-    }
-    if (file.getParent() == null) {
-      setErrorHtml("The project location can not be at the filesystem root");
-      return false;
-    }
-    if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
-      setErrorHtml("The project location's parent directory must be a directory, not a plain file");
-      return false;
-    }
-    return true;
+    WizardUtils.ValidationResult locationValidationResult = WizardUtils.validateLocation(myState.get(WizardConstants.PROJECT_LOCATION_KEY));
+    setErrorHtml(locationValidationResult.isOk() ? "" : locationValidationResult.getFormattedMessage());
+    return validateAppName() && validatePackageName() && !locationValidationResult.isError();
   }
 
   protected boolean validateAppName() {
@@ -331,7 +270,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
       String name = state.get(WizardConstants.APPLICATION_NAME_KEY);
       name = name == null ? "" : name;
-      name = name.replaceAll(INVALID_FILENAME_CHARS, "");
+      name = name.replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
       name = name.replaceAll("\\s", "");
       File baseDirectory = new File(NewProjectWizardState.getProjectFileDirectory());
       File projectDir = new File(baseDirectory, name);

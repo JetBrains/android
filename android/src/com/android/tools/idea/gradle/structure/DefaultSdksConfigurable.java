@@ -24,6 +24,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.options.BaseConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
@@ -57,7 +58,9 @@ import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 public class DefaultSdksConfigurable extends BaseConfigurable implements ValidationAwareConfigurable {
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
-  private final ConfigurableHost myHost;
+
+  @Nullable private final ConfigurableHost myHost;
+  @Nullable private final Project myProject;
 
   // These paths are system-dependent.
   @NotNull private String myOriginalJdkHomePath;
@@ -69,8 +72,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
 
   private DetailsComponent myDetailsComponent;
 
-  public DefaultSdksConfigurable(@Nullable ConfigurableHost host) {
+  public DefaultSdksConfigurable(@Nullable ConfigurableHost host, @Nullable Project project) {
     myHost = host;
+    myProject = project;
     myWholePanel.setPreferredSize(new Dimension(700, 500));
 
     myDetailsComponent = new DetailsComponent();
@@ -96,7 +100,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(getSdkLocation());
+        DefaultSdks.setDefaultAndroidHome(getSdkLocation(), myProject);
         DefaultSdks.setDefaultJavaHome(getJdkLocation());
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {

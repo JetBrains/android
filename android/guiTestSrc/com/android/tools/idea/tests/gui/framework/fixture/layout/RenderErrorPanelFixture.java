@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static org.junit.Assert.*;
 
@@ -82,5 +83,30 @@ public class RenderErrorPanelFixture {
         assertFalse(html, logger.hasErrors());
       }
     }
+  }
+
+  public boolean haveErrors(boolean includeWarnings) {
+    RenderResult lastResult = myRenderContext.getLastResult();
+    assertNotNull("No render result available", lastResult);
+    RenderLogger logger = lastResult.getLogger();
+
+    return includeWarnings ? logger.hasProblems() : logger.hasErrors();
+  }
+
+  @NotNull
+  public String getErrorHtml() {
+    RenderResult lastResult = myRenderContext.getLastResult();
+    assertNotNull("No render result available", lastResult);
+    RenderLogger logger = lastResult.getLogger();
+
+    if (logger.hasProblems()) {
+      RenderErrorPanel panel = new RenderErrorPanel();
+      String html = panel.showErrors(lastResult);
+      if (html != null) {
+        return html;
+      }
+    }
+
+    return "";
   }
 }

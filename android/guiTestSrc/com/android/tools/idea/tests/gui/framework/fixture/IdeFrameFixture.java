@@ -26,7 +26,9 @@ import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
@@ -84,6 +86,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
+import static org.jetbrains.android.AndroidPlugin.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.*;
@@ -243,6 +246,32 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeFrameFixture invokeProjectMakeWithGradleOutput(@NotNull String output) {
+    ApplicationManager.getApplication().putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, output);
+    selectProjectMakeAction();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture waitUntilFakeGradleOutputIsApplied() {
+    final Application application = ApplicationManager.getApplication();
+    if (application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null) {
+      fail("No fake gradle output is configured");
+    }
+    pause(new Condition("Waiting for fake gradle output to be applied") {
+      @Override
+      public boolean test() {
+        return application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null;
+      }
+    }, SHORT_TIMEOUT);
+    String fakeOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
+    if (fakeOutput != null) {
+      fail(String.format("Fake gradle output (%s) is not applied in %d ms", fakeOutput, SHORT_TIMEOUT.duration()));
+    }
+    return this;
+  }
+
+  @NotNull
   public CompileContext invokeProjectMakeUsingJps() {
     final Project project = getProject();
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -284,13 +313,74 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }
   }
 
+  /**
+   * Finds the Run button in the IDE interface.
+   *
+   * @return ActionButtonFixture for the run button.
+   */
+  @NotNull
+  public ActionButtonFixture findRunApplicationButton() {
+    return findActionButtonByActionId("Run");
+  }
+
+  public void debugApp(@NotNull String appName) throws ClassNotFoundException {
+    selectApp(appName);
+    findActionButtonByActionId("Debug").click();
+  }
+
+  public void runApp(@NotNull String appName) throws ClassNotFoundException {
+    selectApp(appName);
+    findActionButtonByActionId("Run").click();
+  }
+
+  @NotNull
+  public ChooseDeviceDialogFixture findChooseDeviceDialog() {
+    return ChooseDeviceDialogFixture.find(this, robot);
+  }
+
+  @NotNull
+  public RunToolWindowFixture getRunToolWindow() {
+    return new RunToolWindowFixture(this);
+  }
+
+  @NotNull
+  public DebugToolWindowFixture getDebugToolWindow() {
+    return new DebugToolWindowFixture(this);
+  }
+
   protected void selectProjectMakeAction() {
-    JMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
-    robot.click(makeProjectMenuItem);
+    invokeMenuPath("Build", "Make Project");
+  }
+
+  /**
+   * Invokes an action by menu path
+   *
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
+   */
+  public void invokeMenuPath(@NotNull String... path) {
+    JMenuItem menuItem = findActionMenuItem(path);
+    robot.click(menuItem);
+  }
+
+  /**
+   * Invokes an action by menu path (where each segment is a regular expression). This is particularly
+   * useful when the menu items can change dynamically, such as the labels of Undo actions, Run actions,
+   * etc.
+   *
+   * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
+   */
+  public void invokeMenuPathRegex(@NotNull String... path) {
+    JMenuItem menuItem = findActionMenuItem(true, path);
+    robot.click(menuItem);
   }
 
   @NotNull
   private JMenuItem findActionMenuItem(@NotNull String... path) {
+    return findActionMenuItem(false, path);
+  }
+
+  @NotNull
+  private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
     Container root = target;
@@ -299,7 +389,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       JMenuItem found = robot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
         protected boolean isMatching(JMenuItem menuItem) {
-          return segment.equals(menuItem.getText());
+          return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
         }
       });
       if (i < segmentCount - 1) {
@@ -462,14 +552,25 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public AndroidToolWindowFixture getAndroidToolWindow() {
+    return new AndroidToolWindowFixture(getProject(), robot);
+  }
+
+  @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
     return new MessagesToolWindowFixture(getProject(), robot);
+  }
+
+  @NotNull
+  public GradleToolWindowFixture getGradleToolWindow() {
+    return new GradleToolWindowFixture(getProject(), robot);
   }
 
   /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
   @Nullable
   public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
     EditorNotificationPanel panel = findPanel(message);  // fails test if not found (or if null and notifications were found)
+    assertNotNull(panel);
     return new EditorNotificationPanelFixture(robot, panel);
   }
 
@@ -602,8 +703,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public InspectionsFixture inspectCode() {
-    JMenuItem makeProjectMenuItem = findActionMenuItem("Analyze", "Inspect Code...");
-    robot.click(makeProjectMenuItem);
+    invokeMenuPath("Analyze", "Inspect Code...");
 
     //final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -625,9 +725,20 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     return new InspectionsFixture(robot, getProject(), tree);
   }
 
+  @NotNull
+  public ProjectViewFixture getProjectView() {
+    ProjectView projectView = ProjectView.getInstance(getProject());
+    return new ProjectViewFixture(projectView);
+  }
+
   private static class NoOpDisposable implements Disposable {
     @Override
     public void dispose() {
     }
+  }
+
+  private void selectApp(@NotNull String appName) throws ClassNotFoundException {
+    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot, this);
+    comboBoxActionFixture.selectApp(appName);
   }
 }

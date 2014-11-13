@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.DEVICE_DEFINITION_KEY;
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MODE_KEY;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.SYSTEM_IMAGE_KEY;
 
 /**
@@ -38,25 +41,27 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   private JPanel myPanel;
   private SystemImagePreview mySystemImagePreview;
   private Device myCurrentDevice;
+  private Project myProject;
 
-  public ChooseSystemImageStep(@Nullable Disposable parentDisposable) {
+  public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
     super("System Image", "Select a system image", null, parentDisposable);
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
-    Predicate<ISystemImage> filter = new Predicate<ISystemImage>() {
+    Predicate<AvdWizardConstants.SystemImageDescription> filter = new Predicate<AvdWizardConstants.SystemImageDescription>() {
       @Override
-      public boolean apply(ISystemImage input) {
+      public boolean apply(AvdWizardConstants.SystemImageDescription input) {
         if (myCurrentDevice == null) {
           return true;
         }
         String deviceTagId = myCurrentDevice.getTagId();
         if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
-          return true;
+          return input.getTag() == null || input.getTag().getId().equals(SystemImage.DEFAULT_TAG.getId());
         }
         return deviceTagId.equals(input.getTag().getId());
       }
     };
     mySystemImageList.setFilter(filter);
+    mySystemImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
     setBodyComponent(myPanel);
   }
 
@@ -67,7 +72,12 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
 
   @Override
   public boolean isStepVisible() {
-    return myState.get(SYSTEM_IMAGE_KEY) == null;
+    Boolean isInEditMode = myState.get(IS_IN_EDIT_MODE_KEY);
+    if (isInEditMode != null && isInEditMode) {
+      return myState.get(SYSTEM_IMAGE_KEY) == null;
+    } else {
+      return true;
+    }
   }
 
   @Override
@@ -94,5 +104,21 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   public void onSystemImageSelected(@Nullable AvdWizardConstants.SystemImageDescription systemImage) {
     mySystemImagePreview.setImage(systemImage);
     myState.put(SYSTEM_IMAGE_KEY, systemImage);
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  }
+
+  private void createUIComponents() {
+    mySystemImageList = new SystemImageList(myProject);
   }
 }

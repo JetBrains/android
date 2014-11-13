@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JScrollBarFixture;
 import org.fest.swing.fixture.JScrollPaneFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,57 +64,42 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture {
   }
 
   public ConfigureAvdOptionsStepFixture setFrontCamera(@NotNull String selection) {
-    JComboBoxFixture frontCameraFixture = getComboBoxFixtureByLabel("Front:");
+    JComboBoxFixture frontCameraFixture = getComboBoxFixtureByLabel(robot, target, "Front:");
     frontCameraFixture.selectItem(selection);
     return this;
   }
 
   public ConfigureAvdOptionsStepFixture setBackCamera(@NotNull String selection) {
-    JComboBoxFixture backCameraFixture = getComboBoxFixtureByLabel("Back:");
+    JComboBoxFixture backCameraFixture = getComboBoxFixtureByLabel(robot, target, "Back:");
     backCameraFixture.selectItem(selection);
     return this;
   }
 
   public ConfigureAvdOptionsStepFixture setNetworkSpeed(@NotNull String selection) {
-    JComboBoxFixture networkSpeedComboFixture = getComboBoxFixtureByLabel("Speed:");
+    JComboBoxFixture networkSpeedComboFixture = getComboBoxFixtureByLabel(robot, target, "Speed:");
     networkSpeedComboFixture.selectItem(selection);
     return this;
   }
 
   public ConfigureAvdOptionsStepFixture setNetworkLatency(@NotNull String selection) {
-    JComboBoxFixture networkLatencyComboFixture = getComboBoxFixtureByLabel("Latency:");
+    JComboBoxFixture networkLatencyComboFixture = getComboBoxFixtureByLabel(robot, target, "Latency:");
     networkLatencyComboFixture.selectItem(selection);
     return this;
   }
 
   public ConfigureAvdOptionsStepFixture setScaleFactor(@NotNull String selection) {
-    JComboBoxFixture scaleFactorCombo = getComboBoxFixtureByLabel("Scale:");
+    JComboBoxFixture scaleFactorCombo = getComboBoxFixtureByLabel(robot, target, "Scale:");
     scaleFactorCombo.selectItem(selection);
     return this;
   }
 
   public ConfigureAvdOptionsStepFixture setUseHostGpu(boolean useHostGpu) {
-    JCheckBoxFixture hostGpuCheckBox = getCheckBoxFixtureByLabel("Use Host GPU");
+    JCheckBoxFixture hostGpuCheckBox = getCheckBoxFixtureByLabel(robot, target, "Use Host GPU");
     if (useHostGpu) {
       hostGpuCheckBox.check();
     } else {
       hostGpuCheckBox.uncheck();
     }
     return this;
-  }
-
-  private JComboBoxFixture getComboBoxFixtureByLabel(@NotNull String label) {
-    JComboBox combo = robot.finder().findByLabel(target, label, JComboBox.class, true);
-    return new JComboBoxFixture(robot, combo);
-  }
-
-  private JCheckBoxFixture getCheckBoxFixtureByLabel(@NotNull final String label) {
-    JCheckBox checkBox = robot.finder().find(target, new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(JCheckBox component) {
-        return label.equals(component.getText());
-      }
-    });
-    return new JCheckBoxFixture(robot, checkBox);
   }
 }

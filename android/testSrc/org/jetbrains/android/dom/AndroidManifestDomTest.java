@@ -184,8 +184,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testUsesPermissionDoc1() throws Throwable {
-    myFixture.configureFromExistingVirtualFile(
-      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
   }
 
@@ -198,8 +197,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testIntentActionDoc1() throws Throwable {
-    myFixture.configureFromExistingVirtualFile(
-      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
   }
 
@@ -239,8 +237,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testIntentCategoryDoc1() throws Throwable {
-    myFixture.configureFromExistingVirtualFile(
-      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("The activity should be able to browse the Internet.");
   }
 
@@ -370,6 +367,25 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestSpellcheckerQuickFixes();
   }
 
+  public void testMetadataCompletion1() throws Throwable {
+    copyFileToProject("MyActivity1.java", "src/p1/p2/p3/MyActivity1.java");
+    copyFileToProject("MyActivity2.java", "src/p1/MyActivity2.java");
+    copyFileToProject("MyActivity.java", "src/p1/p2/MyActivity.java");
+    doTestCompletionVariants(getTestName(true) + ".xml", ".MyActivity2", ".p2.MyActivity", ".p2.p3.MyActivity1");
+  }
+
+  public void testMetadataCompletion2() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml",
+                             "@android:", "@color/", "@dimen/", "@drawable/", "@id/", "@string/", "@style/");
+  }
+
+  public void testMetadataCompletion3() throws Throwable {
+    copyFileToProject("MyActivity1.java", "src/p1/p2/p3/MyActivity1.java");
+    copyFileToProject("MyActivity2.java", "src/p1/MyActivity2.java");
+    copyFileToProject("MyActivity.java", "src/p1/p2/MyActivity.java");
+    doTestCompletionVariants(getTestName(true) + ".xml", "p1.MyActivity2", "p1.p2.MyActivity", "p1.p2.p3.MyActivity1");
+  }
+
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
     final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
@@ -383,7 +399,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     });
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "L");
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {

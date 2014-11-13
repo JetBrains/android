@@ -38,9 +38,14 @@ import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
+import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -151,6 +156,7 @@ public class Template {
   public static final String ATTR_AT = "at";
   public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
+  public static final String ATTR_ENABLED = "enabled";
   public static final String ATTR_SOURCE_URL = "href";
   public static final String ATTR_TEMPLATE_MERGE_STRATEGY = "templateMergeStrategy";
   public static final String VALUE_MERGE_STRATEGY_REPLACE = "replace";
@@ -308,6 +314,7 @@ public class Template {
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
     paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
+    paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
 
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
@@ -934,9 +941,16 @@ public class Template {
 
     return name;
   }
-  private static String format(@NotNull String contents, File to) {
-    // TODO: Implement this
-    return contents;
+  private String format(@NotNull String contents, File to) {
+    Project project = myProject;
+    if (project == null) {
+      // Project creation: no current project to read code style settings from yet, so use defaults
+      project = ProjectManagerEx.getInstanceEx().getDefaultProject();
+    }
+    FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
+    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(to.getName(), type, contents);
+    CodeStyleManager.getInstance(project).reformat(file);
+    return file.getText();
   }
 
   /** Copy a template resource */

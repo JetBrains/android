@@ -23,12 +23,14 @@ import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -73,11 +75,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     for (PsiDirectory directory : getSourceDirectories()) {
       Collection<AbstractTreeNode> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
 
-      if (mySourceType == AndroidSourceType.JAVA) {
-        children.addAll(annotateWithSourceProvider(directoryChildren));
-      } else {
-        children.addAll(directoryChildren);
-      }
+      children.addAll(annotateWithSourceProvider(directoryChildren));
 
       // Inform the tree builder of the node that this particular virtual file maps to
       treeBuilder.createMapping(directory.getVirtualFile(), this);
@@ -92,7 +90,10 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     for (AbstractTreeNode child : directoryChildren) {
       if (child instanceof PsiDirectoryNode) {
         PsiDirectory directory = ((PsiDirectoryNode)child).getValue();
-        children.add(new AndroidPsiDirectoryNode(myProject, directory, getSettings(), findJavaSourceProvider(directory.getVirtualFile())));
+        children.add(new AndroidPsiDirectoryNode(myProject, directory, getSettings(), findSourceProvider(directory.getVirtualFile())));
+      } else if (child instanceof PsiFileNode) {
+        PsiFile file = ((PsiFileNode)child).getValue();
+        children.add(new AndroidPsiFileNode(myProject, file, getSettings(), findSourceProvider(file.getVirtualFile())));
       } else {
         children.add(child);
       }
@@ -102,7 +103,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @Nullable
-  private IdeaSourceProvider findJavaSourceProvider(VirtualFile virtualFile) {
+  private IdeaSourceProvider findSourceProvider(VirtualFile virtualFile) {
     for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(getValue())) {
       if (provider.containsFile(virtualFile)) {
         return provider;

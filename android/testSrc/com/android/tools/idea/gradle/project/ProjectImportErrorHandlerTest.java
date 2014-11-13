@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.intellij.openapi.util.Pair;
 import junit.framework.TestCase;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
@@ -91,5 +92,33 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
     assertNotNull(realCause);
     assertEquals("Unable to load class 'com.novoda.gradle.robolectric.RobolectricPlugin'.", realCause.getMessage());
+  }
+
+  public void testGetErrorLocationWithBuildFileWithLocation() {
+    Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Build file '/xyz/build.gradle' line: 3");
+    assertNotNull(location);
+    assertEquals("/xyz/build.gradle", location.getFirst());
+    assertEquals(3, location.getSecond().intValue());
+  }
+
+  public void testGetErrorLocationWithBuildFileWithoutLocation() {
+    Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Build file '/xyz/build.gradle'");
+    assertNotNull(location);
+    assertEquals("/xyz/build.gradle", location.getFirst());
+    assertEquals(-1, location.getSecond().intValue());
+  }
+
+  public void testGetErrorLocationWithSettingsFileWithLocation() {
+    Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Settings file '/xyz/settings.gradle' line: 3");
+    assertNotNull(location);
+    assertEquals("/xyz/settings.gradle", location.getFirst());
+    assertEquals(3, location.getSecond().intValue());
+  }
+
+  public void testGetErrorLocationWithSettingsFileWithoutLocation() {
+    Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Settings file '/xyz/settings.gradle'");
+    assertNotNull(location);
+    assertEquals("/xyz/settings.gradle", location.getFirst());
+    assertEquals(-1, location.getSecond().intValue());
   }
 }

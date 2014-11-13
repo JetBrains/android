@@ -22,12 +22,7 @@ import java.util.List;
 
 @DefinesXml
 public interface Vector extends DrawableDomElement {
-  @Required
-  VectorSize getSize();
-
-  @Required
-  VectorViewport getViewport();
-
-  @Required
-  VectorPath getPath();
+  List<VectorPath> getPaths();
+  List<VectorGroup> getGroups();
+  List<VectorClipPath> getClipPaths();
 }

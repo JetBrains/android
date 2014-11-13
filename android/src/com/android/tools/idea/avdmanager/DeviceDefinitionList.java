@@ -59,6 +59,7 @@ import java.util.List;
 public class DeviceDefinitionList extends JPanel implements ListSelectionListener, DocumentListener, DeviceUiAction.DeviceProvider {
 
   private static final double PHONE_SIZE_CUTOFF = 6.0;
+  private static final double TV_SIZE_CUTOFF = 15.0;
   private static final String SEARCH_RESULTS = "Search Results";
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
 
@@ -101,6 +102,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myCategoryList.setSelection(ImmutableSet.of(myCategoryModel.getItem(0)));
     myCreateProfileButton.setAction(new CreateDeviceAction(this));
     myCreateProfileButton.setText("New Hardware Profile");
+    myImportProfileButton.setAction(new ImportDevicesAction(this));
+    myImportProfileButton.setText("Import Hardware Profiles");
     myTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -137,6 +140,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       JBPopupMenu menu = new JBPopupMenu();
       menu.add(createMenuItem(new CloneDeviceAction(this)));
       menu.add(createMenuItem(new EditDeviceAction(this)));
+      menu.add(createMenuItem(new ExportDeviceAction(this)));
       menu.add(createMenuItem(new DeleteDeviceAction(this)));
       menu.show(myTable, p.x, p.y);
     }
@@ -219,7 +223,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    * their screen size is over {@link #PHONE_SIZE_CUTOFF}
    */
   private static String getCategory(@NotNull Device d) {
-    if (HardwareConfigHelper.isTv(d)) {
+    if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
       return FormFactorUtils.FormFactor.TV.toString();
     } else if (HardwareConfigHelper.isWear(d)) {
       return FormFactorUtils.FormFactor.WEAR.toString();
@@ -238,6 +242,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   private static boolean isTablet(@NotNull Device d) {
     return d.getDefaultHardware().getScreen().getDiagonalLength() >= PHONE_SIZE_CUTOFF;
+  }
+
+  private static boolean hasTvSizedScreen(@NotNull Device d) {
+    return d.getDefaultHardware().getScreen().getDiagonalLength() >= TV_SIZE_CUTOFF;
   }
 
   /**

@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.wizard.ScopedDataBinder;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +58,13 @@ public class StorageField extends JPanel {
 
     add(myValueField, BorderLayout.CENTER);
     add(myUnitsCombo, BorderLayout.EAST);
+
+    myUnitsCombo.setRenderer(new ColoredListCellRenderer<Unit>() {
+      @Override
+      protected void customizeCellRenderer(JList list, Unit value, int index, boolean selected, boolean hasFocus) {
+        append(value.getDisplayValue());
+      }
+    });
 
     myUnitsCombo.setSelectedItem(DEFAULT_UNIT);
     ItemListener unitChangeListener = new ItemListener() {

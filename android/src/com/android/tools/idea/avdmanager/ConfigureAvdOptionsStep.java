@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.SdkConstants;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.Density;
+import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.wizard.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -35,9 +39,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import icons.AndroidIcons;
@@ -48,14 +50,18 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
@@ -101,9 +107,18 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private JBLabel myInternalStorageLabel;
   private JBLabel mySdCardLabel;
   private JPanel mySkinPanel;
-  private TextFieldWithBrowseButton myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
+  private JTextField myAvdDisplayName;
+  private JBLabel mySkinDefinitionLabel;
+  private JTextField myAvdId;
+  private JLabel myAvdIdLabel;
+  private SkinChooser mySkinComboBox;
+  private JPanel myAvdDisplayNamePanel;
+  private JBLabel myAvdNameLabel;
+  private JCheckBox myEnableComputerKeyboard;
+  private JPanel myKeyboardPanel;
   private Set<JComponent> myAdvancedOptionsComponents;
+  private String myOriginalName;
 
   // Labels used for the advanced settings toggle button
   private static final String ADVANCED_SETTINGS = "Advanced Settings";
@@ -115,12 +130,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private static final String SWITCH_TO_EXISTING_SD_CARD = "Or use an existing data file...";
   private Set<JComponent> myErrorStateComponents = Sets.newHashSet();
 
-  // Intermediate key for storing the string path before we convert it to a file
-  private static final Key<String> CUSTOM_SKIN_PATH_KEY = createKey(WIZARD_ONLY + "CustomSkinPath",
-                                                                    ScopedStateStore.Scope.STEP, String.class);
-
   public ConfigureAvdOptionsStep(@Nullable Disposable parentDisposable) {
-    super("Configure AVD", null, null, parentDisposable);
+    super("Android Virtual Device (AVD)", "Verify Configuration", null, parentDisposable);
     myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
     setBodyComponent(myRoot);
     registerAdvancedOptionsVisibility();
@@ -167,6 +178,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
+    myOrientationToggle.setOpaque(false);
   }
 
   /**
@@ -177,7 +189,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       ((CardLayout)mySdCardSettings.getLayout()).show(mySdCardSettings, EXISTING_SDCARD);
       myToggleSdCardSettingsLabel.setText(SWITCH_TO_NEW_SD_CARD);
       myState.put(USE_EXISTING_SD_CARD, true);
-    } else {
+    }
+    else {
       ((CardLayout)mySdCardSettings.getLayout()).show(mySdCardSettings, NEW_SDCARD);
       myToggleSdCardSettingsLabel.setText(SWITCH_TO_EXISTING_SD_CARD);
       myState.put(USE_EXISTING_SD_CARD, false);
@@ -190,6 +203,55 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     registerComponents();
     deregister(getDescriptionText());
     getDescriptionText().setVisible(false);
+    Device device = myState.get(DEVICE_DEFINITION_KEY);
+    if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
+      SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+      assert device != null && systemImage != null;
+      String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
+      avdName = uniquifyDisplayName(avdName);
+      myState.put(DISPLAY_NAME_KEY, avdName);
+    }
+
+    Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
+    editMode = editMode == null ? Boolean.FALSE : editMode;
+    myOriginalName = editMode ? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
+
+    File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinPath == null && !editMode && device != null) {
+      skinPath = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
+
+      if (HardwareConfigHelper.isRound(device)) {
+        // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
+        // Therefore, turn it off by default; if a developer is deliberately trying
+        // to emulate a round device, that's probably more important than acceleration.
+        // (And with the small screen resolution of the wear devices, lack of Host GPU
+        // is less severe than say for a tablet AVD.)
+        myState.put(USE_HOST_GPU_KEY, false);
+      }
+    }
+    myState.put(CUSTOM_SKIN_FILE_KEY, skinPath != null ? skinPath : NO_SKIN);
+
+    if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
+      myEnableComputerKeyboard.setEnabled(false);
+    }
+  }
+
+  private static String uniquifyDisplayName(String name) {
+    int suffix = 1;
+    String result = name;
+    while (findAvdWithName(result)) {
+      result = String.format("%1$s %2$d", name, ++suffix);
+    }
+    return result;
+  }
+
+  private static boolean findAvdWithName(String name) {
+    for (AvdInfo avd : AvdManagerConnection.getAvds(false)) {
+      if (AvdManagerConnection.getAvdDisplayName(avd).equals(name)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -200,8 +262,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       toggleOptionals(device);
     }
     Boolean useExisting = myState.get(USE_EXISTING_SD_CARD);
-    if (useExisting != null)
-    toggleSdCardSettings(useExisting);
+    if (useExisting != null) {
+      toggleSdCardSettings(useExisting);
+    }
   }
 
   @Override
@@ -211,24 +274,23 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check Ram
     Storage ram = myState.get(RAM_STORAGE_KEY);
     if (ram == null || ram.getSizeAsUnit(Unit.MiB) < 128) {
-      setErrorState("RAM must be a numeric (integer) value of at least 128Mb. Recommendation is 1Gb.",
-                    myMemoryAndStorageLabel, myRamLabel, myRamStorage);
+      setErrorState("RAM must be a numeric (integer) value of at least 128MB. Recommendation is 1GB.", myMemoryAndStorageLabel, myRamLabel,
+                    myRamStorage);
       valid = false;
     }
 
     // Check VM Heap
     Storage vmHeap = myState.get(VM_HEAP_STORAGE_KEY);
     if (vmHeap == null || vmHeap.getSizeAsUnit(Unit.MiB) < 16) {
-      setErrorState("VM Heap must be a numeric (integer) value of at least 16Mb.",
-                    myMemoryAndStorageLabel, myVmHeapLabel, myVmHeapStorage);
+      setErrorState("VM Heap must be a numeric (integer) value of at least 16MB.", myMemoryAndStorageLabel, myVmHeapLabel, myVmHeapStorage);
       valid = false;
     }
 
     // Check Internal Storage
     Storage internal = myState.get(INTERNAL_STORAGE_KEY);
     if (internal == null || internal.getSizeAsUnit(Unit.MiB) < 200) {
-      setErrorState("Internal storage must be a numeric (integer) value of at least 200Mb.",
-                    myMemoryAndStorageLabel, myInternalStorageLabel, myInternalStorage);
+      setErrorState("Internal storage must be a numeric (integer) value of at least 200MB.", myMemoryAndStorageLabel,
+                    myInternalStorageLabel, myInternalStorage);
       valid = false;
     }
 
@@ -237,24 +299,43 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     if (useExistingSd != null && useExistingSd) {
       String path = myState.get(EXISTING_SD_LOCATION);
       if (path == null || !new File(path).isFile()) {
-        setErrorState("The specified SD image file must be a valid image file",
-                      myMemoryAndStorageLabel, mySdCardLabel, myExistingSdCard);
+        setErrorState("The specified SD image file must be a valid image file", myMemoryAndStorageLabel, mySdCardLabel, myExistingSdCard);
         valid = false;
       }
-    } else {
+    }
+    else {
       Storage sdCard = myState.get(SD_CARD_STORAGE_KEY);
-      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 30 || sdCard.getSizeAsUnit(Unit.GiB) > 1023)) {
-        setErrorState("The SD card must be between 30Mb and 1023Gb",
-                      myMemoryAndStorageLabel, mySdCardLabel, myNewSdCardStorage);
+      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 10)) {
+        setErrorState("The SD card must be larger than 10MB", myMemoryAndStorageLabel, mySdCardLabel, myNewSdCardStorage);
         valid = false;
       }
     }
 
-    File skinDir = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinDir != null) {
-      File layoutFile = new File(skinDir, "layout");
+    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinFile != null && skinFile != NO_SKIN) {
+      File layoutFile = new File(skinFile, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
-        setErrorHtml("The skin directory does not point to a valid skin.");
+        setErrorState("The skin directory does not point to a valid skin.", mySkinDefinitionLabel, mySkinComboBox);
+        valid = false;
+      }
+    }
+
+    Boolean gpu = myState.get(USE_HOST_GPU_KEY);
+    Boolean snapshot = myState.get(USE_SNAPSHOT_KEY);
+    if (gpu != null && snapshot != null && gpu && snapshot) {
+      setErrorState("GPU Emulation and Snapshot cannot by used simultaneously.", myUseHostGPUCheckBox, myStoreASnapshotForCheckBox);
+      valid = false;
+    }
+
+    String displayName = myState.get(DISPLAY_NAME_KEY);
+    if (displayName != null) {
+      displayName = displayName.trim();
+      if (!displayName.equals(myOriginalName) && findAvdWithName(displayName)) {
+        setErrorState(String.format("An AVD with the name \"%1$s\" already exists.", displayName), myAvdDisplayNamePanel, myAvdNameLabel);
+        valid = false;
+      }
+      if (!displayName.matches("^[0-9a-zA-Z-_. ()]+$")) {
+        setErrorState("The AVD name can only contain the characters a-z A-Z 0-9 . _ - ( )", myAvdDisplayNamePanel, myAvdNameLabel);
         valid = false;
       }
     }
@@ -270,30 +351,53 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       if (c instanceof JLabel) {
         c.setForeground(JBColor.foreground());
         ((JLabel)c).setIcon(null);
-      } else if (c instanceof StorageField) {
+      }
+      else if (c instanceof StorageField) {
         ((StorageField)c).setError(false);
-      } else {
+      }
+      else if (c instanceof JCheckBox) {
+        c.setForeground(JBColor.foreground());
+      }
+      else {
         c.setBorder(null);
       }
     }
     myAvdConfigurationOptionHelpPanel.setErrorMessage("");
+    setErrorHtml(null);
   }
 
   /**
    * Set an error message and mark the given components as being in error state
    */
   private void setErrorState(String message, JComponent... errorComponents) {
-    myAvdConfigurationOptionHelpPanel.setErrorMessage(message);
+    boolean isVisible = false;
     for (JComponent c : errorComponents) {
-      if (c instanceof JLabel) {
-        c.setForeground(JBColor.RED);
-        ((JLabel)c).setIcon(AllIcons.General.BalloonError);
-      } else if (c instanceof StorageField) {
-        ((StorageField)c).setError(true);
-      } else {
-        c.setBorder(new LineBorder(JBColor.RED));
+      if (c.isShowing()) {
+        isVisible = true;
+        break;
       }
-      myErrorStateComponents.add(c);
+    }
+    if (!isVisible) {
+      setErrorHtml(message);
+    }
+    else {
+      myAvdConfigurationOptionHelpPanel.setErrorMessage(message);
+      for (JComponent c : errorComponents) {
+        if (c instanceof JLabel) {
+          c.setForeground(JBColor.RED);
+          ((JLabel)c).setIcon(AllIcons.General.BalloonError);
+        }
+        else if (c instanceof StorageField) {
+          ((StorageField)c).setError(true);
+        }
+        else if (c instanceof JCheckBox) {
+          c.setForeground(JBColor.RED);
+        }
+        else {
+          c.setBorder(new LineBorder(JBColor.RED));
+        }
+        myErrorStateComponents.add(c);
+      }
     }
   }
 
@@ -301,6 +405,27 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
    * Bind components to their specified keys and help messaging.
    */
   private void registerComponents() {
+    register(DISPLAY_NAME_KEY, myAvdDisplayName);
+    register(AVD_ID_KEY, myAvdId);
+    registerValueDeriver(AVD_ID_KEY, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<Key<?>> getTriggerKeys() {
+        return makeSetOf(DISPLAY_NAME_KEY);
+      }
+
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+        String displayName = state.get(DISPLAY_NAME_KEY);
+        if (displayName != null) {
+          return AvdEditWizard.cleanAvdName(displayName, !displayName.equals(myOriginalName));
+        }
+        return "";
+      }
+    });
+    setControlDescription(myAvdDisplayName, myAvdConfigurationOptionHelpPanel.getDescription(DISPLAY_NAME_KEY));
+
     register(DEVICE_DEFINITION_KEY, myDeviceName, DEVICE_NAME_BINDING);
     register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
@@ -329,7 +454,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         @Nullable
         @Override
         protected Storage getStorage(@NotNull Device device) {
-          return device.getDefaultHardware().getRam();
+          return AvdBuilder.getDefaultRam(device.getDefaultHardware());
         }
       });
 
@@ -340,6 +465,25 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
           return calculateVmHeap(device);
         }
       });
+
+      registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
+        @Nullable
+        @Override
+        public Set<Key<?>> getTriggerKeys() {
+          return makeSetOf(DEVICE_DEFINITION_KEY, SYSTEM_IMAGE_KEY);
+        }
+
+        @Nullable
+        @Override
+        public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+          Device device = state.get(DEVICE_DEFINITION_KEY);
+          SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
+          if (device != null && systemImage != null) { // Should always be the case
+            return String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
+          }
+          return null; // Should never occur
+        }
+      });
     }
 
     registerValueDeriver(DEFAULT_ORIENTATION_KEY, new ValueDeriver<ScreenOrientation>() {
@@ -348,6 +492,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(DEVICE_DEFINITION_KEY);
       }
+
       @Nullable
       @Override
       public ScreenOrientation deriveValue(@NotNull ScopedStateStore state,
@@ -356,13 +501,29 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         Device device = state.get(DEVICE_DEFINITION_KEY);
         if (device != null) {
           return device.getDefaultState().getOrientation();
-        } else {
+        }
+        else {
           return null;
         }
       }
     });
 
+    registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<Key<?>> getTriggerKeys() {
+        return makeSetOf(DISPLAY_NAME_KEY);
+      }
+
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+        return state.get(DISPLAY_NAME_KEY);
+      }
+    });
+
     register(DEFAULT_ORIENTATION_KEY, myOrientationToggle, ORIENTATION_BINDING);
+
     setControlDescription(myOrientationToggle, myAvdConfigurationOptionHelpPanel.getDescription(DEFAULT_ORIENTATION_KEY));
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
       @Override
@@ -371,7 +532,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
 
-    FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(true, false, false, false, false, false){
+    FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(true, false, false, false, false, false) {
       @Override
       public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
         return super.isFileVisible(file, true);
@@ -422,61 +583,41 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
 
-    File currentSkinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (currentSkinFile != null) {
-      myState.put(CUSTOM_SKIN_PATH_KEY, currentSkinFile.getPath());
+    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    register(CUSTOM_SKIN_FILE_KEY, mySkinComboBox, mySkinComboBox.getBinding());
+    myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
+    setControlDescription(mySkinComboBox, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
+
+    if (!myState.containsKey(HAS_HARDWARE_KEYBOARD_KEY)) {
+      myState.put(HAS_HARDWARE_KEYBOARD_KEY, true);
     }
-    register(CUSTOM_SKIN_PATH_KEY, myCustomSkinPath);
-    FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
-    myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
-                                                 getProject(), skinChooserDescriptor);
-    setControlDescription(myCustomSkinPath, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
-
-    registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
-      }
-
-      @Nullable
-      @Override
-      public File deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable File currentValue) {
-        String path = state.get(CUSTOM_SKIN_PATH_KEY);
-        if (path != null) {
-          File file = new File(path);
-          if (file.isDirectory()) {
-            return file;
-          }
-        }
-        return null;
-      }
-    });
+    register(HAS_HARDWARE_KEYBOARD_KEY, myEnableComputerKeyboard);
+    setControlDescription(myEnableComputerKeyboard, myAvdConfigurationOptionHelpPanel.getDescription(HAS_HARDWARE_KEYBOARD_KEY));
 
     invokeUpdate(null);
   }
 
   private void createUIComponents() {
-    myOrientationToggle = new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT,
-                                                                                         ScreenOrientation.LANDSCAPE),
-                                                           new Function<ScreenOrientation, Image>() {
-                                                             @Override
-                                                             public Image apply(ScreenOrientation input) {
-                                                               return ChooseModuleTypeStep.iconToImage(ORIENTATIONS.get(input).myIcon);
-                                                             }
-                                                           },
-                                                           new Function<ScreenOrientation, String>() {
-                                                             @Override
-                                                             public String apply(ScreenOrientation input) {
-                                                               return ORIENTATIONS.get(input).myName;
-                                                             }
-                                                           }, new Dimension(50,50));
+    myOrientationToggle =
+      new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
+                                       new Function<ScreenOrientation, Image>() {
+                                         @Override
+                                         public Image apply(ScreenOrientation input) {
+                                           return ChooseModuleTypeStep.iconToImage(ORIENTATIONS.get(input).myIcon);
+                                         }
+                                       }, new Function<ScreenOrientation, String>() {
+        @Override
+        public String apply(ScreenOrientation input) {
+          return ORIENTATIONS.get(input).myName;
+        }
+      }, new Dimension(50, 50));
     myOrientationToggle.setCellMargin(new Insets(3, 5, 3, 5));
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget("");
+    mySkinComboBox = new SkinChooser(getProject());
   }
 
   @NotNull
@@ -495,16 +636,16 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     @NotNull private final String myName;
 
     @NotNull private final Icon myIcon;
+
     public NamedIcon(@NotNull String name, @NotNull Icon icon) {
       myName = name;
       myIcon = icon;
     }
   }
 
-  private static final Map<ScreenOrientation, NamedIcon> ORIENTATIONS = ImmutableMap.of(ScreenOrientation.PORTRAIT,
-                                                                                        new NamedIcon("Portrait", AndroidIcons.Portrait),
-                                                                                        ScreenOrientation.LANDSCAPE,
-                                                                                        new NamedIcon("Landscape", AndroidIcons.Landscape));
+  private static final Map<ScreenOrientation, NamedIcon> ORIENTATIONS = ImmutableMap
+    .of(ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", AndroidIcons.Portrait), ScreenOrientation.LANDSCAPE,
+        new NamedIcon("Landscape", AndroidIcons.Landscape));
 
   private static final ComponentBinding<Device, JBLabel> DEVICE_NAME_BINDING = new ComponentBinding<Device, JBLabel>() {
     @Override
@@ -530,30 +671,33 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     }
   };
 
-  private static final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_NAME_BINDING = new ComponentBinding<SystemImageDescription, JBLabel>() {
-    @Override
-    public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
-      if (newValue != null) {
-        String codeName = SystemImagePreview.getCodeName(newValue);
-        component.setText(codeName);
-        try {
-          Icon icon = IconLoader.getIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
-          component.setIcon(icon);
-        } catch (RuntimeException e) {
-          // Pass
+  private static final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_NAME_BINDING =
+    new ComponentBinding<SystemImageDescription, JBLabel>() {
+      @Override
+      public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
+        if (newValue != null) {
+          String codeName = SystemImagePreview.getCodeName(newValue);
+          component.setText(codeName);
+          try {
+            Icon icon = IconLoader.getIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
+            component.setIcon(icon);
+          }
+          catch (RuntimeException e) {
+            // Pass
+          }
         }
       }
-    }
-  };
+    };
 
-  private static final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_DESCRIPTION_BINDING = new ComponentBinding<SystemImageDescription, JBLabel>() {
-    @Override
-    public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
-      if (newValue != null) {
-        component.setText(newValue.target.getFullName() + " " + newValue.systemImage.getAbiType());
+  private static final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_DESCRIPTION_BINDING =
+    new ComponentBinding<SystemImageDescription, JBLabel>() {
+      @Override
+      public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
+        if (newValue != null) {
+          component.setText(newValue.getName() + " " + newValue.getAbiType());
+        }
       }
-    }
-  };
+    };
 
   public static final ComponentBinding<ScreenOrientation, ASGallery<ScreenOrientation>> ORIENTATION_BINDING =
     new ComponentBinding<ScreenOrientation, ASGallery<ScreenOrientation>>() {
@@ -596,7 +740,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents = ImmutableSet.<JComponent>of(myMemoryAndStoragePanel, myCameraPanel, myNetworkPanel,
-                                                              mySkinPanel);
+                                                              mySkinPanel, myAvdIdLabel, myAvdId, myKeyboardPanel);
   }
 
   /**
@@ -606,6 +750,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     for (JComponent c : myAdvancedOptionsComponents) {
       c.setVisible(show);
     }
+    validate();
     myRoot.validate();
   }
 
@@ -619,7 +764,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myOrientationToggle.setEnabled(device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
   }
 
-  private static Storage calculateVmHeap(@NotNull Device device) {
+  public static Storage calculateVmHeap(@NotNull Device device) {
     // Set the default VM heap size. This is based on the Android CDD minimums for each
     // screen size and density.
     Screen s = device.getDefaultHardware().getScreen();
@@ -637,14 +782,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
           vmHeapSize = 64;
           break;
         case XHIGH:
+        case DPI_400:
         case XXHIGH:
+        case DPI_560:
         case XXXHIGH:
           vmHeapSize = 128;
           break;
         case NODPI:
           break;
       }
-    } else {
+    }
+    else {
       switch (density) {
         case LOW:
         case MEDIUM:
@@ -655,7 +803,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
           vmHeapSize = 32;
           break;
         case XHIGH:
+        case DPI_400:
         case XXHIGH:
+        case DPI_560:
         case XXXHIGH:
           vmHeapSize = 64;
           break;
@@ -675,18 +825,29 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
     @Nullable
     @Override
-    public Storage deriveValue(@NotNull ScopedStateStore state,
-                               @Nullable Key changedKey,
-                               @Nullable Storage currentValue) {
+    public Storage deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Storage currentValue) {
       Device device = state.get(DEVICE_DEFINITION_KEY);
       if (device != null) {
         return getStorage(device);
-      } else {
+      }
+      else {
         return null;
       }
     }
 
     @Nullable
     protected abstract Storage getStorage(@NotNull Device device);
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }

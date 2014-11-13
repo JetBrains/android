@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.SessionParamsFlags;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
@@ -59,6 +60,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -80,6 +82,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
@@ -207,6 +210,15 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
+    if (TAG_PREFERENCE_SCREEN.equals(getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+      // This means that user is using an outdated version of layoutlib. A warning to update has already been
+      // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
+      logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
+                                                         "Update it using the SDK Manager"));
+
+      return null;
+    }
+
     Device device = configuration.getDevice();
     if (device == null) {
       logger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
@@ -241,13 +253,13 @@ public class RenderService implements IImageFactory {
           revision = 1;
         }
         break;
-      case 20: revision = 1; break;
-      case 19: revision = 3; break;
-      case 18: revision = 2; break;
-      case 17: revision = 2; break;
-      case 16: revision = 4; break;
-      case 15: revision = 3; break;
-      case 14: revision = 3; break;
+      case 20: revision = 2; break;
+      case 19: revision = 4; break;
+      case 18: revision = 3; break;
+      case 17: revision = 3; break;
+      case 16: revision = 5; break;
+      case 15: revision = 5; break;
+      case 14: revision = 4; break;
       case 13: revision = 1; break;
       case 12: revision = 3; break;
       case 11: revision = 2; break;
@@ -593,6 +605,8 @@ public class RenderService implements IImageFactory {
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
 
+    params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(myPsiFile));
+
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
     // for an extended view info, re-render in the same session, and then set a flag
@@ -778,6 +792,17 @@ public class RenderService implements IImageFactory {
     return file != null && LayoutPullParserFactory.isSupported(file);
   }
 
+  @Nullable
+  public static String getRootTagName(@NotNull PsiFile file) {
+    if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
+      if (file instanceof XmlFile) {
+        XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));
+        return rootTag == null ? null : rootTag.getName();
+      }
+    }
+    return null;
+  }
+
   private static final Object RENDERING_LOCK = new Object();
 
   @Nullable
@@ -871,11 +896,12 @@ public class RenderService implements IImageFactory {
     return myPsiFile;
   }
 
-  public boolean supportsCapability(@NotNull Capability capability) {
+  public boolean supportsCapability(@MagicConstant(flagsFromClass = Features.class) int capability) {
     return myLayoutLib.supports(capability);
   }
 
-  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target, @NotNull Capability capability) {
+  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target,
+                                           @MagicConstant(flagsFromClass = Features.class) int capability) {
     Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module);
     if (platform != null) {

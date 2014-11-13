@@ -17,6 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.builder.model.*;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -74,7 +75,10 @@ public abstract class IdeaSourceProvider {
   public abstract Set<VirtualFile> getRenderscriptDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getJniDirectories();
+  public abstract Set<VirtualFile> getCDirectories();
+
+  @NotNull
+  public abstract Set<VirtualFile> getCppDirectories();
 
   @NotNull
   public abstract Set<VirtualFile> getJniLibsDirectories();
@@ -152,8 +156,14 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getJniDirectories() {
-      return convertFileSet(myProvider.getJniDirectories());
+    public Set<VirtualFile> getCDirectories() {
+      return convertFileSet(myProvider.getCDirectories());
+    }
+
+    @NotNull
+    @Override
+    public Set<VirtualFile> getCppDirectories() {
+      return convertFileSet(myProvider.getCppDirectories());
     }
 
     @NotNull
@@ -254,7 +264,13 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getJniDirectories() {
+    public Set<VirtualFile> getCDirectories() {
+     return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Set<VirtualFile> getCppDirectories() {
       return Collections.emptySet();
     }
 
@@ -371,7 +387,9 @@ public abstract class IdeaSourceProvider {
     srcDirectories.addAll(getAidlDirectories());
     srcDirectories.addAll(getRenderscriptDirectories());
     srcDirectories.addAll(getAssetsDirectories());
-    srcDirectories.addAll(getJniDirectories());
+    srcDirectories.addAll(getCDirectories());
+    srcDirectories.addAll(getCppDirectories());
+    srcDirectories.addAll(getJniLibsDirectories());
     return srcDirectories;
   }
 
@@ -382,7 +400,9 @@ public abstract class IdeaSourceProvider {
     srcDirectories.addAll(provider.getAidlDirectories());
     srcDirectories.addAll(provider.getRenderscriptDirectories());
     srcDirectories.addAll(provider.getAssetsDirectories());
-    srcDirectories.addAll(provider.getJniDirectories());
+    srcDirectories.addAll(provider.getCDirectories());
+    srcDirectories.addAll(provider.getCppDirectories());
+    srcDirectories.addAll(provider.getJniLibsDirectories());
     return srcDirectories;
   }
 
@@ -709,10 +729,17 @@ public abstract class IdeaSourceProvider {
     }
   };
 
-  public static Function<IdeaSourceProvider, List<VirtualFile>> JNI_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+  public static Function<IdeaSourceProvider, List<VirtualFile>> C_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
     @Override
     public List<VirtualFile> apply(IdeaSourceProvider provider) {
-      return Lists.newArrayList(provider.getJniDirectories());
+      return Lists.newArrayList(provider.getCDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> CPP_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getCppDirectories());
     }
   };
 

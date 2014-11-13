@@ -19,27 +19,26 @@ import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressWindow;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.ExecutionStatus;
-import org.jetbrains.android.util.StringBuildingOutputProcessor;
-import org.jetbrains.android.util.WaitingStrategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+
 /**
  * A wrapper class for communicating with {@link com.android.sdklib.internal.avd.AvdManager} and exposing helper functions
  * for dealing with {@link AvdInfo} objects inside Android studio.
@@ -60,10 +61,11 @@ public class AvdManagerConnection {
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG) {
     @Override
     public void error(Throwable t, String errorFormat, Object... args) {
-      IJ_LOG.error(String.format(errorFormat, args), t);
+      IJ_LOG.error(errorFormat != null ? String.format(errorFormat, args) : "", t);
     }
   };
   private static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
+  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   private static AvdManager ourAvdManager;
   private static Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
   private static File ourEmulatorBinary;
@@ -231,12 +233,30 @@ public class AvdManagerConnection {
   /**
    * Launch the given AVD in the emulator.
    */
-  public static void startAvd(@NotNull final AvdInfo info) {
+  public static void startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
     if (!initIfNecessary()) {
       return;
     }
     final String avdName = info.getName();
+
+    // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
+    // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
+    // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
+    // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
     if (info.isRunning()) {
+      String baseFolder;
+      try {
+        baseFolder = ourAvdManager.getBaseAvdFolder();
+      }
+      catch (AndroidLocation.AndroidLocationException e) {
+        baseFolder = "$HOME";
+      }
+
+      String message = String.format("AVD %1$s is already running.\n" +
+                                     "If that is not the case, delete the files at\n" +
+                                     "   %2$s/%1$s.avd/*.lock\n" +
+                                     "and try again.", avdName, baseFolder);
+      Messages.showErrorDialog(project, message, "AVD Manager");
       return;
     }
 
@@ -245,7 +265,7 @@ public class AvdManagerConnection {
     final String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
     final String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
 
-    final ProgressWindow p = new ProgressWindow(false, true, null);
+    final ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
@@ -255,7 +275,11 @@ public class AvdManagerConnection {
         GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.setExePath(ourEmulatorBinary.getPath());
 
-        if (scaleFactor != null) {
+        // Don't explicitly set auto since that seems to be the default behavior, but when set
+        // can cause the emulator to fail to launch with this error message:
+        //  "could not get monitor DPI resolution from system. please use -dpi-monitor to specify one"
+        // (this happens on OSX where we don't have a reliable, Retina-correct way to get the dpi)
+        if (scaleFactor != null && !"auto".equals(scaleFactor)) {
           commandLine.addParameters("-scale", scaleFactor);
         }
 
@@ -269,45 +293,49 @@ public class AvdManagerConnection {
 
         commandLine.addParameters("-avd", avdName);
 
-
-        final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
+        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine);
+        ProcessHandler processHandler;
         try {
-          if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(1000)) ==
-              ExecutionStatus.TIMEOUT) {
-
-            // It takes about 2 seconds to start the Emulator. Display a small
-            // progress indicator otherwise it seems like the action wasn't invoked and users tend
-            // to click multiple times on it, ending up with several instances of the manager
-            // window.
-            try {
-              p.start();
-              p.setText("Starting AVD...");
-              for (double d = 0; d < 1; d += 1.0 / 20) {
-                p.setFraction(d);
-                //noinspection BusyWait
-                Thread.sleep(100);
-              }
-            }
-            catch (InterruptedException ignore) {
-            }
-            finally {
-              p.stop();
-            }
-
-            return;
-          }
+          processHandler = runner.start();
         }
         catch (ExecutionException e) {
-          IJ_LOG.error(e);
+          IJ_LOG.error("Error launching emulator", e);
           return;
         }
-        final String message = processor.getMessage();
 
-        if (message.toLowerCase().contains("error")) {
+        ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
+        processHandler.addProcessListener(collector);
+
+        // It takes >= 8 seconds to start the Emulator. Display a small
+        // progress indicator otherwise it seems like the action wasn't invoked and users tend
+        // to click multiple times on it, ending up with several instances of the manager
+        // window.
+        try {
+          p.start();
+          p.setText("Starting AVD...");
+          for (double d = 0; d < 1; d += 1.0 / 80) {
+            p.setFraction(d);
+            //noinspection BusyWait
+            Thread.sleep(100);
+            if (processHandler.isProcessTerminated()) {
+              break;
+            }
+          }
+        }
+        catch (InterruptedException ignore) {
+        }
+        finally {
+          p.stop();
+        }
+
+        processHandler.removeProcessListener(collector);
+        final String message = collector.getText();
+
+        if (message.toLowerCase().contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              IJ_LOG.error("Cannot launch AVD in emulator.\nOutput:\n" + message, avdName);
+              Messages.showErrorDialog(project, "Cannot launch AVD in emulator.\nOutput:\n" + message, avdName);
             }
           });
         }
@@ -336,13 +364,16 @@ public class AvdManagerConnection {
 
     File avdFolder;
     try {
-      avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName);
+      if (currentInfo != null) {
+        avdFolder = new File(currentInfo.getDataFolderPath());
+      } else {
+        avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName, true);
+      }
     }
     catch (AndroidLocation.AndroidLocationException e) {
       IJ_LOG.error("Could not create AVD " + avdName, e);
       return null;
     }
-    ISystemImage image = systemImageDescription.systemImage;
 
     // TODO: Fix this so that the screen appears in the proper orientation
     Dimension resolution = device.getScreenSize(device.getDefaultState().getOrientation()); //device.getScreenSize(orientation);
@@ -352,29 +383,38 @@ public class AvdManagerConnection {
     if (skinFolder == null && isCircular) {
       skinFolder = getRoundSkin(systemImageDescription);
     }
+    if (FileUtil.filesEqual(skinFolder, NO_SKIN)) {
+      skinFolder = null;
+    }
     if (skinFolder == null) {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
 
+    if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
+      boolean success = ourAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
+      if (!success) {
+        return null;
+      }
+    }
     return ourAvdManager.createAvd(avdFolder,
-                                    avdName,
-                                    systemImageDescription.target,
-                                    image.getTag(),
-                                    image.getAbiType(),
-                                    skinFolder,
-                                    skinName,
-                                    sdCard,
-                                    hardwareProperties,
-                                    device.getBootProps(),
-                                    createSnapshot,
-                                    false, // Remove Previous
-                                    currentInfo != null, // edit existing
-                                    SDK_LOG);
+                                   avdName,
+                                   systemImageDescription.getTarget(),
+                                   systemImageDescription.getTag(),
+                                   systemImageDescription.getAbiType(),
+                                   skinFolder,
+                                   skinName,
+                                   sdCard,
+                                   hardwareProperties,
+                                   device.getBootProps(),
+                                   createSnapshot,
+                                   false, // Remove Previous
+                                   currentInfo != null, // edit existing
+                                   SDK_LOG);
   }
 
   @Nullable
   private static File getRoundSkin(AvdWizardConstants.SystemImageDescription systemImageDescription) {
-    File[] skins = systemImageDescription.systemImage.getSkins();
+    File[] skins = systemImageDescription.getSkins();
     for (File skin : skins) {
       if (skin.getName().contains("Round")) {
         return skin;
@@ -431,5 +471,13 @@ public class AvdManagerConnection {
       return true;
     }
     return false;
+  }
+
+  public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
+    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
+    if (displayName == null) {
+      displayName = avdInfo.getName().replaceAll("[_-]+", " ");
+    }
+    return displayName;
   }
 }

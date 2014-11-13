@@ -336,7 +336,7 @@ public class ViewLoader {
 
         for (int j = k + 1; j <= i; j++) {
           if (j == 2) {
-            sig[j - 1] = clazz.getClassLoader().loadClass("android.util.AttributeSet");
+            sig[j - 1] = clazz.getClassLoader().loadClass(CLASS_ATTRIBUTE_SET);
             params[j - 1] = null;
           }
           else if (j == 3) {

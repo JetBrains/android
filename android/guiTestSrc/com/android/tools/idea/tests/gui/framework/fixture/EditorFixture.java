@@ -19,10 +19,12 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -36,6 +38,7 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
@@ -56,6 +59,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
@@ -727,6 +731,9 @@ public class EditorFixture {
       case JOIN_LINES:
         invokeActionViaKeystroke("EditorJoinLines");
         break;
+      case SHOW_INTENTION_ACTIONS:
+        invokeActionViaKeystroke("ShowIntentionActions");
+        break;
       case EXTEND_SELECTION:
       case SHRINK_SELECTION:
         // Need to find the right action id's for these; didn't see them in the default keymap
@@ -772,6 +779,58 @@ public class EditorFixture {
     else {
       fail("Unsupported shortcut type " + shortcut.getClass().getName());
     }
+  }
+
+  /**
+   * Checks that the editor has a given number of issues. This is a convenience wrapper
+   * for {@link FileFixture#requireCodeAnalysisHighlightCount(HighlightSeverity, int)}
+   *
+   * @param severity the severity of the issues you want to count
+   * @param expected the expected count
+   * @return this
+   */
+  @NotNull
+  public EditorFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+    VirtualFile currentFile = getCurrentFile();
+    assertNotNull("Expected a file to be open", currentFile);
+    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+    file.requireCodeAnalysisHighlightCount(severity, expected);
+
+    return this;
+  }
+
+  /**
+   * Waits until the editor has the given number of errors at the given severity.
+   * Typically used when you want to invoke an intention action, but need to wait until
+   * the code analyzer has found an error it needs to resolve first.
+   *
+   * @param severity the severity of the issues you want to count
+   * @param expected the expected count
+   * @return this
+   */
+  @NotNull
+  public EditorFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+    VirtualFile currentFile = getCurrentFile();
+    assertNotNull("Expected a file to be open", currentFile);
+    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+    file.waitForCodeAnalysisHighlightCount(severity, expected);
+
+    return this;
+  }
+
+  /**
+   * Invokes the show intentions action, waits for the actions to be displayed and then picks the
+   * one with the given label prefix
+   *
+   * @param labelPrefix the prefix of the action description to be shown
+   * @return this
+   */
+  @NotNull
+  public EditorFixture invokeIntentionAction(@NotNull String labelPrefix) {
+    invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
+    JBList popup = GuiTests.waitForPopup(robot);
+    GuiTests.clickPopupMenuItem(labelPrefix, popup, robot);
+    return this;
   }
 
   /**
@@ -910,10 +969,27 @@ public class EditorFixture {
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
   public enum EditorAction {
-    FORMAT, SAVE, UNDO, REDO, COPY, PASTE, CUT, BACK_SPACE,
-    COMPLETE_CURRENT_STATEMENT, EXTEND_SELECTION, SHRINK_SELECTION, SELECT_ALL,
-    JOIN_LINES, DUPLICATE_LINES, TOGGLE_COMMENT, GOTO_DECLARATION,
-    NEXT_ERROR, PREVIOUS_ERROR, NEXT_METHOD, PREVIOUS_METHOD
+    SHOW_INTENTION_ACTIONS,
+    FORMAT,
+    SAVE,
+    UNDO,
+    REDO,
+    COPY,
+    PASTE,
+    CUT,
+    BACK_SPACE,
+    COMPLETE_CURRENT_STATEMENT,
+    EXTEND_SELECTION,
+    SHRINK_SELECTION,
+    SELECT_ALL,
+    JOIN_LINES,
+    DUPLICATE_LINES,
+    TOGGLE_COMMENT,
+    GOTO_DECLARATION,
+    NEXT_ERROR,
+    PREVIOUS_ERROR,
+    NEXT_METHOD,
+    PREVIOUS_METHOD
   }
 
   /**

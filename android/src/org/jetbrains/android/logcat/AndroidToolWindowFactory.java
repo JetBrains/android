@@ -41,6 +41,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
@@ -158,9 +159,13 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
       public void onFailure(Throwable t) {
         loadingPanel.stopLoading();
 
-        // TODO: surface this in the UI
-        Logger LOG = Logger.getInstance(DevicePanel.class);
-        LOG.error("Unable to obtain debug bridge", t);
+        // If we cannot connect to ADB in a reasonable amount of time (10 seconds timeout in AdbService), then something is seriously
+        // wrong. We need more information on when this happens and identify the root cause.
+        Logger.getInstance(DevicePanel.class).info("Unable to obtain debug bridge", t);
+        Messages.showErrorDialog("Unable to establish connection to adb.\n\n" +
+                                 "If this happens, run 'adb devices -l' from the command line and see if it lists your devices.\n" +
+                                 "If adb from the command line works, then please file a bug at http://b.android.com, including\n" +
+                                 "the output of the 'adb devices -l' command and your idea.log file (Help | Show Log in Files)", "ADB");
       }
     }, EdtExecutor.INSTANCE);
   }

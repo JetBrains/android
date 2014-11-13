@@ -68,4 +68,11 @@ public class AvdEditWizardFixture extends AbstractWizardFixture {
     robot.click(button);
     return this;
   }
+
+  @NotNull
+  public AvdEditWizardFixture clickCancel() {
+    JButton button = findButtonByText("Cancel");
+    robot.click(button);
+    return this;
+  }
 }

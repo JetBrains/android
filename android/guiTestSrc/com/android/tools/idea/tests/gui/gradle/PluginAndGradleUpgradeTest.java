@@ -33,6 +33,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperProp
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_1_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
@@ -115,9 +116,8 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFail();
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    MessagesToolWindowFixture.MessageFixture msg =
-      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
-    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click();
+    MessageFixture msg = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
+    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();

@@ -40,7 +40,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
-                           "    <style name=\"MyTheme\" parent=\"android:Theme.Light\">\n" +
+                           "    <style name=\"MyTheme.Dark\" parent=\"android:Theme.Light\">\n" +
                            "        <item name=\"android:textColor\">#999999</item>\n" +
                            "        <item name=\"foo\">?android:colorForeground</item>\n" +
                            "    </style>\n" +
@@ -155,6 +155,15 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     Object gravityValue = field1.get(null);
     Object layoutColumnSpanValue = clz.getField("layout_columnSpan").get(null);
 
+    // Test style class
+    name = "my.test.pkg.R$style";
+    clz = generateClass(generator, name);
+    assertNotNull(clz);
+    r = clz.newInstance();
+    assertEquals(name, clz.getName());
+    assertTrue(Modifier.isPublic(clz.getModifiers()));
+    assertTrue(Modifier.isFinal(clz.getModifiers()));
+    assertFalse(Modifier.isInterface(clz.getModifiers()));
 
     // Test styleable class!
     name = "my.test.pkg.R$styleable";

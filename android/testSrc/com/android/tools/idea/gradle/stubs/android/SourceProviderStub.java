@@ -30,7 +30,8 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myAidlDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myAssetsDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myJavaDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myJniDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myCppDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myCDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
@@ -131,19 +132,35 @@ public class SourceProviderStub implements SourceProvider {
   }
 
   /**
-   * Adds the given path to the list of 'jni' directories. It also creates the directory in the file system.
+   * Adds the given path to the list of 'Cpp' directories. It also creates the directory in the file system.
    *
-   * @param path path of the 'jni' directory to add, relative to the root directory of the Android project.
+   * @param path path of the 'Cpp' directory to add, relative to the root directory of the Android project.
    */
-  public void addJniDirectory(@NotNull String path) {
+  public void addCppDirectory(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
-    myJniDirectories.add(directory);
+    myCppDirectories.add(directory);
   }
 
   @Override
   @NotNull
-  public Set<File> getJniDirectories() {
-    return myJniDirectories;
+  public Set<File> getCppDirectories() {
+    return myCppDirectories;
+  }
+
+  /**
+   * Adds the given path to the list of 'C' directories. It also creates the directory in the file system.
+   *
+   * @param path path of the 'C' directory to add, relative to the root directory of the Android project.
+   */
+  public void addCDirectory(@NotNull String path) {
+    File directory = myFileStructure.createProjectDir(path);
+    myCDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getCDirectories() {
+    return myCDirectories;
   }
 
   /**

@@ -277,6 +277,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                      contents.substring(matcher.start()); // note: start; not end; we're prepending, not replacing!
           changed = true;
         }
+        pattern = Pattern.compile("jcenter\\(\\)");
+        matcher = pattern.matcher(contents);
+        if (matcher.find()) {
+          contents = contents.substring(0, matcher.start()) + "maven { url '" + repository + "' };" +
+                     contents.substring(matcher.start()); // note: start; not end; we're prepending, not replacing!
+          changed = true;
+        }
       }
 
       if (changed) {
