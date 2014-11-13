@@ -31,4 +31,9 @@ public class IdeaSourceDirectoryStub implements IdeaSourceDirectory {
   public File getDirectory() {
     return myDir;
   }
+
+  @Override
+  public boolean isGenerated() {
+    return false;
+  }
 }
