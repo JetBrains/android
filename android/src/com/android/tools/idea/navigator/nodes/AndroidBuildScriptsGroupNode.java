@@ -29,6 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -73,7 +74,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     Map<VirtualFile, String> buildScripts = Maps.newHashMap();
 
     for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-      String moduleName = m.getName();
+      String moduleName = getPrefixForModule(m) + m.getName();
       buildScripts.put(GradleUtil.getGradleBuildFile(m), moduleName);
 
       // include all .gradle files from each module
@@ -85,8 +86,8 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     VirtualFile baseDir = myProject.getBaseDir();
     buildScripts.put(baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
     buildScripts.put(baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
-    buildScripts.put(baseDir.findChild(SdkConstants.FN_LOCAL_PROPERTIES), null);
-    buildScripts.put(baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), null);
+    buildScripts.put(baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), "Gradle Version");
+    buildScripts.put(baseDir.findChild(SdkConstants.FN_LOCAL_PROPERTIES), "SDK Location");
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       File userSettingsFile = AndroidGradleProjectData.getGradleUserSettingsFile();
@@ -97,6 +98,10 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
     buildScripts.remove(null); // any of the above virtual files could have been null
     return buildScripts;
+  }
+
+  private static String getPrefixForModule(Module m) {
+    return GradleUtil.isRootModuleWithNoSources(m) ? AndroidBuildScriptNode.PROJECT_PREFIX : AndroidBuildScriptNode.MODULE_PREFIX;
   }
 
   @NotNull

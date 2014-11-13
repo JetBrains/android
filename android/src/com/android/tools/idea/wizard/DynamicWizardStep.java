@@ -37,7 +37,17 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 
 /**
- * A step in a wizard path.
+ * DynamicWizardStep
+ * A DynamicWizardStep is the smallest unit of a workflow.
+ * It is responsible for creating UI that will live inside the frame provided by the wizard and linking that UI to a {@link ScopedStateStore}.
+ * A subclass of DynamicWizardStep must implement functions that return the name of the step,
+ * the JComponent associated with the UI of the step, and a label where error messages can be displayed to the user.
+ * Additionally, each step can override {@link #validate()} to implement custom data validation whenever the user enters new data,
+ * and {@link #isStepVisible()} to affect whether the step is shown to the user.
+ *
+ * It is worth noting that there’s a utility subclass of DynamicWizardStep called
+ * {@link DynamicWizardStepWithHeaderAndDescription}
+ * which has some UI enhancements such as a title and a description bar that will update when a component is focused.
  */
 public abstract class DynamicWizardStep extends ScopedDataBinder implements Step {
   private static final Logger LOG = Logger.getInstance(DynamicWizardStep.class);
@@ -94,6 +104,9 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
 
   /**
    * Set up this step. UI initialization should be done here.
+   * This initialization will only be performed once, during the first time
+   * this step appears on screen. Any work that should be done every time the
+   * user interacts with a step should be done in {@link #onEnterStep()}.
    */
   public abstract void init();
 
@@ -286,6 +299,10 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     }
   }
 
+  /**
+   * Get the name of the step to be used with {@link DynamicWizard#navigateToNamedStep(String, boolean)}
+   * The value returned by this function will not be shown to the user by the wizard framework.
+   */
   @Override
   public String toString() {
     return getStepName();

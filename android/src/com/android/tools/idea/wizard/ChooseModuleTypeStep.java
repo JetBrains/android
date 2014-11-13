@@ -53,15 +53,23 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
   private JPanel myPanel;
   private JBList myModuleTypeList;
   private ASGallery<ModuleTemplate> myFormFactorGallery;
-  private JPanel myTypeListPlaceholder;
   private JPanel myModulesPanel;
   private boolean myIsSynchronizingSelection = false;
 
+  @Nullable
+  @Override
+  protected JComponent getHeader() {
+    return NewModuleWizardDynamic.buildHeader();
+  }
+
+  @Override
+  @Nullable
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
+  }
+
   public ChooseModuleTypeStep(Iterable<ModuleTemplateProvider> moduleTypesProviders, @Nullable Disposable parentDisposable) {
     super("Choose Module Type", "Select an option below to create your new module", null, parentDisposable);
-    HideableDecorator decorator = new HideableDecorator(myTypeListPlaceholder, "More Modules", false);
-    decorator.setContentComponent(myModulesPanel);
-    decorator.setOn(false);
     myModuleTypeList.setCellRenderer(new TemplateListCellRenderer());
     myModuleTypesProviders = moduleTypesProviders;
     myModuleTypeList.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
@@ -164,7 +172,8 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
       public Image apply(ModuleTemplate input) {
         return iconToImage(input.getIcon());
       }
-    }, Functions.toStringFunction(), new Dimension(150, 150));
+    }, Functions.toStringFunction(), new Dimension(128, 128));
+    myFormFactorGallery.setCellMargin(new Insets(0, 25, 0, 25)); // Margins so the text is not clipped
   }
 
   private static class TemplateListCellRenderer implements ListCellRenderer {
@@ -276,6 +285,7 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
       }
       myIsSynchronizingSelection = false;
       saveState(myPanel);
+      invokeUpdate(SELECTED_MODULE_TYPE_KEY);
     }
   }
 }

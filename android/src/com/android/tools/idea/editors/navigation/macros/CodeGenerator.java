@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.navigation.*;
+import com.android.annotations.NonNull;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -23,25 +24,26 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.impl.source.codeStyle.ImportHelper;
+import org.jetbrains.annotations.NotNull;
 
 public class CodeGenerator {
+  private static final String[] FRAMEWORK_IMPORTS = new String[]{
+    "android.app.Activity",
+    "android.content.Intent",
+    "android.os.Bundle"
+  };
+  public static final String TRANSITION_ADDED = "Transition added";
   public final Module module;
   public final NavigationModel navigationModel;
+  public final Listener<String> listener;
 
-  public CodeGenerator(NavigationModel navigationModel, Module module) {
+  public CodeGenerator(NavigationModel navigationModel, Module module, Listener<String> listener) {
     this.navigationModel = navigationModel;
     this.module = module;
+    this.listener = listener;
   }
-
-
-  /*
-  Map<String, PsiElement> bindings = new HashMap<String, PsiElement>();
-  bindings.put("$menuItem", factory.createIdentifier("hello"));
-  bindings.put("$f", factory.createIdentifier("goodbye"));
-  bindings.put("$consume", factory.createExpressionFromText("true", body));
-  PsiElement newCode = Instantiation.instantiate(installMenuItemClick, bindings);
-  */
-
 
   private ActivityState getAssociatedActivityState(MenuState menuState) {
     for (Transition t : navigationModel.getTransitions()) {
@@ -55,6 +57,27 @@ public class CodeGenerator {
     }
     assert false;
     return null;
+  }
+
+  private void addImports(ImportHelper importHelper, PsiJavaFile file, String[] classNames) {
+    for (String className : classNames) {
+      PsiClass psiClass = Utilities.getPsiClass(module, className);
+      if (psiClass != null) {
+        importHelper.addImport(file, psiClass);
+      }
+    }
+  }
+
+  private void addImportsAsNecessary(PsiClass psiClass, @NonNull String... classNames) {
+    PsiJavaFile file = (PsiJavaFile)psiClass.getContainingFile();
+    ImportHelper importHelper = new ImportHelper(CodeStyleSettingsManager.getSettings(module.getProject()));
+    addImports(importHelper, file, FRAMEWORK_IMPORTS);
+    addImports(importHelper, file, classNames);
+  }
+
+  @SuppressWarnings("UnusedParameters")
+  private void notifyListeners(PsiClass psiClass) {
+    listener.notify(TRANSITION_ADDED);
   }
 
   public void implementTransition(final Transition transition) {
@@ -74,7 +97,7 @@ public class CodeGenerator {
       if (psiClass != null) {
         new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
           @Override
-          protected void run(Result<Void> result) {
+          protected void run(@NotNull Result<Void> result) {
             PsiMethod signature = factory.createMethodFromText("public boolean onPrepareOptionsMenu(Menu menu){ }", psiClass);
             PsiMethod method = psiClass.findMethodBySignature(signature, false);
             if (method == null) {
@@ -83,9 +106,11 @@ public class CodeGenerator {
                 psiClass);
               psiClass.add(method);
               method = psiClass.findMethodBySignature(signature, false); // the previously assigned method is not resolved somehow
+              assert method != null;
             }
             String parameterName = method.getParameterList().getParameters()[0].getName();
             PsiCodeBlock body = method.getBody();
+            assert body != null;
             PsiStatement[] statements = body.getStatements();
             PsiStatement lastStatement = statements[statements.length - 1];
             MultiMatch macro = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro;
@@ -98,7 +123,9 @@ public class CodeGenerator {
             String newCode = macro.instantiate(bindings);
             PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
             body.addBefore(newStatement, lastStatement);
+            addImportsAsNecessary(psiClass, "android.view.Menu", "android.view.MenuItem");
             codeStyleManager.reformat(method);
+            notifyListeners(psiClass);
           }
         }.execute();
       }
@@ -110,16 +137,18 @@ public class CodeGenerator {
       if (psiClass != null) {
         new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
           @Override
-          protected void run(Result<Void> result) {
+          protected void run(@NotNull Result<Void> result) {
             PsiMethod signature = factory.createMethodFromText("boolean onCreateOptionsMenu(Menu menu){}", psiClass);
             PsiMethod method = psiClass.findMethodBySignature(signature, false);
             if (method == null) {
               method = factory.createMethodFromText("@Override public boolean onCreateOptionsMenu(Menu menu) { return true;}", psiClass);
               psiClass.add(method);
               method = psiClass.findMethodBySignature(signature, false); // // the previously assigned method is not resolved somehow
+              assert method != null;
             }
             String parameterName = method.getParameterList().getParameters()[0].getName();
             PsiCodeBlock body = method.getBody();
+            assert body != null;
             PsiStatement[] statements = body.getStatements();
             PsiStatement lastStatement = statements[statements.length - 1];
             String newStatementText = "getMenuInflater().inflate(R.menu.$XmlResourceName, $parameterName);";
@@ -127,7 +156,9 @@ public class CodeGenerator {
             newStatementText = newStatementText.replace("$parameterName", parameterName);
             PsiStatement newStatement = factory.createStatementFromText(newStatementText, body);
             body.addBefore(newStatement, lastStatement);
+            addImportsAsNecessary(psiClass, "android.view.Menu");
             codeStyleManager.reformat(method);
+            notifyListeners(psiClass);
           }
         }.execute();
       }
@@ -139,7 +170,7 @@ public class CodeGenerator {
       if (psiClass != null) {
         new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
           @Override
-          protected void run(Result<Void> result) {
+          protected void run(@NotNull Result<Void> result) {
             PsiMethod signature = factory.createMethodFromText("void onCreate(Bundle savedInstanceState){}", psiClass);
             PsiMethod method = psiClass.findMethodBySignature(signature, false);
             if (method == null) {
@@ -147,9 +178,11 @@ public class CodeGenerator {
                                                     "public void onCreate(Bundle savedInstanceState) {" +
                                                     "super.onCreate(savedInstanceState);}", psiClass);
               psiClass.add(method);
-              method = psiClass.findMethodBySignature(signature, false); // // the previously assigned method is not resolved somehow
+              method = psiClass.findMethodBySignature(signature, false); // the previously assigned method is not resolved somehow
+              assert method != null;
             }
             PsiCodeBlock body = method.getBody();
+            assert body != null;
             PsiStatement[] statements = body.getStatements();
             PsiStatement lastStatement = statements[statements.length - 1];
             String newCode = "findViewById($id).setOnClickListener(new View.OnClickListener() { " +
@@ -163,7 +196,9 @@ public class CodeGenerator {
             newCode = newCode.replaceAll("\\$activityClass", newActivity.getClassName() + ".class");
             PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
             body.addAfter(newStatement, lastStatement);
+            addImportsAsNecessary(psiClass, "android.view.View");
             codeStyleManager.reformat(method);
+            notifyListeners(psiClass);
           }
         }.execute();
       }

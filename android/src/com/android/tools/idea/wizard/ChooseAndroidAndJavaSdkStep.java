@@ -59,7 +59,7 @@ public class ChooseAndroidAndJavaSdkStep extends ModuleWizardStep {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {
         @Override
         public void run() {
-          DefaultSdks.setDefaultAndroidHome(new File(location), javaSdk);
+          DefaultSdks.setDefaultAndroidHome(new File(location), javaSdk, null);
         }
       });
     }

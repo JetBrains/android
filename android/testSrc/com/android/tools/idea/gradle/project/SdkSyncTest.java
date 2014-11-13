@@ -42,7 +42,7 @@ public class SdkSyncTest extends IdeaTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
-    DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath);
+    DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, null);
 
     SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties);
 
@@ -50,7 +50,7 @@ public class SdkSyncTest extends IdeaTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
-    DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath);
+    DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, null);
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
@@ -95,6 +95,7 @@ public class SdkSyncTest extends IdeaTestCase {
       SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties, task);
       fail("Expecting ExternalSystemException");
     } catch (ExternalSystemException e) {
+      // expected
     }
 
     assertNull(DefaultSdks.getDefaultAndroidHome());

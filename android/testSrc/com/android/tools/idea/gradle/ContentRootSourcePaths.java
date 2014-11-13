@@ -103,7 +103,8 @@ public class ContentRootSourcePaths {
     addSourceDirPaths(sourceType, sourceProvider.getAidlDirectories());
     addSourceDirPaths(sourceType, sourceProvider.getAssetsDirectories());
     addSourceDirPaths(sourceType, sourceProvider.getJavaDirectories());
-    addSourceDirPaths(sourceType, sourceProvider.getJniDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getCppDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getCDirectories());
     addSourceDirPaths(sourceType, sourceProvider.getRenderscriptDirectories());
 
     sourceType = isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;

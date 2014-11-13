@@ -602,6 +602,7 @@ public class RenderedImage {
 
   public void imageChanged() {
     myScaledImage = null;
+    myImageBounds = null;
   }
 
   @Nullable

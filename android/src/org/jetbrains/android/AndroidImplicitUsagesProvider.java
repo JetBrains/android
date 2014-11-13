@@ -2,12 +2,16 @@ package org.jetbrains.android;
 
 import com.intellij.codeInsight.daemon.ImplicitUsageProvider;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -20,6 +24,10 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     }
     else if (element instanceof PsiParameter) {
       return isImplicitParameterUsage((PsiParameter)element);
+    }
+    else if (element instanceof PsiMethod) {
+      PsiMethod method = (PsiMethod)element;
+      return method.isConstructor() && isImplicitConstructorUsage(method);
     }
     return false;
   }
@@ -95,7 +103,7 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     return false;
   }
 
-  private static boolean isResourceReference(PsiAnnotationMemberValue value) {
+  private static boolean isResourceReference(@Nullable PsiAnnotationMemberValue value) {
     if (!(value instanceof PsiReferenceExpression)) {
       return false;
     }
@@ -123,5 +131,83 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     }
     exp = (PsiReferenceExpression)qExp;
     return AndroidUtils.R_CLASS_NAME.equals(exp.getReferenceName());
+  }
+
+  public boolean isImplicitConstructorUsage(PsiMethod method) {
+    if (!method.isConstructor()) {
+      return false;
+    }
+
+    if (!method.hasModifierProperty(PsiModifier.PUBLIC)) {
+      return false;
+    }
+
+    PsiParameterList parameterList = method.getParameterList();
+    int parameterCount = parameterList.getParametersCount();
+    if (parameterCount == 0) {
+      // Some Android classes need default constructors, and are invoked by inflaters
+      final PsiClass aClass = method.getContainingClass();
+      if (aClass != null) {
+        if (InheritanceUtil.isInheritor(aClass, CLASS_FRAGMENT)
+          || InheritanceUtil.isInheritor(aClass, CLASS_V4_FRAGMENT)
+          || InheritanceUtil.isInheritor(aClass, CLASS_BACKUP_AGENT)) {
+          // Activity, Service, ContentProvider and BroadcastReceiver should also be treated as having implicit usages,
+          // but for some reason that's already the case (they are not marked as unused constructors currently;
+          // perhaps due to the XML DOM bindings?
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Look for View constructors; these are of one of these forms:
+    //   View(android.content.Context context)
+    //   View(android.content.Context context, android.util.AttributeSet attrs)
+    //   View(android.content.Context context, android.util.AttributeSet attrs, int defStyle)
+    // Also check for
+    //   ActionProvider(android.content.Context context)
+    if (parameterCount < 1 || parameterCount > 3) {
+      return false;
+    }
+
+    PsiParameter[] parameters = parameterList.getParameters();
+    PsiType type = parameters[0].getType();
+    if (!(type instanceof PsiClassReferenceType)) {
+      return false;
+    }
+    PsiClassReferenceType classType = (PsiClassReferenceType)type;
+    PsiClass resolvedParameter = classType.resolve();
+    if (resolvedParameter == null || !CLASS_CONTEXT.equals(resolvedParameter.getQualifiedName())) {
+      return false;
+    }
+
+    if (parameterCount > 1) {
+      type = parameters[1].getType();
+      if (!(type instanceof PsiClassReferenceType)) {
+        return false;
+      }
+      classType = (PsiClassReferenceType)type;
+      resolvedParameter = classType.resolve();
+      if (resolvedParameter == null || !CLASS_ATTRIBUTE_SET.equals(resolvedParameter.getQualifiedName())) {
+        return false;
+      }
+      if (parameterCount > 2) {
+        type = parameters[2].getType();
+        if (!PsiType.INT.equals(type)) {
+          return false;
+        }
+      }
+    }
+
+    final PsiClass aClass = PsiTreeUtil.getParentOfType(method, PsiClass.class);
+    if (aClass == null) {
+      return false;
+    }
+
+    PsiClass viewBaseClass = JavaPsiFacade.getInstance(aClass.getProject()).findClass(CLASS_VIEW, method.getResolveScope());
+    if (viewBaseClass == null) {
+      return false;
+    }
+    return aClass.isInheritor(viewBaseClass, true) || parameterCount == 1 && InheritanceUtil.isInheritor(aClass, CLASS_ACTION_PROVIDER);
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,4 +80,11 @@ public interface DynamicWizardHost {
    * Update an icon
    */
   void setIcon(@Nullable Icon icon);
+
+  /**
+   * Runs a sensitive operation. These are operations that should not be interrupted, e.g.
+   * by the user closing the window.
+   */
+  void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator, boolean cancellable,
+                             @NotNull Runnable operation);
 }

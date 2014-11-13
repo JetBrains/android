@@ -6,23 +6,23 @@ import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
 
 /**
  * @author Eugene.Kudelevsky
@@ -245,26 +247,50 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace with utf-8", "/res/layout/layout.xml", "xml");
   }
 
-  /* Inspections disabled; these tests make network connection to MavenCentral and can change every time there
+  /* Inspection disabled; these tests make network connection to MavenCentral and can change every time there
      is a new version available (which makes for unstable tests)
 
   public void testNewerAvailable() throws Exception {
+    GradleDetector.REMOTE_VERSION.setEnabledByDefault(true);
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewerVersionAvailableInspection(),
                   "Update to 17.0.0", "build.gradle", "gradle");
   }
+  */
 
   public void testGradlePlus() throws Exception {
-    GradleDetector.PLUS.setEnabledByDefault(true);
+    // Needs a valid SDK; can't use the mock one in the test data.
+    AndroidSdkData prevSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (prevSdkData == null) {
+      String recentSdkPath = AndroidTestBase.getRecentSdkPath();
+      String platformDir = AndroidTestBase.getRecentPlatformDir();
+      if (recentSdkPath == null || platformDir == null) {
+        System.out.println("Not running " + this.getClass() + "#" + getName() + ": Needs SDK with Support Repo installed");
+        return;
+      }
+      Sdk androidSdk = createAndroidSdk(recentSdkPath, platformDir);
+      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
+      assertNotNull(data);
+      AndroidPlatform androidPlatform = data.getAndroidPlatform();
+      assertNotNull(androidPlatform);
+      // Put default platforms in the list before non-default ones so they'll be looked at first.
+      AndroidSdkUtils.setSdkData(androidPlatform.getSdkData());
+    }
+
     // NOTE: The android support repository must be installed in the SDK used by the test!
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDynamicVersionInspection(),
                   "Replace with specific version", "build.gradle", "gradle");
-  }
 
-  */
+    AndroidSdkUtils.setSdkData(prevSdkData);
+  }
 
   public void testObsoleteDependency() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDependencyInspection(),
-                  "Change to 18.0.0", "build.gradle", "gradle");
+                  "Change to 18.0", "build.gradle", "gradle");
+  }
+
+  public void testObsoleteLongDependency() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDependencyInspection(),
+                  "Change to 18.0", "build.gradle", "gradle");
   }
 
   public void testGradleDeprecation() throws Exception {
@@ -329,7 +355,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testOldTargetApi() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintOldTargetApiInspection(),
-                  "Update targetSdkVersion to 20", "AndroidManifest.xml", "xml");
+                  "Update targetSdkVersion to " + HIGHEST_KNOWN_STABLE_API, "AndroidManifest.xml", "xml");
   }
 
   /*

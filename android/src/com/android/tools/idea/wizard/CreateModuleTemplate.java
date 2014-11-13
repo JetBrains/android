@@ -67,7 +67,7 @@ public class CreateModuleTemplate implements ModuleTemplate {
   @Nullable
   @Override
   public Icon getIcon() {
-    return formFactor != null ? formFactor.getIcon() : null;
+    return formFactor != null ? formFactor.getLargeIcon() : null;
   }
 
   @Override

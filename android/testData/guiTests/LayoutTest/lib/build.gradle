@@ -1,0 +1,18 @@
+apply plugin: 'com.android.library'
+
+android {
+    resourcePrefix 'lib1_'
+    compileSdkVersion 20
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId "com.android.tools.test.mylibrary"
+        minSdkVersion 15
+        targetSdkVersion 20
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+}

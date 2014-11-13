@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.navigation;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
@@ -24,6 +25,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.Function;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,11 +34,14 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.List;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
 
-  public static Point add(Point p1, Point p2) {
+  public static Point sum(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
   }
 
@@ -68,7 +74,7 @@ public class Utilities {
   }
 
   public static Point midPoint(Point p1, Point p2) {
-    return scale(add(p1, p2), 0.5f);
+    return scale(sum(p1, p2), 0.5f);
   }
 
   public static Point midPoint(Dimension size) {
@@ -88,7 +94,7 @@ public class Utilities {
     Point diff = diff(p, centre);
     boolean horizontal = Math.abs((float)diff.y / diff.x) < Math.abs((float)r.height / r.width);
     float scale = horizontal ? (float)r.width / 2 / diff.x : (float)r.height / 2 / diff.y;
-    return add(centre, scale(diff, Math.abs(scale)));
+    return sum(centre, scale(diff, Math.abs(scale)));
   }
 
   public static Point centre(@NotNull Rectangle r) {
@@ -208,6 +214,7 @@ public class Utilities {
     return facade.findClass(className, scope);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   @Nullable
   public static PsiMethod findMethodBySignature(Module module, String className, String signature) {
     PsiClass psiClass = getPsiClass(module, className);
@@ -240,13 +247,14 @@ public class Utilities {
   public static VirtualFile mkDirs(VirtualFile dir, String path) throws IOException {
     for(String dirName : path.split("/")) {
       VirtualFile existingDir = dir.findFileByRelativePath(dirName);
+      //noinspection ConstantConditions
       dir = (existingDir != null) ? existingDir : dir.createChildDirectory(null, dirName);
     }
     return dir;
   }
 
-  public static VirtualFile getNavigationFile(final VirtualFile baseDir, String deviceQualifier, final String fileName) {
-    final String relativePathOfNavDir = ".navigation" + "/" + deviceQualifier;
+  public static VirtualFile getNavigationFile(final VirtualFile baseDir, String moduleName, String deviceQualifier, final String fileName) {
+    final String relativePathOfNavDir = NavigationEditor.NAVIGATION_DIRECTORY + "/" + moduleName + "/" + deviceQualifier;
     VirtualFile navFile = baseDir.findFileByRelativePath(relativePathOfNavDir + "/" + fileName);
     if (navFile == null) {
       navFile = ApplicationManager.getApplication().runWriteAction(new Computable<VirtualFile>() {
@@ -254,6 +262,7 @@ public class Utilities {
         public VirtualFile compute() {
           try {
             VirtualFile dir = mkDirs(baseDir, relativePathOfNavDir);
+            //noinspection ConstantConditions
             return dir.createChildData(null, fileName);
           }
           catch (IOException e) {
@@ -265,5 +274,52 @@ public class Utilities {
       });
     }
     return navFile;
+  }
+
+  @NotNull
+  public static Module[] getAndroidModules(Project project) {
+    if (project == null) {
+      return new Module[0];
+    }
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    List<Module> result = new ArrayList<Module>(modules.length);
+    for (Module module : modules) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        result.add(module);
+      }
+    }
+    return result.toArray(new Module[result.size()]);
+  }
+
+  @Nullable
+  public static Module findModule(@NotNull Module[] modules, @NotNull String name) {
+    for (Module module : modules) {
+      if (name.equals(module.getName())) {
+        return module;
+      }
+    }
+    return null;
+  }
+
+  public static <I, O> O[] map(I[] a, Function<I, O> f, Class<O> resultType) {
+    //noinspection unchecked
+    O[] result = (O[])Array.newInstance(resultType, a.length);
+    for (int i = 0; i < result.length; i++) {
+      result[i] = f.fun(a[i]);
+    }
+    return result;
+  }
+
+  public static <I, O> O[] map(I[] a, Function<I, O> f) {
+    try {
+      //noinspection unchecked
+      Class<O> type = (Class<O>)f.getClass().getMethod("fun", a.getClass().getComponentType()).getReturnType();
+      return map(a, f, type);
+
+    }
+    catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -16,9 +16,11 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -33,16 +35,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertNotNull;
 
 public abstract class ToolWindowFixture {
   @NotNull protected final ToolWindow myToolWindow;
   @NotNull protected final Robot myRobot;
 
-  protected ToolWindowFixture(@NotNull String toolWindowId, @NotNull Project project, @NotNull Robot robot) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-    assertNotNull("Could not find tool window " + toolWindowId, toolWindow);
-    myToolWindow = toolWindow;
+  protected ToolWindowFixture(@NotNull final String toolWindowId, @NotNull final Project project, @NotNull Robot robot) {
+    final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
+    Pause.pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
+      @Override
+      public boolean test() {
+        ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
+        toolWindowRef.set(toolWindow);
+        return toolWindow != null;
+      }
+    }, SHORT_TIMEOUT);
+    myToolWindow = toolWindowRef.get();
     myRobot = robot;
   }
 
@@ -68,14 +76,17 @@ public abstract class ToolWindowFixture {
     return contentRef.get();
   }
 
-  protected void activate() {
-    boolean isActive = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+  protected boolean isActive() {
+    return GuiActionRunner.execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         return myToolWindow.isActive();
       }
     });
-    if (isActive) {
+  }
+
+  protected void activate() {
+    if (isActive()) {
       return;
     }
 
@@ -90,7 +101,20 @@ public abstract class ToolWindowFixture {
     pause(new Condition("Wait for ToolWindow to be activated") {
       @Override
       public boolean test() {
-        return callback.finished;
+        if (callback.finished) {
+          return true;
+        }
+        // We encountered a situation when a callback given to ToolWindow.activate() was not called though the tool window
+        // was successfully activated. Looks like an IDE bug, and it's hard to debug it without deep understanding of IDE
+        // UI infrastructure. That's why a simple check below was introduced.
+        final boolean[] result = { false };
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            result[0] = myToolWindow.isActive();
+          }
+        });
+        return result[0];
       }
     }, SHORT_TIMEOUT);
   }
@@ -99,6 +123,9 @@ public abstract class ToolWindowFixture {
     pause(new Condition("Wait for ToolWindow to be visible") {
       @Override
       public boolean test() {
+        if (!isActive()) {
+          activate();
+        }
         return isVisible();
       }
     });

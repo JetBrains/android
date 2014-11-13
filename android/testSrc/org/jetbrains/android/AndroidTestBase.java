@@ -98,15 +98,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   protected String getTestSdkPath() {
     if (requireRecentSdk()) {
-      String override = System.getProperty(SDK_PATH_PROPERTY);
+      String override = getRecentSdkPath();
       if (override != null) {
-        assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getProperty(PLATFORM_DIR_PROPERTY) != null);
-        assertTrue(override, new File(override).exists());
-        return override;
-      }
-      override = System.getenv(SDK_PATH_PROPERTY);
-      if (override != null) {
-        assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getenv(PLATFORM_DIR_PROPERTY) != null);
         return override;
       }
       fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
@@ -115,19 +108,45 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return getDefaultTestSdkPath();
   }
 
+  @Nullable
+  public static String getRecentSdkPath() {
+    String override = System.getProperty(SDK_PATH_PROPERTY);
+    if (override != null) {
+      assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getProperty(PLATFORM_DIR_PROPERTY) != null);
+      assertTrue(override, new File(override).exists());
+      return override;
+    }
+    override = System.getenv(SDK_PATH_PROPERTY);
+    if (override != null) {
+      assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getenv(PLATFORM_DIR_PROPERTY) != null);
+      return override;
+    }
+
+    return null;
+  }
+
   protected String getPlatformDir() {
     if (requireRecentSdk()) {
-      String override = System.getProperty(PLATFORM_DIR_PROPERTY);
-      if (override != null) {
-        return override;
-      }
-      override = System.getenv(PLATFORM_DIR_PROPERTY);
+      String override = getRecentPlatformDir();
       if (override != null) {
         return override;
       }
       fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
     }
     return getDefaultPlatformDir();
+  }
+
+  @Nullable
+  public static String getRecentPlatformDir() {
+    String override = System.getProperty(PLATFORM_DIR_PROPERTY);
+    if (override != null) {
+      return override;
+    }
+    override = System.getenv(PLATFORM_DIR_PROPERTY);
+    if (override != null) {
+      return override;
+    }
+    return null;
   }
 
   /** Is the bundled (incomplete) SDK install adequate or do we need to find a valid install? */

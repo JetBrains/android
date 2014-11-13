@@ -540,7 +540,7 @@ public class AndroidRootUtil {
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
       AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
       AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifact);
-      File outputFile = output.getOutputFile();
+      File outputFile = output.getMainOutputFile().getOutputFile();
       return outputFile.getAbsolutePath();
     }
     String path = facet.getProperties().APK_PATH;

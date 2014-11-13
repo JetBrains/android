@@ -16,9 +16,7 @@
 package com.intellij.android.designer.model;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.android.designer.designSurface.AndroidPasteFactory;
-import com.intellij.android.designer.designSurface.RootView;
 import com.intellij.designer.model.MetaManager;
 import com.intellij.designer.model.MetaModel;
 import com.intellij.designer.model.RadComponent;
@@ -55,8 +53,9 @@ public class RadComponentOperations {
     // No state
   }
 
-  public static RadViewComponent createComponent(@Nullable XmlTag tag, MetaModel metaModel) throws Exception {
+  public static RadViewComponent createComponent(@Nullable XmlTag tag, @NotNull MetaModel metaModel) throws Exception {
     RadViewComponent component = (RadViewComponent)metaModel.getModel().newInstance();
+    assert component != null : tag;
     component.setMetaModel(metaModel);
     component.setTag(tag);
 
@@ -99,7 +98,6 @@ public class RadComponentOperations {
     });
 
     XmlFile xmlFile = RadModelBuilder.getXmlFile(container);
-    assert xmlFile != null;
     PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(xmlFile.getProject());
     Document document = psiDocumentManager.getDocument(xmlFile);
     if (document != null) {
@@ -138,8 +136,8 @@ public class RadComponentOperations {
       }
     }
 
-    IdManager idManager = IdManager.get(container);
-    if (idManager != null && idManager.needsDefaultId(newComponent)) {
+    IdManager idManager = IdManager.get();
+    if (idManager.needsDefaultId(newComponent)) {
       idManager.ensureIds(newComponent);
     }
   }
@@ -170,10 +168,7 @@ public class RadComponentOperations {
     PropertyParser propertyParser = RadModelBuilder.getPropertyParser(container);
     if (propertyParser != null) {
       pasteComponent(newComponent, container.getTag(), insertBefore == null ? null : insertBefore.getTag(), propertyParser);
-      IdManager idManager = IdManager.get(container);
-      if (idManager != null) {
-        idManager.ensureIds(newComponent);
-      }
+      IdManager.get().ensureIds(newComponent);
     }
   }
 
@@ -252,7 +247,6 @@ public class RadComponentOperations {
         if (!checkTag(parentTag) && component.getParent() == component.getRoot()) {
           root = (RadViewComponent)component.getParent();
           xmlFile = RadModelBuilder.getXmlFile(root);
-          assert xmlFile != null;
           project = xmlFile.getProject();
         }
         else {
@@ -331,14 +325,6 @@ public class RadComponentOperations {
       attribute.delete();
     }
   }
-
-@Nullable
-public RadViewComponent updateRootComponent(@NotNull RenderResult result, @Nullable RadViewComponent prevRoot,
-                                          @NotNull RootView nativeComponent) throws Exception {
-// TODO: REMOVE ME
-assert false;
-return null;
-}
 
   public static void printTree(StringBuilder builder, RadComponent component, int level) {
     for (int i = 0; i < level; i++) {

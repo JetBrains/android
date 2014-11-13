@@ -21,6 +21,18 @@
   <item name="android.view.accessibility.AccessibilityEvent void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.accessibility.AccessibilityManager boolean addAccessibilityStateChangeListener(android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityManager boolean addTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityManager boolean removeAccessibilityStateChangeListener(android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityManager boolean removeTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.accessibility.AccessibilityManager void sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -58,6 +70,18 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.accessibility.AccessibilityRecord java.util.List&lt;java.lang.CharSequence&gt; getText()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.CaptioningManager android.view.accessibility.CaptioningManager.CaptionStyle getUserStyle()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.CaptioningManager java.util.Locale getLocale()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.CaptioningManager void addCaptioningChangeListener(android.view.accessibility.CaptioningManager.CaptioningChangeListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.CaptioningManager void removeCaptioningChangeListener(android.view.accessibility.CaptioningManager.CaptioningChangeListener) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>

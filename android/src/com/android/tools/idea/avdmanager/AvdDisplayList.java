@@ -24,9 +24,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.psi.util.FileTypeUtils;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
@@ -63,6 +63,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   public static final String NONEMPTY = "nonempty";
   public static final String EMPTY = "empty";
 
+  private final Project myProject;
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
 
@@ -78,14 +79,17 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
-  public AvdDisplayList() {
-    myModel.setColumnInfos(ourColumnInfos);
+  public AvdDisplayList(@Nullable Project project) {
+    myProject = project;
+    myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
     myTable = new TableView<AvdInfo>();
     myTable.setModelAndUpdateColumns(myModel);
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
-    myCenterCardPanel.add(ScrollPaneFactory.createScrollPane(myTable), NONEMPTY);
+    JPanel nonemptyPanel = new JPanel(new BorderLayout());
+    myCenterCardPanel.add(nonemptyPanel, NONEMPTY);
+    nonemptyPanel.add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
     myCenterCardPanel.add(new EmptyAvdListPanel(this), EMPTY);
     add(myCenterCardPanel, BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
@@ -102,8 +106,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     newButton.setIcon(createAvdAction.getIcon());
     newButton.setText(createAvdAction.getText());
     southPanel.add(newButton, BorderLayout.WEST);
-
-    add(southPanel, BorderLayout.SOUTH);
+    nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
+    myTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.getSelectionModel().addListSelectionListener(this);
     myTable.addMouseListener(myEditingListener);
     myTable.addMouseMotionListener(myEditingListener);
@@ -148,6 +152,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     } else {
       ((CardLayout)myCenterCardPanel.getLayout()).show(myCenterCardPanel, NONEMPTY);
     }
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myProject;
   }
 
   private final MouseAdapter myEditingListener = new MouseAdapter() {
@@ -235,33 +245,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   /**
-   * Replaces underscores with spaces and capitalizes first letter of each word
-   */
-  private static String getPrettyDeviceName(@NotNull AvdInfo info) {
-    String name = info.getDeviceName();
-    StringBuilder sb = new StringBuilder(name.length());
-    int n = name.length();
-
-    boolean upperCaseNext = false;
-    for (int i = 0; i < n; i++) {
-      char c = name.charAt(i);
-      if (c == '_') {
-        upperCaseNext = true;
-        c = ' ';
-      } else if (upperCaseNext || i == 0) {
-        c = Character.toUpperCase(c);
-        upperCaseNext = false;
-      }
-      sb.append(c);
-    }
-    return sb.toString();
-  }
-
-  /**
    * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
    * the cell value in that column for a given row item.
    */
-  private final ColumnInfo[] ourColumnInfos = new ColumnInfo[] {
+  private final ColumnInfo[] myColumnInfos = new ColumnInfo[] {
     new AvdIconColumnInfo("Type") {
       @Nullable
       @Override
@@ -273,7 +260,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Nullable
       @Override
       public String valueOf(AvdInfo info) {
-        return getPrettyDeviceName(info);
+        return AvdManagerConnection.getAvdDisplayName(info);
       }
     },
     new AvdColumnInfo("Resolution") {
@@ -309,7 +296,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
     },
     new AvdColumnInfo("API", 50) {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
         IAndroidTarget target = avdInfo.getTarget();
@@ -317,6 +304,22 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
           return "N/A";
         }
         return target.getVersion().getApiString();
+      }
+
+      /**
+       * We override the comparator here to sort the API levels numerically (when possible;
+       * with preview platforms codenames are compared alphabetically)
+       */
+      @Nullable
+      @Override
+      public Comparator<AvdInfo> getComparator() {
+        final ApiLevelComparator comparator = new ApiLevelComparator();
+        return new Comparator<AvdInfo>() {
+          @Override
+          public int compare(AvdInfo o1, AvdInfo o2) {
+            return comparator.compare(valueOf(o1), valueOf(o2));
+          }
+        };
       }
     },
     new AvdColumnInfo("Target") {
@@ -501,7 +504,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
-      myWidth = numVisibleActions == -1 ? -1 : 45 * numVisibleActions + 50;
+      myWidth = numVisibleActions == -1 ? -1 : 45 * numVisibleActions + 75;
     }
 
     public AvdActionsColumnInfo(@NotNull String name) {
@@ -573,7 +576,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public String valueOf(AvdInfo avdInfo) {
       Storage size = getSize(avdInfo);
-      return String.format(Locale.getDefault(), "%1$d MB", size.getSizeAsUnit(Storage.Unit.MiB));
+      String unitString = "MB";
+      Long value = size.getSizeAsUnit(Storage.Unit.MiB);
+      if (value > 1024) {
+        unitString = "GB";
+        value = size.getSizeAsUnit(Storage.Unit.GiB);
+      }
+      return String.format(Locale.getDefault(), "%1$d %2$s", value, unitString);
     }
 
     @Nullable

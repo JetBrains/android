@@ -15,8 +15,13 @@
  */
 package org.jetbrains.android.dom.drawable;
 
+import org.jetbrains.android.dom.animator.AnimatorElement;
+
+import java.util.List;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public interface DrawableStateListItem extends ListItemBase {
+  List<AnimatorElement> getSets();
 }

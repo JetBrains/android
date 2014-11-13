@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.SdkConstants;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
+import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.LabelWithEditLink;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,12 +41,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.Document;
 import java.awt.event.ItemListener;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * UI for configuring a Device Hardware Profile.
@@ -63,8 +73,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private JPanel myRootPanel;
   private JCheckBox myHasHardwareButtons;
   private JCheckBox myHasHardwareKeyboard;
-  private LabelWithEditLink myDeviceName;
+  private JTextField myDeviceName;
   private JBLabel myHelpAndErrorLabel;
+  private HyperlinkLabel myHardwareSkinHelpLabel;
+  private SkinChooser myCustomSkinPath;
 
   /**
    * This contains the Software for the device. Since it has no effect on the
@@ -94,8 +106,25 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   }
 
   private void createUIComponents() {
+    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
+      @Override
+      public ListCellRenderer getRenderer() {
+        return new ColoredListCellRenderer() {
+          @Override
+          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+            append(((Navigation)value).getShortDisplayValue());
+          }
+        };
+      }
+    };
 
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class));
+    myHelpAndErrorLabel = new JBLabel();
+    myHelpAndErrorLabel.setBackground(JBColor.background());
+    myHelpAndErrorLabel.setForeground(JBColor.foreground());
+    myHelpAndErrorLabel.setOpaque(true);
+    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
+    myHardwareSkinHelpLabel.setHyperlinkTarget("");
+    myCustomSkinPath = new SkinChooser(getProject());
   }
 
   @Override
@@ -138,7 +167,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(DIAGONAL_SCREENSIZE_KEY, screen.getDiagonalLength());
     myState.put(RESOLUTION_WIDTH_KEY, screen.getXDimension());
     myState.put(RESOLUTION_HEIGHT_KEY, screen.getYDimension());
-    myState.put(RAM_STORAGE_KEY, defaultHardware.getRam());
+    myState.put(RAM_STORAGE_KEY, AvdBuilder.getDefaultRam(defaultHardware));
 
     myState.put(HAS_HARDWARE_BUTTONS_KEY, defaultHardware.getButtonType() == ButtonType.HARD);
     myState.put(HAS_HARDWARE_KEYBOARD_KEY, defaultHardware.getKeyboard() != Keyboard.NOKEY);
@@ -165,6 +194,12 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, defaultHardware.getSensors().contains(Sensor.GYROSCOPE));
     myState.put(HAS_GPS_KEY, defaultHardware.getSensors().contains(Sensor.GPS));
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
+    File skinFile = AvdEditWizard.getHardwareSkinPath(defaultHardware);
+    if (skinFile != null) {
+      myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
+    } else {
+      myState.put(CUSTOM_SKIN_FILE_KEY, NO_SKIN);
+    }
   }
 
   /**
@@ -191,6 +226,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, true);
     myState.put(HAS_GPS_KEY, true);
     myState.put(HAS_PROXIMITY_SENSOR_KEY, true);
+    myState.put(CUSTOM_SKIN_FILE_KEY, NO_SKIN);
   }
 
   @Override
@@ -224,6 +260,16 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       return false;
     }
 
+    File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinPath != null && skinPath != NO_SKIN && !skinPath.isAbsolute()) {
+      skinPath = new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), skinPath.getPath());
+    }
+    if (skinPath != null && skinPath != NO_SKIN) {
+      File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
+      if (!layoutFile.isFile()) {
+        setErrorHtml("The skin directory does not point to a valid skin.");
+      }
+    }
     return myState.get(DEVICE_DEFINITION_KEY) != null;
   }
 
@@ -237,6 +283,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     if (refreshAll || modified.contains(DEVICE_NAME_KEY)) {
       String name = myState.get(DEVICE_NAME_KEY);
       myBuilder.setName(name == null ? "" : name);
+      myBuilder.setId(DeviceManagerConnection.getUniqueId(name));
     }
 
     if (!myState.containsKey(WIP_SCREEN_KEY)) {
@@ -268,6 +315,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       } else {
         resolutionHeight = 0;
       }
+
       // The diagonal DPI will be somewhere in between the X and Y dpi if
       // they differ
       double dpi = Math.sqrt(resolutionWidth * resolutionWidth + resolutionHeight * resolutionHeight) / diagonalLength;
@@ -279,7 +327,13 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
         screen.setXdpi(dpi);
 
         screen.setRatio(getScreenRatio(resolutionWidth, resolutionHeight));
-        screen.setPixelDensity(getDensity(dpi));
+        if (HardwareConfigHelper.isTv(myTemplateDevice)) {
+          // TVs can have varied densities, including much lower than the normal range.
+          // Set the density explicitly in that case.
+          screen.setPixelDensity(Density.TV);
+        } else {
+          screen.setPixelDensity(getDensity(dpi));
+        }
       }
     }
 
@@ -376,6 +430,13 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       Storage ram = myState.get(RAM_STORAGE_KEY);
       if (ram != null) {
         hardware.setRam(ram);
+      }
+    }
+
+    if (refreshAll || modified.contains(CUSTOM_SKIN_FILE_KEY)) {
+      File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+      if (skinFile != null) {
+        hardware.setSkinFile(skinFile);
       }
     }
 
@@ -576,6 +637,9 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     double difference = Double.MAX_VALUE;
     Density bucket = Density.MEDIUM;
     for (Density d : Density.values()) {
+      if (!d.isValidValueForDevice()) {
+        continue;
+      }
       if (Math.abs(d.getDpiValue() - dpi) < difference) {
         difference = Math.abs(d.getDpiValue() - dpi);
         bucket = d;
@@ -588,11 +652,11 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
    * Bind our controls to their state store keys
    */
   private void registerComponents() {
-    register(DEVICE_NAME_KEY, myDeviceName, LABEL_WITH_EDIT_LINK_COMPONENT_BINDING);
-    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
+    register(DEVICE_NAME_KEY, myDeviceName);
+    setControlDescription(myDeviceName, "Name of the Device Profile");
 
     register(DIAGONAL_SCREENSIZE_KEY, myDiagonalScreenSize, DOUBLE_BINDING);
-    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
+    setControlDescription(myDiagonalScreenSize, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
     register(RESOLUTION_WIDTH_KEY, myScreenResolutionWidth, INT_BINDING);
     setControlDescription(myScreenResolutionWidth, "The total number of physical pixels on a screen. " +
                                                    "When adding support for multiple screens, applications do not work directly " +
@@ -640,9 +704,12 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     setControlDescription(myHasGps, "Enables GPS (global positioning support) support in emulator");
     register(HAS_PROXIMITY_SENSOR_KEY, myHasProximitySensor);
     setControlDescription(myHasProximitySensor, "Enables proximity sensor support in emulator");
+
+    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    register(CUSTOM_SKIN_FILE_KEY, myCustomSkinPath, myCustomSkinPath.getBinding());
+    myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
+    setControlDescription(myCustomSkinPath, "Path to a directory containing a custom skin");
   }
-
-
 
   private static final ComponentBinding<Double, JTextField> DOUBLE_BINDING = new ComponentBinding<Double, JTextField>() {
     @Override
@@ -720,27 +787,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     }
   };
 
-  public static final ComponentBinding<String, LabelWithEditLink> LABEL_WITH_EDIT_LINK_COMPONENT_BINDING =
-    new ComponentBinding<String, LabelWithEditLink>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
-        newValue = newValue == null ? "" : newValue;
-        component.setText(newValue);
-      }
-
-      @Nullable
-      @Override
-      public String getValue(@NotNull LabelWithEditLink component) {
-        return component.getText();
-      }
-
-      @Nullable
-      @Override
-      public Document getDocument(@NotNull LabelWithEditLink component) {
-        return component.getDocument();
-      }
-    };
-
   @NotNull
   @Override
   public String getStepName() {
@@ -750,5 +796,17 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }

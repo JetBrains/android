@@ -32,15 +32,16 @@ import com.android.utils.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
@@ -89,7 +90,7 @@ import static java.io.File.separatorChar;
  */
 public class GradleImport {
   public static final String NL = SdkUtils.getLineSeparator();
-  public static final int CURRENT_COMPILE_VERSION = 19;
+  public static final int CURRENT_COMPILE_VERSION = 21;
   public static final String CURRENT_BUILD_TOOLS_VERSION = SdkConstants.MIN_BUILD_TOOLS_VERSION;
   public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + GRADLE_PLUGIN_RECOMMENDED_VERSION;
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
@@ -276,7 +277,8 @@ public class GradleImport {
     }
   }
 
-  private static String escapeGroovyStringLiteral(String s) {
+  @NotNull
+  public static String escapeGroovyStringLiteral(@NotNull String s) {
     StringBuilder sb = new StringBuilder(s.length() + 5);
     for (int i = 0, n = s.length(); i < n; i++) {
       char c = s.charAt(i);
@@ -341,7 +343,7 @@ public class GradleImport {
    * @return true if it is known to be a source file
    */
   @VisibleForTesting
-  static boolean isTextFile(@NonNull File file) {
+  public static boolean isTextFile(@NonNull File file) {
     String name = file.getName();
     return name.endsWith(DOT_JAVA) ||
            name.endsWith(DOT_XML) ||
@@ -1036,6 +1038,10 @@ public class GradleImport {
       String compileSdkVersionString = compileSdkVersion.isPreview()
                                        ? '\'' + AndroidTargetHash.getPlatformHashString(compileSdkVersion) + '\''
                                        : Integer.toString(compileSdkVersion.getApiLevel());
+      String addOn = module.getAddOn();
+      if (addOn != null) {
+        compileSdkVersionString =  '\'' + addOn + '\'';
+      }
       String minSdkVersionString = minSdkVersion.isPreview()
                                    ? '\'' + module.getMinSdkVersion().getCodename() + '\''
                                    : Integer.toString(module.getMinSdkVersion().getApiLevel());
@@ -1110,7 +1116,7 @@ public class GradleImport {
         // User specified ProGuard rules; replicate exactly
         sb.append("    buildTypes {").append(NL);
         sb.append("        release {").append(NL);
-        sb.append("            runProguard true").append(NL);
+        sb.append("            minifyEnabled true").append(NL);
         sb.append("            proguardFiles ");
         sb.append(generateProguardFileList(localRules, sdkRules)).append(NL);
         sb.append("        }").append(NL);
@@ -1120,7 +1126,7 @@ public class GradleImport {
         // User didn't specify ProGuard rules; put in defaults (but off)
         sb.append("    buildTypes {").append(NL);
         sb.append("        release {").append(NL);
-        sb.append("            runProguard false").append(NL);
+        sb.append("            minifyEnabled false").append(NL);
         sb.append("            proguardFiles getDefaultProguardFile('proguard-" + "android.txt'), 'proguard-rules.txt'").append(NL);
         sb.append("        }").append(NL);
         sb.append("    }").append(NL);
@@ -1485,7 +1491,7 @@ public class GradleImport {
                       @Nullable CopyHandler handler,
                       boolean updateEncoding,
                       @Nullable ImportModule sourceModule) throws IOException {
-    if (handler != null && handler.handle(source, dest)) {
+    if (handler != null && handler.handle(source, dest, updateEncoding, sourceModule)) {
       return;
     }
     if (source.isDirectory()) {
@@ -1611,8 +1617,14 @@ public class GradleImport {
     /**
      * Optionally handle the given file; returns true if the file has been
      * handled
+     *
+     * @param source         the source file/directory to copy
+     * @param dest           the destination for that file
+     * @param updateEncoding if false, do not try to rewrite encodings to UTF-8
+     * @param sourceModule   if non null, a corresponding module this source file belongs to
      */
-    boolean handle(@NonNull File source, @NonNull File dest) throws IOException;
+    boolean handle(@NonNull File source, @NonNull File dest, boolean updateEncoding, @Nullable ImportModule sourceModule)
+      throws IOException;
   }
 
   private static class ImportException extends RuntimeException {

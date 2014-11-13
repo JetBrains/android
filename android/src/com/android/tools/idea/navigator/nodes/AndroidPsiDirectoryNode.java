@@ -42,7 +42,7 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   @Override
   protected void updateImpl(PresentationData data) {
     super.updateImpl(data);
-    if (mySourceProvider != null & !SdkConstants.FD_MAIN.equals(mySourceProvider.getName())) {
+    if (mySourceProvider != null && !SdkConstants.FD_MAIN.equals(mySourceProvider.getName())) {
       data.addText(data.getPresentableText(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
       data.addText(" (" + mySourceProvider.getName() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
@@ -63,7 +63,16 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    PsiDirectory directory = getValue();
-    return directory.getName() + " (" + mySourceProvider.getName() + ")";
+    return toTestString(getValue().getName(), mySourceProvider);
+  }
+
+  public static String toTestString(String element, IdeaSourceProvider provider) {
+    StringBuilder sb = new StringBuilder(element);
+    if (provider != null) {
+      sb.append(" (");
+      sb.append(provider.getName());
+      sb.append(")");
+    }
+    return sb.toString();
   }
 }

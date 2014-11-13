@@ -16,12 +16,18 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.StopGradleDaemonsAndSyncHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -33,12 +39,51 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull NotificationData notification,
                              @NotNull final Project project) {
     String firstLine = message.get(0);
-    if (firstLine.startsWith("Unable to load class") ||
-        firstLine.startsWith("Unable to find method") ||
-        firstLine.contains("cannot be cast to")) {
+    boolean classNotFound = firstLine.startsWith("Unable to load class");
+    if (classNotFound || firstLine.startsWith("Unable to find method") || firstLine.contains("cannot be cast to")) {
+      NotificationHyperlink openJdkSettingsHyperlink = null;
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
       NotificationHyperlink stopDaemonsHyperlink = new StopGradleDaemonsAndSyncHyperlink();
-      String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" +
+
+      boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
+
+      boolean isJdk7 = false;
+      String jdkVersion = null;
+      if (unitTestMode) {
+        isJdk7 = true;
+      }
+      else if (classNotFound) {
+        Sdk jdk = DefaultSdks.getDefaultJdk();
+        if (jdk != null) {
+          String jdkHomePath = jdk.getHomePath();
+          if (jdkHomePath != null) {
+            jdkVersion = JavaSdk.getJdkVersion(jdkHomePath);
+          }
+          JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
+          isJdk7 = version == JavaSdkVersion.JDK_1_7;
+        }
+      }
+
+      String jdk7Hint = "";
+      if (isJdk7) {
+        jdk7Hint = "<li>";
+        if (jdkVersion != null) {
+          jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdkVersion);
+        }
+        jdk7Hint += "Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle.\n" +
+                    "Please update to a newer version (e.g. 1.7.0_67).";
+
+        if (!unitTestMode) {
+          openJdkSettingsHyperlink = OpenProjectStructureHyperlink.openJdkSettings(project);
+          if (openJdkSettingsHyperlink != null) {
+            jdk7Hint = jdk7Hint +"\n" + openJdkSettingsHyperlink.toHtml();
+          }
+        }
+
+        jdk7Hint += "</li>";
+      }
+
+      String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" + jdk7Hint +
                       "<li>Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
                       syncProjectHyperlink.toHtml() + "</li>" +
                       "<li>The state of a Gradle build process may be corrupt.\n" +
@@ -49,7 +94,13 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
       notification.setTitle(title);
       notification.setMessage(newMsg);
       notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
-      addNotificationListener(notification, project, syncProjectHyperlink, stopDaemonsHyperlink);
+
+      if (openJdkSettingsHyperlink != null) {
+        addNotificationListener(notification, project, openJdkSettingsHyperlink, syncProjectHyperlink, stopDaemonsHyperlink);
+      }
+      else {
+        addNotificationListener(notification, project, syncProjectHyperlink, stopDaemonsHyperlink);
+      }
       return true;
     }
 

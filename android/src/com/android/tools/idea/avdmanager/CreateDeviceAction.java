@@ -27,6 +27,10 @@ public class CreateDeviceAction extends DeviceUiAction {
     super(provider, "Create");
   }
 
+  public CreateDeviceAction(@NotNull DeviceProvider provider, @NotNull String text) {
+    super(provider, text);
+  }
+
   @Override
   public boolean isEnabled() {
     return true;

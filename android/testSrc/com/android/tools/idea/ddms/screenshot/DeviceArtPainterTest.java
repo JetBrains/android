@@ -15,19 +15,26 @@
  */
 package com.android.tools.idea.ddms.screenshot;
 
+import com.android.SdkConstants;
 import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
+import com.android.testutils.SdkTestCase;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
@@ -39,7 +46,6 @@ public class DeviceArtPainterTest extends TestCase {
     generateCropData();
   }
 
-
   public void testRendering() throws Exception {
     // This test is disabled but code is preserved here; this is handy for quickly checking rendering results
     // when tweaking the code to assemble composite images. (Make sure you also turn off the thumbnail cache first!
@@ -50,6 +56,7 @@ public class DeviceArtPainterTest extends TestCase {
         if ("wear_round".equals(spec.getId())) {
           FrameData frameData = new DeviceData(null, spec).getFrameData(ScreenOrientation.LANDSCAPE, 320);
           BufferedImage image = frameData.getImage(true);
+          @SuppressWarnings("SSBasedInspection")
           File file = File.createTempFile("test-rendering", "png");
           if (file.exists()) {
             boolean deleted = file.delete();
@@ -143,5 +150,284 @@ public class DeviceArtPainterTest extends TestCase {
     }
     assertTrue(!devices.isEmpty());
     return devices.get(0);
+  }
+
+  @Nullable
+  private static BufferedImage getImage(@NotNull File srcDir, @Nullable File file) {
+    if (file == null) {
+      return null;
+    }
+    if (!file.isAbsolute()) {
+      file = new File(srcDir, file.getPath());
+    }
+
+    if (file.exists()) {
+      try {
+        return ImageIO.read(file);
+      }
+      catch (IOException e) {
+        // pass
+      }
+    }
+
+    return null;
+  }
+
+  public void testCropData() throws Exception {
+    //noinspection ConstantConditions
+    if (true) {
+      // This test no longer applies; it was used to convert assets with a lot of padding into more tightly cropped
+      // screenshots. We're preserving the code since for future device releases we might get new artwork which includes
+      // padding.
+      return;
+    }
+
+    // Apply crop
+    DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+    Device device = newDevice();
+
+    File srcDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
+    SdkTestCase.getTempDir();
+    File destDir = new File(SdkTestCase.getTempDir(), "device-art");
+    if (!destDir.exists()) {
+      boolean ok = destDir.mkdirs();
+      assertTrue(ok);
+    }
+
+    StringBuilder sb = new StringBuilder(1000);
+    sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+              "<!-- Copyright (C) 2013 The Android Open Source Project\n" +
+              "\n" +
+              "     Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
+              "     you may not use this file except in compliance with the License.\n" +
+              "     You may obtain a copy of the License at\n" +
+              "\n" +
+              "          http://www.apache.org/licenses/LICENSE-2.0\n" +
+              "\n" +
+              "     Unless required by applicable law or agreed to in writing, software\n" +
+              "     distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+              "     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+              "     See the License for the specific language governing permissions and\n" +
+              "     limitations under the License.\n" +
+              "-->\n" +
+              "<devices>\n" +
+              "\n");
+
+    for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
+      sb.append("  <device id=\"");
+      sb.append(spec.getId());
+      sb.append("\" name=\"");
+      sb.append(spec.getName());
+      sb.append("\">\n");
+      DeviceData deviceData = new DeviceData(device, spec);
+      for (ScreenOrientation orientation : ScreenOrientation.values()) {
+        if (orientation == ScreenOrientation.SQUARE) {
+          continue;
+        }
+        if (orientation != ScreenOrientation.LANDSCAPE && spec.getId().startsWith("tv_")) {
+          // Android TV only uses landscape orientation
+          continue;
+        }
+
+        Rectangle cropRect = spec.getCrop(orientation);
+
+        sb.append("    <orientation name=\"");
+        sb.append(orientation.getResourceValue());
+        sb.append("\" ");
+
+        DeviceArtDescriptor descriptor = deviceData.getDescriptor();
+
+        if (spec.getName().startsWith("Generic ") || cropRect == null || spec.getName().startsWith("Android TV")) {
+          System.out.println("Nothing to do for " + spec.getId() + " orientation " + orientation);
+          cropRect = new Rectangle(0, 0, descriptor.getFrameSize(orientation).width, descriptor.getFrameSize(orientation).height);
+        }
+
+        sb.append("size=\"");
+        sb.append(Integer.toString(cropRect.width));
+        sb.append(",");
+        sb.append(Integer.toString(cropRect.height));
+        sb.append("\" screenPos=\"");
+
+        sb.append(Integer.toString(descriptor.getScreenPos(orientation).x - cropRect.x));
+        sb.append(",");
+        sb.append(Integer.toString(descriptor.getScreenPos(orientation).y - cropRect.y));
+        sb.append("\" screenSize=\"");
+        sb.append(Integer.toString(descriptor.getScreenSize(orientation).width));
+        sb.append(",");
+        sb.append(Integer.toString(descriptor.getScreenSize(orientation).height));
+        sb.append("\"");
+        if (descriptor.getDropShadow(orientation) != null) {
+          sb.append(" shadow=\"");
+          //noinspection ConstantConditions
+          sb.append(descriptor.getDropShadow(orientation).getName());
+          sb.append("\"");
+        }
+        if (descriptor.getFrame(orientation) != null) {
+          sb.append(" back=\"");
+          //noinspection ConstantConditions
+          sb.append(descriptor.getFrame(orientation).getName());
+          sb.append("\"");
+        }
+        if (descriptor.getReflectionOverlay(orientation) != null) {
+          sb.append(" lights=\"");
+          //noinspection ConstantConditions
+          sb.append(descriptor.getReflectionOverlay(orientation).getName());
+          sb.append("\"");
+        }
+        if (descriptor.getMask(orientation) != null) {
+          sb.append(" mask=\"");
+          //noinspection ConstantConditions
+          sb.append(descriptor.getMask(orientation).getName());
+          sb.append("\"");
+        }
+        sb.append("/>\n");
+
+        // Must use computeImage rather than getImage here since we want to get the
+        // full size images, not the already cropped images
+
+        writeCropped(srcDir, destDir, spec, cropRect, descriptor.getFrame(orientation));
+        writeCropped(srcDir, destDir, spec, cropRect, descriptor.getDropShadow(orientation));
+        writeCropped(srcDir, destDir, spec, cropRect, descriptor.getReflectionOverlay(orientation));
+        writeCropped(srcDir, destDir, spec, cropRect, descriptor.getMask(orientation));
+      }
+
+      // (3) Rewrite emulator skin file
+      File layoutFile = new File(srcDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
+      if (layoutFile.exists() && !spec.getId().startsWith("tv_")) { // no crop data in tv (and lack of portrait fails below)
+        String layout = Files.toString(layoutFile, Charsets.UTF_8);
+        final Rectangle portraitCrop = spec.getCrop(ScreenOrientation.PORTRAIT);
+        assertNotNull("No crop data found; did you run this test on an already processed device-art.xml?", portraitCrop);
+        final Rectangle landscapeCrop = spec.getCrop(ScreenOrientation.LANDSCAPE);
+        layout = replace(layout, new String[]{"layouts {", "portrait {", "width "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            return portraitCrop.width;
+          }
+        });
+        layout = replace(layout, new String[]{"layouts {", "portrait {", "height "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            return portraitCrop.height;
+          }
+        });
+        layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "x "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            //noinspection ConstantConditions
+            return input - portraitCrop.x;
+          }
+        });
+        layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "y "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            //noinspection ConstantConditions
+            return input - portraitCrop.y;
+          }
+        });
+
+        // landscape
+        layout = replace(layout, new String[]{"layouts {", "landscape {", "width "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            return landscapeCrop.width;
+          }
+        });
+        layout = replace(layout, new String[]{"layouts {", "landscape {", "height "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            return landscapeCrop.height;
+          }
+        });
+        layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "x "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            //noinspection ConstantConditions
+            return input - landscapeCrop.x;
+          }
+        });
+        layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "y "}, new Function<Integer, Integer>() {
+          @Override
+          public Integer apply(@Nullable Integer input) {
+            //noinspection ConstantConditions
+            return input - landscapeCrop.y;
+          }
+        });
+
+        File outputLayoutFile = new File(destDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
+        if (!outputLayoutFile.getParentFile().exists()) {
+          boolean mkdirs = outputLayoutFile.getParentFile().mkdirs();
+          assertTrue(mkdirs);
+        }
+        Files.write(layout, outputLayoutFile, Charsets.UTF_8);
+      }
+
+      sb.append("  </device>\n\n");
+    }
+    sb.append("\n</devices>\n");
+
+    File deviceArt = new File(destDir, "device-art.xml");
+    Files.write(sb.toString(), deviceArt, Charsets.UTF_8);
+    System.out.println("Wrote device art file " + deviceArt);
+  }
+
+  private static String replace(String file, String[] sections, Function<Integer, Integer> replace) {
+    int index = 0;
+    for (String section : sections) {
+      index = file.indexOf(section, index);
+      assert index != -1 : section + " not found";
+      index += section.length();
+    }
+
+    // We're now pointing to a token
+    int lineEnd = file.indexOf('\n', index);
+    assert lineEnd != -1;
+    String word = file.substring(index, lineEnd);
+    int input = Integer.parseInt(word);
+    @SuppressWarnings("ConstantConditions")
+    int replaced = replace.apply(input);
+    return file.substring(0, index) + Integer.toString(replaced) + file.substring(lineEnd);
+  }
+
+  private static void writeCropped(File srcDir, File destDir, DeviceArtDescriptor spec, Rectangle cropRect, @Nullable File imageFile)
+      throws IOException {
+    if (imageFile == null) {
+      // This image doesn't apply
+      return;
+    }
+    BufferedImage source = getImage(srcDir, imageFile);
+    if (source == null) {
+      return;
+    }
+
+    BufferedImage cropped = cropImage(source, cropRect);
+    assertNotNull(cropped);
+
+    File dir = new File(destDir, spec.getId());
+    if (!dir.exists()) {
+      boolean ok = dir.mkdir();
+      assertTrue(dir.getPath(), ok);
+    }
+    ImageIO.write(cropped, "PNG", new File(dir, imageFile.getName()));
+  }
+
+  private static BufferedImage cropImage(@NotNull BufferedImage image, @NotNull Rectangle cropBounds) {
+    int x1 = cropBounds.x;
+    int y1 = cropBounds.y;
+    int width = cropBounds.width;
+    int height = cropBounds.height;
+    int x2 = x1 + width;
+    int y2 = y1 + height;
+
+    // Now extract the sub-image
+    @SuppressWarnings("UndesirableClassUsage")
+    BufferedImage cropped = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics g = cropped.getGraphics();
+    //noinspection UseJBColor
+    g.setColor(new Color(0, true));
+    g.fillRect(0, 0, width, height);
+    g.drawImage(image, 0, 0, width, height, x1, y1, x2, y2, null);
+    g.dispose();
+
+    return cropped;
   }
 }

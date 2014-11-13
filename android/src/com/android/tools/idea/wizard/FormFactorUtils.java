@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -24,13 +25,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.INVALID_FILENAME_CHARS;
+import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
@@ -46,13 +49,13 @@ public class FormFactorUtils {
 
   /** TODO: Turn into an enum and combine with {@link com.android.tools.idea.configurations.DeviceMenuAction.FormFactor} */
   public static class FormFactor {
-    public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
-                                                           Lists.newArrayList("20", "Glass"), null);
-    public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear", 20,
+    public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
+                                                           Lists.newArrayList("20", "Glass", "Google APIs"), null);
+    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 20,
                                                          null, Lists.newArrayList("20"));
-    public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass", 19,
+    public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
                                                           null, Lists.newArrayList("Glass"));
-    public static final FormFactor TV = new FormFactor("TV", AndroidIcons.Wizards.FormFactorTV, "TV", 21,
+    public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
                                                        Lists.newArrayList("20"), null);
 
     private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
@@ -62,16 +65,16 @@ public class FormFactorUtils {
         .put(TV.id, TV).build();
 
     public final String id;
-    @Nullable private final Icon myIcon;
     @Nullable private String displayName;
     public final int defaultApi;
     @NotNull private final List<String> myApiBlacklist;
     @NotNull private final List<String> myApiWhitelist;
+    @NotNull private final DeviceMenuAction.FormFactor myEnumValue;
 
-    FormFactor(@NotNull String id, @Nullable Icon icon, @Nullable String displayName, @NotNull int defaultApi,
-               @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
+    FormFactor(@NotNull String id, @NotNull DeviceMenuAction.FormFactor enumValue, @Nullable String displayName,
+               int defaultApi, @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
       this.id = id;
-      myIcon = icon;
+      myEnumValue = enumValue;
       this.displayName = displayName;
       this.defaultApi = defaultApi;
       myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
@@ -83,7 +86,7 @@ public class FormFactorUtils {
       if (myFormFactors.containsKey(id)) {
         return myFormFactors.get(id);
       }
-      return new FormFactor(id, null, id, 1, null, null);
+      return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null);
     }
 
     @Override
@@ -91,9 +94,14 @@ public class FormFactorUtils {
       return displayName == null ? id : displayName;
     }
 
-    @Nullable
+    @NotNull
     public Icon getIcon() {
-      return myIcon;
+      return myEnumValue.getIcon64();
+    }
+
+    @NotNull
+    public Icon getLargeIcon() {
+      return myEnumValue.getLargeIcon();
     }
 
     public static Iterator<FormFactor> iterator() {
@@ -206,5 +214,43 @@ public class FormFactorUtils {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Create an image showing icons for each of the available form factors.
+   * @param component Icon will be drawn in the context of the given {@code component}
+   * @param requireEmulator If true, only include icons for form factors that have an emulator available.
+   * @return The new Icon
+   */
+  @Nullable
+  public static Icon getFormFactorsImage(JComponent component, boolean requireEmulator) {
+    int width = 0;
+    int height = 0;
+    for (DeviceMenuAction.FormFactor formFactor : DeviceMenuAction.FormFactor.values()) {
+      Icon icon = formFactor.getLargeIcon();
+      height = icon.getIconHeight();
+      if (!requireEmulator || formFactor.hasEmulator()) {
+        width += formFactor.getLargeIcon().getIconWidth();
+      }
+    }
+    //noinspection UndesirableClassUsage
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = image.createGraphics();
+    int x = 0;
+    for (DeviceMenuAction.FormFactor formFactor : DeviceMenuAction.FormFactor.values()) {
+      if (requireEmulator && !formFactor.hasEmulator()) {
+        continue;
+      }
+      Icon icon = formFactor.getLargeIcon();
+      icon.paintIcon(component, graphics, x, 0);
+      x += icon.getIconWidth();
+    }
+    if (graphics != null) {
+      graphics.dispose();
+      return new ImageIcon(image);
+    }
+    else {
+      return null;
+    }
   }
 }

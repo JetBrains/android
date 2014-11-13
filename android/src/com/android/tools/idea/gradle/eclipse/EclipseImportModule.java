@@ -324,6 +324,12 @@ class EclipseImportModule extends ImportModule {
     return myProject.getCompileSdkVersion();
   }
 
+  @Nullable
+  @Override
+  protected String getAddOn() {
+    return myProject.getAddOn();
+  }
+
   @NonNull
   @Override
   protected AndroidVersion getTargetSdkVersion() {

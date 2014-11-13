@@ -16,31 +16,30 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.Border;
 import java.awt.*;
 
 /**
  * Display existing AVDs and offer actions for editing/creating.
  */
 public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoProvider {
+  private final Project myProject;
   private AvdDisplayList myAvdDisplayList;
 
   public AvdListDialog(@Nullable Project project) {
     super(project);
-    myAvdDisplayList = new AvdDisplayList();
+    myProject = project;
+    myAvdDisplayList = new AvdDisplayList(project);
+    myAvdDisplayList.setBorder(ourDefaultBorder);
     setTitle("AVD Manager");
     Window window = getWindow();
     if (window == null) {
@@ -58,18 +57,8 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   @Nullable
   @Override
   protected JComponent createNorthPanel() {
-    JPanel titlePanel = new JPanel(new BorderLayout());
-    JBLabel label = new JBLabel("Your Virtual Devices");
-    Font font = label.getFont();
-    if (font == null) {
-      font = UIUtil.getLabelFont();
-    }
-    font = new Font(font.getName(), font.getStyle() | Font.BOLD, font.getSize() + 4);
-    label.setFont(font);
-    label.setBorder(IdeBorderFactory.createEmptyBorder(18, 12, 12, 12));
-    titlePanel.add(label, BorderLayout.WEST);
-
-    return titlePanel;
+    return DynamicWizardStep
+      .createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, "Your Virtual Devices");
   }
 
   @Nullable
@@ -87,5 +76,32 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   @Override
   public void refreshAvds() {
     myAvdDisplayList.refreshAvds();
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myProject;
+  }
+
+  @Override
+  @Nullable
+  protected Border createContentPaneBorder() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent createSouthPanel() {
+    JComponent panel = super.createSouthPanel();
+    if (panel != null) {
+      panel.setBorder(ourDefaultBorder);
+    }
+    return panel;
+  }
+
+  @Nullable
+  public AvdInfo getSelected() {
+    return myAvdDisplayList.getAvdInfo();
   }
 }

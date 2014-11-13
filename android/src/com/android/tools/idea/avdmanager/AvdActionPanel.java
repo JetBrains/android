@@ -20,11 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -51,6 +53,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   public interface AvdRefreshProvider {
     void refreshAvds();
+    @Nullable Project getProject();
   }
 
   public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, AvdRefreshProvider refreshProvider) {
@@ -85,7 +88,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     for (AvdUiAction action : actions) {
       JComponent actionLabel;
       // Add extra items to the overflow menu
-      if (numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
+      if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
         JBMenuItem menuItem = new JBMenuItem(action);
         menuItem.setText(action.getText());
         myOverflowMenu.add(menuItem);
@@ -101,16 +104,14 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       actionLabel.setBorder(myMargins);
       myButtonActionMap.put(actionLabel, action);
     }
-    if (!errorState) {
-      myOverflowMenuButton.setBorder(myMargins);
-      add(myOverflowMenuButton);
-      myOverflowMenuButton.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          myOverflowMenu.show(myOverflowMenuButton, e.getX(), e.getY());
-        }
-      });
-    }
+    myOverflowMenuButton.setBorder(myMargins);
+    add(myOverflowMenuButton);
+    myOverflowMenuButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myOverflowMenu.show(myOverflowMenuButton, e.getX() - myOverflowMenu.getPreferredSize().width, e.getY());
+      }
+    });
   }
 
   @NotNull
@@ -119,8 +120,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
                             new EditAvdAction(this),
                             new DuplicateAvdAction(this),
                             //new ExportAvdAction(this), // TODO: implement export/import
-                            new ShowAvdOnDiskAction(this),
                             new WipeAvdDataAction(this),
+                            new ShowAvdOnDiskAction(this),
+                            new AvdSummaryAction(this),
                             new DeleteAvdAction(this));
   }
 
@@ -133,6 +135,12 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @Override
   public void refreshAvds() {
     myRefreshProvider.refreshAvds();
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myRefreshProvider.getProject();
   }
 
   public void showPopup(@NotNull Component c, @NotNull MouseEvent e) {

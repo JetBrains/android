@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.intellij.ui.GuiUtils;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -24,6 +27,7 @@ import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Collection;
 
 /**
@@ -38,11 +42,10 @@ public abstract class AbstractWizardFixture extends ComponentFixture<JDialog> {
   @NotNull
   protected JRootPane findStepWithTitle(@NotNull final String title) {
     final JRootPane rootPane = target.getRootPane();
-    Pause.pause(new Condition("'Panel with title \"" + title + "\" is visible'") {
+    GuiTests.waitUntilFound(robot, rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
-      public boolean test() {
-        Collection<JLabel> found = robot.finder().findAll(rootPane, JLabelMatcher.withText(title).andShowing());
-        return !found.isEmpty();
+      protected boolean isMatching(JLabel label) {
+        return title.equals(label.getText());
       }
     });
     return rootPane;
