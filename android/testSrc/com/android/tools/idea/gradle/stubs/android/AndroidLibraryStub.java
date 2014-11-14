@@ -35,6 +35,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Nullable private final String myProject;
   @Nullable private final String myProjectVariant;
 
+
   public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile) {
     this(bundle, jarFile, null);
   }
@@ -153,6 +154,6 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Nullable
   @Override
   public MavenCoordinates getResolvedCoordinates() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 }
