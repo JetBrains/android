@@ -124,16 +124,22 @@ public class AndroidGradleProjectData implements Serializable {
     if (!ENABLED) {
       return;
     }
+    boolean cacheSaved = false;
     try {
       AndroidGradleProjectData data = createFrom(project);
       if (data != null) {
         File file = getProjectStateFile(project);
         FileUtil.ensureExists(file.getParentFile());
         data.saveTo(file);
+        cacheSaved = true;
       }
     }
     catch (IOException e) {
       LOG.info(String.format("Error while saving persistent state from project '%1$s'", project.getName()), e);
+    }
+    if (!cacheSaved) {
+      LOG.info("Failed to generate new cache. Deleting the old one.");
+      removeFrom(project);
     }
   }
 
@@ -241,7 +247,7 @@ public class AndroidGradleProjectData implements Serializable {
     return false;
   }
 
-  private static boolean needsAndroidSdkSync(@NotNull Project project) {
+  private static boolean needsAndroidSdkSync(@NotNull final Project project) {
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       final File ideSdkPath = DefaultSdks.getDefaultAndroidHome();
       if (ideSdkPath != null) {
@@ -250,7 +256,7 @@ public class AndroidGradleProjectData implements Serializable {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
             @Override
             public void run() {
-              DefaultSdks.setDefaultAndroidHome(ideSdkPath, DefaultSdks.getDefaultJdk());
+              DefaultSdks.setDefaultAndroidHome(ideSdkPath, DefaultSdks.getDefaultJdk(), project);
             }
           });
           return true;

@@ -15,8 +15,11 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.intellij.android.designer.AndroidDesignerUtils;
+import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.model.layout.TextDirection;
 import com.intellij.designer.designSurface.DecorationLayer;
 import com.intellij.designer.designSurface.StaticDecorator;
 import com.intellij.designer.model.RadComponent;
@@ -46,10 +49,11 @@ public class RelativeLayoutDecorator extends StaticDecorator {
     if (container instanceof RadViewComponent) {
       DesignerGraphics graphics = new DesignerGraphics(g, layer);
       RadViewComponent parent = (RadViewComponent)container;
-
+      AndroidDesignerEditorPanel panel = AndroidDesignerUtils.getPanel(layer.getArea());
       List<RadViewComponent> childNodes = RadViewComponent.getViewComponents(selection);
       boolean showDependents = parent.getChildren().size() > childNodes.size();
-      ConstraintPainter.paintSelectionFeedback(graphics, parent, childNodes, showDependents);
+      ConstraintPainter
+        .paintSelectionFeedback(graphics, parent, childNodes, showDependents, TextDirection.fromAndroidDesignerEditorPanel(panel));
     }
   }
 }

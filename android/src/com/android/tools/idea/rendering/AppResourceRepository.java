@@ -20,8 +20,8 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -103,6 +103,19 @@ public class AppResourceRepository extends MultiResourceRepository {
       }
     });
 
+    // Add notification listener for builds, so we can update extracted AARs, if necessary.
+    // This is necessary because after sync, but before the source generation build target has completed,
+    // we can look for but not find the exploded AAR directories. When the build is done we need to revisit
+    // this and create them if necessary.
+    // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
+    // optimize this to only check changes in AAR files
+    ProjectBuilder.getInstance(facet.getModule().getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
+      @Override
+      protected void buildFinished() {
+        repository.updateRoots();
+      }
+    });
+
     return repository;
   }
 
@@ -142,6 +155,22 @@ public class AppResourceRepository extends MultiResourceRepository {
       return findAarLibrariesFromGradle(dependentFacets, libraries);
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
+  }
+
+  @NotNull
+  public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<AndroidLibrary> libraries = Lists.newArrayList();
+    if (facet.isGradleProject()) {
+      IdeaAndroidProject project = facet.getIdeaAndroidProject();
+      if (project != null) {
+        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+        addGradleLibraries(libraries, facet);
+        for (AndroidFacet dependentFacet : dependentFacets) {
+          addGradleLibraries(libraries, dependentFacet);
+        }
+      }
+    }
+    return libraries;
   }
 
   /**
@@ -223,7 +252,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
-      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
+      Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
       for (AndroidLibrary library : libraries) {
         addGradleLibrary(list, library, unique);

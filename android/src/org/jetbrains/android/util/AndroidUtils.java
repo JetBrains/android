@@ -20,6 +20,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.android.sdklib.internal.project.ProjectProperties;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -127,32 +128,32 @@ public class AndroidUtils {
   @NonNls public static final String SYSTEM_RESOURCE_PACKAGE = "android";
 
   // Classes and constants
-  @NonNls public static final String VIEW_CLASS_NAME = "android.view.View";
-  @NonNls public static final String APPLICATION_CLASS_NAME = "android.app.Application";
-  @NonNls public static final String ACTIVITY_BASE_CLASS_NAME = "android.app.Activity";
-  @NonNls public static final String R_CLASS_NAME = "R";
-  @NonNls public static final String MANIFEST_CLASS_NAME = "Manifest";
+  @NonNls public static final String VIEW_CLASS_NAME = SdkConstants.CLASS_VIEW;
+  @NonNls public static final String APPLICATION_CLASS_NAME = SdkConstants.CLASS_APPLICATION;
+  @NonNls public static final String ACTIVITY_BASE_CLASS_NAME = SdkConstants.CLASS_ACTIVITY;
+  @NonNls public static final String R_CLASS_NAME = SdkConstants.R_CLASS;
+  @NonNls public static final String MANIFEST_CLASS_NAME = SdkConstants.FN_MANIFEST_BASE;
   @NonNls public static final String LAUNCH_ACTION_NAME = "android.intent.action.MAIN";
   @NonNls public static final String LAUNCH_CATEGORY_NAME = "android.intent.category.LAUNCHER";
   @NonNls public static final String LEANBACK_LAUNCH_CATEGORY_NAME = "android.intent.category.LEANBACK_LAUNCHER";
   @NonNls public static final String DEFAULT_CATEGORY_NAME = "android.intent.category.DEFAULT";
-  @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = "android.app.Instrumentation";
-  @NonNls public static final String SERVICE_CLASS_NAME = "android.app.Service";
-  @NonNls public static final String RECEIVER_CLASS_NAME = "android.content.BroadcastReceiver";
-  @NonNls public static final String PROVIDER_CLASS_NAME = "android.content.ContentProvider";
+  @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = SdkConstants.CLASS_INSTRUMENTATION;
+  @NonNls public static final String SERVICE_CLASS_NAME = SdkConstants.CLASS_SERVICE;
+  @NonNls public static final String RECEIVER_CLASS_NAME = SdkConstants.CLASS_BROADCASTRECEIVER;
+  @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
   public static final int TIMEOUT = 3000000;
 
   private static final Key<ConsoleView> CONSOLE_VIEW_KEY = new Key<ConsoleView>("AndroidConsoleView");
 
   // Properties
-  @NonNls public static final String ANDROID_LIBRARY_PROPERTY = "android.library";
+  @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
   @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
   @NonNls public static final String ANDROID_DEX_DISABLE_MERGER = "dex.disable.merger";
   @NonNls public static final String ANDROID_DEX_FORCE_JUMBO_PROPERTY = "dex.force.jumbo";
-  @NonNls public static final String ANDROID_TARGET_PROPERTY = "target";
+  @NonNls public static final String ANDROID_TARGET_PROPERTY = ProjectProperties.PROPERTY_TARGET;
   @NonNls public static final String ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX = "android.library.reference.";
-  @NonNls public static final String TAG_LINEAR_LAYOUT = "LinearLayout";
+  @NonNls public static final String TAG_LINEAR_LAYOUT = SdkConstants.LINEAR_LAYOUT;
   private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
     SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 

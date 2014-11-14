@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.service.voice.AlwaysOnHotwordDetector boolean startRecognition(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.voice.AlwaysOnHotwordDetector.RECOGNITION_FLAG_CAPTURE_TRIGGER_AUDIO, android.service.voice.AlwaysOnHotwordDetector.RECOGNITION_FLAG_ALLOW_MULTIPLE_TRIGGERS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.service.voice.AlwaysOnHotwordDetector int getSupportedRecognitionModes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.voice.AlwaysOnHotwordDetector.RECOGNITION_MODE_VOICE_TRIGGER, android.service.voice.AlwaysOnHotwordDetector.RECOGNITION_MODE_USER_IDENTIFICATION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+</root>
+

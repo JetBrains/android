@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.stats.Distribution;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.fileTemplates.impl.UrlUtil;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -105,19 +101,19 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   }
 
   @Override
-  public void onDistributionSelected(DistributionChartComponent.Distribution d) {
-    int halfwayIndex = d.descriptionBlocks.size() / 2;
-    myDescriptionLeft.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(0, halfwayIndex + 1)));
-    myDescriptionRight.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(halfwayIndex + 1, d.descriptionBlocks.size())));
-    mySelectedApiLevel = d.apiLevel;
-    myIntroducedLabel.setText(d.name);
-    myLearnMoreLinkLabel.setText(d.url);
+  public void onDistributionSelected(Distribution d) {
+    int halfwayIndex = d.getDescriptionBlocks().size() / 2;
+    myDescriptionLeft.setText(getHtmlFromBlocks(d.getDescriptionBlocks().subList(0, halfwayIndex + 1)));
+    myDescriptionRight.setText(getHtmlFromBlocks(d.getDescriptionBlocks().subList(halfwayIndex + 1, d.getDescriptionBlocks().size())));
+    mySelectedApiLevel = d.getApiLevel();
+    myIntroducedLabel.setText(d.getName());
+    myLearnMoreLinkLabel.setText(d.getUrl());
   }
 
-  private String getHtmlFromBlocks(List<DistributionChartComponent.Distribution.TextBlock> blocks) {
+  private String getHtmlFromBlocks(List<Distribution.TextBlock> blocks) {
     StringBuilder sb = new StringBuilder();
     sb.append("<html>");
-    for (DistributionChartComponent.Distribution.TextBlock block : blocks) {
+    for (Distribution.TextBlock block : blocks) {
       sb.append("<h3>");
       sb.append(block.title);
       sb.append("</h3>");
@@ -134,12 +130,5 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
    */
   public int getSelectedApiLevel() {
     return mySelectedApiLevel;
-  }
-
-  /**
-   * @return the percentage of supported devices for the given api level
-   */
-  public double getSupportedDistributionForApiLevel(int apiLevel) {
-    return myDistributionChart.getSupportedDistributionForApiLevel(apiLevel);
   }
 }

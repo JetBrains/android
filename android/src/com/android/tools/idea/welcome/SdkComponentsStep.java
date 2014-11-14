@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.sdklib.devices.Storage.Unit;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.google.common.base.Objects;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
@@ -30,8 +29,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +39,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -50,21 +47,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Set;
 
 /**
  * Wizard page for selecting SDK components to download.
  */
 public class SdkComponentsStep extends FirstRunWizardStep {
-  private static final ScopedStateStore.Key<BitSet> KEY_SELECTED_COMPONENTS =
-    ScopedStateStore.createKey("selected.components", ScopedStateStore.Scope.STEP, BitSet.class);
+  public static final String FIELD_SDK_LOCATION = "SDK location";
 
-  private final SdkComponent[] mySdkComponents;
-  private final ScopedStateStore.Key<Boolean> myKeyShouldDownload;
+  private final InstallableComponent[] myInstallableComponents;
+  private final ScopedStateStore.Key<Boolean> myKeyInstallSdk;
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
@@ -72,18 +65,19 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private JLabel myAvailableSpace;
   private JLabel myErrorMessage;
   private JSplitPane mySplitPane;
-  private Set<SdkComponent> myUncheckedComponents = Sets.newHashSet();
   private ScopedStateStore.Key<String> mySdkDownloadPathKey;
   private TextFieldWithBrowseButton myPath;
   private boolean myUserEditedPath = false;
 
-  public SdkComponentsStep(ScopedStateStore.Key<Boolean> keyShouldDownload, ScopedStateStore.Key<String> sdkDownloadPathKey) {
+  public SdkComponentsStep(@NotNull InstallableComponent[] components,
+                           @NotNull ScopedStateStore.Key<Boolean> keyInstallSdk,
+                           @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey) {
     super("SDK Settings");
 
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
-    myKeyShouldDownload = keyShouldDownload;
+    myKeyInstallSdk = keyInstallSdk;
     mySdkDownloadPathKey = sdkDownloadPathKey;
     myComponentDescription.setEditable(false);
     myComponentDescription.setContentType("text/html");
@@ -96,23 +90,23 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myErrorMessage.setText(null);
     myErrorMessage.setForeground(JBColor.red);
 
-    mySdkComponents = createModel();
+    myInstallableComponents = components;
     DefaultTableModel model = new DefaultTableModel(0, 1) {
       @Override
       public void setValueAt(Object aValue, int row, int column) {
         boolean isSelected = ((Boolean)aValue);
-        SdkComponent sdkComponent = mySdkComponents[row];
+        InstallableComponent installableComponent = myInstallableComponents[row];
         if (isSelected) {
-          select(sdkComponent);
+          select(installableComponent);
         }
         else {
-          deselect(sdkComponent);
+          deselect(installableComponent);
         }
         fireTableRowsUpdated(row, row);
       }
     };
-    for (SdkComponent sdkComponent : mySdkComponents) {
-      model.addRow(new Object[]{sdkComponent});
+    for (InstallableComponent installableComponent : myInstallableComponents) {
+      model.addRow(new Object[]{installableComponent});
     }
     myComponentsTable.setModel(model);
     myComponentsTable.setTableHeader(null);
@@ -120,7 +114,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       @Override
       public void valueChanged(ListSelectionEvent e) {
         int selected = myComponentsTable.getSelectedRow();
-        String description = selected >= 0 ? mySdkComponents[selected].myDescription : null;
+        String description = selected >= 0 ? myInstallableComponents[selected].getDescription() : null;
         myComponentDescription.setText(description);
       }
     });
@@ -130,22 +124,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     setComponent(myContents);
   }
 
-  private static SdkComponent[] createModel() {
-    long mb = Unit.MiB.getNumberOfBytes();
-    SdkComponent androidSdk = new SdkComponent("Android Studio + SDK", 684 * mb, null, false);
-    SdkComponent sdkPlatform = new SdkComponent("Android SDK Platform", 0, null, true);
-    SdkComponent lmp = new SdkComponent("LMP - Android 5.0 (API 21)", 292 * mb, sdkPlatform, true);
-    SdkComponent root = new SdkComponent("Android Emulator", 0, null, true);
-    SdkComponent nexus = new SdkComponent("Nexus", 0, root, true);
-    SdkComponent nexus5 = new SdkComponent("Nexus 5", 2499 * mb, nexus, true);
-    SdkComponent performance = new SdkComponent("Performance", 0, root, true);
-    SdkComponent haxm = new SdkComponent("Intel® HAXM", 2306867, performance, true);
-
-    return new SdkComponent[]{androidSdk, sdkPlatform, lmp, root, nexus, nexus5, performance, haxm};
-  }
-
-  private static boolean isChild(@Nullable SdkComponent child, @NotNull SdkComponent sdkComponent) {
-    return child != null && (child == sdkComponent || isChild(child.myParent, sdkComponent));
+  private static boolean isChild(@Nullable InstallableComponent child, @NotNull InstallableComponent installableComponent) {
+    return child != null && (child == installableComponent || isChild(child.getParent(), installableComponent));
   }
 
   @Nullable
@@ -161,6 +141,24 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   }
 
   private static String getDiskSpace(@Nullable String path) {
+    File file = getTargetFilesystem(path);
+    if (file == null) {
+      return "";
+    }
+    String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
+    if (SystemInfo.isWindows) {
+      while (file.getParentFile() != null) {
+        file = file.getParentFile();
+      }
+      return String.format("Disk space available on drive %s: %s", file.getName(), available);
+    }
+    else {
+      return String.format("Available disk space: %s", available);
+    }
+  }
+
+  @Nullable
+  private static File getTargetFilesystem(@Nullable String path) {
     File file = getExistingParentFile(path);
     if (file == null) {
       File[] files = File.listRoots();
@@ -168,115 +166,87 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         file = files[0];
       }
     }
-    if (file == null) {
-      return "";
-    }
-    String available = getSizeLabel(file.getFreeSpace());
-    if (SystemInfo.isWindows) {
-      while (file.getParent() != null) {
-        file = file.getParentFile();
-      }
-      return String.format("Disk space available on rive %s: %s", file.getName(), available);
-    }
-    else {
-      return String.format("Available disk space: %s", available);
-    }
-  }
-
-  private static String getSizeLabel(long freeSpace) {
-    Unit[] values = Unit.values();
-    Unit unit = values[values.length - 1];
-    for (int i = values.length - 2; unit.getNumberOfBytes() > freeSpace && i >= 0; i--) {
-      unit = values[i];
-    }
-    final double space = freeSpace * 1.0 / unit.getNumberOfBytes();
-    String formatted = roundToNumberOfDigits(space, 3);
-    return String.format("%s %s", formatted, unit.toString());
-  }
-
-  /**
-   * <p>Returns a string that rounds the number so number of
-   * integer places + decimal places is less or equal to maxDigits.</p>
-   * <p>Number will not be truncated if it has more integer digits
-   * then macDigits</p>
-   */
-  private static String roundToNumberOfDigits(double number, int maxDigits) {
-    int multiplier = 1, digits;
-    for (digits = maxDigits; digits > 0 && number > multiplier; digits--) {
-      multiplier *= 10;
-    }
-    NumberFormat numberInstance = NumberFormat.getNumberInstance();
-    numberInstance.setGroupingUsed(false);
-    numberInstance.setRoundingMode(RoundingMode.HALF_UP);
-    numberInstance.setMaximumFractionDigits(digits);
-    return numberInstance.format(number);
-  }
-
-  @NotNull
-  private static String inventDescription(String name, long size) {
-    return String.format("<html><p>This is a description for <em>%s</em> component</p>" +
-                         "<p>We know is that it takes <strong>%s</strong> disk space</p></html>", name, getSizeLabel(size));
+    return file;
   }
 
   @Override
   public boolean validate() {
-    String error = validatePath(myState.get(mySdkDownloadPathKey));
-    setErrorHtml(myUserEditedPath ? error : null);
-    return error == null;
-  }
-
-  @Nullable
-  private String validatePath(@Nullable String path) {
-    if (StringUtil.isEmpty(path)) {
-      return "Path is empty";
-    }
-    else {
+    String path = myState.get(mySdkDownloadPathKey);
+    if (!StringUtil.isEmpty(path)) {
       myUserEditedPath = true;
-      File file = new File(path);
-      while (file != null && !file.exists()) {
-        if (!PathUtil.isValidFileName(file.getName())) {
-          return "Specified path is not valid";
-        }
-        file = file.getParentFile();
+    }
+    WizardUtils.ValidationResult error = WizardUtils.validateLocation(path, FIELD_SDK_LOCATION, false);
+    String message = error.isOk() ? null : error.getFormattedMessage();
+    boolean isOk = !error.isError();
+    if (isOk) {
+      File filesystem = getTargetFilesystem(path);
+      if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
+        isOk = false;
+        message = "Target drive does not have enough free space";
+      }
+      else if (isNonEmptyNonSdk(path)) {
+        isOk = true;
+        message = "Target folder is neither empty nor does it point to an existing SDK installation.";
       }
     }
-    return null;
+    setErrorHtml(myUserEditedPath ? message : null);
+    return isOk;
+  }
+
+  private static boolean isNonEmptyNonSdk(@Nullable String path) {
+    if (path == null) {
+      return false;
+    }
+    File file = new File(path);
+    if (file.exists() && TemplateUtils.listFiles(file).length > 0) {
+      return AndroidSdkData.getSdkData(file) == null;
+    }
+    return false;
   }
 
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
-    myAvailableSpace.setText(getDiskSpace(myState.get(mySdkDownloadPathKey)));
-    BitSet bitSet = myState.get(KEY_SELECTED_COMPONENTS);
-    long selected = 0;
-    for (int i = 0; i < mySdkComponents.length; i++) {
-      if (bitSet == null || bitSet.get(i)) {
-        SdkComponent sdkComponent = mySdkComponents[i];
-        selected += sdkComponent.mySize;
+    for (int i = 0; i < myInstallableComponents.length; i++) {
+      ScopedStateStore.Key<Boolean> key = myInstallableComponents[i].getKey();
+      if (modified.contains(key)) {
+        myComponentsTable.getModel().setValueAt(myState.getNotNull(key, true), i, 0);
       }
     }
-    myNeededSpace.setText(String.format("Total disk space required: %s", getSizeLabel(selected)));
+    myAvailableSpace.setText(getDiskSpace(myState.get(mySdkDownloadPathKey)));
+    long selected = getComponentsSize();
+    myNeededSpace.setText(String.format("Total disk space required: %s", WelcomeUIUtils.getSizeLabel(selected)));
     super.deriveValues(modified);
   }
 
-  private void deselect(SdkComponent sdkComponent) {
-    for (SdkComponent child : mySdkComponents) {
-      if (child.mySize > 0 && isChild(child, sdkComponent)) {
-        myUncheckedComponents.add(child);
+  private long getComponentsSize() {
+    long selected = 0;
+    for (InstallableComponent installableComponent : myInstallableComponents) {
+      if (isSelected(installableComponent)) {
+        selected += installableComponent.getSize();
+      }
+    }
+    return selected;
+  }
+
+  private void deselect(InstallableComponent installableComponent) {
+    for (InstallableComponent child : myInstallableComponents) {
+      if (child.getSize() > 0 && isChild(child, installableComponent)) {
+        myState.put(child.getKey(), false);
       }
     }
   }
 
-  private Iterable<SdkComponent> getChildren(final SdkComponent sdkComponent) {
-    return Iterables.filter(Arrays.asList(mySdkComponents), new Predicate<SdkComponent>() {
+  private Iterable<InstallableComponent> getChildren(final InstallableComponent installableComponent) {
+    return Iterables.filter(Arrays.asList(myInstallableComponents), new Predicate<InstallableComponent>() {
       @Override
-      public boolean apply(@Nullable SdkComponent input) {
+      public boolean apply(@Nullable InstallableComponent input) {
         assert input != null;
-        SdkComponent n = input;
+        InstallableComponent n = input;
         do {
-          if (n == sdkComponent) {
+          if (n == installableComponent) {
             return true;
           }
-          n = n.myParent;
+          n = n.getParent();
         }
         while (n != null);
         return false;
@@ -284,45 +254,15 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     });
   }
 
-  private void select(SdkComponent sdkComponent) {
-    for (SdkComponent child : getChildren(sdkComponent)) {
-      myUncheckedComponents.remove(child);
+  private void select(InstallableComponent installableComponent) {
+    for (InstallableComponent child : getChildren(installableComponent)) {
+      myState.put(child.getKey(), true);
     }
   }
 
   @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
-    register(KEY_SELECTED_COMPONENTS, myComponentsTable, new ComponentBinding<BitSet, JBTable>() {
-      @Override
-      public void setValue(@Nullable BitSet newValue, @NotNull JBTable component) {
-        for (int i = 0; i < mySdkComponents.length; i++) {
-          component.getModel().setValueAt(newValue == null || newValue.get(i), i, 0);
-        }
-      }
-
-      @Nullable
-      @Override
-      public BitSet getValue(@NotNull JBTable component) {
-        BitSet bitSet = new BitSet(mySdkComponents.length);
-        int i = 0;
-        for (SdkComponent sdkComponent : mySdkComponents) {
-          bitSet.set(i++, sdkComponent.mySize > 0 && !myUncheckedComponents.contains(sdkComponent));
-        }
-        return bitSet;
-      }
-
-      @Override
-      public void addActionListener(@NotNull final ActionListener listener, @NotNull final JBTable component) {
-        component.getModel().addTableModelListener(new TableModelListener() {
-          @Override
-          public void tableChanged(TableModelEvent e) {
-            ActionEvent event = new ActionEvent(component, ActionEvent.ACTION_FIRST + 1, "toggle");
-            listener.actionPerformed(event);
-          }
-        });
-      }
-    });
   }
 
   @NotNull
@@ -336,9 +276,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     return myComponentsTable;
   }
 
-  private boolean isSelected(SdkComponent sdkComponent) {
-    for (SdkComponent child : getChildren(sdkComponent)) {
-      if (myUncheckedComponents.contains(child)) {
+  private boolean isSelected(InstallableComponent installableComponent) {
+    for (InstallableComponent child : getChildren(installableComponent)) {
+      if (!myState.getNotNull(child.getKey(), true)) {
         return false;
       }
     }
@@ -347,36 +287,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return Objects.equal(Boolean.TRUE, myState.get(myKeyShouldDownload));
-  }
-
-  private static final class SdkComponent {
-    @NotNull private final String myName;
-    private final long mySize;
-    @Nullable private final SdkComponent myParent;
-    private final boolean myCanDeselect;
-    private final String myDescription;
-
-    public SdkComponent(@NotNull String name, long size, @Nullable SdkComponent parent, boolean canDeselect) {
-      this(name, size, parent, canDeselect, inventDescription(name, size));
-    }
-
-    public SdkComponent(@NotNull String name, long size, @Nullable SdkComponent parent, boolean canDeselect, @NotNull String description) {
-      myName = name;
-      mySize = size;
-      myParent = parent;
-      myCanDeselect = canDeselect;
-      myDescription = description;
-    }
-
-    @Override
-    public String toString() {
-      return myName;
-    }
-
-    public String getLabel() {
-      return mySize == 0 ? myName : String.format("%s – (%s)", myName, getSizeLabel(mySize));
-    }
+    InstallerData data = InstallerData.get(myState);
+    boolean hasSdk = data.hasValidSdkLocation();
+    Boolean shouldInstallSdk = myState.getNotNull(myKeyInstallSdk, true);
+    return !hasSdk && shouldInstallSdk;
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
@@ -414,16 +328,16 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       }
       myCheckBox.setForeground(foreground);
       myPanel.remove(myCheckBox);
-      SdkComponent sdkComponent = (SdkComponent)value;
+      InstallableComponent installableComponent = (InstallableComponent)value;
       int indent = 0;
-      if (sdkComponent != null) {
-        myCheckBox.setEnabled(sdkComponent.myCanDeselect);
-        myCheckBox.setText(sdkComponent.getLabel());
-        myCheckBox.setSelected(isSelected((SdkComponent)value));
-        while (sdkComponent.myParent != null) {
+      if (installableComponent != null) {
+        myCheckBox.setEnabled(installableComponent.isOptional());
+        myCheckBox.setText(installableComponent.getLabel());
+        myCheckBox.setSelected(isSelected((InstallableComponent)value));
+        //noinspection ConstantConditions
+        while (installableComponent.getParent() != null) {
           indent++;
-          sdkComponent = sdkComponent.myParent;
-          assert sdkComponent != null;
+          installableComponent = installableComponent.getParent();
         }
       }
       myPanel.add(myCheckBox,

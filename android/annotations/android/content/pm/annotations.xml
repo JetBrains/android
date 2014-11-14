@@ -89,6 +89,45 @@
   <item name="android.content.pm.PackageInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.PackageInstaller android.content.pm.PackageInstaller.Session openSession(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller android.content.pm.PackageInstaller.SessionInfo getSessionInfo(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller int createSession(android.content.pm.PackageInstaller.SessionParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller java.util.List&lt;android.content.pm.PackageInstaller.SessionInfo&gt; getAllSessions()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller java.util.List&lt;android.content.pm.PackageInstaller.SessionInfo&gt; getMySessions()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void registerSessionCallback(android.content.pm.PackageInstaller.SessionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void registerSessionCallback(android.content.pm.PackageInstaller.SessionCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void registerSessionCallback(android.content.pm.PackageInstaller.SessionCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(java.lang.String, android.content.IntentSender) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(java.lang.String, android.content.IntentSender) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void unregisterSessionCallback(android.content.pm.PackageInstaller.SessionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void updateSessionAppIcon(int, android.graphics.Bitmap) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void updateSessionAppLabel(int, java.lang.CharSequence) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.pm.PackageItemInfo PackageItemInfo(android.content.pm.PackageItemInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -117,6 +156,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo.DisplayNameComparator int compare(android.content.pm.PackageItemInfo, android.content.pm.PackageItemInfo) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager android.content.pm.PackageInstaller getPackageInstaller()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager android.content.res.XmlResourceParser getXml(java.lang.String, int, android.content.pm.ApplicationInfo) 1">

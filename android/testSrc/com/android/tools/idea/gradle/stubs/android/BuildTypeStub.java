@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.NonNull;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
+import com.android.builder.model.SigningConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 public class BuildTypeStub implements BuildType {
@@ -49,12 +51,12 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  public boolean isJniDebugBuild() {
+  public boolean isJniDebuggable() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean isRenderscriptDebugBuild() {
+  public boolean isRenderscriptDebuggable() {
     throw new UnsupportedOperationException();
   }
 
@@ -76,17 +78,23 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  public boolean isRunProguard() {
+  public boolean isMinifyEnabled() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean isZipAlign() {
+  public boolean isZipAlignEnabled() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isEmbedMicroApp() {
+    throw new UnsupportedOperationException();
+  }
+
+  @com.android.annotations.Nullable
+  @Override
+  public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
   }
 
@@ -99,7 +107,7 @@ public class BuildTypeStub implements BuildType {
   @NonNull
   @Override
   public Map<String, ClassField> getResValues() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
@@ -117,6 +125,12 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Map<String, String> getManifestPlaceholders() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public Boolean getMultiDexEnabled() {
     throw new UnsupportedOperationException();
   }
 }

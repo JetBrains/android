@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -253,6 +254,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtil.toStringArray(args));
     }
 
+    GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(args);
+
     return args;
   }
 
@@ -310,13 +313,20 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static String getUnsupportedModelVersionErrorMsg(@Nullable FullRevision modelVersion) {
     StringBuilder builder = new StringBuilder();
     builder.append(UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
+    String recommendedVersion = String.format("The recommended version is %1$s.", SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION);
     if (modelVersion != null) {
-      builder.append(String.format(" (%1$s)", modelVersion.toString()));
+      builder.append(String.format(" (%1$s).", modelVersion.toString()))
+             .append(" ")
+             .append(recommendedVersion);
       if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
-        builder.append(".\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
+        builder.append("\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
                .append(UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG)
                .append(" to learn how to update your project.");
       }
+    }
+    else {
+      builder.append(". ")
+             .append(recommendedVersion);
     }
     return builder.toString();
   }

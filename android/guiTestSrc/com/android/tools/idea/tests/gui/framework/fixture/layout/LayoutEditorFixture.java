@@ -19,20 +19,34 @@ import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
+import com.intellij.android.designer.model.IdManager;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.designer.DesignerToolWindow;
+import com.intellij.designer.componentTree.AttributeWrapper;
+import com.intellij.designer.componentTree.ComponentTree;
 import com.intellij.designer.model.RadComponent;
+import com.intellij.designer.model.RadComponentVisitor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.LoadingNode;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleColoredRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import org.fest.swing.core.Robot;
+import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.TreeModel;
 import java.awt.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.junit.Assert.*;
@@ -123,6 +137,9 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
    * Searches for the nth occurrence of a given view in the layout. The ordering of widgets of the same
    * type is by visual order, first vertically, then horizontally (and finally by XML source offset, if they exactly overlap
    * as for example would happen in a {@code <merge>}
+   *
+   * @param tag the view tag to search for, e.g. "Button" or "TextView"
+   * @occurrence the index of the occurrence of the tag, e.g. 0 for the first TextView in the layout
    */
   @NotNull
   public LayoutEditorComponentFixture findView(final String tag, int occurrence) {
@@ -160,6 +177,44 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
     assertTrue("Only " + components.size() + " found, not enough for occurrence #" + occurrence, components.size() > occurrence);
 
     RadViewComponent component = components.get(occurrence);
+    return createComponentFixture(component);
+  }
+
+
+  /**
+   * Searches for the view with the given id, which should be unique and should exist in the layout.
+   *
+   * @param id the id to search for (should not include @id/ prefix)
+   * @return the corresponding component
+   */
+  @NotNull
+  public LayoutEditorComponentFixture findViewById(@NotNull final String id) {
+    assertFalse("Should not include the resource prefix in the id name: " + id, id.startsWith("@"));
+
+    waitForRenderToFinish();
+    AndroidDesignerEditorPanel panel = myPanel;
+    final RadComponent rootComponent = panel.getRootComponent();
+    assertNotNull(rootComponent);
+    assertTrue(rootComponent.getClass().getName(), rootComponent instanceof RadViewComponent);
+    final AtomicReference<RadViewComponent> reference = new AtomicReference<RadViewComponent>();
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        rootComponent.accept(new RadComponentVisitor() {
+          @Override
+          public void endVisit(RadComponent component) {
+            RadViewComponent viewComponent = (RadViewComponent)component;
+            if (id.equals(IdManager.getIdName(viewComponent.getId()))) {
+              assertNull("Id " + id + " occurs more than once in the layout", reference.get());
+              reference.set(viewComponent);
+            }
+          }
+        }, true);
+      }
+    });
+
+    RadViewComponent component = reference.get();
+    assertNotNull("No component with " + id + " was found", component);
     return createComponentFixture(component);
   }
 
@@ -201,5 +256,183 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
         addComponents(tag, (RadViewComponent)child, components);
       }
     }
+  }
+
+  /**
+   * Checks that the component tree matches a given description.
+   * Like {@link #requireComponents(String, boolean)}, but queries the
+   * actual UI tree and will not include nodes not yet created (e.g.
+   * because the UI node is not expanded)
+   *
+   * @param showSelected if true, mark selected items in the description
+   */
+  public void requireComponentTree(String description, boolean showSelected) {
+    assertEquals(description, describeComponentTree(showSelected));
+  }
+
+  /**
+   * Checks that the component hierarchy matches a given description.
+   * Like {@link #requireComponentTree(String, boolean)}, but includes all
+   * components regardless of whether they are included/expanded in the tree.
+   *
+   * @param showSelected if true, mark selected items in the description
+   */
+  public void requireComponents(String description, boolean showSelected) {
+    assertEquals(description, describeComponents(showSelected));
+  }
+
+  /**
+   * Describes the current state of the components. This is similar to
+   * {@link #describeComponentTree(boolean)}, but this will unconditionally
+   * show all components, whereas {@link #describeComponentTree(boolean)} will
+   * not show nodes that have not been expanded/loaded.
+   *
+   * @param showSelected if true, mark selected items in the description
+   * @return a description of the components hierarchy
+   */
+  public String describeComponents(final boolean showSelected) {
+    final StringBuilder sb = new StringBuilder(100);
+    final RadComponent root = myPanel.getRootComponent();
+    if (root != null) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          SimpleColoredRenderer renderer = new SimpleColoredRenderer();
+          AttributeWrapper wrapper = new AttributeWrapper() {
+            @Override
+            public SimpleTextAttributes getAttribute(SimpleTextAttributes attributes) {
+              return SimpleTextAttributes.REGULAR_ATTRIBUTES;
+            }
+          };
+          describe(renderer, wrapper, root, showSelected, 0);
+          SimpleColoredComponent.ColoredIterator iterator = renderer.iterator();
+          while (iterator.hasNext()) {
+            iterator.next();
+            sb.append(iterator.getFragment());
+          }
+        }
+      });
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Describes the current state of the component tree. Like {@link #describeComponents(boolean)},
+   * but queries the actual UI tree widget rather than the internal component hierarchy. This
+   * means it won't include UI nodes that have not been created yet, such as nodes in unexpanded
+   * part of the tree.
+   *
+   * @param showSelected if true, mark selected items in the description
+   * @return a description of the component tree
+   */
+  public String describeComponentTree(final boolean showSelected) {
+    final StringBuilder sb = new StringBuilder(100);
+    DesignerToolWindow toolWindow = myPanel.getToolWindow();
+    if (toolWindow != null) {
+      final ComponentTree componentTree = toolWindow.getComponentTree();
+      final TreeModel model = componentTree.getModel();
+      final Object root = model.getRoot();
+      if (root != null) {
+        GuiActionRunner.execute(new GuiTask() {
+          @Override
+          protected void executeInEDT() throws Throwable {
+            SimpleColoredRenderer renderer = new SimpleColoredRenderer();
+            AttributeWrapper wrapper = new AttributeWrapper() {
+              @Override
+              public SimpleTextAttributes getAttribute(SimpleTextAttributes attributes) {
+                return SimpleTextAttributes.REGULAR_ATTRIBUTES;
+              }
+            };
+            if (componentTree.isRootVisible()) {
+              describe(renderer, wrapper, componentTree, model, root, showSelected, 0);
+            } else {
+              for (int i = 0, n = model.getChildCount(root); i < n; i++) {
+                Object child = model.getChild(root, i);
+                describe(renderer, wrapper, componentTree, model, child, showSelected, 0);
+              }
+            }
+            SimpleColoredComponent.ColoredIterator iterator = renderer.iterator();
+            while (iterator.hasNext()) {
+              iterator.next();
+              sb.append(iterator.getFragment());
+            }
+          }
+        });
+      }
+    }
+    return sb.toString();
+  }
+
+  private void describe(SimpleColoredRenderer renderer, AttributeWrapper wrapper, ComponentTree componentTree, TreeModel model,
+                        Object node, boolean showSelected, int depth) {
+    SimpleTextAttributes style = wrapper.getAttribute(SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    for (int i = 0; i < depth; i++) {
+      renderer.append("    ", style);
+    }
+
+    if (!model.isLeaf(node) && model.getChildCount(node) > 0 &&
+      model.getChild(node, 0) instanceof LoadingNode) {
+      renderer.append("> ", style);
+    }
+
+    RadComponent component = componentTree.extractComponent(node);
+    if (component != null) {
+      if (showSelected && myPanel.getSurfaceArea().isSelected(component)) {
+        renderer.append("*");
+      }
+      myPanel.getTreeDecorator().decorate(component, renderer, wrapper, true);
+    }
+    else {
+      renderer.append("<missing component>", style);
+    }
+    renderer.append("\n", style);
+
+    if (!model.isLeaf(node)) {
+      for (int i = 0, n = model.getChildCount(node); i < n; i++) {
+        Object child = model.getChild(node, i);
+        if (child instanceof LoadingNode) {
+          continue;
+        }
+        describe(renderer, wrapper, componentTree, model, child, showSelected, depth + 1);
+      }
+    }
+  }
+
+  private void describe(SimpleColoredRenderer renderer, AttributeWrapper wrapper, @NotNull RadComponent component, boolean showSelected,
+                        int depth) {
+    SimpleTextAttributes style = wrapper.getAttribute(SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    for (int i = 0; i < depth; i++) {
+      renderer.append("    ", style);
+    }
+
+    if (showSelected && myPanel.getSurfaceArea().isSelected(component)) {
+      renderer.append("*");
+    }
+    myPanel.getTreeDecorator().decorate(component, renderer, wrapper, true);
+    renderer.append("\n", style);
+
+    for (RadComponent child : component.getChildren()) {
+      describe(renderer, wrapper, child, showSelected, depth + 1);
+    }
+  }
+
+  /**
+   * Action-clicks the mouse at the current position, assumed to have already been positioned in
+   * the right place with {@link #moveMouse(java.awt.Point)}
+   */
+  public void click() {
+    new ComponentDriver(robot).click(myPanel.getComponent());
+    robot.waitForIdle();
+  }
+
+  /**
+   * Move the mouse to the given panel coordinates
+   *
+   * @param point the point to move to
+   */
+  public void moveMouse(Point point) {
+    robot.moveMouse(myPanel.getComponent(), point.x, point.y);
+    robot.waitForIdle();
   }
 }

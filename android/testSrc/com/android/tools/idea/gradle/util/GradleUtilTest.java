@@ -22,11 +22,13 @@ import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import junit.framework.TestCase;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import static com.android.SdkConstants.*;
 
@@ -60,7 +62,7 @@ public class GradleUtilTest extends TestCase {
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneBin() throws IOException {
@@ -72,12 +74,12 @@ public class GradleUtilTest extends TestCase {
                 "distributionPath=wrapper/dists\n" +
                 "zipStoreBase=GRADLE_USER_HOME\n" +
                 "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneAll() throws IOException {
@@ -89,12 +91,12 @@ public class GradleUtilTest extends TestCase {
                 "distributionPath=wrapper/dists\n" +
                 "zipStoreBase=GRADLE_USER_HOME\n" +
                 "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
   }
 
   public void testReplaceGradleWrapper() throws IOException {
@@ -106,12 +108,12 @@ public class GradleUtilTest extends TestCase {
                 "distributionPath=wrapper/dists\n" +
                 "zipStoreBase=GRADLE_USER_HOME\n" +
                 "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
     Properties properties = PropertiesUtil.getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testUpdateGradleDistributionUrl() {
@@ -161,43 +163,66 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testGetAndroidGradleModelVersion() throws IOException {
-    String contents ="buildscript {\n" +
-                     "    repositories {\n" +
-                     "        jcenter()\n" +
-                     "    }\n" +
-                     "    dependencies {\n" +
-                     "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
-                     "    }\n" +
-                     "}";
+    String contents = "buildscript {\n" +
+                      "    repositories {\n" +
+                      "        jcenter()\n" +
+                      "    }\n" +
+                      "    dependencies {\n" +
+                      "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
+                      "    }\n" +
+                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
 
   public void testGetAndroidGradleModelVersionWithPlusInMicro() throws IOException {
-    String contents ="buildscript {\n" +
-                     "    repositories {\n" +
-                     "        jcenter()\n" +
-                     "    }\n" +
-                     "    dependencies {\n" +
-                     "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
-                     "    }\n" +
-                     "}";
+    String contents = "buildscript {\n" +
+                      "    repositories {\n" +
+                      "        jcenter()\n" +
+                      "    }\n" +
+                      "    dependencies {\n" +
+                      "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
+                      "    }\n" +
+                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
 
   public void testGetAndroidGradleModelVersionWithPlusNotation() throws IOException {
-    String contents ="buildscript {\n" +
-                     "    repositories {\n" +
-                     "        jcenter()\n" +
-                     "    }\n" +
-                     "    dependencies {\n" +
-                     "        classpath 'com.android.tools.build:gradle:+'\n" +
-                     "    }\n" +
-                     "}";
+    String contents = "buildscript {\n" +
+                      "    repositories {\n" +
+                      "        jcenter()\n" +
+                      "    }\n" +
+                      "    dependencies {\n" +
+                      "        classpath 'com.android.tools.build:gradle:+'\n" +
+                      "    }\n" +
+                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
+  }
+
+  public void testAddLocalMavenRepoInitScriptCommandLineOption() throws IOException {
+    File repoPath = new File("/xyz/repo");
+    List<String> cmdOptions = Lists.newArrayList();
+
+    File initScriptPath = GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(cmdOptions, repoPath);
+    assertNotNull(initScriptPath);
+
+    assertEquals(2, cmdOptions.size());
+    assertEquals("--init-script", cmdOptions.get(0));
+    assertEquals(initScriptPath.getPath(), cmdOptions.get(1));
+
+    String expectedScript = "allprojects {\n" +
+                            "  buildscript {\n" +
+                            "    repositories {\n" +
+                            "      maven { url '" + repoPath.getPath() + "'}\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}\n";
+
+    String initScript = FileUtil.loadFile(initScriptPath);
+    assertEquals(expectedScript, initScript);
   }
 }

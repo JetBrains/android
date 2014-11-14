@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.navigation.*;
-import com.android.navigation.Dimension;
-import com.android.navigation.NavigationModel.Event;
+import com.android.tools.idea.editors.navigation.model.*;
+import com.android.tools.idea.editors.navigation.model.ModelDimension;
+import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.rendering.RenderedView;
@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.editors.navigation.NavigationView.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
+import static com.android.tools.idea.editors.navigation.Utilities.sum;
 
 class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
@@ -87,7 +88,8 @@ class Selections {
   }
 
   private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
-                                                          HyperlinkLabel link, final String className) {
+                                                          HyperlinkLabel link,
+                                                          final String className) {
     link.setOpaque(false);
     if (className == null) {
       return;
@@ -105,7 +107,9 @@ class Selections {
   }
 
   private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
-                                                   HyperlinkLabel link, @Nullable final String xmlFileName, final boolean isMenu) {
+                                                   HyperlinkLabel link,
+                                                   @Nullable final String xmlFileName,
+                                                   final boolean isMenu) {
     link.setOpaque(false);
     link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
     link.addHyperlinkListener(new HyperlinkListener() {
@@ -159,17 +163,16 @@ class Selections {
 
     @Override
     protected void remove() {
-      myNavigationModel.remove(myTransition);
     }
 
     @Override
     protected void configureInspector(Inspector inspector) {
       TransitionInspector transitionInspector = new TransitionInspector();
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, myTransition.getSource().getState().getClassName());
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source,
+                                          myTransition.getSource().getState().getClassName());
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
-        comboBox.addItem(Transition.SWIPE);
         comboBox.setSelectedItem(myTransition.getType());
         comboBox.addItemListener(new ItemListener() {
           @Override
@@ -207,23 +210,24 @@ class Selections {
     }
 
     private void moveTo(Point location, boolean snap) {
-      Point newLocation = Utilities.add(diff(location, myMouseDownLocation), myOrigComponentLocation);
+      Point newLocation = sum(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myTransform.modelToView(Dimension.create(NavigationView.MIDDLE_SNAP_GRID)));
+        newLocation = Utilities.snap(newLocation, myTransform.modelToView(ModelDimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
-      myComponent.setLocation(newLocation);
-      myNavigationModel.getStateToLocation().put(myState, myTransform.viewToModel(newLocation));
+      Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
+      Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
+      stateToLocation.put(myState, myTransform.viewToModel(newLocation));
+      MenuState menuState = myNavigationModel.findAssociatedMenuState(myState);
+      if (menuState != null) {
+        Point delta = diff(newLocation, oldLocation);
+        stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
+      }
       myNavigationModel.getListeners().notify(Event.update(Map.class)); // just avoid State.class, which would trigger reload
     }
 
     @Override
     protected void moveTo(Point location) {
       moveTo(location, false);
-    }
-
-    @Override
-    protected void remove() {
-      myNavigationModel.removeState(myState);
     }
 
     @Override
@@ -234,9 +238,9 @@ class Selections {
 
     @Override
     protected void configureInspector(final Inspector inspector) {
-      myState.accept(new State.Visitor<Void>() {
+      myState.accept(new State.Visitor() {
         @Override
-        public Void visit(ActivityState state) {
+        public void visit(ActivityState state) {
           final Module module = myRenderingParameters.myConfiguration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
           {
@@ -258,28 +262,14 @@ class Selections {
               fragmentList.add(hyperlinkLabel);
             }
           }
-          {
-            JPanel propertyList = activityInspector.propertyList;
-            propertyList.removeAll();
-            propertyList.setLayout(new BoxLayout(propertyList, BoxLayout.Y_AXIS));
-            final String className = myState.getClassName();
-            PsiClass psiClass = Utilities.getPsiClass(module, className);
-            for (String propertyName : Analyser.findProperties(psiClass)) {
-              JLabel label = new JLabel(propertyName);
-              label.setOpaque(false);
-              propertyList.add(label);
-            }
-          }
           inspector.setInspectorComponent(activityInspector.container);
-          return null;
         }
 
         @Override
-        public Void visit(MenuState state) {
+        public void visit(MenuState state) {
           MenuInspector menuInspector = new MenuInspector();
           configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
           inspector.setInspectorComponent(menuInspector.container);
-          return null;
         }
       });
     }
@@ -287,21 +277,18 @@ class Selections {
 
   static class RelationSelection extends Selection {
     private final AndroidRootComponent mySourceComponent;
-    private final NavigationView myNavigationEditor;
-    private final NavigationModel myNavigationModel;
+    private final NavigationView myNavigationView;
     private final RenderedView myNamedLeaf;
     @NotNull private Point myMouseLocation;
 
-    RelationSelection(NavigationModel navigationModel,
-                      @NotNull AndroidRootComponent sourceComponent,
+    RelationSelection(@NotNull AndroidRootComponent sourceComponent,
                       @NotNull Point mouseDownLocation,
                       @Nullable RenderedView namedLeaf,
-                      @NotNull NavigationView navigationEditor) {
-      myNavigationModel = navigationModel;
+                      @NotNull NavigationView navigationView) {
       mySourceComponent = sourceComponent;
       myMouseLocation = mouseDownLocation;
       myNamedLeaf = namedLeaf;
-      myNavigationEditor = navigationEditor;
+      myNavigationView = navigationView;
     }
 
     @Override
@@ -318,21 +305,18 @@ class Selections {
       int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
       Graphics2D lineGraphics = NavigationView.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
-      Rectangle destBounds = myNavigationEditor.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
+      Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
       Rectangle sourceComponentBounds = mySourceComponent.getBounds();
       // if the mouse hasn't left the bounds of the originating component yet, use leaf bounds instead for the midLine calculation
       Rectangle startBounds = sourceComponentBounds.contains(myMouseLocation) ? sourceBounds : sourceComponentBounds;
       Line midLine = NavigationView.getMidLine(startBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
-      myNavigationEditor.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
+      myNavigationView.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
 
     @Override
     protected Selection finaliseSelectionLocation(Point mouseUpLocation) {
-      Transition transition = myNavigationEditor.getTransition(mySourceComponent, myNamedLeaf, mouseUpLocation);
-      if (transition != null) {
-        myNavigationModel.add(transition);
-      }
+      myNavigationView.createTransition(mySourceComponent, myNamedLeaf, mouseUpLocation);
       return NULL;
     }
 

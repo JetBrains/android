@@ -146,6 +146,15 @@ public final class ASGalleryTest extends TestCase {
     assertEquals(expected, actualCellSize);
   }
 
+  public void testComputeCellSizeWithCustomMargins() {
+    Insets cellMargin = new Insets(10, 20, 30, 40);
+    gallery.setCellMargin(cellMargin);
+    int fontSize = gallery.getFont().getSize();
+    Dimension expected = adjustByInsetsValue(THUMBNAIL_SIZE.width, THUMBNAIL_SIZE.height + (fontSize * 2), cellMargin);
+    Dimension actualCellSize = gallery.computeCellSize();
+    assertEquals(expected, actualCellSize);
+  }
+
   public void testGetColumnCount() {
     Dimension actualCellSize = gallery.computeCellSize();
     // Less than 2x elements - expand to fill the whole width

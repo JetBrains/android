@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="p1.a">
+  <application android:icon="@drawable/icon" android:manageSpaceActivity="MyActivity">
+    <meta-data
+        android:name="com.google.android.gms.version"
+        android:value="<caret>" />
+  </application>
+</manifest>

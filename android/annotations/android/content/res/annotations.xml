@@ -114,8 +114,20 @@
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.res.Resources boolean getBoolean(int) 0">
     <annotation name="android.support.annotation.BoolRes" />
@@ -224,6 +236,9 @@
   </item>
   <item name="android.content.res.Resources.Theme void setTo(android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.TypedArray android.graphics.drawable.Drawable getDrawable(int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.res.TypedArray boolean getValue(int, android.util.TypedValue) 1">
     <annotation name="android.support.annotation.NonNull" />

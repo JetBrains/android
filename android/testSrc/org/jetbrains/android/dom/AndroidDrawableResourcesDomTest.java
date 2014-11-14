@@ -299,9 +299,29 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testSelectorAnimationHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
+  /* Disabled until the attrs.xml file in the unit test distribution is updated to Android L
+  public void testAnimatedVectorHighlighting1() throws Throwable {
+    doTestHighlighting();
+  }
+
+  public void testVectorHighlighting1() throws Throwable {
+    doTestHighlighting();
+  }
+
+  public void testVectorHighlighting2() throws Throwable {
+    doTestHighlighting();
+  }
+  */
+
   public void testRootTagCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition",
-                             "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate");
+                             "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate",
+                             // API 21:
+                             "ripple", "vector", "animated-vector", "animated-selector");
   }
 
   public void testInlineClip() throws Throwable {
@@ -324,7 +344,7 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
     assertNotNull(lookupElementStrings);
     for (String s : lookupElementStrings) {
       if (!s.startsWith("@android") && !s.startsWith("@drawable") && !s.startsWith("@color")) {
-        fail("Variant " + s + " shouldn't be threre");
+        fail("Variant " + s + " shouldn't be there");
       }
     }
   }

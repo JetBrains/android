@@ -89,7 +89,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   );
 
   /**
-   * Hardcoded list of search rewrites to help users find common libraries.
+   * Hard-coded list of search rewrites to help users find common libraries.
    */
   private static final Map<String, String> SEARCH_OVERRIDES = ImmutableMap.<String, String>builder()
     .put("jodatime", "joda-time")
@@ -113,19 +113,16 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private final ExecutorService mySearchWorker = Executors.newSingleThreadExecutor();
   private final boolean myAndroidModule;
 
+  private final List<String> myAndroidSdkLibraries = Lists.newArrayList();
+
   /**
    * Wraps the MavenArtifactInfo and supplies extra descriptive information we can display.
    */
   private static class Artifact extends MavenArtifactInfo {
     private final String myDescription;
 
-    Artifact(@NotNull MavenArtifactInfo mai, @Nullable String description) {
-      super(mai.getGroupId(), mai.getArtifactId(), mai.getVersion(), mai.getPackaging(), mai.getClassifier(), mai.getClassNames(),
-            mai.getRepositoryId());
-      myDescription = description;
-    }
-
     public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
+      //noinspection ConstantConditions
       super(groupId, artifactId, version, null, null, null, null);
       myDescription = description;
     }
@@ -144,15 +141,18 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       return new Artifact(groupId, artifactId, gradleCoordinate.getFullRevision(), libraryId);
     }
 
-    public @NotNull String toString() {
+    @NotNull
+    public String toString() {
       if (myDescription != null) {
         return myDescription + " (" + getCoordinates() + ")";
-      } else {
+      }
+      else {
         return getCoordinates();
       }
     }
 
-    public @NotNull String getCoordinates() {
+    @NotNull
+    public String getCoordinates() {
       return getGroupId() + ":" + getArtifactId() + ":" + getVersion();
     }
   }
@@ -172,7 +172,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       int score = calculateScore(mySearchText, artifact2) - calculateScore(mySearchText, artifact1);
       if (score != 0) {
         return score;
-      } else {
+      }
+      else {
         return artifact2.getVersion().compareTo(artifact1.getVersion());
       }
     }
@@ -209,15 +210,19 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     mySearchTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
+        if (StringUtil.isEmpty(mySearchField.getText())) {
+          return;
+        }
         if (!isValidCoordinateSelected()) {
           startSearch();
-        } else {
+        }
+        else {
           close(OK_EXIT_CODE);
         }
       }
     });
 
-    boolean isPreviewVersion = false;
+    boolean preview = false;
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -225,17 +230,19 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
         if (androidProject != null) {
           ApiVersion minSdkVersion = androidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
           if (minSdkVersion != null) {
-            isPreviewVersion = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
+            preview = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
           }
         }
       }
     }
+
     RepositoryUrlManager manager = RepositoryUrlManager.get();
     for (String libraryId : RepositoryUrlManager.EXTRAS_REPOSITORY.keySet()) {
-      String libraryCoordinate = manager.getLibraryCoordinate(libraryId, null, isPreviewVersion);
+      String libraryCoordinate = manager.getLibraryCoordinate(libraryId, null, preview);
       if (libraryCoordinate != null) {
         Artifact artifact = Artifact.fromCoordinate(libraryCoordinate, libraryId);
         if (artifact != null) {
+          myAndroidSdkLibraries.add(libraryCoordinate);
           myShownItems.add(artifact);
         }
       }
@@ -263,7 +270,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     init();
   }
 
-  public @NotNull String getSearchText() {
+  @NotNull
+  public String getSearchText() {
     return mySearchTextField.getText();
   }
 
@@ -292,7 +300,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     mySearchWorker.submit(new Runnable() {
       @Override
       public void run() {
-        searchMavenIndex(finalText);
+        searchAllRepositories(finalText);
       }
     });
   }
@@ -300,16 +308,19 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   /**
    * Worker thread body that performs the search against the Maven index and interprets the result set
    */
-  private void searchMavenIndex(@NotNull final String text) {
+  private void searchAllRepositories(@NotNull final String text) {
     try {
       if (!myProgressIcon.isRunning()) {
         return;
       }
-      List<String> results = searchMavenCentral(text);
+      List<String> results = Lists.newArrayList();
+      results.addAll(searchMavenCentral(text));
+      results.addAll(searchSdkRepositories(text));
+
       if (!myProgressIcon.isRunning()) {
         return;
       }
-      synchronized(myShownItems) {
+      synchronized (myShownItems) {
         for (String s : results) {
           Artifact wrappedArtifact = Artifact.fromCoordinate(s, null);
           if (!myShownItems.contains(wrappedArtifact)) {
@@ -328,7 +339,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
               itemsToRemove.add(s.replace(AAR_PACKAGING, JAR_PACKAGING));
             }
           }
-          for (Iterator<Artifact> i = myShownItems.iterator(); i.hasNext();) {
+          for (Iterator<Artifact> i = myShownItems.iterator(); i.hasNext(); ) {
             Artifact art = i.next();
             if (itemsToRemove.contains(art.getCoordinates())) {
               i.remove();
@@ -340,26 +351,37 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       /**
        * Update the UI in the Swing UI thread
        */
-      SwingUtilities.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            synchronized (myShownItems) {
-              ((CollectionComboBoxModel)myResultList.getModel()).update();
-              if (myResultList.getSelectedIndex() == -1 && !myShownItems.isEmpty()) {
-                myResultList.setSelectedIndex(0);
-              }
-              if (!myShownItems.isEmpty()) {
-                myResultList.requestFocus();
-              }
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          synchronized (myShownItems) {
+            ((CollectionComboBoxModel)myResultList.getModel()).update();
+            if (myResultList.getSelectedIndex() == -1 && !myShownItems.isEmpty()) {
+              myResultList.setSelectedIndex(0);
+            }
+            if (!myShownItems.isEmpty()) {
+              myResultList.requestFocus();
             }
           }
-        });
+        }
+      });
     } catch (Exception e) {
       MavenLog.LOG.error(e);
-    } finally {
+    }
+    finally {
       myProgressIcon.suspend();
     }
+  }
+
+  @NotNull
+  private List<String> searchSdkRepositories(@NotNull String text) {
+    List<String> results = Lists.newArrayList();
+    for (String library : myAndroidSdkLibraries) {
+      if (library.contains(text)) {
+        results.add(library);
+      }
+    }
+    return results;
   }
 
   @NotNull
@@ -381,6 +403,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
       XPath idPath = XPath.newInstance("str[@name='id']");
       XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
+      //noinspection unchecked
       List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(document);
       List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
       for (Element element : artifacts) {
@@ -388,7 +411,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
           String id = ((Element)idPath.selectSingleNode(element)).getValue();
           String version = ((Element)versionPath.selectSingleNode(element)).getValue();
           results.add(id + ":" + version);
-        } catch (NullPointerException e) {
+        }
+        catch (NullPointerException e) {
           // A result is missing an ID or version. Just skip it.
         }
       }
@@ -437,7 +461,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   }
 
   private boolean isValidCoordinateSelected() {
-    return mySearchTextField.getText().split(":").length == 3;
+    String text = mySearchTextField.getText();
+    return GradleCoordinate.parseCoordinateString(text) != null;
   }
 
   private void createUIComponents() {

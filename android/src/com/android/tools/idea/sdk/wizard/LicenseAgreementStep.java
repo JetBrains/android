@@ -22,8 +22,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +36,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -46,7 +50,6 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
 public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescription {
   private JTextPane myLicenseTextField;
   private Tree myChangeTree;
-  private JPanel myComponent;
   private JRadioButton myDeclineRadioButton;
   private JRadioButton myAcceptRadioButton;
 
@@ -58,7 +61,31 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
 
   public LicenseAgreementStep(@NotNull Disposable disposable) {
     super("License Agreement", "Read and agree to the licenses for the components which will be installed", null, disposable);
-    setBodyComponent(myComponent);
+    Splitter splitter = new Splitter(false, .30f);
+    splitter.setHonorComponentsMinimumSize(true);
+
+    myChangeTree = new Tree();
+    splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myChangeTree));
+
+    myLicenseTextField = new JTextPane();
+    splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myLicenseTextField));
+
+    myDeclineRadioButton = new JBRadioButton("Decline");
+    myAcceptRadioButton = new JBRadioButton("Accept");
+
+    ButtonGroup optionsGroup = new ButtonGroup();
+    optionsGroup.add(myDeclineRadioButton);
+    optionsGroup.add(myAcceptRadioButton);
+
+    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    optionsPanel.add(myDeclineRadioButton);
+    optionsPanel.add(myAcceptRadioButton);
+
+    JPanel mainPanel = new JPanel(new BorderLayout());
+    mainPanel.add(splitter, BorderLayout.CENTER);
+    mainPanel.add(optionsPanel, BorderLayout.SOUTH);
+
+    setBodyComponent(mainPanel);
   }
 
   @Override

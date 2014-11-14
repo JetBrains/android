@@ -18,22 +18,22 @@ package com.android.tools.idea.avdmanager;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.tools.idea.sdk.wizard.SdkComponentInstallPath;
+import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.SingleStepPath;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.componentsList.layout.Orientation;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 
@@ -68,7 +69,6 @@ public class AvdEditWizard extends DynamicWizard {
       initDefaultInfo();
     }
     addPath(new AvdConfigurationPath(getDisposable()));
-    addPath(new SdkComponentInstallPath(getDisposable()));
     addPath(new SingleStepPath(new ConfigureAvdOptionsStep(getDisposable())));
 
     super.init();
@@ -86,6 +86,8 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(BACK_CAMERA_KEY, DEFAULT_CAMERA);
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
+    state.put(USE_HOST_GPU_KEY, true);
+    state.put(SD_CARD_STORAGE_KEY, new Storage(100, Storage.Unit.MiB));
   }
 
   /**
@@ -127,13 +129,18 @@ public class AvdEditWizard extends DynamicWizard {
     if (sdCardLocation != null) {
       state.put(USE_EXISTING_SD_CARD, true);
     }
-    state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(properties.get(SCALE_SELECTION_KEY.name)));
+    String scale = properties.get(SCALE_SELECTION_KEY.name);
+    if (scale != null) {
+      state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(scale));
+    }
     state.put(USE_HOST_GPU_KEY, fromIniString(properties.get(USE_HOST_GPU_KEY.name)));
     state.put(USE_SNAPSHOT_KEY, fromIniString(properties.get(USE_SNAPSHOT_KEY.name)));
     state.put(FRONT_CAMERA_KEY, properties.get(FRONT_CAMERA_KEY.name));
     state.put(BACK_CAMERA_KEY, properties.get(BACK_CAMERA_KEY.name));
     state.put(NETWORK_LATENCY_KEY, properties.get(NETWORK_LATENCY_KEY.name));
     state.put(NETWORK_SPEED_KEY, properties.get(NETWORK_SPEED_KEY.name));
+    state.put(HAS_HARDWARE_KEYBOARD_KEY, fromIniString(properties.get(HAS_HARDWARE_KEYBOARD_KEY.name)));
+    state.put(DISPLAY_NAME_KEY, AvdManagerConnection.getAvdDisplayName(avdInfo));
 
     String skinPath = properties.get(CUSTOM_SKIN_FILE_KEY.name);
     if (skinPath != null) {
@@ -156,12 +163,16 @@ public class AvdEditWizard extends DynamicWizard {
     }
     String numString = iniString.substring(0, iniString.length() - 1);
     char unitChar = iniString.charAt(iniString.length() - 1);
-    Storage.Unit selectedUnit = Storage.Unit.B;
+    Storage.Unit selectedUnit = null;
     for (Storage.Unit u : Storage.Unit.values()) {
       if (u.toString().charAt(0) == unitChar) {
         selectedUnit = u;
         break;
       }
+    }
+    if (selectedUnit == null) {
+      selectedUnit = Storage.Unit.MiB; // Values expressed without a unit read as MB
+      numString = iniString;
     }
     try {
       long numLong = Long.parseLong(numString);
@@ -173,7 +184,11 @@ public class AvdEditWizard extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
-    ScopedStateStore state = getState();
+    createAvd(myAvdInfo, getState(), myForceCreate);
+  }
+
+  @Nullable
+  public static AvdInfo createAvd(@Nullable AvdInfo avdInfo, @NotNull ScopedStateStore state, boolean forceCreate) {
     Device device = state.get(DEVICE_DEFINITION_KEY);
     assert device != null; // Validation should be done by individual steps
     SystemImageDescription systemImageDescription = state.get(SYSTEM_IMAGE_KEY);
@@ -187,18 +202,22 @@ public class AvdEditWizard extends DynamicWizard {
     // Remove the SD card setting that we're not using
     String sdCard = null;
     Boolean useExistingSdCard = state.get(USE_EXISTING_SD_CARD);
+    boolean hasSdCard = false;
     if (useExistingSdCard != null && useExistingSdCard) {
       userEditedProperties.remove(SD_CARD_STORAGE_KEY.name);
       sdCard = state.get(EXISTING_SD_LOCATION);
       assert sdCard != null;
+      hasSdCard = true;
+      hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(true));
     } else {
       userEditedProperties.remove(EXISTING_SD_LOCATION.name);
       Storage storage = state.get(SD_CARD_STORAGE_KEY);
       if (storage != null) {
-        sdCard = toIniString(storage);
+        sdCard = toIniString(storage, false);
       }
+      hasSdCard = storage != null && storage.getSize() > 0;
     }
-
+    hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
     userEditedProperties = Maps.filterEntries(userEditedProperties, new Predicate<Map.Entry<String, Object>>() {
       @Override
@@ -211,7 +230,11 @@ public class AvdEditWizard extends DynamicWizard {
       @Override
       public String transformEntry(String key, Object value) {
         if (value instanceof Storage) {
-          return toIniString((Storage)value);
+          if (key.equals(AvdWizardConstants.RAM_STORAGE_KEY.name) || key.equals(AvdWizardConstants.VM_HEAP_STORAGE_KEY.name)) {
+            return toIniString((Storage)value, true);
+          } else {
+            return toIniString((Storage)value, false);
+          }
         } else if (value instanceof  Boolean) {
           return toIniString((Boolean)value);
         } else if (value instanceof AvdScaleFactor) {
@@ -227,22 +250,32 @@ public class AvdEditWizard extends DynamicWizard {
     }));
 
     File skinFile = state.get(CUSTOM_SKIN_FILE_KEY);
+    if (skinFile == null) {
+      skinFile = getHardwareSkinPath(device.getDefaultHardware());
+    }
 
-    // Add any values that we can calculate
-    hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(false));
-    hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
+    // Add defaults if they aren't already set differently
+    if (!hardwareProperties.containsKey(AvdManager.AVD_INI_SKIN_DYNAMIC)) {
+      hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(false));
+    }
+    if (!hardwareProperties.containsKey(HardwareProperties.HW_KEYBOARD)) {
+      hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
+    }
 
     boolean isCircular = DeviceDefinitionPreview.isCircular(device);
 
-    String avdName = calculateAvdName(myAvdInfo, device, myForceCreate);
+    String avdName = state.get(AvdWizardConstants.AVD_ID_KEY);
+    if (avdName == null || avdName.isEmpty()) {
+      avdName = calculateAvdName(avdInfo, hardwareProperties, device, forceCreate);
+    }
 
     // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
-    if (myAvdInfo != null && !myForceCreate) {
-      IAndroidTarget target = myAvdInfo.getTarget();
+    if (avdInfo != null && !forceCreate) {
+      IAndroidTarget target = avdInfo.getTarget();
       if (target != null) {
 
         int oldApiLevel = target.getVersion().getApiLevel();
-        int newApiLevel = systemImageDescription.target.getVersion().getApiLevel();
+        int newApiLevel = systemImageDescription.getVersion().getApiLevel();
         if (oldApiLevel > newApiLevel) {
           String message = String.format(Locale.getDefault(), "You are about to downgrade %1$s from API level %2$d to API level %3$d. " +
                                                               "This requires a wipe of the userdata partition of the AVD. Do you wish to " +
@@ -250,16 +283,55 @@ public class AvdEditWizard extends DynamicWizard {
           int result = JOptionPane
             .showConfirmDialog(null, message, "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
           if (result == JOptionPane.YES_OPTION) {
-            AvdManagerConnection.wipeUserData(myAvdInfo);
+            AvdManagerConnection.wipeUserData(avdInfo);
           } else {
-            return; // Cancel the edit operation
+            return null; // Cancel the edit operation
           }
         }
       }
     }
 
-    AvdManagerConnection.createOrUpdateAvd(myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
-                                           skinFile, hardwareProperties, false);
+    return createWithProgress(avdInfo, device, systemImageDescription, orientation, hardwareProperties, sdCard, skinFile, isCircular,
+                              avdName);
+  }
+
+  @Nullable
+  private static AvdInfo createWithProgress(@Nullable final AvdInfo avdInfo,
+                                            @NotNull final Device device,
+                                            @NotNull final SystemImageDescription systemImageDescription,
+                                            @NotNull final ScreenOrientation orientation,
+                                            @NotNull final Map<String, String> hardwareProperties,
+                                            @Nullable final String sdCard,
+                                            @Nullable final File skinFile,
+                                            final boolean isCircular,
+                                            @NotNull final String avdName) {
+    final AtomicReference<AvdInfo> infoReference = new AtomicReference<AvdInfo>();
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        infoReference.set(AvdManagerConnection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular,
+                                                                 sdCard, skinFile, hardwareProperties, false));
+      }
+    }, "Creating/Updating AVD...", false, null, null);
+
+    return infoReference.get();
+  }
+
+  @Nullable
+  public static File getHardwareSkinPath(@NotNull Hardware hardware) {
+    File path = hardware.getSkinFile();
+    if (path != null && !path.isAbsolute()) {
+      if (path.getPath().isEmpty()) {
+        return null;
+      }
+      File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
+      if (resourceDir != null) {
+        path = new File(resourceDir, path.getPath());
+      } else {
+        return null;
+      }
+    }
+    return path;
   }
 
   @NotNull
@@ -281,18 +353,40 @@ public class AvdEditWizard extends DynamicWizard {
   }
 
   @NotNull
-  private static String calculateAvdName(@Nullable AvdInfo avdInfo, @NotNull Device device, boolean forceCreate) {
+  private static String calculateAvdName(@Nullable AvdInfo avdInfo, @NotNull Map<String, String> hardwareProperties,
+                                         @NotNull Device device, boolean forceCreate) {
     if (avdInfo != null && !forceCreate) {
       return avdInfo.getName();
     }
-    String deviceName = device.getDisplayName().replace(' ', '_');
-    String manufacturer = device.getManufacturer().replace(' ', '_');
-    String candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
+    String candidateBase = hardwareProperties.get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+    if (candidateBase == null || candidateBase.isEmpty()) {
+      String deviceName = device.getDisplayName().replace(' ', '_');
+      String manufacturer = device.getManufacturer().replace(' ', '_');
+      candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
+    }
+    return cleanAvdName(candidateBase, true);
+  }
+
+  /**
+   * Get a version of {@code candidateBase} modified such that it is a valid filename. Invalid characters will be
+   * removed, and if requested the name will be made unique.
+   *
+   * @param candidateBase the name on which to base the avd name.
+   * @param uniquify if true, _n will be appended to the name if necessary to make the name unique, where n is the first
+   *                 number that makes the filename unique.
+   * @return The modified filename.
+   */
+  public static String cleanAvdName(@NotNull String candidateBase, boolean uniquify) {
     candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
+    if (candidateBase.isEmpty()) {
+      candidateBase = "myavd";
+    }
     String candidate = candidateBase;
-    int i = 1;
-    while (AvdManagerConnection.avdExists(candidate)) {
-      candidate = String.format("%1$s_%2$d", candidateBase, i);
+    if (uniquify) {
+      int i = 1;
+      while (AvdManagerConnection.avdExists(candidate)) {
+        candidate = String.format("%1$s_%2$d", candidateBase, i++);
+      }
     }
     return candidate;
   }
@@ -302,9 +396,10 @@ public class AvdEditWizard extends DynamicWizard {
    * Example: 10M or 1G
    */
   @NotNull
-  private static String toIniString(@NotNull Storage storage) {
-    Storage.Unit unit = storage.getAppropriateUnits();
-    return String.format("%1$d%2$c", storage.getSizeAsUnit(unit), unit.toString().charAt(0));
+  private static String toIniString(@NotNull Storage storage, boolean convertToMb) {
+    Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
+    String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
+    return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }
 
   /**

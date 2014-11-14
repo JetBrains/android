@@ -56,4 +56,9 @@ public class GradleTaskStub implements GradleTask {
   public GradleProjectStub getProject() {
     return myProject;
   }
+
+  @Override
+  public boolean isPublic() {
+    return true;
+  }
 }

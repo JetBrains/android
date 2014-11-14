@@ -556,6 +556,24 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testClassLiterals() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import java.lang.reflect.Field;\n" +
+      "\n" +
+      "public class R13 {\n" +
+      "    private static void dumpFlags(Field field) {\n" +
+      "        if (field.getType().equals(int.class)) {\n" +
+      "        } else if (field.getType().equals(int[].class)) {\n" +
+      "        } else if (field.getType().equals(int[][].class)) {\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R12.java", testClass);
+    check(file, testClass);
+  }
+
   public void testJava7() {
     String testClass =
       "package test.pkg;\n" +

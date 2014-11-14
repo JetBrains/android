@@ -20,30 +20,31 @@ import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
 public class DeviceArtDescriptorTest extends TestCase {
-  public void test1() throws FileNotFoundException {
+  public void test1() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    // Currently there are 9 devices for which we have device art, plus 2 generic/stretchable
-    assertEquals(15, specs.size());
+    assertEquals(17, specs.size());
 
     DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
     assertNotNull(nexus4);
 
     Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
-    assertEquals(213, offsets.x);
-    assertEquals(350, offsets.y);
+    assertEquals(94, offsets.x);
+    assertEquals(187, offsets.y);
 
     offsets = nexus4.getScreenPos(ScreenOrientation.LANDSCAPE);
-    assertEquals(349, offsets.x);
-    assertEquals(214, offsets.y);
+    assertEquals(257, offsets.x);
+    assertEquals(45, offsets.y);
 
     verifyFileExists(nexus4.getFrame(ScreenOrientation.LANDSCAPE));
     verifyFileExists(nexus4.getFrame(ScreenOrientation.PORTRAIT));
@@ -63,18 +64,20 @@ public class DeviceArtDescriptorTest extends TestCase {
         assertNotNull(id, descriptor.getFrameSize(orientation));
         assertNotNull(id, descriptor.getScreenPos(orientation));
         assertNotNull(id, descriptor.getScreenSize(orientation));
-        //noinspection StatementWithEmptyBody
-        if (id.equals("phone") || id.equals("tablet") || id.startsWith("wear_") || id.startsWith("tv_")) {
-          // No crop for these
-        } else {
-          assertNotNull(id, descriptor.getCrop(orientation));
-        }
+
+        // We've pre-subtracted the crop everywhere now
+        assertNull(descriptor.getCrop(orientation));
         assertTrue(id, descriptor.getFrame(orientation).exists());
         assertTrue(id, descriptor.getDropShadow(orientation).exists());
         File reflectionOverlay = descriptor.getReflectionOverlay(orientation);
         if (reflectionOverlay != null) {
           assertTrue(id, reflectionOverlay.exists());
         }
+
+        verifyCompatibleImage(descriptor.getFrame(orientation));
+        verifyCompatibleImage(descriptor.getDropShadow(orientation));
+        verifyCompatibleImage(descriptor.getReflectionOverlay(orientation));
+        verifyCompatibleImage(descriptor.getMask(orientation));
       }
     }
 
@@ -113,6 +116,17 @@ public class DeviceArtDescriptorTest extends TestCase {
   private static void verifyFileExists(@Nullable File f) {
     assertNotNull(f);
     assertTrue(f.exists());
+  }
+
+  private static void verifyCompatibleImage(@Nullable File file) throws IOException {
+    if (file == null) {
+      return;
+    }
+
+    BufferedImage image = ImageIO.read(file);
+
+    // ImageIO does not handle all possible image formats; let's not use any that we don't recognize!
+    assertTrue("Unrecognized type " + file, image.getType() != BufferedImage.TYPE_CUSTOM);
   }
 
   private static DeviceArtDescriptor getDescriptorFor(@NotNull String id, List<DeviceArtDescriptor> descriptors) {

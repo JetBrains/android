@@ -183,6 +183,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
               value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.PACKAGE_NAME);
             } else if (key == BuildFileKey.TEST_APPLICATION_ID) {
               value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.TEST_PACKAGE_NAME);
+            } else if (key == BuildFileKey.MINIFY_ENABLED) {
+              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.RUN_PROGUARD);
             }
           }
 
@@ -422,6 +424,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   @Nullable
   private NamedObject getSelectedObject() {
     int selectedIndex = myList.getSelectedIndex();
+    selectedIndex = Math.min(selectedIndex, myListModel.getSize() - 1);
     return selectedIndex >= 0 ? myListModel.get(selectedIndex) : null;
   }
 
@@ -452,13 +455,13 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           }
           BuildType buildType = buildTypeContainer.getBuildType();
           obj.setValue(BuildFileKey.DEBUGGABLE, buildType.isDebuggable());
-          obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebugBuild());
-          obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebugBuild());
+          obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebuggable());
+          obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebuggable());
           obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
           obj.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, buildType.getApplicationIdSuffix());
           obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
-          obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isRunProguard());
-          obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlign());
+          obj.setValue(BuildFileKey.MINIFY_ENABLED, buildType.isMinifyEnabled());
+          obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlignEnabled());
           results.add(obj);
         }
         break;

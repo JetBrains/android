@@ -20,6 +20,8 @@ import com.android.prefs.AndroidLocation;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.devices.DeviceParser;
+import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -45,12 +47,13 @@ import org.jetbrains.android.util.WaitingStrategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import java.awt.*;
-import java.io.File;
-import java.util.Collection;
+import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Matcher;
 
 /**
@@ -143,6 +146,35 @@ public class DeviceManagerConnection {
   }
 
   /**
+   * Create the given devices
+   */
+  public static void createDevices(@NotNull List<Device> devices) {
+    if (!initIfNecessary()) {
+      return;
+    }
+    for (Device device : devices) {
+      // Find a unique ID for this new device
+      String deviceIdBase = device.getId();
+      String deviceNameBase = device.getDisplayName();
+      int i = 2;
+      while (isUserDevice(device)) {
+        String id = String.format(Locale.getDefault(), "%1$s_%2$d", deviceIdBase, i);
+        String name = String.format(Locale.getDefault(), "%1$s_%2$d", deviceNameBase, i);
+        device = cloneDeviceWithNewIdAndName(device, id, name);
+      }
+      ourDeviceManager.addUserDevice(device);
+    }
+    ourDeviceManager.saveUserDevices();
+  }
+
+  private static Device cloneDeviceWithNewIdAndName(@NotNull Device device, @NotNull String id, @NotNull String name) {
+    Device.Builder builder = new Device.Builder(device);
+    builder.setId(id);
+    builder.setName(name);
+    return builder.build();
+  }
+
+  /**
    * Return true iff the given device matches one of the user declared devices.
    */
   public static boolean isUserDevice(@NotNull final Device device) {
@@ -155,5 +187,43 @@ public class DeviceManagerConnection {
         return device.getId().equalsIgnoreCase(input.getId());
       }
     });
+  }
+
+  public static List<Device> getDevicesFromFile(@NotNull File xmlFile) {
+    InputStream stream = null;
+    List<Device> list = Lists.newArrayList();
+    try {
+      stream = new FileInputStream(xmlFile);
+      list.addAll(DeviceParser.parse(stream));
+    } catch (IllegalStateException e) {
+      // The device builders can throw IllegalStateExceptions if
+      // build gets called before everything is properly setup
+      IJ_LOG.error(e);
+    } catch (Exception e) {
+      IJ_LOG.error("Error reading devices", e);
+    } finally {
+      if (stream != null) {
+        try {
+          stream.close();
+        } catch (IOException ignore) {}
+      }
+    }
+    return list;
+  }
+
+  public static void writeDevicesToFile(@NotNull List<Device> devices, @NotNull File file) {
+    if (devices.size() > 0) {
+      try {
+        DeviceWriter.writeToXml(new FileOutputStream(file), devices);
+      } catch (FileNotFoundException e) {
+        IJ_LOG.warn(String.format("Couldn't open file: %1$s", e.getMessage()));
+      } catch (ParserConfigurationException e) {
+        IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
+      } catch (TransformerFactoryConfigurationError e) {
+        IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
+      } catch (TransformerException e) {
+        IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
+      }
+    }
   }
 }
