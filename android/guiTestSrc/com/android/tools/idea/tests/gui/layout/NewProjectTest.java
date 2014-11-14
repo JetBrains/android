@@ -24,6 +24,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -112,14 +115,29 @@ public class NewProjectTest extends GuiTestCase {
 
   @Test
   @IdeGuiTest
+  public void testRenderResourceInitialization() throws IOException {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=76966
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("9").create();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.requireName("activity_a.xml");
+    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    assertNotNull("Layout editor was not showing", layoutEditor);
+    layoutEditor.waitForNextRenderToFinish();
+    projectFrame.invokeProjectMake();
+    layoutEditor.waitForNextRenderToFinish();
+    layoutEditor.requireRenderSuccessful();
+    projectFrame.waitForBackgroundTasksToFinish();
+  }
+
+  @Test
+  @IdeGuiTest
   public void testLanguageLevelForApi21() {
     // Verifies that creating a project with L will set the language level correctly
     // both in the generated Gradle model as well as in the synced project and modules
 
     // "20+" here should change to 21 as soon as L goes out of preview state
-    IdeFrameFixture projectFrame = newProject("Test Application").withMinSdk("20+")
-      // just to speed up the test: type as little as possible
-      .withActivity("A").withCompanyDomain("C").withName("P").withPackageName("a.b").create();
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("20+").create();
 
     IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
     AndroidProject model = appAndroidProject.getDelegate();
@@ -139,6 +157,26 @@ public class NewProjectTest extends GuiTestCase {
     }
   }
 
+  @Test
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testStillBuildingMessage() throws Exception {
+    // Creates a new project with minSdk 15, which should use appcompat.
+    // Check that if there are render-error messages on first render,
+    // they don't include "Missing Styles" (should now talk about project building instead)
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.DESIGN);
+    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    assertNotNull(layoutEditor);
+    layoutEditor.waitForNextRenderToFinish();
+
+    RenderErrorPanelFixture renderErrors = layoutEditor.getRenderErrors();
+    String html = renderErrors.getErrorHtml();
+    // We could be showing an error message, but if we do, it should *not* say missing styles
+    // (should only be showing project render errors)
+    assertFalse(html, html.contains("Missing styles"));
+  }
+
   @NotNull
   private NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
@@ -153,6 +191,7 @@ public class NewProjectTest extends GuiTestCase {
     private String myMinSdk = "19";
     private String myName = "TestProject";
     private String myDomain = "com.android";
+    private boolean myWaitForSync = true;
 
     private NewProjectDescriptor(@NotNull String name) {
       withName(name);
@@ -199,6 +238,20 @@ public class NewProjectTest extends GuiTestCase {
     }
 
     /**
+     * Picks brief names in order to make the test execute faster (less slow typing in name text fields)
+     */
+    NewProjectDescriptor withBriefNames() {
+      withActivity("A").withCompanyDomain("C").withName("P").withPackageName("a.b");
+      return this;
+    }
+
+    /** Turns off the automatic wait-for-sync that normally happens on {@link #create} */
+    NewProjectDescriptor withoutSync() {
+      myWaitForSync = false;
+      return this;
+    }
+
+    /**
      * Creates a project fixture for this description
      */
     @NotNull
@@ -222,7 +275,9 @@ public class NewProjectTest extends GuiTestCase {
       newProjectWizard.clickFinish();
 
       IdeFrameFixture projectFrame = findIdeFrame(myName, projectPath);
-      projectFrame.waitForGradleProjectSyncToFinish();
+      if (myWaitForSync) {
+        projectFrame.waitForGradleProjectSyncToFinish();
+      }
 
       return projectFrame;
     }

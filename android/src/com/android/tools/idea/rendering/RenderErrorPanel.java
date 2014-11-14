@@ -100,6 +100,7 @@ import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFI
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
 import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
+import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
@@ -682,7 +683,10 @@ public class RenderErrorPanel extends JPanel {
   }
 
   private static void reportMissingStyles(RenderLogger logger, HtmlBuilder builder) {
-    if (logger.seenTagPrefix(TAG_RESOURCES_RESOLVE_THEME_ATTR)) {
+    if (logger.seenTagPrefix(TAG_STILL_BUILDING)) {
+      builder.addBold("Project Still Building: May cause rendering errors until the build is done.").newline();
+      builder.newline().newline();
+    } else if (logger.seenTagPrefix(TAG_RESOURCES_RESOLVE_THEME_ATTR)) {
       builder.addBold("Missing styles. Is the correct theme chosen for this layout?").newline();
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.add("Use the Theme combo box above the layout to choose a different layout, or fix the theme style references.");

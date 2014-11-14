@@ -26,9 +26,11 @@ import com.intellij.designer.model.IComponentDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -36,6 +38,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 
 import static com.android.SdkConstants.*;
+import static org.jetbrains.android.inspections.lint.SuppressLintIntentionAction.ensureNamespaceImported;
 
 /**
  * @author Alexander Lobas
@@ -292,6 +295,7 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
       public void run() {
         XmlTag tag = ((RadViewComponent)component).getTag();
         String namespace = getGridLayoutNamespace((RadViewComponent)component);
+        ensureNamespaceImported(tag.getProject(), (XmlFile)tag.getContainingFile(), namespace);
         tag.setAttribute(ATTR_LAYOUT_ROW, namespace, Integer.toString(row));
         tag.setAttribute(ATTR_LAYOUT_COLUMN, namespace, Integer.toString(column));
         if (clearRowSpan) {
@@ -340,6 +344,7 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
       public void run() {
         String namespace = getGridLayoutNamespace((RadViewComponent)component);
         XmlTag tag = ((RadViewComponent)component).getTag();
+        ensureNamespaceImported(tag.getProject(), (XmlFile)tag.getContainingFile(), namespace);
         tag.setAttribute(row ? ATTR_LAYOUT_ROW_SPAN : ATTR_LAYOUT_COLUMN_SPAN, namespace, Integer.toString(span));
       }
     });

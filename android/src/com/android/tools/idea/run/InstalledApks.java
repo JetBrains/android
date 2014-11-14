@@ -24,6 +24,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +40,9 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
    * The install state provides the hash of the apk that was installed, and the last update time as obtained from the device.
    */
   private final Map<String, Map<String, InstallState>> myCache = Maps.newHashMap();
+
+  /** Diagnostic output set by {@link #getLastUpdateTime(com.android.ddmlib.IDevice, String)} */
+  private String myDiagnosticOutput;
 
   public InstalledApks() {
     AndroidDebugBridge.addDeviceChangeListener(this);
@@ -77,8 +81,9 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
     if (lastUpdateTime == null) {
       // set installed should be called only after the package has been installed
       // If this error happens, look at the output of "dumpsys package <name>", and see why the parser did not identify the install state.
-      Logger.getInstance(InstalledApks.class)
-        .error("Unexpected error: package manager reports that package " + pkgName + " has not been installed.");
+      String msg = String.format("Unexpected error: package manager reports that package %1$s has not been installed: %2$s", pkgName,
+                                 StringUtil.notNullize(myDiagnosticOutput));
+      Logger.getInstance(InstalledApks.class).error(msg);
       return;
     }
     cache.put(pkgName, new InstallState(hash(apk), lastUpdateTime));
@@ -111,12 +116,14 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
   @VisibleForTesting
   String getLastUpdateTime(@NotNull IDevice device, @NotNull String pkgName) {
     boolean deviceHasPackage = false;
+    myDiagnosticOutput = null;
 
     String output;
     try {
       output = executeShellCommand(device, "dumpsys package " + pkgName, 500, TimeUnit.MILLISECONDS);
     }
     catch (Exception e) {
+      myDiagnosticOutput = String.format("Error executing 'dumpsys package %1$s:\n%2$s'", pkgName, e.getMessage());
       return null;
     }
 
@@ -139,6 +146,7 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
     }
 
     if (!deviceHasPackage) {
+      myDiagnosticOutput = String.format("Expected string 'Package [%1$s]' not found in output: %2$s", pkgName, output);
       return null;
     }
 

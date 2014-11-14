@@ -8,10 +8,12 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
+import com.intellij.lang.annotation.ProblemGroup;
+import com.intellij.lang.java.JavaLanguage;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -24,8 +26,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -151,29 +151,18 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
 
     for (ProblemData problemData : problems) {
-      final String s = problemData.getMessage();
-      final String message = RAW.convertTo(s, HTML);
+      final String originalMessage = problemData.getMessage();
+      final String formattedMessage = RAW.convertTo(originalMessage, HTML);
       final TextRange range = problemData.getTextRange();
 
       if (range.getStartOffset() == range.getEndOffset()) {
-        PsiFile f = psiFile;
 
-        if (f instanceof PsiBinaryFile) {
-          // todo: show inspection in binary file (fix NPE)!
-          final Module module = ModuleUtil.findModuleForPsiElement(f);
-
-          if (module != null) {
-            final AndroidFacet facet = AndroidFacet.getInstance(module);
-            final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getPrimaryManifestFile(facet) : null;
-
-            if (manifestFile != null) {
-              f = f.getManager().findFile(manifestFile);
-            }
-          }
-        }
-
-        if (f != null && !isSuppressedFor(f)) {
-          result.add(manager.createProblemDescriptor(f, message, false, getLocalQuickFixes(f, f, s),
+        if (psiFile instanceof PsiBinaryFile) {
+          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage);
+          result.add(new BinaryFileProblemDescriptor(psiFile, formattedMessage, fixes));
+        } else if (!isSuppressedFor(psiFile)) {
+          result.add(manager.createProblemDescriptor(psiFile, formattedMessage, false,
+                                                     getLocalQuickFixes(psiFile, psiFile, originalMessage),
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
         }
       }
@@ -182,9 +171,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         final PsiElement endElement = psiFile.findElementAt(range.getEndOffset() - 1);
 
         if (startElement != null && endElement != null && !isSuppressedFor(startElement)) {
-          result.add(manager.createProblemDescriptor(startElement, endElement, message,
+          result.add(manager.createProblemDescriptor(startElement, endElement, formattedMessage,
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false,
-                                                     getLocalQuickFixes(startElement, endElement, s)));
+                                                     getLocalQuickFixes(startElement, endElement, originalMessage)));
         }
       }
     }
@@ -432,6 +421,98 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
       myLintQuickFix.apply(descriptor.getStartElement(), descriptor.getEndElement(), AndroidQuickfixContexts.BatchContext.getInstance());
+    }
+  }
+
+  /**
+   * A {@link com.intellij.codeInspection.ProblemDescriptor} for image files. This is
+   * necessary because the {@link InspectionManager}'s createProblemDescriptor methods
+   * all use {@link com.intellij.codeInspection.ProblemDescriptorBase} where in the constructor
+   * it insists that the start and end {@link PsiElement} instances must have a valid
+   * <b>text</b> range, which does not apply for images.
+   * <p>
+   * This custom descriptor allows the batch lint analysis to correctly handle lint errors
+   * associated with image files (such as the various {@link com.android.tools.lint.checks.IconDetector}
+   * warnings), and clicking on them will navigate to the correct icon.
+   */
+  private static class BinaryFileProblemDescriptor implements ProblemDescriptor {
+    private final PsiFile myFile;
+    private final String myMessage;
+    private final LocalQuickFix[] myFixes;
+    private ProblemGroup myGroup;
+
+    public BinaryFileProblemDescriptor(@NotNull PsiFile file, @NotNull String message, @NotNull LocalQuickFix[] fixes) {
+      myFile = file;
+      myMessage = message;
+      myFixes = fixes;
+    }
+
+    @Override
+    public PsiElement getPsiElement() {
+      return myFile;
+    }
+
+    @Override
+    public PsiElement getStartElement() {
+      return myFile;
+    }
+
+    @Override
+    public PsiElement getEndElement() {
+      return myFile;
+    }
+
+    @Override
+    public TextRange getTextRangeInElement() {
+      return new TextRange(0, 0);
+    }
+
+    @Override
+    public int getLineNumber() {
+      return 0;
+    }
+
+    @NotNull
+    @Override
+    public ProblemHighlightType getHighlightType() {
+      return ProblemHighlightType.GENERIC_ERROR_OR_WARNING;
+    }
+
+    @Override
+    public boolean isAfterEndOfLine() {
+      return false;
+    }
+
+    @Override
+    public void setTextAttributes(TextAttributesKey key) {
+    }
+
+    @Nullable
+    @Override
+    public ProblemGroup getProblemGroup() {
+      return myGroup;
+    }
+
+    @Override
+    public void setProblemGroup(@Nullable ProblemGroup problemGroup) {
+      myGroup = problemGroup;
+    }
+
+    @Override
+    public boolean showTooltip() {
+      return false;
+    }
+
+    @NotNull
+    @Override
+    public String getDescriptionTemplate() {
+      return myMessage;
+    }
+
+    @Nullable
+    @Override
+    public QuickFix[] getFixes() {
+      return myFixes;
     }
   }
 }

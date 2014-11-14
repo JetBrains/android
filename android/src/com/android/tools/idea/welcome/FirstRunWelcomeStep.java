@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.configurations.DeviceMenuAction.FormFactor;
+import com.android.tools.idea.wizard.FormFactorUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * Welcome page for the first run wizard
@@ -32,37 +29,18 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
 
   public FirstRunWelcomeStep() {
     super("Welcome");
-    myIcons.setIcon(getFormFactorsImage(myIcons));
+    myIcons.setIcon(FormFactorUtils.getFormFactorsImage(myIcons, false));
     setComponent(myRoot);
-  }
-
-  @Nullable
-  private static Icon getFormFactorsImage(JComponent component) {
-    BufferedImage image = null;
-    Graphics2D graphics = null;
-    int x = 0;
-    for (FormFactor formFactor : FormFactor.values()) {
-      Icon icon = formFactor.getLargeIcon();
-      if (image == null) {
-        //noinspection UndesirableClassUsage
-        image = new BufferedImage(icon.getIconWidth() * FormFactor.values().length, icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-        graphics = image.createGraphics();
-      }
-      icon.paintIcon(component, graphics, x, 0);
-      x += icon.getIconWidth();
-    }
-    if (graphics != null) {
-      graphics.dispose();
-      return new ImageIcon(image);
-    }
-    else {
-      return null;
-    }
   }
 
   @Override
   public void init() {
 
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return !InstallerData.get(myState).exists();
   }
 
   @NotNull

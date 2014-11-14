@@ -20,6 +20,7 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
@@ -300,37 +301,6 @@ class IntellijLintProject extends Project {
   protected void initialize() {
     // NOT calling super: super performs ADT/ant initialization. Here we want to use
     // the gradle data instead
-  }
-
-  protected static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      if (dependsOn(library, artifact)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  protected static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact) {
-    if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
-      if (library.getJarFile().getName().startsWith("support-v4-")) {
-        return true;
-      }
-
-    } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
-      File bundle = library.getBundle();
-      if (bundle.getName().startsWith("appcompat-v7-")) {
-        return true;
-      }
-    }
-
-    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-      if (dependsOn(dependency, artifact)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   protected static boolean depsDependsOn(@NonNull Project project, @NonNull String artifact) {
@@ -815,9 +785,7 @@ class IntellijLintProject extends Project {
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (mSupportLib == null) {
           if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
-            Dependencies dependencies = gradleProject.getSelectedVariant().getMainArtifact().getDependencies();
-            mSupportLib = dependsOn(dependencies, artifact);
+            mSupportLib = GradleUtil.dependsOn(myFacet.getIdeaAndroidProject(), artifact);
           } else {
             mSupportLib = depsDependsOn(this, artifact);
           }
@@ -826,15 +794,19 @@ class IntellijLintProject extends Project {
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (mAppCompat == null) {
           if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
-            Dependencies dependencies = gradleProject.getSelectedVariant().getMainArtifact().getDependencies();
-            mAppCompat = dependsOn(dependencies, artifact);
+            mAppCompat = GradleUtil.dependsOn(myFacet.getIdeaAndroidProject(), artifact);
           } else {
             mAppCompat = depsDependsOn(this, artifact);
           }
         }
         return mAppCompat;
       } else {
+        // Some other (not yet directly cached result)
+        if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null
+           && GradleUtil.dependsOn(myFacet.getIdeaAndroidProject(), artifact)) {
+          return true;
+        }
+
         return super.dependsOn(artifact);
       }
     }
@@ -955,15 +927,20 @@ class IntellijLintProject extends Project {
     public Boolean dependsOn(@NonNull String artifact) {
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (mSupportLib == null) {
-          mSupportLib = dependsOn(myLibrary, artifact);
+          mSupportLib = GradleUtil.dependsOn(myLibrary, artifact, true);
         }
         return mSupportLib;
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (mAppCompat == null) {
-          mAppCompat = dependsOn(myLibrary, artifact);
+          mAppCompat = GradleUtil.dependsOn(myLibrary, artifact, true);
         }
         return mAppCompat;
       } else {
+        // Some other (not yet directly cached result)
+        if (GradleUtil.dependsOn(myLibrary, artifact, true)) {
+          return true;
+        }
+
         return super.dependsOn(artifact);
       }
     }

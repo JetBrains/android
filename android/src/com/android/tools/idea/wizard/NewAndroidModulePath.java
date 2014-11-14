@@ -103,7 +103,7 @@ public final class NewAndroidModulePath implements WizardPath {
         projectRoot.mkdirs();
         myWizardState.updateParameters();
         Template template = myWizardState.myTemplate;
-        template.render(projectRoot, moduleRoot, myWizardState.myParameters);
+        template.render(projectRoot, moduleRoot, myWizardState.myParameters, myProject);
         if (NewModuleWizardState.isAndroidTemplate(template.getMetadata())) {
           if (myAssetSetStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
             AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);

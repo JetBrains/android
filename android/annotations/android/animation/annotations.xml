@@ -105,11 +105,29 @@
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofInt(java.lang.Object, java.lang.String, int...)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,P&gt;, android.animation.TypeConverter&lt;V,P&gt;, android.animation.TypeEvaluator&lt;V&gt;, V...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeConverter&lt;android.graphics.PointF,V&gt;, android.graphics.Path)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeConverter&lt;android.graphics.PointF,V&gt;, android.graphics.Path) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeConverter&lt;android.graphics.PointF,V&gt;, android.graphics.Path) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeEvaluator&lt;V&gt;, V...)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeEvaluator&lt;V&gt;, V...) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(java.lang.Object, java.lang.String, android.animation.TypeConverter&lt;android.graphics.PointF,?&gt;, android.graphics.Path)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(java.lang.Object, java.lang.String, android.animation.TypeConverter&lt;android.graphics.PointF,?&gt;, android.graphics.Path) 2">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(java.lang.Object, java.lang.String, android.animation.TypeEvaluator, java.lang.Object...)">
     <annotation name="android.support.annotation.NonNull" />
@@ -120,8 +138,20 @@
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator setDuration(long)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.animation.ObjectAnimator java.lang.Object getTarget()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.animation.ObjectAnimator java.lang.String getPropertyName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.animation.ObjectAnimator void setProperty(android.util.Property) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator void setPropertyName(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator void setTarget(java.lang.Object) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofFloat(android.util.Property&lt;?,java.lang.Float&gt;, float...)">
     <annotation name="android.support.annotation.NonNull" />

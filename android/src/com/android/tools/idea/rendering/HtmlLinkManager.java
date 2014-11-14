@@ -405,54 +405,53 @@ public class HtmlLinkManager {
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       final PsiDirectory targetDirectory = dialog.getTargetDirectory();
       if (targetDirectory != null) {
-        PsiClass newClass = ApplicationManager.getApplication().runWriteAction(
-          new Computable<PsiClass>() {
-            @Override
-            public PsiClass compute() {
-              PsiClass targetClass = JavaDirectoryService.getInstance().createClass(targetDirectory, className);
-              PsiManager manager = PsiManager.getInstance(project);
-              final JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
-              final PsiElementFactory factory = facade.getElementFactory();
+        PsiClass newClass = new WriteCommandAction<PsiClass>(project, "Create Class") {
+          @Override
+          protected void run(@NotNull Result<PsiClass> result) throws Throwable {
+            PsiClass targetClass = JavaDirectoryService.getInstance().createClass(targetDirectory, className);
+            PsiManager manager = PsiManager.getInstance(project);
+            final JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
+            final PsiElementFactory factory = facade.getElementFactory();
 
-              // Extend android.view.View
-              PsiJavaCodeReferenceElement superclassReference =
-                factory.createReferenceElementByFQClassName(CLASS_VIEW, targetClass.getResolveScope());
-              PsiReferenceList extendsList = targetClass.getExtendsList();
-              if (extendsList != null) {
-                extendsList.add(superclassReference);
-              }
-
-              // Add constructor
-              GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-              PsiJavaFile javaFile = (PsiJavaFile)targetClass.getContainingFile();
-              PsiImportList importList = javaFile.getImportList();
-              if (importList != null) {
-                PsiClass contextClass = JavaPsiFacade.getInstance(project).findClass("android.content.Context", scope);
-                if (contextClass != null) {
-                  importList.add(factory.createImportStatement(contextClass));
-                }
-                PsiClass attributeSetClass = JavaPsiFacade.getInstance(project).findClass("android.util.AttributeSet", scope);
-                if (attributeSetClass != null) {
-                  importList.add(factory.createImportStatement(attributeSetClass));
-                }
-              }
-              PsiMethod constructor = factory.createMethodFromText(
-                  "public " + className + "(Context context, AttributeSet attrs, int defStyle) {\n" +
-                  "  super(context, attrs, defStyle);\n" +
-                  "}\n", targetClass);
-              targetClass.add(constructor);
-
-              // Format class
-              CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(manager.getProject());
-              PsiFile containingFile = targetClass.getContainingFile();
-              if (containingFile != null) {
-                codeStyleManager.reformat(javaFile);
-              }
-
-              return targetClass;
+            // Extend android.view.View
+            PsiJavaCodeReferenceElement superclassReference =
+              factory.createReferenceElementByFQClassName(CLASS_VIEW, targetClass.getResolveScope());
+            PsiReferenceList extendsList = targetClass.getExtendsList();
+            if (extendsList != null) {
+              extendsList.add(superclassReference);
             }
+
+            // Add constructor
+            GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+            PsiJavaFile javaFile = (PsiJavaFile)targetClass.getContainingFile();
+            PsiImportList importList = javaFile.getImportList();
+            if (importList != null) {
+              PsiClass contextClass = JavaPsiFacade.getInstance(project).findClass(CLASS_CONTEXT, scope);
+              if (contextClass != null) {
+                importList.add(factory.createImportStatement(contextClass));
+              }
+              PsiClass attributeSetClass = JavaPsiFacade.getInstance(project).findClass(CLASS_ATTRIBUTE_SET, scope);
+              if (attributeSetClass != null) {
+                importList.add(factory.createImportStatement(attributeSetClass));
+              }
+            }
+            PsiMethod constructor = factory.createMethodFromText(
+              "public " + className + "(Context context, AttributeSet attrs, int defStyle) {\n" +
+              "  super(context, attrs, defStyle);\n" +
+              "}\n", targetClass);
+            targetClass.add(constructor);
+
+            // Format class
+            CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(manager.getProject());
+            PsiFile containingFile = targetClass.getContainingFile();
+            if (containingFile != null) {
+              codeStyleManager.reformat(javaFile);
+            }
+
+            result.setResult(targetClass);
           }
-        );
+        }.execute().getResultObject();
+
         if (newClass != null) {
           PsiFile file = newClass.getContainingFile();
           if (file != null) {

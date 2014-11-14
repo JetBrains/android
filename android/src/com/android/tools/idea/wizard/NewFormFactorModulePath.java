@@ -115,6 +115,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(RELATIVE_PACKAGE_KEY, "");
 
+    addStep(new ConfigureAndroidModuleStepDynamic(getProject(), myDisposable));
     addStep(new ActivityGalleryStep(myFormFactor, true, KEY_SELECTED_TEMPLATE, myDisposable));
 
     Object packageName = myState.get(PACKAGE_NAME_KEY);
@@ -202,6 +203,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
       Integer newApiLevel = myState.get(NEWLY_INSTALLED_API_KEY);
+      assert newApiLevel != null;
       Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(myFormFactor);
       Integer currentTargetLevel = myState.get(targetApiLevelKey);
       if (currentTargetLevel == null || newApiLevel > currentTargetLevel) {
@@ -256,7 +258,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      template.render(projectRoot, moduleRoot, templateState);
+      template.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
         return true;
@@ -265,7 +267,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
-      activityTemplate.render(projectRoot, moduleRoot, templateState);
+      activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
       myFilesToOpen = activityTemplate.getFilesToOpen();
       return true;
     }

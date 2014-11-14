@@ -17,7 +17,8 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.build.SplitOutput;
+import com.android.build.MainOutputFile;
+import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
@@ -93,7 +94,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -117,6 +117,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -925,7 +926,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             AndroidArtifact testArtifactInfo = ideaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
             if (testArtifactInfo != null) {
               AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
-              File testApk = output.getOutputFile();
+              File testApk = output.getMainOutputFile().getOutputFile();
               if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
                 return false;
               }
@@ -1014,46 +1015,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return null;
     }
 
-    // version 0.13 of the Gradle builder model introduces new APIs. We first need to check which version
-    // is in use by this project.
-    if (!hasSplitsModel(outputs.get(0))) {
-      LOG.info("Using older Gradle model w/o information about split apks");
-      return outputs.get(0).getOutputFile();
-    }
-    else {
-      List<String> abis = device.getAbis();
-      int density = device.getDensity();
-      Set<String> variantAbiFilters = getVariantAbiFilters(mainArtifact);
-      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
-      if (output == null) {
-        String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
-        LOG.error(message);
-        return null;
-      }
-      return output.getOutputFile();
-    }
-  }
-
-  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.12.x, whichever is earlier (b.android.com/76248)
-  private static boolean hasSplitsModel(@NotNull AndroidArtifactOutput androidArtifactOutput) {
-    try {
-      androidArtifactOutput.getAbiFilter();
-      return true;
-    }
-    catch (UnsupportedMethodException e) {
-      return false;
-    }
-  }
-
-  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.13.x, whichever is earlier (b.android.com/76248)
-  @Nullable
-  private static Set<String> getVariantAbiFilters(@NotNull AndroidArtifact artifact) {
-    try {
-      return artifact.getAbiFilters();
-    }
-    catch (UnsupportedMethodException e) {
+    List<String> abis = device.getAbis();
+    int density = device.getDensity();
+    Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
+    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
+    if (apkFiles.isEmpty()) {
+      String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
+      LOG.error(message);
       return null;
     }
+    return ((MainOutputFile) apkFiles.get(0)).getOutputFile();
   }
 
   private boolean checkPackageNames() {

@@ -21,14 +21,14 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
-import junit.framework.TestCase;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 import static org.easymock.EasyMock.createMock;
 
-public class ClassLoadingErrorHandlerTest extends TestCase {
+public class ClassLoadingErrorHandlerTest extends IdeaTestCase {
   private ExternalSystemException myError;
   private NotificationData myNotification;
   private Project myProject;
@@ -60,6 +60,7 @@ public class ClassLoadingErrorHandlerTest extends TestCase {
     List<String> message = Lists.newArrayList(errorMsg);
     assertTrue(myErrorHandler.handleError(message, myError, myNotification, myProject));
     String notification = myNotification.getMessage();
+    assertTrue(notification.contains("Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle"));
     assertTrue(notification.contains("Re-download dependencies and sync project"));
     assertTrue(notification.contains("Stop Gradle daemons and sync project"));
   }

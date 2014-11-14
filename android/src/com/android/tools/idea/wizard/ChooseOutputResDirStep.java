@@ -17,7 +17,6 @@ package com.android.tools.idea.wizard;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -85,10 +84,16 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
       if (facet != null) {
         Iterator<SourceProvider> sourceProvidersIter = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFile, null).iterator();
         if (sourceProvidersIter.hasNext()) {
-          File resDir = NewTemplateObjectWizard.findResDirectory(sourceProvidersIter.next());
-          if (resDir != null) {
-            myTemplateState.put(ATTR_OUTPUT_FOLDER, FileUtil.toSystemIndependentName(resDir.getPath()));
+          SourceProvider provider = sourceProvidersIter.next();
+          File resDir = NewTemplateObjectWizard.findResDirectory(provider);
+          String path;
+          if (resDir == null) {
+            // No res dir exists, infer one
+            path = provider.getManifestFile().getParent() + facet.getProperties().RES_FOLDER_RELATIVE_PATH;
+          } else {
+            path = resDir.getPath();
           }
+          myTemplateState.put(ATTR_OUTPUT_FOLDER, FileUtil.toSystemIndependentName(path));
         }
       }
     }
@@ -196,10 +201,13 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
         myVariantComboBox.setSelectedIndex(selectedIndex);
       } else {
         hide(myVariantComboBox, myResDirLabel);
-        VirtualFile resourceDir = facet.getPrimaryResourceDir();
-        if (resourceDir != null) {
-          myTemplateState.put(ATTR_TARGET_VARIANT, new File(resourceDir.getPath()));
+        Object path = myTemplateState.get(ATTR_OUTPUT_FOLDER);
+        if (path != null) {
+          myTemplateState.put(ATTR_TARGET_VARIANT, new File((String)path));
         } else {
+          // Remove entries from the file tree preview
+          myOutputPreviewTree.setModel(EMPTY_MODEL);
+          myOutputPreviewTree.getEmptyText().setText("No Res Folder defined in project");
           return;
         }
       }
@@ -264,7 +272,7 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
       return false;
     }
 
-    if (myTreeModel.hasConflicts()) {
+    if (myTreeModel != null && myTreeModel.hasConflicts()) {
       setErrorHtml("Some existing files will be overwritten by this operation. Files which replace existing files are marked" +
                    " red in the preview above.");
     }

@@ -116,6 +116,7 @@ public class DeviceMenuAction extends FlatComboAction {
   /** TODO: Combine with {@link com.android.tools.idea.wizard.FormFactorUtils.FormFactor} */
   public enum FormFactor {
     MOBILE, WEAR, GLASS, TV, CAR;
+    private Icon myIcon64;
 
     public static FormFactor getFormFactor(@NotNull Device device) {
       if (HardwareConfigHelper.isWear(device)) {
@@ -151,6 +152,22 @@ public class DeviceMenuAction extends FlatComboAction {
         case MOBILE:
         default:
           return AndroidIcons.FormFactors.Mobile_128;
+      }
+    }
+
+    public boolean hasEmulator() {
+      return this != GLASS;
+    }
+
+    public Icon getIcon64() {
+      switch (this) {
+        case CAR: return AndroidIcons.FormFactors.Car_64;
+        case WEAR: return AndroidIcons.FormFactors.Wear_64;
+        case TV: return AndroidIcons.FormFactors.Tv_64;
+        case GLASS: return AndroidIcons.FormFactors.Glass_64;
+        case MOBILE:
+        default:
+          return AndroidIcons.FormFactors.Mobile_64;
       }
     }
   }
@@ -261,21 +278,6 @@ public class DeviceMenuAction extends FlatComboAction {
 
   private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
     for (final Device device : devices) {
-      if (device.getId().equals("Nexus 5")) {
-        // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
-        // fixed in that revision
-        Configuration configuration = myRenderContext.getConfiguration();
-        if (configuration != null) {
-          IAndroidTarget target = configuration.getTarget();
-          if (target == null) {
-            continue;
-          }
-          AndroidVersion version = target.getVersion();
-          if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
-            continue;
-          }
-        }
-      }
       String label = getLabel(device, true /*nexus*/);
       Icon icon = FormFactor.getFormFactor(device).getIcon();
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));

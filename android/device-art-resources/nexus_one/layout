@@ -1,0 +1,57 @@
+parts {
+  device {
+    display {
+      width 480
+      height 800
+      x 0
+      y 0
+    }
+  }
+  portrait {
+    background {
+      image port_back.png
+    }
+    onion {
+      image port_fore.png
+    }
+  }
+  landscape {
+    background {
+      image land_back.png
+    }
+    onion {
+      image land_fore.png
+    }
+  }
+}
+layouts {
+  portrait {
+    width 732
+    height 1178
+    part1 {
+      name portrait
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 125
+      y 131
+    }
+  }
+  landscape {
+    width 1300
+    height 612
+    part1 {
+      name landscape
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 200
+      y 532
+      rotation 3
+    }
+  }
+}

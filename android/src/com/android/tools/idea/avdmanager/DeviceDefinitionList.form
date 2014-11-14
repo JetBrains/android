@@ -59,7 +59,7 @@
             </constraints>
             <properties>
               <text value="Import Hardware Profiles"/>
-              <visible value="false"/>
+              <visible value="true"/>
             </properties>
           </component>
           <component id="f0d86" class="javax.swing.JButton" binding="myRefreshButton" custom-create="true">

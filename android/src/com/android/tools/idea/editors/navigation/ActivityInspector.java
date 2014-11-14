@@ -24,5 +24,4 @@ public class ActivityInspector {
   public HyperlinkLabel classNameLabel;
   public HyperlinkLabel xmlFileNameLabel;
   public JPanel fragmentList;
-  public JPanel propertyList;
 }

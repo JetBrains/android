@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -25,12 +28,16 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
+import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
+import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 
 public class TargetMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
@@ -95,6 +102,10 @@ public class TargetMenuAction extends FlatComboAction {
         continue;
       }
 
+      if (!switchToTargetAllowed(configuration, target)) {
+        continue;
+      }
+
       AndroidVersion version = target.getVersion();
       if (version.getFeatureLevel() < minSdk) {
         continue;
@@ -122,6 +133,24 @@ public class TargetMenuAction extends FlatComboAction {
     }
 
     return group;
+  }
+
+  /**
+   * Returns if the {@code configuration} allows switching to {@code target}
+   */
+  private static boolean switchToTargetAllowed(Configuration configuration, IAndroidTarget target) {
+    // Return false only if target api level is less than the min api version that supports
+    // preferences rendering and this file is a preference file.
+
+    // As an optimization, return early if this is a layout file.
+    if (ResourceHelper.getFolderType(configuration.getFile()) != ResourceFolderType.XML) {
+      return true;
+    }
+
+    PsiFile file = configuration.getPsiFile();
+    return file == null ||
+           target.getVersion().getFeatureLevel() >= PREFERENCES_MIN_API ||
+           !TAG_PREFERENCE_SCREEN.equals(RenderService.getRootTagName(file));
   }
 
   /**

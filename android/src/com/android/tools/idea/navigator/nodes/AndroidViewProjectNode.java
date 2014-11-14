@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
@@ -61,19 +62,24 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     Project project = getProject();
     ViewSettings settings = getSettings();
 
-    // add a node for every module that has a source root
+    // add a node for every module
     // TODO: make this conditional on getSettings().isShowModules(), otherwise collapse them all at the root
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
     List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(modules.size());
     for (Module module : modules) {
-      if (ModuleRootManager.getInstance(module).getSourceRoots().length > 0) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && facet.getIdeaAndroidProject() != null) {
-          children.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
-        }
-        else {
-          children.add(new NonAndroidModuleNode(project, module, settings));
-        }
+      if (GradleUtil.isRootModuleWithNoSources(module)) {
+        // exclude the root module if it doesn't have any source roots
+        // The most common organization of Gradle projects has an empty root module that is simply a container for other modules.
+        // If we detect such a module, then we don't show it..
+        continue;
+      }
+
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.getIdeaAndroidProject() != null) {
+        children.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
+      }
+      else {
+        children.add(new NonAndroidModuleNode(project, module, settings));
       }
     }
 

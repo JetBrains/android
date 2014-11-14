@@ -43,6 +43,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaCodeFragment;
@@ -104,6 +105,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<Parameter, List<JComponent>>();
   private final StringEvaluator myEvaluator = new StringEvaluator();
   private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
+  private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
 
   /**
    * Creates a new template parameters wizard step.
@@ -387,6 +389,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   @SuppressWarnings("unchecked")
   private void register(Parameter parameter, JComponent dataComponent) {
+    myDataComponentParameters.put(dataComponent, parameter);
     Key<?> key = getParameterKey(parameter);
     if (dataComponent instanceof JCheckBox) {
       register((Key<Boolean>)key, (JCheckBox)dataComponent);
@@ -432,8 +435,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         @Nullable
         @Override
         public Document getDocument(@NotNull LabelWithEditLink component) {
-          //return component.getDocument();
-          return null;
+          return component.getDocument();
         }
       });
     }
@@ -472,7 +474,32 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     super.deriveValues(modified);
     if (myCurrentTemplate != null) {
       updateStateWithDefaults(myCurrentTemplate.getParameters());
+      updateControlsEnabled();
       updateControlsVisibility();
+    }
+  }
+
+  private void updateControlsEnabled() {
+    if (myUpdatingDefaults) {
+      return;
+    }
+    Map<String, Object> contextValues = getContextValues();
+    for (Parameter parameter : myCurrentTemplate.getParameters()) {
+      String enabledStr = parameter.enabled;
+      if (!StringUtil.isEmpty(enabledStr)) {
+        boolean enabled = myEvaluator.evaluateBooleanExpression(enabledStr, contextValues, true);
+        List<JComponent> components = myParameterComponents.get(parameter);
+        if (components != null) {
+          for (JComponent component : components) {
+            Parameter componentParameter = myDataComponentParameters.get(component);
+            if (!enabled && componentParameter != null) {
+              myState.remove(getParameterKey(componentParameter));
+              updateStateWithDefaults(Sets.newHashSet(componentParameter));
+            }
+            component.setEnabled(enabled);
+          }
+        }
+      }
     }
   }
 
@@ -963,8 +990,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         return value;
       }
       String suggested = value;
-      int extensionOffset = value.length() - 4;
-      boolean hasExtension = value.charAt(extensionOffset) == '.';
+      String extension = FileUtilRt.getExtension(value);
+      boolean hasExtension = !extension.isEmpty();
+      int extensionOffset = value.length() - extension.length();
       //noinspection ForLoopThatDoesntUseLoopVariable
       for (int i = 2; !parameter.uniquenessSatisfied(project, module, provider, packageName, suggested); i++) {
         if (hasExtension) {

@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1">
+    <application>
+        <activity android:name=".p2.MyActiv<caret>ity"/>
+
+        <activity
+            android:name=".ChildActivity"
+            android:label="@string/title_activity_child"
+            android:parentActivityName=".p2.MyActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".p2.MyActivity" />
+        </activity>
+    </application>
+</manifest>

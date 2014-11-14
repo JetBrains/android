@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.designSurface.layout;
 
+import com.android.SdkConstants;
 import com.intellij.android.designer.designSurface.layout.grid.GridOperation;
 import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -131,6 +132,19 @@ public class TableLayoutOperation extends GridOperation {
   }
 
   @Override
+  public boolean canExecute() {
+    RadComponent editComponent = myComponents.get(0);
+    boolean isTableRowElement = SdkConstants.TABLE_ROW.equals(editComponent.getMetaModel().getTag());
+
+    if (isTableRowElement && rowExists(getGridInfo().components, myRow)) {
+      // Avoid TableRow being dropped in an existing row.
+      return false;
+    }
+
+    return super.canExecute();
+  }
+
+  @Override
   public void execute() throws Exception {
     GridInfo gridInfo = getGridInfo();
 
@@ -139,7 +153,7 @@ public class TableLayoutOperation extends GridOperation {
     RadComponent editComponent = myComponents.get(0);
 
     MetaManager metaManager = ViewsMetaManager.getInstance(container.getTag().getProject());
-    MetaModel tableRowModel = metaManager.getModelByTag("TableRow");
+    MetaModel tableRowModel = metaManager.getModelByTag(SdkConstants.TABLE_ROW);
 
     if (myInsertType == GridInsertType.in_cell) {
       if (gridInfo.components != null && myRow < gridInfo.components.length) {
@@ -189,6 +203,7 @@ public class TableLayoutOperation extends GridOperation {
     }
     else {
       int column = myColumn;
+
       if (myInsertType == GridInsertType.corner_top_right || myInsertType == GridInsertType.corner_bottom_right) {
         column++;
       }

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -35,11 +36,15 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -47,10 +52,10 @@ import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.externalSystem.model.task.*;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -75,6 +80,7 @@ import com.intellij.ui.AppIcon;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.content.*;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Consumer;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
@@ -92,7 +98,9 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.io.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -100,6 +108,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
+import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 
 /**
@@ -113,6 +122,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private static final Logger LOG = Logger.getInstance(GradleInvoker.class);
 
+  // Dummy objects used for mapping {@link AbstractSyncErrorHandler} to the 'build messages' environment.
+  private static final Notification DUMMY_NOTIFICATION = new Notification("dummy", "dummy", "dummy", NotificationType.ERROR);
+  private static final Object DUMMY_EVENT_SOURCE = new Object();
+
   @NonNls private static final String CONTENT_NAME = "Gradle Build";
   @NonNls private static final String APP_ICON_ID = "compiler";
 
@@ -125,12 +138,15 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
   @NotNull private final Object myMessageViewLock = new Object();
+  @NotNull private final Object myCompletionLock  = new Object();
+  private int myCompletionCounter;
+
+  private final GradleInvoker myInvoker;
   @Nullable private GradleBuildTreeViewPanel myErrorTreeView;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
   @NotNull private final List<String> myGradleTasks;
   @NotNull private final List<String> myCommandLineArguments;
-  @NotNull private final GradleInvoker.AfterGradleInvocationTask[] myAfterGradleInvocationTasks;
 
   private volatile int myErrorCount;
   private volatile int myWarningCount;
@@ -140,16 +156,24 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private volatile boolean myMessageViewIsPrepared;
   private volatile boolean myMessagesAutoActivated;
 
+  @Nullable private final ExternalSystemTaskId                   myTaskId;
+  @Nullable private final ExternalSystemTaskNotificationListener myTaskListener;
+
   private CloseListener myCloseListener;
 
-  GradleTasksExecutor(@NotNull Project project,
+  GradleTasksExecutor(@NotNull GradleInvoker invoker,
+                      @NotNull Project project,
                       @NotNull List<String> gradleTasks,
                       @NotNull List<String> commandLineArguments,
-                      @NotNull GradleInvoker.AfterGradleInvocationTask[] afterGradleInvocationTasks) {
+                      @Nullable ExternalSystemTaskId taskId,
+                      @Nullable ExternalSystemTaskNotificationListener taskListener)
+  {
     super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
+    myInvoker = invoker;
     myGradleTasks = gradleTasks;
     myCommandLineArguments = commandLineArguments;
-    myAfterGradleInvocationTasks = afterGradleInvocationTasks;
+    myTaskId = taskId;
+    myTaskListener = taskListener;
   }
 
   @Override
@@ -258,7 +282,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myGradleTasks), null);
 
-        ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
+        final ExternalSystemTaskId id;
+        if (myTaskId == null) {
+          id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
+        }
+        else {
+          id = myTaskId;
+        }
         BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
 
         List<String> jvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
@@ -286,6 +316,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
           commandLineArgs.addAll(myCommandLineArguments);
+          GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
 
           LOG.info("Build command line options: " + commandLineArgs);
 
@@ -297,7 +328,16 @@ class GradleTasksExecutor extends Task.Backgroundable {
             launcher.setJavaHome(javaHome);
           }
           launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
-          output.attachTo(launcher);
+          GradleOutputForwarder.Listener outputListener = null;
+          if (myTaskId != null && myTaskListener != null) {
+            outputListener = new GradleOutputForwarder.Listener() {
+              @Override
+              public void onOutput(@NotNull ConsoleViewContentType contentType, @NotNull byte[] data, int offset, int length) {
+                myTaskListener.onTaskOutput(id, new String(data, offset, length), contentType != ERROR_OUTPUT);
+              }
+            };
+          }
+          output.attachTo(launcher, outputListener);
           launcher.run();
         }
         catch (BuildException e) {
@@ -305,6 +345,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
         }
         finally {
           String gradleOutput = output.toString();
+          Application application = ApplicationManager.getApplication();
+          if (AndroidPlugin.isGuiTestingMode()) {
+            String testOutput = application.getUserData(AndroidPlugin.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
+            if (!Strings.isNullOrEmpty(testOutput)) {
+              gradleOutput = testOutput;
+              application.putUserData(AndroidPlugin.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
+            }
+          }
           List<GradleMessage> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
           if (myErrorCount == 0 && buildError != null) {
             showBuildException(buildError, output.getStdErr(), buildMessages);
@@ -314,14 +362,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           stopwatch.stop();
 
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
+          application.invokeLater(new Runnable() {
             @Override
             public void run() {
               notifyGradleInvocationCompleted(stopwatch.elapsed(TimeUnit.MILLISECONDS));
             }
           });
 
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
+          application.invokeLater(new Runnable() {
             @Override
             public void run() {
               showMessages();
@@ -330,7 +378,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           boolean buildSuccessful = buildError == null;
           GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, buildMessages, buildSuccessful);
-          for (GradleInvoker.AfterGradleInvocationTask task : myAfterGradleInvocationTasks) {
+          for (GradleInvoker.AfterGradleInvocationTask task : myInvoker.getAfterInvocationTasks()) {
             task.execute(result);
           }
         }
@@ -542,13 +590,18 @@ class GradleTasksExecutor extends Task.Backgroundable {
       if (myErrorTreeView != null && !getNotNullProject().isDisposed()) {
         GradleMessage.Kind messageKind = message.getKind();
         int type = translateMessageKind(messageKind);
-        String[] text = getTextOf(message);
+        LinkAwareMessageData messageData = prepareMessage(message);
         if (navigatable == null) {
           VirtualFile file = findFileFrom(message);
-          myErrorTreeView.addMessage(type, text, file, message.getLineNumber() - 1, message.getColumn() - 1, null);
+          myErrorTreeView.addMessage(type,
+                                     messageData.textLines,
+                                     file,
+                                     message.getLineNumber() - 1,
+                                     message.getColumn() - 1,
+                                     messageData.hyperlinkListener);
         }
         else {
-          myErrorTreeView.addMessage(type, text, null, navigatable, null, null, null);
+          myErrorTreeView.addMessage(type, messageData.textLines, null, navigatable, null, null, messageData.hyperlinkListener);
         }
 
         boolean autoActivate = !myMessagesAutoActivated && type == MessageCategory.ERROR;
@@ -561,13 +614,82 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   @NotNull
-  private static String[] getTextOf(@NotNull GradleMessage message) {
+  private LinkAwareMessageData prepareMessage(@NotNull GradleMessage message) {
+    final List<String> rawTextLines;
     String text = message.getText();
     if (text.indexOf('\n') == -1) {
-      return new String[]{text};
+      rawTextLines = Collections.singletonList(text);
     }
-    List<String> lines = Lists.newArrayList(Splitter.on('\n').split(text));
-    return lines.toArray(new String[lines.size()]);
+    else {
+      rawTextLines = Lists.newArrayList(Splitter.on('\n').split(text));
+    }
+    if (message.getKind() != GradleMessage.Kind.ERROR) {
+      //noinspection unchecked
+      return new LinkAwareMessageData(rawTextLines.toArray(new String[rawTextLines.size()]), null);
+    }
+
+    // The general idea is to adapt existing gradle output enhancers (AbstractSyncErrorHandler) to the 'gradle build' process.
+    // Their are built in assumption that they enhance external system's NotificationData by custom html hyperlinks markup and
+    // corresponding listeners. So, what we do here is just providing fake NotificationData to the handlers and extract the
+    // data added by them (if any).
+    List<String> enhancedTextLines = null; // Text lines with added hyperlinks, i.e. hold text to actually show to end-user
+    List<String> linesBuffer = Lists.newArrayListWithExpectedSize(1);
+    linesBuffer.add("");
+    final NotificationData dummyData =
+      new NotificationData("", message.getText(), NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
+    String previousMessage = dummyData.getMessage();
+    for (AbstractSyncErrorHandler handler : AbstractSyncErrorHandler.EP_NAME.getExtensions()) {
+      // We experienced that AbstractSyncErrorHandler often look to the first line only (because gradle output is sequential, line-by-line.
+      // That's why we roll through all message lines and offer every of them to the handler.
+      for (int i = 0; i < rawTextLines.size(); i++) {
+        String line = rawTextLines.get(i);
+
+        // This logic comes from gradle itself. Corresponding 'clearing' code remains at BuildFailureParser.parse()
+        String prefixToStrip = "> ";
+        if (line.startsWith(prefixToStrip)) {
+          line = line.substring(prefixToStrip.length());
+        }
+
+        linesBuffer.set(0, line);
+        boolean handled = handler.handleError(linesBuffer, new ExternalSystemException(message.getText()), dummyData, getNotNullProject());
+        if (handled) {
+          // Extract text added by the handler and store it at the 'enhancedTextLines' collection.
+          String currentMessage = dummyData.getMessage();
+          if (currentMessage.length() > previousMessage.length()) {
+            int j = previousMessage.length();
+            if (currentMessage.charAt(j) == '\n') {
+              j++;
+            }
+            String addedText = currentMessage.substring(j);
+            if (enhancedTextLines == null) {
+              enhancedTextLines = Lists.newArrayList(rawTextLines);
+            }
+            enhancedTextLines.add(addedText);
+            previousMessage = currentMessage;
+          }
+        }
+      }
+    }
+    final List<String> textLinesToUse;
+    final Consumer<String> hyperlinkListener;
+    if (enhancedTextLines == null) {
+      textLinesToUse = rawTextLines;
+      hyperlinkListener = null;
+    }
+    else {
+      textLinesToUse = enhancedTextLines;
+      // AbstractSyncErrorHandler add hyperlinks (which we derived earlier and stored in 'enhancedTextLines') and hyperlink listeners
+      // (facaded by the NotificationData.getListener()). So, what we do here is just delegating 'activate link' event
+      // to those hyperlink listeners added by AbstractSyncErrorHandler.
+      hyperlinkListener = new Consumer<String>() {
+        @Override
+        public void consume(String url) {
+          HyperlinkEvent event = new HyperlinkEvent(DUMMY_EVENT_SOURCE, HyperlinkEvent.EventType.ACTIVATED, null, url);
+          dummyData.getListener().hyperlinkUpdate(DUMMY_NOTIFICATION, event);
+        }
+      };
+    }
+    return new LinkAwareMessageData(textLinesToUse.toArray(new String[textLinesToUse.size()]), hyperlinkListener);
   }
 
   @Nullable
@@ -693,6 +815,63 @@ class GradleTasksExecutor extends Task.Backgroundable {
         Messages.showErrorDialog(myProject, errMsg, STOPPING_GRADLE_MSG_TITLE);
       }
       myIndicator.cancel();
+    }
+  }
+
+  /**
+   * Regular {@link #queue()} method might return immediately if current task is executed in a separate non-calling thread.
+   * <p/>
+   * However, sometimes we want to wait for the task completion, e.g. consider a use-case when we execute an IDE run configuration.
+   * It opens dedicated run/debug tool window and displays execution output there. However, it is shown as finished as soon as
+   * control flow returns. That's why we don't want to return control flow until the actual task completion.
+   * <p/>
+   * This method allows to achieve that target - it executes gradle tasks under the IDE 'progress management system' (shows progress
+   * bar at the bottom) in a separate thread and doesn't return control flow to the calling thread until all target tasks are actually
+   * executed.
+   */
+  public void queueAndWaitForCompletion() {
+    final int counterBefore;
+    synchronized (myCompletionLock) {
+      counterBefore = myCompletionCounter;
+    }
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        queue();
+      }
+    });
+    synchronized (myCompletionLock) {
+      while (true) {
+        if (myCompletionCounter > counterBefore) {
+          break;
+        }
+        try {
+          myCompletionLock.wait();
+        }
+        catch (InterruptedException e) {
+          // Just stop waiting.
+          break;
+        }
+      }
+    }
+  }
+
+  @Override
+  public void onSuccess() {
+    super.onSuccess();
+    onCompletion();
+  }
+
+  @Override
+  public void onCancel() {
+    super.onCancel();
+    onCompletion();
+  }
+
+  private void onCompletion() {
+    synchronized (myCompletionLock) {
+      myCompletionCounter++;
+      myCompletionLock.notifyAll();
     }
   }
 
@@ -869,6 +1048,21 @@ class GradleTasksExecutor extends Task.Backgroundable {
     @Override
     public boolean canNavigateToSource() {
       return false;
+    }
+  }
+
+  /**
+   * 'Parameter object' pattern for preparing data to be stored at the 'build messages' output tree structure.
+   */
+  private static class LinkAwareMessageData {
+    /** Target node text split by lines. */
+    @NotNull final String[] textLines;
+    /** A listener to use for the target text's hyperlinks (if any). Is expected to receives link's href value as an argument. */
+    @Nullable final Consumer<String> hyperlinkListener;
+
+    LinkAwareMessageData(@NotNull String[] textLines, @Nullable Consumer<String> hyperlinkListener) {
+      this.textLines = textLines;
+      this.hyperlinkListener = hyperlinkListener;
     }
   }
 }

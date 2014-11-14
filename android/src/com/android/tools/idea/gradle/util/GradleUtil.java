@@ -16,12 +16,16 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -40,6 +44,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
@@ -81,9 +86,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
@@ -115,8 +118,8 @@ public final class GradleUtil {
    * experiments, Gradle only failed with slashes. This list may grow if
    * we find any other unsupported characters.
    */
-  public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
-  public static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
+  private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
+  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
   }
@@ -166,6 +169,23 @@ public final class GradleUtil {
   public static String getGradlePath(@NotNull Module module) {
     AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
     return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
+  }
+
+  /**
+   * Returns whether the given module is the module corresponding to the project root (i.e. gradle path of ":") and has no source roots.
+   *
+   * The default Android Studio projects create an empty module at the root level. In theory, users could add sources to that module, but
+   * we expect that most don't and keep that as a module simply to tie together other modules.
+   */
+  public static boolean isRootModuleWithNoSources(@NotNull Module module) {
+    if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
+      String gradlePath = getGradlePath(module);
+      if (gradlePath == null || gradlePath.equals(":")) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -280,7 +300,7 @@ public final class GradleUtil {
   @NotNull
   private static String getGradleDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     String suffix = binOnly ? "bin" : "all";
-    return String.format("http://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
+    return String.format("https://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
   }
 
   @Nullable
@@ -803,5 +823,111 @@ public final class GradleUtil {
       }
     }
     return null;
+  }
+
+  public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      File repoPath = getAndroidStudioLocalMavenRepoPath();
+      if (repoPath != null && repoPath.isDirectory()) {
+        addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);
+      }
+    }
+  }
+
+  @Nullable
+  private static File getAndroidStudioLocalMavenRepoPath() {
+    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+    if (androidHomePath != null) {
+      File repoPath = new File(androidHomePath, FileUtil.join("gradle", "m2repository"));
+      if (repoPath.isDirectory()) {
+        return repoPath;
+      }
+    }
+    return null;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
+    try {
+      File file = FileUtil.createTempFile("asLocalRepo", SdkConstants.DOT_GRADLE);
+      file.deleteOnExit();
+
+      String contents ="allprojects {\n" +
+                       "  buildscript {\n" +
+                       "    repositories {\n" +
+                       "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                       "    }\n" +
+                       "  }\n" +
+                       "}\n";
+      FileUtil.writeToFile(file, contents);
+      ContainerUtil.addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
+
+      return file;
+    }
+    catch (IOException e) {
+      LOG.warn("Failed to set up 'local repo' Gradle init script", e);
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if the given project depends on the given artifact, which consists of
+   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   *
+   * @param project the Gradle project to check
+   * @param artifact the artifact
+   * @return true if the project depends on the given artifact (including transitively)
+   */
+  public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
+    Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
+    return dependsOn(dependencies, artifact);
+
+  }
+
+  /**
+   * Returns true if the given dependencies include the given artifact, which consists of
+   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   *
+   * @param dependencies the Gradle dependencies object to check
+   * @param artifact the artifact
+   * @return true if the dependencies include the given artifact (including transitively)
+   */
+  public static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      if (dependsOn(library, artifact, true)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if the given library depends on the given artifact, which consists of
+   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   *
+   * @param library the Gradle library to check
+   * @param artifact the artifact
+   * @param transitively if false, checks only direct dependencies, otherwise checks transitively
+   * @return true if the project depends on the given artifact
+   */
+  public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
+    MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
+    if (resolvedCoordinates != null) {
+      String s = resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId();
+      if (artifact.equals(s)) {
+        return true;
+      }
+    }
+
+    if (transitively) {
+      for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+        if (dependsOn(dependency, artifact, true)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }

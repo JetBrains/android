@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.sdk.SelectSdkDialog;
-import com.intellij.openapi.util.Ref;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiActionRunner;
@@ -29,31 +27,16 @@ import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
   @NotNull
   public static SelectSdkDialogFixture find(@NotNull Robot robot) {
-    final Ref<SelectSdkDialog> wrapperRef = new Ref<SelectSdkDialog>();
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(JDialog dialog) {
-        if (dialog.isShowing()) {
-          SelectSdkDialog wrapper = getDialogWrapperFrom(dialog, SelectSdkDialog.class);
-          if (wrapper != null) {
-            wrapperRef.set(wrapper);
-            return true;
-          }
-        }
-        return false;
-      }
-    });
-    return new SelectSdkDialogFixture(robot, dialog, wrapperRef.get());
+    return new SelectSdkDialogFixture(robot, find(robot, SelectSdkDialog.class));
   }
 
-  private SelectSdkDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull SelectSdkDialog dialogWrapper) {
-    super(robot, target, dialogWrapper);
+  private SelectSdkDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<SelectSdkDialog> dialogAndWrapper) {
+    super(robot, dialogAndWrapper);
   }
 
   @NotNull

@@ -69,46 +69,44 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
 
     if (myTitle == null) {
       FontMetrics metrics = g2d.getFontMetrics();
-      g2d.drawString(NO_OPTION_SELECTED,
-                   (getWidth() - metrics.stringWidth(NO_OPTION_SELECTED)) / 2,
-                   (getHeight() - metrics.getHeight()) / 2 );
-      return;
+      g2d.drawString(NO_OPTION_SELECTED, (getWidth() - metrics.stringWidth(NO_OPTION_SELECTED)) / 2,
+                     (getHeight() - metrics.getHeight()) / 2);
     }
 
-    // Paint the name
-    g2d.setFont(TITLE_FONT);
-    FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
-    g2d.drawString(myTitle, PADDING, PADDING + metrics.getHeight() / 2);
-    g2d.drawLine(0, 50, getWidth(), 50);
-
-    // Paint the details.
     int stringHeight = g2d.getFontMetrics(TITLE_FONT).getHeight();
     int infoSegmentX = PADDING;
     int infoSegmentY = PADDING + stringHeight * 2;
-
-    g2d.setFont(STANDARD_FONT);
     int maxWidth = getWidth() - 2 * PADDING;
+    if (myTitle != null) {
+      // Paint the name
+      g2d.setFont(TITLE_FONT);
+      FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
+      g2d.drawString(myTitle, PADDING, PADDING + metrics.getHeight() / 2);
+      g2d.drawLine(0, 50, getWidth(), 50);
 
-    // If there's an error message, paint it
-    if (myErrorMessage != null) {
-      g2d.setColor(JBColor.RED);
-      infoSegmentY += drawMultilineString(g2d, myErrorMessage, maxWidth, infoSegmentX, infoSegmentY);
+      // Paint the details.
+      g2d.setFont(STANDARD_FONT);
     }
-    infoSegmentY += stringHeight;
-
     // Paint our description
     if (myDescriptionBody != null) {
       g2d.setColor(JBColor.foreground());
       for (String line : Splitter.on(CharMatcher.anyOf("\n\r")).omitEmptyStrings().split(myDescriptionBody)) {
-        infoSegmentY += drawMultilineString(g2d, line, maxWidth, infoSegmentX, infoSegmentY);
+        infoSegmentY += drawMultilineString(g2d, line, maxWidth, infoSegmentX, infoSegmentY, false);
       }
+    }
+    // If there's an error message, paint it
+    if (myErrorMessage != null) {
+      g2d.setColor(JBColor.RED);
+      int height = drawMultilineString(g2d, myErrorMessage, maxWidth, infoSegmentX, infoSegmentY, true);
+      drawMultilineString(g2d, myErrorMessage, maxWidth, infoSegmentX, getHeight() - PADDING - height, false);
     }
   }
 
   /**
    * Returns the height of the text drawn.
    */
-  private static int drawMultilineString(@NotNull Graphics2D g2d, @NotNull String fullString, int maxWidth, int startX, int startY) {
+  private static int drawMultilineString(@NotNull Graphics2D g2d, @NotNull String fullString, int maxWidth, int startX, int startY,
+                                         boolean onlyMeasure) {
     int currentY = startY;
     FontMetrics metrics = g2d.getFontMetrics();
     int stringHeight = metrics.getHeight();
@@ -117,7 +115,9 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     for (String part : parts) {
       if (metrics.stringWidth(currentLine + part) > maxWidth) {
         currentY += stringHeight;
-        g2d.drawString(currentLine, startX, currentY);
+        if (!onlyMeasure) {
+          g2d.drawString(currentLine, startX, currentY);
+        }
         currentLine = "";
       }
       currentLine += part + " ";
@@ -125,7 +125,9 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     // Flush the remaining buffer
     if (!currentLine.isEmpty()) {
       currentY += stringHeight;
-      g2d.drawString(currentLine, startX, currentY);
+      if (!onlyMeasure) {
+        g2d.drawString(currentLine, startX, currentY);
+      }
     }
     return currentY - startY;
   }
@@ -150,18 +152,22 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(USE_HOST_GPU_KEY, "Use Host GPU").
       put(USE_SNAPSHOT_KEY, "Enable Snapshot").
       put(CUSTOM_SKIN_FILE_KEY, "Custom Hardware Skin").
+      put(DISPLAY_NAME_KEY, "AVD Name").
+      put(HAS_HARDWARE_KEYBOARD_KEY, "Enable keyboard input").
       build();
 
   private static Map<Key<?>, String> DESCRIPTIONS = ImmutableMap.<Key<?>, String>builder().
     put(RAM_STORAGE_KEY, "The amount of physical RAM on the device.\n" +
                          "1 MB = 1024 KB\n" +
-                         "1 GB = 1025 MB").
+                         "1 GB = 1024 MB").
     put(VM_HEAP_STORAGE_KEY, "The amount of RAM available to Java virtual machine (VM) to allocate to running apps on the device. " +
                              "A larger VM heap allows application to run longer between garbage collection event.").
     put(INTERNAL_STORAGE_KEY, "The amount of non-removable space available to store data on the device.").
-    put(SD_CARD_STORAGE_KEY, "The amount of removable space available to store data on the device. ").
+    put(SD_CARD_STORAGE_KEY, "The amount of removable space available to store data on the device. " +
+                             "We recommend at least 100MB in order to use the camera in the emulator.").
     put(EXISTING_SD_LOCATION, "Choose a file path to an existing SD Card image. Using an external SD Card is useful when sharing " +
-                              "SD Card data (pictures, media, files, etc.) between Android Virtual Devices. ").
+                              "SD Card data (pictures, media, files, etc.) between Android Virtual Devices. " +
+                              "See http://developer.android.com/tools/help/mksdcard.html for more details. ").
     put(SCALE_SELECTION_KEY, "Enables you to test your application on a screen that uses a resolution or density not supported by the " +
                              "built-in AVD skins, you can create an AVD that uses a custom resolution by selecting one of the scale values.").
     put(DEFAULT_ORIENTATION_KEY, "Sets the initial orientation of the device. During AVD emulation you can also rotate the device screen. ").
@@ -185,6 +191,9 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(CUSTOM_SKIN_FILE_KEY, "A collection of images and configuration data that indicates how to populate the window. Each skin can have " +
                               "several \"layouts\" (e.g. \"landscape\" and \"portrait\") corresponding to different orientation " +
                               "/ physical configurations of the emulated device.\n").
+    put(DISPLAY_NAME_KEY, "The name of this AVD.").
+    put(HAS_HARDWARE_KEYBOARD_KEY, "Enables you to enter text input and interact with the AVD with your hardware computer keyboard " +
+                                   "instead of a of the on on-screen software keyboard.\n").
     build();
 
   /**

@@ -29,6 +29,10 @@ public class EditDeviceAction extends DeviceUiAction {
     super(provider, "Edit");
   }
 
+  public EditDeviceAction(@NotNull DeviceProvider provider, @NotNull String text) {
+    super(provider, text);
+  }
+
   @Override
   public boolean isEnabled() {
     Device device = myProvider.getDevice();

@@ -16,24 +16,18 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.FullRevision;
-import com.google.common.collect.Lists;
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
+import com.android.tools.idea.stats.Distribution;
+import com.android.tools.idea.stats.DistributionService;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ResourceUtil;
 import com.intellij.util.ui.GraphicsUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -107,13 +101,7 @@ public class DistributionChartComponent extends JPanel {
       }
     });
     if (ourDistributions == null) {
-      try {
-        String jsonString = ResourceUtil.loadText(ResourceUtil.getResource(this.getClass(), "wizardData", "distributions.json"));
-        ourDistributions = loadDistributionsFromJson(jsonString);
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      ourDistributions = DistributionService.getInstance().getDistributions();
     }
     loadFonts();
   }
@@ -126,26 +114,6 @@ public class DistributionChartComponent extends JPanel {
       VERSION_NUMBER_FONT = REGULAR_WEIGHT_FONT.deriveFont((float)20.0);
       TITLE_FONT = MEDIUM_WEIGHT_FONT.deriveFont((float)16.0);
     }
-  }
-
-  @Nullable
-  private static List<Distribution> loadDistributionsFromJson(String jsonString) {
-    Type fullRevisionType = new TypeToken<FullRevision>(){}.getType();
-    GsonBuilder gsonBuilder = new GsonBuilder()
-      .registerTypeAdapter(fullRevisionType, new JsonDeserializer<FullRevision>() {
-        @Override
-        public FullRevision deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-          return FullRevision.parseRevision(json.getAsString());
-        }
-      });
-    Gson gson = gsonBuilder.create();
-    Type listType = new TypeToken<ArrayList<Distribution>>() {}.getType();
-    try {
-      return gson.fromJson(jsonString, listType);
-    } catch (JsonParseException e) {
-      LOG.error(e);
-    }
-    return null;
   }
 
   public void registerDistributionSelectionChangedListener(@NotNull DistributionSelectionChangedListener listener) {
@@ -200,7 +168,7 @@ public class DistributionChartComponent extends JPanel {
 
     int smallItemCount = 0;
     for (Distribution d : ourDistributions) {
-      if (d.distributionPercentage < MIN_PERCENTAGE_HEIGHT) {
+      if (d.getDistributionPercentage() < MIN_PERCENTAGE_HEIGHT) {
         smallItemCount++;
       }
     }
@@ -208,13 +176,9 @@ public class DistributionChartComponent extends JPanel {
 
     int i = 0;
     for (Distribution d : ourDistributions) {
-      if (d.color == null) {
-        d.color = RECT_COLORS[i % RECT_COLORS.length];
-      }
-
       // Draw the colored rectangle
-      g.setColor(d.color);
-      double effectivePercentage = Math.max(d.distributionPercentage, MIN_PERCENTAGE_HEIGHT);
+      g.setColor(RECT_COLORS[i % RECT_COLORS.length]);
+      double effectivePercentage = Math.max(d.getDistributionPercentage(), MIN_PERCENTAGE_HEIGHT);
       int calculatedHeight = (int)Math.round(effectivePercentage * heightToDistribute);
       int bottom = startY + calculatedHeight;
 
@@ -237,25 +201,25 @@ public class DistributionChartComponent extends JPanel {
       g.setColor(TEXT_COLOR);
       g.setFont(VERSION_NAME_FONT);
       myCurrentBottoms[i] = bottom;
-      g.drawString(d.name, leftGutter + NAME_OFFSET, currentMidY + halfVersionNameHeight);
+      g.drawString(d.getName(), leftGutter + NAME_OFFSET, currentMidY + halfVersionNameHeight);
 
       // Write the version number
       g.setColor(API_LEVEL_COLOR);
       g.setFont(VERSION_NUMBER_FONT);
-      String versionString = d.version.toString().substring(0, 3);
+      String versionString = d.getVersion().toString().substring(0, 3);
       g.drawString(versionString, leftGutter + NUMBER_OFFSET, currentMidY + halfVersionNumberHeight);
 
       // Write the API level
       g.setFont(apiLevelFont);
-      g.drawString(Integer.toString(d.apiLevel), width - API_OFFSET, currentMidY + halfApiFontHeight);
+      g.drawString(Integer.toString(d.getApiLevel()), width - API_OFFSET, currentMidY + halfApiFontHeight);
 
       // Write the supported distribution
-      percentageSum += d.distributionPercentage;
+      percentageSum += d.getDistributionPercentage();
       // Write the percentage sum
       if (i < ourDistributions.size() - 1) {
         g.setColor(JBColor.foreground());
         g.setFont(VERSION_NUMBER_FONT);
-        String percentageString = new DecimalFormat("0.0%").format(.999 - percentageSum);
+        String percentageString = new DecimalFormat("0.0%").format(1.0 - percentageSum);
         int percentStringWidth = versionNumberMetrics.stringWidth(percentageString);
         g.drawString(percentageString, totalWidth - percentStringWidth - 2, bottom - 2);
         g.setColor(JBColor.darkGray);
@@ -279,43 +243,7 @@ public class DistributionChartComponent extends JPanel {
     return (float)result;
   }
 
-  protected static class Distribution implements Comparable<Distribution> {
-    public static class TextBlock {
-      public String title;
-      public String body;
-    }
-
-    public int apiLevel;
-    public FullRevision version;
-    public double distributionPercentage;
-    public String name;
-    public Color color;
-    public String description;
-    public String url;
-    public List<TextBlock> descriptionBlocks;
-
-    private Distribution() {
-      // Private default for json conversion
-    }
-
-    @Override
-    public int compareTo(Distribution other) {
-      return Integer.valueOf(apiLevel).compareTo(other.apiLevel);
-    }
-  }
-
   public interface DistributionSelectionChangedListener {
     void onDistributionSelected(Distribution d);
-  }
-
-  public double getSupportedDistributionForApiLevel(int apiLevel) {
-    double unsupportedSum = 0;
-    for (Distribution d : ourDistributions) {
-      if (d.apiLevel >= apiLevel) {
-        break;
-      }
-      unsupportedSum += d.distributionPercentage;
-    }
-    return 1 - unsupportedSum;
   }
 }

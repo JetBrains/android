@@ -271,5 +271,67 @@
                                 "body": "Immersive full-screen mode<br>Translucent system bars<br>Enhanced notification listener<br>Live regions for accessibility"
                             }
                         ]
+},
+{
+  "name": "Lollipop",
+  "version": "5.0",
+  "apiLevel": 21,
+  "distributionPercentage": 0.0,
+  "url": "https://developer.android.com/about/versions/android-5.0.html",
+  "descriptionBlocks" : [
+
+                            {
+                                "title": "User Interface",
+                                "body": "Material design support<br>Concurrent documents and activities in the recents screen<br>WebView updates<br>Screen capturing and sharing"
+                            },
+                            {
+                                "title": "Notifications",
+                                "body": "Lock screen notifications<br>Notifications metadata"
+                            },
+                            {
+                                "title": "Graphics",
+                                "body": "Support for OpenGL ES 3.1<br>Android Extension Pack"
+                            },
+                            {
+                                "title": "Media",
+                                "body": "Camera API for advanced camera capabilities<br>Audio playback<br>Media playback control<br>Media browsing"
+                            },
+                            {
+                                "title": "Storage",
+                                "body": "Directory selection"
+                            },
+                            {
+                                "title": "Wireless & Connectivity",
+                                "body": "Multiple network connections<br>Bluetooth Low Energy<br>NFC enhancements"
+                            },
+                            {
+                                "title": "Project Volta",
+                                "body": "Scheduling jobs<br>Developer tools for battery usage"
+                            },
+                            {
+                                "title": "Android in the Workplace and in Education",
+                                "body": "Managed provisioning<br>Device owner<br>Screen pinning"
+                            },
+                            {
+                                "title": "Printing Framework",
+                                "body": "Render PDF as bitmap"
+                            },
+                            {
+                                "title": "System",
+                                "body": "App usage statistics"
+                            },
+                            {
+                                "title": "Testing & Accessibility",
+                                "body": "Testing and accessibility improvements"
+                            },
+                            {
+                                "title": "IME",
+                                "body": "Easier switching between input languages"
+                            },
+                            {
+                                "title": "Manifest Declarations",
+                                "body": "Declarable required features<br>User permissions"
+                            }
+                        ]
 }
 ]

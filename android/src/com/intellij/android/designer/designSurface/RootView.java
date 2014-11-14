@@ -215,6 +215,7 @@ public class RootView extends JComponent implements TransformedComponent {
   @Override
   public double getScale() {
     double zoom = myPanel.getZoom();
+
     if (myRenderedImage != null) {
       Rectangle viewBounds = myRenderedImage.getImageBounds();
       if (viewBounds != null) {

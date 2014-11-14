@@ -12,6 +12,7 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
@@ -526,6 +527,22 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintUsingHttpInspection extends AndroidLintInspectionBase {
+    public AndroidLintUsingHttpInspection() {
+      super(AndroidBundle.message("android.lint.inspections.using.http"), PropertyFileDetector.HTTP);
+    }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String escaped = PropertyFileDetector.getSuggestedEscape(message, RAW);
+      if (escaped != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, escaped)};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
   public static class AndroidLintValidFragmentInspection extends AndroidLintInspectionBase {
     public AndroidLintValidFragmentInspection() {
       super(AndroidBundle.message("android.lint.inspections.valid.fragment"), ISSUE);
@@ -553,6 +570,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintMergeRootFrameInspection extends AndroidLintInspectionBase {
     public AndroidLintMergeRootFrameInspection() {
       super(AndroidBundle.message("android.lint.inspections.merge.root.frame"), MergeRootFrameLayoutDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintNegativeMarginInspection extends AndroidLintInspectionBase {
+    public AndroidLintNegativeMarginInspection() {
+      super(AndroidBundle.message("android.lint.inspections.negative.margin"), NegativeMarginDetector.ISSUE);
     }
   }
 
@@ -658,6 +681,18 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintGradleCompatibleInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.compatible"), GradleDetector.COMPATIBILITY);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String before = GradleDetector.getOldValue(GradleDetector.COMPATIBILITY, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.COMPATIBILITY, message, RAW);
+      if (before != null && after != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
 
   public static class AndroidLintGradleCompatiblePluginInspection extends AndroidLintInspectionBase {
@@ -713,7 +748,7 @@ public class AndroidLintInspectionToolProvider {
       if (before != null && before.endsWith("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
-          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", before, "specific version") {
+          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", plus.getFullRevision(), "specific version") {
             @Nullable
             @Override
             protected String getNewValue() {
@@ -730,7 +765,7 @@ public class AndroidLintInspectionToolProvider {
                 if (libraryCoordinate != null) {
                   GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
                   if (available != null) {
-                    return available.toString();
+                    return available.getFullRevision();
                   }
                 }
                 // If that didn't yield any matches, try again, this time allowing preview platforms.
@@ -748,7 +783,7 @@ public class AndroidLintInspectionToolProvider {
               // Regular Gradle dependency? Look in Gradle cache
               GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter);
               if (found != null) {
-                return found.toString();
+                return found.getFullRevision();
               }
 
               return null;
@@ -969,7 +1004,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getApiDetectorFixes(startElement, endElement, message);
+      return getApiDetectorFixes(ApiDetector.UNSUPPORTED, startElement, endElement, message);
     }
   }
 
@@ -981,18 +1016,17 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getApiDetectorFixes(startElement, endElement, message);
+      return getApiDetectorFixes(ApiDetector.INLINED, startElement, endElement, message);
     }
   }
 
-  private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull PsiElement startElement,
+  private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull Issue issue,
+                                                           @NotNull PsiElement startElement,
                                                            @SuppressWarnings("UnusedParameters") @NotNull PsiElement endElement,
                                                            @NotNull String message) {
     // TODO: Return one for each parent context (declaration, method, class, outer class(es)
-    Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
-    Matcher matcher = pattern.matcher(message);
-    if (matcher.find()) {
-      int api = Integer.parseInt(matcher.group(1));
+    int api = ApiDetector.getRequiredVersion(issue, message, RAW);
+    if (api != -1) {
       List<AndroidLintQuickFix> list = Lists.newArrayList();
       PsiFile file = startElement.getContainingFile();
       if (file instanceof XmlFile) {
@@ -1367,7 +1401,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintPropertyEscapeInspection extends AndroidLintInspectionBase {
     public AndroidLintPropertyEscapeInspection() {
-      super(AndroidBundle.message("android.lint.inspections.property.escape"), PropertyFileDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.property.escape"), PropertyFileDetector.ESCAPE);
     }
 
     @Override

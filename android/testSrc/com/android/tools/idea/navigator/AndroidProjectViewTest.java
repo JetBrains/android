@@ -33,7 +33,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import org.jetbrains.annotations.NotNull;
@@ -93,9 +95,10 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "     strings.xml (debug)\n" +
       "    styles.xml\n" +
       "  assets\n" +
-      "   raw.asset.txt\n" +
+      "   raw.asset.txt (main)\n" +
       "  rs\n" +
-      "   test.rs\n" +
+      "   test.rs (main)\n" +
+      " empty (non-Android)\n" +
       " javamodule (non-Android)\n" +
       "  java\n" +
       "   foo\n" +
@@ -115,23 +118,67 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "    ic_launcher.png (mdpi)\n" +
       "   values\n" +
       "    strings.xml\n" +
-      "  jni\n" +
-      "   hello.c\n" +
+      "  c\n" +
+      "   hello.c (main)\n" +
       "  jniLibs\n" +
-      "   libc.so\n" +
+      "   libc.so (main)\n" +
+      "   libm.so (debug)\n" +
       " Gradle Scripts\n" +
-      "  build.gradle (app)\n" +
-      "  sonar.gradle (app)\n" +
-      "  build.gradle (javamodule)\n" +
-      "  build.gradle (lib)\n" +
-      "  build.gradle (" + rootModuleName + ")\n" +
+      "  build.gradle (Project: " + rootModuleName + ")\n" +
+      "  build.gradle (Module: app)\n" +
+      "  sonar.gradle (Module: app)\n" +
+      "  build.gradle (Module: empty)\n" +
+      "  build.gradle (Module: javamodule)\n" +
+      "  build.gradle (Module: lib)\n" +
+      "  gradle-wrapper.properties (Gradle Version)\n" +
       "  settings.gradle (Project Settings)\n" +
-      "  gradle-wrapper.properties\n" +
-      "  local.properties\n";
+      "  local.properties (SDK Location)\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
       .assertStructureEqual(structure, expected, numLines, new GroupByTypeComparator(null, "android"), structure.getRootElement(),
                             printInfo);
+  }
+
+  // Test that selecting a res group node causes the correct PSI Elements to be selected
+  public void testSelection() throws Exception {
+    loadProject("projects/navigator/packageview/simple");
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+
+    // Select the node app/res/values/dimens.xml, which groups together 3 dimens.xml files
+    Object element = findElementForPath(structure, "app (Android)", "res", "values", "dimens.xml (3)");
+    assertNotNull(element);
+
+    myPane.getTreeBuilder().select(element);
+
+    // Now make sure that selecting that group node caused the actual files to be selected
+    PsiElement[] psiElements = myPane.getSelectedPSIElements();
+    assertEquals(3, psiElements.length);
+
+    for (PsiElement e : psiElements) {
+      assertEquals("dimens.xml", ((XmlFile)psiElements[0]).getName());
+    }
+  }
+
+  @Nullable
+  private Object findElementForPath(TestAndroidTreeStructure structure, String... path) {
+    Object current = structure.getRootElement();
+
+    outer: for (String segment : path) {
+      for (Object child : structure.getChildElements(current)) {
+        AbstractTreeNode node = (AbstractTreeNode)child;
+        if (segment.equals(node.toTestString(null))) {
+          current = node;
+          continue outer;
+        }
+      }
+
+      // none of the children match the expected segment
+      return null;
+    }
+
+    return current;
   }
 
   public void testCommonRoots() throws Exception {
@@ -151,8 +198,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String expected =
       projectName + "\n" +
       " Gradle Scripts\n" +
-      "  build.gradle (" + modules[0].getName() + ")\n" +
-      "  gradle-wrapper.properties\n" +
+      "  build.gradle (Module: " + modules[0].getName() + ")\n" +
+      "  gradle-wrapper.properties (Gradle Version)\n" +
       " " + modules[0].getName() + " (Android)\n" +
       "  java\n" +
       "   foo (main)\n" +
@@ -198,8 +245,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String expected =
       projectName + "\n" +
       " Gradle Scripts\n" +
-      "  build.gradle (" + modules[0].getName() + ")\n" +
-      "  gradle-wrapper.properties\n" +
+      "  build.gradle (Project: " + modules[0].getName() + ")\n" +
+      "  gradle-wrapper.properties (Gradle Version)\n" +
       " " + modules[0].getName() + "\n" +
       "  .idea\n" +
       "  AndroidManifest.xml\n" +
