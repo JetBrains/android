@@ -102,7 +102,10 @@ public class FirstRunWizardDefaults {
     if (SystemInfo.isWindows) {
       return FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
     }
-    else if (SystemInfo.isLinux || SystemInfo.isMac) {
+    else if (SystemInfo.isLinux) {
+      return FileUtil.join(userHome, "Library", "Android", "sdk");
+    }
+    else if (SystemInfo.isMac) {
       return FileUtil.join(userHome, "Android", "Sdk");
     }
     else {

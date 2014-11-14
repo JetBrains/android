@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup";
-
+  @NotNull private final FirstRunWizardMode myMode;
   /**
    * On the first user click on finish button, we show progress step & perform setup.
    * Second attempt will close the wizard.
@@ -40,24 +40,24 @@ public class FirstRunWizard extends DynamicWizard {
   private final SetupJdkPath myJdkPath = new SetupJdkPath();
   private InstallComponentsPath myComponentsPath;
 
-  public FirstRunWizard(DynamicWizardHost host) {
+  public FirstRunWizard(@NotNull DynamicWizardHost host, @NotNull FirstRunWizardMode mode) {
     super(null, null, WIZARD_TITLE, host);
+    myMode = mode;
     setTitle(WIZARD_TITLE);
   }
 
   @Override
   public void init() {
     SetupProgressStep progressStep = new SetupProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep);
-    addPath(new SingleStepPath(new FirstRunWelcomeStep()));
+    myComponentsPath = new InstallComponentsPath(progressStep, myMode);
+    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
+      addPath(new SingleStepPath(new FirstRunWelcomeStep()));
+    }
     addPath(myJdkPath);
     addPath(myComponentsPath);
-    addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable()){
-      @Override
-      public boolean isStepVisible() {
-        return super.isStepVisible() && !InstallerData.get(myState).exists();
-      }
-    }));
+    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
+      addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
+    }
     addPath(new SingleStepPath(progressStep));
     super.init();
   }
@@ -74,8 +74,7 @@ public class FirstRunWizard extends DynamicWizard {
     }
   }
 
-  private void doLongRunningOperation(@NotNull final ProgressStep progressStep)
-    throws WizardException {
+  private void doLongRunningOperation(@NotNull final ProgressStep progressStep) throws WizardException {
     for (AndroidStudioWizardPath path : myPaths) {
       if (progressStep.isCanceled()) {
         break;

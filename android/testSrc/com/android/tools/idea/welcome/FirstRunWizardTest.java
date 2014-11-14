@@ -55,28 +55,34 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     return getPathChecked("ANDROID_HOME");
   }
 
-  private void assertPagesVisible(InstallerData data,
+  private void assertPagesVisible(@Nullable InstallerData data,
                                   boolean isWelcomeStepVisible,
                                   boolean isJdkStepVisible,
                                   boolean isInstallTypeStepVisible,
                                   boolean isComponentsStepVisible,
                                   boolean hasJdkPath,
                                   boolean hasAndroidSdkPath) {
+    InstallerData.set(data);
     assertVisible(new FirstRunWelcomeStep(), data, isWelcomeStepVisible);
     assertVisible(new JdkLocationStep(createKey(String.class)), data, isJdkStepVisible);
-    assertVisible(new InstallationTypeWizardStep(createKey(Boolean.class)), data, isInstallTypeStepVisible);
+    assertVisible(new InstallationTypeWizardStep(createKey(Boolean.class), data == null
+                                                                           ? FirstRunWizardMode.NEW_INSTALL
+                                                                           : FirstRunWizardMode.INSTALL_HANDOFF), data,
+                  isInstallTypeStepVisible);
     assertVisible(new SdkComponentsStep(new InstallableComponent[0], KEY_TRUE, createKey(String.class)), data, isComponentsStepVisible);
 
-    assertEquals(data.toString(), hasJdkPath, data.hasValidJdkLocation());
-    assertEquals(data.toString(), hasAndroidSdkPath, data.hasValidSdkLocation());
+    if (data != null) {
+      assertEquals(String.valueOf(data), hasJdkPath, data.hasValidJdkLocation());
+      assertEquals(String.valueOf(data.toString()), hasAndroidSdkPath, data.hasValidSdkLocation());
+    }
   }
 
-  private void assertVisible(DynamicWizardStep step, InstallerData data, boolean expected) {
-    assertEquals(String.format("Step: %s, data: %s", step.getClass(), data), expected, isStepVisible(step, data));
+  private void assertVisible(DynamicWizardStep step, @Nullable InstallerData data, boolean expected) {
+    assertEquals(String.format("Step: %s, data: %s", step.getClass(), data), expected, isStepVisible(step));
   }
 
-  public boolean isStepVisible(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
-    SingleStepWizard wizard = new SingleStepWizard(step, data);
+  public boolean isStepVisible(@NotNull DynamicWizardStep step) {
+    SingleStepWizard wizard = new SingleStepWizard(step);
     disposeOnTearDown(wizard.getDisposable());
     wizard.init();
     return step.isStepVisible();
@@ -104,8 +110,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     String java7Home = getPathChecked("JAVA7_HOME");
     String androidHome = getAndroidHome();
 
-    InstallerData emptyData = new InstallerData(null, null, null);
-    assertPagesVisible(emptyData, true, true, true, true, false, false);
+    assertPagesVisible(null, true, true, true, true, false, false);
 
     InstallerData correctData = new InstallerData(java7Home, null, androidHome);
     assertPagesVisible(correctData, false, false, false, false, true, true);
@@ -131,17 +136,14 @@ public final class FirstRunWizardTest extends AndroidTestBase {
    */
   private static final class SingleStepWizard extends DynamicWizard {
     @NotNull private final DynamicWizardStep myStep;
-    @NotNull private final InstallerData myData;
 
-    public SingleStepWizard(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
+    public SingleStepWizard(@NotNull DynamicWizardStep step) {
       super(null, null, "Single Step Wizard");
       myStep = step;
-      myData = data;
     }
 
     @Override
     public void init() {
-      myState.put(InstallerData.CONTEXT_KEY, myData);
       myState.put(KEY_TRUE, true);
       myState.put(KEY_FALSE, false);
       myState.put(KEY_INTEGER, 42);
@@ -189,10 +191,6 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     @Override
     protected String getWizardActionDescription() {
       return "Test Wizard";
-    }
-
-    public void setData(@NotNull InstallerData data) {
-      myState.put(InstallerData.CONTEXT_KEY, data);
     }
   }
 }
