@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -27,11 +26,9 @@ import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -207,16 +203,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                  @NotNull File sdk,
                                  @NotNull Collection<? extends InstallableComponent> selectedComponents,
                                  double progressRatio) throws WizardException {
-    // TODO: Prompt about connection in handoff case?
-    Set<String> packages = Sets.newHashSet();
-    for (InstallableComponent component1 : selectedComponents) {
-      for (PkgDesc.Builder pkg : component1.getRequiredSdkPackages()) {
-        if (pkg != null) {
-          packages.add(pkg.create().getInstallId());
-        }
-      }
-    }
-    installContext.run(new InstallComponentsOperation(installContext, sdk, packages), progressRatio);
+    installContext.run(new InstallComponentsOperation(installContext, sdk, selectedComponents), progressRatio);
     for (InstallableComponent component : selectedComponents) {
       component.configure(installContext, sdk);
     }
@@ -386,30 +373,4 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
-  private static class InstallComponentsOperation implements ThrowableComputable<Void, WizardException> {
-    private final InstallContext myContext;
-    private final File mySdkLocation;
-    private final Set<String> myComponents;
-
-    public InstallComponentsOperation(InstallContext context, File sdkLocation, Set<String> components) {
-      myContext = context;
-      mySdkLocation = sdkLocation;
-      myComponents = components;
-    }
-
-    @Override
-    public Void compute() throws WizardException {
-      final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-      ILogger log = new SdkManagerProgressIndicatorIntegration(indicator, myContext, myComponents.size());
-      SdkManager manager = SdkManager.createManager(mySdkLocation.getAbsolutePath(), log);
-      if (manager != null) {
-        SdkUpdaterNoWindow updater = new SdkUpdaterNoWindow(manager.getLocation(), manager, log, false, true, null, null);
-        updater.updateAll(Lists.newArrayList(myComponents), true, false, null);
-        return null;
-      }
-      else {
-        throw new WizardException("Corrupted SDK installation");
-      }
-    }
-  }
 }
