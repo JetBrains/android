@@ -52,7 +52,10 @@ import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.task.*;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
@@ -99,7 +102,10 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -806,16 +812,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private void cancel() {
     if (!myIndicator.isCanceled()) {
-      try {
-        GradleUtil.stopAllGradleDaemons(false);
-      }
-      catch (FileNotFoundException e) {
-        Messages.showErrorDialog(myProject, e.getMessage(), STOPPING_GRADLE_MSG_TITLE);
-      }
-      catch (IOException e) {
-        String errMsg = "Failed to stop Gradle daemons. Cause: " + e.getMessage();
-        Messages.showErrorDialog(myProject, errMsg, STOPPING_GRADLE_MSG_TITLE);
-      }
+      GradleUtil.stopAllGradleDaemons();
       myIndicator.cancel();
     }
   }
