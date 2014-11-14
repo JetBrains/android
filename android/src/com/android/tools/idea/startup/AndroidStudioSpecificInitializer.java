@@ -18,7 +18,6 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
@@ -532,21 +531,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appClosing() {
-        try {
-          for (Project p : ProjectManager.getInstance().getOpenProjects()) {
-            if (Projects.isBuildWithGradle(p)) {
-              GradleUtil.stopAllGradleDaemons(false);
-              return;
-            }
-          }
-        }
-        catch (IOException e) {
-          LOG.info("Failed to stop Gradle daemons", e);
-        }
+        GradleUtil.stopAllGradleDaemons();
       }
     });
   }
-
 
   private static void checkAndSetAndroidSdkSources() {
     for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
