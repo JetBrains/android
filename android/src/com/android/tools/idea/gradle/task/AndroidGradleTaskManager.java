@@ -34,6 +34,7 @@ import java.util.List;
  * Executes Gradle tasks.
  */
 public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
+
   @Override
   public boolean executeTasks(@NotNull ExternalSystemTaskId id,
                               @NotNull List<String> taskNames,
@@ -42,23 +43,36 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull final List<String> vmOptions,
                               @NotNull final List<String> scriptParameters,
                               @Nullable String debuggerSetup,
-                              @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
+                              @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException
+  {
+    GradleInvoker invoker = getInvoker();
+    if (invoker == null) {
+      // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
+      return false;
+    }
+    invoker.executeTasks(taskNames, Collections.<String>emptyList(), id, listener, true);
+    return true;
+  }
+
+  @Override
+  public boolean cancelTask(@NotNull ExternalSystemTaskId id, @NotNull ExternalSystemTaskNotificationListener listener) {
+    GradleInvoker invoker = getInvoker();
+    if (invoker == null) {
+      return false;
+    }
+    invoker.cancelTask(id);
+    return true;
+  }
+
+  @Nullable
+  private static GradleInvoker getInvoker() {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     if (openProjects.length == 1 && !openProjects[0].isDefault()) {
       Project project = openProjects[0];
       if (Projects.isGradleProject(project) && Projects.isDirectGradleInvocationEnabled(project)) {
-        GradleInvoker.getInstance(project).executeTasks(taskNames, Collections.<String>emptyList(), id, listener, true);
-        return true;
+        return GradleInvoker.getInstance(project);
       }
     }
-    // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
-    return false;
-  }
-
-  @Override
-  public boolean cancelTask(@NotNull ExternalSystemTaskId id, @NotNull ExternalSystemTaskNotificationListener listener)
-    throws ExternalSystemException {
-    // Let the IDEA's Gradle support handle this.
-    return false;
+    return null;
   }
 }
