@@ -32,8 +32,7 @@ public class AndroidJavaHighlightingTest extends AndroidTestCase {
   public void testUnusedConstructors() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=77054
     // Checks that various constructors are not marked as unused
-    final UnusedDeclarationInspection inspection = new UnusedDeclarationInspection();
-    inspection.setEnabledInEditor(true);
+    final UnusedDeclarationInspection inspection = new UnusedDeclarationInspection(true);
     myFixture.enableInspections(inspection);
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/UnusedConstructors.java");
     myFixture.configureFromExistingVirtualFile(f);
