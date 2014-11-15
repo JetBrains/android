@@ -213,11 +213,19 @@ public class GradleInvoker {
       }
     });
 
-    if (waitForCompletion && !ApplicationManager.getApplication().isDispatchThread()) {
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      executor.queue();
+    }
+    else if (waitForCompletion) {
       executor.queueAndWaitForCompletion();
     }
     else {
-      executor.queue();
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          executor.queue();
+        }
+      });
     }
   }
 
