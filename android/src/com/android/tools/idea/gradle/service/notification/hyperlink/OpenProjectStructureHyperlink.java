@@ -25,6 +25,7 @@ public class OpenProjectStructureHyperlink extends NotificationHyperlink {
   @Nullable
   public static OpenProjectStructureHyperlink openJdkSettings(@NotNull Project project) {
     ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+    System.out.println("***** " + service.getClass().getName());
     if (service instanceof AndroidProjectSettingsService) {
       return new OpenProjectStructureHyperlink("Open JDK Settings");
     }
