@@ -46,7 +46,7 @@ public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandle
         fixGradleModelHyperlink = new FixGradleModelVersionHyperlink();
       }
       else {
-        fixGradleModelHyperlink = new FixGradleModelVersionHyperlink("Fix plug-in version and re-import project", false);
+        fixGradleModelHyperlink = new FixGradleModelVersionHyperlink("Fix plugin version and re-import project", false);
       }
 
       updateNotification(notification, project, msg, fixGradleModelHyperlink);
