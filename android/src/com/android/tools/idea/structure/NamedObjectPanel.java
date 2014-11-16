@@ -34,7 +34,6 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.SortedList;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -474,28 +473,20 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           }
           ProductFlavor flavor = productFlavorContainer.getProductFlavor();
           obj.setValue(BuildFileKey.APPLICATION_ID, flavor.getApplicationId());
-          int versionCode = flavor.getVersionCode();
-          if (versionCode >= 0) {
+          Integer versionCode = flavor.getVersionCode();
+          if (versionCode != null) {
             obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
           }
           obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
-          try {
-            ApiVersion minSdkVersion = flavor.getMinSdkVersion();
-            if (minSdkVersion != null) {
-              obj.setValue(BuildFileKey.MIN_SDK_VERSION,
-                           minSdkVersion.getCodename() != null ? minSdkVersion.getCodename() : minSdkVersion.getApiLevel());
-            }
-            ApiVersion targetSdkVersion = flavor.getTargetSdkVersion();
-            if (targetSdkVersion != null) {
-              obj.setValue(BuildFileKey.TARGET_SDK_VERSION,
-                           targetSdkVersion.getCodename() != null ? targetSdkVersion.getCodename() : targetSdkVersion.getApiLevel());
-            }
-          } catch (UnsupportedMethodException e) {
-            // TODO: REMOVE ME
-            // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
-            // but until 0.11 is available this is a stopgap measure
-            obj.setValue(BuildFileKey.MIN_SDK_VERSION, 1);
-            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, 1);
+          ApiVersion minSdkVersion = flavor.getMinSdkVersion();
+          if (minSdkVersion != null) {
+            obj.setValue(BuildFileKey.MIN_SDK_VERSION,
+                         minSdkVersion.getCodename() != null ? minSdkVersion.getCodename() : minSdkVersion.getApiLevel());
+          }
+          ApiVersion targetSdkVersion = flavor.getTargetSdkVersion();
+          if (targetSdkVersion != null) {
+            obj.setValue(BuildFileKey.TARGET_SDK_VERSION,
+                         targetSdkVersion.getCodename() != null ? targetSdkVersion.getCodename() : targetSdkVersion.getApiLevel());
           }
           obj.setValue(BuildFileKey.TEST_APPLICATION_ID, flavor.getTestApplicationId());
           obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
