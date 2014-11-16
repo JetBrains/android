@@ -32,7 +32,7 @@ import java.util.UUID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperPropertiesFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_1_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_2_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
@@ -85,9 +85,9 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
     findGradleSyncMessageDialog(myRobot).clickCancel();
 
-    String gradleHome = System.getProperty(GRADLE_2_1_HOME_PROPERTY);
+    String gradleHome = System.getProperty(GRADLE_2_2_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_1_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_2_HOME_PROPERTY));
     }
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);

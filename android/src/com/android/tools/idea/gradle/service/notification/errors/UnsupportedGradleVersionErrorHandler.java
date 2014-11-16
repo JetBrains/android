@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.service.notification.hyperlink.CreateGradleWrapperHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -55,7 +56,7 @@ public class UnsupportedGradleVersionErrorHandler extends AbstractSyncErrorHandl
       else {
         GradleProjectSettings gradleProjectSettings = GradleUtil.getGradleProjectSettings(project);
         if (gradleProjectSettings != null && gradleProjectSettings.getDistributionType() == DistributionType.LOCAL) {
-          String gradleVersion = GradleUtil.getSupportedGradleVersion(project);
+          String gradleVersion = SdkConstants.GRADLE_LATEST_VERSION;
           if (StringUtil.isNotEmpty(gradleVersion)) {
             hyperlinks.add(new CreateGradleWrapperHyperlink(gradleVersion));
           }

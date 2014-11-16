@@ -36,7 +36,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.TreeCellEditor;
 import java.io.File;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,28 +72,6 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     private AbstractContentFixture(@NotNull Content content) {
       myContent = content;
-    }
-
-    @NotNull
-    public AbstractContentFixture requireMessage(@NotNull ErrorTreeElementKind kind, @NotNull final String... text) {
-      MessageMatcher equalMatcher = new MessageMatcher() {
-        @Override
-        public boolean matches(@NotNull String[] actual) {
-          return Arrays.equals(text, actual);
-        }
-
-        @Override
-        public String toString() {
-          return Arrays.toString(text);
-        }
-      };
-      return requireMessage(kind, equalMatcher);
-    }
-
-    @NotNull
-    public AbstractContentFixture requireMessage(@NotNull ErrorTreeElementKind kind, @NotNull MessageMatcher matcher) {
-      doFindMessage(kind, matcher);
-      return this;
     }
 
     @NotNull
@@ -182,13 +159,12 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
   }
 
   public class SyncContentFixture extends AbstractContentFixture {
-
     SyncContentFixture(@NotNull Content content) {
       super(content);
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected MessageFixture createFixture(@NotNull ErrorTreeElement element) {
       return new SyncMessageFixture(myRobot, element);
     }
@@ -200,19 +176,22 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       super(content);
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected MessageFixture createFixture(@NotNull ErrorTreeElement element) {
       return new BuildMessageFixture(myRobot, element);
     }
   }
 
   public interface MessageFixture {
+    @NotNull
     HyperlinkFixture findHyperlink(@NotNull String hyperlinkText);
+
+    @NotNull
+    MessageFixture requireLocation(@NotNull File filePath, int line);
   }
 
   public abstract static class AbstractMessageFixture implements MessageFixture {
-
     private static final Pattern ANCHOR_TAG_PATTERN = Pattern.compile("<a href=\"(.*?)\">([^<]+)</a>");
 
     @NotNull protected final Robot myRobot;
@@ -241,10 +220,24 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
       return url;
     }
+
+    protected void doRequireLocation(@NotNull File filePath, int line) {
+      assertThat(myTarget).isInstanceOf(NotificationMessageElement.class);
+      NotificationMessageElement element = (NotificationMessageElement)myTarget;
+
+      Navigatable navigatable = element.getNavigatable();
+      assertThat(navigatable).isInstanceOf(OpenFileDescriptor.class);
+
+      OpenFileDescriptor descriptor = (OpenFileDescriptor)navigatable;
+      File actualPath = virtualToIoFile(descriptor.getFile());
+      assertTrue(String.format("Expected:'%1$s' but was:'%2$s'", filePath.getPath(), actualPath.getPath()),
+                 filesEqual(filePath, actualPath));
+
+      assertThat((descriptor.getLine() + 1)).as("line").isEqualTo(line); // descriptor line is zero-based.
+    }
   }
 
   public static class SyncMessageFixture extends AbstractMessageFixture {
-
     public SyncMessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
       super(robot, target);
     }
@@ -255,7 +248,6 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // There is no specific UI component for a hyperlink in the "Messages" window. Instead we have a JEditorPane with HTML. This method
       // finds the anchor tags, and matches the text of each of them against the given text. If a matching hyperlink is found, we fire a
       // HyperlinkEvent, simulating a click on the actual hyperlink.
-
       assertThat(myTarget).isInstanceOf(EditableNotificationMessageElement.class);
 
       // Find the URL of the hyperlink.
@@ -278,15 +270,22 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       String url = extractUrl(text, hyperlinkText);
       return new SyncHyperlinkFixture(myRobot, url, editorComponent);
     }
+
+    @Override
+    @NotNull
+    public SyncMessageFixture requireLocation(@NotNull File filePath, int line) {
+      doRequireLocation(filePath, line);
+      return this;
+    }
   }
 
   public static class BuildMessageFixture extends AbstractMessageFixture {
-
     public BuildMessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
       super(robot, target);
     }
 
     @Override
+    @NotNull
     public HyperlinkFixture findHyperlink(@NotNull String hyperlinkText) {
       String wholeText = Joiner.on('\n').join(myTarget.getText());
       String url = extractUrl(wholeText, hyperlinkText);
@@ -299,21 +298,10 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       return new BuildHyperlinkFixture(myRobot, url, (Consumer<String>)data);
     }
 
+    @Override
     @NotNull
-    public MessageFixture requireLocation(File filePath, int line) {
-      assertThat(myTarget).isInstanceOf(NotificationMessageElement.class);
-      NotificationMessageElement element = (NotificationMessageElement)myTarget;
-
-      Navigatable navigatable = element.getNavigatable();
-      assertThat(navigatable).isInstanceOf(OpenFileDescriptor.class);
-
-      OpenFileDescriptor descriptor = (OpenFileDescriptor)navigatable;
-      File actualPath = virtualToIoFile(descriptor.getFile());
-      assertTrue(String.format("Expected:'%1$s' but was:'%2$s'", filePath.getPath(), actualPath.getPath()),
-                 filesEqual(filePath, actualPath));
-
-      assertThat((descriptor.getLine() + 1)).as("line").isEqualTo(line); // descriptor line is zero-based.
-
+    public BuildMessageFixture requireLocation(@NotNull File filePath, int line) {
+      doRequireLocation(filePath, line);
       return this;
     }
   }
