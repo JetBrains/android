@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
@@ -42,6 +43,9 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -180,8 +184,6 @@ public class GradleSyncTest extends GuiTestCase {
     }, LONG_TIMEOUT);
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
-    // 2 children: 'Android SDK' and JDK nodes
-    assertThat(libraryNodes).hasSize(2);
 
     ProjectViewFixture.NodeFixture jdkNode = null;
     // Find JDK node.
@@ -234,12 +236,19 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(wrapperPropertiesFile);
     updateGradleDistributionUrl("1.12", wrapperPropertiesFile);
 
+    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
+    assertNotNull(settings);
+    settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
+
     projectFrame.requestProjectSyncAndExpectFailure();
 
     MessagesToolWindowFixture.AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("The project is using an unsupported version of Gradle"));
+    String errorPrefix = "The project is using an unsupported version of the Android Gradle";
+    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
 
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix Gradle wrapper and re-import project");
+    Pause.pause(10, TimeUnit.SECONDS);
+
+    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version and re-import project");
     hyperlink.click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -294,7 +303,8 @@ public class GradleSyncTest extends GuiTestCase {
     message.findHyperlink("Open Android SDK Manager");
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest @Ignore
+  // Reason for @Ignore: now that we use embedded Gradle it is difficult to tell if we should create the wrapper or not.
   // See https://code.google.com/p/android/issues/detail?id=66880
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
@@ -355,16 +365,7 @@ public class GradleSyncTest extends GuiTestCase {
     editor.close();
 
     // Verify that at least we offer some sort of hint.
-    HyperlinkFixture openGradleWrapperFileHyperlink = message.findHyperlink("Open Gradle wrapper file");
-    openGradleWrapperFileHyperlink.click(true);
-
-    Pause.pause(new Condition("Wait for gradle-wrapper.properties is opened") {
-      @Override
-      public boolean test() {
-        VirtualFile currentFile = editor.getCurrentFile();
-        return currentFile != null && currentFile.getName().equals("gradle-wrapper.properties");
-      }
-    }, SHORT_TIMEOUT);
+    message.findHyperlink("Gradle settings");
   }
 
   @Test @IdeGuiTest
@@ -382,8 +383,7 @@ public class GradleSyncTest extends GuiTestCase {
                                                                          firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
 
     // Ensure the error message contains the location of the error.
-    assertTrue(message instanceof MessagesToolWindowFixture.BuildMessageFixture);
-    ((MessagesToolWindowFixture.BuildMessageFixture)message).requireLocation(settingsFile, 1);
+    message.requireLocation(settingsFile, 1);
   }
 
   @Test @IdeGuiTest
@@ -444,9 +444,9 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
     findGradleSyncMessageDialog(myRobot).clickCancel();
 
-    String gradleHome = System.getProperty(GRADLE_2_1_HOME_PROPERTY);
+    String gradleHome = System.getProperty(GRADLE_2_2_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_1_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_2_HOME_PROPERTY));
     }
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
@@ -494,7 +494,7 @@ public class GradleSyncTest extends GuiTestCase {
     findGradleSyncMessageDialog(myRobot).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
-      .requireGradleWrapperSet();
+                .requireGradleWrapperSet();
   }
 
   @Test @IdeGuiTest
