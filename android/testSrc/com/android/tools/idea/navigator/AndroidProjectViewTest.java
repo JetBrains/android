@@ -41,6 +41,7 @@ import com.intellij.testFramework.ProjectViewTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+// TODO: Test available actions for each node!
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 

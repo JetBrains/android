@@ -63,31 +63,31 @@ public abstract class IdeaSourceProvider {
   public abstract VirtualFile getManifestFile();
 
   @NotNull
-  public abstract Set<VirtualFile> getJavaDirectories();
+  public abstract Collection<VirtualFile> getJavaDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getResourcesDirectories();
+  public abstract Collection<VirtualFile> getResourcesDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getAidlDirectories();
+  public abstract Collection<VirtualFile> getAidlDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getRenderscriptDirectories();
+  public abstract Collection<VirtualFile> getRenderscriptDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getCDirectories();
+  public abstract Collection<VirtualFile> getCDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getCppDirectories();
+  public abstract Collection<VirtualFile> getCppDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getJniLibsDirectories();
+  public abstract Collection<VirtualFile> getJniLibsDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getResDirectories();
+  public abstract Collection<VirtualFile> getResDirectories();
 
   @NotNull
-  public abstract Set<VirtualFile> getAssetsDirectories();
+  public abstract Collection<VirtualFile> getAssetsDirectories();
 
   /** {@linkplain IdeaSourceProvider} for a Gradle projects */
   private static class Gradle extends IdeaSourceProvider {
@@ -118,8 +118,8 @@ public abstract class IdeaSourceProvider {
     }
 
     /** Convert a set of IO files into a set of equivalent virtual files */
-    private static Set<VirtualFile> convertFileSet(@NotNull Collection<File> fileSet) {
-      Set<VirtualFile> result = Sets.newHashSetWithExpectedSize(fileSet.size());
+    private static Collection<VirtualFile> convertFileSet(@NotNull Collection<File> fileSet) {
+      Collection<VirtualFile> result = Sets.newHashSetWithExpectedSize(fileSet.size());
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (File file : fileSet) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
@@ -132,56 +132,56 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getJavaDirectories() {
+    public Collection<VirtualFile> getJavaDirectories() {
       return convertFileSet(myProvider.getJavaDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getResourcesDirectories() {
+    public Collection<VirtualFile> getResourcesDirectories() {
       return convertFileSet(myProvider.getResourcesDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getAidlDirectories() {
+    public Collection<VirtualFile> getAidlDirectories() {
       return convertFileSet(myProvider.getAidlDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getRenderscriptDirectories() {
+    public Collection<VirtualFile> getRenderscriptDirectories() {
       return convertFileSet(myProvider.getRenderscriptDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getCDirectories() {
+    public Collection<VirtualFile> getCDirectories() {
       return convertFileSet(myProvider.getCDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getCppDirectories() {
+    public Collection<VirtualFile> getCppDirectories() {
       return convertFileSet(myProvider.getCppDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getJniLibsDirectories() {
+    public Collection<VirtualFile> getJniLibsDirectories() {
       return convertFileSet(myProvider.getJniLibsDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getResDirectories() {
+    public Collection<VirtualFile> getResDirectories() {
       // TODO: Perform some caching; this method gets called a lot!
       return convertFileSet(myProvider.getResDirectories());
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getAssetsDirectories() {
+    public Collection<VirtualFile> getAssetsDirectories() {
       return convertFileSet(myProvider.getAssetsDirectories());
     }
 
@@ -233,22 +233,22 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getJavaDirectories() {
+    public Collection<VirtualFile> getJavaDirectories() {
       Module module = myFacet.getModule();
-      Set<VirtualFile> dirs = new HashSet<VirtualFile>();
+      Collection<VirtualFile> dirs = new HashSet<VirtualFile>();
       Collections.addAll(dirs, ModuleRootManager.getInstance(module).getContentRoots());
       return dirs;
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getResourcesDirectories() {
+    public Collection<VirtualFile> getResourcesDirectories() {
       return Collections.emptySet();
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getAidlDirectories() {
+    public Collection<VirtualFile> getAidlDirectories() {
       final VirtualFile dir = AndroidRootUtil.getAidlGenDir(myFacet);
       assert dir != null;
       return Collections.singleton(dir);
@@ -256,7 +256,7 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getRenderscriptDirectories() {
+    public Collection<VirtualFile> getRenderscriptDirectories() {
       final VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(myFacet);
       assert dir != null;
       return Collections.singleton(dir);
@@ -264,25 +264,25 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getCDirectories() {
+    public Collection<VirtualFile> getCDirectories() {
      return Collections.emptySet();
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getCppDirectories() {
+    public Collection<VirtualFile> getCppDirectories() {
       return Collections.emptySet();
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getJniLibsDirectories() {
+    public Collection<VirtualFile> getJniLibsDirectories() {
       return Collections.emptySet();
     }
 
     @NotNull
     @Override
-    public Set<VirtualFile> getResDirectories() {
+    public Collection<VirtualFile> getResDirectories() {
       String resRelPath = myFacet.getProperties().RES_FOLDER_RELATIVE_PATH;
       final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), resRelPath, true);
       if (dir != null) {
@@ -294,7 +294,7 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Set<VirtualFile> getAssetsDirectories() {
+    public Collection<VirtualFile> getAssetsDirectories() {
       final VirtualFile dir = AndroidRootUtil.getAssetsDir(myFacet);
       assert dir != null;
       return Collections.singleton(dir);
