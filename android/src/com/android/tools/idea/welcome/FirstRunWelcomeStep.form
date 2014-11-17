@@ -23,7 +23,7 @@
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Welcome! This wizard will setup your development environment for Android Studio"/>
+          <text value="Welcome! This wizard will set up your development environment for Android Studio."/>
         </properties>
       </component>
       <component id="45a5d" class="javax.swing.JLabel">
