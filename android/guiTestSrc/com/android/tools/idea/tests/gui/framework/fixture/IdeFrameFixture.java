@@ -662,9 +662,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   public IdeFrameFixture requireGradleWrapperSet() {
     File wrapperDirPath = getGradleWrapperDirPath(getProjectPath());
     assertThat(wrapperDirPath).as("Gradle wrapper").isDirectory();
-
-    GradleProjectSettings settings = getGradleSettings();
-    assertEquals("Gradle distribution type", DEFAULT_WRAPPED, settings.getDistributionType());
     return this;
   }
 

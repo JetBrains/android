@@ -559,23 +559,6 @@ public final class GradleUtil {
     return true;
   }
 
-  @Nullable
-  public static String getSupportedGradleVersion(@NotNull Project project) {
-    FullRevision modelVersion = getResolvedAndroidGradleModelVersion(project);
-    if (modelVersion != null) {
-      return getSupportedGradleVersion(modelVersion);
-    }
-    return null;
-  }
-
-  @Nullable
-  public static String getSupportedGradleVersion(@NotNull FullRevision modelVersion) {
-    if (modelVersion.getMajor() == 0) {
-      return modelVersion.getMinor() >= 13 ? SdkConstants.GRADLE_LATEST_VERSION : SdkConstants.GRADLE_MINIMUM_VERSION;
-    }
-    return null;
-  }
-
   /**
    * Finds the version of the Android Gradle plug-in being used in the given project.
    * <p>
