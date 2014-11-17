@@ -37,7 +37,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
    * @return one of the {@link FirstRunWizardMode} constants or {@code null} if wizard is not needed.
    */
   @Nullable
-  private static FirstRunWizardMode getWizardMode() {
+  public static FirstRunWizardMode getWizardMode() {
     if (AndroidFirstRunPersistentData.getInstance().isSdkUpToDate()) {
       List<Sdk> sdks = DefaultSdks.getEligibleAndroidSdks();
       if (sdks.isEmpty()) {
