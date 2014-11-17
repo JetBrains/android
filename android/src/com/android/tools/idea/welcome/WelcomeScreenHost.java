@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
+  @NotNull private final FirstRunWizardMode myMode;
 
   // Action References. myCancelAction and myHelpAction are inherited
   private Action myPreviousAction = new PreviousAction();
@@ -66,8 +67,9 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
 
-  public WelcomeScreenHost() {
+  public WelcomeScreenHost(@NotNull FirstRunWizardMode mode) {
     super(new BorderLayout());
+    myMode = mode;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
 
@@ -89,7 +91,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   private void setupWizard() {
-    DynamicWizard wizard = new FirstRunWizard(this);
+    DynamicWizard wizard = new FirstRunWizard(this, myMode);
     wizard.init();
     add(wizard.getContentPane(), BorderLayout.CENTER);
   }
