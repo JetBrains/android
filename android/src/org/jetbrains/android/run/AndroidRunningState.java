@@ -17,7 +17,6 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.build.MainOutputFile;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
@@ -1023,7 +1022,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       LOG.error(message);
       return null;
     }
-    return ((MainOutputFile) apkFiles.get(0)).getOutputFile();
+    return apkFiles.get(0).getOutputFile();
   }
 
   private boolean checkPackageNames() {
