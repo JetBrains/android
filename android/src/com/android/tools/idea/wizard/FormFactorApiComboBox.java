@@ -180,7 +180,7 @@ public final class FormFactorApiComboBox extends JComboBox {
       // Check Java language level; should be 7 for L; eventually this will be automatically defaulted by the Android Gradle plugin
       // instead: https://code.google.com/p/android/issues/detail?id=76252
       String javaVersion = null;
-      if (target != null && target.getVersion().getFeatureLevel() >= 21) {
+      if (ourHighestInstalledApiTarget != null && ourHighestInstalledApiTarget.getVersion().getFeatureLevel() >= 21) {
         AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
         if (sdkData != null) {
           JavaSdk jdk = JavaSdk.getInstance();
