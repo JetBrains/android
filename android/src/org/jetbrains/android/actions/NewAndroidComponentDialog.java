@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -190,7 +190,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     if (className == null) {
       return;
     }
-    final XmlFile layoutFile = CreateResourceFileAction.createFileResource(facet, ResourceType.LAYOUT, null, null, null, true,
+    final XmlFile layoutFile = CreateResourceFileAction.createFileResource(facet, ResourceFolderType.LAYOUT, null, null, null, true,
                                                                            "Create Layout For '" + className + "'", false);
     final String layoutFileName = layoutFile != null ? layoutFile.getName() : null;
 

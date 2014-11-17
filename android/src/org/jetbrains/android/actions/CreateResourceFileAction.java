@@ -18,14 +18,12 @@ package org.jetbrains.android.actions;
 
 
 import com.android.SdkConstants;
+import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;
-import com.intellij.ide.actions.CreateElementActionBase;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -41,8 +39,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +52,7 @@ import java.util.Map;
 /**
  * @author Eugene.Kudelevsky
  */
-public class CreateResourceFileAction extends CreateElementActionBase {
+public class CreateResourceFileAction extends CreateResourceActionBase {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.CreateResourceFileAction");
 
   private final Map<String, CreateTypedResourceFileAction> mySubactions = new HashMap<String, CreateTypedResourceFileAction>();
@@ -84,21 +82,36 @@ public class CreateResourceFileAction extends CreateElementActionBase {
   @Override
   protected boolean isAvailable(DataContext context) {
     if (!super.isAvailable(context)) return false;
-    final PsiElement element = (PsiElement)context.getData(DataKeys.PSI_ELEMENT.getName());
-    if (!(element instanceof PsiDirectory) || AndroidFacet.getInstance(element) == null) {
-      return false;
-    }
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        return AndroidResourceUtil.isResourceDirectory((PsiDirectory)element);
+    return isOutsideResourceTypeFolder(context);
+  }
+
+  /** Returns true if the context points to an Android module, but outside of a specific resource type folder */
+  static boolean isOutsideResourceTypeFolder(@NotNull DataContext context) {
+    // Avoid listing these actions in folders where we have a more specific action (e.g. "Add Layout File")
+    VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(context);
+    if (file != null) {
+      if (!file.isDirectory()) {
+        file = file.getParent();
       }
-    });
+      if (file != null && ResourceFolderType.getFolderType(file.getName()) != null) {
+        // TODO: Also check that it's really a resource folder!
+        return false;
+      }
+    }
+
+    // Offer creating resource files from anywhere in the project (as is done for Java Classes) as long as it's within an Android module
+    Module module = LangDataKeys.MODULE.getData(context);
+    if (module != null) {
+      return AndroidFacet.getInstance(module) != null;
+    }
+
+    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
+    return element != null && AndroidFacet.getInstance(element) != null;
   }
 
   @Nullable
   public static XmlFile createFileResource(@NotNull AndroidFacet facet,
-                                           @NotNull final ResourceType resType,
+                                           @NotNull final ResourceFolderType resType,
                                            @Nullable String resName,
                                            @Nullable String rootElement,
                                            @Nullable FolderConfiguration config,
@@ -114,6 +127,7 @@ public class CreateResourceFileAction extends CreateElementActionBase {
     return (XmlFile)elements[0];
   }
 
+  @Deprecated
   @Nullable
   public static XmlFile createFileResource(@NotNull AndroidFacet facet,
                                            @NotNull final ResourceType resType,
@@ -122,12 +136,31 @@ public class CreateResourceFileAction extends CreateElementActionBase {
                                            @Nullable FolderConfiguration config,
                                            boolean chooseResName,
                                            @Nullable String dialogTitle) {
-    return createFileResource(facet, resType, resName, rootElement, config, chooseResName, dialogTitle, true);
+    // THIS IS WRONG. You can't create resource folders from a ResourceType; you should use a ResourceFolderType.
+    // For example, a ResourceType.STRING has no corresponding resource folder; it should be ResourceFolderType.VALUES.
+    // However, I changed the type in this method to ResourceFolderType, and it cascaded down to a lot of references,
+    // which in turn were called by many other references, so I'm adding a conversion here; we should revisit
+    // this soon and switch to the correct type. (The correct method exists below; this method should be deleted.)
+    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType.getName());
+    assert folderType != null : resType;
+
+    return createFileResource(facet, folderType, resName, rootElement, config, chooseResName, dialogTitle, true);
+  }
+
+  @Nullable
+  public static XmlFile createFileResource(@NotNull AndroidFacet facet,
+                                           @NotNull final ResourceFolderType folderType,
+                                           @Nullable String resName,
+                                           @Nullable String rootElement,
+                                           @Nullable FolderConfiguration config,
+                                           boolean chooseResName,
+                                           @Nullable String dialogTitle) {
+    return createFileResource(facet, folderType, resName, rootElement, config, chooseResName, dialogTitle, true);
   }
 
   @NotNull
   private static PsiElement[] doCreateFileResource(@NotNull AndroidFacet facet,
-                                                   @NotNull final ResourceType resType,
+                                                   @NotNull final ResourceFolderType resType,
                                                    @Nullable String resName,
                                                    @Nullable String rootElement,
                                                    @Nullable FolderConfiguration config,
@@ -138,13 +171,18 @@ public class CreateResourceFileAction extends CreateElementActionBase {
 
     final String subdirName;
     final Module selectedModule;
+    final VirtualFile resourceDir;
+    final AndroidFacet selectedFacet;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       subdirName = resType.getName();
       selectedModule = facet.getModule();
+      selectedFacet = facet;
+      resourceDir = facet.getPrimaryResourceDir();
     }
     else {
       final MyDialog dialog = new MyDialog(facet, action.mySubactions.values(), resType, resName, rootElement,
-                                           config, chooseResName, action, facet.getModule(), true);
+                                           config, chooseResName, action, facet.getModule(), true,
+                                           null);
       dialog.setNavigate(navigate);
       if (dialogTitle != null) {
         dialog.setTitle(dialogTitle);
@@ -158,11 +196,22 @@ public class CreateResourceFileAction extends CreateElementActionBase {
       }
       subdirName = dialog.getSubdirName();
       selectedModule = dialog.getSelectedModule();
-    }
-    final AndroidFacet selectedFacet = AndroidFacet.getInstance(selectedModule);
-    LOG.assertTrue(selectedFacet != null);
+      selectedFacet = AndroidFacet.getInstance(selectedModule);
+      assert selectedFacet != null;
 
-    final VirtualFile resourceDir = selectedFacet.getPrimaryResourceDir();
+      SourceProvider provider = dialog.getSourceProvider();
+      if (provider != null) {
+        Collection<VirtualFile> resDirectories = IdeaSourceProvider.create(provider).getResDirectories();
+        if (resDirectories.isEmpty()) {
+          resourceDir = resDirectories.iterator().next();
+        } else {
+          resourceDir = selectedFacet.getPrimaryResourceDir();
+        }
+      } else {
+        resourceDir = selectedFacet.getPrimaryResourceDir();
+      }
+    }
+
     final Project project = facet.getModule().getProject();
     final PsiDirectory psiResDir = resourceDir != null ? PsiManager.getInstance(project).findDirectory(resourceDir) : null;
 
@@ -188,19 +237,60 @@ public class CreateResourceFileAction extends CreateElementActionBase {
 
   @NotNull
   @Override
-  protected PsiElement[] invokeDialog(final Project project, final PsiDirectory directory) {
-    final AndroidFacet facet = AndroidFacet.getInstance(directory);
+  public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull final DataContext dataContext) {
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    if (module == null) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
     LOG.assertTrue(facet != null);
 
+    VirtualFile[] files = CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(dataContext);
+    ResourceFolderType folderType = getUniqueFolderType(files);
+    FolderConfiguration config = null;
+    if (files != null && files.length > 0) {
+      config = files.length == 1 ? FolderConfiguration.getConfigForFolder(files[0].getName()) : null;
+    }
+
     final MyDialog dialog =
-      new MyDialog(facet, mySubactions.values(), null, null, null, null, true, CreateResourceFileAction.this, facet.getModule(), false) {
-      @Override
-      protected InputValidator createValidator(@NotNull String subdirName) {
-        return CreateResourceFileAction.this.createValidator(project, directory, subdirName);
-      }
+      new MyDialog(facet, mySubactions.values(), folderType, null, null, config, true, CreateResourceFileAction.this, facet.getModule(),
+                   false, findResourceDirectory(dataContext)) {
+        @Override
+        protected InputValidator createValidator(@NotNull String subdirName) {
+          Module module = LangDataKeys.MODULE.getData(dataContext);
+          assert module != null;
+          PsiDirectory resourceDirectory = getResourceDirectory(dataContext, true);
+          return CreateResourceFileAction.this.createValidator(module.getProject(), resourceDirectory, subdirName);
+        }
     };
     dialog.show();
     return PsiElement.EMPTY_ARRAY;
+  }
+
+  @Nullable
+  static ResourceFolderType getUniqueFolderType(@Nullable VirtualFile[] files) {
+    ResourceFolderType folderType = null;
+    if (files != null && files.length > 0) {
+      for (VirtualFile file : files) {
+        if (!file.isDirectory()) {
+          file = file.getParent();
+        }
+        if (file != null) {
+          ResourceFolderType type = ResourceFolderType.getFolderType(file.getName());
+          if (type != null) {
+            // Ensure that if there are multiple files, they all have the same type
+            if (type != folderType && folderType != null) {
+              folderType = null;
+              break;
+            }
+            else {
+              folderType = type;
+            }
+          }
+        }
+      }
+    }
+    return folderType;
   }
 
   @NotNull
@@ -268,16 +358,17 @@ public class CreateResourceFileAction extends CreateElementActionBase {
 
     protected MyDialog(@NotNull AndroidFacet facet,
                        Collection<CreateTypedResourceFileAction> actions,
-                       @Nullable ResourceType predefinedResourceType,
+                       @Nullable ResourceFolderType predefinedResourceType,
                        @Nullable String predefinedFileName,
                        @Nullable String predefinedRootElement,
                        @Nullable FolderConfiguration predefinedConfig,
                        boolean chooseFileName,
                        @NotNull CreateResourceFileAction action,
                        @NotNull Module module,
-                       boolean chooseModule) {
+                       boolean chooseModule,
+                       @Nullable PsiDirectory resDirectory) {
       super(facet, actions, predefinedResourceType, predefinedFileName, predefinedRootElement,
-            predefinedConfig, chooseFileName, module, chooseModule);
+            predefinedConfig, chooseFileName, module, chooseModule, resDirectory);
       myAction = action;
     }
 

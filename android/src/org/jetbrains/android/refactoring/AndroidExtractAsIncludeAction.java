@@ -3,6 +3,7 @@ package org.jetbrains.android.refactoring;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -148,7 +149,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
       @Override
       public void run() {
         final XmlFile newFile =
-          CreateResourceFileAction.createFileResource(facet, ResourceType.LAYOUT, fileName, "temp_root", config, true, title);
+          CreateResourceFileAction.createFileResource(facet, ResourceFolderType.LAYOUT, fileName, "temp_root", config, true, title);
 
         if (newFile != null) {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
