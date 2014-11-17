@@ -72,7 +72,7 @@ public class AndroidFacetTest extends AndroidTestCase {
     AndroidArtifact testArtifact = createMock(AndroidArtifact.class);
 
     expect(mainArtifact.getAssembleTaskName()).andStubReturn("assemble");
-    expect(mainArtifact.getJavaCompileTaskName()).andStubReturn("compileJava");
+    expect(mainArtifact.getCompileTaskName()).andStubReturn("compileJava");
     expect(mainArtifact.getSourceGenTaskName()).andStubReturn("generateSources");
 
     expect(testArtifact.getAssembleTaskName()).andStubReturn("assembleTest");
@@ -96,7 +96,7 @@ public class AndroidFacetTest extends AndroidTestCase {
     AndroidArtifact mainArtifact = createMock(AndroidArtifact.class);
 
     expect(mainArtifact.getAssembleTaskName()).andStubReturn("assemble");
-    expect(mainArtifact.getJavaCompileTaskName()).andStubReturn("compileJava");
+    expect(mainArtifact.getCompileTaskName()).andStubReturn("compileJava");
     expect(mainArtifact.getSourceGenTaskName()).andStubReturn("generateSources");
 
     replay(mainArtifact);
