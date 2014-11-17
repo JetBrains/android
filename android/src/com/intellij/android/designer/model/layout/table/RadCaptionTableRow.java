@@ -28,8 +28,8 @@ import java.util.List;
  * @author Alexander Lobas
  */
 public class RadCaptionTableRow extends RadCaptionRow<RadViewComponent> implements IGroupDeleteComponent {
-  public RadCaptionTableRow(EditableArea mainArea, RadViewComponent component) {
-    super(mainArea, component, -1, 0, component.getBounds().height, !RadTableRowLayout.is(component));
+  public RadCaptionTableRow(EditableArea mainArea, RadViewComponent component, int offset) {
+    super(mainArea, component, -1, offset, component.getBounds().height, !RadTableRowLayout.is(component));
   }
 
   public RadViewComponent getComponent() {
