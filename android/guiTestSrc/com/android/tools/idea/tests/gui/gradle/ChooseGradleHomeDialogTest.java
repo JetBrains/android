@@ -35,7 +35,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
-  private static final String MINIMUM_GRADLE_VERSION = "2.0";
+  private static final String MINIMUM_GRADLE_VERSION = "2.1";
 
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
