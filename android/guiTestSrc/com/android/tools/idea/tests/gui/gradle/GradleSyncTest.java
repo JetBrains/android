@@ -246,8 +246,6 @@ public class GradleSyncTest extends GuiTestCase {
     String errorPrefix = "The project is using an unsupported version of the Android Gradle";
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
 
-    Pause.pause(10, TimeUnit.SECONDS);
-
     MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version and re-import project");
     hyperlink.click(true);
 
