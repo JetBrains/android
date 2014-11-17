@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
 /**
  * Shows a wizard first time Android Studio is launched
@@ -28,15 +31,38 @@ import javax.swing.*;
 public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenProvider {
   public static final String SYSTEM_PROPERTY_DISABLE_WIZARD = "disable.android.first.run";
 
+  /**
+   * Analyzes system state and decides if and how the wizard should be invoked.
+   *
+   * @return one of the {@link FirstRunWizardMode} constants or {@code null} if wizard is not needed.
+   */
+  @Nullable
+  private static FirstRunWizardMode getWizardMode() {
+    if (AndroidFirstRunPersistentData.getInstance().isSdkUpToDate()) {
+      List<Sdk> sdks = DefaultSdks.getEligibleAndroidSdks();
+      if (sdks.isEmpty()) {
+        return FirstRunWizardMode.MISSING_SDK;
+      }
+      else {
+        return null;
+      }
+    }
+    else {
+      return InstallerData.get() == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
+    }
+  }
+
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    return new WelcomeScreenHost();
+    FirstRunWizardMode wizardMode = getWizardMode();
+    assert wizardMode != null; // This means isAvailable was false! Why are we even called?
+    return new WelcomeScreenHost(wizardMode);
   }
 
   @Override
   public boolean isAvailable() {
-    AndroidFirstRunPersistentData instance = AndroidFirstRunPersistentData.getInstance();
-    return !AndroidPlugin.isGuiTestingMode()  && !Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD) && !instance.isSdkUpToDate();
+    return !(AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD)) && getWizardMode() != null;
   }
+
 }

@@ -60,20 +60,23 @@ import java.util.Set;
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.PATH, Boolean.class);
-  private static final InstallableComponent[] COMPONENTS = createComponents();
   private static final ScopedStateStore.Key<String> KEY_SDK_INSTALL_LOCATION =
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
   private final ProgressStep myProgressStep;
+  @NotNull private final FirstRunWizardMode myMode;
+  private final InstallableComponent[] myComponents;
   private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
 
-  public InstallComponentsPath(@NotNull ProgressStep progressStep) {
+  public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode) {
     myProgressStep = progressStep;
+    myMode = mode;
+    myComponents = createComponents(mode);
   }
 
-  private static InstallableComponent[] createComponents() {
+  private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason) {
     AndroidSdk androidSdk = new AndroidSdk();
-    if (Haxm.canRun()) {
+    if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
       return new InstallableComponent[]{androidSdk, new Haxm(KEY_CUSTOM_INSTALL)};
     }
     else {
@@ -234,30 +237,50 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }, application.getAnyModalityState());
   }
 
+  @Nullable
+  private static File getHandoffAndroidSdkSource() {
+    InstallerData data = InstallerData.get();
+    if (data == null) {
+      return null;
+    }
+    String androidSrc = data.getAndroidSrc();
+    if (!StringUtil.isEmpty(androidSrc)) {
+      File srcFolder = new File(androidSrc);
+      File[] files = srcFolder.listFiles();
+      if (srcFolder.isDirectory() && files != null && files.length > 0) {
+        return srcFolder;
+      }
+    }
+    return null;
+  }
+
   @Override
   protected void init() {
-    InstallerData data = InstallerData.get(myState);
     String location = null;
-    if (!data.exists()) {
-      myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL);
-      location = data.getAndroidDest();
+    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
+      myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL, myMode);
       addStep(myInstallationTypeWizardStep);
+    }
+    else if (myMode == FirstRunWizardMode.INSTALL_HANDOFF) {
+      InstallerData data = InstallerData.get();
+      assert data != null;
+      location = data.getAndroidDest();
     }
     if (StringUtil.isEmptyOrSpaces(location)) {
       location = FirstRunWizardDefaults.getDefaultSdkLocation();
     }
     myState.put(KEY_SDK_INSTALL_LOCATION, location);
 
-    mySdkComponentsStep = new SdkComponentsStep(COMPONENTS, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION);
+    mySdkComponentsStep = new SdkComponentsStep(myComponents, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION);
     addStep(mySdkComponentsStep);
 
-    for (InstallableComponent component : COMPONENTS) {
+    for (InstallableComponent component : myComponents) {
       component.init(myState, myProgressStep);
       for (DynamicWizardStep step : component.createSteps()) {
         addStep(step);
       }
     }
-    if (SystemInfo.isLinux && !data.exists()) {
+    if (SystemInfo.isLinux && myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addStep(new LinuxHaxmInfoStep());
     }
   }
@@ -283,9 +306,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private List<InstallableComponent> getSelectedComponents() throws WizardException {
     boolean customInstall = myState.getNotNull(KEY_CUSTOM_INSTALL, true);
-    List<InstallableComponent> selectedOperations = Lists.newArrayListWithCapacity(COMPONENTS.length);
+    List<InstallableComponent> selectedOperations = Lists.newArrayListWithCapacity(myComponents.length);
 
-    for (InstallableComponent component : COMPONENTS) {
+    for (InstallableComponent component : myComponents) {
       if (!customInstall || myState.getNotNull(component.getKey(), true)) {
         selectedOperations.add(component);
       }
@@ -319,20 +342,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     else {
       return mergeRepoIntoDestination(installContext, handoffSource, destination, progressRatio);
     }
-  }
-
-  @Nullable
-  private File getHandoffAndroidSdkSource() {
-    InstallerData data = InstallerData.get(myState);
-    String androidSrc = data.getAndroidSrc();
-    if (!StringUtil.isEmpty(androidSrc)) {
-      File srcFolder = new File(androidSrc);
-      File[] files = srcFolder.listFiles();
-      if (srcFolder.isDirectory() && files != null && files.length > 0) {
-        return srcFolder;
-      }
-    }
-    return null;
   }
 
   @Override

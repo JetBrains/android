@@ -40,7 +40,7 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return !InstallerData.get(myState).exists();
+    return InstallerData.get() == null;
   }
 
   @NotNull
