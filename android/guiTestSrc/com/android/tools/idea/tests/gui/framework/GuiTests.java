@@ -74,7 +74,7 @@ public final class GuiTests {
   public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
-  public static final String GRADLE_2_2_HOME_PROPERTY = "gradle.2.1.home.path";
+  public static final String GRADLE_2_2_HOME_PROPERTY = "gradle.2.2.home.path";
   public static final String GRADLE_1_12_HOME_PROPERTY = "gradle.1.12.home.path";
 
   /** Environment variable set by users to point to sources */
