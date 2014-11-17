@@ -187,8 +187,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    InstallerData installerData = InstallerData.get(myState);
-    return !installerData.hasValidJdkLocation();
+    InstallerData installerData = InstallerData.get();
+    return installerData == null || !installerData.hasValidJdkLocation();
   }
 
   @Override

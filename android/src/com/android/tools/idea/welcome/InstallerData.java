@@ -17,14 +17,12 @@ package com.android.tools.idea.welcome;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
-import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.base.Objects;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -36,10 +34,7 @@ import java.util.Properties;
  * Wrapper around data passed from the installer.
  */
 public class InstallerData {
-  @VisibleForTesting static final ScopedStateStore.Key<InstallerData> CONTEXT_KEY =
-    ScopedStateStore.createKey("installer.handoff.data", ScopedStateStore.Scope.WIZARD, InstallerData.class);
   public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.properties");
-
   @Nullable private final String myJavaDir;
   @Nullable private final String myAndroidSrc;
   @Nullable private final String myAndroidDest;
@@ -51,21 +46,27 @@ public class InstallerData {
     myAndroidDest = androidDest;
   }
 
+  @Nullable
   private static InstallerData parse() {
     Properties properties = readProperties();
+    if (properties == null) {
+      return null;
+    }
     return new InstallerData(getIfExists(properties, "jdk.dir"), getIfExists(properties, "androidsdk.repo"),
                              properties.getProperty("androidsdk.dir"));
   }
 
+  @Nullable
   private static Properties readProperties() {
-    Properties properties = new Properties();
     try {
       File file = new File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES);
       if (file.isFile()) {
         FileInputStream stream = null;
         try {
           stream = new FileInputStream(file);
+          Properties properties = new Properties();
           properties.load(stream);
+          return properties;
         }
         catch (IOException e) {
           Logger.getInstance(InstallerData.class).error(e);
@@ -78,7 +79,7 @@ public class InstallerData {
     catch (AndroidLocation.AndroidLocationException e) {
       Logger.getInstance(InstallerData.class).error(e);
     }
-    return properties;
+    return null;
   }
 
   @Nullable
@@ -91,14 +92,14 @@ public class InstallerData {
     return null;
   }
 
-  @NotNull
-  public static synchronized InstallerData get(ScopedStateStore state) {
-    InstallerData installerData = state.get(CONTEXT_KEY);
-    if (installerData == null) {
-      installerData = parse();
-      state.put(CONTEXT_KEY, installerData);
-    }
-    return installerData;
+  @VisibleForTesting
+  static synchronized void set(@Nullable InstallerData data) {
+    Holder.INSTALLER_DATA = data;
+  }
+
+  @Nullable
+  public static synchronized InstallerData get() {
+    return Holder.INSTALLER_DATA;
   }
 
   @Nullable
@@ -122,15 +123,15 @@ public class InstallerData {
       .toString();
   }
 
-  public boolean exists() {
-    return myJavaDir != null || myAndroidSrc != null || myAndroidDest != null;
-  }
-
   public boolean hasValidSdkLocation() {
-    return exists() && !WizardUtils.validateLocation(getAndroidDest(), SdkComponentsStep.FIELD_SDK_LOCATION, false).isError();
+    return !WizardUtils.validateLocation(getAndroidDest(), SdkComponentsStep.FIELD_SDK_LOCATION, false).isError();
   }
 
   public boolean hasValidJdkLocation() {
-    return exists() && JdkLocationStep.validateJdkLocation(getJavaDir()) == null;
+    return JdkLocationStep.validateJdkLocation(getJavaDir()) == null;
+  }
+
+  private static class Holder {
+    @Nullable private static InstallerData INSTALLER_DATA = parse();
   }
 }
