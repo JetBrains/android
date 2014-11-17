@@ -831,4 +831,15 @@ public final class GradleUtil {
 
     return false;
   }
+
+  public static boolean hasCause(@NotNull Throwable e, @NotNull Class<?> causeClass) {
+    // We want to ignore class loader difference, that's why we just compare fully-qualified class names here.
+    String causeClassName = causeClass.getName();
+    for (Throwable ex = e; ex != null; ex = ex.getCause()) {
+      if (causeClassName.equals(ex.getClass().getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
