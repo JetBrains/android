@@ -429,7 +429,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       }
       return directory.createSubdirectory(ourTargetFolderName);
     }
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType) {
+    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType, directory, null) {
       @Override
       protected InputValidator createValidator() {
         return new ResourceDirectorySelector(project, directory);
