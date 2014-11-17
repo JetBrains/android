@@ -287,8 +287,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    InstallerData data = InstallerData.get(myState);
-    boolean hasSdk = data.hasValidSdkLocation();
+    InstallerData data = InstallerData.get();
+    boolean hasSdk = data != null && data.hasValidSdkLocation();
     Boolean shouldInstallSdk = myState.getNotNull(myKeyInstallSdk, true);
     return !hasSdk && shouldInstallSdk;
   }

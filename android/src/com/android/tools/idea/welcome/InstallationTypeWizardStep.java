@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.wizard.ScopedStateStore;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -24,14 +25,17 @@ import javax.swing.*;
  * Wizard step for selecting installation types
  */
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
-  private final ScopedStateStore.Key<Boolean> myDataKey;
+  @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
+  @NotNull private final FirstRunWizardMode myMode;
   private JPanel myContents;
   private JRadioButton myStandardRadioButton;
   private JRadioButton myCustomRadioButton;
 
-  public InstallationTypeWizardStep(ScopedStateStore.Key<Boolean> customInstall) {
+  public InstallationTypeWizardStep(@NotNull ScopedStateStore.Key<Boolean> customInstall,
+                                    @NotNull FirstRunWizardMode mode) {
     super(null);
     myDataKey = customInstall;
+    myMode = mode;
     setComponent(myContents);
   }
 
@@ -53,6 +57,6 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return !InstallerData.get(myState).exists();
+    return myMode != FirstRunWizardMode.INSTALL_HANDOFF;
   }
 }
