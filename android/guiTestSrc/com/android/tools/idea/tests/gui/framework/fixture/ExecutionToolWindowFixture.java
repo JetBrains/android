@@ -55,16 +55,20 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       pause(new Condition("LogCat tool window output check for package name.") {
         @Override
         public boolean test() {
-          ConsoleViewImpl consoleView = getConsoleView();
-          if (consoleView.getEditor() == null) {
-            // If our handle has been replaced, find it again.
-            getTabComponent("Console");
-            consoleView = getConsoleView();
-          }
-
-          return matcher.isMatching(consoleView.getEditor().getDocument().getText());
+          return outputMatches(matcher);
         }
       }, timeout);
+    }
+
+    public boolean outputMatches(@NotNull TextMatcher matcher) {
+      ConsoleViewImpl consoleView = getConsoleView();
+      if (consoleView.getEditor() == null) {
+        // If our handle has been replaced, find it again.
+        getTabComponent("Console");
+        consoleView = getConsoleView();
+      }
+
+      return matcher.isMatching(consoleView.getEditor().getDocument().getText());
     }
 
     @NotNull
@@ -119,6 +123,23 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
         }
       }
       return true;
+    }
+
+    public boolean stop() {
+      ActionToolbarImpl toolbar = UIUtil.findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
+      assertNotNull(toolbar);
+      List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
+      for (ActionButton button : buttons) {
+        if (button.getAction() instanceof StopAction) {
+          boolean enabled = Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
+          if (enabled) {
+            button.click();
+            return true;
+          }
+          return false;
+        }
+      }
+      return false;
     }
   }
 

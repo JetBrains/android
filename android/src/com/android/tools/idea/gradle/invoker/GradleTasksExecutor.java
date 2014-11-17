@@ -88,9 +88,8 @@ import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
 import com.intellij.util.ui.UIUtil;
-import org.gradle.tooling.BuildException;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.ProjectConnection;
+import org.gradle.api.BuildCancelledException;
+import org.gradle.tooling.*;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -147,12 +146,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull private final Object myCompletionLock  = new Object();
   private int myCompletionCounter;
 
-  private final GradleInvoker myInvoker;
+  @NotNull private final GradleTaskExecutionContext myContext;
   @Nullable private GradleBuildTreeViewPanel myErrorTreeView;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
-  @NotNull private final List<String> myGradleTasks;
-  @NotNull private final List<String> myCommandLineArguments;
 
   private volatile int myErrorCount;
   private volatile int myWarningCount;
@@ -162,24 +159,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private volatile boolean myMessageViewIsPrepared;
   private volatile boolean myMessagesAutoActivated;
 
-  @Nullable private final ExternalSystemTaskId                   myTaskId;
-  @Nullable private final ExternalSystemTaskNotificationListener myTaskListener;
-
   private CloseListener myCloseListener;
 
-  GradleTasksExecutor(@NotNull GradleInvoker invoker,
-                      @NotNull Project project,
-                      @NotNull List<String> gradleTasks,
-                      @NotNull List<String> commandLineArguments,
-                      @Nullable ExternalSystemTaskId taskId,
-                      @Nullable ExternalSystemTaskNotificationListener taskListener)
-  {
-    super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
-    myInvoker = invoker;
-    myGradleTasks = gradleTasks;
-    myCommandLineArguments = commandLineArguments;
-    myTaskId = taskId;
-    myTaskListener = taskListener;
+  GradleTasksExecutor(@NotNull GradleTaskExecutionContext context) {
+    super(context.getProject(), String.format("Gradle: Executing Tasks %1$s", context.getGradleTasks().toString()), true);
+    myContext = context;
   }
 
   @Override
@@ -287,14 +271,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
         GradleConsoleView consoleView = GradleConsoleView.getInstance(project);
         consoleView.clear();
 
-        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myGradleTasks), null);
+        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myContext.getGradleTasks()), null);
 
         final ExternalSystemTaskId id;
-        if (myTaskId == null) {
+        if (myContext.getTaskId() == null) {
           id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         }
         else {
-          id = myTaskId;
+          id = myContext.getTaskId();
         }
         BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
 
@@ -302,12 +286,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
         LOG.info("Build JVM args: " + jvmArgs);
 
         String executingTasksText =
-          "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
+          "Executing tasks: " + myContext.getGradleTasks() + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
         consoleView.print(executingTasksText, NORMAL_OUTPUT);
 
         GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
         BuildException buildError = null;
+        CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
           List<String> commandLineArgs = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
@@ -322,7 +307,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           }
 
           commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
-          commandLineArgs.addAll(myCommandLineArguments);
+          commandLineArgs.addAll(myContext.getCommandLineArgs());
           GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
           GradleUtil.attemptToUseEmbeddedGradle(project);
 
@@ -335,13 +320,19 @@ class GradleTasksExecutor extends Task.Backgroundable {
           if (javaHome != null) {
             launcher.setJavaHome(javaHome);
           }
-          launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
+
+          myContext.storeCancellationInfoFor(id, cancellationTokenSource);
+          launcher.forTasks(ArrayUtil.toStringArray(myContext.getGradleTasks()));
+          launcher.withCancellationToken(cancellationTokenSource.token());
+
           GradleOutputForwarder.Listener outputListener = null;
-          if (myTaskId != null && myTaskListener != null) {
+          if (myContext.getTaskId() != null && myContext.getTaskNotificationListener() != null) {
             outputListener = new GradleOutputForwarder.Listener() {
               @Override
               public void onOutput(@NotNull ConsoleViewContentType contentType, @NotNull byte[] data, int offset, int length) {
-                myTaskListener.onTaskOutput(id, new String(data, offset, length), contentType != ERROR_OUTPUT);
+                if (myContext.isActive(id)) {
+                  myContext.getTaskNotificationListener().onTaskOutput(id, new String(data, offset, length), contentType != ERROR_OUTPUT);
+                }
               }
             };
           }
@@ -352,6 +343,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           buildError = e;
         }
         finally {
+          myContext.dropCancellationInfoFor(id);
           String gradleOutput = output.toString();
           Application application = ApplicationManager.getApplication();
           if (AndroidPlugin.isGuiTestingMode()) {
@@ -362,7 +354,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
             }
           }
           List<GradleMessage> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
-          if (myErrorCount == 0 && buildError != null) {
+          if (myErrorCount == 0 && buildError != null && !GradleUtil.hasCause(buildError, BuildCancelledException.class)) {
+            // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
+            // window for that situation though.
             showBuildException(buildError, output.getStdErr(), buildMessages);
           }
 
@@ -377,16 +371,20 @@ class GradleTasksExecutor extends Task.Backgroundable {
             }
           });
 
-          application.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              showMessages();
-            }
-          });
+          if (buildError == null || !GradleUtil.hasCause(buildError, BuildCancelledException.class)) {
+            // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
+            // window for that situation though.
+            application.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                showMessages();
+              }
+            });
+          }
 
           boolean buildSuccessful = buildError == null;
-          GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, buildMessages, buildSuccessful);
-          for (GradleInvoker.AfterGradleInvocationTask task : myInvoker.getAfterInvocationTasks()) {
+          GradleInvocationResult result = new GradleInvocationResult(myContext.getGradleTasks(), buildMessages, buildSuccessful);
+          for (GradleInvoker.AfterGradleInvocationTask task : myContext.getGradleInvoker().getAfterInvocationTasks()) {
             task.execute(result);
           }
         }
