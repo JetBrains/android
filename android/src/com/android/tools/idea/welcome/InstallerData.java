@@ -35,12 +35,12 @@ import java.util.Properties;
  */
 public class InstallerData {
   public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.properties");
-  @Nullable private final String myJavaDir;
-  @Nullable private final String myAndroidSrc;
-  @Nullable private final String myAndroidDest;
+  @Nullable private final File myJavaDir;
+  @Nullable private final File myAndroidSrc;
+  @Nullable private final File myAndroidDest;
 
   @VisibleForTesting
-  InstallerData(@Nullable String javaDir, @Nullable String androidSrc, @Nullable String androidDest) {
+  InstallerData(@Nullable File javaDir, @Nullable File androidSrc, @Nullable File androidDest) {
     myJavaDir = javaDir;
     myAndroidSrc = androidSrc;
     myAndroidDest = androidDest;
@@ -52,8 +52,9 @@ public class InstallerData {
     if (properties == null) {
       return null;
     }
-    return new InstallerData(getIfExists(properties, "jdk.dir"), getIfExists(properties, "androidsdk.repo"),
-                             properties.getProperty("androidsdk.dir"));
+    String androidSdkPath = properties.getProperty("androidsdk.dir");
+    File androidDest = StringUtil.isEmptyOrSpaces(androidSdkPath) ? null : new File(androidSdkPath);
+    return new InstallerData(getIfExists(properties, "jdk.dir"), getIfExists(properties, "androidsdk.repo"), androidDest);
   }
 
   @Nullable
@@ -83,11 +84,11 @@ public class InstallerData {
   }
 
   @Nullable
-  private static String getIfExists(Properties properties, String propertyName) {
+  private static File getIfExists(Properties properties, String propertyName) {
     String path = properties.getProperty(propertyName);
     if (!StringUtil.isEmptyOrSpaces(path)) {
       File file = new File(path);
-      return file.isDirectory() ? file.getAbsolutePath() : null;
+      return file.isDirectory() ? file : null;
     }
     return null;
   }
@@ -103,17 +104,17 @@ public class InstallerData {
   }
 
   @Nullable
-  public String getJavaDir() {
+  public File getJavaDir() {
     return myJavaDir;
   }
 
   @Nullable
-  public String getAndroidSrc() {
+  public File getAndroidSrc() {
     return myAndroidSrc;
   }
 
   @Nullable
-  public String getAndroidDest() {
+  public File getAndroidDest() {
     return myAndroidDest;
   }
 
@@ -124,11 +125,20 @@ public class InstallerData {
   }
 
   public boolean hasValidSdkLocation() {
-    return !WizardUtils.validateLocation(getAndroidDest(), SdkComponentsStep.FIELD_SDK_LOCATION, false).isError();
+    File location = getAndroidDest();
+    if (location == null) {
+      return false;
+    }
+    else {
+      String path = location.getAbsolutePath();
+      WizardUtils.ValidationResult validationResult = WizardUtils.validateLocation(path, SdkComponentsStep.FIELD_SDK_LOCATION, false);
+      return !validationResult.isError();
+    }
   }
 
   public boolean hasValidJdkLocation() {
-    return JdkLocationStep.validateJdkLocation(getJavaDir()) == null;
+    File javaDir = getJavaDir();
+    return javaDir != null && JdkLocationStep.validateJdkLocation(javaDir) == null;
   }
 
   private static class Holder {

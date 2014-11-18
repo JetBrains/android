@@ -43,7 +43,14 @@ public class SetupJdkPath extends DynamicWizardPath {
   @Override
   protected void init() {
     InstallerData data = InstallerData.get();
-    myState.put(KEY_JDK_LOCATION, data == null ? null : data.getJavaDir());
+    String path = null;
+    if (data != null) {
+      File javaDir = data.getJavaDir();
+      if (javaDir != null) {
+        path = javaDir.getAbsolutePath();
+      }
+    }
+    myState.put(KEY_JDK_LOCATION, path);
     addStep(myJdkLocationStep);
   }
 
