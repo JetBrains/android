@@ -78,11 +78,11 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
   }
 
   @Override
-  public void close(boolean canceled) {
-    if (!canceled) {
+  public void close(@NotNull CloseAction action) {
+    if (action == CloseAction.FINISH) {
       doOKAction();
     }
-    else {
+    else if (action == CloseAction.CANCEL) {
       doCancelAction();
     }
   }

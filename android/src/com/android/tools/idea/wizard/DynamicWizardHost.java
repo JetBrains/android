@@ -54,7 +54,7 @@ public interface DynamicWizardHost {
   /**
    * Close the wizard and mark it a completed or cancelled
    */
-  void close(boolean canceled);
+  void close(@NotNull CloseAction action);
 
   /**
    * Shake the window
@@ -87,4 +87,8 @@ public interface DynamicWizardHost {
    */
   void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator, boolean cancellable,
                              @NotNull Runnable operation);
+
+  enum CloseAction {
+    FINISH, CANCEL, EXIT
+  }
 }
