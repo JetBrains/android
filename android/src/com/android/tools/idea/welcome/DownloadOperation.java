@@ -17,14 +17,20 @@ package com.android.tools.idea.welcome;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.PathUtil;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.DownloadableFileService;
 import com.intellij.util.download.FileDownloader;
+import com.intellij.util.io.URLUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -38,11 +44,26 @@ public final class DownloadOperation extends PreinstallOperation<File> {
     myUrl = url;
   }
 
+  @NotNull
+  private String getFileName() {
+    try {
+      // In case we need to strip query string
+      if (URLUtil.containsScheme(myUrl)) {
+        URL url = new URL(myUrl);
+        return PathUtil.getFileName(url.getPath());
+      }
+    }
+    catch (MalformedURLException e) {
+      // Ignore it
+    }
+    return PathUtil.getFileName(myUrl);
+  }
+
   @Override
   @Nullable
   protected File perform() throws WizardException {
     DownloadableFileService fileService = DownloadableFileService.getInstance();
-    DownloadableFileDescription myDescription = fileService.createFileDescription(myUrl, "components.zip");
+    DownloadableFileDescription myDescription = fileService.createFileDescription(myUrl, getFileName());
     FileDownloader downloader = fileService.createDownloader(ImmutableList.of(myDescription), "Android Studio components");
     while (true) {
       try {

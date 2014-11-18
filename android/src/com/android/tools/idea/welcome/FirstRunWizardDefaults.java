@@ -17,19 +17,16 @@ package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.PathUtil;
-import com.intellij.util.Urls;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.List;
 
 /**
@@ -102,10 +99,10 @@ public class FirstRunWizardDefaults {
     if (SystemInfo.isWindows) {
       return FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
     }
-    else if (SystemInfo.isLinux) {
+    else if (SystemInfo.isMac) {
       return FileUtil.join(userHome, "Library", "Android", "sdk");
     }
-    else if (SystemInfo.isMac) {
+    else if (SystemInfo.isLinux) {
       return FileUtil.join(userHome, "Android", "Sdk");
     }
     else {

@@ -156,10 +156,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
     try {
       FileUtil.ensureExists(destination.getParentFile());
-      File unpacked = new UnzipOperation(context, archive, progressShare).execute();
+      File unpacked = new UnpackOperation(context, archive, progressShare).execute();
       if (unpacked != null) {
         try {
-          FileUtil.rename(getSdkRoot(unpacked), destination);
+          if (!destination.mkdirs() && !FileUtil.moveDirWithContent(getSdkRoot(unpacked), destination)) {
+            throw new WizardException("Unable to prepare Android SDK");
+          }
         }
         finally {
           if (unpacked.isDirectory()) {
