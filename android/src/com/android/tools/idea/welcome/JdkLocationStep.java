@@ -48,6 +48,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   private static final String MAC_JDKS_DIR = "/Library/Java/JavaVirtualMachines/";
   private static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   private static final String WINDOWS_JDKS_DIR = "C:\\Program Files\\Java";
+  private static final String LINUX_SDK_DIR = "/usr/lib/jvm";
   private static final String JDK_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
 
   private final ScopedStateStore.Key<String> myPathKey;
@@ -71,20 +72,12 @@ public class JdkLocationStep extends FirstRunWizardStep {
     FileChooserDescriptor folderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myJdkPath.addBrowseFolderListener("Select JDK Location", "Select compatible JDK location", null, folderDescriptor);
     myError.setText(null);
-    // Does not seem like there's reliable default for JDK locations on Linux...
-    // Hence, "Detect" is only available on Windows/Mac
-    if (SystemInfo.isMac || SystemInfo.isWindows) {
-      myDetectButton.addActionListener(new ActionListener() {
+    myDetectButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           ProgressManager.getInstance().run(new DetectJdkTask());
         }
       });
-    }
-    else {
-      myDetectButton.setVisible(false);
-      myDetectLabel.setVisible(false);
-    }
   }
 
   private static String getLinkText() {
@@ -136,8 +129,10 @@ public class JdkLocationStep extends FirstRunWizardStep {
     else if (SystemInfo.isWindows) {
       return getWindowsCandidateJdks();
     }
+    else if (SystemInfo.isLinux) {
+      return getLinuxCandidateJdks();
+    }
     else {
-      // No default location for Linux...
       return Collections.emptyList();
     }
   }
@@ -152,6 +147,11 @@ public class JdkLocationStep extends FirstRunWizardStep {
   private static Iterable<String> getWindowsCandidateJdks() {
     // See http://docs.oracle.com/javase/7/docs/webnotes/install/windows/jdk-installation-windows.html
     return getCandidatePaths(WINDOWS_JDKS_DIR, "");
+  }
+
+  @NotNull
+  private static Iterable<String> getLinuxCandidateJdks() {
+    return getCandidatePaths(LINUX_SDK_DIR, "");
   }
 
   private static Iterable<String> getCandidatePaths(String basedir, final String suffix) {
