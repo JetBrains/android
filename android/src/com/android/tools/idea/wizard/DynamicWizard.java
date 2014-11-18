@@ -400,7 +400,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       newStep = myCurrentPath.previous();
     }
     else {
-      myHost.close(true);
+      myHost.close(DynamicWizardHost.CloseAction.CANCEL);
       return;
     }
     if (newStep != null) {
@@ -421,7 +421,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       myHost.shakeWindow();
       return;
     }
-    myHost.close(false);
+    myHost.close(DynamicWizardHost.CloseAction.FINISH);
     new WizardCompletionAction().execute();
   }
 
