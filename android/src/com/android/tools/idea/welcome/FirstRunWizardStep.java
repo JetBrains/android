@@ -38,7 +38,7 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
     myPanel = new JPanel(new BorderLayout());
     String title = name != null ? SETUP_WIZARD + " - " + name : SETUP_WIZARD;
     JPanel header = createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
-                                           AndroidIcons.Wizards.FirstRunWizard, title);
+                                           AndroidIcons.Wizards.NewProjectMascotGreen, title);
     myPanel.add(header, BorderLayout.NORTH);
   }
 
