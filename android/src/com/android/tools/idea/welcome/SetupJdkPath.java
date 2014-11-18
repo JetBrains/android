@@ -16,13 +16,12 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.ScopedStateStore.Scope;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -36,8 +35,8 @@ public class SetupJdkPath extends DynamicWizardPath {
 
   @Override
   public boolean isPathVisible() {
-    Sdk defaultJdk = DefaultSdks.getDefaultJdk();
-    return defaultJdk == null || !Jdks.isApplicableJdk(defaultJdk, LanguageLevel.JDK_1_7);
+    Sdk defaultJdk = DefaultSdks.getDefaultJdk(JavaSdkVersion.JDK_1_7);
+    return defaultJdk == null;
   }
 
   @Override
