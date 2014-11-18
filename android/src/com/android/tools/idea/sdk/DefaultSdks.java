@@ -33,6 +33,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -424,6 +425,11 @@ public final class DefaultSdks {
    */
   @Nullable
   public static Sdk getDefaultJdk() {
+    return getDefaultJdk(null);
+  }
+
+  @Nullable
+  public static Sdk getDefaultJdk(@Nullable JavaSdkVersion preferredVersion) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
@@ -434,11 +440,20 @@ public final class DefaultSdks {
         return jdk;
       }
     }
-    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+    JavaSdk javaSdk = JavaSdk.getInstance();
+
+    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
-      return jdks.get(0);
+      if (preferredVersion == null) {
+        return jdks.get(0);
+      }
+      for (Sdk jdk : jdks) {
+        if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
+          return jdk;
+        }
+      }
     }
-    final Collection<String> jdkPaths = JavaSdk.getInstance().suggestHomePaths();
+    final Collection<String> jdkPaths = javaSdk.suggestHomePaths();
     VirtualFile javaHome = null;
 
     for (String jdkPath : jdkPaths) {
@@ -451,7 +466,33 @@ public final class DefaultSdks {
     if (javaHome == null) {
       javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
     }
-    return javaHome != null ? createJdk(javaHome) : null;
+    if (javaHome != null) {
+      File path = VfsUtilCore.virtualToIoFile(javaHome);
+      if (JavaSdk.checkForJdk(path)) {
+        Sdk jdk = createJdk(javaHome);
+        if (jdk != null && preferredVersion != null) {
+          return javaSdk.isOfVersionOrHigher(jdk, preferredVersion) ? jdk : null;
+        }
+        return jdk;
+      }
+      // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
+      if (SystemInfo.isLinux && preferredVersion != null) {
+        Sdk jdk = null;
+        for (File child : FileUtil.notNullize(path.listFiles())) {
+          if (child.isDirectory() && JavaSdk.checkForJdk(child)) {
+            jdk = Jdks.createJdk(child.getPath());
+            if (jdk != null) {
+              if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
+                // Prefer JDK 1.7+
+                return jdk;
+              }
+            }
+          }
+        }
+        return jdk;
+      }
+    }
+    return null;
   }
 
   /**
