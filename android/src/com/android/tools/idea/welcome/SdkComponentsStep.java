@@ -301,6 +301,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     public SdkComponentRenderer() {
       myPanel = new JPanel(new GridLayoutManager(1, 1));
       myCheckBox = new JCheckBox();
+      myCheckBox.setOpaque(false);
       myCheckBox.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -318,14 +319,16 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     private void setupControl(JTable table, Object value, boolean isSelected, boolean hasFocus) {
       myPanel.setBorder(getCellBorder(table, isSelected && hasFocus));
       Color foreground;
+      Color background;
       if (isSelected) {
-        myPanel.setBackground(table.getSelectionBackground());
+        background = table.getSelectionBackground();
         foreground = table.getSelectionForeground();
       }
       else {
-        myPanel.setBackground(table.getBackground());
+        background = table.getBackground();
         foreground = table.getForeground();
       }
+      myPanel.setBackground(background);
       myCheckBox.setForeground(foreground);
       myPanel.remove(myCheckBox);
       InstallableComponent installableComponent = (InstallableComponent)value;
