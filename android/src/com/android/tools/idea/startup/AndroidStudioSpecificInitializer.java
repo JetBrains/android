@@ -19,11 +19,12 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.welcome.AndroidStudioWelcomeScreenProvider;
+import com.android.tools.idea.welcome.FirstRunWizardMode;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -46,8 +47,6 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -307,6 +306,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null) {
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
+      return;
+    }
+
+    FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+    if (wizardMode != null) {
+      // Don't bother setting up SDKs. The "first run" wizard will do it.
       return;
     }
 
