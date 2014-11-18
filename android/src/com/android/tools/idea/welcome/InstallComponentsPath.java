@@ -301,8 +301,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     InstallContext installContext = new InstallContext(createTempDir(), myProgressStep);
     final File sdk = initializeSdk(installContext, INIT_SDK_OPERATION_PROGRESS_SHARE);
     if (sdk != null) {
-      setSdkInPreferences(sdk);
       setupSdkComponents(installContext, sdk, getSelectedComponents(), INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+      setSdkInPreferences(sdk);
     }
   }
 
