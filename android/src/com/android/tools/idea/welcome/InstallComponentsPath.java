@@ -245,12 +245,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (data == null) {
       return null;
     }
-    String androidSrc = data.getAndroidSrc();
-    if (!StringUtil.isEmpty(androidSrc)) {
-      File srcFolder = new File(androidSrc);
-      File[] files = srcFolder.listFiles();
-      if (srcFolder.isDirectory() && files != null && files.length > 0) {
-        return srcFolder;
+    File androidSrc = data.getAndroidSrc();
+    if (androidSrc != null) {
+      File[] files = androidSrc.listFiles();
+      if (androidSrc.isDirectory() && files != null && files.length > 0) {
+        return androidSrc;
       }
     }
     return null;
@@ -266,7 +265,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     else if (myMode == FirstRunWizardMode.INSTALL_HANDOFF) {
       InstallerData data = InstallerData.get();
       assert data != null;
-      location = data.getAndroidDest();
+      File dest = data.getAndroidDest();
+      location = dest == null ? null : dest.getAbsolutePath();
     }
     if (StringUtil.isEmptyOrSpaces(location)) {
       location = FirstRunWizardDefaults.getDefaultSdkLocation();
