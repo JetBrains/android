@@ -103,8 +103,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
     }
   }
 
-  private static boolean isJdk7(String path) {
-    String jdkVersion = JavaSdk.getJdkVersion(path);
+  private static boolean isJdk7(@NotNull File path) {
+    String jdkVersion = JavaSdk.getJdkVersion(path.getAbsolutePath());
     if (jdkVersion != null) {
       JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdkVersion);
       if (version != null && !version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
@@ -115,11 +115,11 @@ public class JdkLocationStep extends FirstRunWizardStep {
   }
 
   @Nullable
-  public static String validateJdkLocation(@Nullable String location) {
-    if (StringUtil.isEmpty(location)) {
+  public static String validateJdkLocation(@Nullable File location) {
+    if (location == null) {
       return "Path is empty";
     }
-    if (!JdkUtil.checkForJdk(new File(location))) {
+    if (!JdkUtil.checkForJdk(location)) {
       return "Path specified is not a valid JDK location";
     }
     if (!isJdk7(location)) {
@@ -173,7 +173,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
     if (!StringUtil.isEmpty(path)) {
       myUserInput = true;
     }
-    String message = validateJdkLocation(path);
+    File userInput = StringUtil.isEmptyOrSpaces(path) ? null : new File(path);
+    String message = validateJdkLocation(userInput);
     if (myUserInput) {
       setErrorHtml(message);
     }
@@ -219,7 +220,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
         if (myCancelled.get()) {
           return;
         }
-        if (StringUtil.isEmpty(validateJdkLocation(path))) {
+        if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
           String version = JavaSdk.getInstance().getVersionString(path);
           if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
             topVersion = version;

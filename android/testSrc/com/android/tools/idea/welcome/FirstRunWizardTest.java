@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 
 public final class FirstRunWizardTest extends AndroidTestBase {
   public static final Key<Boolean> KEY_TRUE = ScopedStateStore.createKey("true", ScopedStateStore.Scope.WIZARD, Boolean.class);
@@ -38,12 +39,12 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   public static final Key<Integer> KEY_INTEGER = ScopedStateStore.createKey("42", ScopedStateStore.Scope.WIZARD, Integer.class);
 
   @NotNull
-  private static String getPathChecked(String variable) {
+  private static File getPathChecked(String variable) {
     String path = System.getenv(variable);
     if (StringUtil.isEmpty(path)) {
       throw new IllegalStateException("Missing " + variable + " environment variable");
     }
-    return path;
+    return new File(path);
   }
 
   private static <T> Key<T> createKey(Class<T> clazz) {
@@ -51,7 +52,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   @NotNull
-  public static String getAndroidHome() {
+  public static File getAndroidHome() {
     return getPathChecked("ANDROID_HOME");
   }
 
@@ -105,10 +106,10 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   public void testStepsVisibility() {
-    String wrongPath = "/$@@  \"\'should/not/exist";
-    String java6Home = getPathChecked("JAVA6_HOME");
-    String java7Home = getPathChecked("JAVA7_HOME");
-    String androidHome = getAndroidHome();
+    File wrongPath = new File("/$@@  \"\'should/not/exist");
+    File java6Home = getPathChecked("JAVA6_HOME");
+    File java7Home = getPathChecked("JAVA7_HOME");
+    File androidHome = getAndroidHome();
 
     assertPagesVisible(null, true, true, true, true, false, false);
 
