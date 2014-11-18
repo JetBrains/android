@@ -186,6 +186,52 @@ bool FindJVMInRegistry()
     return false;
 }
 
+// The following code is taken from http://msdn.microsoft.com/en-us/library/ms684139(v=vs.85).aspx
+// and provides a backwards compatible way to check if this application is a 32-bit process running
+// on a 64-bit OS
+typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+
+LPFN_ISWOW64PROCESS fnIsWow64Process;
+
+BOOL IsWow64()
+{
+    BOOL bIsWow64 = FALSE;
+
+    //IsWow64Process is not available on all supported versions of Windows.
+    //Use GetModuleHandle to get a handle to the DLL that contains the function
+    //and GetProcAddress to get a pointer to the function if available.
+
+    fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
+        GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
+
+    if(NULL != fnIsWow64Process)
+    {
+        if (!fnIsWow64Process(GetCurrentProcess(),&bIsWow64))
+        {
+            //handle error
+        }
+    }
+    return bIsWow64;
+}
+
+// Returns true if the application platform (32- or 64-bit) matches that of the OS running it.
+bool IsWindowsPlatformCorrect()
+{
+    if (IsWow64())
+    {
+        // If our process is WoW64, this means we are running a 32-bit program on 64-bit Windows
+        char buf[512];
+        strcpy(buf, "We have detected that you are running a 64-bit version of the Windows® "
+            "operating system. Please run studio64.exe instead.");
+        MessageBoxA(NULL, buf,  ERROR_LAUNCHING_APP, MB_OK);
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
 bool LocateJVM()
 {
     bool result;
@@ -728,6 +774,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
         CreateThread(NULL, 0, SplashScreenThread, hSplashBitmap, 0, NULL);
     }
 
+    if (!IsWindowsPlatformCorrect()) return 1;
     if (!LocateJVM()) return 1;
     if (!LoadVMOptions()) return 1;
     if (!LoadJVMLibrary()) return 1;
