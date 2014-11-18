@@ -309,12 +309,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       return;
     }
 
-    FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
-    if (wizardMode != null) {
-      // Don't bother setting up SDKs. The "first run" wizard will do it.
-      return;
-    }
-
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
     if (AndroidPlugin.isGuiTestingMode()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
@@ -343,7 +337,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
           return;
         }
 
-        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), true);
+        FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+        // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
+        boolean promptSdkSelection = wizardMode == null;
+
+        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
           if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
