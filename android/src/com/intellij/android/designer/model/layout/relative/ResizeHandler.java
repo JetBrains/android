@@ -204,10 +204,10 @@ public class ResizeHandler extends GuidelineHandler {
       assert myHorizontalEdgeType == null;
     }
 
-    if (myTextDirection.isLeftSegment(myVerticalEdgeType)) {
+    if (myVerticalEdgeType != null && myTextDirection.isLeftSegment(myVerticalEdgeType)) {
       vEdge = new Segment(b.x, b.y, y2(b), child, childId, myVerticalEdgeType, NO_MARGIN);
     }
-    else if (myTextDirection.isRightSegment(myVerticalEdgeType)) {
+    else if (myVerticalEdgeType != null && myTextDirection.isRightSegment(myVerticalEdgeType)) {
       vEdge = new Segment(x2(b), b.y, y2(b), child, childId, myVerticalEdgeType, NO_MARGIN);
     }
     else {
