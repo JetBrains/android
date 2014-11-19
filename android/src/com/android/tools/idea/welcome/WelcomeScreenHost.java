@@ -136,17 +136,21 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   @Override
-  public void close(boolean canceled) {
-    if (canceled) {
-      myFrame.setVisible(false);
-      myFrame.dispose();
-    }
-    else {
+  public void close(@NotNull CloseAction action) {
+    if (action == CloseAction.FINISH) {
       setDefaultButton(null);
       NewWelcomeScreen welcomeScreen = new NewWelcomeScreen();
       Disposer.register(getDisposable(), welcomeScreen);
       myFrame.setContentPane(welcomeScreen.getWelcomePanel());
       welcomeScreen.setupFrame(myFrame);
+    }
+    else {
+      myFrame.setVisible(false);
+      myFrame.dispose();
+
+      if (action == CloseAction.EXIT) {
+        ApplicationManager.getApplication().exit();
+      }
     }
   }
 
