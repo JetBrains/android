@@ -373,8 +373,7 @@ public class LocaleMenuAction extends FlatComboAction {
             }
 
             TranslationDialog dialog = new TranslationDialog(facet, locale, false);
-            dialog.show();
-            if (dialog.isOK()) {
+            if (dialog.showAndGet()) {
               if (dialog.createTranslation()) {
                 new SetLocaleAction(myRenderContext, "", locale).actionPerformed(e);
               }
@@ -406,8 +405,7 @@ public class LocaleMenuAction extends FlatComboAction {
         return;
       }
       TranslationDialog dialog = new TranslationDialog(facet, myLocale, true);
-      dialog.show();
-      if (dialog.isOK()) {
+      if (dialog.showAndGet()) {
         if (dialog.createTranslation()) {
           // Switch to the newly created translation. Reuse the SetLocaleAction
           // such that we don't just set the locale on the configuration, but project-wide

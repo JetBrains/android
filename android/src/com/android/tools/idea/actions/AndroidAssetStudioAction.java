@@ -20,13 +20,10 @@ import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 
 /**
  * Action to invoke the Asset Studio. This action is visible
@@ -87,8 +84,7 @@ public class AndroidAssetStudioAction extends AnAction {
 
     AssetStudioWizard dialog = new AssetStudioWizard(project, module, targetFile);
 
-    dialog.show();
-    if (!dialog.isOK()) {
+    if (!dialog.showAndGet()) {
       return;
     }
     dialog.createAssets();

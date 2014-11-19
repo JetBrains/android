@@ -70,6 +70,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 
 /**
@@ -234,9 +235,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private void createNewResourceValue(ResourceType resourceType) {
     CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(myModule, resourceType, null, null, true);
     dialog.setTitle("New " + StringUtil.capitalize(resourceType.getDisplayName()) + " Value Resource");
-    dialog.show();
-
-    if (!dialog.isOK()) {
+    if (!dialog.showAndGet()) {
       return;
     }
 
@@ -246,7 +245,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     String fileName = dialog.getFileName();
-    java.util.List<String> dirNames = dialog.getDirNames();
+    List<String> dirNames = dialog.getDirNames();
     String resValue = dialog.getValue();
     String resName = dialog.getResourceName();
     if (!AndroidResourceUtil.createValueResource(moduleToPlaceResource, resName, resourceType, fileName, dirNames, resValue)) {

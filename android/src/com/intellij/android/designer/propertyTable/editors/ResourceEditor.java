@@ -335,13 +335,13 @@ public class ResourceEditor extends PropertyEditor {
       return;
     }
     ResourceDialog dialog = new ResourceDialog(module, myTypes, (String)getValue(), (RadViewComponent)myComponent);
-    dialog.show();
-
-    if (dialog.isOK()) {
+    if (dialog.showAndGet()) {
       setValue(dialog.getResourceName());
     }
-    else if (myBooleanResourceValue != null) {
-      fireEditingCancelled();
+    else {
+      if (myBooleanResourceValue != null) {
+        fireEditingCancelled();
+      }
     }
   }
 

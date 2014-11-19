@@ -575,8 +575,7 @@ public class HtmlLinkManager {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
     ChooseClassDialog dialog = new ChooseClassDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
-    dialog.show();
-    if (!dialog.isOK()) {
+    if (!dialog.showAndGet()) {
       return;
     }
     final String fragmentClass = dialog.getClassName();
@@ -586,7 +585,8 @@ public class HtmlLinkManager {
     if (start == url.length()) {
       // No specific fragment identified; use the first one
       id = null;
-    } else {
+    }
+    else {
       id = LintUtils.stripIdPrefix(url.substring(start));
     }
 
@@ -666,9 +666,7 @@ public class HtmlLinkManager {
         return new Action[0];
       }
     };
-    dialog.show();
-
-    if (dialog.isOK()) {
+    if (dialog.showAndGet()) {
       String layout = dialog.getResourceName();
       if (!layout.equals(LAYOUT_RESOURCE_PREFIX + file.getName())) {
         assignLayout(module.getProject(), file, activityName, layout);
