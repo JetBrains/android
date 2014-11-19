@@ -63,7 +63,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * <p/>This implements {@link com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
  * {@link com.android.ide.common.rendering.legacy.LegacyCallback}
  */
-public final class LayoutlibCallback extends LegacyCallback {
+public class LayoutlibCallback extends LegacyCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
@@ -101,7 +101,7 @@ public final class LayoutlibCallback extends LegacyCallback {
                            @NotNull AndroidFacet facet,
                            @NotNull RenderLogger logger,
                            @Nullable Object credential,
-                           @NotNull ActionBarHandler actionBarHandler) {
+                           @Nullable ActionBarHandler actionBarHandler) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
@@ -633,8 +633,11 @@ public final class LayoutlibCallback extends LegacyCallback {
   }
 
   @Override
-  public ActionBarHandler getActionBarCallback() {
+  public ActionBarCallback getActionBarCallback() {
     return myActionBarHandler;
   }
 
+  public ActionBarHandler getActionBarHandler() {
+    return myActionBarHandler;
+  }
 }
