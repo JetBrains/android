@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.ClassField;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AndroidArtifactStub implements AndroidArtifact {
@@ -83,12 +85,6 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override
   @NotNull
-  public String getJavaCompileTaskName() {
-    return "compile" + StringUtil.capitalize(myBuildType);
-  }
-
-  @Override
-  @NotNull
   public String getCompileTaskName() {
     return "compile" + StringUtil.capitalize(myBuildType);
   }
@@ -115,6 +111,18 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @Nullable
   public Set<String> getAbiFilters() {
     return null;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, ClassField> getBuildConfigFields() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Map<String, ClassField> getResValues() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
