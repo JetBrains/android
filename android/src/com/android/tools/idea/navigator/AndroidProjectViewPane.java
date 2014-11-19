@@ -27,23 +27,30 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectTreeStructure;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
+import com.intellij.ide.projectView.impl.nodes.AbstractModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataKeys;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDirectoryContainer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -112,12 +119,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @Override
   protected ProjectViewTree createTree(final DefaultTreeModel treeModel) {
-    return new ProjectViewTree(myProject, treeModel) {
-      @Override
-      public DefaultMutableTreeNode getSelectedNode() {
-        return AndroidProjectViewPane.this.getSelectedNode();
-      }
-    };
+    return new MyProjectViewTree(treeModel);
   }
 
   @Override
@@ -141,7 +143,27 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       return ((DirectoryGroupNode)descriptor).getDirectories();
     }
 
-    return super.getSelectedDirectories();
+    PsiDirectory[] selectedDirectories = super.getSelectedDirectories();
+    // For modules we'll include generated folders too but we don't want
+    // to treat these as selectable (for target output directories etc)
+    if (selectedElement instanceof Module && selectedDirectories.length > 0) {
+      List<PsiDirectory> dirs = Lists.newArrayListWithExpectedSize(selectedDirectories.length);
+      for (PsiDirectory dir : selectedDirectories) {
+        VirtualFile file = dir.getVirtualFile();
+        if (!GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, myProject)) {
+          if (file.getParent() != null && file.getPath().contains("/generated/")) {
+            // Workaround for https://code.google.com/p/android/issues/detail?id=79843:
+            // The generated resource folders (e.g. for RenderScript) cannot be marked as generated, e.g.
+            /// build/generated/res/rs/debug, build/generated/res/rs/test/debug, etc.
+            continue;
+          }
+          dirs.add(dir);
+        }
+      }
+      selectedDirectories = dirs.toArray(new PsiDirectory[dirs.size()]);
+    }
+
+    return selectedDirectories;
   }
 
   @Override
@@ -223,5 +245,22 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     }
 
     return super.getData(dataId);
+  }
+
+  private class MyProjectViewTree extends ProjectViewTree implements DataProvider {
+    public MyProjectViewTree(DefaultTreeModel treeModel) {
+      super(AndroidProjectViewPane.this.myProject, treeModel);
+    }
+
+    @Override
+    public DefaultMutableTreeNode getSelectedNode() {
+      return AndroidProjectViewPane.this.getSelectedNode();
+    }
+
+    @Nullable
+    @Override
+    public Object getData(@NonNls String dataId) {
+      return AndroidProjectViewPane.this.getData(dataId);
+    }
   }
 }
