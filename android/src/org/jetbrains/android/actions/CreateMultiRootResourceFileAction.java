@@ -17,7 +17,14 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.CommonBundle;
+import com.intellij.ide.IdeView;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
@@ -54,12 +61,28 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
 
   @NotNull
   @Override
-  protected PsiElement[] invokeDialog(Project project, PsiDirectory directory) {
-    final AndroidFacet facet = AndroidFacet.getInstance(directory);
-    assert facet != null;
-    InputValidator validator = createValidator(project, directory);
-    final MyDialog dialog = new MyDialog(facet, validator);
-    dialog.show();
+  protected PsiElement[] invokeDialog(@NotNull Project project, @NotNull DataContext dataContext) {
+    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    if (view != null) {
+      // If you're in the Android View, we want to ask you not just the filename but also let you
+      // create other resource folder configurations
+      AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
+      if (pane instanceof AndroidProjectViewPane) {
+          return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
+      }
+    }
+
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    if (module != null) {
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      assert facet != null;
+      PsiDirectory directory = getResourceDirectory(null, module, true);
+      if (directory != null) {
+        InputValidator validator = createValidator(project, directory);
+        final MyDialog dialog = new MyDialog(facet, validator);
+        dialog.show();
+      }
+    }
     return PsiElement.EMPTY_ARRAY;
   }
 

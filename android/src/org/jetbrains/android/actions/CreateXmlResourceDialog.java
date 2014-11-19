@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 
 import com.android.SdkConstants;
+import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -24,6 +25,7 @@ import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -73,6 +75,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
   private JBLabel myValueLabel;
   private JBLabel myNameLabel;
   private JComboBox myFileNameCombo;
+  private JBLabel mySourceSetLabel;
+  private JComboBox mySourceSetCombo;
 
   private final Module myModule;
   private final ResourceType myResourceType;
@@ -135,6 +139,11 @@ public class CreateXmlResourceDialog extends DialogWrapper {
       myModuleCombo.setModules(modulesSet);
       myModuleCombo.setSelectedModule(module);
     }
+
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
+                                                  modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null,
+                                                  myResourceDir != null ? PsiManager.getInstance(module.getProject()).findDirectory(myResourceDir) : null);
 
     if (defaultFile == null) {
       final String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(resourceType);
@@ -537,6 +546,11 @@ public class CreateXmlResourceDialog extends DialogWrapper {
   @NotNull
   public String getValue() {
     return myValueField.getText().trim();
+  }
+
+  @Nullable
+  public SourceProvider getSourceProvider() {
+    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
   }
 
   @Nullable
