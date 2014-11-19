@@ -16,18 +16,22 @@
 
 package org.jetbrains.android.actions;
 
+import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
-import com.intellij.ide.actions.TemplateKindCombo;
-import com.intellij.openapi.module.Module;
 import com.intellij.application.options.ModulesComboBox;
+import com.intellij.ide.actions.TemplateKindCombo;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
@@ -39,6 +43,7 @@ import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,26 +76,31 @@ public class CreateResourceFileDialog extends DialogWrapper {
   private JLabel myFileNameLabel;
   private ModulesComboBox myModuleCombo;
   private JBLabel myModuleLabel;
+  private JComboBox mySourceSetCombo;
+  private JBLabel mySourceSetLabel;
   private TextFieldWithAutoCompletion<String> myRootElementField;
   private InputValidator myValidator;
 
   private final Map<String, CreateTypedResourceFileAction> myResType2ActionMap = new HashMap<String, CreateTypedResourceFileAction>();
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
   private final AndroidFacet myFacet;
-  private final ResourceType myPredefinedResourceType;
+  private final ResourceFolderType myPredefinedResourceType;
+  private PsiDirectory myResDirectory;
 
   public CreateResourceFileDialog(@NotNull AndroidFacet facet,
                                   Collection<CreateTypedResourceFileAction> actions,
-                                  @Nullable ResourceType predefinedResourceType,
+                                  @Nullable ResourceFolderType predefinedResourceType,
                                   @Nullable String predefinedFileName,
                                   @Nullable String predefinedRootElement,
                                   @Nullable FolderConfiguration predefinedConfig,
                                   boolean chooseFileName,
                                   @NotNull Module module,
-                                  boolean chooseModule) {
+                                  boolean chooseModule,
+                                  @Nullable PsiDirectory resDirectory) {
     super(facet.getModule().getProject());
     myFacet = facet;
     myPredefinedResourceType = predefinedResourceType;
+    myResDirectory = resDirectory;
 
     myResTypeLabel.setLabelFor(myResourceTypeCombo);
     myResourceTypeCombo.registerUpDownHint(myFileNameField);
@@ -155,7 +165,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
     });
 
     if (predefinedResourceType != null && selectedTemplate != null) {
-      final boolean v = predefinedResourceType == ResourceType.LAYOUT;
+      final boolean v = predefinedResourceType == ResourceFolderType.LAYOUT;
       myRootElementLabel.setVisible(v);
       myRootElementFieldWrapper.setVisible(v);
 
@@ -163,6 +173,9 @@ public class CreateResourceFileDialog extends DialogWrapper {
       myResourceTypeCombo.setVisible(false);
       myUpDownHint.setVisible(false);
       myResourceTypeCombo.setSelectedName(selectedTemplate);
+    } else {
+      // Select values by default if not otherwise specified
+      myResourceTypeCombo.setSelectedName(ResourceConstants.FD_RES_VALUES);
     }
 
     if (chooseFileName) {
@@ -196,6 +209,10 @@ public class CreateResourceFileDialog extends DialogWrapper {
       myModuleCombo.setVisible(false);
     }
     myModuleCombo.setSelectedModule(module);
+
+   CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
+                                                 modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null,
+                                                 myResDirectory);
 
     myDeviceConfiguratorPanel.updateAll();
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);
@@ -261,7 +278,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
       myRootElementField = new TextFieldWithAutoCompletion<String>(
         myFacet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null);
       myRootElementField.setEnabled(allowedTagNames.size() > 1);
-      myRootElementField.setText(!action.isChooseTagName() && myPredefinedResourceType != ResourceType.LAYOUT
+      myRootElementField.setText(!action.isChooseTagName()
                                  ? action.getDefaultRootTag()
                                  : "");
       myRootElementFieldWrapper.removeAll();
@@ -316,6 +333,26 @@ public class CreateResourceFileDialog extends DialogWrapper {
   @Override
   protected String getDimensionServiceKey() {
     return "AndroidCreateResourceFileDialog";
+  }
+
+  @Nullable
+  public SourceProvider getSourceProvider() {
+    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
+  }
+
+  @Contract("_,true -> !null")
+  @Nullable
+  public PsiDirectory getResourceDirectory(@Nullable DataContext context, boolean create) {
+    if (myResDirectory != null) {
+      return myResDirectory;
+    }
+    if (context != null) {
+      Module module = LangDataKeys.MODULE.getData(context);
+      assert module != null;
+      return CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, create);
+    }
+
+    return null;
   }
 
   @NotNull

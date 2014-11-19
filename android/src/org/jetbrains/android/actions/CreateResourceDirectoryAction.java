@@ -1,21 +1,19 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.CommonBundle;
-import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +22,7 @@ import java.io.File;
 /**
  * @author Eugene.Kudelevsky
  */
-public class CreateResourceDirectoryAction extends CreateElementActionBase {
+public class CreateResourceDirectoryAction extends CreateResourceActionBase {
   private final ResourceFolderType myResourceFolderType;
 
   @SuppressWarnings("UnusedDeclaration")
@@ -39,12 +37,42 @@ public class CreateResourceDirectoryAction extends CreateElementActionBase {
   }
 
   @NotNull
-  @Override
-  public PsiElement[] invokeDialog(final Project project, final PsiDirectory directory) {
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, myResourceFolderType) {
+  public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull final PsiDirectory directory) {
+    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, myResourceFolderType, directory,
+                                                                                   AndroidPsiUtils.getModuleSafely(directory)) {
       @Override
       protected InputValidator createValidator() {
         return CreateResourceDirectoryAction.this.createValidator(project, directory);
+      }
+    };
+    dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
+    dialog.show();
+    final InputValidator validator = dialog.getValidator();
+    if (validator == null) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+    return ((MyInputValidator)validator).getCreatedElements();
+  }
+
+  @NotNull
+  @Override
+  public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull final DataContext dataContext) {
+
+    ResourceFolderType folderType = myResourceFolderType;
+    if (folderType == null) {
+      VirtualFile[] files = CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(dataContext);
+      folderType = CreateResourceFileAction.getUniqueFolderType(files);
+    }
+
+    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType,
+                                                                                   findResourceDirectory(dataContext),
+                                                                                   LangDataKeys.MODULE.getData(dataContext)) {
+      @Override
+      protected InputValidator createValidator() {
+        Module module = LangDataKeys.MODULE.getData(dataContext);
+        assert module != null;
+        PsiDirectory resourceDirectory = getResourceDirectory(dataContext, true);
+        return CreateResourceDirectoryAction.this.createValidator(module.getProject(), resourceDirectory);
       }
     };
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
@@ -86,15 +114,6 @@ public class CreateResourceDirectoryAction extends CreateElementActionBase {
   @Override
   protected boolean isAvailable(DataContext context) {
     if (!super.isAvailable(context)) return false;
-    final PsiElement element = (PsiElement)context.getData(CommonDataKeys.PSI_ELEMENT.getName());
-    if (!(element instanceof PsiDirectory) || AndroidFacet.getInstance(element) == null) {
-      return false;
-    }
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        return AndroidResourceUtil.isResourceDirectory((PsiDirectory)element);
-      }
-    });
+    return CreateResourceFileAction.isOutsideResourceTypeFolder(context);
   }
 }
