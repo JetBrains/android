@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.tools.idea.editors.navigation.Utilities;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.Nullable;
@@ -31,10 +29,6 @@ public class MultiMatch {
 
   public MultiMatch(PsiMethod macro) {
     this.macro = macro;
-  }
-
-  static MultiMatch create(Project project, String methodDefinition) {
-    return new MultiMatch(Utilities.createMethodFromText(project, methodDefinition));
   }
 
   public void addSubMacro(String name, PsiMethod macro) {
