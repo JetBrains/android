@@ -138,7 +138,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
       }
     }
 
-    if (javaSdks.isEmpty()){
+    if (javaSdks.isEmpty()) {
       Messages.showErrorDialog(AndroidBundle.message("no.jdk.for.android.found.error"), "No Java SDK Found");
       return false;
     }
@@ -179,10 +179,8 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
     final AndroidNewSdkDialog dialog =
       new AndroidNewSdkDialog(null, javaSdks, javaSdks.get(0), Arrays.asList(targetNames),
-                                       newestPlatform != null ? newestPlatform : targetNames[0]);
-    dialog.show();
-
-    if (!dialog.isOK()) {
+                              newestPlatform != null ? newestPlatform : targetNames[0]);
+    if (!dialog.showAndGet()) {
       return false;
     }
     final String name = javaSdks.get(dialog.getSelectedJavaSdkIndex());

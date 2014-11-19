@@ -117,8 +117,7 @@ public class RadAbsListView extends RadViewComponent {
     public void actionPerformed(AnActionEvent e) {
       ChooseResourceDialog dialog = new ChooseResourceDialog(myPanel.getModule(), new ResourceType[]{ResourceType.LAYOUT}, null, null);
       dialog.setAllowCreateResource(false);
-      dialog.show();
-      if (dialog.isOK()) {
+      if (dialog.showAndGet()) {
         String layout = dialog.getResourceName();
         setNewType(myPanel, myType, layout);
       }
