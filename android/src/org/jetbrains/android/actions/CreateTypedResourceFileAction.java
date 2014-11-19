@@ -17,13 +17,16 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.rendering.LayoutPullParserFactory;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
-import com.intellij.ide.actions.CreateElementActionBase;
+import com.intellij.ide.IdeView;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
@@ -59,13 +62,13 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class CreateTypedResourceFileAction extends CreateElementActionBase {
+public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   protected final ResourceFolderType myResourceType;
   protected final String myResourcePresentableName;
   protected final String myDefaultRootTag;
   private final boolean myValuesResourceFile;
-  private final boolean myChooseTagName;
+  private boolean myChooseTagName;
 
   public CreateTypedResourceFileAction(@NotNull String resourcePresentableName,
                                        @NotNull ResourceFolderType resourceFolderType,
@@ -80,8 +83,13 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
     myChooseTagName = chooseTagName;
   }
 
+  @Deprecated // Switch to using the typed enum instead
   public String getResourceType() {
     return myResourceType.getName();
+  }
+
+  public ResourceFolderType getResourceFolderType() {
+    return myResourceType;
   }
 
   protected InputValidator createValidator(Project project, PsiDirectory directory) {
@@ -90,11 +98,24 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
 
   @NotNull
   @Override
-  protected PsiElement[] invokeDialog(Project project, PsiDirectory directory) {
-    InputValidator validator = createValidator(project, directory);
-    Messages.showInputDialog(project, AndroidBundle.message("new.file.dialog.text"),
-                             AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName),
-                             Messages.getQuestionIcon(), "", validator);
+  protected PsiElement[] invokeDialog(@NotNull Project project, @NotNull DataContext dataContext) {
+    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    if (view != null) {
+      // If you're in the Android View, we want to ask you not just the filename but also let you
+      // create other resource folder configurations
+      AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
+      if (pane instanceof AndroidProjectViewPane) {
+        return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
+      }
+
+      final PsiDirectory directory = view.getOrChooseDirectory();
+      if (directory != null) {
+        InputValidator validator = createValidator(project, directory);
+        Messages.showInputDialog(project, AndroidBundle.message("new.file.dialog.text"),
+                                 AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName),
+                                 Messages.getQuestionIcon(), "", validator);
+      }
+    }
     return PsiElement.EMPTY_ARRAY;
   }
 
@@ -171,7 +192,7 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
   }
 
   static boolean doIsAvailable(DataContext context, final String resourceType) {
-    final PsiElement element = (PsiElement)context.getData(CommonDataKeys.PSI_ELEMENT.getName());
+    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
     if (element == null || AndroidFacet.getInstance(element) == null) {
       return false;
     }
