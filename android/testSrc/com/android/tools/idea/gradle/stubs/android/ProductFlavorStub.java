@@ -124,8 +124,8 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
   }
@@ -136,10 +136,22 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Boolean getMultiDexEnabled() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
+  public File getMultiDexKeepFile() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public File getMultiDexKeepProguard() {
+    return null;
   }
 
   @Override

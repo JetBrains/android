@@ -51,6 +51,11 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
+  public boolean isPseudoLocalesEnabled() {
+    return false;
+  }
+
+  @Override
   public boolean isJniDebuggable() {
     throw new UnsupportedOperationException();
   }
@@ -128,9 +133,21 @@ public class BuildTypeStub implements BuildType {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Boolean getMultiDexEnabled() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
+  public File getMultiDexKeepFile() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public File getMultiDexKeepProguard() {
+    return null;
   }
 }
