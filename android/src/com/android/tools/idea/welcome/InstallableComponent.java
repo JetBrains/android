@@ -34,21 +34,11 @@ public abstract class InstallableComponent {
   private final String myDescription;
   private final ScopedStateStore.Key<Boolean> myKey;
 
-  public InstallableComponent(@NotNull String name, long size, ScopedStateStore.Key<Boolean> key) {
-    this(name, size, inventDescription(name, size), key);
-  }
-
   public InstallableComponent(@NotNull String name, long size, @NotNull String description, ScopedStateStore.Key<Boolean> key) {
     myName = name;
     mySize = size;
     myDescription = description;
     myKey = key;
-  }
-
-  @NotNull
-  private static String inventDescription(String name, long size) {
-    return String.format("<html><p>This is a description for <em>%s</em> component</p>" +
-                         "<p>We know is that it takes <strong>%s</strong> disk space</p></html>", name, WelcomeUIUtils.getSizeLabel(size));
   }
 
   public boolean isOptional() {
