@@ -16,38 +16,30 @@
 package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.utils.ILogger;
+import com.android.utils.StdLogger;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Assume;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
@@ -100,7 +92,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     File destination = new File(tempDir, getName());
     InstallContext context = new InstallContext(tempDir);
     InstallComponentsPath.downloadAndUnzipSdkSeed(context, destination, 1);
-    ILogger log = new LoggerForTest();
+    ILogger log = new StdLogger(StdLogger.Level.VERBOSE);
     SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), log);
     if (manager == null) {
       throw new IOException("SDK not found");
@@ -114,7 +106,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       }
     }
 
-    InstallComponentsPath.setupSdkComponents(context, destination, Collections.singleton(new AndroidSdk()), 1);
+    new InstallComponentsOperation(context, destination, Collections.singleton(new AndroidSdk())).compute();
     manager.reloadSdk(log);
     LocalPkgInfo[] installedPkgs = manager.getLocalSdk().getPkgsInfos(EnumSet.allOf(PkgType.class));
 
@@ -145,30 +137,18 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     })), 0, shouldntBeenInstalled.size());
   }
 
-  private static class LoggerForTest extends SdkLoggerIntegration {
-    private String myTitle = null;
+  public void DISABLEDtestComponentsToInstall() {
+    InstallContext context = new InstallContext(tempDir);
 
-    @Override
-    protected void setProgress(int progress) {
-      // No need.
-    }
+    File sdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    InstallComponentsOperation operation = new InstallComponentsOperation(context, sdkPath, Collections.singleton(new AndroidSdk()));
 
-    @Override
-    protected void setDescription(String description) {
-      // No spamming
-    }
+    SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
+    assert manager != null;
 
-    @Override
-    protected void setTitle(String title) {
-      if (!StringUtil.isEmptyOrSpaces(title) && !Objects.equal(title, myTitle)) {
-        System.out.println(title);
-        myTitle = title;
-      }
-    }
+    ArrayList<String> packagesToDownload = operation.getPackagesToDownload(manager);
 
-    @Override
-    protected void lineAdded(String string) {
-      System.out.println(string);
-    }
+    System.out.println(Joiner.on("\n").join(packagesToDownload));
+    assertTrue(packagesToDownload.isEmpty());
   }
 }
