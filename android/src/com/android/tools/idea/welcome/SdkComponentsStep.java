@@ -80,8 +80,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myKeyInstallSdk = keyInstallSdk;
     mySdkDownloadPathKey = sdkDownloadPathKey;
     myComponentDescription.setEditable(false);
-    myComponentDescription.setContentType("text/html");
-    myComponentDescription.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
+    myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE));
     mySplitPane.setBorder(null);
     Font labelFont = UIUtil.getLabelFont();
     Font smallLabelFont = labelFont.deriveFont(labelFont.getSize() - 1.0f);
@@ -263,6 +265,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
+    myComponentsTable.getSelectionModel().setSelectionInterval(0, 0);
   }
 
   @NotNull
