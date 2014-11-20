@@ -38,7 +38,7 @@ public final class AndroidSdk extends InstallableComponent {
     ScopedStateStore.createKey("download.sdk", ScopedStateStore.Scope.PATH, Boolean.class);
 
   public AndroidSdk() {
-    super("Android SDK", SIZE, KEY_INSTALL_SDK);
+    super("Android SDK", SIZE, "The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your application.", KEY_INSTALL_SDK);
   }
 
   @VisibleForTesting

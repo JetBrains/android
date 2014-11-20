@@ -59,7 +59,7 @@ public final class Haxm extends InstallableComponent {
 
 
   public Haxm(ScopedStateStore.Key<Boolean> isCustomInstall) {
-    super("SDK Emulator Extra - Intel® HAXM", 2306867, KEY_INSTALL_HAXM);
+    super("Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up Android app emulation on your development computer.", KEY_INSTALL_HAXM);
     myIsCustomInstall = isCustomInstall;
   }
 
