@@ -246,7 +246,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   }
 
   private static boolean findAvdWithName(String name) {
-    for (AvdInfo avd : AvdManagerConnection.getAvds(false)) {
+    for (AvdInfo avd : AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false)) {
       if (AvdManagerConnection.getAvdDisplayName(avd).equals(name)) {
         return true;
       }
@@ -419,7 +419,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
         String displayName = state.get(DISPLAY_NAME_KEY);
         if (displayName != null) {
-          return AvdEditWizard.cleanAvdName(displayName, !displayName.equals(myOriginalName));
+          return AvdEditWizard.cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), displayName,
+                                            !displayName.equals(myOriginalName));
         }
         return "";
       }

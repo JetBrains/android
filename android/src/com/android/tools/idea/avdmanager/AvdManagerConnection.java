@@ -37,6 +37,7 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
 
 /**
  * A wrapper class for communicating with {@link com.android.sdklib.internal.avd.AvdManager} and exposing helper functions
@@ -66,30 +67,59 @@ public class AvdManagerConnection {
   };
   private static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
-  private static AvdManager ourAvdManager;
-  private static Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
-  private static File ourEmulatorBinary;
+  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
+
+  private AvdManager ourAvdManager;
+  private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
+  private File ourEmulatorBinary;
+  private static Map<LocalSdk, AvdManagerConnection> ourCache = new WeakHashMap<LocalSdk, AvdManagerConnection>();
+  @Nullable private final LocalSdk myLocalSdk;
+
+  @NotNull
+  public static AvdManagerConnection getDefaultAvdManagerConnection() {
+      AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      LocalSdk localSdk = null;
+      if (androidSdkData != null) {
+        localSdk = androidSdkData.getLocalSdk();
+      }
+    if (localSdk == null) {
+      return NULL_CONNECTION;
+    }
+    else {
+      return getAvdManagerConnection(localSdk);
+    }
+  }
+
+  @NotNull
+  public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull LocalSdk localSdk) {
+    if (!ourCache.containsKey(localSdk)) {
+      ourCache.put(localSdk, new AvdManagerConnection(localSdk));
+    }
+    return ourCache.get(localSdk);
+  }
+
+  private AvdManagerConnection(@Nullable LocalSdk localSdk) {
+    myLocalSdk = localSdk;
+  }
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
    */
-  private static boolean initIfNecessary() {
+  private boolean initIfNecessary() {
     if (ourAvdManager == null) {
-      AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-      if (androidSdkData == null) {
+      if (myLocalSdk == null) {
         IJ_LOG.error("No Android SDK Found");
         return false;
       }
-      LocalSdk localSdk = androidSdkData.getLocalSdk();
       try {
-        ourAvdManager = AvdManager.getInstance(localSdk, SDK_LOG);
+        ourAvdManager = AvdManager.getInstance(myLocalSdk, SDK_LOG);
       }
       catch (AndroidLocation.AndroidLocationException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
         return false;
       }
-      ourEmulatorBinary = new File(ourAvdManager.getLocalSdk().getLocation(),
-                                   FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
+      ourEmulatorBinary =
+        new File(ourAvdManager.getLocalSdk().getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
       if (!ourEmulatorBinary.isFile()) {
         IJ_LOG.error("No emulator binary found!");
         return false;
@@ -104,7 +134,7 @@ public class AvdManagerConnection {
    * @return a list of AVDs currently present on the system.
    */
   @NotNull
-  public static List<AvdInfo> getAvds(boolean forceRefresh) {
+  public List<AvdInfo> getAvds(boolean forceRefresh) {
     if (!initIfNecessary()) {
       return ImmutableList.of();
     }
@@ -139,7 +169,7 @@ public class AvdManagerConnection {
    * the AVD does not define a resolution.
    */
   @Nullable
-  public static Dimension getAvdResolution(@NotNull AvdInfo info) {
+  public Dimension getAvdResolution(@NotNull AvdInfo info) {
     if (!initIfNecessary()) {
       return null;
     }
@@ -177,7 +207,7 @@ public class AvdManagerConnection {
    * of that file.
    */
   @Nullable
-  protected static Dimension getResolutionFromLayoutFile(@NotNull File layoutFile) {
+  protected Dimension getResolutionFromLayoutFile(@NotNull File layoutFile) {
     if (!ourSkinLayoutDefinitions.containsKey(layoutFile)) {
       ourSkinLayoutDefinitions.put(layoutFile, SkinLayoutDefinition.parseFile(layoutFile));
     }
@@ -223,7 +253,7 @@ public class AvdManagerConnection {
   /**
    * Delete the given AVD if it exists.
    */
-  public static void deleteAvd(@NotNull AvdInfo info) {
+  public void deleteAvd(@NotNull AvdInfo info) {
     if (!initIfNecessary()) {
       return;
     }
@@ -233,7 +263,7 @@ public class AvdManagerConnection {
   /**
    * Launch the given AVD in the emulator.
    */
-  public static void startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
+  public void startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
     if (!initIfNecessary()) {
       return;
     }
@@ -348,7 +378,7 @@ public class AvdManagerConnection {
    * Returns the created AVD.
    */
   @Nullable
-  public static AvdInfo createOrUpdateAvd(@Nullable AvdInfo currentInfo,
+  public AvdInfo createOrUpdateAvd(@Nullable AvdInfo currentInfo,
                                           @NotNull String avdName,
                                           @NotNull Device device,
                                           @NotNull AvdWizardConstants.SystemImageDescription systemImageDescription,
@@ -423,7 +453,7 @@ public class AvdManagerConnection {
     return null;
   }
 
-  public static boolean avdExists(String candidate) {
+  public boolean avdExists(String candidate) {
     if (!initIfNecessary()) {
       return false;
     }
@@ -436,7 +466,7 @@ public class AvdManagerConnection {
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING;
   }
 
-  public static boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {
+  public boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
         ourAvdManager.updateAvd(avdInfo, SDK_LOG);
@@ -449,7 +479,7 @@ public class AvdManagerConnection {
     return false;
   }
 
-  public static boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
+  public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
         ourAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
@@ -462,7 +492,7 @@ public class AvdManagerConnection {
     return false;
   }
 
-  public static boolean wipeUserData(@NotNull AvdInfo avdInfo) {
+  public boolean wipeUserData(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       File userdataImage = new File(avdInfo.getDataFolderPath(), "userdata-qemu.img");
       if (userdataImage.isFile()) {
