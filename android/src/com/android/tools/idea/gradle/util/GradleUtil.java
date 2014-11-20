@@ -523,17 +523,32 @@ public final class GradleUtil {
   }
 
   /**
-   * Creates the Gradle wrapper in the project at the given directory.
+   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
    *
    * @param projectDirPath the project's root directory.
-   * @param gradleVersion the version of Gradle to use. If not specified, this method will use the latest supported version of Gradle.
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
    *
    * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
    */
-  public static boolean createGradleWrapper(@NotNull File projectDirPath, @Nullable String gradleVersion) throws IOException {
+  public static boolean createGradleWrapper(@NotNull File projectDirPath) throws IOException {
+    return createGradleWrapper(projectDirPath, SdkConstants.GRADLE_LATEST_VERSION);
+  }
+
+  /**
+   * Creates the Gradle wrapper in the project at the given directory.
+   *
+   * @param projectDirPath the project's root directory.
+   * @param gradleVersion the version of Gradle to use.
+   * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
+   * not created (e.g. the template files for the wrapper were not found.)
+   * @throws IOException any unexpected I/O error.
+   *
+   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   */
+  @VisibleForTesting
+  public static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
     if (!projectWrapperDirPath.isDirectory()) {
       File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
@@ -554,8 +569,7 @@ public final class GradleUtil {
       FileUtil.copyDirContent(wrapperSrcDirPath, projectDirPath);
     }
     File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectDirPath);
-    String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
-    updateGradleDistributionUrl(version, wrapperPropertiesFile);
+    updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
     return true;
   }
 
