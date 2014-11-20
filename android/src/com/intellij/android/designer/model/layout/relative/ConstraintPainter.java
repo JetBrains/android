@@ -703,7 +703,7 @@ public class ConstraintPainter {
         if (textDirection.isRightSegment(sourceSegmentTypeX)) {
           sourceX -= 2 * ARROW_SIZE;
         }
-        else if (sourceSegmentTypeX == SegmentType.LEFT) {
+        else if (textDirection.isLeftSegment(sourceSegmentTypeX)) {
           sourceX += 2 * ARROW_SIZE;
         }
         else {
@@ -750,7 +750,7 @@ public class ConstraintPainter {
     // Adjust position of source arrow such that it does not sit across edge; it
     // should point directly at the edge
     if (Math.abs(sharedX - sourceX) < 2 * ARROW_SIZE) {
-      if (sourceSegmentTypeX == SegmentType.LEFT) {
+      if (textDirection.isLeftSegment(sourceSegmentTypeX)) {
         sharedX = sourceX;
         sourceX = sharedX + 2 * ARROW_SIZE;
       }
