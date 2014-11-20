@@ -36,7 +36,7 @@ android {
             resValue "string", "dynamic_string5", "String 5 defined by build type debug"
         }
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
