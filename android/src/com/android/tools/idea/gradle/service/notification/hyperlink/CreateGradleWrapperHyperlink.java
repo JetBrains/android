@@ -27,18 +27,16 @@ import java.io.File;
 import java.io.IOException;
 
 public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
-  @NotNull private final String myGradleVersion;
 
-  public CreateGradleWrapperHyperlink(@NotNull String gradleVersion) {
+  public CreateGradleWrapperHyperlink() {
     super("createGradleWrapper", "Migrate to Gradle wrapper and sync project");
-    myGradleVersion = gradleVersion;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     File projectDirPath = new File(project.getBasePath());
     try {
-      GradleUtil.createGradleWrapper(projectDirPath, myGradleVersion);
+      GradleUtil.createGradleWrapper(projectDirPath);
       GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
       if (settings != null) {
         settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);

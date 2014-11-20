@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
+import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -294,7 +295,12 @@ public abstract class GuiTestCase {
       delete(gradlePropertiesFilePath);
     }
 
-    createGradleWrapper(projectPath, gradleVersion);
+    if (gradleVersion == null) {
+      createGradleWrapper(projectPath);
+    }
+    else {
+      createGradleWrapper(projectPath, gradleVersion);
+    }
 
     if (updateAndroidPluginVersion) {
       updateGradleVersions(projectPath);
