@@ -119,7 +119,7 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
-    boolean created = GradleUtil.createGradleWrapper(projectDirPath, null);
+    boolean created = GradleUtil.createGradleWrapper(projectDirPath);
     assertTrue(created);
     assertGradleWrapperCreated(projectWrapperDirPath, SdkConstants.GRADLE_LATEST_VERSION);
   }
