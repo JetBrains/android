@@ -94,8 +94,6 @@ final class PreSyncChecks {
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
 
     if (wrapperPropertiesFile == null) {
-      String gradleVersion = GRADLE_MINIMUM_VERSION;
-
       DistributionType distributionType = gradleSettings.getDistributionType();
       boolean createWrapper = false;
       if (distributionType == null) {
@@ -122,7 +120,7 @@ final class PreSyncChecks {
         }
 
         try {
-          GradleUtil.createGradleWrapper(projectDirPath, gradleVersion);
+          GradleUtil.createGradleWrapper(projectDirPath);
           if (distributionType == null) {
             gradleSettings.setDistributionType(DEFAULT_WRAPPED);
           }
@@ -224,15 +222,14 @@ final class PreSyncChecks {
                    "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
       int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
 
-      String newGradleVersion = GRADLE_LATEST_VERSION;
       if (answer == Messages.OK) {
         try {
           File projectDirPath = new File(project.getBasePath());
-          GradleUtil.createGradleWrapper(projectDirPath, newGradleVersion);
+          GradleUtil.createGradleWrapper(projectDirPath);
           gradleSettings.setDistributionType(DEFAULT_WRAPPED);
         }
         catch (IOException e) {
-          LOG.warn("Failed to update Gradle wrapper file to Gradle version " + newGradleVersion, e);
+          LOG.warn("Failed to update Gradle wrapper file to Gradle version " + GRADLE_LATEST_VERSION, e);
         }
         return;
       }
