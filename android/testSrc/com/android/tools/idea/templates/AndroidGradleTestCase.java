@@ -316,7 +316,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
-    GradleUtil.createGradleWrapper(projectRoot, null /* use latest supported Gradle version */);
+    GradleUtil.createGradleWrapper(projectRoot);
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
