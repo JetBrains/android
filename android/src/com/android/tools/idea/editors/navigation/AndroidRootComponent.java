@@ -266,7 +266,7 @@ public class AndroidRootComponent extends JComponent {
         if (service != null) {
           if (!isMenu) {
             // Don't show menus in the layout view
-            service.getLayoutlibCallback().getActionBarCallback().setMenuIdNames(Collections.<String>emptyList());
+            service.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
           }
           RenderResult renderedResult = service.render();
           if (renderedResult != null) {
