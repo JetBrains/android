@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
@@ -54,10 +55,23 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
           return true;
         }
         String deviceTagId = myCurrentDevice.getTagId();
-        if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
-          return input.getTag() == null || input.getTag().getId().equals(SystemImage.DEFAULT_TAG.getId());
+        IdDisplay inputTag = input.getTag();
+        if (inputTag == null) {
+          return true;
         }
-        return deviceTagId.equals(input.getTag().getId());
+
+        // Unknown/generic device?
+        if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
+          // If so include all system images, except those we *know* not to match this type
+          // of device. Rather than just checking "inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
+          // here (which will filter out system images with a non-default tag, such as the Google API
+          // system images (see issue #78947), we instead deliberately skip the other form factor images
+
+          return inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId()) ||
+                 !inputTag.equals(AvdWizardConstants.TV_TAG) && !inputTag.equals(AvdWizardConstants.WEAR_TAG);
+        }
+
+        return deviceTagId.equals(inputTag.getId());
       }
     };
     mySystemImageList.setFilter(filter);
