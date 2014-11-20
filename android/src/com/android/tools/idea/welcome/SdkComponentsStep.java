@@ -265,7 +265,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
-    myComponentsTable.getSelectionModel().setSelectionInterval(0, 0);
+    if (myInstallableComponents.length > 0) {
+      myComponentsTable.getSelectionModel().setSelectionInterval(0, 0);
+    }
   }
 
   @NotNull
