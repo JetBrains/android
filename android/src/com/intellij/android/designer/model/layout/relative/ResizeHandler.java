@@ -79,10 +79,10 @@ public class ResizeHandler extends GuidelineHandler {
       }
     }
     if (verticalEdgeType != null) {
-      if (verticalEdgeType == SegmentType.LEFT) {
+      if (myTextDirection.isLeftSegment(verticalEdgeType)) {
         myMoveLeft = true;
       }
-      else if (verticalEdgeType == SegmentType.RIGHT) {
+      else if (myTextDirection.isRightSegment(verticalEdgeType)) {
         myMoveRight = true;
       }
     }
