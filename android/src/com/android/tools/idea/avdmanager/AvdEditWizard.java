@@ -397,7 +397,7 @@ public class AvdEditWizard extends DynamicWizard {
    * Example: 10M or 1G
    */
   @NotNull
-  private static String toIniString(@NotNull Storage storage, boolean convertToMb) {
+  public static String toIniString(@NotNull Storage storage, boolean convertToMb) {
     Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
     String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
     return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
