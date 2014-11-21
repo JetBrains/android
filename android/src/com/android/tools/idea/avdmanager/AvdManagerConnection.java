@@ -65,7 +65,7 @@ public class AvdManagerConnection {
       IJ_LOG.error(errorFormat != null ? String.format(errorFormat, args) : "", t);
     }
   };
-  private static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
+  public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
 

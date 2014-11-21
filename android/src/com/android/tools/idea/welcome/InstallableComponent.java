@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.intellij.util.download.DownloadableFileDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Component that may be installed by the first run wizard.
@@ -78,11 +77,11 @@ public abstract class InstallableComponent {
   }
 
   @NotNull
-  public abstract PkgDesc.Builder[] getRequiredSdkPackages();
+  public abstract Collection<IPkgDesc> getRequiredSdkPackages();
 
   public abstract void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep);
 
   public abstract DynamicWizardStep[] createSteps();
 
-  public abstract void configure(@NotNull InstallContext installContext, @NotNull File sdk);
+  public abstract void configure(@NotNull InstallContext installContext, @NotNull File sdk) throws WizardException;
 }

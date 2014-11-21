@@ -26,9 +26,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.internal.repository.packages.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +81,8 @@ public class AvdWizardConstants {
   public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_SKIN_PATH, WIZARD, File.class);
 
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
-  public static final Key<String> AVD_ID_KEY = createKey("AvdId", WIZARD, String.class);
+  public static final String AVD_INI_AVD_ID = "AvdId";
+  public static final Key<String> AVD_ID_KEY = createKey(AVD_INI_AVD_ID, WIZARD, String.class);
 
   // Device definition keys
 
