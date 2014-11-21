@@ -78,7 +78,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   public AndroidVirtualDevice() {
     super("Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
-          "A preconfigured and optimized Android Virtual Device for emulator app testing.", KEY_ENABLED);
+          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", KEY_ENABLED);
   }
 
   @NotNull
