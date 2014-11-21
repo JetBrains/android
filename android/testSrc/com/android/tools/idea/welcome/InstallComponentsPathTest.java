@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.AndroidTestCaseHelper;
@@ -98,11 +98,11 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       throw new IOException("SDK not found");
     }
 
-    PkgDesc.Builder[] packages = AndroidSdk.getPackages();
+    Collection<IPkgDesc> sdkPackages = new AndroidSdk().getRequiredSdkPackages();
     Set<String> toInstall = Sets.newHashSet();
-    for (PkgDesc.Builder sdkPackage : packages) {
+    for (IPkgDesc sdkPackage : sdkPackages) {
       if (sdkPackage != null) {
-        toInstall.add(sdkPackage.create().getInstallId());
+        toInstall.add(sdkPackage.getInstallId());
       }
     }
 
@@ -110,7 +110,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     manager.reloadSdk(log);
     LocalPkgInfo[] installedPkgs = manager.getLocalSdk().getPkgsInfos(EnumSet.allOf(PkgType.class));
 
-    assertEquals(9, toInstall.size());
+    assertEquals(8, toInstall.size());
     final Map<String, LocalPkgInfo> installed = Maps.newHashMap();
     for (LocalPkgInfo info : installedPkgs) {
       installed.put(info.getDesc().getInstallId(), info);
@@ -118,11 +118,9 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
     System.out.println("Packages list: \n\t" + Joiner.on("\n\t").join(toInstall));
 
-    // TODO: This package is not available for install
-    toInstall.remove("sample-21");
-    // TODO: Why is this always installed?
-    installed.remove("extra-intel-hardware_accelerated_execution_manager");
-
+    //// TODO: Why is this always installed?
+    //installed.remove("extra-intel-hardware_accelerated_execution_manager");
+    //
     Set<String> all = ImmutableSet.copyOf(Iterables.concat(toInstall, installed.keySet()));
 
     Set<String> notInstalled = ImmutableSet.copyOf(Iterables.filter(all, not(in(installed.keySet()))));
