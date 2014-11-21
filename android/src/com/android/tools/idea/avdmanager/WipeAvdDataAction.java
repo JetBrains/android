@@ -44,7 +44,7 @@ public class WipeAvdDataAction extends AvdUiAction {
     int result = JOptionPane.showConfirmDialog(null, "Do you really want to wipe user files from AVD " + avdInfo.getName() + "?",
                                                "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
     if (result == JOptionPane.YES_OPTION) {
-      AvdManagerConnection.wipeUserData(avdInfo);
+      AvdManagerConnection.getDefaultAvdManagerConnection().wipeUserData(avdInfo);
       refreshAvds();
     }
   }
