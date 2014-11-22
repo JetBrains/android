@@ -33,7 +33,7 @@ public class DeleteDeviceAction extends DeviceUiAction {
   @Override
   public boolean isEnabled() {
     Device device = myProvider.getDevice();
-    return device != null && DeviceManagerConnection.isUserDevice(device);
+    return device != null && DeviceManagerConnection.getDefaultDeviceManagerConnection().isUserDevice(device);
   }
 
   @Override
@@ -43,7 +43,7 @@ public class DeleteDeviceAction extends DeviceUiAction {
       .showConfirmDialog(null, "Do you really want to delete Device " + device.getDisplayName() + "?",
                          "Confirm Deletion", JOptionPane.YES_NO_OPTION);
     if (result == JOptionPane.YES_OPTION) {
-      DeviceManagerConnection.deleteDevice(device);
+      DeviceManagerConnection.getDefaultDeviceManagerConnection().deleteDevice(device);
       myProvider.refreshDevices();
     }
   }
