@@ -82,8 +82,8 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   @NotNull
-  private static Device getDevice() throws WizardException {
-    List<Device> devices = DeviceManagerConnection.getDevices();
+  private static Device getDevice(@NotNull LocalSdk sdk) throws WizardException {
+    List<Device> devices = DeviceManagerConnection.getDeviceManagerConnection(sdk).getDevices();
     for (Device device : devices) {
       if (Objects.equal(device.getId(), ID_DEVICE_NEXUS_5)) {
         return device;
@@ -113,9 +113,11 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @Nullable
   @VisibleForTesting
-  static AvdInfo createAvd(@NotNull AvdManagerConnection connection, @NotNull String sdkLocation) throws WizardException {
-    Device d = getDevice();
-    SystemImageDescription systemImageDescription = getSystemImageDescription(sdkLocation);
+  static AvdInfo createAvd(@NotNull AvdManagerConnection connection, @NotNull LocalSdk sdk) throws WizardException {
+    Device d = getDevice(sdk);
+    File location = sdk.getLocation();
+    assert location != null;
+    SystemImageDescription systemImageDescription = getSystemImageDescription(location.getAbsolutePath());
     String cardSize = AvdEditWizard.toIniString(DEFAULT_INTERNAL_STORAGE, false);
     File hardwareSkinPath = AvdEditWizard.getHardwareSkinPath(d.getDefaultHardware());
     String internalName = AvdEditWizard.cleanAvdName(connection, DEVICE_DISPLAY_NAME, true);
@@ -185,7 +187,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   public void configure(@NotNull InstallContext installContext, @NotNull File sdkLocation) throws WizardException {
     myProgressStep.getProgressIndicator().setIndeterminate(true);
     myProgressStep.getProgressIndicator().setText("Creating Android virtual device");
-    installContext.print("Creating Android virtual device", ConsoleViewContentType.SYSTEM_OUTPUT);
+    installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT);
     try {
       String sdkPath = sdkLocation.getAbsolutePath();
       SdkManager manager = SdkManager.createManager(sdkPath, new LogWrapper(LOG));
@@ -193,10 +195,12 @@ public class AndroidVirtualDevice extends InstallableComponent {
         throw new WizardException("Android SDK was not properly setup");
       }
       LocalSdk sdk = manager.getLocalSdk();
-      AvdInfo avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdk), sdkPath);
+      AvdInfo avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdk), sdk);
       if (avd == null) {
         throw new WizardException("Unable to create Android virtual device");
       }
+      installContext.print(String.format("Android virtual device %s was successfully created\n", avd.getName()),
+                           ConsoleViewContentType.SYSTEM_OUTPUT);
     }
     catch (WizardException e) {
       throw new WizardException("Unable to access SDK", e);
