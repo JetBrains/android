@@ -75,7 +75,7 @@ public class AvdBuilder {
   @NotNull
   public AvdBuilder setDevice(@NotNull String manufacturer, @NotNull String deviceId) throws AvdBuilderException {
     Device selectedDevice = null;
-    List<Device> devices = DeviceManagerConnection.getDevices();
+    List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     for (Device device : devices) {
       if (manufacturer.equals(device.getManufacturer()) && deviceId.equals(device.getId())) {
         selectedDevice = device;

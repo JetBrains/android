@@ -95,7 +95,7 @@ public class AvdEditWizard extends DynamicWizard {
    */
   private void fillExistingInfo(@NotNull AvdInfo avdInfo) {
     ScopedStateStore state = getState();
-    List<Device> devices = DeviceManagerConnection.getDevices();
+    List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
     String manufacturer = avdInfo.getDeviceManufacturer();
     String deviceId = avdInfo.getProperties().get(AvdManager.AVD_INI_DEVICE_NAME);

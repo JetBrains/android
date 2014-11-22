@@ -201,7 +201,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void refreshDeviceProfiles() {
-    myDevices = DeviceManagerConnection.getDevices();
+    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
       String category = getCategory(d);
