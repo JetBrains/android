@@ -22,6 +22,7 @@ import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.SingleStepPath;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -62,6 +63,27 @@ public class FirstRunWizard extends DynamicWizard {
     }
     addPath(new SingleStepPath(progressStep));
     super.init();
+  }
+
+  @Override
+  public boolean canCancel() {
+    return AndroidSdkUtils.isAndroidSdkAvailable();
+  }
+
+  @Override
+  public void doCancelAction() {
+    ConfirmFirstRunWizardCloseDialog.Result result = new ConfirmFirstRunWizardCloseDialog().open();
+    switch (result) {
+      case Skip:
+        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
+        // Fallthrough
+      case Rerun:
+        myHost.close(DynamicWizardHost.CloseAction.CANCEL);
+        break;
+      case DoNotClose:
+        break; // Do nothing
+    }
+
   }
 
   // We need to show progress page before proceeding closing the wizard.

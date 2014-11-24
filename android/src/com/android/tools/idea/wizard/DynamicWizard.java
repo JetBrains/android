@@ -208,15 +208,16 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * Update the buttons for the wizard
    * @param canGoPrev whether the previous button is enabled
    * @param canGoNext whether the next button is enabled
+   * @param canCancelCurrentPath whether the cancel button is enabled
    * @param canFinishCurrentPath if this is set to true and the current path is the last non-optional path, the canFinish
-   *                             button will be enabled.
    */
-  public final void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canFinishCurrentPath) {
+  public final void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canCancelCurrentPath, boolean canFinishCurrentPath) {
     if (!myIsInitialized) {
       // Buttons were not yet created
       return;
     }
-    myHost.updateButtons(canGoPrev && hasPrevious(), canGoNext && hasNext(), canFinishCurrentPath && canFinish());
+    myHost.updateButtons(canGoPrev && hasPrevious(), canGoNext && hasNext(),
+                         canCancelCurrentPath && canCancel(), canFinishCurrentPath && canFinish());
   }
 
   /**
@@ -425,6 +426,13 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     new WizardCompletionAction().execute();
   }
 
+  /**
+   * Cancel the wizard
+   */
+  public void doCancelAction() {
+    myHost.close(DynamicWizardHost.CloseAction.CANCEL);
+  }
+
   protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
     return UndoConfirmationPolicy.DEFAULT;
   }
@@ -507,6 +515,10 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
         return;
       }
     }
+  }
+
+  public boolean canCancel() {
+    return true;
   }
 
   protected static class PathIterator {

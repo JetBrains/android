@@ -31,6 +31,8 @@ import java.util.List;
 public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenProvider {
   public static final String SYSTEM_PROPERTY_DISABLE_WIZARD = "disable.android.first.run";
 
+  private static boolean ourWasShown = false; // Do not show wizard multiple times in one session even if it was canceled
+
   /**
    * Analyzes system state and decides if and how the wizard should be invoked.
    *
@@ -52,17 +54,23 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     }
   }
 
+  private static boolean isWizardDisabled() {
+    return AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD);
+  }
+
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
+    //noinspection AssignmentToStaticFieldFromInstanceMethod
+    ourWasShown = true;
     return new WelcomeScreenHost(wizardMode);
   }
 
   @Override
   public boolean isAvailable() {
-    return !(AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD)) && getWizardMode() != null;
+    return !ourWasShown && !isWizardDisabled() && getWizardMode() != null;
   }
 
 }
