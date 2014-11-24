@@ -177,6 +177,8 @@ public class ResourceEditor extends PropertyEditor {
         myEditor.getChildComponent().requestFocus();
       }
     });
+    myEditor.getButton().setSize(22);
+    myEditor.getButton().setAttachedComponent(null);
   }
 
   public static void selectTextOnFocusGain(JTextField textField) {
