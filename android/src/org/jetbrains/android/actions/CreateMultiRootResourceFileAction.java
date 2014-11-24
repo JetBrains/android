@@ -70,6 +70,17 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       if (pane instanceof AndroidProjectViewPane) {
           return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
       }
+
+      final PsiDirectory directory = view.getOrChooseDirectory();
+      if (directory != null) {
+        InputValidator validator = createValidator(project, directory);
+        final AndroidFacet facet = AndroidFacet.getInstance(directory);
+        if (facet != null) {
+          final MyDialog dialog = new MyDialog(facet, validator);
+          dialog.show();
+          return PsiElement.EMPTY_ARRAY;
+        }
+      }
     }
 
     Module module = LangDataKeys.MODULE.getData(dataContext);
@@ -78,7 +89,11 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       assert facet != null;
       PsiDirectory directory = getResourceDirectory(null, module, true);
       if (directory != null) {
-        InputValidator validator = createValidator(project, directory);
+        PsiDirectory typeDirectory = directory.findSubdirectory(myResourceType.getName());
+        if (typeDirectory == null) {
+          return PsiElement.EMPTY_ARRAY;
+        }
+        InputValidator validator = createValidator(project, typeDirectory);
         final MyDialog dialog = new MyDialog(facet, validator);
         dialog.show();
       }
