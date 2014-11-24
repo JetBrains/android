@@ -23,9 +23,9 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -125,57 +125,31 @@ public final class DefaultSdks {
   public static void setDefaultJavaHome(@NotNull File path) {
     if (JavaSdk.checkForJdk(path)) {
       File canonicalPath = resolvePath(path);
-      // Try to set this path into the "default" JDK associated with the IntelliJ SDKs.
-      Sdk defaultJdk = getDefaultJdk();
-
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        // Delete the JDK and recreate it.
-        if (defaultJdk != null) {
-          ProjectJdkTable.getInstance().removeJdk(defaultJdk);
-        }
-        VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
-        if (virtualPath != null) {
-          defaultJdk = createJdk(virtualPath);
-          if (defaultJdk == null) {
-            // Unlikely to happen
-            throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
-          }
-          updateAllSdks(defaultJdk);
-        }
+        // Delete all JDKs in Android Studio. We want to have only one.
         List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
-        // Set up a list of SDKs we don't need any more. At the end we'll delete them.
-        List<Sdk> sdksToDelete = Lists.newArrayList();
-
-        if (defaultJdk != null) {
-          for (Sdk jdk : jdks) {
-            if (Objects.equal(jdk.getName(), defaultJdk.getName())) {
-              sdksToDelete.add(defaultJdk);
-            }
-            else {
-              // This may actually be a different copy of the SDK than what we obtained from the JDK. Set its path to be sure.
-              setJdkPath(jdk, canonicalPath);
-            }
-          }
+        for (final Sdk jdk : jdks) {
+          ProjectJdkTable.getInstance().removeJdk(jdk);
         }
-        for (final Sdk sdk : sdksToDelete) {
-          ProjectJdkTable.getInstance().removeJdk(sdk);
-        }
-        return;
       }
-      if (defaultJdk != null) {
-        setJdkPath(defaultJdk, canonicalPath);
 
-        // Flip through the IntelliJ SDKs and make sure they point to this JDK.
-        updateAllSdks(defaultJdk);
+      VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
+      if (virtualPath != null) {
+        Sdk newJdk = createJdk(virtualPath);
+        if (newJdk == null) {
+          // Unlikely to happen
+          throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
+        }
+        updateAllSdks(newJdk);
+
+        ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
+        Project[] openProjects = projectManager.getOpenProjects();
+        for (Project project : openProjects) {
+          NewProjectUtil.applyJdkToProject(project, newJdk);
+        }
       }
       else {
-        // We didn't have a JDK set at all. Try to create one.
-        VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
-        if (virtualPath != null) {
-          defaultJdk = createJdk(virtualPath);
-          assert defaultJdk != null;
-          updateAllSdks(defaultJdk);
-        }
+        throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
       }
     }
   }

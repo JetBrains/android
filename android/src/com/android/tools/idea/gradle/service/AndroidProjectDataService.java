@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -148,7 +149,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
-        if (jdk == null || !Jdks.isApplicableJdk(jdk, javaLangVersion)) {
+        if (jdk == null || (!AndroidStudioSpecificInitializer.isAndroidStudio() && !Jdks.isApplicableJdk(jdk, javaLangVersion))) {
           jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
         }
         if (jdk == null) {
