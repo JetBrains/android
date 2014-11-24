@@ -765,8 +765,8 @@ public final class GradleUtil {
         catch (IOException e) {
           LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
         }
-        if (gradleVersion != null && gradleVersion.equals(SdkConstants.GRADLE_LATEST_VERSION)) {
-          File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + gradleVersion);
+        if (gradleVersion != null && isCompatibleWithEmbeddedGradleVersion(gradleVersion)) {
+          File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + SdkConstants.GRADLE_LATEST_VERSION);
           LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
           if (embeddedPath.isDirectory()) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
@@ -778,6 +778,11 @@ public final class GradleUtil {
         }
       }
     }
+  }
+
+  // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
+  private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
+    return gradleVersion.equals(SdkConstants.GRADLE_MINIMUM_VERSION) || gradleVersion.equals(SdkConstants.GRADLE_LATEST_VERSION);
   }
 
   @NotNull
