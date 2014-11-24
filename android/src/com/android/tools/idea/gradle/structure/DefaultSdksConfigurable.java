@@ -63,8 +63,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   @Nullable private final Project myProject;
 
   // These paths are system-dependent.
-  @NotNull private String myOriginalJdkHomePath;
-  @NotNull private String myOriginalSdkHomePath;
+  private String myOriginalJdkHomePath;
+  private String myOriginalSdkHomePath;
 
   private TextFieldWithBrowseButton mySdkLocationTextField;
   private TextFieldWithBrowseButton myJdkLocationTextField;
@@ -100,8 +100,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(getSdkLocation(), myProject);
         DefaultSdks.setDefaultJavaHome(getJdkLocation());
+        DefaultSdks.setDefaultAndroidHome(getSdkLocation(), myProject);
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
