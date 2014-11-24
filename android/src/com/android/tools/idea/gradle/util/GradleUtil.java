@@ -723,7 +723,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static File getAndroidStudioLocalMavenRepoPath() {
+  public static File getAndroidStudioLocalMavenRepoPath() {
     File repoPath = new File(getEmbeddedGradleArtifactsDirPath(), "m2repository");
     LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
     return repoPath.isDirectory() ? repoPath : null;

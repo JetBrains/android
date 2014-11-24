@@ -60,6 +60,8 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
+import org.jetbrains.plugins.gradle.model.data.BuildScriptClasspathData;
+import org.jetbrains.plugins.gradle.model.data.BuildScriptClasspathData.ClasspathEntry;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -170,6 +172,64 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // For plain Java projects (non-Gradle) we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
+  }
+
+  @Override
+  public void populateModuleExtraModels(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    if (inAndroidGradleProject(gradleModule) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      // We add the Android Gradle plugin jars (from the embedded Maven repo) to the classpath to make the build.gradle file editor resolve
+      // methods from the plugin.
+      Set<String> classes = Sets.newHashSet();
+      Set<String> sources = Sets.newHashSet();
+      for (File jarPath : findAndroidGradlePluginJarPaths()) {
+        String jarName = jarPath.getName();
+        if (jarName.endsWith("sources.jar")) {
+          sources.add(jarPath.getPath());
+        }
+        else if (jarName.endsWith(SdkConstants.DOT_JAR)) {
+          classes.add(jarPath.getPath());
+        }
+      }
+      if (!classes.isEmpty()) {
+        ClasspathEntry classpathEntry = new ClasspathEntry(classes, sources, Collections.<String>emptySet());
+        List<ClasspathEntry> classpathEntries = Collections.singletonList(classpathEntry);
+        BuildScriptClasspathData buildScriptClasspathData = new BuildScriptClasspathData(GradleConstants.SYSTEM_ID, classpathEntries);
+        ideModule.createChild(BuildScriptClasspathData.KEY, buildScriptClasspathData);
+      }
+    }
+    else {
+      nextResolver.populateModuleExtraModels(gradleModule, ideModule);
+    }
+  }
+
+  @NotNull
+  private static List<File> findAndroidGradlePluginJarPaths() {
+    File repoPath = GradleUtil.getAndroidStudioLocalMavenRepoPath();
+    if (repoPath != null) {
+      File parentPath = new File(repoPath, FileUtil.join("com", "android", "tools", "build"));
+      if (parentPath.isDirectory()) {
+        List<File> paths = Lists.newArrayList();
+        paths.addAll(findAndroidGradlePluginJarPaths(parentPath, "builder"));
+        paths.addAll(findAndroidGradlePluginJarPaths(parentPath, "builder-model"));
+        paths.addAll(findAndroidGradlePluginJarPaths(parentPath, "gradle"));
+        return paths;
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  private static List<File> findAndroidGradlePluginJarPaths(@NotNull File parentPath, @NotNull String artifactId) {
+    File artifactPath = new File(parentPath, artifactId);
+    if (artifactPath.isDirectory()) {
+      for (File versionDirPath : FileUtil.notNullize(artifactPath.listFiles())) {
+        File[] files = FileUtil.notNullize(versionDirPath.listFiles());
+        if (files.length > 0) {
+          return Arrays.asList(files);
+        }
+      }
+    }
+    return Collections.emptyList();
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
