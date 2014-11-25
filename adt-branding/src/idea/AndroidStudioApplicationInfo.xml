@@ -35,8 +35,8 @@
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>
-  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__,%20$DESCR&amp;status=New"
-            release-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__,%20$DESCR&amp;status=New"/>
+  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR&amp;status=New"
+        release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR&amp;status=New"/>
   <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://tools.android.com/recent"/>
   <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
