@@ -473,7 +473,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessagesToolWindowFixture.MessageFixture msg =
-      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
+      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.2 is required."));
     msg.findHyperlink("Migrate to Gradle wrapper and sync project").click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish()
