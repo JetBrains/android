@@ -208,7 +208,8 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
       upd.updateAll(myRequestedPackages,
                     true,   // all
                     false,  // dryMode
-                    null);  // acceptLicense
+                    null,   // acceptLicense
+                    true);  // includeDependencies
 
       while (myBackgroundSuccess == null) {
         try {
