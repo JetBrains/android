@@ -30,13 +30,13 @@ import java.util.Map;
  */
 public class GradleTaskExecutionContext {
 
-  @NotNull private final GradleInvoker                                      myGradleInvoker;
-  @NotNull private final Project                                            myProject;
-  @NotNull private final List<String>                                       myGradleTasks;
-  @NotNull private final List<String>                                       myCommandLineArgs;
+  @NotNull private final GradleInvoker myGradleInvoker;
+  @NotNull private final Project myProject;
+  @NotNull private final List<String> myGradleTasks;
+  @NotNull private final List<String> myCommandLineArgs;
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myCancellationMap;
 
-  @Nullable private final ExternalSystemTaskId                   myTaskId;
+  @NotNull private final ExternalSystemTaskId myTaskId;
   @Nullable private final ExternalSystemTaskNotificationListener myTaskNotificationListener;
 
   public GradleTaskExecutionContext(@NotNull GradleInvoker gradleInvoker,
@@ -44,9 +44,8 @@ public class GradleTaskExecutionContext {
                                     @NotNull List<String> gradleTasks,
                                     @NotNull List<String> commandLineArgs,
                                     @NotNull Map<ExternalSystemTaskId, CancellationTokenSource> cancellationMap,
-                                    @Nullable ExternalSystemTaskId taskId,
-                                    @Nullable ExternalSystemTaskNotificationListener taskNotificationListener)
-  {
+                                    @NotNull ExternalSystemTaskId taskId,
+                                    @Nullable ExternalSystemTaskNotificationListener taskNotificationListener) {
     myGradleInvoker = gradleInvoker;
     myProject = project;
     myGradleTasks = gradleTasks;
@@ -76,7 +75,7 @@ public class GradleTaskExecutionContext {
     return myCommandLineArgs;
   }
 
-  @Nullable
+  @NotNull
   public ExternalSystemTaskId getTaskId() {
     return myTaskId;
   }
