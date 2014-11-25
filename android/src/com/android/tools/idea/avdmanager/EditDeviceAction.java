@@ -36,7 +36,7 @@ public class EditDeviceAction extends DeviceUiAction {
   @Override
   public boolean isEnabled() {
     Device device = myProvider.getDevice();
-    return device != null && DeviceManagerConnection.isUserDevice(device);
+    return device != null && DeviceManagerConnection.getDefaultDeviceManagerConnection().isUserDevice(device);
   }
 
   @Override

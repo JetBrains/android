@@ -58,7 +58,7 @@ public class ImportDevicesAction extends DeviceUiAction {
       }
     }
     if (!importedDevices.isEmpty()) {
-      DeviceManagerConnection.createDevices(importedDevices);
+      DeviceManagerConnection.getDefaultDeviceManagerConnection().createDevices(importedDevices);
       myProvider.refreshDevices();
     }
   }

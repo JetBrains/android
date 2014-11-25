@@ -52,7 +52,7 @@ public class DeviceEditWizard extends DynamicWizard {
   public void performFinishingActions() {
     Device device = getState().get(AvdWizardConstants.DEVICE_DEFINITION_KEY);
     if (device != null) {
-      DeviceManagerConnection.createOrEditDevice(device);
+      DeviceManagerConnection.getDefaultDeviceManagerConnection().createOrEditDevice(device);
     }
   }
 
