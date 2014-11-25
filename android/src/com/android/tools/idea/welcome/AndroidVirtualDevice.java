@@ -187,13 +187,13 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   @Override
-  public void configure(@NotNull InstallContext installContext, @NotNull File sdkLocation) throws WizardException {
+  public void configure(@NotNull InstallContext installContext, @NotNull File sdkLocation) {
     myProgressStep.getProgressIndicator().setIndeterminate(true);
     myProgressStep.getProgressIndicator().setText("Creating Android virtual device");
     installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+    String sdkPath = sdkLocation.getAbsolutePath();
+    SdkManager manager = SdkManager.createManager(sdkPath, new LogWrapper(LOG));
     try {
-      String sdkPath = sdkLocation.getAbsolutePath();
-      SdkManager manager = SdkManager.createManager(sdkPath, new LogWrapper(LOG));
       if (manager == null) {
         throw new WizardException("Android SDK was not properly setup");
       }
@@ -202,11 +202,13 @@ public class AndroidVirtualDevice extends InstallableComponent {
       if (avd == null) {
         throw new WizardException("Unable to create Android virtual device");
       }
-      installContext.print(String.format("Android virtual device %s was successfully created\n", avd.getName()),
-                           ConsoleViewContentType.SYSTEM_OUTPUT);
+      String successMessage = String.format("Android virtual device %s was successfully created\n", avd.getName());
+      installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT);
     }
     catch (WizardException e) {
-      throw new WizardException("Unable to access SDK", e);
+      LOG.error(e);
+      String failureMessage = String.format("Unable to create a virtual device: %s\n", e.getMessage());
+      installContext.print(failureMessage, ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 }
