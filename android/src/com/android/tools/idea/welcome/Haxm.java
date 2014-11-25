@@ -63,7 +63,8 @@ public final class Haxm extends InstallableComponent {
 
 
   public Haxm(ScopedStateStore.Key<Boolean> isCustomInstall) {
-    super("Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up Android app emulation on your development computer.", KEY_INSTALL_HAXM);
+    super("Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+                                                 "Android app emulation on your development computer. (Recommended)", KEY_INSTALL_HAXM);
     myIsCustomInstall = isCustomInstall;
   }
 
@@ -164,8 +165,8 @@ public final class Haxm extends InstallableComponent {
   @Override
   public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
     if (!canRun()) {
-      Logger.getInstance(getClass()).error("Tried to install HAXM on %s OS with %s memory size", Platform.current().name(),
-                                           String.valueOf(getMemorySize()));
+      Logger.getInstance(getClass())
+        .error("Tried to install HAXM on %s OS with %s memory size", Platform.current().name(), String.valueOf(getMemorySize()));
       installContext.print("Unable to install Intel HAXM", ConsoleViewContentType.ERROR_OUTPUT);
       return;
     }
