@@ -213,7 +213,7 @@ public class GradleSyncTest extends GuiTestCase {
     rtJarChildren.get(1).requireDirectory("javax");
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest @Ignore // Ignored because when testing all version of plugin, 'minifyEnabled()' is not recognized.
   public void testUnsupportedPluginAndGradleVersion() throws IOException {
     // Open the project without updating the version of the plug-in
     IdeFrameFixture projectFrame = openSimpleApplication();
