@@ -21,16 +21,19 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -73,10 +76,10 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     super.tearDown();
   }
 
-  public void DISABLEDtestDownloadSeed() throws WizardException {
+  public void DISABLEDtestDownloadSeed() throws WizardException, InstallationCancelledException {
     File destination = new File(tempDir, "android-sdk-seed-install");
-    boolean result = InstallComponentsPath.downloadAndUnzipSdkSeed(new InstallContext(tempDir), destination, 1);
-    assertTrue("Operation was canceled", result);
+    File result = InstallComponentsPath.downloadAndUnzipSdkSeed(new InstallContext(tempDir), destination, 1).execute(destination);
+    assertNotNull("Operation was canceled", result);
     assertTrue("Destination should exist", destination.isDirectory());
 
     File[] children = destination.listFiles();
@@ -106,7 +109,9 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       }
     }
 
-    new InstallComponentsOperation(Collections.singleton(new AndroidSdk()), null).install(context, destination);
+    ComponentInstaller operation = new ComponentInstaller(Collections.singleton(new AndroidSdk()), null);
+    ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
+    operation.installPackages(manager, packagesToDownload, new LoggerForTest());
     manager.reloadSdk(log);
     LocalPkgInfo[] installedPkgs = manager.getLocalSdk().getPkgsInfos(EnumSet.allOf(PkgType.class));
 
@@ -137,14 +142,45 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
   public void DISABLEDtestComponentsToInstall() {
     File sdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
-    InstallComponentsOperation operation = new InstallComponentsOperation(Collections.singleton(new AndroidSdk()), null);
+    ComponentInstaller operation = new ComponentInstaller(Collections.singleton(new AndroidSdk()), null);
 
     SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assert manager != null;
 
-    ArrayList<String> packagesToDownload = operation.getPackagesToDownload(manager);
+    ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
 
     System.out.println(Joiner.on("\n").join(packagesToDownload));
     assertTrue(packagesToDownload.isEmpty());
+  }
+
+  /**
+   * Logger implementation to use during tests
+   */
+  @SuppressWarnings("UseOfSystemOutOrSystemErr")
+  private static class LoggerForTest extends SdkLoggerIntegration {
+    private String myTitle = null;
+
+    @Override
+    protected void setProgress(int progress) {
+      // No need.
+    }
+
+    @Override
+    protected void setDescription(String description) {
+      // No spamming
+    }
+
+    @Override
+    protected void setTitle(String title) {
+      if (!StringUtil.isEmptyOrSpaces(title) && !Objects.equal(title, myTitle)) {
+        System.out.println(title);
+        myTitle = title;
+      }
+    }
+
+    @Override
+    protected void lineAdded(String string) {
+      System.out.println(string);
+    }
   }
 }

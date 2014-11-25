@@ -89,5 +89,5 @@ public abstract class InstallableComponent {
 
   public abstract DynamicWizardStep[] createSteps();
 
-  public abstract void configure(@NotNull InstallContext installContext, @NotNull File sdk) throws WizardException;
+  public abstract void configure(@NotNull InstallContext installContext, @NotNull File sdk);
 }
