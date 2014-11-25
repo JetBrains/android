@@ -83,8 +83,12 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
       doOKAction();
     }
     else if (action == CloseAction.CANCEL) {
-      doCancelAction();
+      dialogWrapperCancel();
     }
+  }
+
+  private void dialogWrapperCancel() {
+    super.doCancelAction();
   }
 
   @Nullable
@@ -161,16 +165,20 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
     return southPanel;
   }
 
+  @Override
+  public final void doCancelAction() {
+    myWizard.doCancelAction();
+  }
+
   /**
    * Update the buttons for the wizard
-   *
    * @param canGoPrev whether the previous button is enabled
    * @param canGoNext whether the next button is enabled
+   * @param canCancel whether the cancel button is enabled
    * @param canFinish if this is set to true and the current path is the last non-optional path, the canFinish
-   *                  button will be enabled.
    */
   @Override
-  public void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canFinish) {
+  public void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canCancel, boolean canFinish) {
     getPreviousButton().setEnabled(canGoPrev);
     getNextButton().setEnabled(canGoNext);
 
