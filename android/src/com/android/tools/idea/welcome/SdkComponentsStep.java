@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -31,6 +32,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -189,6 +191,13 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       else if (isNonEmptyNonSdk(path)) {
         isOk = true;
         message = "Target folder is neither empty nor does it point to an existing SDK installation.";
+      }
+      else if (!StringUtil.isEmptyOrSpaces(path)) {
+        File file = new File(path);
+        if (file.isDirectory() && DefaultSdks.isValidAndroidSdkPath(file)) {
+          isOk = true;
+          message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
+        }
       }
     }
     setErrorHtml(myUserEditedPath ? message : null);
