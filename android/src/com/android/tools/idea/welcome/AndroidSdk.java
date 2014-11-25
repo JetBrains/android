@@ -39,7 +39,11 @@ public final class AndroidSdk extends InstallableComponent {
     ScopedStateStore.createKey("download.sdk", ScopedStateStore.Scope.PATH, Boolean.class);
 
   public AndroidSdk() {
-    super("Android SDK", SIZE, "The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your application.", KEY_INSTALL_SDK);
+    super("Android SDK", SIZE, "The collection of Android platform APIs, " +
+                               "tools and utilities that enables you to debug, " +
+                               "profile, and compile your apps.\n\n" +
+                               "The setup wizard will update your current Android SDK " +
+                               "installation (if necessary) or install a new version.", KEY_INSTALL_SDK);
   }
 
   private static Collection<IPkgDesc> createAll(PkgDesc.Builder... builders) {
