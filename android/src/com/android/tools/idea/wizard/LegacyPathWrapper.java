@@ -214,7 +214,7 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
       for (ModuleWizardStep step : myWizardPath.getSteps()) {
         step.updateStep();
       }
-      myWizard.updateButtons(true, canGoNext(), !canGoNext() && isStepValid(getCurrentStep()));
+      myWizard.updateButtons(true, canGoNext(), true, !canGoNext() && isStepValid(getCurrentStep()));
     }
   }
 
