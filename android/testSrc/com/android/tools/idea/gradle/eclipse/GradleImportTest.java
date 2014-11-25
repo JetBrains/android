@@ -886,7 +886,6 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
-                 + "        applicationId \"test.lib2.pkg\"\n"
                  + "        minSdkVersion 8\n"
                  + "        targetSdkVersion 8\n"
                  + "    }\n"
@@ -2291,7 +2290,6 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
-                 + "        applicationId \"test.android.lib.pkg\"\n"
                  + "        minSdkVersion 8\n"
                  + "        targetSdkVersion 8\n"
                  + "    }\n"
@@ -3435,9 +3433,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:21.0.0\n"
-                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:21.0.0\n"
-                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:21.0.0\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:21.0.2\n"
+                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:21.0.2\n"
+                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:21.0.2\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
