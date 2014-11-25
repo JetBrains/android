@@ -18,23 +18,25 @@ package com.android.tools.idea.welcome;
 import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.wizard.WizardUtils;
+import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
-import com.google.common.io.Closeables;
+import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Wrapper around data passed from the installer.
  */
 public class InstallerData {
-  public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.properties");
+  public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data");
   @Nullable private final File myJavaDir;
   @Nullable private final File myAndroidSrc;
   @Nullable private final File myAndroidDest;
@@ -48,33 +50,42 @@ public class InstallerData {
 
   @Nullable
   private static InstallerData parse() {
-    Properties properties = readProperties();
+    Map<String, String> properties = readProperties();
     if (properties == null) {
       return null;
     }
-    String androidSdkPath = properties.getProperty("androidsdk.dir");
+    String androidSdkPath = properties.get("androidsdk.dir");
     File androidDest = StringUtil.isEmptyOrSpaces(androidSdkPath) ? null : new File(androidSdkPath);
     return new InstallerData(getIfExists(properties, "jdk.dir"), getIfExists(properties, "androidsdk.repo"), androidDest);
   }
 
   @Nullable
-  private static Properties readProperties() {
+  private static Map<String, String> readProperties() {
     try {
+      // Firstrun properties file contains a series of "key=value" lines.
       File file = new File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES);
       if (file.isFile()) {
-        FileInputStream stream = null;
+        Map<String, String> properties = Maps.newHashMap();
         try {
-          stream = new FileInputStream(file);
-          Properties properties = new Properties();
-          properties.load(stream);
-          return properties;
+          final List<String> lines = Files.readLines(file, Charsets.UTF_16LE);
+          for (String line : lines) {
+            int keyValueSeparator = line.indexOf('=');
+            if (keyValueSeparator < 0) {
+              continue;
+            }
+            final String key = line.substring(0, keyValueSeparator).trim();
+            final String value = line.substring(keyValueSeparator + 1).trim();
+            if (key.isEmpty()) {
+              continue;
+            }
+            properties.put(key, value);
+          }
         }
         catch (IOException e) {
           Logger.getInstance(InstallerData.class).error(e);
         }
-        finally {
-          Closeables.closeQuietly(stream);
-        }
+
+        return properties;
       }
     }
     catch (AndroidLocation.AndroidLocationException e) {
@@ -84,8 +95,8 @@ public class InstallerData {
   }
 
   @Nullable
-  private static File getIfExists(Properties properties, String propertyName) {
-    String path = properties.getProperty(propertyName);
+  private static File getIfExists(Map<String, String> properties, String propertyName) {
+    String path = properties.get(propertyName);
     if (!StringUtil.isEmptyOrSpaces(path)) {
       File file = new File(path);
       return file.isDirectory() ? file : null;
