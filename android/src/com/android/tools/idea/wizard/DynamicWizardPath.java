@@ -390,7 +390,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     if (myWizard != null && myCurrentStep != null) {
       // We update with the step's ability to go to the next step or the previous step in this path.
       // The path can finish when it has run out of steps.
-      myWizard.updateButtons(myCurrentStep.canGoPrevious(), myCurrentStep.canGoNext(), !hasNext() && myCurrentStep.canGoNext());
+      myWizard.updateButtons(myCurrentStep.canGoPrevious(), myCurrentStep.canGoNext(), true, !hasNext() && myCurrentStep.canGoNext());
     }
   }
 

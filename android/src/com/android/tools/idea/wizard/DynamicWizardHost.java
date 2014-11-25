@@ -62,9 +62,9 @@ public interface DynamicWizardHost {
   void shakeWindow();
 
   /**
-   * Update enabled status of the previous, next and finish buttons
+   * Update enabled status of the cancel, previous, next and finish buttons
    */
-  void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canFinish);
+  void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canCancel, boolean canFinish);
 
   /**
    * Set window title
