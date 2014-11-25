@@ -16,6 +16,8 @@
 package com.android.tools.idea.welcome;
 
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -36,45 +38,60 @@ import java.util.List;
 /**
  * Downloads files needed to setup Android Studio.
  */
-public final class DownloadOperation extends PreinstallOperation<File> {
-  private final String myUrl;
+public final class DownloadOperation extends InstallOperation<File, File> {
+  @NotNull private final String myUrl;
 
-  public DownloadOperation(InstallContext context, String url, double progressShare) {
+  public DownloadOperation(@NotNull InstallContext context, @NotNull String url, double progressShare) {
     super(context, progressShare);
     myUrl = url;
   }
 
   @NotNull
-  private String getFileName() {
+  private static String getFileName(@NotNull String urlString) {
     try {
       // In case we need to strip query string
-      if (URLUtil.containsScheme(myUrl)) {
-        URL url = new URL(myUrl);
+      if (URLUtil.containsScheme(urlString)) {
+        URL url = new URL(urlString);
         return PathUtil.getFileName(url.getPath());
       }
     }
     catch (MalformedURLException e) {
       // Ignore it
     }
-    return PathUtil.getFileName(myUrl);
+    return PathUtil.getFileName(urlString);
   }
 
   @Override
-  @Nullable
-  protected File perform() throws WizardException {
+  @NotNull
+  protected File perform(@NotNull ProgressIndicator indicator, @NotNull File arg) throws WizardException, InstallationCancelledException {
+    // Progress indicator will be handled by IntelliJ code
     DownloadableFileService fileService = DownloadableFileService.getInstance();
-    DownloadableFileDescription myDescription = fileService.createFileDescription(myUrl, getFileName());
+    DownloadableFileDescription myDescription = fileService.createFileDescription(myUrl, getFileName(myUrl));
     FileDownloader downloader = fileService.createDownloader(ImmutableList.of(myDescription), "Android Studio components");
     while (true) {
       try {
         List<Pair<File, DownloadableFileDescription>> result = downloader.download(myContext.getTempDirectory());
-        return result.size() == 1 ? result.get(0).getFirst() : null;
+        if (result.size() == 1) {
+          return result.get(0).getFirst();
+        }
+        else {
+          throw new WizardException("Unable to download " + myUrl);
+        }
       }
       catch (IOException e) {
-        String details = StringUtil.isEmpty(e.getMessage()) ? "." : (": " + e.getMessage());
-        String message = WelcomeUIUtils.getMessageWithDetails("Unable to download Android Studio components", details);
-        promptToRetry(message + " Please check your Internet connection and retry.", message, e);
+        String details = StringUtil.isEmpty(e.getMessage()) ? "Unable to download Android Studio components." : e.getMessage();
+        promptToRetry(details + "\n\nPlease check your Internet connection and retry.", details, e);
       }
+      catch (ProcessCanceledException e) {
+        throw new InstallationCancelledException();
+      }
+    }
+  }
+
+  @Override
+  public void cleanup(@NotNull File result) {
+    if (result.isFile() && FileUtil.isAncestor(result, myContext.getTempDirectory(), false)) {
+      FileUtil.delete(result);
     }
   }
 }
