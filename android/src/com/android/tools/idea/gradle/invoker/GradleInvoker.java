@@ -32,6 +32,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -44,6 +45,7 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -178,7 +180,9 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
-    executeTasks(gradleTasks, commandLineArguments, null, null, false);
+    ExternalSystemTaskId id =
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
+    executeTasks(gradleTasks, commandLineArguments, id, null, false);
   }
 
   /**
@@ -194,7 +198,7 @@ public class GradleInvoker {
    */
   public void executeTasks(@NotNull final List<String> gradleTasks,
                            @NotNull final List<String> commandLineArguments,
-                           @Nullable final ExternalSystemTaskId taskId,
+                           @NotNull final ExternalSystemTaskId taskId,
                            @Nullable final ExternalSystemTaskNotificationListener taskListener,
                            final boolean waitForCompletion)
   {
