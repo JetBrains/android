@@ -1052,7 +1052,7 @@ public class GradleImport {
       sb.append("    buildToolsVersion \"").append(getBuildToolsVersion()).append("\"").append(NL);
       sb.append(NL);
       sb.append("    defaultConfig {").append(NL);
-      if (module.getPackage() != null) {
+      if (module.getPackage() != null && module.isApp()) {
         sb.append("        applicationId \"").append(module.getPackage()).append('"').append(NL);
       }
       if (minSdkVersion.getApiLevel() > 1) {
