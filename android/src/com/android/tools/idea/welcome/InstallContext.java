@@ -50,8 +50,10 @@ public class InstallContext {
     return myTempDirectory;
   }
 
-  public boolean isCanceled() {
-    return myProgressStep != null && myProgressStep.isCanceled();
+  public void checkCanceled() throws InstallationCancelledException {
+    if (myProgressStep != null && myProgressStep.isCanceled()) {
+      throw new InstallationCancelledException();
+    }
   }
 
   @SuppressWarnings("UseOfSystemOutOrSystemErr")
