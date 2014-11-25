@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.utils.StdLogger;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -102,7 +105,10 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
       return; // Disabled
     }
     final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    final AvdInfo avdInfo = AndroidVirtualDevice.createAvd(connection, ANDROID_HOME.getAbsolutePath());
+    SdkManager manager = SdkManager.createManager(ANDROID_HOME.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
+    assertNotNull(manager);
+    LocalSdk localSdk = manager.getLocalSdk();
+    final AvdInfo avdInfo = AndroidVirtualDevice.createAvd(connection, localSdk);
     assertNotNull(avdInfo);
     disposeOnTearDown(new Disposable() {
       @Override

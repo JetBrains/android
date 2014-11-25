@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.SdkConstants;
-import com.android.prefs.AndroidLocation;
-import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
@@ -32,29 +27,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.util.ProgressWindow;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.ExecutionStatus;
-import org.jetbrains.android.util.StringBuildingOutputProcessor;
-import org.jetbrains.android.util.WaitingStrategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
-import java.awt.*;
 import java.io.*;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
-import java.util.regex.Matcher;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * A wrapper class which manages a {@link DeviceManager} instance and provides convenience functions
@@ -63,21 +50,45 @@ import java.util.regex.Matcher;
 public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
-  private static DeviceManager ourDeviceManager;
-  private static Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
+  private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
+  private static Map<LocalSdk, DeviceManagerConnection> ourCache = new WeakHashMap<LocalSdk, DeviceManagerConnection>();
+  private DeviceManager ourDeviceManager;
+  @Nullable private LocalSdk mySdk;
+
+  public DeviceManagerConnection(@Nullable LocalSdk sdk) {
+    mySdk = sdk;
+  }
+
+  @NotNull
+  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull LocalSdk sdk) {
+    if (!ourCache.containsKey(sdk)) {
+      ourCache.put(sdk, new DeviceManagerConnection(sdk));
+    }
+    return ourCache.get(sdk);
+  }
+
+  @NotNull
+  public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
+    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (androidSdkData != null) {
+      return getDeviceManagerConnection(androidSdkData.getLocalSdk());
+    }
+    else {
+      return NULL_CONNECTION;
+    }
+  }
+
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
    */
-  private static boolean initIfNecessary() {
+  private boolean initIfNecessary() {
     if (ourDeviceManager == null) {
-      AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-      if (androidSdkData == null) {
+      if (mySdk == null) {
         IJ_LOG.error("No installed SDK found!");
         return false;
       }
-      LocalSdk localSdk = androidSdkData.getLocalSdk();
-      ourDeviceManager = DeviceManager.createInstance(localSdk.getLocation(), SDK_LOG);
+      ourDeviceManager = DeviceManager.createInstance(mySdk.getLocation(), SDK_LOG);
     }
     return true;
   }
@@ -86,7 +97,7 @@ public class DeviceManagerConnection {
    * @return a list of Devices currently present on the system.
    */
   @NotNull
-  public static List<Device> getDevices() {
+  public List<Device> getDevices() {
     if (!initIfNecessary()) {
       return ImmutableList.of();
     }
@@ -99,7 +110,7 @@ public class DeviceManagerConnection {
    * with any existing IDs.
    */
   @NotNull
-  public static String getUniqueId(@Nullable String id) {
+  public String getUniqueId(@Nullable String id) {
     String baseId = id == null? "New Device" : id;
     if (!initIfNecessary()) {
       return baseId;
@@ -125,7 +136,7 @@ public class DeviceManagerConnection {
   /**
    * Delete the given device if it exists.
    */
-  public static void deleteDevice(@Nullable Device info) {
+  public void deleteDevice(@Nullable Device info) {
     if (info != null) {
       if (!initIfNecessary()) {
         return;
@@ -137,7 +148,7 @@ public class DeviceManagerConnection {
   /**
    * Edit the given device, overwriting existing data, or creating it if it does not exist.
    */
-  public static void createOrEditDevice(@NotNull Device device) {
+  public void createOrEditDevice(@NotNull Device device) {
     if (!initIfNecessary()) {
       return;
     }
@@ -148,7 +159,7 @@ public class DeviceManagerConnection {
   /**
    * Create the given devices
    */
-  public static void createDevices(@NotNull List<Device> devices) {
+  public void createDevices(@NotNull List<Device> devices) {
     if (!initIfNecessary()) {
       return;
     }
@@ -177,7 +188,7 @@ public class DeviceManagerConnection {
   /**
    * Return true iff the given device matches one of the user declared devices.
    */
-  public static boolean isUserDevice(@NotNull final Device device) {
+  public boolean isUserDevice(@NotNull final Device device) {
     if (!initIfNecessary()) {
       return false;
     }
