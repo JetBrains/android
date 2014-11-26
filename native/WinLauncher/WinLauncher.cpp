@@ -45,20 +45,21 @@ bool need64BitJRE = false;
 
 #define ERROR_LAUNCHING_APP "Error launching Android Studio"
 
+std::string EncodeWideACP(const std::wstring &str)
+{
+  int cbANSI = WideCharToMultiByte(CP_ACP, 0, str.c_str(), str.size(), NULL, 0, NULL, NULL);
+  char* ansiBuf = new char[cbANSI];
+  WideCharToMultiByte(CP_ACP, 0, str.c_str(), str.size(), ansiBuf, cbANSI, NULL, NULL);
+  std::string result(ansiBuf, cbANSI);
+  delete[] ansiBuf;
+  return result;
+}
+
 std::string LoadStdString(int id)
 {
     wchar_t *buf = NULL;
     int len = LoadStringW(hInst, id, reinterpret_cast<LPWSTR>(&buf), 0);
-    if (len) 
-    {
-        int cbANSI = WideCharToMultiByte(CP_ACP, 0, buf, len, NULL, 0, NULL, NULL);
-        char* ansiBuf = new char[cbANSI];
-        WideCharToMultiByte(CP_ACP, 0, buf, len, ansiBuf, cbANSI, NULL, NULL);
-        std::string result(ansiBuf, cbANSI);
-        delete[] ansiBuf;
-        return result;
-    }
-    return std::string();
+    return len ? EncodeWideACP(std::wstring(buf, len)) : "";
 }
 
 bool FileExists(const std::string& path)
@@ -284,7 +285,7 @@ bool LoadVMOptionsFile(const TCHAR* path, std::vector<std::string>& vmOptionLine
     if (!f) return false;
 
     char line[_MAX_PATH];
-    while(fgets(line, _MAX_PATH-1, f))
+    while(fgets(line, _MAX_PATH, f))
     {
         TrimLine(line);
         if (line[0] == '#') continue;
@@ -387,45 +388,68 @@ void AddPredefinedVMOptions(std::vector<std::string>& vmOptionLines)
         while(pos < vmOptions.size() && vmOptions[pos] == ' ') pos++;
         vmOptions = vmOptions.substr(pos);
     }
+
+    char propertiesFile[_MAX_PATH];
+    if (GetEnvironmentVariableA(LoadStdString(IDS_PROPS_ENV_VAR).c_str(), propertiesFile, _MAX_PATH)) {
+      vmOptionLines.push_back(std::string("-Didea.properties.file=") + propertiesFile);
+    }
 }
 
 bool LoadVMOptions()
 {
-    TCHAR moduleFileName[_MAX_PATH];
-    GetModuleFileName(NULL, moduleFileName, _MAX_PATH - 1);
-    _tcscat_s(moduleFileName, _T(".vmoptions"));
+    TCHAR buffer[_MAX_PATH];
+    TCHAR copy[_MAX_PATH];
 
-    TCHAR optionsFileName[_MAX_PATH];
-    if (LoadString(hInst, IDS_VM_OPTIONS_PATH, optionsFileName, _MAX_PATH-1))
-    {
-        TCHAR fullOptionsFileName[_MAX_PATH];
-        ExpandEnvironmentStrings(optionsFileName, fullOptionsFileName, _MAX_PATH-1);
-        _tcscat_s(fullOptionsFileName, _tcsrchr(moduleFileName, '\\'));
+    std::vector<std::wstring> files;
 
-        if (GetFileAttributes(fullOptionsFileName) == INVALID_FILE_ATTRIBUTES)
-        {
-            _tcscpy_s(fullOptionsFileName, MAX_PATH-1, moduleFileName);
-        }
+    GetModuleFileName(NULL, buffer, _MAX_PATH);
+    std::wstring module(buffer);
 
-        std::vector<std::string> vmOptionLines;
-        if (LoadVMOptionsFile(fullOptionsFileName, vmOptionLines))
-        {
-            if (!AddClassPathOptions(vmOptionLines)) return false;
-            AddPredefinedVMOptions(vmOptionLines);
+    files.push_back(module + L".vmoptions");
 
-            vmOptionCount = vmOptionLines.size();
-            vmOptions = (JavaVMOption*) malloc(vmOptionCount * sizeof(JavaVMOption));
-            for(int i=0; i<vmOptionLines.size(); i++)
-            {
-                vmOptions[i].optionString = _strdup(vmOptionLines[i].c_str());
-                vmOptions[i].extraInfo = 0;
-            }
 
-            return true;
-        }
+    if (LoadString(hInst, IDS_VM_OPTIONS_PATH, buffer, _MAX_PATH)) {
+      ExpandEnvironmentStrings(buffer, copy, _MAX_PATH - 1);
+      std::wstring selector(copy);
+      files.push_back(selector + module.substr(module.find_last_of('\\')) + L".vmoptions");
     }
-    MessageBox(NULL, _T("Cannot find VM options file"), _T(ERROR_LAUNCHING_APP), MB_OK);
-    return false;
+
+    if (LoadString(hInst, IDS_VM_OPTIONS_ENV_VAR, buffer, _MAX_PATH)) {
+      if (GetEnvironmentVariableW(buffer, copy, _MAX_PATH)) {
+        ExpandEnvironmentStrings(copy, buffer, _MAX_PATH);
+        files.push_back(std::wstring(buffer));
+      }
+    }
+
+    if (files.size() == 0) {
+      MessageBox(NULL, _T("Cannot find VM options file"), _T(ERROR_LAUNCHING_APP), MB_OK);
+      return false;
+    }
+
+    std::wstring used;
+    std::vector<std::string> vmOptionLines;
+    for (int i = 0; i < files.size(); i++) {
+      if (GetFileAttributes(files[i].c_str()) != INVALID_FILE_ATTRIBUTES) {
+        if (LoadVMOptionsFile(files[i].c_str(), vmOptionLines)) {
+          used += (used.size() ? L"," : L"") + files[i];
+        }
+      }
+    }
+
+    vmOptionLines.push_back(std::string("-Djb.vmOptions=") + EncodeWideACP(used));
+
+    if (!AddClassPathOptions(vmOptionLines)) return false;
+    AddPredefinedVMOptions(vmOptionLines);
+
+    vmOptionCount = vmOptionLines.size();
+    vmOptions = (JavaVMOption*) malloc(vmOptionCount * sizeof(JavaVMOption));
+    for(int i=0; i<vmOptionLines.size(); i++)
+    {
+        vmOptions[i].optionString = _strdup(vmOptionLines[i].c_str());
+        vmOptions[i].extraInfo = 0;
+    }
+
+    return true;
 }
 
 bool LoadJVMLibrary()
