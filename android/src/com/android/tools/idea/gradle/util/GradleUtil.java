@@ -43,6 +43,7 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -52,6 +53,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
@@ -626,21 +628,9 @@ public final class GradleUtil {
   @Nullable
   static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents) {
     GradleCoordinate found = null;
-
-    GroovyLexer lexer = new GroovyLexer();
-    lexer.start(fileContents);
-    while (lexer.getTokenType() != null) {
-      IElementType type = lexer.getTokenType();
-      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
-        String text = StringUtil.unquoteString(lexer.getTokenText());
-        if (text.startsWith(SdkConstants.GRADLE_PLUGIN_NAME)) {
-          found = GradleCoordinate.parseCoordinateString(text);
-          if (found != null) {
-            break;
-          }
-        }
-      }
-      lexer.advance();
+    String pluginDefinitionString = getPluginDefinitionString(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
+    if (pluginDefinitionString != null) {
+      found = GradleCoordinate.parseCoordinateString(pluginDefinitionString);
     }
 
     if (found != null) {
@@ -652,6 +642,72 @@ public final class GradleUtil {
         catch (NumberFormatException ignored) {
         }
       }
+    }
+    return null;
+  }
+
+  /**
+   * Delegates to the {@link #forPluginDefinition(String, String, Function)} and just returns target plugin's definition string (unquoted).
+   *
+   * @param fileContents  target gradle config text
+   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @return              target plugin's definition string if found (unquoted); <code>null</code> otherwise
+   * @see #forPluginDefinition(String, String, Function)
+   */
+  @Nullable
+  public static String getPluginDefinitionString(@NotNull String fileContents, @NotNull String pluginName) {
+    return forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
+      @Override
+      public String fun(Pair<String, GroovyLexer> pair) {
+        return pair.getFirst();
+      }
+    });
+  }
+
+  /**
+   * Checks given file contents (assuming that it's build.gradle config) and finds target plugin's definition (given the plugin
+   * name in a form <code>'group-id:artifact-id:'</code>. Supplies given callback with the plugin definition string (unquoted) and
+   * a {@link GroovyLexer} which state points to the plugin definition string (quoted).
+   * <p/>
+   * Example:
+   * <pre>
+   *     buildscript {
+   *       repositories {
+   *         mavenCentral()
+   *       }
+   *       dependencies {
+   *         classpath 'com.google.appengine:gradle-appengine-plugin:1.9.4'
+   *       }
+   *     }
+   * </pre>
+   * Suppose that this method is called for the given build script content and
+   * <code>'com.google.appengine:gradle-appengine-plugin:'</code> as a plugin name argument. Given callback is supplied by a
+   * string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code> (without quotes) and a {@link GroovyLexer} which
+   * {@link GroovyLexer#getTokenStart() points} to the string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code>
+   * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
+   * version.
+   *
+   * @param fileContents  target gradle config text
+   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @param consumer      a callback to be notified for the target plugin's definition string
+   * @param <T>           given callback's return type
+   * @return              given callback's call result if target plugin definition is found; <code>null</code> otherwise
+   */
+  @Nullable
+  public static <T> T forPluginDefinition(@NotNull String fileContents,
+                                          @NotNull String pluginName,
+                                          @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
+    GroovyLexer lexer = new GroovyLexer();
+    lexer.start(fileContents);
+    while (lexer.getTokenType() != null) {
+      IElementType type = lexer.getTokenType();
+      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
+        String text = StringUtil.unquoteString(lexer.getTokenText());
+        if (text.startsWith(pluginName)) {
+          return consumer.fun(Pair.create(text, lexer));
+        }
+      }
+      lexer.advance();
     }
     return null;
   }

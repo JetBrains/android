@@ -16,8 +16,11 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
+import com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler;
+import com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -29,7 +32,9 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -42,6 +47,7 @@ import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -71,11 +77,12 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.util.Strings.quote;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -509,6 +516,34 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
+  }
+
+  @Test @IdeGuiTest
+  public void testOutdatedAppEnginePlugin() throws IOException {
+    IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin", false);
+
+    // Check that sync output has an 'update appengine plugin version' link.
+    MessagesToolWindowFixture.MessageMatcher matcher = firstLineStartingWith(OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT);
+    MessageFixture message = projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, matcher);
+    HyperlinkFixture hyperlink = message.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
+
+    // Ensure that clicking 'appengine plugin version' link really updates *.gradle config.
+    VirtualFile vFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(vFile);
+    assertNotNull(document);
+    String definitionString =
+      GradleUtil.getPluginDefinitionString(document.getText(), UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START);
+    assertNotNull(definitionString);
+    int compare = GradleCoordinate.COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString),
+                                                               UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE);
+    assertThat(compare).isLessThan(0);
+    hyperlink.click(true);
+    definitionString = GradleUtil.getPluginDefinitionString(document.getText(),
+                                                            UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START);
+    assertNotNull(definitionString);
+    compare = GradleCoordinate.COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString),
+                                                           UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE);
+    assertThat(compare).isGreaterThanOrEqualTo(0);
   }
 
   @NotNull
