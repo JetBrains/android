@@ -26,16 +26,13 @@ import javax.swing.*;
  */
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
-  @NotNull private final FirstRunWizardMode myMode;
   private JPanel myContents;
   private JRadioButton myStandardRadioButton;
   private JRadioButton myCustomRadioButton;
 
-  public InstallationTypeWizardStep(@NotNull ScopedStateStore.Key<Boolean> customInstall,
-                                    @NotNull FirstRunWizardMode mode) {
+  public InstallationTypeWizardStep(@NotNull ScopedStateStore.Key<Boolean> customInstall) {
     super(null);
     myDataKey = customInstall;
-    myMode = mode;
     setComponent(myContents);
   }
 
@@ -53,10 +50,5 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myStandardRadioButton;
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return myMode != FirstRunWizardMode.INSTALL_HANDOFF;
   }
 }
