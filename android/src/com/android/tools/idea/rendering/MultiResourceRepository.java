@@ -128,7 +128,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
 
     if (myChildren.size() == 1) {
-      return myChildren.get(0).getItems().get(type);
+      LocalResourceRepository child = myChildren.get(0);
+      if (child instanceof MultiResourceRepository) {
+        return ((MultiResourceRepository)child).getMap(type);
+      }
+      return child.getItems().get(type);
     }
 
     ListMultimap<String, ResourceItem> map = ArrayListMultimap.create();
@@ -146,9 +150,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       // only merge in 1...n
       for (ResourceItem item : m.values()) {
         String name = item.getName();
-        if (map.containsKey(name)) {
+        if (map.containsKey(name) && item.getType() != ResourceType.ID) {
           // The item already exists in this map; only add if there isn't an item with the
-          // same qualifiers
+          // same qualifiers (and it's not an id; id's are allowed to be defined in multiple
+          // places even with the same qualifiers)
           String qualifiers = item.getQualifiers();
           boolean contains = false;
           List<ResourceItem> list = map.get(name);
