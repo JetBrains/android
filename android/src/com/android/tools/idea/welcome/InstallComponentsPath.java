@@ -65,13 +65,15 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
-  private InstallableComponent[] myComponents;
   @NotNull private final File mySdkLocation;
+  private InstallableComponent[] myComponents;
   private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
 
-  public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode,
-                               @NotNull File sdkLocation, @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+  public InstallComponentsPath(@NotNull ProgressStep progressStep,
+                               @NotNull FirstRunWizardMode mode,
+                               @NotNull File sdkLocation,
+                               @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
@@ -165,12 +167,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   @Nullable
-  private static File getHandoffAndroidSdkSource() {
-    InstallerData data = InstallerData.get();
-    if (data == null) {
-      return null;
-    }
-    File androidSrc = data.getAndroidSrc();
+  private File getHandoffAndroidSdkSource() {
+    File androidSrc = myMode.getAndroidSrc();
     if (androidSrc != null) {
       File[] files = androidSrc.listFiles();
       if (androidSrc.isDirectory() && files != null && files.length > 0) {
@@ -191,12 +189,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
    *
    * @return install operation object that will perform the setup
    */
-  private static InstallOperation<File, File> createInitSdkOperation(InstallContext installContext, File destination, double progressRatio) {
+  private InstallOperation<File, File> createInitSdkOperation(InstallContext installContext, File destination, double progressRatio) {
     File handoffSource = getHandoffAndroidSdkSource();
     if (handoffSource != null) {
       return new MergeOperation(handoffSource, installContext, progressRatio);
     }
-    else if (destination.isDirectory()) {
+    if (destination.isDirectory()) {
       SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), new NullLogger());
       if (manager != null) {
         // We have SDK, first operation simply passes path through
@@ -208,20 +206,15 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   protected void init() {
-    boolean createAvd = true;
+    boolean createAvd = myMode.shouldCreateAvd();
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL, myMode);
+      myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL);
       addStep(myInstallationTypeWizardStep);
-    }
-    else if (myMode == FirstRunWizardMode.INSTALL_HANDOFF) {
-      InstallerData data = InstallerData.get();
-      assert data != null;
-      createAvd = data.shouldCreateAvd();
     }
     myState.put(KEY_SDK_INSTALL_LOCATION, mySdkLocation.getAbsolutePath());
 
     myComponents = createComponents(myMode, createAvd);
-    mySdkComponentsStep = new SdkComponentsStep(myComponents, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION);
+    mySdkComponentsStep = new SdkComponentsStep(myComponents, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
     addStep(mySdkComponentsStep);
 
     for (InstallableComponent component : myComponents) {
@@ -244,8 +237,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       if (sdkPath != null) {
         manager = SdkManager.createManager(sdkPath, new NullLogger());
       }
-      ArrayList<String> installIds =
-        new ComponentInstaller(getSelectedComponents(), myRemotePackages).getPackagesToInstall(manager);
+      ArrayList<String> installIds = new ComponentInstaller(getSelectedComponents(), myRemotePackages).getPackagesToInstall(manager);
       final List<IPkgDesc> packages = getPackagesList(installIds);
       myState.put(WizardConstants.INSTALL_REQUESTS_KEY, packages);
     }
@@ -301,8 +293,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     final Collection<? extends InstallableComponent> selectedComponents = getSelectedComponents();
     InstallComponentsOperation install =
       new InstallComponentsOperation(installContext, selectedComponents, myRemotePackages, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+
+    SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
     try {
-      initialize.then(install).then(new SetPreference(), 0).then(new ConfigureComponents(installContext, selectedComponents), 0)
+      initialize.then(install).then(setPreference, 0).then(new ConfigureComponents(installContext, selectedComponents), 0)
         .execute(destination);
     }
     catch (InstallationCancelledException e) {
@@ -432,6 +426,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   private static class SetPreference implements Function<File, File> {
+    @Nullable private final String myInstallerTimestamp;
+
+    public SetPreference(@Nullable String installerTimestamp) {
+      myInstallerTimestamp = installerTimestamp;
+    }
+
     @Override
     public File apply(@Nullable final File input) {
       assert input != null;
@@ -444,7 +444,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
             @Override
             public void run() {
               DefaultSdks.setDefaultAndroidHome(input, null);
-              AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
+              AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
             }
           });
         }

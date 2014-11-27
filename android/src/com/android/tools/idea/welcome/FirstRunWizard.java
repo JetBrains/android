@@ -46,7 +46,7 @@ public class FirstRunWizard extends DynamicWizard {
    * Second attempt will close the wizard.
    */
   private final AtomicInteger myFinishClicks = new AtomicInteger(0);
-  private final SetupJdkPath myJdkPath = new SetupJdkPath();
+  private final SetupJdkPath myJdkPath;
   private InstallComponentsPath myComponentsPath;
 
   private boolean mySetupFailed;
@@ -55,6 +55,7 @@ public class FirstRunWizard extends DynamicWizard {
                         @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
+    myJdkPath = new SetupJdkPath(mode);
     myRemotePackages = remotePackages;
     setTitle(WIZARD_TITLE);
   }
@@ -88,7 +89,7 @@ public class FirstRunWizard extends DynamicWizard {
     ConfirmFirstRunWizardCloseDialog.Result result = new ConfirmFirstRunWizardCloseDialog().open();
     switch (result) {
       case Skip:
-        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate();
+        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myMode.getInstallerTimestamp());
         // Fallthrough
       case Rerun:
         myHost.close(DynamicWizardHost.CloseAction.CANCEL);

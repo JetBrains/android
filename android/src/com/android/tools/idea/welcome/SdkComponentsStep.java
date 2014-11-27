@@ -32,7 +32,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +58,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   public static final String FIELD_SDK_LOCATION = "SDK location";
 
   private final InstallableComponent[] myInstallableComponents;
-  private final ScopedStateStore.Key<Boolean> myKeyInstallSdk;
+  @NotNull private final FirstRunWizardMode myMode;
+  @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
@@ -72,14 +72,16 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private boolean myUserEditedPath = false;
 
   public SdkComponentsStep(@NotNull InstallableComponent[] components,
-                           @NotNull ScopedStateStore.Key<Boolean> keyInstallSdk,
-                           @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey) {
+                           @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
+                           @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
+                           @NotNull FirstRunWizardMode mode) {
     super("SDK Settings");
+    myMode = mode;
+    myKeyCustomInstall = keyCustomInstall;
 
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
-    myKeyInstallSdk = keyInstallSdk;
     mySdkDownloadPathKey = sdkDownloadPathKey;
     myComponentDescription.setEditable(false);
     myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
@@ -301,10 +303,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    InstallerData data = InstallerData.get();
-    boolean hasSdk = data != null && data.hasValidSdkLocation();
-    Boolean shouldInstallSdk = myState.getNotNull(myKeyInstallSdk, true);
-    return !hasSdk && shouldInstallSdk;
+    return !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true);
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
