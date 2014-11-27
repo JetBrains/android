@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.NewProjectUtil;
@@ -157,18 +156,6 @@ public final class DefaultSdks {
   @NotNull
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Project currentProject) {
     return setDefaultAndroidHome(path, null, currentProject);
-  }
-
-  /**
-   * Sets the given JDK's home path to the given path, and resets all of its content roots.
-   */
-  private static void setJdkPath(@NotNull Sdk sdk, @NotNull File path) {
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.setHomePath(path.getPath());
-    sdkModificator.removeAllRoots();
-    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-    sdkModificator.commitChanges();
-    JavaSdk.getInstance().setupSdkPaths(sdk);
   }
 
   /**
