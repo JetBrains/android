@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +48,9 @@ public class RunAndroidAvdManagerAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
     e.getPresentation().setEnabledAndVisible(
-      project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
+      project != null &&
+      !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty() &&
+      AndroidSdkUtils.isAndroidSdkAvailable());
   }
 
   @Override
