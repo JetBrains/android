@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -288,6 +289,9 @@ class PrimaryManifestInfo extends ManifestInfo {
       }
 
       myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), xmlFile, Manifest.class);
+    }
+    catch (ProcessCanceledException e) {
+      throw e;
     }
     catch (Exception e) {
       LOG.error("Could not read Manifest data", e);
