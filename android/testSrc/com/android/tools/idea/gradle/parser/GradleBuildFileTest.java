@@ -1317,6 +1317,23 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertFalse(GradleBuildFile.shouldWriteValue(unparseableOne, unparseableTwo));
   }
 
+  public void testExternalizedDependencyVersion() throws IOException {
+    String fileContent =
+      "dependencies {\n" +
+      "    compile \"com.android.support:appcompat-v7:${versions.support}\"\n" +
+      "}";
+    final GradleBuildFile file = getTestFile(fileContent);
+    final Object dependencies = file.getValue(BuildFileKey.DEPENDENCIES);
+    assertNotNull(dependencies);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+      }
+    });
+    assertContents(file, fileContent);
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +

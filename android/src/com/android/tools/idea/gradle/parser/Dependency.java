@@ -33,6 +33,9 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgument
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringContent;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 
 import java.io.File;
 import java.util.List;
@@ -139,16 +142,16 @@ public class Dependency extends BuildFileStatement {
     switch (type) {
       case EXTERNAL:
         if (extraClosure != null) {
-          extraGroovyCode = "('" + escapeLiteralString(data) + "')";
+          extraGroovyCode = "(" + escapeAndQuote(data) + ")";
         } else {
-          extraGroovyCode =  " '" + escapeLiteralString(data) + "'";
+          extraGroovyCode =  " " + escapeAndQuote(data);
         }
         break;
       case MODULE:
         if (data instanceof Map) {
           extraGroovyCode = " project(" + GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data) + ")";
         } else {
-          extraGroovyCode = " project('" + escapeLiteralString(data) + "')";
+          extraGroovyCode = " project(" + escapeAndQuote(data) + ")";
         }
         if (extraClosure != null) {
           // If there's a closure with exclusion rules, then we need extra parentheses:
@@ -158,7 +161,7 @@ public class Dependency extends BuildFileStatement {
         }
         break;
       case FILES:
-        extraGroovyCode = " files('" + escapeLiteralString(data) + "')";
+        extraGroovyCode = " files(" + escapeAndQuote(data) + ")";
         break;
       case FILETREE:
         extraGroovyCode = " fileTree(" + GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data) + ")";
@@ -172,6 +175,34 @@ public class Dependency extends BuildFileStatement {
       statement.add(factory.createClosureFromText(extraClosure));
     }
     return ImmutableList.of((PsiElement)statement);
+  }
+
+  /**
+   * Groovy has either plain strings or rich gstrings, i.e. it's possible to write <code>'position number $index'</code>
+   * (single quotes - plain string) or <code>"position number $index"</code> (double quotes, 'index' variable value will be inserted
+   * in runtime).
+   * <p/>
+   * This method escapes given string content and surrounds it by correct quotes (trying to guess if it's a pain string or gstring).
+   *
+   * @param stringContent
+   * @return
+   */
+  @NotNull
+  private static String escapeAndQuote(@Nullable Object data) {
+    if (data == null) {
+      return "''";
+    }
+    String stringContent = data.toString();
+    boolean gstring = false;
+    // We assume that given string is a gstring if it has an unescaped dollar sign.
+    for (int i = stringContent.indexOf('$'); i >= 0 && i < stringContent.length(); i = stringContent.indexOf('$', i + 1)) {
+      if (i <= 0 || stringContent.charAt(i - 1) != '\\') {
+        gstring = true;
+        break;
+      }
+    }
+    char quote = gstring ? '"' : '\'';
+    return quote + escapeLiteralString(stringContent) + quote;
   }
 
   /**
@@ -366,6 +397,18 @@ public class Dependency extends BuildFileStatement {
           Object value = ((GrLiteral)element).getValue();
           if (value != null) {
             dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, value.toString(), extraClosure));
+          }
+          else if (element instanceof GrString) {
+            GroovyPsiElement[] contentParts = ((GrString)element).getAllContentParts();
+            final StringBuilder buffer = new StringBuilder();
+            for (GroovyPsiElement part : contentParts) {
+              if (part instanceof GrStringContent || part instanceof GrStringInjection) {
+                buffer.append(part.getText());
+              }
+            }
+            if (buffer.length() > 0) {
+              dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, buffer.toString(), extraClosure));
+            }
           }
         } else {
           return getUnparseableStatements(statement);
