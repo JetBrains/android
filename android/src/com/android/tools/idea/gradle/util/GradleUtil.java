@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -535,7 +536,7 @@ public final class GradleUtil {
    * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
    */
   public static boolean createGradleWrapper(@NotNull File projectDirPath) throws IOException {
-    return createGradleWrapper(projectDirPath, SdkConstants.GRADLE_LATEST_VERSION);
+    return createGradleWrapper(projectDirPath, GRADLE_LATEST_VERSION);
   }
 
   /**
@@ -593,7 +594,7 @@ public final class GradleUtil {
    * @return the version of the Android Gradle plug-in being used in the given project. (or an approximation.)
    */
   @Nullable
-  public static FullRevision getResolvedAndroidGradleModelVersion(@NotNull Project project) {
+  public static FullRevision getResolvedAndroidGradleModelVersion(@NotNull final Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // This is default project.
@@ -607,7 +608,7 @@ public final class GradleUtil {
           File fileToCheck = VfsUtilCore.virtualToIoFile(virtualFile);
           try {
             String contents = FileUtil.loadFile(fileToCheck);
-            FullRevision version = getResolvedAndroidGradleModelVersion(contents);
+            FullRevision version = getResolvedAndroidGradleModelVersion(contents, project);
             if (version != null) {
               modelVersionRef.set(version);
               return false; // we found the model version. Stop.
@@ -626,7 +627,7 @@ public final class GradleUtil {
 
   @VisibleForTesting
   @Nullable
-  static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents) {
+  static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
     GradleCoordinate found = null;
     String pluginDefinitionString = getPluginDefinitionString(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
     if (pluginDefinitionString != null) {
@@ -634,7 +635,7 @@ public final class GradleUtil {
     }
 
     if (found != null) {
-      String revision = getAndroidGradleModelVersion(found);
+      String revision = getAndroidGradleModelVersion(found, project);
       if (StringUtil.isNotEmpty(revision)) {
         try {
           return FullRevision.parseRevision(revision);
@@ -713,7 +714,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static String getAndroidGradleModelVersion(@NotNull GradleCoordinate coordinate) {
+  private static String getAndroidGradleModelVersion(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
     String revision = coordinate.getFullRevision();
     if (StringUtil.isNotEmpty(revision)) {
       if (!coordinate.acceptsGreaterRevisions()) {
@@ -727,15 +728,33 @@ public final class GradleUtil {
         return major + "." + minor + "." + 0;
       }
     }
-    GradleCoordinate latest = findLatestVersionInGradleCache(coordinate, null);
+    GradleCoordinate latest = findLatestVersionInGradleCache(coordinate, null, project);
     return latest != null ? latest.getFullRevision() : null;
   }
 
   @Nullable
-  public static GradleCoordinate findLatestVersionInGradleCache(@NotNull GradleCoordinate original, @Nullable String filter) {
-    List<GradleCoordinate> coordinates = Lists.newArrayList();
-    File gradleCache = new File(SystemProperties.getUserHome(), FileUtil.join(DOT_GRADLE, "caches"));
+  public static GradleCoordinate findLatestVersionInGradleCache(@NotNull GradleCoordinate original,
+                                                                @Nullable String filter,
+                                                                @Nullable Project project) {
+
+    for (File gradleServicePath : getGradleServicePaths(project)) {
+      GradleCoordinate version = findLatestVersionInGradleCache(gradleServicePath, original, filter);
+      if (version != null) {
+        return version;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static GradleCoordinate findLatestVersionInGradleCache(@NotNull File gradleServicePath,
+                                                                 @NotNull GradleCoordinate original,
+                                                                 @Nullable String filter) {
+    File gradleCache = new File(gradleServicePath, "caches");
     if (gradleCache.exists()) {
+      List<GradleCoordinate> coordinates = Lists.newArrayList();
+
       String groupId = original.getGroupId();
       String artifactId = original.getArtifactId();
       for (File moduleDir : FileUtil.notNullize(gradleCache.listFiles())) {
@@ -821,8 +840,10 @@ public final class GradleUtil {
         catch (IOException e) {
           LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
         }
-        if (gradleVersion != null && isCompatibleWithEmbeddedGradleVersion(gradleVersion)) {
-          File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + SdkConstants.GRADLE_LATEST_VERSION);
+        if (gradleVersion != null &&
+            isCompatibleWithEmbeddedGradleVersion(gradleVersion) &&
+            !isWrapperInGradleCache(project, gradleVersion)) {
+          File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + GRADLE_LATEST_VERSION);
           LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
           if (embeddedPath.isDirectory()) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
@@ -838,8 +859,49 @@ public final class GradleUtil {
 
   // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
   private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
-    return gradleVersion.equals(SdkConstants.GRADLE_MINIMUM_VERSION) || gradleVersion.equals(SdkConstants.GRADLE_LATEST_VERSION);
+    return gradleVersion.equals(SdkConstants.GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
   }
+
+  private static boolean isWrapperInGradleCache(@NotNull Project project, @NotNull String gradleVersion) {
+    String wrapperDirNamePrefix = "gradle-" + gradleVersion + "-";
+
+    // Try both distributions "all" and "bin".
+    String[] wrapperDirNames = { wrapperDirNamePrefix + "all", wrapperDirNamePrefix + "bin" };
+
+    for (File gradleServicePath : getGradleServicePaths(project)) {
+      for (String wrapperDirName : wrapperDirNames) {
+        File wrapperDirPath = new File(gradleServicePath, FileUtil.join("wrapper", "dists", wrapperDirName));
+        if (wrapperDirPath.isDirectory()) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  @NotNull
+  private static Collection<File> getGradleServicePaths(@Nullable Project project) {
+    Set<File> paths = Sets.newLinkedHashSet();
+    if (project != null) {
+      // Use the one set in the IDE
+      GradleSettings settings = GradleSettings.getInstance(project);
+      String path = settings.getServiceDirectoryPath();
+      if (StringUtil.isNotEmpty(path)) {
+        File file = new File(path);
+        if (file.isDirectory()) {
+          paths.add(file);
+        }
+      }
+    }
+    // The default location: ~/.gradle
+    File path = new File(SystemProperties.getUserHome(), DOT_GRADLE);
+    if (path.isDirectory()) {
+      paths.add(path);
+    }
+    return paths;
+  }
+
 
   @NotNull
   private static File getEmbeddedGradleArtifactsDirPath() {
