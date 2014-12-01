@@ -32,12 +32,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
   private static final String LAYOUT_OVERLAY = "resourceRepository/layoutOverlay.xml";
+  private static final String LAYOUT_IDS_1 = "resourceRepository/layout_ids1.xml";
+  private static final String LAYOUT_IDS_2 = "resourceRepository/layout_ids2.xml";
   private static final String VALUES = "resourceRepository/values.xml";
   private static final String VALUES_OVERLAY1 = "resourceRepository/valuesOverlay1.xml";
   private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
@@ -56,6 +59,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   public void testOverlays() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");
+    myFixture.copyFileToProject(LAYOUT_IDS_1, "res2/layout/layout_ids1.xml");
+    myFixture.copyFileToProject(LAYOUT_IDS_2, "res2/layout/layout_ids2.xml");
     VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
     VirtualFile res3 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res3/values/nameDoesNotMatter.xml").getParent().getParent();
@@ -132,6 +137,22 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     resources.updateRoots(Arrays.asList(res1));
     resources.updateRoots(Arrays.asList(res1, res2, res3));
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
+
+    // Make sure I get all the resource ids (there can be multiple; these are not replaced via overlays)
+    List<ResourceItem> ids = resources.getResourceItem(ResourceType.ID, "my_id");
+    assertNotNull(ids);
+    assertSize(2, ids);
+    Collections.sort(ids, new Comparator<ResourceItem>() {
+      @SuppressWarnings("ConstantConditions")
+      @Override
+      public int compare(ResourceItem item1, ResourceItem item2) {
+        return item1.getSource().getFile().getName().compareTo(item2.getSource().getFile().getName());
+      }
+    });
+    //noinspection ConstantConditions
+    assertEquals("layout_ids1.xml", ids.get(0).getSource().getFile().getName());
+    //noinspection ConstantConditions
+    assertEquals("layout_ids2.xml", ids.get(1).getSource().getFile().getName());
   }
 
   public void testOverlayUpdates1() {
