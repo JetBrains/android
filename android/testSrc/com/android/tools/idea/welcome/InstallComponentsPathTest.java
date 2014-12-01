@@ -106,7 +106,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       }
     }
 
-    new InstallComponentsOperation(context, destination, Collections.singleton(new AndroidSdk())).compute();
+    new InstallComponentsOperation(Collections.singleton(new AndroidSdk()), null).install(context, destination);
     manager.reloadSdk(log);
     LocalPkgInfo[] installedPkgs = manager.getLocalSdk().getPkgsInfos(EnumSet.allOf(PkgType.class));
 
@@ -136,10 +136,8 @@ public class InstallComponentsPathTest extends AndroidTestBase {
   }
 
   public void DISABLEDtestComponentsToInstall() {
-    InstallContext context = new InstallContext(tempDir);
-
     File sdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
-    InstallComponentsOperation operation = new InstallComponentsOperation(context, sdkPath, Collections.singleton(new AndroidSdk()));
+    InstallComponentsOperation operation = new InstallComponentsOperation(Collections.singleton(new AndroidSdk()), null);
 
     SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assert manager != null;

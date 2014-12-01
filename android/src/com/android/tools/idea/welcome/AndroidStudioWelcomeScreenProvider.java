@@ -15,8 +15,20 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.internal.repository.sources.SdkSources;
+import com.android.sdklib.internal.repository.updater.SettingsController;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.avdmanager.LogWrapper;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.utils.NullLogger;
+import com.google.common.collect.Multimap;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import org.jetbrains.android.AndroidPlugin;
@@ -61,11 +73,28 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
+    Multimap<PkgType, RemotePkgInfo> remotePackages = ProgressManager.getInstance()
+      .runProcessWithProgressSynchronously(new ThrowableComputable<Multimap<PkgType, RemotePkgInfo>, RuntimeException>() {
+        @Override
+        public Multimap<PkgType, RemotePkgInfo> compute() throws RuntimeException {
+          return fetchPackages();
+        }
+      }, "Fetching Android SDK component information", false, null);
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourWasShown = true;
-    return new WelcomeScreenHost(wizardMode);
+    return new FirstRunWizardHost(wizardMode, remotePackages);
+  }
+
+  private Multimap<PkgType,RemotePkgInfo> fetchPackages() {
+    ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
+    if (progressIndicator != null) {
+      progressIndicator.setIndeterminate(true);
+    }
+    RemoteSdk remoteSdk = new RemoteSdk(new SettingsController(new LogWrapper(Logger.getInstance(getClass()))));
+    SdkSources sdkSources = remoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, new NullLogger());
+    return remoteSdk.fetch(sdkSources, new NullLogger());
   }
 
   @Override
