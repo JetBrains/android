@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.wizard.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.utils.NullLogger;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -51,10 +54,13 @@ public class FirstRunWizard extends DynamicWizard {
 
   @Override
   public void init() {
+    File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
     SetupProgressStep progressStep = new SetupProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep, myMode);
+    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      addPath(new SingleStepPath(new FirstRunWelcomeStep()));
+      boolean sdkExists = initialSdkLocation.isDirectory() &&
+                          SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
+      addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
     addPath(myJdkPath);
     addPath(myComponentsPath);
