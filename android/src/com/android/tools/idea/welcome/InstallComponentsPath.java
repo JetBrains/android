@@ -39,7 +39,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,12 +63,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
   private InstallableComponent[] myComponents;
+  @NotNull private final File mySdkLocation;
   private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
 
-  public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode) {
+  public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode, @NotNull File sdkLocation) {
     myProgressStep = progressStep;
     myMode = mode;
+    mySdkLocation = sdkLocation;
   }
 
   private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason, boolean createAvd) {
@@ -251,7 +252,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   protected void init() {
-    String location = null;
     boolean createAvd = true;
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL, myMode);
@@ -260,14 +260,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     else if (myMode == FirstRunWizardMode.INSTALL_HANDOFF) {
       InstallerData data = InstallerData.get();
       assert data != null;
-      File dest = data.getAndroidDest();
-      location = dest == null ? null : dest.getAbsolutePath();
       createAvd = data.shouldCreateAvd();
     }
-    if (StringUtil.isEmptyOrSpaces(location)) {
-      location = FirstRunWizardDefaults.getDefaultSdkLocation();
-    }
-    myState.put(KEY_SDK_INSTALL_LOCATION, location);
+    myState.put(KEY_SDK_INSTALL_LOCATION, mySdkLocation.getAbsolutePath());
 
     myComponents = createComponents(myMode, createAvd);
     mySdkComponentsStep = new SdkComponentsStep(myComponents, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION);
