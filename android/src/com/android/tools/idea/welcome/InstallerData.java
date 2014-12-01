@@ -37,15 +37,21 @@ import java.util.Map;
  */
 public class InstallerData {
   public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data");
+  public static final String PROPERTY_SDK = "androidsdk.dir";
+  public static final String PROPERTY_JDK = "jdk.dir";
+  public static final String PROPERTY_SDK_REPO = "androidsdk.repo";
+  public static final String PROPERTY_AVD = "create.avd";
   @Nullable private final File myJavaDir;
   @Nullable private final File myAndroidSrc;
   @Nullable private final File myAndroidDest;
+  private final boolean myCreateAvd;
 
   @VisibleForTesting
-  InstallerData(@Nullable File javaDir, @Nullable File androidSrc, @Nullable File androidDest) {
+  InstallerData(@Nullable File javaDir, @Nullable File androidSrc, @Nullable File androidDest, boolean createAvd) {
     myJavaDir = javaDir;
     myAndroidSrc = androidSrc;
     myAndroidDest = androidDest;
+    myCreateAvd = createAvd;
   }
 
   @Nullable
@@ -54,9 +60,10 @@ public class InstallerData {
     if (properties == null) {
       return null;
     }
-    String androidSdkPath = properties.get("androidsdk.dir");
+    String androidSdkPath = properties.get(PROPERTY_SDK);
     File androidDest = StringUtil.isEmptyOrSpaces(androidSdkPath) ? null : new File(androidSdkPath);
-    return new InstallerData(getIfExists(properties, "jdk.dir"), getIfExists(properties, "androidsdk.repo"), androidDest);
+    return new InstallerData(getIfExists(properties, PROPERTY_JDK), getIfExists(properties, PROPERTY_SDK_REPO), androidDest,
+                             Boolean.valueOf(properties.containsKey(PROPERTY_AVD) ? properties.get(PROPERTY_AVD) : "true"));
   }
 
   @Nullable
@@ -129,10 +136,14 @@ public class InstallerData {
     return myAndroidDest;
   }
 
+  public boolean shouldCreateAvd() {
+    return myCreateAvd;
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("jdk.dir", myJavaDir).add("androidsdk.repo", myAndroidSrc).add("androidsdk.dir", myAndroidDest)
-      .toString();
+    return Objects.toStringHelper(this).add(PROPERTY_JDK, myJavaDir).add(PROPERTY_SDK_REPO, myAndroidSrc).add(PROPERTY_SDK, myAndroidDest)
+      .add(PROPERTY_AVD, myCreateAvd).toString();
   }
 
   public boolean hasValidSdkLocation() {
