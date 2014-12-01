@@ -64,7 +64,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
                                   boolean hasJdkPath,
                                   boolean hasAndroidSdkPath) {
     InstallerData.set(data);
-    assertVisible(new FirstRunWelcomeStep(), data, isWelcomeStepVisible);
+    assertVisible(new FirstRunWelcomeStep(false), data, isWelcomeStepVisible);
     assertVisible(new JdkLocationStep(createKey(String.class)), data, isJdkStepVisible);
     assertVisible(new InstallationTypeWizardStep(createKey(Boolean.class), data == null
                                                                            ? FirstRunWizardMode.NEW_INSTALL
