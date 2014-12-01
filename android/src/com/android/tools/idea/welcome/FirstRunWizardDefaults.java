@@ -22,6 +22,9 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -88,25 +91,47 @@ public class FirstRunWizardDefaults {
    * @return Default Android SDK install location
    */
   @NotNull
-  public static String getDefaultSdkLocation() {
-    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
-    Sdk sdk = Iterables.getFirst(sdks, null);
-    if (sdk != null && !StringUtil.isEmptyOrSpaces(sdk.getHomePath())) {
-      return sdk.getHomePath();
-    }
-    // TODO Need exact paths
+  private static File getDefaultSdkLocation() {
     String userHome = System.getProperty("user.home");
+    String path;
     if (SystemInfo.isWindows) {
-      return FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
+      path = FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
     }
     else if (SystemInfo.isMac) {
-      return FileUtil.join(userHome, "Library", "Android", "sdk");
+      path = FileUtil.join(userHome, "Library", "Android", "sdk");
     }
     else if (SystemInfo.isLinux) {
-      return FileUtil.join(userHome, "Android", "Sdk");
+      path = FileUtil.join(userHome, "Android", "Sdk");
     }
     else {
       throw new IllegalStateException("Unsupported OS");
     }
+    return new File(path);
+  }
+
+  /**
+   * Returns initial SDK location. That will be the SDK location from the installer
+   * handoff file in the handoff case, sdk location location from the preference if set
+   * or platform-dependant default path.
+   */
+  @NotNull
+  public static File getInitialSdkLocation(@NotNull FirstRunWizardMode mode) {
+    if (mode == FirstRunWizardMode.INSTALL_HANDOFF) {
+      InstallerData data = InstallerData.get();
+      assert data != null;
+      File dest = data.getAndroidDest();
+      if (dest != null) {
+        return dest;
+      }
+    }
+    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+    Sdk sdk = Iterables.getFirst(sdks, null);
+    if (sdk != null) {
+      VirtualFile homeDirectory = sdk.getHomeDirectory();
+      if (homeDirectory != null) {
+        return VfsUtilCore.virtualToIoFile(homeDirectory);
+      }
+    }
+    return getDefaultSdkLocation();
   }
 }
