@@ -16,16 +16,20 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.wizard.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.SingleStepPath;
 import com.android.utils.NullLogger;
+import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup";
   @NotNull private final FirstRunWizardMode myMode;
+  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
   /**
    * On the first user click on finish button, we show progress step & perform setup.
    * Second attempt will close the wizard.
@@ -46,9 +51,11 @@ public class FirstRunWizard extends DynamicWizard {
 
   private boolean mySetupFailed;
 
-  public FirstRunWizard(@NotNull DynamicWizardHost host, @NotNull FirstRunWizardMode mode) {
+  public FirstRunWizard(@NotNull DynamicWizardHost host, @NotNull FirstRunWizardMode mode,
+                        @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
+    myRemotePackages = remotePackages;
     setTitle(WIZARD_TITLE);
   }
 
@@ -56,7 +63,7 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
     SetupProgressStep progressStep = new SetupProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation);
+    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       boolean sdkExists = initialSdkLocation.isDirectory() &&
                           SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
@@ -64,7 +71,7 @@ public class FirstRunWizard extends DynamicWizard {
     }
     addPath(myJdkPath);
     addPath(myComponentsPath);
-    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
+    if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     }
     addPath(new SingleStepPath(progressStep));

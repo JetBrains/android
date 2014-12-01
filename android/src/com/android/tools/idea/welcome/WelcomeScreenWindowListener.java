@@ -31,7 +31,7 @@ import java.lang.ref.WeakReference;
  * Substitutes Idea listener that terminates the app when window closes.
  */
 public final class WelcomeScreenWindowListener {
-  public static WindowListener install(@NotNull JFrame frame, @NotNull WelcomeScreenHost host) {
+  public static WindowListener install(@NotNull JFrame frame, @NotNull FirstRunWizardHost host) {
     WindowListener ideaListener = removeCloseListener(frame);
     // This code is a hack to replace IntelliJ window listener with ours.
     // That listener is an instance of anonymous class and our hack will stop working if
@@ -61,7 +61,7 @@ public final class WelcomeScreenWindowListener {
   }
 
   @Contract("null->false")
-  private static boolean handleClose(@Nullable WelcomeScreenHost host) {
+  private static boolean handleClose(@Nullable FirstRunWizardHost host) {
     if (host != null && host.isActive()) {
       host.cancel();
       return true;
@@ -76,7 +76,7 @@ public final class WelcomeScreenWindowListener {
   private static class DelegatingListener extends DirectListener {
     @NotNull private final WindowListener myIdeaListener;
 
-    public DelegatingListener(@NotNull WelcomeScreenHost host, @NotNull WindowListener ideaListener) {
+    public DelegatingListener(@NotNull FirstRunWizardHost host, @NotNull WindowListener ideaListener) {
       super(host);
       myIdeaListener = ideaListener;
     }
@@ -123,15 +123,15 @@ public final class WelcomeScreenWindowListener {
   }
 
   private static class DirectListener extends WindowAdapter {
-    private final WeakReference<WelcomeScreenHost> myHostReference;
+    private final WeakReference<FirstRunWizardHost> myHostReference;
 
-    public DirectListener(@NotNull WelcomeScreenHost host) {
+    public DirectListener(@NotNull FirstRunWizardHost host) {
       // Let the instance leave
-      myHostReference = new WeakReference<WelcomeScreenHost>(host);
+      myHostReference = new WeakReference<FirstRunWizardHost>(host);
     }
 
     @Nullable
-    protected final WelcomeScreenHost getHost() {
+    protected final FirstRunWizardHost getHost() {
       return myHostReference.get();
     }
 
