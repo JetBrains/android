@@ -98,7 +98,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       throw new IOException("SDK not found");
     }
 
-    Collection<IPkgDesc> sdkPackages = new AndroidSdk().getRequiredSdkPackages();
+    Collection<IPkgDesc> sdkPackages = new AndroidSdk().getRequiredSdkPackages(null);
     Set<String> toInstall = Sets.newHashSet();
     for (IPkgDesc sdkPackage : sdkPackages) {
       if (sdkPackage != null) {
