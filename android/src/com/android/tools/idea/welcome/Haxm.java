@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Joiner;
@@ -56,6 +55,7 @@ public final class Haxm extends InstallableComponent {
     ScopedStateStore.createKey("install.haxm", ScopedStateStore.Scope.PATH, Boolean.class);
   private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY_MB =
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
+  public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
   private static long memorySize = -1;
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   private ScopedStateStore myState;
@@ -69,8 +69,8 @@ public final class Haxm extends InstallableComponent {
   }
 
   public static boolean canRun() {
-    // TODO HAXM is disabled as headless install is not in the repositories yet
-    if (Boolean.getBoolean("install.haxm") && (SystemInfo.isWindows || SystemInfo.isMac)) {
+    // TODO HAXM is disabled on Windows as headless installer currently fails to request admin access as needed.
+    if ((Boolean.getBoolean("install.haxm") && SystemInfo.isWindows) || SystemInfo.isMac) {
       return getMemorySize() >= Storage.Unit.GiB.getNumberOfBytes();
     }
     else {
@@ -81,10 +81,9 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   private static GeneralCommandLine getMacHaxmInstallCommandLine(File source, int memorySize) {
     String shellScript = getAbsolutePathString(source, "silent_install.sh");
-    String diskImage = getAbsolutePathString(source, "IntelHAXM_1.1.0_below_10.10.dmg");
     // Explicitly calling bash so we don't have to deal with permissions on the shell script file.
     // Note that bash is preinstalled on Mac OS X so we can rely on it.
-    String[] installerInvocation = {"/bin/bash", shellScript, "-f", diskImage, "-m", String.valueOf(memorySize)};
+    String[] installerInvocation = {"/bin/bash", shellScript, "-m", String.valueOf(memorySize)};
 
     // We can't use 'sudo' here as this requires a terminal. So Apple Script is used to run shell script as admin
     String appleScript = String.format("do shell script \"%s\" with administrator privileges", Joiner.on(" ").join(installerInvocation));
@@ -101,7 +100,6 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   private static GeneralCommandLine getWindowsHaxmInstallCommandLine(File source, int memorySize) {
-    // TODO
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(new File(source, "silent_install.bat").getAbsolutePath());
     commandLine.setWorkDirectory(source);
@@ -172,6 +170,10 @@ public final class Haxm extends InstallableComponent {
     }
     GeneralCommandLine commandLine = getCommandLine(sdk);
     try {
+      ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
+      progressIndicator.setIndeterminate(true);
+      progressIndicator.setText(RUNNING_INTEL_HAXM_INSTALLER_MESSAGE);
+      installContext.print(RUNNING_INTEL_HAXM_INSTALLER_MESSAGE + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
       myProgressStep.attachToProcess(process);
       int exitCode = process.runProcess().getExitCode();
@@ -180,9 +182,7 @@ public final class Haxm extends InstallableComponent {
         myProgressStep.print("HAXM installation failed. To install HAXM follow the instructions found at " +
                              FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL + ".", ConsoleViewContentType.ERROR_OUTPUT);
       }
-      else {
-        myProgressStep.print("Completed HAXM installation\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-      }
+      progressIndicator.setFraction(1);
     }
     catch (ExecutionException e) {
       installContext.print("Unable to run Intel HAXM installer: " + e.getMessage(), ConsoleViewContentType.ERROR_OUTPUT);
@@ -198,9 +198,6 @@ public final class Haxm extends InstallableComponent {
    */
   @NotNull
   private GeneralCommandLine getCommandLine(File sdk) {
-    ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-    progressIndicator.setIndeterminate(true);
-    progressIndicator.setText("Running Intel® HAXM installer");
     int memorySize = myState.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     File sourceLocation = new File(sdk, path);
