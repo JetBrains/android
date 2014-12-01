@@ -44,6 +44,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class NewProjectTest extends GuiTestCase {
   @Test
@@ -63,6 +64,13 @@ public class NewProjectTest extends GuiTestCase {
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("19");
+
+    // Make sure that the activity registration uses the relative syntax
+    // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/AndroidManifest.xml");
+    int offset = editor.findOffset("\".^MainActivity\"");
+    assertTrue(offset != -1);
 
     // Creating a project with minSdkVersion 19 should leave the Java language level as Java 6
     // For L and higher we use Java 7 language level; that is tested separately in testLanguageLevelForApi21
