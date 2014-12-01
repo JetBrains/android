@@ -197,9 +197,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         ideModule.createChild(BuildScriptClasspathData.KEY, buildScriptClasspathData);
       }
     }
-    else {
-      nextResolver.populateModuleExtraModels(gradleModule, ideModule);
-    }
+
+    nextResolver.populateModuleExtraModels(gradleModule, ideModule);
   }
 
   @NotNull
