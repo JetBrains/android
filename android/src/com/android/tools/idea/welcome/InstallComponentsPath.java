@@ -23,14 +23,17 @@ import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,8 +48,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -62,15 +67,18 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
+  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
   private InstallableComponent[] myComponents;
   @NotNull private final File mySdkLocation;
   private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
 
-  public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode, @NotNull File sdkLocation) {
+  public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode,
+                               @NotNull File sdkLocation, @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
+    myRemotePackages = remotePackages;
   }
 
   private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason, boolean createAvd) {
@@ -207,11 +215,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   @VisibleForTesting
-  static void setupSdkComponents(@NotNull InstallContext installContext,
-                                 @NotNull File sdk,
-                                 @NotNull Collection<? extends InstallableComponent> selectedComponents,
-                                 double progressRatio) throws WizardException {
-    installContext.run(new InstallComponentsOperation(installContext, sdk, selectedComponents), progressRatio);
+  void setupSdkComponents(@NotNull InstallContext installContext,
+                          @NotNull File sdk,
+                          @NotNull Collection<? extends InstallableComponent> selectedComponents,
+                          @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                          double progressRatio) throws WizardException {
+    new InstallComponentsOperation(selectedComponents, remotePackages).run(installContext, sdk, progressRatio);
     for (InstallableComponent component : selectedComponents) {
       component.configure(installContext, sdk);
     }
@@ -279,6 +288,54 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
+  @Override
+  public void deriveValues(Set<ScopedStateStore.Key> modified) {
+    super.deriveValues(modified);
+    if (modified.contains(KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION) || containsComponentVisibilityKey(modified)) {
+      String sdkPath = myState.get(KEY_SDK_INSTALL_LOCATION);
+      SdkManager manager = null;
+      if (sdkPath != null) {
+        manager = SdkManager.createManager(sdkPath, new NullLogger());
+      }
+      ArrayList<String> installIds =
+        new InstallComponentsOperation(getSelectedComponents(), myRemotePackages).getPackagesToDownload(manager);
+      final List<IPkgDesc> packages = getPackagesList(installIds);
+      myState.put(WizardConstants.INSTALL_REQUESTS_KEY, packages);
+    }
+  }
+
+  @NotNull
+  private List<IPkgDesc> getPackagesList(@NotNull Collection<String> installIds) {
+    if (myRemotePackages != null) {
+      ImmutableSet<String> ids = ImmutableSet.copyOf(installIds);
+      ImmutableList.Builder<IPkgDesc> packages = ImmutableList.builder();
+      for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
+        IPkgDesc desc = remotePkgInfo.getDesc();
+        if (ids.contains(desc.getInstallId())) {
+          packages.add(desc);
+        }
+      }
+      return packages.build();
+    }
+    else {
+      return ImmutableList.of();
+    }
+  }
+
+  private boolean containsComponentVisibilityKey(@NotNull Set<ScopedStateStore.Key> modified) {
+    if (myComponents == null) {
+      return false;
+    }
+    else {
+      for (InstallableComponent component : myComponents) {
+        if (modified.contains(component.getKey())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   @NotNull
   @Override
   public String getPathName() {
@@ -293,12 +350,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     InstallContext installContext = new InstallContext(createTempDir(), myProgressStep);
     final File sdk = initializeSdk(installContext, INIT_SDK_OPERATION_PROGRESS_SHARE);
     if (sdk != null) {
-      setupSdkComponents(installContext, sdk, getSelectedComponents(), INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+      setupSdkComponents(installContext, sdk, getSelectedComponents(), myRemotePackages, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
       setSdkInPreferences(sdk);
     }
   }
 
-  private List<InstallableComponent> getSelectedComponents() throws WizardException {
+  private List<InstallableComponent> getSelectedComponents() {
     boolean customInstall = myState.getNotNull(KEY_CUSTOM_INSTALL, true);
     List<InstallableComponent> selectedOperations = Lists.newArrayListWithCapacity(myComponents.length);
 
