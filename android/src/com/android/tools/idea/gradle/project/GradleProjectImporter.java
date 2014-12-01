@@ -253,15 +253,6 @@ public class GradleProjectImporter {
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
-        GradleSyncState.getInstance(project).runIdeProjectModificationAction(new Runnable() {
-          @Override
-          public void run() {
-            doExecute();
-          }
-        });
-      }
-
-      private void doExecute() {
         LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
         LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
         try {
