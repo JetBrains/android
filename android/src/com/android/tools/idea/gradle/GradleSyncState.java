@@ -25,7 +25,6 @@ import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -47,6 +46,7 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
+import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -70,9 +70,13 @@ public class GradleSyncState {
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;
 
-  private volatile boolean myGradleBasedIdeProjectModificationInProgress;
-  private volatile boolean mySyncInProgress;
-  private volatile boolean mySyncTransparentChangeInProgress;
+  private final Object myLock = new Object();
+
+  @GuardedBy("myLock")
+  private boolean mySyncInProgress;
+
+  @GuardedBy("myLock")
+  private boolean mySyncTransparentChangeInProgress;
 
   @NotNull
   public static GradleSyncState getInstance(@NotNull Project project) {
@@ -98,7 +102,10 @@ public class GradleSyncState {
   public void syncStarted(boolean notifyUser) {
     cleanUpProjectPreferences();
     StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
-    mySyncInProgress = true;
+    synchronized (myLock) {
+      mySyncInProgress = true;
+      mySyncTransparentChangeInProgress = false;
+    }
     if (notifyUser) {
       notifyUser();
     }
@@ -136,7 +143,10 @@ public class GradleSyncState {
   }
 
   private void syncFinished() {
-    mySyncInProgress = false;
+    synchronized (myLock) {
+      mySyncInProgress = false;
+      mySyncTransparentChangeInProgress = false;
+    }
     setLastGradleSyncTimestamp(System.currentTimeMillis());
     StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     notifyUser();
@@ -169,7 +179,9 @@ public class GradleSyncState {
   }
 
   public boolean isSyncInProgress() {
-    return mySyncInProgress;
+    synchronized (myLock) {
+      return mySyncInProgress;
+    }
   }
 
   private void setLastGradleSyncTimestamp(long timestamp) {
@@ -190,8 +202,10 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    if (mySyncTransparentChangeInProgress) {
-      return ThreeState.NO;
+    synchronized (myLock) {
+      if (mySyncTransparentChangeInProgress) {
+        return ThreeState.NO;
+      }
     }
     long lastSync = getLastGradleSyncTimestamp();
     if (lastSync < 0) {
@@ -209,9 +223,9 @@ public class GradleSyncState {
    * @return {@code true} if a sync with Gradle is needed, {@code false} otherwise.
    * @throws AssertionError if the given time is less than or equal to zero.
    */
-  public boolean isSyncNeeded(long referenceTimeInMillis) {
+  private boolean isSyncNeeded(long referenceTimeInMillis) {
     assert referenceTimeInMillis > 0;
-    if (mySyncInProgress) {
+    if (isSyncInProgress()) {
       return false;
     }
 
@@ -278,49 +292,22 @@ public class GradleSyncState {
    * @param action  an action to execute
    */
   public void runSyncTransparentAction(@NotNull Runnable action) {
-    boolean canRunActionTransparently = !mySyncTransparentChangeInProgress && isSyncNeeded() == ThreeState.NO;
-    if (canRunActionTransparently) {
-      mySyncTransparentChangeInProgress = true;
-    }
-    try {
-      action.run();
-    }
-    finally {
-      if (canRunActionTransparently) {
-        mySyncTransparentChangeInProgress = false;
-        myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
+    synchronized (myLock) {
+      if (isSyncNeeded() == ThreeState.NO) {
+        mySyncTransparentChangeInProgress = true;
       }
     }
-  }
-
-  /**
-   * There is a possible case that IDE project structure is modified by our code. Corresponding 'project modification' events are
-   * sent then (see {@link ProjectTopics}). However, we want to differentiate between the changes made by us and all other changes.
-   * <p/>
-   * E.g. when a user, say, adds new dependency to a module we might try to propagate that change to gradle config files but we don't
-   * want to react to project structure changes triggered by gradle integration itself.
-   * <p/>
-   * The main idea is that given action is executed during the current method call and
-   * {@link #isGradleBasedIdeProjectModificationInProgress()} returns <code>true</code> during its execution.
-   *
-   * @param action  an action to execute
-   */
-  public void runIdeProjectModificationAction(@NotNull Runnable action) {
-    myGradleBasedIdeProjectModificationInProgress = true;
     try {
       action.run();
     }
     finally {
-      myGradleBasedIdeProjectModificationInProgress = false;
+      synchronized (myLock) {
+        if (isSyncNeeded() == ThreeState.NO) {
+          mySyncTransparentChangeInProgress = false;
+          myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
+        }
+      }
     }
-  }
-
-  /**
-   * @return    <code>true</code> if gradle integration-based IDE project modification is in progress; <code>false</code> otherwise
-   * @see #runIdeProjectModificationAction(Runnable)
-   */
-  public boolean isGradleBasedIdeProjectModificationInProgress() {
-    return myGradleBasedIdeProjectModificationInProgress;
   }
 
   @VisibleForTesting
