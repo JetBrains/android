@@ -207,11 +207,16 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
     if (requestedPackageNames != null) {
       for (Object o : requestedPackageNames) {
         IPkgDesc desc = (IPkgDesc)o;
-        if (desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview()) {
-          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_PREVIEW_SDK_LICENSE));
-        } else {
-          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_SDK_LICENSE));
+        License license = desc.getLicense();
+        if (license == null) { // Android SDK license
+          if (desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview()) {
+            license = AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_PREVIEW_SDK_LICENSE;
+          }
+          else {
+            license = AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_SDK_LICENSE;
+          }
         }
+        toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, license));
       }
     }
     return toReturn;
