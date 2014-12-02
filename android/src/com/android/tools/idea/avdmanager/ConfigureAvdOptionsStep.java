@@ -180,9 +180,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
     myOrientationToggle.setOpaque(false);
-    // Temporarily hide until it's hooked up with the emulator
-    myOrientationToggle.setVisible(false);
-    myOrientationLabel.setVisible(false);
   }
 
   /**
@@ -237,6 +234,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
     if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
       myEnableComputerKeyboard.setEnabled(false);
+    }
+
+    if (myState.get(DEFAULT_ORIENTATION_KEY) == null) {
+      myState.put(DEFAULT_ORIENTATION_KEY, device.getDefaultState().getOrientation());
     }
   }
 
@@ -500,28 +501,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         }
       });
     }
-
-    registerValueDeriver(DEFAULT_ORIENTATION_KEY, new ValueDeriver<ScreenOrientation>() {
-      @Nullable
-      @Override
-      public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(DEVICE_DEFINITION_KEY);
-      }
-
-      @Nullable
-      @Override
-      public ScreenOrientation deriveValue(@NotNull ScopedStateStore state,
-                                           @Nullable Key changedKey,
-                                           @Nullable ScreenOrientation currentValue) {
-        Device device = state.get(DEVICE_DEFINITION_KEY);
-        if (device != null) {
-          return device.getDefaultState().getOrientation();
-        }
-        else {
-          return null;
-        }
-      }
-    });
 
     registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
       @Nullable
