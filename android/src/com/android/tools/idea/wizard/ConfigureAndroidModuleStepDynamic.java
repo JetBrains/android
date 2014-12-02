@@ -115,6 +115,38 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     invokeUpdate(null);
   }
 
+  @Override
+  public boolean commitStep() {
+    boolean commit = super.commitStep();
+
+    if (commit && myPath instanceof NewFormFactorModulePath) {
+      // Fix for https://code.google.com/p/android/issues/detail?id=78730
+      // where creating a new module results in the activity classes with the
+      // wrong package name.
+      //
+      // The reason that happens is that for some reason the packageName
+      // parameter in the TemplateParameterStep2 state does not get updated.
+      // And that happens because it's *normally* updated by
+      // NewFormFactorModulePath#onPathStarted, which in the New Project Wizard
+      // is called *after* the user has edited the package name in the first
+      // wizard panel and has moved on to the next panel. That means that when
+      // onPathStarted is called, and it pushes the default package into the
+      // TemplateParameterStep2 map, it contains the updated package.
+      //
+      // However, in the new module wizard, NewFormFactorModulePath#onPathStarted
+      // is called *before* the package has been edited.
+      //
+      // Having those values be "committed" from onPathStarted in NewFormFactorModule
+      // seems wrong, but since we're in high resistance, we're going for a minimal
+      // impact fix here: Fix this specifically for the New Module Wizard (this class)
+      // where we deliberately update those values only when the values are
+      // actually committed from the new module wizard package panel.
+      ((NewFormFactorModulePath)myPath).updatePackageDerivedValues();
+    }
+
+    return commit;
+  }
+
   @Nullable
   private CreateModuleTemplate getModuleType() {
     ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
