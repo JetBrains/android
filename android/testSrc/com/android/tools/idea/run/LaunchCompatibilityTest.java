@@ -93,6 +93,13 @@ public class LaunchCompatibilityTest extends TestCase {
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), null);
     assertEquals(new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: google"), compatibility);
 
+    // Google APIs add on should be treated as a special case and should always be allowed to run on a real device
+    MockAddonTarget googleApiTarget = new MockAddonTarget("Google APIs", baseTarget, 1);
+    googleApiTarget.setOptionalLibraries(new IAndroidTarget.IOptionalLibrary[] {optionalLibrary});
+    compatibility =
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, googleApiTarget, requiredFeatures, createMockDevice(8, null, false), null);
+    assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
+
     // should work if add-on target == avd target
     compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), projectTarget);
