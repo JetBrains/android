@@ -17,10 +17,13 @@ package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Joiner;
@@ -64,7 +67,6 @@ public final class Haxm extends InstallableComponent {
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   private ScopedStateStore myState;
   private ProgressStep myProgressStep;
-
 
   public Haxm(ScopedStateStore.Key<Boolean> isCustomInstall) {
     super("Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
@@ -151,6 +153,12 @@ public final class Haxm extends InstallableComponent {
     return 32L * Storage.Unit.GiB.getNumberOfBytes();
   }
 
+  @NotNull
+  private static IPkgDesc createExtra(@NotNull IdDisplay vendor, @NotNull String path) {
+    return PkgDesc.Builder.newExtra(vendor, path, "", null,
+                                    new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV)).create();
+  }
+
   @Override
   public void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep) {
     myState = state;
@@ -189,7 +197,7 @@ public final class Haxm extends InstallableComponent {
       progressIndicator.setFraction(1);
     }
     catch (ExecutionException e) {
-      installContext.print("Unable to run Intel HAXM installer: " + e.getMessage(), ConsoleViewContentType.ERROR_OUTPUT);
+      installContext.print("Unable to run Intel HAXM installer: " + e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
       LOG.error(e);
     }
   }
@@ -220,6 +228,6 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    return ImmutableList.of(InstallComponentsPath.createExtra(true, ID_INTEL, COMPONENT_PATH));
+    return ImmutableList.of(createExtra(ID_INTEL, COMPONENT_PATH));
   }
 }
