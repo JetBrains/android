@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectData;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.lang.proguard.ProguardFileType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.projectView.PresentationData;
@@ -76,9 +77,13 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
       String moduleName = getPrefixForModule(m) + m.getName();
       buildScripts.put(GradleUtil.getGradleBuildFile(m), moduleName);
 
-      // include all .gradle files from each module
+      // include all .gradle and ProGuard files from each module
       for (VirtualFile f : findAllGradleScriptsInModule(m)) {
-        buildScripts.put(f, moduleName);
+        if (f.getFileType() == ProguardFileType.INSTANCE) {
+          buildScripts.put(f, String.format("ProGuard Rules for %1$s", m.getName()));
+        } else {
+          buildScripts.put(f, moduleName);
+        }
       }
     }
 
@@ -113,7 +118,10 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
     List<VirtualFile> files = Lists.newArrayList();
     for (VirtualFile child : dir.getChildren()) {
-      if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(SdkConstants.EXT_GRADLE)) {
+      if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(SdkConstants.EXT_GRADLE) &&
+          // Consider proguard rule files as a type of build script (contains build-time configuration
+          // for release builds)
+          child.getFileType() != ProguardFileType.INSTANCE) {
         continue;
       }
 
