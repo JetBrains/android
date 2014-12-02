@@ -70,6 +70,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.IOException;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 
@@ -429,12 +430,13 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
-    if (!PreSyncChecks.canSync(project)) {
+    PreSyncChecks.PreSyncCheckResult preSyncCheckResult = PreSyncChecks.canSync(project);
+    if (!preSyncCheckResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
       GradleSyncState syncState = GradleSyncState.getInstance(project);
       syncState.syncStarted(true);
       NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen(project);
-      syncState.syncFailed("Issues with settings.gradle file (e.g. empty file)");
+      syncState.syncFailed(nullToEmpty(preSyncCheckResult.getFailureCause()));
       return;
     }
 
