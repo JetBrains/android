@@ -6,4 +6,6 @@
   </declare-styleable>
 
   <drawable name="myDrawable"/>
+
+  <string name="test.hello_world">Hello</string>
 </resources>
