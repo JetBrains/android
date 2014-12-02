@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
+import com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.notification.NotificationType.ERROR;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 final class PreSyncChecks {
@@ -43,21 +46,35 @@ final class PreSyncChecks {
   private PreSyncChecks() {
   }
 
-  static boolean canSync(@NotNull Project project) {
+  @NotNull
+  static PreSyncCheckResult canSync(@NotNull Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // Unlikely to happen because it would mean this is the default project.
-      return true;
+      return PreSyncCheckResult.success();
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Don't check Gradle settings in unit tests. They should be set up properly.
       FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
+      if (modelVersion != null) {
+        PreciseRevision minimumSupportedVersion = PreciseRevision.parseRevision(GRADLE_PLUGIN_MINIMUM_VERSION);
+        if (modelVersion.compareTo(minimumSupportedVersion) < 0) {
+          String cause = "The minimum supported version of the Android Gradle plugin is " + GRADLE_PLUGIN_MINIMUM_VERSION +
+                         ", but the project is using " + modelVersion.toString() + ".";
+
+          String msg = cause + " Please click the link to perform a textual search and then update the build files manually.";
+          SearchInBuildFilesHyperlink hyperlink = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
+          AndroidGradleNotification.getInstance(project).showBalloon(GRADLE_SYNC_MSG_TITLE, msg, ERROR, hyperlink);
+
+          return PreSyncCheckResult.failure(cause);
+        }
+      }
       ensureCorrectGradleSettings(project, modelVersion);
       GradleUtil.attemptToUseEmbeddedGradle(project);
     }
 
-    return true;
+    return PreSyncCheckResult.success();
   }
 
   private static void ensureCorrectGradleSettings(@NotNull Project project, @Nullable FullRevision modelVersion) {
@@ -251,5 +268,34 @@ final class PreSyncChecks {
   private static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
     FullRevision supported = FullRevision.parseRevision(GRADLE_MINIMUM_VERSION);
     return supported.compareTo(gradleVersion) <= 0;
+  }
+
+  static class PreSyncCheckResult {
+    private final boolean mySuccess;
+    @Nullable private final String myFailureCause;
+
+    @NotNull
+    private static PreSyncCheckResult success() {
+      return new PreSyncCheckResult(true, null);
+    }
+
+    @NotNull
+    private static PreSyncCheckResult failure(@NotNull String cause) {
+      return new PreSyncCheckResult(false, cause);
+    }
+
+    private PreSyncCheckResult(boolean success, @Nullable String failureCause) {
+      mySuccess = success;
+      myFailureCause = failureCause;
+    }
+
+    public boolean isSuccess() {
+      return mySuccess;
+    }
+
+    @Nullable
+    public String getFailureCause() {
+      return myFailureCause;
+    }
   }
 }
