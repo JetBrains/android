@@ -83,7 +83,11 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
       // If this error happens, look at the output of "dumpsys package <name>", and see why the parser did not identify the install state.
       String msg = String.format("Unexpected error: package manager reports that package %1$s has not been installed: %2$s", pkgName,
                                  StringUtil.notNullize(myDiagnosticOutput));
-      Logger.getInstance(InstalledApks.class).error(msg);
+
+      // We used to log an error, but see https://code.google.com/p/android/issues/detail?id=79778 for a case where this doesn't work
+      // on custom Android systems. So we just log a warning: the impact is that these users won't have any benefits of caching - the apk
+      // will always be uploaded
+      Logger.getInstance(InstalledApks.class).warn(msg);
       return;
     }
     cache.put(pkgName, new InstallState(hash(apk), lastUpdateTime));
