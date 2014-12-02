@@ -21,10 +21,14 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,14 +58,33 @@ public final class AndroidSdk extends InstallableComponent {
     return list;
   }
 
+  /**
+   * Find latest build tools revision with compatible major version number.
+   */
+  @NotNull
+  private static FullRevision getLatestCompatibleBuildToolsRevision(@Nullable Multimap<PkgType, RemotePkgInfo> packages) {
+    FullRevision revision = FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION;
+    if (packages != null) {
+      Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
+      for (RemotePkgInfo tool : tools) {
+        FullRevision fullRevision = tool.getDesc().getFullRevision();
+        if (fullRevision != null && fullRevision.getMajor() == FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION.getMajor() &&
+            fullRevision.compareTo(revision) > 0) {
+          revision = fullRevision;
+        }
+      }
+    }
+    return revision;
+  }
+
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages() {
+  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
 
     PkgDesc.Builder androidSdkTools = PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder androidSdkPlatformTools = PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(new FullRevision(21, 0, 2));
+    PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages));
     PkgDesc.Builder platform =
       PkgDesc.Builder.newPlatform(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder sample =
