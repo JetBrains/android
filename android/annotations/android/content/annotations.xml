@@ -359,7 +359,7 @@
   </item>
   <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 2">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_DEBUG_UNBIND, android.content.Context.BIND_NOT_FOREGROUND, android.content.Context.BIND_ABOVE_CLIENT, android.content.Context.BIND_ALLOW_OOM_MANAGEMENT, android.content.Context.BIND_WAIVE_PRIORITY}" />
+      <val name="value" val="{android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_DEBUG_UNBIND, android.content.Context.BIND_NOT_FOREGROUND, android.content.Context.BIND_ABOVE_CLIENT, android.content.Context.BIND_ALLOW_OOM_MANAGEMENT, android.content.Context.BIND_WAIVE_PRIORITY, android.content.Context.BIND_IMPORTANT, android.content.Context.BIND_ADJUST_WITH_ACTIVITY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
