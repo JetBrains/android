@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Projects;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -57,14 +56,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @Override
   public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    final Application application = ApplicationManager.getApplication();
+
+    populateProject(projectInfo);
 
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
-
-        populateProject(projectInfo);
-        boolean isTest = application.isUnitTestMode();
+        boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
         if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
           if (myProjectIsNew) {
             Projects.open(myProject);
@@ -92,7 +90,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         }
       }
     };
-    if (application.isUnitTestMode()) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
       runnable.run();
     }
     else {
