@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.resources;
 
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
@@ -195,7 +197,10 @@ public class ResourceValue {
       }
     }
 
-    return AndroidUtils.isIdentifier(myResourceName) || type == ResourceType.STYLE; // style: must tokenize by _
+    return AndroidUtils.isIdentifier(myResourceName)
+           // Value resources are allowed to contain . and : in the names
+           || FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
+              && AndroidUtils.isIdentifier(AndroidResourceUtil.getFieldNameByResourceName(myResourceName));
   }
 
   @Nullable
@@ -232,7 +237,7 @@ public class ResourceValue {
     }
 
     String name = myResourceName;
-    if (type == ResourceType.STYLE || type == ResourceType.DECLARE_STYLEABLE) {
+    if (FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)) {
       name = AndroidResourceUtil.getFieldNameByResourceName(name);
     }
 
