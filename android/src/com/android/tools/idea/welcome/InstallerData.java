@@ -25,6 +25,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -36,22 +37,30 @@ import java.util.Map;
  * Wrapper around data passed from the installer.
  */
 public class InstallerData {
-  public static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data");
-  public static final String PROPERTY_SDK = "androidsdk.dir";
-  public static final String PROPERTY_JDK = "jdk.dir";
-  public static final String PROPERTY_SDK_REPO = "androidsdk.repo";
-  public static final String PROPERTY_AVD = "create.avd";
+  public static final InstallerData EMPTY = new InstallerData(null, null, null, true, null);
+
+  private static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data");
+  private static final String PROPERTY_SDK = "androidsdk.dir";
+  private static final String PROPERTY_JDK = "jdk.dir";
+  private static final String PROPERTY_SDK_REPO = "androidsdk.repo";
+  private static final String PROPERTY_TIMESTAMP = "install.timestamp";
+  private static final String PROPERTY_AVD = "create.avd";
+  private static final Logger LOG = Logger.getInstance(InstallerData.class);
+
   @Nullable private final File myJavaDir;
   @Nullable private final File myAndroidSrc;
   @Nullable private final File myAndroidDest;
   private final boolean myCreateAvd;
+  @Nullable private final String myTimestamp;
 
-  @VisibleForTesting
-  InstallerData(@Nullable File javaDir, @Nullable File androidSrc, @Nullable File androidDest, boolean createAvd) {
+  public InstallerData(@Nullable File javaDir, @Nullable File androidSrc,
+                       @Nullable File androidDest, boolean createAvd,
+                       @Nullable String timestamp) {
     myJavaDir = javaDir;
     myAndroidSrc = androidSrc;
     myAndroidDest = androidDest;
     myCreateAvd = createAvd;
+    myTimestamp = timestamp;
   }
 
   @Nullable
@@ -62,8 +71,9 @@ public class InstallerData {
     }
     String androidSdkPath = properties.get(PROPERTY_SDK);
     File androidDest = StringUtil.isEmptyOrSpaces(androidSdkPath) ? null : new File(androidSdkPath);
-    return new InstallerData(getIfExists(properties, PROPERTY_JDK), getIfExists(properties, PROPERTY_SDK_REPO), androidDest,
-                             Boolean.valueOf(properties.containsKey(PROPERTY_AVD) ? properties.get(PROPERTY_AVD) : "true"));
+    return new InstallerData(getIfPathExists(properties, PROPERTY_JDK), getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
+                             Boolean.valueOf(properties.containsKey(PROPERTY_AVD) ? properties.get(PROPERTY_AVD) : "true"),
+                             properties.get(PROPERTY_TIMESTAMP));
   }
 
   @Nullable
@@ -73,36 +83,33 @@ public class InstallerData {
       File file = new File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES);
       if (file.isFile()) {
         Map<String, String> properties = Maps.newHashMap();
-        try {
-          final List<String> lines = Files.readLines(file, Charsets.UTF_16LE);
-          for (String line : lines) {
-            int keyValueSeparator = line.indexOf('=');
-            if (keyValueSeparator < 0) {
-              continue;
-            }
-            final String key = line.substring(0, keyValueSeparator).trim();
-            final String value = line.substring(keyValueSeparator + 1).trim();
-            if (key.isEmpty()) {
-              continue;
-            }
-            properties.put(key, value);
+        final List<String> lines = Files.readLines(file, Charsets.UTF_16LE);
+        for (String line : lines) {
+          int keyValueSeparator = line.indexOf('=');
+          if (keyValueSeparator < 0) {
+            continue;
           }
+          final String key = line.substring(0, keyValueSeparator).trim();
+          final String value = line.substring(keyValueSeparator + 1).trim();
+          if (key.isEmpty()) {
+            continue;
+          }
+          properties.put(key, value);
         }
-        catch (IOException e) {
-          Logger.getInstance(InstallerData.class).error(e);
-        }
-
         return properties;
       }
     }
     catch (AndroidLocation.AndroidLocationException e) {
-      Logger.getInstance(InstallerData.class).error(e);
+      LOG.error(e);
+    }
+    catch (IOException e) {
+      LOG.error(e);
     }
     return null;
   }
 
   @Nullable
-  private static File getIfExists(Map<String, String> properties, String propertyName) {
+  private static File getIfPathExists(Map<String, String> properties, String propertyName) {
     String path = properties.get(propertyName);
     if (!StringUtil.isEmptyOrSpaces(path)) {
       File file = new File(path);
@@ -116,9 +123,15 @@ public class InstallerData {
     Holder.INSTALLER_DATA = data;
   }
 
-  @Nullable
+  public static boolean exists() {
+    return Holder.INSTALLER_DATA != null;
+  }
+
+  @NotNull
   public static synchronized InstallerData get() {
-    return Holder.INSTALLER_DATA;
+    InstallerData data = Holder.INSTALLER_DATA;
+    assert data != null;
+    return data;
   }
 
   @Nullable
@@ -143,7 +156,7 @@ public class InstallerData {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add(PROPERTY_JDK, myJavaDir).add(PROPERTY_SDK_REPO, myAndroidSrc).add(PROPERTY_SDK, myAndroidDest)
-      .add(PROPERTY_AVD, myCreateAvd).toString();
+      .add(PROPERTY_AVD, myCreateAvd).add(PROPERTY_TIMESTAMP, myTimestamp).toString();
   }
 
   public boolean hasValidSdkLocation() {
@@ -161,6 +174,11 @@ public class InstallerData {
   public boolean hasValidJdkLocation() {
     File javaDir = getJavaDir();
     return javaDir != null && JdkLocationStep.validateJdkLocation(javaDir) == null;
+  }
+
+  @Nullable
+  public String getTimestamp() {
+    return myTimestamp;
   }
 
   private static class Holder {

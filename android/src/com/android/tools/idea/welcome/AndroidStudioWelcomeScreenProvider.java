@@ -27,7 +27,6 @@ import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
@@ -35,7 +34,6 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 
 /**
  * Shows a wizard first time Android Studio is launched
@@ -52,18 +50,31 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
    */
   @Nullable
   public static FirstRunWizardMode getWizardMode() {
-    if (AndroidFirstRunPersistentData.getInstance().isSdkUpToDate()) {
-      List<Sdk> sdks = DefaultSdks.getEligibleAndroidSdks();
-      if (sdks.isEmpty()) {
-        return FirstRunWizardMode.MISSING_SDK;
-      }
-      else {
-        return null;
-      }
+    AndroidFirstRunPersistentData persistentData = AndroidFirstRunPersistentData.getInstance();
+    if (isHandoff(persistentData)) {
+      return FirstRunWizardMode.INSTALL_HANDOFF;
+    }
+    else if (!persistentData.isSdkUpToDate()) {
+      return FirstRunWizardMode.NEW_INSTALL;
+    }
+    else if (DefaultSdks.getEligibleAndroidSdks().isEmpty()) {
+      return FirstRunWizardMode.MISSING_SDK;
     }
     else {
-      return InstallerData.get() == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
+      return null;
     }
+  }
+
+  /**
+   * return true if the handoff data was updated since the last time wizard ran
+   */
+  private static boolean isHandoff(AndroidFirstRunPersistentData persistentData) {
+    if (InstallerData.exists()) {
+      if (!persistentData.isSdkUpToDate() || !persistentData.isSameTimestamp(InstallerData.get().getTimestamp())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static boolean isWizardDisabled() {
