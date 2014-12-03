@@ -395,9 +395,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       indicator.setText("Moving downloaded SDK");
       indicator.start();
       try {
-        FileUtil.ensureExists(myDestination);
-        if (!FileUtil.moveDirWithContent(getSdkRoot(file), myDestination)) {
-          throw new WizardException("Unable to move Android SDK");
+        File root = getSdkRoot(file);
+        if (!root.renameTo(myDestination)) {
+          FileUtil.copyDir(root, myDestination);
+          FileUtil.delete(root); // Failure to delete it is not critical, the source is in temp folder.
+                                 // No need to abort installation.
         }
         return myDestination;
       }
