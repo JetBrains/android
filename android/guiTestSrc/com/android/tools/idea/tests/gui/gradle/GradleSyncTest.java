@@ -291,7 +291,7 @@ public class GradleSyncTest extends GuiTestCase {
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Unable to load class"));
 
     message.findHyperlink("Re-download dependencies and sync project (requires network)");
-    message.findHyperlink("Stop Gradle daemons and sync project");
+    message.findHyperlink("Stop Gradle build processes (requires restart)");
   }
 
   @Test @IdeGuiTest
@@ -369,8 +369,10 @@ public class GradleSyncTest extends GuiTestCase {
     final EditorFixture editor = projectFrame.getEditor();
     editor.close();
 
+    Pause.pause(10, TimeUnit.SECONDS);
+
     // Verify that at least we offer some sort of hint.
-    message.findHyperlink("Gradle settings");
+    message.findHyperlink("Open Gradle wrapper file");
   }
 
   @Test @IdeGuiTest
