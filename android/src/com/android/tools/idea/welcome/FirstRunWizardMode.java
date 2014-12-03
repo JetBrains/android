@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.welcome;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+
 /**
  * There are several reasons when first run wizard is shown. Wizard behaves slightly differently, depending on the mode.
  */
@@ -30,5 +35,47 @@ public enum FirstRunWizardMode {
   /**
    * Android Studio was completely setup but something happened to an SDK, we need to resetup it.
    */
-  MISSING_SDK
+  MISSING_SDK;
+
+  private InstallerData myInstallerData;
+
+  public boolean hasValidSdkLocation() {
+    return getInstallerData().hasValidSdkLocation();
+  }
+
+  public boolean hasValidJdkLocation() {
+    return getInstallerData().hasValidJdkLocation();
+  }
+
+  @Nullable
+  public String getInstallerTimestamp() {
+    return getInstallerData().getTimestamp();
+  }
+
+  @Nullable
+  public File getJavaDir() {
+    return getInstallerData().getJavaDir();
+  }
+
+  @Nullable
+  public File getSdkLocation() {
+    return getInstallerData().getAndroidDest();
+  }
+
+  boolean shouldCreateAvd() {
+    return getInstallerData().shouldCreateAvd();
+  }
+
+  @Nullable
+  public File getAndroidSrc() {
+    return getInstallerData().getAndroidSrc();
+  }
+
+  @NotNull
+  private synchronized InstallerData getInstallerData() {
+    if (myInstallerData == null) {
+      myInstallerData = this == INSTALL_HANDOFF ? InstallerData.get() : InstallerData.EMPTY;
+    }
+    return myInstallerData;
+  }
 }
