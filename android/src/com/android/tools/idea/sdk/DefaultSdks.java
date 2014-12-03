@@ -25,6 +25,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -55,6 +56,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.chooseNameForNewLibrary;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 public final class DefaultSdks {
+  private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
   private static final Logger LOG = Logger.getInstance(DefaultSdks.class);
 
   private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
@@ -67,6 +69,9 @@ public final class DefaultSdks {
    */
   @Nullable
   public static File getDefaultAndroidHome() {
+    // We assume that every time new android sdk path is applied, all existing ide android sdks are removed and replaced by newly
+    // created ide android sdks for the platforms downloaded for the new android sdk. So, we bring the first ide android sdk configured
+    // at the moment and deduce android sdk path from it.
     String sdkHome = null;
     Sdk sdk = getFirstAndroidSdk();
     if (sdk != null) {
@@ -74,6 +79,18 @@ public final class DefaultSdks {
     }
     if (sdkHome != null) {
       return new File(FileUtil.toSystemDependentName(sdkHome));
+    }
+
+    // There is a possible case that android sdk which path was applied previously (setDefaultAndroidHome()) didn't have any
+    // platforms downloaded. Hence, no ide android sdk was created and we can't deduce android sdk location from it.
+    // Hence, we fallback to the explicitly stored android sdk path here.
+    PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+    String sdkPath = component.getValue(ANDROID_SDK_PATH_KEY);
+    if (sdkPath != null) {
+      File candidate = new File(sdkPath);
+      if (isValidAndroidSdkPath(candidate)) {
+        return candidate;
+      }
     }
     return null;
   }
@@ -185,6 +202,20 @@ public final class DefaultSdks {
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
     if (isValidAndroidSdkPath(path)) {
       assert ApplicationManager.getApplication().isWriteAccessAllowed();
+
+      // There is a possible case that no platform is downloaded for the android sdk which path is given as an argument
+      // to the current method. Hence, no ide android sdk is configured and our further android sdk lookup
+      // (check project jdk table for the configured ide android sdk and deduce the path from it) wouldn't work. So, we save
+      // given path as well in order to be able to fallback to it later if there is still no android sdk configured within the ide.
+      if (currentProject != null && !currentProject.isDisposed()) {
+        String sdkPath = FileUtil.toCanonicalPath(path.getAbsolutePath());
+        PropertiesComponent.getInstance(currentProject).setValue(ANDROID_SDK_PATH_KEY, sdkPath);
+        if (!currentProject.isDefault()) {
+          // Store default sdk path for default project as well in order to be able to re-use it for another ide projects if necessary.
+          PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+          component.setValue(ANDROID_SDK_PATH_KEY, sdkPath);
+        }
+      }
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdkUtils will still use the old SDK until all SDKs are properly deleted.
