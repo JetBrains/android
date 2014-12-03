@@ -15,28 +15,36 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
+public class StopGradleDaemonsHyperlink extends NotificationHyperlink {
+  @NotNull
+  public static NotificationHyperlink createStopGradleDaemonsHyperlink() {
+    if (ApplicationManager.getApplication().isRestartCapable()) {
+      return new StopGradleDaemonsHyperlink();
+    }
+    return new OpenUrlHyperlink("http://www.gradle.org/docs/current/userguide/gradle_daemon.html",
+                                "Open Gradle Daemon documentation");
+  }
 
-public class StopGradleDaemonsAndSyncHyperlink extends NotificationHyperlink {
-  public StopGradleDaemonsAndSyncHyperlink() {
-    super("stopGradleDaemons", "Stop Gradle daemons and sync project");
+  private StopGradleDaemonsHyperlink() {
+    super("stopGradleDaemons", "Stop Gradle build processes (requires restart)");
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     String title = "Stop Gradle Daemons";
-    String message = "Stopping all Gradle daemons will terminate any running Gradle builds (e.g. from the command line.)\n\n" +
+    String message = "Stopping all Gradle daemons will terminate any running Gradle builds (e.g. from the command line).\n" +
+                     "This action will also restart the IDE.\n\n" +
                      "Do you want to continue?";
     int answer = Messages.showYesNoDialog(project, message, title, Messages.getQuestionIcon());
     if (answer == Messages.YES) {
       GradleUtil.stopAllGradleDaemons();
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      ApplicationManager.getApplication().restart();
     }
   }
 }
