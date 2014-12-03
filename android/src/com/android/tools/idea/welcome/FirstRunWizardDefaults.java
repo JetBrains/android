@@ -23,7 +23,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
@@ -118,22 +117,21 @@ public class FirstRunWizardDefaults {
    */
   @NotNull
   public static File getInitialSdkLocation(@NotNull FirstRunWizardMode mode) {
-    if (mode == FirstRunWizardMode.INSTALL_HANDOFF) {
-      InstallerData data = InstallerData.get();
-      assert data != null;
-      File dest = data.getAndroidDest();
-      if (dest != null) {
-        return dest;
-      }
+    File dest = mode.getSdkLocation();
+    if (dest != null) {
+      return dest;
     }
-    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
-    Sdk sdk = Iterables.getFirst(sdks, null);
-    if (sdk != null) {
-      VirtualFile homeDirectory = sdk.getHomeDirectory();
-      if (homeDirectory != null) {
-        return VfsUtilCore.virtualToIoFile(homeDirectory);
+    else {
+      List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+      Sdk sdk = Iterables.getFirst(sdks, null);
+      if (sdk != null) {
+        VirtualFile homeDirectory = sdk.getHomeDirectory();
+        if (homeDirectory != null) {
+          return VfsUtilCore.virtualToIoFile(homeDirectory);
+        }
       }
+      return getDefaultSdkLocation();
     }
-    return getDefaultSdkLocation();
   }
+
 }

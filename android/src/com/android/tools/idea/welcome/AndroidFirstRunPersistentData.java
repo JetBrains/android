@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.google.common.base.Objects;
 import com.intellij.openapi.components.*;
 import com.intellij.util.xmlb.annotations.Tag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -38,8 +40,16 @@ public class AndroidFirstRunPersistentData implements PersistentStateComponent<A
     return myData.sdkUpdateVersion == CURRENT_SDK_UPDATE_VERSION;
   }
 
-  public void markSdkUpToDate() {
+  public void markSdkUpToDate(@Nullable String handoffTimestamp) {
     myData.sdkUpdateVersion = CURRENT_SDK_UPDATE_VERSION;
+    // Do not overwrite the timestamp - if it is here, means settings originally came from installer.
+    if (handoffTimestamp != null) {
+      myData.handoffTimestamp = handoffTimestamp;
+    }
+  }
+
+  public boolean isSameTimestamp(@Nullable String handoffTimestamp) {
+    return Objects.equal(myData.handoffTimestamp, handoffTimestamp);
   }
 
   @Nullable
@@ -55,5 +65,6 @@ public class AndroidFirstRunPersistentData implements PersistentStateComponent<A
 
   public static class FirstRunData {
     @Tag("version") public int sdkUpdateVersion = -1;
+    @Tag("handofftimestamp") public String handoffTimestamp = null;
   }
 }
