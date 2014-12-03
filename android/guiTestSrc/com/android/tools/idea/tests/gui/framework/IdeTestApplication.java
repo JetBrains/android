@@ -24,7 +24,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.lang.ClassPath;
 import com.intellij.util.lang.ClasspathCache;
@@ -45,7 +45,7 @@ public class IdeTestApplication implements Disposable {
 
   private static IdeTestApplication ourInstance;
 
-  @NotNull private final UrlClassLoader myIdeClassLoader;
+  @NotNull private final ClassLoader myIdeClassLoader;
 
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
@@ -63,7 +63,7 @@ public class IdeTestApplication implements Disposable {
       File newProjectsRootDirPath = getProjectCreationDirPath();
       recreateDirectory(newProjectsRootDirPath);
 
-      UrlClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
+      ClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
       staticMethod("waitForIdeToStart").in(clazz).invoke();
       staticMethod("setUpDefaultGeneralSettings").in(clazz).invoke();
@@ -75,7 +75,7 @@ public class IdeTestApplication implements Disposable {
   private static File getConfigDirPath() throws IOException {
     String homeDirPath = toSystemDependentName(PathManager.getHomePath());
     assert !homeDirPath.isEmpty();
-    File configDirPath = new File(homeDirPath, FileUtil.join("androidStudio", "gui-tests", "config"));
+    File configDirPath = new File(homeDirPath, join("androidStudio", "gui-tests", "config"));
     ensureExists(configDirPath);
     return configDirPath;
   }
@@ -86,7 +86,7 @@ public class IdeTestApplication implements Disposable {
   }
 
   private IdeTestApplication() throws Exception {
-    String[] args = new String[0];
+    String[] args = ArrayUtil.EMPTY_STRING_ARRAY;
 
     LOG.assertTrue(ourInstance == null, "Only one instance allowed.");
     ourInstance = this;
@@ -213,7 +213,9 @@ public class IdeTestApplication implements Disposable {
    * </ul>
    */
   private void forceEagerClassPathLoading() {
-    myIdeClassLoader.findResource("Really hope there is no resource with such name");
+    if (myIdeClassLoader instanceof UrlClassLoader) {
+      ((UrlClassLoader)myIdeClassLoader).findResource("Really hope there is no resource with such name");
+    }
   }
 
   private static void pluginManagerStart(@NotNull String[] args) {
@@ -228,7 +230,7 @@ public class IdeTestApplication implements Disposable {
   }
 
   @NotNull
-  public UrlClassLoader getIdeClassLoader() {
+  public ClassLoader getIdeClassLoader() {
     return myIdeClassLoader;
   }
 
@@ -256,6 +258,4 @@ public class IdeTestApplication implements Disposable {
   public static synchronized boolean isLoaded() {
     return ourInstance != null;
   }
-
 }
-
