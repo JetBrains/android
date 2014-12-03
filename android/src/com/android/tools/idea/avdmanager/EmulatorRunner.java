@@ -19,8 +19,11 @@ import com.android.tools.idea.run.ExternalToolRunner;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class EmulatorRunner extends ExternalToolRunner {
@@ -56,4 +59,23 @@ public class EmulatorRunner extends ExternalToolRunner {
     // override default implementation: we don't want to add a stop action since we can't just kill the emulator process
     // without leaving stale lock files around
   }
+
+  @Override
+  protected ConsoleView initConsoleUi() {
+    ConsoleView consoleView = super.initConsoleUi();
+
+    String avdHome = System.getenv("ANDROID_SDK_HOME");
+    if (!StringUtil.isEmpty(avdHome)) {
+      consoleView.print(
+        "\n" +
+        "Note: The environment variable $ANDROID_SDK_HOME is set, and the emulator uses that variable to locate AVDs.\n" +
+        "This may result in the emulator failing to start if it cannot find the AVDs in the folder pointed to by the\n" +
+        "given environment variable.\n" +
+        "ANDROID_SDK_HOME=" + avdHome + "\n\n",
+        ConsoleViewContentType.NORMAL_OUTPUT);
+    }
+
+    return consoleView;
+  }
+
 }
