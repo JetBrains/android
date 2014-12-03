@@ -208,16 +208,21 @@ public class Utilities {
   }
 
   @Nullable
-  public static PsiClass getPsiClass(Module module, String className) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+  public static PsiClass getPsiClass(Project project, String className) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     return facade.findClass(className, scope);
+  }
+
+  @Nullable
+  public static PsiClass getPsiClass(Module module, String className) {
+    return getPsiClass(module.getProject(), className);
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Nullable
-  public static PsiMethod findMethodBySignature(Module module, String className, String signature) {
-    PsiClass psiClass = getPsiClass(module, className);
+  public static PsiMethod findMethodBySignature(Project project, String className, String signature) {
+    PsiClass psiClass = getPsiClass(project, className);
     return psiClass == null ? null : findMethodBySignature(psiClass, signature);
   }
 
@@ -233,10 +238,6 @@ public class Utilities {
 
   public static PsiMethod createMethodFromText(Project project, String text, @Nullable PsiElement context) {
     return JavaPsiFacade.getInstance(project).getElementFactory().createMethodFromText(text, context);
-  }
-
-  public static PsiMethod createMethodFromText(Project project, String text) {
-    return createMethodFromText(project, text, null);
   }
 
   @Nullable
