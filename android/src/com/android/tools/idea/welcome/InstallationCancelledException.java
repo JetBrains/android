@@ -15,18 +15,8 @@
  */
 package com.android.tools.idea.welcome;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 /**
- * Signals a failure in the wizard.
+ * Indicates that the user cancelled the installation.
  */
-public class WizardException extends Exception {
-  public WizardException(@NotNull String message) {
-    super(message);
-  }
-
-  public WizardException(@NotNull String message, @Nullable Throwable cause) {
-    super(message, cause);
-  }
+public class InstallationCancelledException extends Exception {
 }
