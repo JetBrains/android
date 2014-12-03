@@ -51,8 +51,8 @@ public class FormFactorUtils {
   public static class FormFactor {
     public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
                                                            Lists.newArrayList("20", "Glass", "Google APIs"), null);
-    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 20,
-                                                         null, Lists.newArrayList("20"));
+    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
+                                                         null, Lists.newArrayList("20", "21"));
     public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
                                                           null, Lists.newArrayList("Glass"));
     public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
