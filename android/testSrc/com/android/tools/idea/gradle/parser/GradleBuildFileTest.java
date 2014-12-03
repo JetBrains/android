@@ -61,19 +61,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetTopLevelValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "18.0.0");
       }
     });
     String expected = getSimpleTestFile().replaceAll("17\\.0\\.0", "18.0.0");
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testSetNestedValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         GrStatementOwner closure = file.getClosure("android/defaultConfig");
@@ -81,19 +81,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
       }
     });
     String expected = getSimpleTestFile().replaceAll("targetSdkVersion 1", "targetSdkVersion 2");
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testSetStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "99.0.0");
       }
     });
     String expected = getSimpleTestFile().replaceAll("buildToolsVersion '17\\.0\\.0'", "buildToolsVersion '99.0.0'");
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals("99.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
@@ -106,7 +106,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       }
     });
     String expected = getSimpleTestFile().replace("buildToolsVersion '17.0.0'", "buildToolsVersion '17\\'0\\'0'");
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals("17'0'0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
@@ -122,7 +122,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "android {\n" +
       "    buildToolsVersion '17\\'0\\'0'\n" +
       "}";
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals("17'0'0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
@@ -140,7 +140,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "dependencies {\n" +
       "    compile files('abc\\'def')\n" +
       "}";
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals(dependencyList, file.getValue(BuildFileKey.DEPENDENCIES));
   }
 
@@ -158,7 +158,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "repositories {\n" +
       "    maven { url 'http://www.foo.com?q=abc\\'def' }\n" +
       "}";
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals(repositoryList, file.getValue(BuildFileKey.LIBRARY_REPOSITORY));
   }
 
@@ -166,28 +166,28 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/defaultConfig");
     assertNotNull(closure);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.VERSION_CODE, 99);
       }
     });
     String expected = getSimpleTestFile().replaceAll("versionCode 1337", "versionCode 99");
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals(99, file.getValue(closure, BuildFileKey.VERSION_CODE));
   }
 
   public void testSetBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/buildTypes/debug");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.DEBUGGABLE, false);
       }
     });
     String expected = getSimpleTestFile().replaceAll("debuggable true", "debuggable false");
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals(false, file.getValue(closure, BuildFileKey.DEBUGGABLE));
   }
 
@@ -195,7 +195,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
     final File replacementFile = new File("abc/def/foo.keystore");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
@@ -203,7 +203,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     });
     // We always expect system independent paths in build.gradle files.
     String expected = getSimpleTestFile().replaceAll("debug.keystore", "abc/def/foo.keystore");
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.STORE_FILE));
   }
 
@@ -211,7 +211,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
     final File replacementFile = new File("abc/def/foo.txt");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
@@ -219,10 +219,11 @@ public class GradleBuildFileTest extends IdeaTestCase {
     });
     // We always expect system independent paths in build.gradle files.
     String expected = getSimpleTestFile().replaceAll("proguard-flavor1\\.txt", "abc/def/foo.txt");
-    assertContents(file, expected);
+    assertContents(expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.PROGUARD_FILE));
   }
 
+  @SuppressWarnings("unchecked")
   public void testSetNamedObjectValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     Object value = file.getValue(BuildFileKey.FLAVORS);
@@ -233,7 +234,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     NamedObject flavor3 = new NamedObject("flavor3");
     flavor3.setValue(BuildFileKey.APPLICATION_ID, "flavor3.packagename");
     flavors.add(flavor3);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.FLAVORS, flavors);
@@ -251,10 +252,11 @@ public class GradleBuildFileTest extends IdeaTestCase {
         "            applicationId 'flavor3.packagename'\n" +
         "        }\n"
                                );
-    assertContents(file, expected.toString());
+    assertContents(expected.toString());
     assertEquals(flavors, newFlavors);
   }
 
+  @SuppressWarnings("unchecked")
   public void testRenameNamedObjectWithMultipleSubvalues() throws Exception {
     String contents = getSimpleTestFile();
     final GradleBuildFile file = getTestFile(contents);
@@ -270,17 +272,17 @@ public class GradleBuildFileTest extends IdeaTestCase {
     newBuildType.setValue(BuildFileKey.DEBUGGABLE, false);
     newBuildType.setValue(BuildFileKey.ZIP_ALIGN, true);
     buildTypes.add(newBuildType);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
       }
     });
-    assertContents(file,
-                   contents.replaceAll("release", "release1a")
+    assertContents(contents.replaceAll("release", "release1a")
                            .replaceAll("debuggable false\n", "debuggable false\n            zipAlign true\n"));
   }
 
+  @SuppressWarnings("unchecked")
   public void testRemovePropertyFromNamedValue() throws Exception {
     String contents =
       "android {\n" +
@@ -300,19 +302,18 @@ public class GradleBuildFileTest extends IdeaTestCase {
     NamedObject buildType = buildTypes.get(0);
     assertEquals("release", buildType.getName());
     buildType.setValue(BuildFileKey.DEBUGGABLE, null);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
       }
     });
-    assertContents(file,
-                   contents.replaceAll(" *debuggable false\n", ""));
+    assertContents(contents.replaceAll(" *debuggable false\n", ""));
   }
 
   public void testCreateStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.IGNORE_ASSETS_PATTERN, "foo");
@@ -324,14 +325,15 @@ public class GradleBuildFileTest extends IdeaTestCase {
                     "    aaptOptions {\n" +
                     "        ignoreAssetsPattern 'foo'\n" +
                     "    }\n");
-    assertContents(file, expected.toString());
+    assertContents(expected.toString());
     assertEquals("foo", file.getValue(BuildFileKey.IGNORE_ASSETS_PATTERN));
   }
 
+  @SuppressWarnings("unchecked")
   public void testCreateIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.VERSION_CODE, 199);
@@ -340,8 +342,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     StringBuilder expected = new StringBuilder(getSimpleTestFile());
     int position = expected.indexOf("\n", expected.indexOf("proguard-flavor1.txt")) + 1;
     expected.insert(position, "            versionCode 199\n");
-    assertContents(file, expected.toString());
+    assertContents(expected.toString());
     Object value = file.getValue(BuildFileKey.FLAVORS);
+    assertNotNull("flavors should be parsed", value);
     final List<NamedObject> flavors = (List<NamedObject>)value;
     assertEquals(2, flavors.size());
     assertEquals(199, flavors.get(0).getValue(BuildFileKey.VERSION_CODE));
@@ -349,7 +352,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.INCREMENTAL_DEX, true);
@@ -361,15 +364,16 @@ public class GradleBuildFileTest extends IdeaTestCase {
                     "    dexOptions {\n" +
                     "        incremental true\n" +
                     "    }\n");
-    assertContents(file, expected.toString());
+    assertContents(expected.toString());
     assertEquals(true, file.getValue(BuildFileKey.INCREMENTAL_DEX));
   }
 
+  @SuppressWarnings("unchecked")
   public void testCreateFileValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/config2");
     final File newFile = new File("foo.keystore");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, newFile);
@@ -378,18 +382,20 @@ public class GradleBuildFileTest extends IdeaTestCase {
     StringBuilder expected = new StringBuilder(getSimpleTestFile());
     int position = expected.indexOf("\n", expected.indexOf("config2 {")) + 1;
     expected.insert(position, "            storeFile file('foo.keystore')\n");
-    assertContents(file, expected.toString());
+    assertContents(expected.toString());
     Object value = file.getValue(BuildFileKey.SIGNING_CONFIGS);
     final List<NamedObject> configs = (List<NamedObject>)value;
+    assertNotNull("signing configs should be parsed", configs);
     assertEquals(2, configs.size());
     assertEquals(newFile, configs.get(1).getValue(BuildFileKey.STORE_FILE));
   }
 
+  @SuppressWarnings("unchecked")
   public void testCreateFileStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor2");
     final File newFile = new File("foo.txt");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, newFile);
@@ -398,16 +404,17 @@ public class GradleBuildFileTest extends IdeaTestCase {
     StringBuilder expected = new StringBuilder(getSimpleTestFile());
     int position = expected.indexOf("\n", expected.indexOf("flavor2 {")) + 1;
     expected.insert(position, "            proguardFile 'foo.txt'\n");
-    assertContents(file, expected.toString());
+    assertContents(expected.toString());
     Object value = file.getValue(BuildFileKey.FLAVORS);
     List<NamedObject> configs = (List<NamedObject>)value;
+    assertNotNull("flavors should be parsed", configs);
     assertEquals(2, configs.size());
     assertEquals(newFile, configs.get(1).getValue(BuildFileKey.PROGUARD_FILE));
   }
 
   public void testRemoveValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);
@@ -415,7 +422,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     });
 
     String expected = getSimpleTestFile().replace("    compileSdkVersion 17\n", "");
-    assertContents(file, expected);
+    assertContents(expected);
     assertNull(file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
   }
 
@@ -513,6 +520,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals("com.google.guava:guava:12.0@jar", dependency.getValueAsString());
   }
 
+  @SuppressWarnings("unchecked")
   public void testGetDependencyInAnotherAlternateFormat() throws IOException {
     GradleBuildFile file = getTestFile(
       "    dependencies {\n" +
@@ -523,7 +531,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(1, dependencies.size());
     Dependency dependency = (Dependency)dependencies.get(0);
     assertNotNull(dependency);
-    Map<String, Object> expected = ImmutableMap.of("path", (Object)":foo", "configuration", (Object)"bar");
+    Map<String, Object> expected = ImmutableMap.of("path", ":foo", "configuration", (Object)"bar");
     assert(Maps.difference(expected, (Map<? extends String, ?>)dependency.data).areEqual());
   }
 
@@ -556,7 +564,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    mavenLocal()\n" +
       "    maven { url 'www.foo.com' }\n" +
       "}";
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testGetsFiletreeDependencies() throws Exception {
@@ -593,7 +601,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "dependencies {\n" +
       "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
       "}";
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testReadsUnparseableDependencies() throws Exception {
@@ -638,7 +646,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    random.expression\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testReadsUnparseableRepositories() throws Exception {
@@ -685,9 +693,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    random.expression\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testReadsNamedObjectsWithUnparseableValues() throws Exception {
     GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -704,6 +713,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "}"
     );
     List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertNotNull("build types should be parsed", objects);
     assertEquals(1, objects.size());
     NamedObject no = objects.get(0);
     assertEquals(true, no.getValue(BuildFileKey.DEBUGGABLE));
@@ -727,6 +737,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "}"
     );
     final List<NamedObject> objects = WriteCommandAction.runWriteCommandAction(myProject, new Computable<List<NamedObject>>() {
+      @SuppressWarnings({"ConstantConditions", "unchecked"})
       @Override
       public List<NamedObject> compute() {
         return (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
@@ -756,9 +767,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testRemoveNamedObjectValue() throws Exception {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -775,6 +787,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "}"
     );
     final List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertNotNull("build types should be parsed", objects);
     assertEquals(1, objects.size());
     NamedObject no = objects.get(0);
     no.getValues().remove(BuildFileKey.DEBUGGABLE);
@@ -798,7 +811,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testCreatesNamedObjects() throws Exception {
@@ -825,9 +838,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testDeletesNamedObjects() throws Exception {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -861,9 +875,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testCreatesNamedObjectsWithUnparseableStatements() throws Exception {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -903,9 +918,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testDeletesNamedObjectsWithUnparseableStatements() throws Exception {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -943,7 +959,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testGetsPlugins() throws Exception {
@@ -983,7 +999,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    compileSdkVersion 17\n" +
       "}\n";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testAddsSigningConfigsToEmptyBlock() throws Exception {
@@ -1009,7 +1025,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testSetIntegerOrStringAsInteger() throws Exception {
@@ -1035,7 +1051,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
 
@@ -1062,7 +1078,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testSetIntegerOrStringAsString() throws Exception {
@@ -1088,7 +1104,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n";
 
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
 
@@ -1115,7 +1131,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n";
 
-    assertContents(file, expected);
+    assertContents(expected);
     }
 
   public void testGetIntegerOrStringAsString() throws Exception {
@@ -1170,7 +1186,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "    compile 'com.foo:1.0'\n" +
       "}\n";
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testPreservesModuleDependencyExcludes() throws Exception {
@@ -1199,9 +1215,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "    compile 'com.foo:1.0'\n" +
       "}\n";
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testFiltering() throws IOException {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -1215,6 +1232,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n");
     final List<NamedObject> signingConfigs = (List<NamedObject>)file.getValue(BuildFileKey.SIGNING_CONFIGS);
+    assertNotNull("signing configs should be parsed", signingConfigs);
     assertEquals(1, signingConfigs.size());
     NamedObject signingConfig = signingConfigs.get(0);
     assertEquals("a1", signingConfig.getValue(BuildFileKey.KEY_ALIAS));
@@ -1247,9 +1265,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "        }\n" +
       "    }\n" +
       "}\n";
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
+  @SuppressWarnings("unchecked")
   public void testRepositoryCredentials() throws Exception {
     final GradleBuildFile file = getTestFile(
       "repositories {\n" +
@@ -1263,6 +1282,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "}\n");
 
     final List<Repository> repositories = (List<Repository>)file.getValue(BuildFileKey.LIBRARY_REPOSITORY);
+    assertNotNull("repositories should be parsed", repositories);
     assertEquals(1, repositories.size());
     Repository newRepository = new Repository(Repository.Type.MAVEN_CENTRAL, null);
     repositories.add(newRepository);
@@ -1284,7 +1304,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "    mavenCentral()\n" +
       "}\n";
-    assertContents(file, expected);
+    assertContents(expected);
   }
 
   public void testShouldWriteValue() {
@@ -1331,7 +1351,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
         file.setValue(BuildFileKey.DEPENDENCIES, dependencies);
       }
     });
-    assertContents(file, fileContent);
+    assertContents(fileContent);
   }
 
   private static String getSimpleTestFile() throws IOException {
@@ -1391,6 +1411,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   private GradleBuildFile getTestFile(String contents) throws IOException {
     VirtualFile vf = getVirtualFile(createTempFile(SdkConstants.FN_BUILD_GRADLE, contents));
+    assertNotNull("test gradle config should be registered in VFS", vf);
     myDocument = FileDocumentManager.getInstance().getDocument(vf);
     return new GradleBuildFile(vf, getProject());
   }
@@ -1407,7 +1428,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     return GroovyPsiElementFactory.getInstance(myProject).createClosureFromText("{}");
   }
 
-  private void assertContents(GradleBuildFile file, String expected) throws IOException {
+  private void assertContents(String expected) throws IOException {
     PsiDocumentManager.getInstance(getProject()).commitDocument(myDocument);
     String actual = myDocument.getText();
     assertEquals(expected, actual);
