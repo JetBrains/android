@@ -174,7 +174,8 @@ public class AvdWizardConstants {
     public String getAbiType() {
       if (systemImage != null) {
         return systemImage.getAbiType();
-      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE) {
+      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE
+              || remotePackage.getPkgDesc().getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
         return remotePackage.getPkgDesc().getPath();
       } else {
         return "";
