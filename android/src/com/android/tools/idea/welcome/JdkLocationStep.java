@@ -52,6 +52,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   private static final String JDK_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
 
   private final ScopedStateStore.Key<String> myPathKey;
+  @NotNull private final FirstRunWizardMode myMode;
   private JPanel myContents;
   private TextFieldWithBrowseButton myJdkPath;
   private JButton myDownloadPageLink;
@@ -61,9 +62,10 @@ public class JdkLocationStep extends FirstRunWizardStep {
   // Show errors only after the user touched the value
   private boolean myUserInput = false;
 
-  public JdkLocationStep(ScopedStateStore.Key<String> pathKey) {
+  public JdkLocationStep(@NotNull ScopedStateStore.Key<String> pathKey, @NotNull FirstRunWizardMode mode) {
     super("Java Settings");
     myPathKey = pathKey;
+    myMode = mode;
     myDownloadPageLink.setText(getLinkText());
     WelcomeUIUtils.makeButtonAHyperlink(myDownloadPageLink, JDK_URL);
     myDownloadPageLink.getParent().invalidate();
@@ -188,8 +190,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    InstallerData installerData = InstallerData.get();
-    return installerData == null || !installerData.hasValidJdkLocation();
+    return myMode.hasValidJdkLocation();
   }
 
   @Override
