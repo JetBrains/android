@@ -196,7 +196,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, defaultHardware.getSensors().contains(Sensor.GYROSCOPE));
     myState.put(HAS_GPS_KEY, defaultHardware.getSensors().contains(Sensor.GPS));
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
-    File skinFile = AvdEditWizard.getHardwareSkinPath(defaultHardware);
+    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null);
     if (skinFile != null) {
       myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
     } else {
