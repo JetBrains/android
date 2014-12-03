@@ -36,7 +36,7 @@ public final class VersionCheck {
   /**
    * The minimum version of the SDK Tools that this version of Android Studio requires.
    */
-  public static final FullRevision MIN_TOOLS_REV = new FullRevision(23, 0, 5, 0);
+  public static final FullRevision MIN_TOOLS_REV = new FullRevision(24, 0, 0, 0);
 
   private static final Pattern mySourcePropPattern = Pattern.compile("^" + PkgProps.PKG_REVISION + "=(.*)$");
 
@@ -44,10 +44,10 @@ public final class VersionCheck {
   }
 
   /**
-   * Indicates whether the Android SDK Tools revision is at least 23.0.0.
+   * Indicates whether the Android SDK Tools revision is at least {@link #MIN_TOOLS_REV}
    *
    * @param sdkDir the root directory of the Android SDK.
-   * @return {@code true} if the Android SDK Tools revision is at least 23.0.0; {@code false} otherwise.
+   * @return {@code true} if the Android SDK Tools revision is at least {@link #MIN_TOOLS_REV}; {@code false} otherwise.
    */
   public static boolean isCompatibleVersion(@NotNull File sdkDir) {
     if (!sdkDir.isDirectory()) {
@@ -57,10 +57,10 @@ public final class VersionCheck {
   }
 
   /**
-   * Indicates whether the Android SDK Tools revision is at least 23.0.0.
+   * Indicates whether the Android SDK Tools revision is at least {@link #MIN_TOOLS_REV}
    *
    * @param sdkPath the path of the Android SDK.
-   * @return {@code true} if the Android SDK Tools revision is at least 23.0.0; {@code false} otherwise.
+   * @return {@code true} if the Android SDK Tools revision is at least {@link #MIN_TOOLS_REV}; {@code false} otherwise.
    */
   public static boolean isCompatibleVersion(@Nullable String sdkPath) {
     if (sdkPath == null) {
@@ -70,7 +70,7 @@ public final class VersionCheck {
   }
 
   /**
-   * Verifies that the Android SDK Tools revision is at least 23.0.0.
+   * Verifies that the Android SDK Tools revision is at least {@link #MIN_TOOLS_REV}
    *
    * @param sdkPath the path of the Android SDK.
    * @return the result of the check.
