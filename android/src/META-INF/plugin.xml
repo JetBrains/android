@@ -164,6 +164,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApks"/>
     <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
                         serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
@@ -654,6 +655,7 @@
     <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.LegacyWizardPathProvider"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.JavaWizardPathProvider"/>
+    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ErrorOpeningZipFileErrorHandler"/>
