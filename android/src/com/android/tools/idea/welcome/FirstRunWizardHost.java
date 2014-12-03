@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.UISettings;
@@ -49,9 +52,10 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Hosts dynamic wizards in the welcome frame.
  */
-public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
+public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
+  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -66,9 +70,11 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 
-  public WelcomeScreenHost(@NotNull FirstRunWizardMode mode) {
+  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode,
+                            @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(new BorderLayout());
     myMode = mode;
+    myRemotePackages = remotePackages;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
 
@@ -90,7 +96,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   private void setupWizard() {
-    DynamicWizard wizard = new FirstRunWizard(this, myMode);
+    DynamicWizard wizard = new FirstRunWizard(this, myMode, myRemotePackages);
     wizard.init();
     add(wizard.getContentPane(), BorderLayout.CENTER);
   }
@@ -409,7 +415,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
     private final JButton myDefaultButton;
 
     public LongRunningOperationWrapper(Runnable operation, boolean cancellable, JButton defaultButton) {
-      super(null, WelcomeScreenHost.this.myWizard.getWizardActionDescription(), cancellable);
+      super(null, FirstRunWizardHost.this.myWizard.getWizardActionDescription(), cancellable);
       myOperation = operation;
       myDefaultButton = defaultButton;
     }
