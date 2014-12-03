@@ -17,15 +17,17 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.manifmerger.*;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
 import com.android.ide.common.xml.XmlPrettyPrinter;
+import com.android.manifmerger.*;
+import com.android.manifmerger.ManifestMerger2.Invoker.Feature;
+import com.android.manifmerger.ManifestMerger2.MergeType;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
@@ -44,7 +46,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
@@ -748,11 +751,15 @@ public class Template {
   private static XmlDocument mergeManifest(@NotNull File targetManifest, @NotNull String mergeText) {
     File tempFile = null;
     try {
-      tempFile = FileUtil.createTempFile("manifmerge", ".xml");
+      //noinspection SpellCheckingInspection
+      tempFile = FileUtil.createTempFile("manifmerge", DOT_XML);
       FileUtil.writeToFile(tempFile, mergeText);
-      MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest,new StdLogger(StdLogger.Level.INFO),
-                                                         ManifestMerger2.MergeType.APPLICATION).
-          addLibraryManifest(tempFile).merge();
+      StdLogger logger = new StdLogger(StdLogger.Level.INFO);
+      ManifestMerger2.Invoker merger = ManifestMerger2.newMerger(targetManifest, logger, MergeType.APPLICATION)
+          .withFeatures(Feature.EXTRACT_FQCNS)
+          .addLibraryManifest(tempFile);
+      MergingReport mergeReport = merger
+        .merge();
       if (mergeReport.getMergedDocument().isPresent()) {
         return mergeReport.getMergedDocument().get();
       }
