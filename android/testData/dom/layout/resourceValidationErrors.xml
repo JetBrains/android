@@ -12,6 +12,7 @@
     <TextView android:text="@android:string/cancel" />
     <TextView android:id="?myAttr"/>
     <TextView android:id="?android:absListViewStyle" />
+    <TextView android:text="@string/test.hello_world" />
 
     <!-- ERRORS -->
     <TextView android:id="<error descr="''' is not a valid resource name character">?myAttr'</error>"/>
@@ -23,5 +24,6 @@
     <TextView android:id="<error descr="Missing resource type">@</error>" />
     <TextView android:id="<error descr="Missing resource type">@android:</error>" />
     <TextView android:id="<error descr="Missing resource name">@android:string/</error>" />
+    <TextView android:text="<error descr="';' is not a valid resource name character">@string/test.;hello_world</error>" />
 
 </GridLayout>
