@@ -346,6 +346,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private static class MergeOperation extends InstallOperation<File, File> {
     private final File myRepo;
     private final InstallContext myContext;
+    private boolean isRepoNoLongerNeeded = false;
 
     public MergeOperation(File repo, InstallContext context, double progressRatio) {
       super(context, progressRatio);
@@ -361,8 +362,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         FileUtil.ensureExists(destination);
         if (!FileUtil.filesEqual(destination.getCanonicalFile(), myRepo.getCanonicalFile())) {
           SdkMerger.mergeSdks(myRepo, destination, indicator);
+          isRepoNoLongerNeeded = true;
         }
-        myContext.print(String.format("Android SDK was installed to %s", destination), ConsoleViewContentType.SYSTEM_OUTPUT);
+        myContext.print(String.format("Android SDK was installed to %s\n", destination), ConsoleViewContentType.SYSTEM_OUTPUT);
         return destination;
       }
       catch (IOException e) {
@@ -375,7 +377,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     @Override
     public void cleanup(@NotNull File result) {
-      if (myRepo.exists()) {
+      if (isRepoNoLongerNeeded && myRepo.exists()) {
         FileUtil.delete(myRepo);
       }
     }
