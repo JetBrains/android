@@ -17,14 +17,14 @@ package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class Macros {
   private static final String CREATE_INTENT =
-    "void macro(Context context, Class activityClass) { new Intent(context, activityClass); }";
+    "void macro(Context context, Class activityClass) { new android.content.Intent(context, activityClass); }";
 
   private static final String DEFINE_INNER_CLASS =
     "void macro(Class $Interface, Void $method, Class $Type, Object $arg, final Statement $f) {" +
@@ -36,20 +36,20 @@ public class Macros {
     "}";
 
   private static final String INSTALL_CLICK_LISTENER =
-    "void macro(View $view, Statement $f) {" +
-    "    $view.setOnClickListener(new View.OnClickListener() {" +
+    "void macro(android.view.View $view, Statement $f) {" +
+    "    $view.setOnClickListener(new android.view.View.OnClickListener() {" +
     "        @Override" +
-    "        public void onClick(View view) {" +
+    "        public void onClick(android.view.View view) {" +
     "            $f.$();" +
     "        }" +
     "    });" +
     "}";
 
   private static final String INSTALL_MENU_ITEM_CLICK =
-    "void macro(MenuItem $menuItem, final Statement $f, final boolean $consume) {" +
-    "    $menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
+    "void macro(android.view.MenuItem $menuItem, final Statement $f, final boolean $consume) {" +
+    "    $menuItem.setOnMenuItemClickListener(new android.view.MenuItem.OnMenuItemClickListener() {" +
     "        @Override" +
-    "        public boolean onMenuItemClick(MenuItem menuItem) {" +
+    "        public boolean onMenuItemClick(android.view.MenuItem menuItem) {" +
     "            $f.$();" +
     "            return $consume;" +
     "        }" +
@@ -58,9 +58,9 @@ public class Macros {
 
   private static final String INSTALL_ITEM_CLICK_LISTENER =
     "void macro(ListView $listView, final Statement $f) {" +
-    "    $listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {" +
+    "    $listView.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {" +
     "        @Override" +
-    "        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {" +
+    "        public void onItemClick(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {" +
     "            $f.$$();" +
     "        }" +
     "    });" +
@@ -73,12 +73,12 @@ public class Macros {
 
   private static final String LAUNCH_ACTIVITY =
     "void macro(Context context, Class activityClass) {" +
-    "    context.startActivity(new Intent(context, activityClass));" +
+    "    context.startActivity(new android.content.Intent(context, activityClass));" +
     "}";
 
   private static final String LAUNCH_ACTIVITY_WITH_ARG =
     "<T extends Serializable> void macro(Context context, Class activityClass, String name, T value) {" +
-    "    context.startActivity(new Intent(context, activityClass).putExtra(name, value));" +
+    "    context.startActivity(new android.content.Intent(context, activityClass).putExtra(name, value));" +
     "}";
 
   private static final String FIND_VIEW_BY_ID =
@@ -106,11 +106,11 @@ public class Macros {
   }
 
   public MultiMatch createMacro(String methodDefinition) {
-    return MultiMatch.create(myProject, methodDefinition);
+    return new MultiMatch(getMethodFromText(methodDefinition));
   }
 
   private PsiMethod getMethodFromText(String definition) {
-    return Utilities.createMethodFromText(myProject, definition);
+    return Utilities.createMethodFromText(myProject, definition, null);
   }
 
   private Macros(Project project) {

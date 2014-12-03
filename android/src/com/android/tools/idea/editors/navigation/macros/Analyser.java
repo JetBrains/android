@@ -91,12 +91,6 @@ public class Analyser {
     }
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
     Document document1 = documentManager.getDocument(file);
-    if (DEBUG) {
-      Document document2 = documentManager.getCachedDocument(file);
-      if (!document1.getText().equals(document2.getText())) {
-        System.out.println("document2 = " + document2);
-      }
-    }
     if (document1 != null) {
       documentManager.commitDocument(document1);
     }
