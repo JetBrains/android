@@ -190,7 +190,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return myMode.hasValidJdkLocation();
+    return !myMode.hasValidJdkLocation();
   }
 
   @Override
