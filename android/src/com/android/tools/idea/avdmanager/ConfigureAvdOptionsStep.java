@@ -208,8 +208,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     deregister(getDescriptionText());
     getDescriptionText().setVisible(false);
     Device device = myState.get(DEVICE_DEFINITION_KEY);
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
-      SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
       assert device != null && systemImage != null;
       String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
       avdName = uniquifyDisplayName(avdName);
@@ -222,7 +222,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
     File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
     if (skinPath == null && !editMode && device != null) {
-      skinPath = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
+      skinPath = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage);
 
       if (HardwareConfigHelper.isRound(device)) {
         // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
