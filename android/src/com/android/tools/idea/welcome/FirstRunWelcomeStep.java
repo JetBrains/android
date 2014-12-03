@@ -39,12 +39,7 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
 
   @Override
   public void init() {
-
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return InstallerData.get() == null;
+    // Nothing to init
   }
 
   @NotNull

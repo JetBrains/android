@@ -31,7 +31,13 @@ import java.io.File;
  */
 public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
-  private JdkLocationStep myJdkLocationStep = new JdkLocationStep(KEY_JDK_LOCATION);
+  @NotNull private final FirstRunWizardMode myMode;
+  private JdkLocationStep myJdkLocationStep;
+
+  public SetupJdkPath(@NotNull FirstRunWizardMode mode) {
+    myMode = mode;
+    myJdkLocationStep = new JdkLocationStep(KEY_JDK_LOCATION, myMode);
+  }
 
   @Override
   public boolean isPathVisible() {
@@ -41,13 +47,10 @@ public class SetupJdkPath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    InstallerData data = InstallerData.get();
     String path = null;
-    if (data != null) {
-      File javaDir = data.getJavaDir();
-      if (javaDir != null) {
-        path = javaDir.getAbsolutePath();
-      }
+    File javaDir = myMode.getJavaDir();
+    if (javaDir != null) {
+      path = javaDir.getAbsolutePath();
     }
     myState.put(KEY_JDK_LOCATION, path);
     addStep(myJdkLocationStep);
