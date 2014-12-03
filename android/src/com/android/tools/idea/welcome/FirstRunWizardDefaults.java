@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.repository.FullRevision;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 public class FirstRunWizardDefaults {
   public static final String HAXM_DOCUMENTATION_URL = "http://www.intel.com/software/android/";
+  public static final FullRevision MIN_BUILD_TOOLS_REVSION = new FullRevision(21, 1, 1); // Current for Android Studio 1.0
 
   private FirstRunWizardDefaults() {
     // Do nothing

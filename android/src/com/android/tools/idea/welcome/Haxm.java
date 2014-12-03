@@ -19,10 +19,13 @@ import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -34,6 +37,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -180,7 +184,7 @@ public final class Haxm extends InstallableComponent {
       if (exitCode != 0) {
         // HAXM is not required so we do not stop setup process if this install failed.
         myProgressStep.print("HAXM installation failed. To install HAXM follow the instructions found at " +
-                             FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL + ".", ConsoleViewContentType.ERROR_OUTPUT);
+                             FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL + ".\n", ConsoleViewContentType.ERROR_OUTPUT);
       }
       progressIndicator.setFraction(1);
     }
@@ -209,13 +213,13 @@ public final class Haxm extends InstallableComponent {
     }
     else {
       assert !canRun();
-      throw new IllegalStateException("Usupported OS");
+      throw new IllegalStateException("Unsupported OS");
     }
   }
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages() {
+  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     return ImmutableList.of(InstallComponentsPath.createExtra(true, ID_INTEL, COMPONENT_PATH));
   }
 }

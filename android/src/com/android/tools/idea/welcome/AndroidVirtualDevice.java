@@ -27,7 +27,9 @@ import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
@@ -39,6 +41,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -163,7 +166,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages() {
+  public Collection<IPkgDesc> getRequiredSdkPackages(Multimap<PkgType, RemotePkgInfo> remotePackages) {
     AndroidVersion lVersion = new AndroidVersion(21, null);
     MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder googleApis = PkgDesc.Builder.newAddon(lVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG);
