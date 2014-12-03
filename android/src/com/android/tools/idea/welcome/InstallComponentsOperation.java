@@ -58,9 +58,9 @@ public final class InstallComponentsOperation {
     myRemotePackages = remotePackages;
   }
 
-  private static Set<String> getPackageIds(Collection<LocalPkgInfo> pkgs) {
+  private static Set<String> getPackageIds(Collection<LocalPkgInfo> packages) {
     Set<String> toUpdate = Sets.newHashSet();
-    for (LocalPkgInfo localPkgInfo : pkgs) {
+    for (LocalPkgInfo localPkgInfo : packages) {
       toUpdate.add(localPkgInfo.getDesc().getInstallId());
     }
     return toUpdate;
@@ -93,7 +93,7 @@ public final class InstallComponentsOperation {
     // TODO: Prompt about connection in handoff case?
     Set<String> packages = Sets.newHashSet();
     for (InstallableComponent component : myComponents) {
-      for (IPkgDesc pkg : component.getRequiredSdkPackages()) {
+      for (IPkgDesc pkg : component.getRequiredSdkPackages(myRemotePackages)) {
         if (pkg != null) {
           packages.add(pkg.getInstallId());
         }
@@ -133,7 +133,7 @@ public final class InstallComponentsOperation {
         SdkUpdaterNoWindow updater =
           new SdkUpdaterNoWindow(manager.getLocation(), manager, createLogger(indicator, packages.size(), context),
                                  false, true, null, null);
-        updater.updateAll(packages, true, false, null);
+        updater.updateAll(packages, true, false, null, true);
       }
       else {
         context.print("Android SDK is up to date.\n", ConsoleViewContentType.SYSTEM_OUTPUT);

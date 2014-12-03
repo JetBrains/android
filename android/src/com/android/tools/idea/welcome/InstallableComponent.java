@@ -16,8 +16,11 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,8 +79,11 @@ public abstract class InstallableComponent {
     }
   }
 
+  /**
+   * @param remotePackages an up-to-date list of the packages in the Android SDK repositories, if one can be obtained.
+   */
   @NotNull
-  public abstract Collection<IPkgDesc> getRequiredSdkPackages();
+  public abstract Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages);
 
   public abstract void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep);
 
