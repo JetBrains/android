@@ -63,24 +63,27 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
-  private final InstallableComponent[] myComponents;
+  private InstallableComponent[] myComponents;
   private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
 
   public InstallComponentsPath(@NotNull ProgressStep progressStep, @NotNull FirstRunWizardMode mode) {
     myProgressStep = progressStep;
     myMode = mode;
-    myComponents = createComponents(mode);
   }
 
-  private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason) {
+  private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason, boolean createAvd) {
     AndroidSdk androidSdk = new AndroidSdk();
+    List<InstallableComponent> components = Lists.newArrayList();
+    components.add(androidSdk);
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      return new InstallableComponent[]{androidSdk, new Haxm(KEY_CUSTOM_INSTALL), new AndroidVirtualDevice()};
+      components.add(new Haxm(KEY_CUSTOM_INSTALL));
     }
-    else {
-      return new InstallableComponent[]{androidSdk, new AndroidVirtualDevice()};
+    if (createAvd) {
+      components.add(new AndroidVirtualDevice());
     }
+
+    return components.toArray(new InstallableComponent[components.size()]);
   }
 
   private static File createTempDir() throws WizardException {
@@ -249,6 +252,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @Override
   protected void init() {
     String location = null;
+    boolean createAvd = true;
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL, myMode);
       addStep(myInstallationTypeWizardStep);
@@ -258,12 +262,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       assert data != null;
       File dest = data.getAndroidDest();
       location = dest == null ? null : dest.getAbsolutePath();
+      createAvd = data.shouldCreateAvd();
     }
     if (StringUtil.isEmptyOrSpaces(location)) {
       location = FirstRunWizardDefaults.getDefaultSdkLocation();
     }
     myState.put(KEY_SDK_INSTALL_LOCATION, location);
 
+    myComponents = createComponents(myMode, createAvd);
     mySdkComponentsStep = new SdkComponentsStep(myComponents, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION);
     addStep(mySdkComponentsStep);
 
