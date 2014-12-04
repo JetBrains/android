@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -26,10 +27,12 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.JdkUtil;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +80,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
     myDetectButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
+          myDetectButton.setEnabled(false);
           ProgressManager.getInstance().run(new DetectJdkTask());
         }
       });
@@ -234,14 +238,20 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
     @Override
     public void onSuccess() {
-      if (myPath != null) {
+      if (myPath == null) {
+        String message = AndroidBundle.message("android.wizard.jdk.autodetect.result.not.found");
+        ExternalSystemUiUtil.showBalloon(myJdkPath, MessageType.INFO, message);
+      }
+      else {
         myState.put(myPathKey, myPath);
       }
+      myDetectButton.setEnabled(true);
       super.onSuccess();
     }
 
     @Override
     public void onCancel() {
+      myDetectButton.setEnabled(true);
       myCancelled.set(true);
     }
   }
