@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Nullable;
+import com.android.annotations.NonNull;
+import com.android.annotations.Property;
 
 public abstract class State {
+  private final String className;
+
   public abstract static class Visitor {
     public abstract void visit(ActivityState state);
     public abstract void visit(MenuState state);
@@ -33,15 +36,36 @@ public abstract class State {
     }
   }
 
+  protected State(@Property("className") String className) {
+    this.className = className;
+  }
+
   public abstract void accept(Visitor visitor);
 
-  public abstract String getClassName();
-
-  public abstract String getXmlResourceName();
-
-  @Override
-  public abstract boolean equals(Object o);
+  @NonNull
+  public String getClassName() {
+    return className;
+  }
 
   @Override
-  public abstract int hashCode();
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    State that = (State)o;
+
+    if (!className.equals(that.className)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return className.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "{" + className + '}';
+  }
 }

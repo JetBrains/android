@@ -118,10 +118,10 @@ public class Analyser {
     return result;
   }
 
-  private static MenuState getMenuState(String menuName, Map<String, MenuState> menuNameToMenuState) {
-    MenuState result = menuNameToMenuState.get(menuName);
+  private static MenuState getMenuState(String className, String menuName, Map<String, MenuState> classNameToMenuState) {
+    MenuState result = classNameToMenuState.get(className);
     if (result == null) {
-      menuNameToMenuState.put(menuName, result = new MenuState(menuName));
+      classNameToMenuState.put(menuName, result = MenuState.create(className, menuName));
     }
     return result;
   }
@@ -323,7 +323,7 @@ public class Analyser {
         @Override
         public void process(MultiMatch.Bindings<PsiElement> args) {
           String menuIdName = args.get("id").getLastChild().getText();
-          final MenuState menu = getMenuState(menuIdName, miniModel.menuNameToMenuState);
+          final MenuState menu = getMenuState(fromActivityState.getClassName(), menuIdName, miniModel.classNameToMenuToMenuState);
           addTransition(model, new Transition(Transition.PRESS, new Locator(fromActivityState), new Locator(menu)));
           for (PsiClass superClass = activityOrFragmentClass; superClass != null; superClass = superClass.getSuperClass()) {
             // Search for menu item bindings in the style the Navigation Editor generates them
@@ -397,12 +397,12 @@ public class Analyser {
 
   static class MiniModel {
     final Map<String, ActivityState> classNameToActivityState;
-    final Map<String, MenuState> menuNameToMenuState;
+    final Map<String, MenuState> classNameToMenuToMenuState;
 
 
-    MiniModel(Map<String, ActivityState> classNameToActivityState, Map<String, MenuState> menuNameToMenuState) {
+    MiniModel(Map<String, ActivityState> classNameToActivityState, Map<String, MenuState> classNameToMenuToMenuState) {
       this.classNameToActivityState = classNameToActivityState;
-      this.menuNameToMenuState = menuNameToMenuState;
+      this.classNameToMenuToMenuState = classNameToMenuToMenuState;
     }
 
     MiniModel() {

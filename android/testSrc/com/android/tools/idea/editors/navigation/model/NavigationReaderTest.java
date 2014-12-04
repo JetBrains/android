@@ -23,10 +23,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 
 public class NavigationReaderTest extends TestCase {
-  private static State createState(String className, String xmlFileName) {
-    ActivityState s0 = new ActivityState(className);
-    s0.setXmlResourceName(xmlFileName);
-    return s0;
+  private static State createState(String className) {
+    return new ActivityState(className);
   }
 
   private static Object fromString(String output) {
@@ -42,8 +40,8 @@ public class NavigationReaderTest extends TestCase {
 
   public void test0() throws FileNotFoundException {
     NavigationModel model = new NavigationModel();
-    State s0 = createState("com.acme.MasterController", "master_controller");
-    State s1 = createState("com.acme.SlaveController", "slave_controller");
+    State s0 = createState("com.acme.MasterController");
+    State s1 = createState("com.acme.SlaveController");
     Transition t1 = Transition.of("click", s0, s1);
     Transition t2 = Transition.of("swipe", s1, s0);
     t2.getSource().setViewName("ere");

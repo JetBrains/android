@@ -240,23 +240,23 @@ class Selections {
     protected void configureInspector(final Inspector inspector) {
       myState.accept(new State.Visitor() {
         @Override
-        public void visit(ActivityState state) {
+        public void visit(ActivityState activity) {
           final Module module = myRenderingParameters.myConfiguration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
           {
             HyperlinkLabel link = activityInspector.classNameLabel;
-            final String className = myState.getClassName();
+            final String className = activity.getClassName();
             configureHyperLinkLabelForClassName(myRenderingParameters, link, className);
           }
           {
             HyperlinkLabel link = activityInspector.xmlFileNameLabel;
-            configureHyperlinkForXMLFile(myRenderingParameters, link, Analyser.getXMLFileName(module, myState.getClassName(), true), false);
+            configureHyperlinkForXMLFile(myRenderingParameters, link, Analyser.getXMLFileName(module, activity.getClassName(), true), false);
           }
           {
             JPanel fragmentList = activityInspector.fragmentList;
             fragmentList.removeAll();
             fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
-            for (FragmentEntry entry : state.getFragments()) {
+            for (FragmentEntry entry : activity.getFragments()) {
               HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
               configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
               fragmentList.add(hyperlinkLabel);
@@ -266,9 +266,10 @@ class Selections {
         }
 
         @Override
-        public void visit(MenuState state) {
+        public void visit(MenuState menu) {
           MenuInspector menuInspector = new MenuInspector();
-          configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
+          configureHyperLinkLabelForClassName(myRenderingParameters, menuInspector.classNameLabel, menu.getClassName());
+          configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, menu.getXmlResourceName(), true);
           inspector.setInspectorComponent(menuInspector.container);
         }
       });
