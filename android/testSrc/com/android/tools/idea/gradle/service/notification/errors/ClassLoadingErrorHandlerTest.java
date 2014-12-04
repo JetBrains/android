@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -62,6 +63,8 @@ public class ClassLoadingErrorHandlerTest extends IdeaTestCase {
     String notification = myNotification.getMessage();
     assertTrue(notification.contains("Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle"));
     assertTrue(notification.contains("Re-download dependencies and sync project"));
-    assertTrue(notification.contains("Stop Gradle build processes (requires restart)"));
+    boolean restartCapable = ApplicationManager.getApplication().isRestartCapable();
+    String quickFix = restartCapable ? "Stop Gradle build processes (requires restart)" : "Open Gradle Daemon documentation";
+    assertTrue(notification.contains(quickFix));
   }
 }
