@@ -117,6 +117,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private JBLabel myAvdNameLabel;
   private JCheckBox myEnableComputerKeyboard;
   private JPanel myKeyboardPanel;
+  private JBLabel myOrientationLabel;
   private Set<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
 
@@ -179,6 +180,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
     myOrientationToggle.setOpaque(false);
+    // Temporarily hide until it's hooked up with the emulator
+    myOrientationToggle.setVisible(false);
+    myOrientationLabel.setVisible(false);
   }
 
   /**
