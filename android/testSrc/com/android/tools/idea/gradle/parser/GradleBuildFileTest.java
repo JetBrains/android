@@ -279,7 +279,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       }
     });
     assertContents(contents.replaceAll("release", "release1a")
-                           .replaceAll("debuggable false\n", "debuggable false\n            zipAlign true\n"));
+                           .replaceAll("debuggable false\n", "debuggable false\n            zipAlignEnabled true\n"));
   }
 
   @SuppressWarnings("unchecked")
@@ -289,7 +289,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    buildTypes {\n" +
       "        release {\n" +
       "            debuggable false\n" +
-      "            zipAlign true\n" +
+      "            zipAlignEnabled true\n" +
       "        }\n" +
       "    }\n" +
       "}";
@@ -707,7 +707,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "            minifyEnabled methodCall() {\n" +
       "                whatIsThisMethodCall()\n" +
       "            }\n" +
-      "            zipAlign some.expression\n" +
+      "            zipAlignEnabled some.expression\n" +
       "        }\n" +
       "    }\n" +
       "}"
@@ -728,10 +728,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "        type1 {\n" +
       "            //Comment\n" +
       "            debuggable true\n" +
-      "            runProguard methodCall() {\n" +
+      "            minifyEnabled methodCall() {\n" +
       "                whatIsThisMethodCall()\n" +
       "            }\n" +
-      "            zipAlign some.expression\n" +
+      "            zipAlignEnabled some.expression\n" +
       "        }\n" +
       "    }\n" +
       "}"
@@ -759,10 +759,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "        type1 {\n" +
       "            //Comment\n" +
       "            debuggable false\n" +
-      "            runProguard methodCall() {\n" +
+      "            minifyEnabled methodCall() {\n" +
       "                whatIsThisMethodCall()\n" +
       "            }\n" +
-      "            zipAlign false\n" +
+      "            zipAlignEnabled false\n" +
       "        }\n" +
       "    }\n" +
       "}";
@@ -778,10 +778,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "        type1 {\n" +
       "            //Comment\n" +
       "            debuggable true\n" +
-      "            runProguard methodCall() {\n" +
+      "            minifyEnabled methodCall() {\n" +
       "                whatIsThisMethodCall()\n" +
       "            }\n" +
-      "            zipAlign some.expression\n" +
+      "            zipAlignEnabled some.expression\n" +
       "        }\n" +
       "    }\n" +
       "}"
@@ -803,10 +803,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    buildTypes {\n" +
       "        type1 {\n" +
       "            //Comment\n" +
-      "            runProguard methodCall() {\n" +
+      "            minifyEnabled methodCall() {\n" +
       "                whatIsThisMethodCall()\n" +
       "            }\n" +
-      "            zipAlign some.expression\n" +
+      "            zipAlignEnabled some.expression\n" +
       "        }\n" +
       "    }\n" +
       "}";
