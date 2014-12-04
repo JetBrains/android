@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IdeBorderFactory;
@@ -66,6 +67,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final Project myProject;
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
+  private final AvdListDialog myDialog;
 
   private TableView<AvdInfo> myTable;
   private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
@@ -79,7 +81,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
-  public AvdDisplayList(@Nullable Project project) {
+  public AvdDisplayList(@NotNull AvdListDialog dialog, @Nullable Project project) {
+    myDialog = dialog;
     myProject = project;
     myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
@@ -158,6 +161,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   @Override
   public Project getProject() {
     return myProject;
+  }
+
+  @Override
+  public void notifyRun() {
+    if (myDialog.isShowing()) {
+      myDialog.close(DialogWrapper.CANCEL_EXIT_CODE);
+    }
   }
 
   private final MouseAdapter myEditingListener = new MouseAdapter() {
