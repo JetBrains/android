@@ -43,6 +43,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -134,6 +135,81 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
   @NotNull
   private static Iterable<String> getCandidatePaths() {
+    return Iterables.concat(deduceFromJavaHome(), deduceFromPath(), deduceFromCurrentJvm(), getOsSpecificCandidatePaths());
+  }
+
+  @NotNull
+  private static Iterable<String> deduceFromJavaHome() {
+    String javaHome = System.getenv("JAVA_HOME");
+    return Strings.isNullOrEmpty(javaHome) ? Collections.<String>emptySet() : Collections.singleton(javaHome);
+  }
+
+  @NotNull
+  private static Iterable<String> deduceFromPath() {
+    String path = System.getenv("PATH");
+    if (Strings.isNullOrEmpty(path)) {
+      return Collections.emptyList();
+    }
+    String[] pathEntries = path.split(File.pathSeparator);
+    for (String entry : pathEntries) {
+      if (Strings.isNullOrEmpty(entry)) {
+        continue;
+      }
+
+      // Check if current PATH entry points to a directory which has a file named 'java'.
+      File javaParentDir = new File(entry);
+      File javaFile = new File(javaParentDir, "java");
+      if (!javaParentDir.isDirectory() || !javaFile.isFile()) {
+        continue;
+      }
+      try {
+        // There is a possible case that target java is a symlink like /usr/bin/java. We want to resolve it and use hard link then.
+        File canonicalJavaFile = javaFile.getCanonicalFile();
+        return forJavaBinParent(canonicalJavaFile.getParentFile());
+      }
+      catch (IOException ignore) {
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  private static Iterable<String> deduceFromCurrentJvm() {
+    String javaHome = System.getProperty("java.home");
+    return Strings.isNullOrEmpty(javaHome) ? Collections.<String>emptySet() : forJavaBinParent(new File(javaHome));
+  }
+
+  /**
+   * We assume that <code>'java'</code> executable is located inside a directory named <code>'bin'</code> (given as an argument).
+   * However, there are multiple cases about its ancestors though:
+   * <ul>
+   *   <li>JDK_HOME/bin</li>
+   *   <li>JDK_HOME/jre/bin</li>
+   *   <li>JRE_HOME/bin</li>
+   * </ul>
+   * This tries to handle them and return an iterable with one element which points to the potential java home or an empty
+   * iterable otherwise.
+   *
+   * @param javaBinParent  parent directory for a directory which contains <code>'java'</code> executable
+   * @return               iterable which is empty or contains entry(ies) which is java home candidate path
+   */
+  @NotNull
+  private static Iterable<String> forJavaBinParent(@NotNull File javaBinParent) {
+    if (!javaBinParent.isDirectory()) {
+      return Collections.emptySet();
+    }
+    if (!"jre".equals(javaBinParent.getName())) {
+      return Collections.singleton(javaBinParent.getAbsolutePath());
+    }
+    File parentFile = javaBinParent.getParentFile();
+    if (parentFile.isDirectory()) {
+      return Collections.singleton(parentFile.getAbsolutePath());
+    }
+    return Collections.emptySet();
+  }
+
+  @NotNull
+  private static Iterable<String> getOsSpecificCandidatePaths() {
     if (SystemInfo.isMac) {
       return getMacCandidateJdks();
     }
