@@ -25,7 +25,7 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.utils.NullLogger;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -39,9 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Eugene.Kudelevsky
@@ -60,7 +59,7 @@ public class AndroidSdkData {
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
 
-  private static final List<SoftReference<AndroidSdkData>> mInstances = Lists.newArrayList();
+  private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
 
   /** Singleton access classes */
 
@@ -71,29 +70,31 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
-    File canonicalLocation = new File(FileUtil.toCanonicalPath(sdkLocation.getPath()));
+    String canonicalPath = FileUtil.toCanonicalPath(sdkLocation.getPath());
 
+    // Try to use cached data.
     if (!forceReparse) {
-      Iterator<SoftReference<AndroidSdkData>> it = mInstances.iterator();
-      while (it.hasNext()) {
-        AndroidSdkData sdkData = it.next().get();
-        // Lazily remove stale soft references
-        if (sdkData == null) {
-          it.remove();
-          continue;
+      SoftReference<AndroidSdkData> cachedRef = ourCache.get(canonicalPath);
+      if (cachedRef != null) {
+        AndroidSdkData cachedData = cachedRef.get();
+        if (cachedData == null) {
+          ourCache.remove(canonicalPath, cachedRef);
         }
-        if (FileUtil.filesEqual(sdkData.getLocation(), canonicalLocation)) {
-          return sdkData;
+        else {
+          return cachedData;
         }
       }
     }
+
+    File canonicalLocation = new File(canonicalPath);
     if (!DefaultSdks.isValidAndroidSdkPath(canonicalLocation)) {
       return null;
     }
+
     LocalSdk localSdk = new LocalSdk(canonicalLocation);
     AndroidSdkData sdkData = new AndroidSdkData((localSdk));
-    mInstances.add(0, new SoftReference<AndroidSdkData>(sdkData));
-    return mInstances.get(0).get();
+    ourCache.put(canonicalPath, new SoftReference<AndroidSdkData>(sdkData));
+    return sdkData;
   }
 
   @Nullable
