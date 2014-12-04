@@ -37,8 +37,6 @@ public enum FirstRunWizardMode {
    */
   MISSING_SDK;
 
-  private InstallerData myInstallerData;
-
   public boolean hasValidSdkLocation() {
     return getInstallerData().hasValidSdkLocation();
   }
@@ -73,9 +71,11 @@ public enum FirstRunWizardMode {
 
   @NotNull
   private synchronized InstallerData getInstallerData() {
-    if (myInstallerData == null) {
-      myInstallerData = this == INSTALL_HANDOFF ? InstallerData.get() : InstallerData.EMPTY;
+    if (this == INSTALL_HANDOFF) {
+      return InstallerData.get();
     }
-    return myInstallerData;
+    else {
+      return InstallerData.EMPTY;
+    }
   }
 }

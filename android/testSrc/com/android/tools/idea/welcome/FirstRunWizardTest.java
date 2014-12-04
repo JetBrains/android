@@ -56,20 +56,11 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     return getPathChecked("ANDROID_HOME");
   }
 
-  private void assertPagesVisible(@Nullable InstallerData data,
-                                  boolean isWelcomeStepVisible,
-                                  boolean isJdkStepVisible,
-                                  boolean isInstallTypeStepVisible,
-                                  boolean isComponentsStepVisible,
-                                  boolean hasJdkPath,
-                                  boolean hasAndroidSdkPath) {
+  private void assertPagesVisible(@Nullable InstallerData data, boolean isJdkStepVisible, boolean isComponentsStepVisible,
+                                  boolean hasJdkPath, boolean hasAndroidSdkPath) {
     InstallerData.set(data);
     FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
-    if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      assertVisible(new FirstRunWelcomeStep(false), null, isWelcomeStepVisible);
-    }
     assertVisible(new JdkLocationStep(createKey(String.class), mode), data, isJdkStepVisible);
-    assertVisible(new InstallationTypeWizardStep(createKey(Boolean.class)), data, isInstallTypeStepVisible);
     assertVisible(new SdkComponentsStep(new InstallableComponent[0], KEY_TRUE, createKey(String.class), mode),
                   data, isComponentsStepVisible);
 
@@ -108,29 +99,25 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
   public void testStepsVisibility() {
     File wrongPath = new File("/$@@  \"\'should/not/exist");
-    File java6Home = getPathChecked("JAVA6_HOME");
     File java7Home = getPathChecked("JAVA7_HOME");
     File androidHome = getAndroidHome();
 
-    assertPagesVisible(null, true, true, true, true, false, false);
+    assertPagesVisible(null, true, true, false, false);
 
     InstallerData correctData = new InstallerData(java7Home, null, androidHome, true, "timestamp");
-    assertPagesVisible(correctData, false, false, false, false, true, true);
-
-    InstallerData java6Data = new InstallerData(java6Home, null, androidHome, true, "timestamp");
-    assertPagesVisible(java6Data, false, true, false, false, false, true);
+    assertPagesVisible(correctData, false, false, true, true);
 
     InstallerData noAndroidSdkData = new InstallerData(java7Home, null, null, true, "timestamp");
-    assertPagesVisible(noAndroidSdkData, false, false, false, true, true, false);
+    assertPagesVisible(noAndroidSdkData, false, true, true, false);
 
     InstallerData noJdkData = new InstallerData(null, null, androidHome, true, "timestamp");
-    assertPagesVisible(noJdkData, false, true, false, false, false, true);
+    assertPagesVisible(noJdkData, true, false, false, true);
 
     InstallerData noInstallAndroidData = new InstallerData(java7Home, androidHome, androidHome, true, "timestamp");
-    assertPagesVisible(noInstallAndroidData, false, false, false, false, true, true);
+    assertPagesVisible(noInstallAndroidData, false, false, true, true);
 
     InstallerData bogusPathsData = new InstallerData(wrongPath, wrongPath, wrongPath, true, "timestamp");
-    assertPagesVisible(bogusPathsData, false, true, false, true, false, false);
+    assertPagesVisible(bogusPathsData, true, true, false, false);
   }
 
   /**
