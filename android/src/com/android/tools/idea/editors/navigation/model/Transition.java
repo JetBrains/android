@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Property;
-
 public class Transition {
   public static final String PRESS = "Press";
   public static final String SWIPE = "Swipe";
@@ -25,9 +23,7 @@ public class Transition {
   private final Locator source;
   private final Locator destination;
 
-  public Transition(@Property("type")        String type,
-                    @Property("source")      Locator source,
-                    @Property("destination") Locator destination) {
+  public Transition(String type, Locator source, Locator destination) {
     this.type = type;
     this.source = source;
     this.destination = destination;
