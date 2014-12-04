@@ -38,7 +38,7 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   public AvdListDialog(@Nullable Project project) {
     super(project);
     myProject = project;
-    myAvdDisplayList = new AvdDisplayList(project);
+    myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(ourDefaultBorder);
     setTitle("AVD Manager");
     Window window = getWindow();
@@ -82,6 +82,13 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   @Override
   public Project getProject() {
     return myProject;
+  }
+
+  @Override
+  public void notifyRun() {
+    if (isShowing()) {
+      close(DialogWrapper.CANCEL_EXIT_CODE);
+    }
   }
 
   @Override
