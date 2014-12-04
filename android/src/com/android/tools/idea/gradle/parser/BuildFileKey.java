@@ -72,32 +72,24 @@ public enum BuildFileKey {
   // defaultConfig or build flavor
   MIN_SDK_VERSION("minSdkVersion", INTEGER_OR_STRING),
   APPLICATION_ID("applicationId", STRING),
-  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
-  PACKAGE_NAME("packageName", STRING),
   PROGUARD_FILE("proguardFile", FILE_AS_STRING),
   SIGNING_CONFIG("signingConfig", REFERENCE),
   TARGET_SDK_VERSION("targetSdkVersion", INTEGER_OR_STRING),
   TEST_INSTRUMENTATION_RUNNER("testInstrumentationRunner", STRING),
   TEST_APPLICATION_ID("testApplicationId", STRING),
-  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
-  TEST_PACKAGE_NAME("testPackageName", STRING),
   VERSION_CODE("versionCode", INTEGER),
   VERSION_NAME("versionName", STRING),
 
   // Build type
   DEBUGGABLE("debuggable", BOOLEAN),
-  JNI_DEBUG_BUILD("jniDebugBuild", BOOLEAN),
-  RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", BOOLEAN),
+  JNI_DEBUG_BUILD("jniDebuggable", BOOLEAN),
+  RENDERSCRIPT_DEBUG_BUILD("renderscriptDebuggable", BOOLEAN),
   RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", INTEGER),
   MINIFY_ENABLED("minifyEnabled", BOOLEAN),
   PSEUDOLOCALES_ENABLED("pseudoLocalesEnabled", BOOLEAN),
-  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
-  RUN_PROGUARD("runProguard", BOOLEAN),
   APPLICATION_ID_SUFFIX("applicationIdSuffix", STRING),
-  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
-  PACKAGE_NAME_SUFFIX("packageNameSuffix", STRING),
   VERSION_NAME_SUFFIX("versionNameSuffix", STRING),
-  ZIP_ALIGN("zipAlign", BOOLEAN),
+  ZIP_ALIGN("zipAlignEnabled", BOOLEAN),
 
   // Signing config
   KEY_ALIAS("keyAlias", STRING),
