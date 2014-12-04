@@ -176,16 +176,6 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       if (defaultConfig != null) {
         for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
           Object value = myGradleBuildFile.getValue(defaultConfig, key);
-          if (value == null) {
-            // Temporary compatibility code:
-            if (key == BuildFileKey.APPLICATION_ID) {
-              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.PACKAGE_NAME);
-            } else if (key == BuildFileKey.TEST_APPLICATION_ID) {
-              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.TEST_PACKAGE_NAME);
-            } else if (key == BuildFileKey.MINIFY_ENABLED) {
-              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.RUN_PROGUARD);
-            }
-          }
 
           obj.setValue(key, value);
         }
