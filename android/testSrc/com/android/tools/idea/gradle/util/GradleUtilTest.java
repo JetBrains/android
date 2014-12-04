@@ -223,4 +223,60 @@ public class GradleUtilTest extends TestCase {
     String initScript = FileUtil.loadFile(initScriptPath);
     assertEquals(expectedScript, initScript);
   }
+
+  public void testGetGradleWrapperVersionWithUrl() {
+    // Tries both http and https, bin and all. Also versions 2.2.1, 2.2 and 1.12
+    String url = "https://services.gradle.org/distributions/gradle-2.2.1-all.zip";
+    String version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2.1", version);
+
+    url = "https://services.gradle.org/distributions/gradle-2.2.1-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2.1", version);
+
+    url = "http://services.gradle.org/distributions/gradle-2.2.1-all.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2.1", version);
+
+    url = "http://services.gradle.org/distributions/gradle-2.2.1-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2.1", version);
+
+    url = "https://services.gradle.org/distributions/gradle-2.2-all.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2", version);
+
+    url = "https://services.gradle.org/distributions/gradle-2.2-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2", version);
+
+    url = "http://services.gradle.org/distributions/gradle-2.2-all.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2", version);
+
+    url = "http://services.gradle.org/distributions/gradle-2.2-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("2.2", version);
+
+    url = "https://services.gradle.org/distributions/gradle-1.12-all.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("1.12", version);
+
+    url = "https://services.gradle.org/distributions/gradle-1.12-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("1.12", version);
+
+    url = "http://services.gradle.org/distributions/gradle-1.12-all.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("1.12", version);
+
+    url = "http://services.gradle.org/distributions/gradle-1.12-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertEquals("1.12", version);
+
+    // Use custom URL.
+    url = "http://myown.com/gradle-2.2.1-bin.zip";
+    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    assertNull(version);
+  }
 }

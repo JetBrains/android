@@ -835,7 +835,9 @@ public final class GradleUtil {
       if (wrapperPropertiesFile != null) {
         String gradleVersion = null;
         try {
-          gradleVersion = getGradleWrapperVersion(wrapperPropertiesFile);
+          Properties properties = PropertiesUtil.getProperties(wrapperPropertiesFile);
+          String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
+          gradleVersion = getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
         }
         catch (IOException e) {
           LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
@@ -855,6 +857,31 @@ public final class GradleUtil {
         }
       }
     }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static String getGradleWrapperVersionOnlyIfComingForGradleDotOrg(@Nullable String url) {
+    if (url != null) {
+      int foundIndex = url.indexOf("://");
+      if (foundIndex != -1) {
+        String protocol = url.substring(0, foundIndex);
+        if (protocol.equals("http") || protocol.equals("https")) {
+          String expectedPrefix = protocol + "://services.gradle.org/distributions/gradle-";
+          if (url.startsWith(expectedPrefix)) {
+            // look for "-" before "bin" or "all"
+            foundIndex = url.indexOf('-', expectedPrefix.length());
+            if (foundIndex != -1) {
+              String version = url.substring(expectedPrefix.length(), foundIndex);
+              if (StringUtil.isNotEmpty(version)) {
+                return version;
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 
   // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
