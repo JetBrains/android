@@ -854,7 +854,7 @@ public class NavigationView extends JComponent {
   private AndroidRootComponent createUnscaledRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myRenderingParams.myFacet.getModule();
-    String resourceName = isMenu ? state.getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
+    String resourceName = isMenu ? ((MenuState)state).getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
     VirtualFile virtualFile = getLayoutXmlVirtualFile(isMenu, resourceName, myRenderingParams.myConfiguration);
     if (virtualFile == null) {
       return new AndroidRootComponent(myRenderingParams, null, isMenu);

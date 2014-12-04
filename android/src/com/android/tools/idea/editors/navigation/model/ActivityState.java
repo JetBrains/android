@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.Property;
 import com.android.annotations.Transient;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
@@ -25,55 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ActivityState extends State {
-  private final String className;
-  private String xmlResourceName;
   private List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
 
   public ActivityState(@Property("className") String className) {
-    this.className = className;
+    super(className);
   }
 
   @Override
   public void accept(Visitor visitor) {
-     visitor.visit(this);
-  }
-
-  @NonNull
-  @Override
-  public String getClassName() {
-    return className;
-  }
-
-  @Nullable
-  @Override
-  public String getXmlResourceName() {
-    return xmlResourceName;
-  }
-
-  public void setXmlResourceName(String xmlResourceName) {
-    this.xmlResourceName = xmlResourceName;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ActivityState that = (ActivityState)o;
-
-    if (!className.equals(that.className)) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return className.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "ActivityState{" + className + '}';
+    visitor.visit(this);
   }
 
   @Transient
