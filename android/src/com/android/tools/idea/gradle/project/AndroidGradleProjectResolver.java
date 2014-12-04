@@ -176,6 +176,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleExtraModels(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    nextResolver.populateModuleExtraModels(gradleModule, ideModule);
+
     if (inAndroidGradleProject(gradleModule) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
       // We add the Android Gradle plugin jars (from the embedded Maven repo) to the classpath to make the build.gradle file editor resolve
       // methods from the plugin.
@@ -197,8 +199,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         ideModule.createChild(BuildScriptClasspathData.KEY, buildScriptClasspathData);
       }
     }
-
-    nextResolver.populateModuleExtraModels(gradleModule, ideModule);
   }
 
   @NotNull
