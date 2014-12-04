@@ -197,6 +197,20 @@ public class NavigationModel {
     return null;
   }
 
+  public ActivityState findAssociatedActivityState(MenuState menuState) {
+    for (Transition t : getTransitions()) {
+      if (t.getDestination().getState() == menuState) {
+        State state = t.getSource().getState();
+        if (state instanceof ActivityState) {
+          return (ActivityState)state;
+
+        }
+      }
+    }
+    assert false;
+    return null;
+  }
+
   public List<State> findDestinationsFor(@NotNull State source) {
     List<State> result = new ArrayList<State>();
     for (Transition transition : getTransitions()) {
@@ -221,6 +235,4 @@ public class NavigationModel {
   public EventDispatcher<Event> getListeners() {
     return listeners;
   }
-
-  // todo either bury the superclass's API or re-implement all of its destructive methods to post an update event
 }
