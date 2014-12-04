@@ -21,7 +21,6 @@ import com.android.tools.idea.editors.navigation.model.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -43,6 +42,7 @@ public class CodeGenerator {
                                                             "public boolean onCreateOptionsMenu(Menu menu) { " +
                                                             "    return true;" +
                                                             "}";
+
   private static final String ON_PREPARE_OPTIONS_MENU_SIGNATURE = "boolean onPrepareOptionsMenu(Menu menu)";
   private static final String ON_PREPARE_OPTIONS_MENU_BODY = "@Override " +
                                                              "public boolean onPrepareOptionsMenu(Menu menu) { " +
@@ -57,20 +57,6 @@ public class CodeGenerator {
     this.navigationModel = navigationModel;
     this.module = module;
     this.listener = listener;
-  }
-
-  private ActivityState getAssociatedActivityState(MenuState menuState) {
-    for (Transition t : navigationModel.getTransitions()) {
-      if (t.getDestination().getState() == menuState) {
-        State state = t.getSource().getState();
-        if (state instanceof ActivityState) {
-          return (ActivityState)state;
-
-        }
-      }
-    }
-    assert false;
-    return null;
   }
 
   private static void addImports(Module module, ImportHelper importHelper, PsiJavaFile file, String[] classNames) {
@@ -106,13 +92,13 @@ public class CodeGenerator {
   }
 
 
-  private WriteCommandAction<Void> createAddCodeAction(final PsiElementFactory factory,
-                                                       final PsiClass psiClass,
+  private WriteCommandAction<Void> createAddCodeAction(final PsiClass psiClass,
                                                        final String signatureText,
                                                        final String templateText,
                                                        final String codeToInsert,
                                                        final boolean addBeforeLastStatement,
                                                        final String... imports) {
+    final PsiElementFactory factory = JavaPsiFacade.getInstance(module.getProject()).getElementFactory();
     return new WriteCommandAction<Void>(module.getProject(), "Add navigation transition", psiClass.getContainingFile()) {
       @Override
       protected void run(@NotNull Result<Void> result) {
@@ -143,59 +129,64 @@ public class CodeGenerator {
   }
 
   public void implementTransition(final Transition transition) {
-    Project project = module.getProject();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    final PsiElementFactory factory = facade.getElementFactory();
+    final Locator source = transition.getSource();
+    final String viewName = source.getViewName();
+    final Locator destination = transition.getDestination();
+    source.getState().accept(new State.Visitor() {
+      @Override
+      public void visit(final ActivityState sourceState) {
+        final PsiClass psiClass = Utilities.getPsiClass(module, sourceState.getClassName());
+        if (psiClass == null) {
+          return;
+        }
+        destination.getState().accept(new State.Visitor() {
+          @Override
+          public void visit(ActivityState destinationState) {
+            String code = "findViewById(R.id." + viewName + ").setOnClickListener(new View.OnClickListener() { " +
+                          "    @Override" +
+                          "    public void onClick(View v) {" +
+                          "        $context.startActivity(new Intent($context, " + destinationState.getClassName() + ".class));" +
+                          "    }" +
+                          "});";
+            code = code.replaceAll("\\$context", sourceState.getClassName() + ".this");
+            createAddCodeAction(psiClass, ON_CREATE_SIGNATURE, ON_CREATE_BODY, code, false, "android.view.View").execute();
+          }
 
-    State sourceState = transition.getSource().getState();
-    State destinationState = transition.getDestination().getState();
-    if (sourceState instanceof MenuState && destinationState instanceof ActivityState) {
-      MenuState menuState = (MenuState)sourceState;
-      final ActivityState newActivity = (ActivityState)destinationState;
-      final ActivityState originatingActivity = getAssociatedActivityState(menuState);
-      final PsiClass psiClass = Utilities.getPsiClass(module, originatingActivity.getClassName());
-      if (psiClass != null) {
-        String code = "$0.findItem($id).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
-                      "    @Override" +
-                      "    public boolean onMenuItemClick(MenuItem menuItem) {" +
-                      "        $context.startActivity(new Intent($context, $activityClass));" +
-                      "        return true;" +
-                      "    }" +
-                      "});";
-        code = code.replace("$id", "R.id." + transition.getSource().getViewName());
-        code = code.replaceAll("\\$context", originatingActivity.getClassName() + ".this");
-        code = code.replace("$activityClass", newActivity.getClassName() + ".class");
-        createAddCodeAction(factory, psiClass, ON_PREPARE_OPTIONS_MENU_SIGNATURE, ON_PREPARE_OPTIONS_MENU_BODY, code, true,
-                            "android.view.Menu", "android.view.MenuItem").execute();
+          @Override
+          public void visit(MenuState destinationState) {
+            String code = "getMenuInflater().inflate(R.menu." + destinationState.getXmlResourceName() + ", $0);";
+            createAddCodeAction(psiClass, ON_CREATE_OPTIONS_MENU_SIGNATURE, ON_CREATE_OPTIONS_MENU_BODY, code, true, "android.view.Menu")
+              .execute();
+          }
+        });
       }
-    }
-    if (sourceState instanceof ActivityState && destinationState instanceof MenuState) {
-      ActivityState activityState = (ActivityState)sourceState;
-      final MenuState menuState = (MenuState)destinationState;
-      final PsiClass psiClass = Utilities.getPsiClass(module, activityState.getClassName());
-      if (psiClass != null) {
-        String code = "getMenuInflater().inflate(R.menu.$XmlResourceName, $0);";
-        code = code.replace("$XmlResourceName", menuState.getXmlResourceName());
-        createAddCodeAction(factory, psiClass, ON_CREATE_OPTIONS_MENU_SIGNATURE, ON_CREATE_OPTIONS_MENU_BODY, code, true,
-                            "android.view.Menu").execute();
+
+      @Override
+      public void visit(final MenuState sourceState) {
+        final ActivityState associatedSourceActivityState = navigationModel.findAssociatedActivityState(sourceState);
+        if (associatedSourceActivityState == null) {
+          return;
+        }
+        final PsiClass psiClass = Utilities.getPsiClass(module, associatedSourceActivityState.getClassName());
+        if (psiClass == null) {
+          return;
+        }
+        destination.getState().accept(new State.BaseVisitor() {
+          @Override
+          public void visit(ActivityState destinationState) {
+            String code = "$0.findItem(R.id." + viewName + ").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
+                          "    @Override" +
+                          "    public boolean onMenuItemClick(MenuItem menuItem) {" +
+                          "        $context.startActivity(new Intent($context, " + destinationState.getClassName() + ".class));" +
+                          "        return true;" +
+                          "    }" +
+                          "});";
+            code = code.replaceAll("\\$context", associatedSourceActivityState.getClassName() + ".this");
+            createAddCodeAction(psiClass, ON_PREPARE_OPTIONS_MENU_SIGNATURE, ON_PREPARE_OPTIONS_MENU_BODY, code, true, "android.view.Menu",
+                                "android.view.MenuItem").execute();
+          }
+        });
       }
-    }
-    if (sourceState instanceof ActivityState && destinationState instanceof ActivityState) {
-      ActivityState sourceActivityState = (ActivityState)sourceState;
-      ActivityState newActivity = (ActivityState)destinationState;
-      PsiClass psiClass = Utilities.getPsiClass(module, sourceActivityState.getClassName());
-      if (psiClass != null) {
-        String code = "findViewById($id).setOnClickListener(new View.OnClickListener() { " +
-                      "    @Override" +
-                      "    public void onClick(View v) {" +
-                      "        $context.startActivity(new Intent($context, $activityClass));" +
-                      "    }" +
-                      "});";
-        code = code.replace("$id", "R.id." + transition.getSource().getViewName());
-        code = code.replaceAll("\\$context", sourceActivityState.getClassName() + ".this");
-        code = code.replace("$activityClass", newActivity.getClassName() + ".class");
-        createAddCodeAction(factory, psiClass, ON_CREATE_SIGNATURE, ON_CREATE_BODY, code, false, "android.view.View").execute();
-      }
-    }
+    });
   }
 }
