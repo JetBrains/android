@@ -132,7 +132,7 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
-  public Map<String, String> getManifestPlaceholders() {
+  public Map<String, Object> getManifestPlaceholders() {
     throw new UnsupportedOperationException();
   }
 
