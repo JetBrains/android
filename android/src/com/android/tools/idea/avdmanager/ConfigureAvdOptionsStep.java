@@ -269,6 +269,16 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     if (useExisting != null) {
       toggleSdCardSettings(useExisting);
     }
+
+    // Disable GPU acceleration for images with API <= 15
+    if (myState.get(SYSTEM_IMAGE_KEY).getVersion().getApiLevel() <= 15) {
+      myUseHostGPUCheckBox.setEnabled(false);
+      myUseHostGPUCheckBox.setText("Use Host GPU (Requires API > 15)");
+      myUseHostGPUCheckBox.setSelected(false);
+    } else {
+      myUseHostGPUCheckBox.setEnabled(true);
+      myUseHostGPUCheckBox.setText("Use Host GPU");
+    }
   }
 
   @Override
