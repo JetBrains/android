@@ -87,12 +87,10 @@ public final class AndroidSdk extends InstallableComponent {
     PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages));
     PkgDesc.Builder platform =
       PkgDesc.Builder.newPlatform(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder sample =
-      PkgDesc.Builder.newSample(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision);
 
     Collection<IPkgDesc> packages =
-      createAll(androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools, platform, sample, platformSources);
+      createAll(androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools, platform, platformSources);
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
       packages.add(repository.getPackageDescription());
