@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
@@ -25,35 +26,52 @@ import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
-public class ProjectViewFixture {
-  @NotNull private final ProjectView myProjectView;
-
-  ProjectViewFixture(@NotNull ProjectView projectView) {
-    myProjectView = projectView;
+public class ProjectViewFixture extends ToolWindowFixture {
+  ProjectViewFixture(@NotNull Project project, @NotNull Robot robot) {
+    super("Project", project, robot);
   }
 
   @NotNull
   public PaneFixture selectProjectPane() {
-    String id = "ProjectPane";
-    myProjectView.changeView(id);
-    return new PaneFixture(myProjectView.getProjectViewPaneById(id));
+    activate();
+    final ProjectView projectView = ProjectView.getInstance(myProject);
+    Pause.pause(new Condition("Project view is initialized") {
+      @Override
+      public boolean test() {
+        return field("isInitialized").ofType(boolean.class).in(projectView).get();
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+
+    final String id = "ProjectPane";
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        projectView.changeView(id);
+      }
+    });
+    return new PaneFixture(projectView.getProjectViewPaneById(id));
   }
 
   public static class PaneFixture {
