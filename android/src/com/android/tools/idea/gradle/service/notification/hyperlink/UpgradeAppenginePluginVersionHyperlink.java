@@ -25,6 +25,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,27 +60,16 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     if (document == null) {
       return;
     }
-    final TextRange range = GradleUtil.forPluginDefinition(document.getText(),
-                                                     APPENGINE_PLUGIN_DEFINITION_START,
-                                                     new Function<Pair<String, GroovyLexer>, TextRange>() {
+    boolean updated = GradleUtil.updateGradlePluginVersion(project, document, APPENGINE_PLUGIN_DEFINITION_START, new Computable<String>() {
       @Override
-      public TextRange fun(Pair<String, GroovyLexer> pair) {
-        GroovyLexer lexer = pair.getSecond();
-        return TextRange.create(lexer.getTokenStart() + 1 + APPENGINE_PLUGIN_DEFINITION_START.length(), lexer.getTokenEnd() - 1);
-      }
-    });
-    if (range == null) {
-      return;
-    }
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
+      public String compute() {
         ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);
         FullRevision latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
-        String versionToUse = latest == null ? DEFAULT_APPENGINE_PLUGIN_VERSION : latest.toString();
-        document.replaceString(range.getStartOffset(), range.getEndOffset(), versionToUse);
+        return latest == null ? DEFAULT_APPENGINE_PLUGIN_VERSION : latest.toString();
       }
     });
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    if (updated) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
   }
 }
