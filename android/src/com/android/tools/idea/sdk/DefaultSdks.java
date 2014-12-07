@@ -140,6 +140,8 @@ public final class DefaultSdks {
 
   public static void setDefaultJavaHome(@NotNull File path) {
     if (JavaSdk.checkForJdk(path)) {
+      ApplicationManager.getApplication().assertWriteAccessAllowed();
+
       File canonicalPath = resolvePath(path);
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
         // Delete all JDKs in Android Studio. We want to have only one.
@@ -201,7 +203,7 @@ public final class DefaultSdks {
   @NotNull
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
     if (isValidAndroidSdkPath(path)) {
-      assert ApplicationManager.getApplication().isWriteAccessAllowed();
+      ApplicationManager.getApplication().assertWriteAccessAllowed();
 
       // There is a possible case that no platform is downloaded for the android sdk which path is given as an argument
       // to the current method. Hence, no ide android sdk is configured and our further android sdk lookup
