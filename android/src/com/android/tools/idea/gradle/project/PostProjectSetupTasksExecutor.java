@@ -131,13 +131,13 @@ public class PostProjectSetupTasksExecutor {
 
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
-      checkSdkVersion(myProject);
+      checkSdkToolsVersion(myProject);
       return;
     }
 
     findAndShowVariantConflicts();
     addSdkLinkIfNecessary();
-    checkSdkVersion(myProject);
+    checkSdkToolsVersion(myProject);
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
@@ -257,13 +257,18 @@ public class PostProjectSetupTasksExecutor {
 
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
-      checkSdkVersion(myProject);
+      checkSdkToolsVersion(myProject);
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
     }
 
     attachSourcesToLibraries();
-    ensureAllModulesHaveValidSdks();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ensureAllModulesHaveValidSdks();
+      }
+    });
     Projects.enforceExternalBuild(myProject);
 
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
@@ -275,7 +280,7 @@ public class PostProjectSetupTasksExecutor {
     }
 
     findAndShowVariantConflicts();
-    checkSdkVersion(myProject);
+    checkSdkToolsVersion(myProject);
     addSdkLinkIfNecessary();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
@@ -631,7 +636,7 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  private static void checkSdkVersion(@NotNull Project project) {
+  private static void checkSdkToolsVersion(@NotNull Project project) {
     if (project.isDisposed() || ourSdkVersionWarningShown) {
       return;
     }
