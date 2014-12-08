@@ -631,7 +631,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myOrientationToggle.setForeground(JBColor.foreground());
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget("");
+    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
     mySkinComboBox = new SkinChooser(getProject());
   }
 
