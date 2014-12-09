@@ -306,7 +306,13 @@ public class Analyser {
 
     if (DEBUG) System.out.println("Analyser: className = " + activityOrFragmentClassName);
 
-    final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
+    final String fromActivityClassName = fromActivityState.getClassName();
+    final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityClassName);
+    if (activityClass == null) {
+      // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
+      LOG.info("Class " + fromActivityClassName + " not found");
+      return;
+    }
     final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
     if (activityOrFragmentClass == null) {
       // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
@@ -323,7 +329,7 @@ public class Analyser {
         @Override
         public void process(MultiMatch.Bindings<PsiElement> args) {
           String menuIdName = args.get("id").getLastChild().getText();
-          final MenuState menu = getMenuState(fromActivityState.getClassName(), menuIdName, miniModel.classNameToMenuToMenuState);
+          final MenuState menu = getMenuState(fromActivityClassName, menuIdName, miniModel.classNameToMenuToMenuState);
           addTransition(model, new Transition(Transition.PRESS, new Locator(fromActivityState), new Locator(menu)));
           for (PsiClass superClass = activityOrFragmentClass; superClass != null; superClass = superClass.getSuperClass()) {
             // Search for menu item bindings in the style the Navigation Editor generates them
@@ -350,6 +356,10 @@ public class Analyser {
         }
       }
     });
+
+    // Search for subclass style item click listeners on ListActivities
+    search(activityClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
+           createProcessor(model, classNameToActivityState, fromActivityState, constant(null), CLASS_NAME_1));
 
     // Search for 'onItemClick' listeners in listViews
 
@@ -533,7 +543,10 @@ public class Analyser {
     return result;
   }
 
-  private static String getPrefix(String idName) {
+  public static String getPrefix(@Nullable String idName) {
+    if (idName == null) {
+      return "";
+    }
     for (String prefix : ID_PREFIXES) {
       if (idName.startsWith(prefix)) {
         return prefix;

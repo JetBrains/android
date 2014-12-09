@@ -25,30 +25,130 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.impl.source.codeStyle.ImportHelper;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class CodeGenerator {
   private static final String[] FRAMEWORK_IMPORTS = new String[]{"android.app.Activity", "android.content.Intent", "android.os.Bundle"};
   public static final String TRANSITION_ADDED = "Transition added";
 
-  private static final String ON_CREATE_SIGNATURE = "void onCreate(Bundle savedInstanceState)";
-  private static final String ON_CREATE_BODY = "@Override " +
-                                               "public void onCreate(Bundle savedInstanceState) { " +
-                                               "    super.onCreate(savedInstanceState);" +
-                                               "} ";
+  private static class Template {
+    public String signature;
+    public String body;
+    public boolean insertCodeBeforeLastStatement;
+    public String[] imports;
+    public Function<Transition, String> code;
 
-  private static final String ON_CREATE_OPTIONS_MENU_SIGNATURE = "boolean onCreateOptionsMenu(Menu menu)";
-  private static final String ON_CREATE_OPTIONS_MENU_BODY = "@Override " +
-                                                            "public boolean onCreateOptionsMenu(Menu menu) { " +
-                                                            "    return true;" +
-                                                            "}";
+    private void installTransition(CodeGenerator codeGenerator, PsiClass psiClass, Transition transition) {
+      codeGenerator.createAddCodeAction(psiClass, this, transition).execute();
+    }
+  }
 
-  private static final String ON_PREPARE_OPTIONS_MENU_SIGNATURE = "boolean onPrepareOptionsMenu(Menu menu)";
-  private static final String ON_PREPARE_OPTIONS_MENU_BODY = "@Override " +
-                                                             "public boolean onPrepareOptionsMenu(Menu menu) { " +
-                                                             "    boolean result = super.onPrepareOptionsMenu(menu); " +
-                                                             "    return result;" +
-                                                             "}";
+  private static final Template SHOW_MENU = new Template() {
+    {
+      signature = "boolean onCreateOptionsMenu(Menu menu)";
+      body = "@Override " +
+             "public boolean onCreateOptionsMenu(Menu menu) { " +
+             "    return true;" +
+             "}";
+      insertCodeBeforeLastStatement = true;
+      imports = new String[]{"android.view.Menu"};
+      code = new Function<Transition, String>() {
+        @Override
+        public String fun(Transition transition) {
+          String destinationResourceName = ((MenuState)transition.getDestination().getState()).getXmlResourceName();
+          return "getMenuInflater().inflate(R.menu." + destinationResourceName + ", $0);";
+        }
+      };
+    }
+  };
+
+  private static final Template MENU_ACTION = new Template() {
+    {
+      signature = "boolean onPrepareOptionsMenu(Menu menu)";
+      body = "@Override " +
+             "public boolean onPrepareOptionsMenu(Menu menu) { " +
+             "    boolean result = super.onPrepareOptionsMenu(menu); " +
+             "    return result;" +
+             "}";
+      insertCodeBeforeLastStatement = true;
+      imports = new String[]{"android.view.Menu", "android.view.MenuItem"};
+      code = new Function<Transition, String>() {
+        @Override
+        public String fun(Transition transition) {
+          Locator source = transition.getSource();
+          String viewName = source.viewName;
+          String sourceClassName = source.getState().getClassName();
+          String destinationClassName = transition.getDestination().getState().getClassName();
+
+          String code = "$0.findItem(R.id." + viewName + ").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
+                        "    @Override" +
+                        "    public boolean onMenuItemClick(MenuItem menuItem) {" +
+                        "        $context.startActivity(new Intent($context, " + destinationClassName + ".class));" +
+                        "        return true;" +
+                        "    }" +
+                        "});";
+          code = code.replaceAll("\\$context", sourceClassName + ".this");
+          return code;
+        }
+      };
+    }
+  };
+
+  private static final Template ON_CLICK = new Template() {
+    {
+      signature = "void onCreate(Bundle savedInstanceState)";
+      body = "@Override " +
+             "public void onCreate(Bundle savedInstanceState) { " +
+             "    super.onCreate(savedInstanceState);" +
+             "}";
+      insertCodeBeforeLastStatement = false;
+      imports = new String[]{"android.view.View"};
+      code = new Function<Transition, String>() {
+        @Override
+        public String fun(Transition transition) {
+          Locator source = transition.getSource();
+          String viewName = source.viewName;
+          String sourceClassName = source.getState().getClassName();
+          Locator destination = transition.getDestination();
+          String destinationClassName = destination.getState().getClassName();
+
+          String code = "findViewById(R.id." + viewName + ").setOnClickListener(new View.OnClickListener() { " +
+                        "    @Override" +
+                        "    public void onClick(View v) {" +
+                        "        $context.startActivity(new Intent($context, " + destinationClassName + ".class));" +
+                        "    }" +
+                        "});";
+          code = code.replaceAll("\\$context", sourceClassName + ".this");
+          return code;
+        }
+      };
+    }
+  };
+
+  private static final Template ON_ITEM_CLICK = new Template() {
+    {
+      signature = "void onListItemClick(ListView l, View v, int position, long id)";
+      body = "@Override" +
+             "protected void onListItemClick(ListView l, View v, int position, long id) {" +
+             "    super.onListItemClick(l, v, position, id);\n" +
+             "}";
+      insertCodeBeforeLastStatement = false;
+      imports = new String[]{"android.view.View", "android.view.ListView"};
+      code = new Function<Transition, String>() {
+        @Override
+        public String fun(Transition transition) {
+          Locator source = transition.getSource();
+          String sourceClassName = source.getState().getClassName();
+          Locator destination = transition.getDestination();
+          String destinationClassName = destination.getState().getClassName();
+
+          return "startActivity(new Intent(" + sourceClassName + ".this, " + destinationClassName + ".class));";
+        }
+      };
+    }
+  };
+
   public final Module module;
   public final NavigationModel navigationModel;
   public final Listener<String> listener;
@@ -128,62 +228,43 @@ public class CodeGenerator {
     };
   }
 
+  private WriteCommandAction<Void> createAddCodeAction(PsiClass psiClass, Template template, Transition t) {
+    return createAddCodeAction(psiClass, template.signature, template.body, template.code.fun(t), template.insertCodeBeforeLastStatement,
+                               template.imports);
+  }
+
   public void implementTransition(final Transition transition) {
-    final Locator source = transition.getSource();
-    final String viewName = source.getViewName();
-    final Locator destination = transition.getDestination();
-    source.getState().accept(new State.Visitor() {
+    State sourceState = transition.getSource().getState();
+    final PsiClass psiClass = Utilities.getPsiClass(module, sourceState.getClassName());
+    if (psiClass == null) {
+      return;
+    }
+    final State destinationState = transition.getDestination().getState();
+    sourceState.accept(new State.Visitor() {
       @Override
       public void visit(final ActivityState sourceState) {
-        final PsiClass psiClass = Utilities.getPsiClass(module, sourceState.getClassName());
-        if (psiClass == null) {
-          return;
-        }
-        destination.getState().accept(new State.Visitor() {
+        destinationState.accept(new State.Visitor() {
           @Override
           public void visit(ActivityState destinationState) {
-            String code = "findViewById(R.id." + viewName + ").setOnClickListener(new View.OnClickListener() { " +
-                          "    @Override" +
-                          "    public void onClick(View v) {" +
-                          "        $context.startActivity(new Intent($context, " + destinationState.getClassName() + ".class));" +
-                          "    }" +
-                          "});";
-            code = code.replaceAll("\\$context", sourceState.getClassName() + ".this");
-            createAddCodeAction(psiClass, ON_CREATE_SIGNATURE, ON_CREATE_BODY, code, false, "android.view.View").execute();
+            PsiClass ListActivityClass = Utilities.getPsiClass(module, "android.app.ListActivity");
+            assert ListActivityClass != null;
+            Template t = psiClass.isInheritor(ListActivityClass, true) ? ON_ITEM_CLICK : ON_CLICK;
+            t.installTransition(CodeGenerator.this, psiClass, transition);
           }
 
           @Override
           public void visit(MenuState destinationState) {
-            String code = "getMenuInflater().inflate(R.menu." + destinationState.getXmlResourceName() + ", $0);";
-            createAddCodeAction(psiClass, ON_CREATE_OPTIONS_MENU_SIGNATURE, ON_CREATE_OPTIONS_MENU_BODY, code, true, "android.view.Menu")
-              .execute();
+            SHOW_MENU.installTransition(CodeGenerator.this, psiClass, transition);
           }
         });
       }
 
       @Override
       public void visit(final MenuState sourceState) {
-        final ActivityState associatedSourceActivityState = navigationModel.findAssociatedActivityState(sourceState);
-        if (associatedSourceActivityState == null) {
-          return;
-        }
-        final PsiClass psiClass = Utilities.getPsiClass(module, associatedSourceActivityState.getClassName());
-        if (psiClass == null) {
-          return;
-        }
-        destination.getState().accept(new State.BaseVisitor() {
+        destinationState.accept(new State.BaseVisitor() {
           @Override
           public void visit(ActivityState destinationState) {
-            String code = "$0.findItem(R.id." + viewName + ").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
-                          "    @Override" +
-                          "    public boolean onMenuItemClick(MenuItem menuItem) {" +
-                          "        $context.startActivity(new Intent($context, " + destinationState.getClassName() + ".class));" +
-                          "        return true;" +
-                          "    }" +
-                          "});";
-            code = code.replaceAll("\\$context", associatedSourceActivityState.getClassName() + ".this");
-            createAddCodeAction(psiClass, ON_PREPARE_OPTIONS_MENU_SIGNATURE, ON_PREPARE_OPTIONS_MENU_BODY, code, true, "android.view.Menu",
-                                "android.view.MenuItem").execute();
+            MENU_ACTION.installTransition(CodeGenerator.this, psiClass, transition);
           }
         });
       }
