@@ -21,54 +21,31 @@ import com.android.annotations.Property;
 
 public class Locator {
   @NonNull
-  private final State state;
-  private String viewName;
+  public final State state;
+  public final String fragmentName;
+  public final String viewName;
 
-  public Locator(@NonNull @Property("state") State state) {
+  private Locator(@NonNull State state, @Nullable String fragmentName, @Nullable String viewName) {
     this.state = state;
-  }
-
-  private Locator(@NonNull State state, @Nullable String viewName) {
-    this.state = state;
+    this.fragmentName = fragmentName;
     this.viewName = viewName;
   }
 
+  public Locator(@NonNull State state) {
+    this(state, null, null);
+  }
+
   public static Locator of(@NonNull State state, @Nullable String viewName) {
-    return new Locator(state, viewName);
+    return new Locator(state, null, viewName);
+  }
+
+  public static Locator of(@NonNull State state, @Nullable String fragmentName, @Nullable String viewName) {
+    return new Locator(state, fragmentName, viewName);
   }
 
   @NonNull
   public State getState() {
     return state;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public String getViewName() {
-    return viewName;
-  }
-
-  public void setViewName(@Nullable String viewName) {
-    this.viewName = viewName;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Locator locator = (Locator)o;
-
-    if (!state.equals(locator.state)) return false;
-    if (viewName != null ? !viewName.equals(locator.viewName) : locator.viewName != null) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = state.hashCode();
-    result = 31 * result + (viewName != null ? viewName.hashCode() : 0);
-    return result;
   }
 
   @Override
