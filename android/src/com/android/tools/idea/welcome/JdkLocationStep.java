@@ -17,8 +17,10 @@ package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -33,6 +35,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.util.AndroidBundle;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +56,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
   private static final String WINDOWS_JDKS_DIR = "C:\\Program Files\\Java";
   private static final String LINUX_SDK_DIR = "/usr/lib/jvm";
   private static final String JDK_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
+
+  private final AtomicBoolean myJdkDetectionInProgress = new AtomicBoolean();
 
   private final ScopedStateStore.Key<String> myPathKey;
   @NotNull private final FirstRunWizardMode myMode;
@@ -190,6 +195,36 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(myPathKey, myJdkPath);
+    autoDetectJdkPath();
+  }
+
+  private void autoDetectJdkPath() {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        if (!myJdkDetectionInProgress.compareAndSet(false, true)) {
+          return;
+        }
+        try {
+          final String path = detectJdkPath(null);
+          if (path != null) {
+            UIUtil.invokeLaterIfNeeded(new Runnable() {
+              @Override
+              public void run() {
+                String jdkPath = myState.get(myPathKey);
+                // Don't overwrite any non-zero value by an automatically detected path
+                if (!Strings.isNullOrEmpty(jdkPath)) {
+                  myState.put(myPathKey, path);
+                }
+              }
+            });
+          }
+        }
+        finally {
+          myJdkDetectionInProgress.set(false);
+        }
+      }
+    });
   }
 
   @Override
@@ -208,6 +243,25 @@ public class JdkLocationStep extends FirstRunWizardStep {
     return myError;
   }
 
+  @Nullable
+  private static String detectJdkPath(@Nullable AtomicBoolean cancellationFlag) {
+    String topVersion = null;
+    String chosenPath = null;
+    for (String path : getCandidatePaths()) {
+      if (cancellationFlag != null && cancellationFlag.get()) {
+        return null;
+      }
+      if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
+        String version = JavaSdk.getInstance().getVersionString(path);
+        if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
+          topVersion = version;
+          chosenPath = path;
+        }
+      }
+    }
+    return chosenPath;
+  }
+
   private class DetectJdkTask extends Task.Modal {
     private final AtomicBoolean myCancelled = new AtomicBoolean(false);
     private String myPath = null;
@@ -219,21 +273,23 @@ public class JdkLocationStep extends FirstRunWizardStep {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-      String topVersion = null;
-      String chosenPath = null;
-      for (String path : getCandidatePaths()) {
-        if (myCancelled.get()) {
-          return;
+      if (myJdkDetectionInProgress.compareAndSet(false, true)) {
+        try {
+          myPath = detectJdkPath(myCancelled);
         }
-        if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
-          String version = JavaSdk.getInstance().getVersionString(path);
-          if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
-            topVersion = version;
-            chosenPath = path;
-          }
+        finally {
+          myJdkDetectionInProgress.set(false);
         }
       }
-      myPath = chosenPath;
+      while (myJdkDetectionInProgress.get()) {
+        try {
+          // Just wait until previously run detection completes (progress dialog is shown then)
+          //noinspection BusyWait
+          Thread.sleep(300);
+        }
+        catch (InterruptedException ignore) {
+        }
+      }
     }
 
     @Override
