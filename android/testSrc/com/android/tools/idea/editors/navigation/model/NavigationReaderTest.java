@@ -44,7 +44,6 @@ public class NavigationReaderTest extends TestCase {
     State s1 = createState("com.acme.SlaveController");
     Transition t1 = Transition.of("click", s0, s1);
     Transition t2 = Transition.of("swipe", s1, s0);
-    t2.getSource().setViewName("ere");
     model.add(t1);
     model.add(t2);
 
