@@ -28,6 +28,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.Consumer;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,7 @@ public class SaveScreenshotAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = e.getProject();
+    final Project project = e.getProject();
     try {
       BufferedImage image = myContext.getRenderedImage();
       assert image != null && project != null; // enforced by update() above
@@ -61,14 +62,19 @@ public class SaveScreenshotAction extends AnAction {
       File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
       ImageIO.write(image, SdkConstants.EXT_PNG, backingFile);
 
-      ScreenshotViewer viewer = new ScreenshotViewer(project, image, backingFile, null, getDeviceName());
-      if (viewer.showAndGet()) {
-        File screenshot = viewer.getScreenshot();
-        VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
-        if (vf != null) {
-          FileEditorManager.getInstance(project).openFile(vf, true);
-        }
-      }
+      final ScreenshotViewer viewer = new ScreenshotViewer(project, image, backingFile, null, getDeviceName());
+      viewer.showAndGetOk().doWhenDone(new Consumer<Boolean>() {
+              @Override
+              public void consume(Boolean ok) {
+                if (ok) {
+                  File screenshot = viewer.getScreenshot();
+                  VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
+                  if (vf != null) {
+                    FileEditorManager.getInstance(project).openFile(vf, true);
+                  }
+                }
+              }
+            });
     }
     catch (Exception ex) {
       Messages.showErrorDialog(project, AndroidBundle.message("android.ddms.screenshot.generic.error", e),
