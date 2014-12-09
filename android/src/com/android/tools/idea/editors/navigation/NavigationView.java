@@ -81,7 +81,6 @@ public class NavigationView extends JComponent {
 
   public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
-  private static final String ID_PREFIX = "@+id/";
   private static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 255));
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
@@ -273,8 +272,9 @@ public class NavigationView extends JComponent {
       XmlTag tag = leaf.tag;
       if (tag != null) {
         String attributeValue = tag.getAttributeValue("android:id");
-        if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
-          return attributeValue.substring(ID_PREFIX.length());
+        int prefixLength = Analyser.getPrefix(attributeValue).length();
+        if (attributeValue != null && prefixLength != 0) {
+          return attributeValue.substring(prefixLength);
         }
       }
     }
@@ -288,8 +288,9 @@ public class NavigationView extends JComponent {
       if (cookie instanceof XmlTag) {
         XmlTag tag = (XmlTag)cookie;
         String attributeValue = tag.getAttributeValue("android:id");
-        if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
-          return attributeValue.substring(ID_PREFIX.length());
+        int prefixLength = Analyser.getPrefix(attributeValue).length();
+        if (attributeValue != null && prefixLength != 0) {
+          return attributeValue.substring(prefixLength);
         }
       }
     }
@@ -667,7 +668,7 @@ public class NavigationView extends JComponent {
   }
 
   private RenderedView getRenderedView(Locator locator) {
-    return getNameToRenderedView(locator.getState()).get(locator.getViewName());
+    return getNameToRenderedView(locator.getState()).get(locator.viewName);
   }
 
   private void paintRollover(Graphics2D lineGraphics) {
