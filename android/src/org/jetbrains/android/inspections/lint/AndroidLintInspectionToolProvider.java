@@ -339,6 +339,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintPluralsCandidateInspection extends AndroidLintInspectionBase {
+    public AndroidLintPluralsCandidateInspection() {
+      super(AndroidBundle.message("android.lint.inspections.plurals.candidate"), StringFormatDetector.POTENTIAL_PLURAL);
+    }
+  }
+
   public static class AndroidLintPrivateResourceInspection extends AndroidLintInspectionBase {
     public AndroidLintPrivateResourceInspection() {
       super(AndroidBundle.message("android.lint.inspections.private.resource"), PrivateResourceDetector.ISSUE);
