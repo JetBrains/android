@@ -117,8 +117,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       assertNotNull(toolbar);
       List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
       for (ActionButton button : buttons) {
-        // com.intellij.execution.actions is package private
-        if (button.getAction().getClass().getSimpleName().equals("StopAction")) {
+        if ("com.intellij.execution.actions.StopAction".equals(button.getAction().getClass().getCanonicalName())) {
           return Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
         }
       }
