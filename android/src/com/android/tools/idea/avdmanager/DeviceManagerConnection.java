@@ -224,8 +224,10 @@ public class DeviceManagerConnection {
 
   public static void writeDevicesToFile(@NotNull List<Device> devices, @NotNull File file) {
     if (devices.size() > 0) {
+      FileOutputStream stream = null;
       try {
-        DeviceWriter.writeToXml(new FileOutputStream(file), devices);
+        stream = new FileOutputStream(file);
+        DeviceWriter.writeToXml(stream, devices);
       } catch (FileNotFoundException e) {
         IJ_LOG.warn(String.format("Couldn't open file: %1$s", e.getMessage()));
       } catch (ParserConfigurationException e) {
@@ -234,6 +236,14 @@ public class DeviceManagerConnection {
         IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
       } catch (TransformerException e) {
         IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
+      } finally {
+        if (stream != null) {
+          try {
+            stream.close();
+          } catch (IOException e) {
+            IJ_LOG.warn(String.format("Error closing file: %1$s", e.getMessage()));
+          }
+        }
       }
     }
   }
