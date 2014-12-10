@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.messages;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -126,17 +123,11 @@ public class ProjectSyncMessages {
       String group;
       if (dep.startsWith("com.android.support")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        File repository = SdkMavenRepository.ANDROID.getRepositoryLocation(androidHome, true);
-        if (repository == null || !repository.isDirectory()) {
-          hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
-        }
+        addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.ANDROID);
       }
       else if (dep.startsWith("com.google.android.gms")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        File repository = SdkMavenRepository.GOOGLE.getRepositoryLocation(androidHome, true);
-        if (repository == null || !repository.isDirectory()) {
-          hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
-        }
+        addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.GOOGLE);
       }
       else {
         group = UNRESOLVED_DEPENDENCIES;
@@ -162,6 +153,14 @@ public class ProjectSyncMessages {
 
     if (!unresolvedDependencies.isEmpty()) {
       myProject.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, true);
+    }
+  }
+
+  private static void addHyperlinkIfNeeded(@NotNull List<NotificationHyperlink> hyperlinks,
+                                           @Nullable File androidHome, @NotNull SdkMavenRepository repo) {
+    File repository = repo.getRepositoryLocation(androidHome, true);
+    if (repository == null || !repository.isDirectory()) {
+      hyperlinks.add(new InstallRepositoryHyperlink(repo));
     }
   }
 
@@ -200,31 +199,17 @@ public class ProjectSyncMessages {
   }
 
   private static class InstallRepositoryHyperlink extends NotificationHyperlink {
-    @NotNull private final IdDisplay myIdDisplay;
-    @NotNull private final String myPath;
-    @NotNull private final String myDisplayName;
+    @NotNull private final SdkMavenRepository myRepository;
 
-    @NotNull
-    static InstallRepositoryHyperlink installAndroidRepository() {
-      return new InstallRepositoryHyperlink(new IdDisplay("android", "Android"), "m2repository", "Android Support Repository");
-
-    }
-    @NotNull
-    static InstallRepositoryHyperlink installGoogleRepository() {
-      return new InstallRepositoryHyperlink(new IdDisplay("google", "Google"), "m2repository", "Google Support Repository");
-    }
-
-    InstallRepositoryHyperlink(@NotNull IdDisplay idDisplay, @NotNull String path, @NotNull String displayName) {
+    InstallRepositoryHyperlink(@NotNull SdkMavenRepository repository) {
       super("install.m2.repo", "Install Repository and sync project");
-      myIdDisplay = idDisplay;
-      myPath = path;
-      myDisplayName = displayName;
+      myRepository = repository;
     }
 
     @Override
     protected void execute(@NotNull Project project) {
       List<IPkgDesc> requested = Lists.newArrayList();
-      requested.add(PkgDesc.Builder.newExtra(myIdDisplay, myPath, myDisplayName, null, new NoPreviewRevision(1)).create());
+      requested.add(myRepository.getPackageDescription());
       SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
       wizard.init();
       wizard.setTitle("Install Missing Components");

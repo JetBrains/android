@@ -51,7 +51,7 @@ public class DeleteAvdAction extends AvdUiAction {
     int result = JOptionPane.showConfirmDialog(null, "Do you really want to delete AVD " + info.getName() + "?",
                                                "Confirm Deletion", JOptionPane.YES_NO_OPTION);
     if (result == JOptionPane.YES_OPTION) {
-      AvdManagerConnection.deleteAvd(info);
+      AvdManagerConnection.getDefaultAvdManagerConnection().deleteAvd(info);
       refreshAvds();
     }
   }

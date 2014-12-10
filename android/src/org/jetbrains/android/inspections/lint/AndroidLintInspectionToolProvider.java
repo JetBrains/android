@@ -743,7 +743,7 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
       String before = GradleDetector.getOldValue(GradleDetector.PLUS, message, RAW);
       if (before != null && before.endsWith("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
@@ -781,7 +781,7 @@ public class AndroidLintInspectionToolProvider {
               }
 
               // Regular Gradle dependency? Look in Gradle cache
-              GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter);
+              GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter, startElement.getProject());
               if (found != null) {
                 return found.getFullRevision();
               }

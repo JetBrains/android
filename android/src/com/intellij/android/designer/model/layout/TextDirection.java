@@ -69,7 +69,7 @@ public enum TextDirection {
    *
    * @see #getLeftSegment
    */
-  public boolean isLeftSegment(@NotNull SegmentType type) {
+  public boolean isLeftSegment(@Nullable SegmentType type) {
     return type == SegmentType.LEFT || type == getLeftSegment();
   }
 
@@ -79,7 +79,7 @@ public enum TextDirection {
    *
    * @see #getRightSegment
    */
-  public boolean isRightSegment(@NotNull SegmentType type) {
+  public boolean isRightSegment(@Nullable SegmentType type) {
     return type == SegmentType.RIGHT || type == getRightSegment();
   }
 

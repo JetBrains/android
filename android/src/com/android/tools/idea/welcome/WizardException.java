@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.welcome;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Signals a failure in the wizard.
  */
-public final class WizardException extends Exception {
-  public WizardException(String message) {
+public class WizardException extends Exception {
+  public WizardException(@NotNull String message) {
     super(message);
   }
 
-  public WizardException(String message, Throwable cause) {
+  public WizardException(@NotNull String message, @Nullable Throwable cause) {
     super(message, cause);
   }
 }

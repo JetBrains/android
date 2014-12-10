@@ -26,21 +26,20 @@ import javax.swing.*;
 public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JLabel myIcons;
+  private JPanel myExistingSdkMessage;
+  private JPanel myNewSdkMessage;
 
-  public FirstRunWelcomeStep() {
+  public FirstRunWelcomeStep(boolean sdkExists) {
     super("Welcome");
     myIcons.setIcon(FormFactorUtils.getFormFactorsImage(myIcons, false));
+    myExistingSdkMessage.setVisible(sdkExists);
+    myNewSdkMessage.setVisible(!sdkExists);
     setComponent(myRoot);
   }
 
   @Override
   public void init() {
-
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return !InstallerData.get(myState).exists();
+    // Nothing to init
   }
 
   @NotNull

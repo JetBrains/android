@@ -65,7 +65,17 @@ public class BuildOutputParser {
           return Collections.emptyList();
         }
       }
-      if (!handled) {
+      if (handled) {
+        int messageCount = messages.size();
+        if (messageCount > 0) {
+          GradleMessage last = messages.get(messageCount - 1);
+          if (last.getText().contains("Build cancelled")) {
+            // Build was cancelled, just quit. Extra messages are just confusing noise.
+            break;
+          }
+        }
+      }
+      else {
         // If none of the standard parsers recognize the input, include it as info such
         // that users don't miss potentially vital output such as gradle plugin exceptions.
         // If there is predictable useless input we don't want to appear here, add a custom

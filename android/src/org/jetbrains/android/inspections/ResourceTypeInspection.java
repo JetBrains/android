@@ -434,7 +434,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                         return value.getText();
                                       }
                                     }, ", ");
-    holder.registerProblem(argument, "Must be one of: "+ values);
+    String message;
+    if (allowedValues.canBeOred) {
+      message = "Must be one or more of: " + values;
+    } else {
+      message = "Must be one of: " + values;
+    }
+    holder.registerProblem(argument, message);
   }
 
   private static boolean isAllowed(@NotNull final PsiElement scope,

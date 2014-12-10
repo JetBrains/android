@@ -217,6 +217,9 @@ public class PostProjectBuildTasksExecutor {
    * will degrade the IDE's performance.
    */
   private void excludeOutputFolders() {
+    if (myProject.isDisposed()) {
+      return;
+    }
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     if (myProject.isDisposed()) {
       return;

@@ -27,9 +27,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
@@ -48,7 +46,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * UI for configuring a Device Hardware Profile.
@@ -105,6 +102,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     mySoftware.setGlVersion("2.0");
   }
 
+  private static String getUniqueId(@Nullable String id) {
+    return DeviceManagerConnection.getDefaultDeviceManagerConnection().getUniqueId(id);
+  }
+
   private void createUIComponents() {
     myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
       @Override
@@ -153,7 +154,8 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private void initFromDevice() {
     assert myTemplateDevice != null;
     if (myForceCreation) {
-      myState.put(DEVICE_NAME_KEY, DeviceManagerConnection.getUniqueId(myTemplateDevice.getDisplayName() + " (Edited)"));
+      String name = myTemplateDevice.getDisplayName() + " (Edited)";
+      myState.put(DEVICE_NAME_KEY, getUniqueId(name));
     } else {
       myState.put(DEVICE_NAME_KEY, myTemplateDevice.getDisplayName());
     }
@@ -206,7 +208,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
    * Initialize a reasonable set of default values (based on the Nexus 5)
    */
   private void initDefaultParams() {
-    myState.put(DEVICE_NAME_KEY, DeviceManagerConnection.getUniqueId(null));
+    myState.put(DEVICE_NAME_KEY, getUniqueId(null));
     myState.put(DIAGONAL_SCREENSIZE_KEY, 5.0);
     myState.put(RESOLUTION_WIDTH_KEY, 1080);
     myState.put(RESOLUTION_HEIGHT_KEY, 1920);
@@ -283,7 +285,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     if (refreshAll || modified.contains(DEVICE_NAME_KEY)) {
       String name = myState.get(DEVICE_NAME_KEY);
       myBuilder.setName(name == null ? "" : name);
-      myBuilder.setId(DeviceManagerConnection.getUniqueId(name));
+      myBuilder.setId(getUniqueId(name));
     }
 
     if (!myState.containsKey(WIP_SCREEN_KEY)) {
