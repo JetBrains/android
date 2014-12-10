@@ -4,7 +4,7 @@
   <description>
     Supports the development of Open Handset Alliance Android applications with IntelliJ IDEA.
   </description>
-  <version>10.0.9.3</version>
+  <version>10.1.0</version>
   <vendor>JetBrains</vendor>
 
   <depends>JUnit</depends>
@@ -163,6 +163,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApks"/>
     <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
                         serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
@@ -628,7 +629,6 @@
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
-    <methodConflictResolver implementation="com.android.tools.idea.psi.resolve.AndroidMethodConflictResolver"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -654,7 +654,12 @@
     <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.LegacyWizardPathProvider"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.JavaWizardPathProvider"/>
+    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
+    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
+    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ErrorOpeningZipFileErrorHandler"/>
+    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ConnectionPermissionDeniedErrorHandler"/>
+    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GradleDslMethodNotFoundErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GradleSettingsErrorHandler"/>

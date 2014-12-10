@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -57,7 +58,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   public static final String FIELD_SDK_LOCATION = "SDK location";
 
   private final InstallableComponent[] myInstallableComponents;
-  private final ScopedStateStore.Key<Boolean> myKeyInstallSdk;
+  @NotNull private final FirstRunWizardMode myMode;
+  @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
@@ -70,18 +72,22 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private boolean myUserEditedPath = false;
 
   public SdkComponentsStep(@NotNull InstallableComponent[] components,
-                           @NotNull ScopedStateStore.Key<Boolean> keyInstallSdk,
-                           @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey) {
+                           @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
+                           @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
+                           @NotNull FirstRunWizardMode mode) {
     super("SDK Settings");
+    myMode = mode;
+    myKeyCustomInstall = keyCustomInstall;
 
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
-    myKeyInstallSdk = keyInstallSdk;
     mySdkDownloadPathKey = sdkDownloadPathKey;
     myComponentDescription.setEditable(false);
-    myComponentDescription.setContentType("text/html");
-    myComponentDescription.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
+    myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE));
     mySplitPane.setBorder(null);
     Font labelFont = UIUtil.getLabelFont();
     Font smallLabelFont = labelFont.deriveFont(labelFont.getSize() - 1.0f);
@@ -188,6 +194,13 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         isOk = true;
         message = "Target folder is neither empty nor does it point to an existing SDK installation.";
       }
+      else if (!StringUtil.isEmptyOrSpaces(path)) {
+        File file = new File(path);
+        if (file.isDirectory() && DefaultSdks.isValidAndroidSdkPath(file)) {
+          isOk = true;
+          message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
+        }
+      }
     }
     setErrorHtml(myUserEditedPath ? message : null);
     return isOk;
@@ -263,6 +276,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
+    if (myInstallableComponents.length > 0) {
+      myComponentsTable.getSelectionModel().setSelectionInterval(0, 0);
+    }
   }
 
   @NotNull
@@ -287,10 +303,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    InstallerData data = InstallerData.get(myState);
-    boolean hasSdk = data.hasValidSdkLocation();
-    Boolean shouldInstallSdk = myState.getNotNull(myKeyInstallSdk, true);
-    return !hasSdk && shouldInstallSdk;
+    return !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true);
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
@@ -301,6 +314,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     public SdkComponentRenderer() {
       myPanel = new JPanel(new GridLayoutManager(1, 1));
       myCheckBox = new JCheckBox();
+      myCheckBox.setOpaque(false);
       myCheckBox.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -318,14 +332,16 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     private void setupControl(JTable table, Object value, boolean isSelected, boolean hasFocus) {
       myPanel.setBorder(getCellBorder(table, isSelected && hasFocus));
       Color foreground;
+      Color background;
       if (isSelected) {
-        myPanel.setBackground(table.getSelectionBackground());
+        background = table.getSelectionBackground();
         foreground = table.getSelectionForeground();
       }
       else {
-        myPanel.setBackground(table.getBackground());
+        background = table.getBackground();
         foreground = table.getForeground();
       }
+      myPanel.setBackground(background);
       myCheckBox.setForeground(foreground);
       myPanel.remove(myCheckBox);
       InstallableComponent installableComponent = (InstallableComponent)value;

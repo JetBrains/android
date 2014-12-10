@@ -131,6 +131,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   public void onPathStarted(boolean fromBeginning) {
     super.onPathStarted(fromBeginning);
+    updatePackageDerivedValues();
+  }
+
+  void updatePackageDerivedValues() {
     // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
     myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
 

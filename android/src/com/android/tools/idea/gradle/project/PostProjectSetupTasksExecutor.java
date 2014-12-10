@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -28,6 +29,7 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.AbstractNavigatable;
@@ -54,6 +56,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -77,9 +80,11 @@ import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -103,6 +108,8 @@ import static com.intellij.notification.NotificationType.INFORMATION;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 public class PostProjectSetupTasksExecutor {
+  private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
+
   private static boolean ourSdkVersionWarningShown;
 
   @NotNull private final Project myProject;
@@ -346,16 +353,13 @@ public class PostProjectSetupTasksExecutor {
       }
 
       for (VirtualFile classFile : library.getFiles(OrderRootType.CLASSES)) {
-        if (!SdkConstants.EXT_JAR.equals(classFile.getExtension())) {
-          // we only attach sources to jar files for now.
-          continue;
-        }
-        VirtualFile sourceJar = findSourceJarFor(classFile);
+        VirtualFile sourceJar = findSourceJarForJar(classFile);
         if (sourceJar != null) {
           Library.ModifiableModel model = library.getModifiableModel();
           try {
             String url = AbstractDependenciesModuleCustomizer.pathToUrl(sourceJar.getPath());
             model.addRoot(url, OrderRootType.SOURCES);
+            break;
           }
           finally {
             model.commit();
@@ -366,15 +370,19 @@ public class PostProjectSetupTasksExecutor {
   }
 
   @Nullable
-  private static VirtualFile findSourceJarFor(@NotNull VirtualFile jarFile) {
-    String sourceFileName = jarFile.getNameWithoutExtension() + "-sources.jar";
-
+  private static VirtualFile findSourceJarForJar(@NotNull VirtualFile jarFile) {
     // We need to get the real jar file. The one that we received is just a wrapper around a URL. Getting the parent from this file returns
     // null.
     File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
     if (jarFilePath == null) {
       return null;
     }
+
+    File sourceJarPath = getSourceJarForAndroidSupportAar(jarFilePath);
+    if (sourceJarPath != null) {
+      return VfsUtil.findFileByIoFile(sourceJarPath, true);
+    }
+
     VirtualFile realJarFile = VfsUtil.findFileByIoFile(jarFilePath, true);
 
     if (realJarFile == null) {
@@ -383,7 +391,9 @@ public class PostProjectSetupTasksExecutor {
     }
 
     VirtualFile parent = realJarFile.getParent();
+    String sourceFileName = jarFile.getNameWithoutExtension() + SOURCES_JAR_NAME_SUFFIX;
     if (parent != null) {
+
       // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
       VirtualFile sourceJar = parent.findChild(sourceFileName);
       if (sourceJar != null) {
@@ -409,6 +419,62 @@ public class PostProjectSetupTasksExecutor {
     File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
     File sourceJar = new File(librarySourceDirPath, sourceFileName);
     return VfsUtil.findFileByIoFile(sourceJar, true);
+  }
+
+  /**
+   * Provides the path of the source jar for the libraries in the group "com.android.support" in the Android Support Maven repository (in
+   * the Android SDK.)
+   * <p>
+   * Since AndroidProject (the Gradle model) does not provide the location of the source jar for aar libraries, we can deduce it from the
+   * path of the "exploded aar".
+   * </p>
+   */
+  @Nullable
+  private static File getSourceJarForAndroidSupportAar(@NotNull File jarFilePath) {
+    String path = jarFilePath.getPath();
+    if (!path.contains(ImportModule.SUPPORT_GROUP_ID)) {
+      return null;
+    }
+
+    int startingIndex = -1;
+    List<String> pathSegments = FileUtil.splitPath(jarFilePath.getParentFile().getPath());
+    int segmentCount = pathSegments.size();
+    for (int i = 0; i < segmentCount; i++) {
+      if (ResourceFolderManager.EXPLODED_AAR.equals(pathSegments.get(i))) {
+        startingIndex = i + 1;
+        break;
+      }
+    }
+
+    if (startingIndex == -1 || startingIndex >= segmentCount) {
+      return null;
+    }
+
+    List<String> sourceJarRelativePath = Lists.newArrayList();
+
+    String groupId = pathSegments.get(startingIndex++);
+
+    if (ImportModule.SUPPORT_GROUP_ID.equals(groupId)) {
+      File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+
+      File repositoryLocation = SdkMavenRepository.ANDROID.getRepositoryLocation(androidHomePath, true);
+      if (repositoryLocation != null) {
+        sourceJarRelativePath.addAll(Splitter.on('.').splitToList(groupId));
+
+        String artifactId = pathSegments.get(startingIndex++);
+        sourceJarRelativePath.add(artifactId);
+
+        String version = pathSegments.get(startingIndex);
+        sourceJarRelativePath.add(version);
+
+        String sourceJarName = artifactId + "-" + version + SOURCES_JAR_NAME_SUFFIX;
+        sourceJarRelativePath.add(sourceJarName);
+        File sourceJar = new File(repositoryLocation, FileUtil.join(ArrayUtil.toStringArray(sourceJarRelativePath)));
+        return sourceJar.isFile() ? sourceJar : null;
+      }
+    }
+
+    return null;
   }
 
   @Nullable

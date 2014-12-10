@@ -117,6 +117,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private JBLabel myAvdNameLabel;
   private JCheckBox myEnableComputerKeyboard;
   private JPanel myKeyboardPanel;
+  private JBLabel myOrientationLabel;
   private Set<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
 
@@ -179,6 +180,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
     myOrientationToggle.setOpaque(false);
+    // Temporarily hide until it's hooked up with the emulator
+    myOrientationToggle.setVisible(false);
+    myOrientationLabel.setVisible(false);
   }
 
   /**
@@ -246,7 +250,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   }
 
   private static boolean findAvdWithName(String name) {
-    for (AvdInfo avd : AvdManagerConnection.getAvds(false)) {
+    for (AvdInfo avd : AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false)) {
       if (AvdManagerConnection.getAvdDisplayName(avd).equals(name)) {
         return true;
       }
@@ -264,6 +268,16 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     Boolean useExisting = myState.get(USE_EXISTING_SD_CARD);
     if (useExisting != null) {
       toggleSdCardSettings(useExisting);
+    }
+
+    // Disable GPU acceleration for images with API <= 15
+    if (myState.get(SYSTEM_IMAGE_KEY).getVersion().getApiLevel() <= 15) {
+      myUseHostGPUCheckBox.setEnabled(false);
+      myUseHostGPUCheckBox.setText("Use Host GPU (Requires API > 15)");
+      myUseHostGPUCheckBox.setSelected(false);
+    } else {
+      myUseHostGPUCheckBox.setEnabled(true);
+      myUseHostGPUCheckBox.setText("Use Host GPU");
     }
   }
 
@@ -419,7 +433,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
         String displayName = state.get(DISPLAY_NAME_KEY);
         if (displayName != null) {
-          return AvdEditWizard.cleanAvdName(displayName, !displayName.equals(myOriginalName));
+          return AvdEditWizard.cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), displayName,
+                                            !displayName.equals(myOriginalName));
         }
         return "";
       }

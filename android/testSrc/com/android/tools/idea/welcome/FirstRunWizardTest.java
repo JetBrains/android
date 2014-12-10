@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 
 public final class FirstRunWizardTest extends AndroidTestBase {
   public static final Key<Boolean> KEY_TRUE = ScopedStateStore.createKey("true", ScopedStateStore.Scope.WIZARD, Boolean.class);
@@ -38,12 +39,12 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   public static final Key<Integer> KEY_INTEGER = ScopedStateStore.createKey("42", ScopedStateStore.Scope.WIZARD, Integer.class);
 
   @NotNull
-  private static String getPathChecked(String variable) {
+  private static File getPathChecked(String variable) {
     String path = System.getenv(variable);
     if (StringUtil.isEmpty(path)) {
       throw new IllegalStateException("Missing " + variable + " environment variable");
     }
-    return path;
+    return new File(path);
   }
 
   private static <T> Key<T> createKey(Class<T> clazz) {
@@ -51,32 +52,39 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   @NotNull
-  public static String getAndroidHome() {
+  public static File getAndroidHome() {
     return getPathChecked("ANDROID_HOME");
   }
 
-  private void assertPagesVisible(InstallerData data,
+  private void assertPagesVisible(@Nullable InstallerData data,
                                   boolean isWelcomeStepVisible,
                                   boolean isJdkStepVisible,
                                   boolean isInstallTypeStepVisible,
                                   boolean isComponentsStepVisible,
                                   boolean hasJdkPath,
                                   boolean hasAndroidSdkPath) {
-    assertVisible(new FirstRunWelcomeStep(), data, isWelcomeStepVisible);
-    assertVisible(new JdkLocationStep(createKey(String.class)), data, isJdkStepVisible);
+    InstallerData.set(data);
+    FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
+    if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
+      assertVisible(new FirstRunWelcomeStep(false), null, isWelcomeStepVisible);
+    }
+    assertVisible(new JdkLocationStep(createKey(String.class), mode), data, isJdkStepVisible);
     assertVisible(new InstallationTypeWizardStep(createKey(Boolean.class)), data, isInstallTypeStepVisible);
-    assertVisible(new SdkComponentsStep(new InstallableComponent[0], KEY_TRUE, createKey(String.class)), data, isComponentsStepVisible);
+    assertVisible(new SdkComponentsStep(new InstallableComponent[0], KEY_TRUE, createKey(String.class), mode),
+                  data, isComponentsStepVisible);
 
-    assertEquals(data.toString(), hasJdkPath, data.hasValidJdkLocation());
-    assertEquals(data.toString(), hasAndroidSdkPath, data.hasValidSdkLocation());
+    if (data != null) {
+      assertEquals(String.valueOf(data), hasJdkPath, data.hasValidJdkLocation());
+      assertEquals(String.valueOf(data.toString()), hasAndroidSdkPath, data.hasValidSdkLocation());
+    }
   }
 
-  private void assertVisible(DynamicWizardStep step, InstallerData data, boolean expected) {
-    assertEquals(String.format("Step: %s, data: %s", step.getClass(), data), expected, isStepVisible(step, data));
+  private void assertVisible(DynamicWizardStep step, @Nullable InstallerData data, boolean expected) {
+    assertEquals(String.format("Step: %s, data: %s", step.getClass(), data), expected, isStepVisible(step));
   }
 
-  public boolean isStepVisible(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
-    SingleStepWizard wizard = new SingleStepWizard(step, data);
+  public boolean isStepVisible(@NotNull DynamicWizardStep step) {
+    SingleStepWizard wizard = new SingleStepWizard(step);
     disposeOnTearDown(wizard.getDisposable());
     wizard.init();
     return step.isStepVisible();
@@ -99,30 +107,29 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   public void testStepsVisibility() {
-    String wrongPath = "/$@@  \"\'should/not/exist";
-    String java6Home = getPathChecked("JAVA6_HOME");
-    String java7Home = getPathChecked("JAVA7_HOME");
-    String androidHome = getAndroidHome();
+    File wrongPath = new File("/$@@  \"\'should/not/exist");
+    File java6Home = getPathChecked("JAVA6_HOME");
+    File java7Home = getPathChecked("JAVA7_HOME");
+    File androidHome = getAndroidHome();
 
-    InstallerData emptyData = new InstallerData(null, null, null);
-    assertPagesVisible(emptyData, true, true, true, true, false, false);
+    assertPagesVisible(null, true, true, true, true, false, false);
 
-    InstallerData correctData = new InstallerData(java7Home, null, androidHome);
+    InstallerData correctData = new InstallerData(java7Home, null, androidHome, true, "timestamp");
     assertPagesVisible(correctData, false, false, false, false, true, true);
 
-    InstallerData java6Data = new InstallerData(java6Home, null, androidHome);
+    InstallerData java6Data = new InstallerData(java6Home, null, androidHome, true, "timestamp");
     assertPagesVisible(java6Data, false, true, false, false, false, true);
 
-    InstallerData noAndroidSdkData = new InstallerData(java7Home, null, null);
+    InstallerData noAndroidSdkData = new InstallerData(java7Home, null, null, true, "timestamp");
     assertPagesVisible(noAndroidSdkData, false, false, false, true, true, false);
 
-    InstallerData noJdkData = new InstallerData(null, null, androidHome);
+    InstallerData noJdkData = new InstallerData(null, null, androidHome, true, "timestamp");
     assertPagesVisible(noJdkData, false, true, false, false, false, true);
 
-    InstallerData noInstallAndroidData = new InstallerData(java7Home, androidHome, androidHome);
+    InstallerData noInstallAndroidData = new InstallerData(java7Home, androidHome, androidHome, true, "timestamp");
     assertPagesVisible(noInstallAndroidData, false, false, false, false, true, true);
 
-    InstallerData bogusPathsData = new InstallerData(wrongPath, wrongPath, wrongPath);
+    InstallerData bogusPathsData = new InstallerData(wrongPath, wrongPath, wrongPath, true, "timestamp");
     assertPagesVisible(bogusPathsData, false, true, false, true, false, false);
   }
 
@@ -131,17 +138,14 @@ public final class FirstRunWizardTest extends AndroidTestBase {
    */
   private static final class SingleStepWizard extends DynamicWizard {
     @NotNull private final DynamicWizardStep myStep;
-    @NotNull private final InstallerData myData;
 
-    public SingleStepWizard(@NotNull DynamicWizardStep step, @NotNull InstallerData data) {
+    public SingleStepWizard(@NotNull DynamicWizardStep step) {
       super(null, null, "Single Step Wizard");
       myStep = step;
-      myData = data;
     }
 
     @Override
     public void init() {
-      myState.put(InstallerData.CONTEXT_KEY, myData);
       myState.put(KEY_TRUE, true);
       myState.put(KEY_FALSE, false);
       myState.put(KEY_INTEGER, 42);
@@ -189,10 +193,6 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     @Override
     protected String getWizardActionDescription() {
       return "Test Wizard";
-    }
-
-    public void setData(@NotNull InstallerData data) {
-      myState.put(InstallerData.CONTEXT_KEY, data);
     }
   }
 }

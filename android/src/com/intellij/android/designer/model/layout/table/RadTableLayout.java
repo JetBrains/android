@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model.layout.table;
 
 import com.android.tools.idea.designer.ResizeOperation;
+import com.intellij.android.designer.designSurface.RootView;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
@@ -140,24 +141,29 @@ public class RadTableLayout extends RadViewLayoutWithData implements ILayoutDeco
     RadTableLayoutComponent container = (RadTableLayoutComponent)myContainer;
     List<RadComponent> children = container.getChildren();
     List<RadComponent> components = new ArrayList<RadComponent>();
+    RootView nativeComponent = (RootView)((RadViewComponent)container.getRoot()).getNativeComponent();
+    // If the image has a frame, we need to offset the hints to make them match with the device image.
+    boolean hasFrame = nativeComponent.getRenderedImage() != null && nativeComponent.getRenderedImage().getImageBounds() != null;
 
     if (horizontal) {
       GridInfo gridInfo = container.getGridInfo();
       int[] lines = gridInfo.vLines;
       boolean[] emptyColumns = gridInfo.emptyColumns;
+      int offset = hasFrame ? (int)(nativeComponent.getShiftX() / nativeComponent.getScale()) : 0;
 
       for (int i = 0; i < lines.length - 1; i++) {
         components.add(new RadCaptionTableColumn(mainArea,
                                                  container,
                                                  i,
-                                                 lines[i],
+                                                 offset + lines[i],
                                                  lines[i + 1] - lines[i],
                                                  emptyColumns[i]));
       }
     }
     else {
+      int offset = hasFrame ? (int)(nativeComponent.getShiftY() / nativeComponent.getScale()) : 0;
       for (RadComponent component : children) {
-        components.add(new RadCaptionTableRow(mainArea, (RadViewComponent)component));
+        components.add(new RadCaptionTableRow(mainArea, (RadViewComponent)component, offset));
       }
     }
 

@@ -124,22 +124,34 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
-  public Map<String, String> getManifestPlaceholders() {
+  public Map<String, Object> getManifestPlaceholders() {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Boolean getMultiDexEnabled() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
+  public File getMultiDexKeepFile() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public File getMultiDexKeepProguard() {
+    return null;
   }
 
   @Override

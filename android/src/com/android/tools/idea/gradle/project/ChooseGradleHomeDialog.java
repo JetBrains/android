@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
@@ -58,7 +59,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   private JXLabel myDescriptionLabel;
 
   public ChooseGradleHomeDialog() {
-    this(null);
+    this(SdkConstants.GRADLE_MINIMUM_VERSION);
   }
 
   public ChooseGradleHomeDialog(@Nullable String minimumGradleVersion) {

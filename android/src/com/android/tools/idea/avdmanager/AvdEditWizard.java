@@ -95,7 +95,7 @@ public class AvdEditWizard extends DynamicWizard {
    */
   private void fillExistingInfo(@NotNull AvdInfo avdInfo) {
     ScopedStateStore state = getState();
-    List<Device> devices = DeviceManagerConnection.getDevices();
+    List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
     String manufacturer = avdInfo.getDeviceManufacturer();
     String deviceId = avdInfo.getProperties().get(AvdManager.AVD_INI_DEVICE_NAME);
@@ -284,7 +284,7 @@ public class AvdEditWizard extends DynamicWizard {
           int result = JOptionPane
             .showConfirmDialog(null, message, "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
           if (result == JOptionPane.YES_OPTION) {
-            AvdManagerConnection.wipeUserData(avdInfo);
+            AvdManagerConnection.getDefaultAvdManagerConnection().wipeUserData(avdInfo);
           } else {
             return null; // Cancel the edit operation
           }
@@ -310,8 +310,9 @@ public class AvdEditWizard extends DynamicWizard {
     ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
       @Override
       public void run() {
-        infoReference.set(AvdManagerConnection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular,
-                                                                 sdCard, skinFile, hardwareProperties, false));
+        AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
+        infoReference.set(connection.createOrUpdateAvd(avdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
+                                                       skinFile, hardwareProperties, false));
       }
     }, "Creating/Updating AVD...", false, null, null);
 
@@ -365,7 +366,7 @@ public class AvdEditWizard extends DynamicWizard {
       String manufacturer = device.getManufacturer().replace(' ', '_');
       candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
     }
-    return cleanAvdName(candidateBase, true);
+    return cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), candidateBase, true);
   }
 
   /**
@@ -377,7 +378,7 @@ public class AvdEditWizard extends DynamicWizard {
    *                 number that makes the filename unique.
    * @return The modified filename.
    */
-  public static String cleanAvdName(@NotNull String candidateBase, boolean uniquify) {
+  public static String cleanAvdName(@NotNull AvdManagerConnection connection, @NotNull String candidateBase, boolean uniquify) {
     candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
     if (candidateBase.isEmpty()) {
       candidateBase = "myavd";
@@ -385,7 +386,7 @@ public class AvdEditWizard extends DynamicWizard {
     String candidate = candidateBase;
     if (uniquify) {
       int i = 1;
-      while (AvdManagerConnection.avdExists(candidate)) {
+      while (connection.avdExists(candidate)) {
         candidate = String.format("%1$s_%2$d", candidateBase, i++);
       }
     }
@@ -397,7 +398,7 @@ public class AvdEditWizard extends DynamicWizard {
    * Example: 10M or 1G
    */
   @NotNull
-  private static String toIniString(@NotNull Storage storage, boolean convertToMb) {
+  public static String toIniString(@NotNull Storage storage, boolean convertToMb) {
     Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
     String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
     return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);

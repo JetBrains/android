@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardHost;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.UISettings;
@@ -33,7 +36,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,10 +52,12 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Hosts dynamic wizards in the welcome frame.
  */
-public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
+public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
+  @NotNull private final FirstRunWizardMode myMode;
+  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
 
-  // Action References. myCancelAction and myHelpAction are inherited
+  private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
   private Action myNextAction = new NextAction();
   private FinishAction myFinishAction = new FinishAction();
@@ -65,9 +68,13 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   private Dimension myPreferredWindowSize = new Dimension(800, 600);
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
+  private boolean myIsActive;
 
-  public WelcomeScreenHost() {
+  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode,
+                            @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(new BorderLayout());
+    myMode = mode;
+    myRemotePackages = remotePackages;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
 
@@ -89,7 +96,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   private void setupWizard() {
-    DynamicWizard wizard = new FirstRunWizard(this);
+    DynamicWizard wizard = new FirstRunWizard(this, myMode, myRemotePackages);
     wizard.init();
     add(wizard.getContentPane(), BorderLayout.CENTER);
   }
@@ -110,6 +117,8 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
       defaultButton = myActionToButtonMap.get(myNextAction);
     }
     setDefaultButton(defaultButton);
+    myIsActive = true;
+    WelcomeScreenWindowListener.install(frame, this);
   }
 
   @Override
@@ -134,17 +143,19 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   @Override
-  public void close(boolean canceled) {
-    if (canceled) {
-      myFrame.setVisible(false);
-      myFrame.dispose();
-    }
-    else {
+  public void close(@NotNull CloseAction action) {
+    myIsActive = false;
+    if (action == CloseAction.FINISH || action == CloseAction.CANCEL) {
       setDefaultButton(null);
       NewWelcomeScreen welcomeScreen = new NewWelcomeScreen();
       Disposer.register(getDisposable(), welcomeScreen);
       myFrame.setContentPane(welcomeScreen.getWelcomePanel());
       welcomeScreen.setupFrame(myFrame);
+    }
+    else if (action == CloseAction.EXIT) {
+      myFrame.setVisible(false);
+      myFrame.dispose();
+      ApplicationManager.getApplication().exit();
     }
   }
 
@@ -154,7 +165,8 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   @Override
-  public void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canFinish) {
+  public void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canCancel, boolean canFinish) {
+    setButtonEnabled(myCancelAction, canCancel);
     setButtonEnabled(myPreviousAction, canGoPrev);
     setButtonEnabled(myNextAction, canGoNext);
     setButtonEnabled(myFinishAction, canFinish);
@@ -184,9 +196,7 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   @Override
-  public void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator,
-                                    boolean cancellable,
-                                    @NotNull final Runnable operation) {
+  public void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator, boolean cancellable, @NotNull final Runnable operation) {
     final Application application = ApplicationManager.getApplication();
     application.assertIsDispatchThread();
     if (!myCurrentProgressIndicator.compareAndSet(null, progressIndicator)) {
@@ -195,29 +205,9 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
     final JRootPane rootPane = myFrame.getRootPane();
     final JButton defaultButton = rootPane.getDefaultButton();
     rootPane.setDefaultButton(null);
-    updateButtons(false, false, true);
-    myFinishAction.putValue(Action.NAME, IdeBundle.message("button.cancel"));
-    final WindowListener removed = removeCloseListener();
-    Task.Backgroundable task = new LongRunningOperationWrapper(operation, cancellable, defaultButton, removed);
+    updateButtons(false, false, true, false);
+    Task.Backgroundable task = new LongRunningOperationWrapper(operation, cancellable, defaultButton);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, progressIndicator);
-  }
-
-  /**
-   * Remove the listener that causes application to quit if the user closes the welcome frame.
-   *
-   * I was unable to find proper API in IntelliJ to do this without forking quite a few classes.
-   */
-  @Nullable
-  private WindowListener removeCloseListener() {
-    WindowListener[] listeners = myFrame.getListeners(WindowListener.class);
-    for (WindowListener listener : listeners) {
-      // The listener in question is an anonymous class nested in WelcomeFrame
-      if (listener.getClass().getName().startsWith(WelcomeFrame.class.getName())) {
-        myFrame.removeWindowListener(listener);
-        return listener;
-      }
-    }
-    return null;
   }
 
   /**
@@ -256,7 +246,12 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
   }
 
   private Action[] createActions() {
-    return new Action[]{myPreviousAction, myNextAction, myFinishAction};
+    if (SystemInfo.isMac) {
+      return new Action[]{myCancelAction, myPreviousAction, myNextAction, myFinishAction};
+    }
+    else {
+      return new Action[]{myPreviousAction, myNextAction, myCancelAction, myFinishAction};
+    }
   }
 
   @NotNull
@@ -350,6 +345,38 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
     }
   }
 
+  public boolean isActive() {
+    return myIsActive;
+  }
+
+  /**
+   * Cancels the wizard.
+   */
+  public void cancel() {
+    ProgressIndicator indicator = myCurrentProgressIndicator.get();
+    if (indicator == null) {
+      myWizard.doCancelAction();
+    }
+    else {
+      indicator.cancel();
+      JButton button = myActionToButtonMap.get(myCancelAction);
+      if (button != null) {
+        button.setEnabled(false);
+      }
+    }
+  }
+
+  protected class CancelAction extends AbstractAction {
+    protected CancelAction() {
+      putValue(NAME, IdeBundle.message("button.cancel"));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      cancel();
+    }
+  }
+
   protected class NextAction extends AbstractAction {
     protected NextAction() {
       putValue(NAME, IdeBundle.message("button.wizard.next"));
@@ -379,41 +406,25 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      ProgressIndicator indicator = myCurrentProgressIndicator.get();
-      if (indicator == null) {
-        myWizard.doFinishAction();
-      }
-      else {
-        indicator.cancel();
-        setButtonEnabled(this, false);
-      }
+      myWizard.doFinishAction();
     }
   }
 
   private class LongRunningOperationWrapper extends Task.Backgroundable {
     private final Runnable myOperation;
     private final JButton myDefaultButton;
-    private final WindowListener myRemoved;
 
-    public LongRunningOperationWrapper(Runnable operation,
-                                       boolean cancellable,
-                                       JButton defaultButton,
-                                       @Nullable WindowListener suspendedListener) {
-      super(null, WelcomeScreenHost.this.myWizard.getWizardActionDescription(), cancellable);
+    public LongRunningOperationWrapper(Runnable operation, boolean cancellable, JButton defaultButton) {
+      super(null, FirstRunWizardHost.this.myWizard.getWizardActionDescription(), cancellable);
       myOperation = operation;
       myDefaultButton = defaultButton;
-      myRemoved = suspendedListener;
     }
 
     @Override
     public void onSuccess() {
       myCurrentProgressIndicator.set(null);
-      myFinishAction.putValue(Action.NAME, IdeBundle.message("button.finish"));
-      updateButtons(false, false, true);
+      updateButtons(false, false, false, true);
       myFrame.getRootPane().setDefaultButton(myDefaultButton);
-      if (myRemoved != null) {
-        myFrame.addWindowListener(myRemoved);
-      }
     }
 
     @Override

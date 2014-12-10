@@ -86,7 +86,7 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
           public void rootsChanged(ModuleRootEvent event) {
             // We don't want to trigger 'ide -> gradle' processing for ide project structure changes triggered by the gradle integration.
             GradleSyncState syncState = GradleSyncState.getInstance(project);
-            if (!syncState.isSyncInProgress() && !syncState.isGradleBasedIdeProjectModificationInProgress()) {
+            if (!syncState.isSyncInProgress()) {
               // 'Project modification' event is sent when PSI-document state is inconsistent, that's why we postpone the processing
               // until the modification is actually finished.
               ApplicationManager.getApplication().invokeLater(new Runnable() {

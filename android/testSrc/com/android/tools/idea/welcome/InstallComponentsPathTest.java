@@ -16,20 +16,21 @@
 package com.android.tools.idea.welcome;
 
 import com.android.SdkConstants;
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.utils.ILogger;
+import com.android.utils.StdLogger;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -38,16 +39,10 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Assume;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
@@ -62,14 +57,16 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
   @Override
   public void setUp() throws Exception {
-    Assume.assumeTrue("Android SDK install test is disabled", Boolean.getBoolean("test.androidsdk.install"));
-    super.setUp();
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    myFixture.setUp();
-    myFixture.setTestDataPath(getTestDataPath());
-    tempDir = Files.createTempDir();
+    System.err.println("Tests in '" + getClass().getName() + "' are disabled");
+    if (false) {
+      super.setUp();
+      final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+        IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+      myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+      myFixture.setUp();
+      myFixture.setTestDataPath(getTestDataPath());
+      tempDir = Files.createTempDir();
+    }
   }
 
   @Override
@@ -79,10 +76,10 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     super.tearDown();
   }
 
-  public void testDownloadSeed() throws WizardException {
+  public void DISABLEDtestDownloadSeed() throws WizardException, InstallationCancelledException {
     File destination = new File(tempDir, "android-sdk-seed-install");
-    boolean result = InstallComponentsPath.downloadAndUnzipSdkSeed(new InstallContext(tempDir), destination, 1);
-    assertTrue("Operation was canceled", result);
+    File result = InstallComponentsPath.downloadAndUnzipSdkSeed(new InstallContext(tempDir), destination, 1).execute(destination);
+    assertNotNull("Operation was canceled", result);
     assertTrue("Destination should exist", destination.isDirectory());
 
     File[] children = destination.listFiles();
@@ -94,29 +91,31 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     assertEquals("Missing folders: " + Joiner.on(", ").join(expectedDirs), 0, expectedDirs.size());
   }
 
-  public void testNewInstall() throws IOException, WizardException {
+  public void DISABLEDtestNewInstall() throws IOException, WizardException {
     File destination = new File(tempDir, getName());
     InstallContext context = new InstallContext(tempDir);
     InstallComponentsPath.downloadAndUnzipSdkSeed(context, destination, 1);
-    ILogger log = new LoggerForTest();
+    ILogger log = new StdLogger(StdLogger.Level.VERBOSE);
     SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), log);
     if (manager == null) {
       throw new IOException("SDK not found");
     }
 
-    PkgDesc.Builder[] packages = AndroidSdk.getPackages();
+    Collection<IPkgDesc> sdkPackages = new AndroidSdk().getRequiredSdkPackages(null);
     Set<String> toInstall = Sets.newHashSet();
-    for (PkgDesc.Builder sdkPackage : packages) {
+    for (IPkgDesc sdkPackage : sdkPackages) {
       if (sdkPackage != null) {
-        toInstall.add(sdkPackage.create().getInstallId());
+        toInstall.add(sdkPackage.getInstallId());
       }
     }
 
-    InstallComponentsPath.setupSdkComponents(context, destination, Collections.singleton(new AndroidSdk()), 1);
+    ComponentInstaller operation = new ComponentInstaller(Collections.singleton(new AndroidSdk()), null);
+    ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
+    operation.installPackages(manager, packagesToDownload, new LoggerForTest());
     manager.reloadSdk(log);
     LocalPkgInfo[] installedPkgs = manager.getLocalSdk().getPkgsInfos(EnumSet.allOf(PkgType.class));
 
-    assertEquals(9, toInstall.size());
+    assertEquals(8, toInstall.size());
     final Map<String, LocalPkgInfo> installed = Maps.newHashMap();
     for (LocalPkgInfo info : installedPkgs) {
       installed.put(info.getDesc().getInstallId(), info);
@@ -124,11 +123,9 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
     System.out.println("Packages list: \n\t" + Joiner.on("\n\t").join(toInstall));
 
-    // TODO: This package is not available for install
-    toInstall.remove("sample-21");
-    // TODO: Why is this always installed?
-    installed.remove("extra-intel-hardware_accelerated_execution_manager");
-
+    //// TODO: Why is this always installed?
+    //installed.remove("extra-intel-hardware_accelerated_execution_manager");
+    //
     Set<String> all = ImmutableSet.copyOf(Iterables.concat(toInstall, installed.keySet()));
 
     Set<String> notInstalled = ImmutableSet.copyOf(Iterables.filter(all, not(in(installed.keySet()))));
@@ -143,6 +140,23 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     })), 0, shouldntBeenInstalled.size());
   }
 
+  public void DISABLEDtestComponentsToInstall() {
+    File sdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    ComponentInstaller operation = new ComponentInstaller(Collections.singleton(new AndroidSdk()), null);
+
+    SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
+    assert manager != null;
+
+    ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
+
+    System.out.println(Joiner.on("\n").join(packagesToDownload));
+    assertTrue(packagesToDownload.isEmpty());
+  }
+
+  /**
+   * Logger implementation to use during tests
+   */
+  @SuppressWarnings("UseOfSystemOutOrSystemErr")
   private static class LoggerForTest extends SdkLoggerIntegration {
     private String myTitle = null;
 

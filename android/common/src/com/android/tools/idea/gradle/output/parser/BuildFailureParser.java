@@ -244,6 +244,11 @@ public class BuildFailureParser implements PatternAwareOutputParser {
                 messages
                   .add(new GradleMessage(GradleMessage.Kind.ERROR, text, file, lineNum, column));
               }
+              else if (text.contains("Build cancelled")) {
+                // Gradle throws an exception (BuildCancelledException) when we cancel task processing
+                // (org.gradle.tooling.CancellationTokenSource.cancel()). We don't want to report that as an error though.
+                messages.add(new GradleMessage(GradleMessage.Kind.INFO, text));
+              }
               else {
                 messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text));
               }

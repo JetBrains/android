@@ -39,6 +39,7 @@ public abstract class AvdUiAction implements Action {
     @Nullable
     AvdInfo getAvdInfo();
     void refreshAvds();
+    void notifyRun();
 
     @Nullable
     Project getProject();

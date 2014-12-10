@@ -52,11 +52,11 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
         //Consider class A implements Runnable in project source.
         //Super class Object for class A is found in cls, super interface Runnable is found in cls as well (class A resolve scope is simple modules scope with dependencies).
         //Super class of cls Runnable isn't explicitly specified in the cls psi, so PsiClassImplUtil.getSuperClass/getSuperTypes return java.lang.Object
-        //found via file's resolve scope (this one). So for the two hierarchies to meet in one place we should return cls Object here. 
+        //found via file's resolve scope (this one). So for the two hierarchies to meet in one place we should return cls Object here.
         //By default this resolve scope prefers sdk sources, so we need to override this behavior for Object.
 
-        //The problem doesn't arise for other super class references inside Android sdk cls, 
-        //because these references are explicit and resolved via ClsJavaCodeReferenceElementImpl#resolveClassPreferringMyJar which returns cls classes despite custom Android sdk scope.
+        //The problem doesn't arise for other super class references inside Android sdk cls (e.g. A extends B implements C, where B implements C and both are inside android sdk),
+        //because these references (C) are explicit and resolved via ClsJavaCodeReferenceElementImpl#resolveClassPreferringMyJar which returns cls classes despite custom Android sdk scope.
         if (!CommonClassNames.JAVA_LANG_OBJECT_SHORT.equals(file1.getNameWithoutExtension())) {
           return inSources1 ? 1 : -1;
         }

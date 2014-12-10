@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
+import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -219,12 +220,22 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
+    return openProject(projectDirName, true);
+  }
+
+  @NotNull
+  protected IdeFrameFixture openProject(@NotNull String projectDirName, boolean expectSuccessfulSync) throws IOException {
     File projectPath = setUpProject(projectDirName, true, true, null);
-    return openProject(projectPath);
+    return openProject(projectPath, expectSuccessfulSync);
   }
 
   @NotNull
   protected IdeFrameFixture openProject(@NotNull final File projectPath) {
+    return openProject(projectPath, true);
+  }
+
+  @NotNull
+  protected IdeFrameFixture openProject(@NotNull final File projectPath, boolean expectSuccessfulSync) {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
@@ -235,7 +246,7 @@ public abstract class GuiTestCase {
       findWelcomeFrame().clickOpenProjectButton();
 
       FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
+      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog, expectSuccessfulSync);
     }
 
     GuiActionRunner.execute(new GuiTask() {
@@ -294,7 +305,12 @@ public abstract class GuiTestCase {
       delete(gradlePropertiesFilePath);
     }
 
-    createGradleWrapper(projectPath, gradleVersion);
+    if (gradleVersion == null) {
+      createGradleWrapper(projectPath);
+    }
+    else {
+      createGradleWrapper(projectPath, gradleVersion);
+    }
 
     if (updateAndroidPluginVersion) {
       updateGradleVersions(projectPath);
@@ -394,11 +410,23 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
                                                           @NotNull FileChooserDialogFixture fileChooserDialog) {
+    return openProjectAndWaitUntilOpened(projectDir, fileChooserDialog, true);
+  }
+
+  @NotNull
+  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
+                                                          @NotNull FileChooserDialogFixture fileChooserDialog,
+                                                          boolean expectSuccessfulSync) {
     fileChooserDialog.select(projectDir).clickOk();
 
     File projectPath = virtualToIoFile(projectDir);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectSyncToFinish();
+    if (expectSuccessfulSync) {
+      projectFrame.waitForGradleProjectSyncToFinish();
+    }
+    else {
+      projectFrame.waitForGradleProjectSyncToFail();
+    }
 
     return projectFrame;
   }

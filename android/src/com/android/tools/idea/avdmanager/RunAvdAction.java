@@ -33,7 +33,8 @@ public class RunAvdAction extends AvdUiAction {
   public void actionPerformed(ActionEvent e) {
     AvdInfo avdInfo = getAvdInfo();
     if (avdInfo != null) {
-      AvdManagerConnection.startAvd(myAvdInfoProvider.getProject(), avdInfo);
+      myAvdInfoProvider.notifyRun();
+      AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myAvdInfoProvider.getProject(), avdInfo);
     }
   }
 
