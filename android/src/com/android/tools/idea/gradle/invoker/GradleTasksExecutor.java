@@ -263,8 +263,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
       @Override
       public Void fun(ProjectConnection connection) {
-        final Stopwatch stopwatch = Stopwatch.createUnstarted();
-        stopwatch.start();
+        final Stopwatch stopwatch = Stopwatch.createStarted();
 
         GradleConsoleView consoleView = GradleConsoleView.getInstance(project);
         consoleView.clear();

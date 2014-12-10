@@ -45,6 +45,7 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -955,7 +956,7 @@ public class Template {
       project = ProjectManagerEx.getInstanceEx().getDefaultProject();
     }
     FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
-    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(to.getName(), type, contents);
+    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(to.getName(), type, StringUtil.convertLineSeparators(contents));
     CodeStyleManager.getInstance(project).reformat(file);
     return file.getText();
   }

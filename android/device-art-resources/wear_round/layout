@@ -33,7 +33,7 @@ layouts {
         width     380
         height    380
         color     0x1f1f1f
-        event   EV_SW:0:1
+        event     EV_SW:0:1
 
         onion {
             image     circle_mask_380px_onion.png

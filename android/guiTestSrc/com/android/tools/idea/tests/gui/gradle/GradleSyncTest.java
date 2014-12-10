@@ -82,7 +82,8 @@ import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.util.Strings.quote;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -459,7 +460,7 @@ public class GradleSyncTest extends GuiTestCase {
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome))
                           .clickOk()
-                          .requireNotShowing();
+      .requireNotShowing();
 
     projectFrame.waitForGradleProjectSyncToFinish();
   }
