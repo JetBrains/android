@@ -70,7 +70,6 @@
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
       <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
               icon="AndroidIcons.NavigationEditor"/>
-      <action id="Android.MemoryMonitor" class="com.android.tools.idea.memory.MemoryMonitorAction" icon="AndroidIcons.MemoryMonitor"/>
       <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
       <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"

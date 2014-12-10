@@ -35,7 +35,7 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
-import com.intellij.openapi.compiler.options.ExcludedEntriesConfiguration;
+import com.intellij.openapi.compiler.options.ExcludesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
@@ -321,7 +321,7 @@ public class AndroidCompileUtil {
   private static void excludeFromCompilation(@NotNull Project project, @NotNull VirtualFile sourceRoot, @NotNull String aPackage) {
     final String buildConfigPath = sourceRoot.getPath() + '/' + aPackage.replace('.', '/') + "/BuildConfig.java";
     String url = VfsUtilCore.pathToUrl(buildConfigPath);
-    final ExcludedEntriesConfiguration configuration =
+    final ExcludesConfiguration configuration =
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
     for (ExcludeEntryDescription description : configuration.getExcludeEntryDescriptions()) {
@@ -333,7 +333,7 @@ public class AndroidCompileUtil {
   }
 
   private static void excludeFromCompilation(@NotNull Project project, @NotNull VirtualFile dir) {
-    final ExcludedEntriesConfiguration configuration =
+    final ExcludesConfiguration configuration =
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
     for (ExcludeEntryDescription description : configuration.getExcludeEntryDescriptions()) {
@@ -680,7 +680,7 @@ public class AndroidCompileUtil {
 
   private static void includeAaptGenSourceRootToCompilation(AndroidFacet facet) {
     final Project project = facet.getModule().getProject();
-    final ExcludedEntriesConfiguration configuration =
+    final ExcludesConfiguration configuration =
       ((CompilerConfigurationImpl)CompilerConfiguration.getInstance(project)).getExcludedEntriesConfiguration();
     final ExcludeEntryDescription[] descriptions = configuration.getExcludeEntryDescriptions();
 

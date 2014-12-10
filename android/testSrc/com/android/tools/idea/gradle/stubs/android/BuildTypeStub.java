@@ -129,7 +129,7 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   @NotNull
-  public Map<String, String> getManifestPlaceholders() {
+  public Map<String, Object> getManifestPlaceholders() {
     throw new UnsupportedOperationException();
   }
 
