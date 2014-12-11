@@ -124,7 +124,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myHelpAndErrorLabel.setForeground(JBColor.foreground());
     myHelpAndErrorLabel.setOpaque(true);
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget("");
+    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
     myCustomSkinPath = new SkinChooser(getProject());
   }
 
