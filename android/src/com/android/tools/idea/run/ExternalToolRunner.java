@@ -83,7 +83,7 @@ public class ExternalToolRunner {
 
   protected ConsoleView initConsoleUi() {
     ConsoleView consoleView = createConsoleView();
-    consoleView.print(myCommandLine.getCommandLineString() + '\n', ConsoleViewContentType.NORMAL_OUTPUT);
+    consoleView.print(myCommandLine.getCommandLineString() + '\n', ConsoleViewContentType.USER_INPUT);
     consoleView.attachToProcess(myProcessHandler);
 
     JPanel panel = new JPanel(new BorderLayout());
