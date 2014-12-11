@@ -44,6 +44,10 @@ public class Analyser {
   private static final Logger LOG = Logger.getInstance(Analyser.class.getName());
   private static final String[] ID_PREFIXES = {"@+id/", "@android:id/"};
   private static final boolean DEBUG = false;
+  private static final String[] ACTIVITY_SIGNATURES =
+    {"void onCreate(Bundle b)", "void onCreateView(View parent, String name, Context context, AttributeSet attrs)"};
+  private static final String[] FRAGMENT_SIGNATURES = {"void onCreate(Bundle b)", "void onViewCreated(View v, Bundle b)"};
+
 
   private final Module myModule;
   private final Macros myMacros;
@@ -297,111 +301,149 @@ public class Analyser {
     return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, configuration, myModule.getProject());
   }
 
+  private static PsiLocator<String> getGetTag(final Macros macros) {
+    return new PsiLocator<String>() {
+      @Nullable
+      @Override
+      public String locateIn(MultiMatch.Bindings<PsiElement> args) {
+        PsiElement view = args.get("$view");
+        MultiMatch.Bindings<PsiElement> bindings = macros.findViewById.match(view);
+        return (bindings == null) ? null : bindings.get("$id").getText();
+      }
+    };
+  }
+
+  private static final PsiLocator<String> GET_PROPERTY_NAME = new PsiLocator<String>() {
+    @Nullable
+    @Override
+    public String locateIn(MultiMatch.Bindings<PsiElement> args) {
+      PsiElement $listView = args.get("$listView");
+      return $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
+    }
+  };
+
+  private static Processor createProcessor(final NavigationModel model,
+                                           final ActivityState activityState,
+                                           final Evaluator evaluator,
+                                           final Map<String, ActivityState> classNameToActivityState,
+                                           final String name,
+                                           final MultiMatch matcher,
+                                           final PsiLocator<String> locator1,
+                                           final PsiLocator<PsiElement> locator2) {
+    return new Processor() {
+      @Override
+      public void process(MultiMatch.Bindings<PsiElement> args) {
+        search(args.get(name), evaluator, matcher,
+               createProcessor(model, classNameToActivityState, activityState, constant(locator1.locateIn(args)), locator2));
+      }
+    };
+  }
+
   private void deriveTransitions(final NavigationModel model,
                                  final MiniModel miniModel,
-                                 final ActivityState fromActivityState,
-                                 final String activityOrFragmentClassName,
+                                 final ActivityState activityState,
+                                 @Nullable final String fragmentClassName,
                                  final Configuration configuration,
                                  final boolean isActivity) {
+    boolean isFragment = !isActivity;
 
-    if (DEBUG) System.out.println("Analyser: className = " + activityOrFragmentClassName);
+    final String activityClassName = activityState.getClassName();
 
-    final String fromActivityClassName = fromActivityState.getClassName();
-    final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityClassName);
+    if (DEBUG) LOG.info("Analyser: activityClassName = " + activityClassName);
+    if (DEBUG) LOG.info("Analyser: fragmentClassName = " + fragmentClassName);
+
+    final PsiClass activityClass = Utilities.getPsiClass(myModule, activityClassName);
     if (activityClass == null) {
       // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
-      LOG.info("Class " + fromActivityClassName + " not found");
+      LOG.info("Class " + activityClassName + " not found");
       return;
     }
-    final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
-    if (activityOrFragmentClass == null) {
+    final PsiClass fragmentClass = fragmentClassName != null ? Utilities.getPsiClass(myModule, fragmentClassName) : null;
+    if (isFragment && fragmentClass == null) {
       // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
-      LOG.info("Class " + activityOrFragmentClassName + " not found");
+      LOG.info("Class " + fragmentClassName + " not found");
       return;
     }
+
+    final PsiClass activityOrFragmentClass = isActivity ? activityClass : fragmentClass;
+
     final Evaluator evaluator = getEvaluator(configuration, activityClass, activityOrFragmentClass, isActivity);
     final Map<String, ActivityState> classNameToActivityState = miniModel.classNameToActivityState;
 
-    // Search for menu inflation
+    // Search for menu inflation in Activities
 
-    search(activityOrFragmentClass, "boolean onCreateOptionsMenu(Menu menu)",
-           "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }", new Processor() {
-        @Override
-        public void process(MultiMatch.Bindings<PsiElement> args) {
-          String menuIdName = args.get("id").getLastChild().getText();
-          final MenuState menu = getMenuState(fromActivityClassName, menuIdName, miniModel.classNameToMenuToMenuState);
-          addTransition(model, new Transition(Transition.PRESS, new Locator(fromActivityState), new Locator(menu)));
-          for (PsiClass superClass = activityOrFragmentClass; superClass != null; superClass = superClass.getSuperClass()) {
-            // Search for menu item bindings in the style the Navigation Editor generates them
-            search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
-                   createProcessor(model, classNameToActivityState, menu, MENU_ITEM_NAME, CLASS_NAME_2));
-            // Search for switch statement style menu item bindings
-            search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
-                   createProcessor(model, classNameToActivityState, menu, constant(null), CLASS_NAME_1));
+    if (isActivity) {
+      search(activityClass, "boolean onCreateOptionsMenu(Menu menu)",
+             "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }", new Processor() {
+          @Override
+          public void process(MultiMatch.Bindings<PsiElement> args) {
+            String menuIdName = args.get("id").getLastChild().getText();
+            final MenuState menu = getMenuState(activityClassName, menuIdName, miniModel.classNameToMenuToMenuState);
+            addTransition(model, new Transition(Transition.PRESS, Locator.of(activityState), Locator.of(menu)));
+            for (PsiClass superClass = activityClass; superClass != null; superClass = superClass.getSuperClass()) {
+              // Search for menu item bindings in the style the Navigation Editor generates them
+              search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
+                     createProcessor(model, classNameToActivityState, menu, MENU_ITEM_NAME, CLASS_NAME_2));
+              // Search for switch statement style menu item bindings
+              search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
+                     createProcessor(model, classNameToActivityState, menu, constant(null), CLASS_NAME_1));
+            }
           }
-        }
-      });
+        });
+    }
 
-    // Search for 'onClick' listeners on Buttons etc.
+    // In both Activities and Fragments, search for:
+    //    'onClick' listeners in Views (Buttons etc),
+    //    'OnItemClick' listeners in ListViews.
+    String[] signatures = isActivity ? ACTIVITY_SIGNATURES : FRAGMENT_SIGNATURES;
+    for (String signature : signatures) {
+      search(activityOrFragmentClass, signature, myMacros.installClickAndCallMacro,
+             createProcessor(model, activityState, evaluator, classNameToActivityState, "$f", myMacros.createIntent, getGetTag(myMacros),
+                             CLASS_NAME_1));
+      search(activityOrFragmentClass, signature, myMacros.installItemClickAndCallMacro,
+             createProcessor(model, activityState, evaluator, classNameToActivityState, "$f", myMacros.createIntent, GET_PROPERTY_NAME,
+                             CLASS_NAME_1));
+    }
 
-    search(activityOrFragmentClass, "void onCreate(Bundle b)", myMacros.installClickAndCallMacro, new Processor() {
-      @Override
-      public void process(MultiMatch.Bindings<PsiElement> args) {
-        PsiElement $view = args.get("$view");
-        MultiMatch.Bindings<PsiElement> bindings = myMacros.findViewById.match($view);
-        if (bindings != null) {
-          String tag = bindings.get("$id").getText();
-          search(args.get("$f"), evaluator, myMacros.createIntent,
-                 createProcessor(model, classNameToActivityState, fromActivityState, constant(tag), CLASS_NAME_1));
-        }
-      }
-    });
-
-    // Search for subclass style item click listeners on ListActivities
-    search(activityClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
-           createProcessor(model, classNameToActivityState, fromActivityState, constant(null), CLASS_NAME_1));
-
-    // Search for 'onItemClick' listeners in listViews
-
-    search(activityOrFragmentClass, "void onViewCreated(View v, Bundle b)", myMacros.installItemClickAndCallMacro, new Processor() {
-      @Override
-      public void process(MultiMatch.Bindings<PsiElement> args) {
-        PsiElement $listView = args.get("$listView");
-        final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-        search(args.get("$f"), evaluator, myMacros.createIntent,
-               createProcessor(model, classNameToActivityState, fromActivityState, constant(viewName), CLASS_NAME_1));
-      }
-    });
+    // Search for 'subclass style' listeners in ListActivities and ListFragments
+    PsiClass listActivityClass = Utilities.getPsiClass(myModule, "android.app.ListActivity");
+    assert listActivityClass != null;
+    PsiClass listFragmentClass = Utilities.getPsiClass(myModule, "android.app.ListFragment");
+    assert listFragmentClass != null;
+    if (isActivity && activityClass.isInheritor(listActivityClass, true) ||
+        isFragment && fragmentClass.isInheritor(listFragmentClass, true)) {
+      // Search for subclass style item click listeners on ListActivities
+      search(activityClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
+             createProcessor(model, classNameToActivityState, activityState, constant(null), CLASS_NAME_1));
+    }
 
     // Accommodate idioms from Master-Detail template
-
-    PsiClassType superType = activityOrFragmentClass.getSuperTypes()[0];
-    if (superType.getClassName().equals("ListFragment")) {
-      search(activityOrFragmentClass, "void onListItemClick(ListView listView, View view, int position, long id)",
-             "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
-             new Processor() {
-               @Override
-               public void process(MultiMatch.Bindings<PsiElement> args) {
-                 PsiElement exp = args.get("f");
-                 if (exp instanceof PsiMethodCallExpression) {
-                   PsiMethodCallExpression call = (PsiMethodCallExpression)exp;
-                   if (call.getFirstChild().getFirstChild().getText().equals("super")) {
-                     return;
-                   }
-                   PsiMethod resolvedMethod = call.resolveMethod();
-                   if (resolvedMethod != null) {
-                     if (activityClass != null) {
+    if (isFragment) {
+      if (fragmentClass.isInheritor(listFragmentClass, true)) {
+        search(activityOrFragmentClass, "void onListItemClick(ListView listView, View view, int position, long id)",
+               "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
+               new Processor() {
+                 @Override
+                 public void process(MultiMatch.Bindings<PsiElement> args) {
+                   PsiElement exp = args.get("f");
+                   if (exp instanceof PsiMethodCallExpression) {
+                     PsiMethodCallExpression call = (PsiMethodCallExpression)exp;
+                     if (call.getFirstChild().getFirstChild().getText().equals("super")) {
+                       return;
+                     }
+                     PsiMethod resolvedMethod = call.resolveMethod();
+                     if (resolvedMethod != null) {
                        PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
                        if (implementation != null) {
                          Evaluator evaluator = getEvaluator(configuration, activityClass, activityClass, true);
                          search(implementation.getBody(), evaluator, myMacros.createIntent,
-                                createProcessor(model, classNameToActivityState, fromActivityState, constant(null), CLASS_NAME_1));
+                                createProcessor(model, classNameToActivityState, activityState, constant(null), CLASS_NAME_1));
                        }
                      }
                    }
                  }
-               }
-             });
+               });
+      }
     }
   }
 
@@ -424,14 +466,14 @@ public class Analyser {
     NavigationModel model = new NavigationModel();
     Set<String> activityClassNames = getActivitiesFromManifestFile(myModule);
     if (DEBUG) {
-      System.out.println("deriveAllStatesAndTransitions = " + activityClassNames);
+      LOG.info("deriveAllStatesAndTransitions = " + activityClassNames);
     }
     MiniModel toDo = new MiniModel(getActivityClassNameToActivityState(activityClassNames), new HashMap<String, MenuState>());
     MiniModel next = new MiniModel();
     MiniModel done = new MiniModel();
 
     if (DEBUG) {
-      System.out.println("activityStates = " + toDo.classNameToActivityState.values());
+      LOG.info("activityStates = " + toDo.classNameToActivityState.values());
     }
 
     while (!toDo.classNameToActivityState.isEmpty()) {
@@ -440,7 +482,7 @@ public class Analyser {
           continue;
         }
         model.addState(sourceActivity); // covers the case of Activities that are not part of a transition (e.g. a model with one Activity)
-        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName(), configuration, true);
+        deriveTransitions(model, next, sourceActivity, null, configuration, true);
 
         // Examine fragments associated with this activity
 
@@ -515,7 +557,7 @@ public class Analyser {
         if (qualifiedName != null) {
           ActivityState toState = getActivityState(qualifiedName, activities);
           String viewId = fromViewIdLocator.locateIn(args);
-          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, viewId), new Locator(toState)));
+          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, viewId), Locator.of(toState)));
         }
       }
     };
@@ -533,7 +575,7 @@ public class Analyser {
         if (tag.getName().equals("fragment")) {
           String fragmentTag = tag.getAttributeValue("android:tag");
           String fragmentClassName = tag.getAttributeValue("android:name");
-          if (DEBUG) System.out.println("Analyser: fragmentClassName = " + fragmentClassName);
+          if (DEBUG) LOG.info("Analyser: fragmentClassName = " + fragmentClassName);
           if (fragmentClassName != null) {
             result.add(new FragmentEntry(fragmentClassName, fragmentTag));
           }
@@ -599,7 +641,7 @@ public class Analyser {
   }
 
   private static boolean addTransition(NavigationModel model, Transition transition) {
-    if (DEBUG) System.out.println("Analyser: Adding transition: " + transition);
+    if (DEBUG) LOG.info("Analyser: Adding transition: " + transition);
     return model.add(transition);
   }
 
@@ -641,7 +683,7 @@ public class Analyser {
     return exp.get("$id").getText();
   }
 
-  public static abstract class Processor {
+  private static abstract class Processor {
     public abstract void process(MultiMatch.Bindings<PsiElement> exp);
   }
 
