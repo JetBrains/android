@@ -63,7 +63,6 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -396,52 +395,30 @@ public final class GradleUtil {
   }
 
   /**
-   * Convert a Gradle project name into a system dependent path relative to root project. Please note this is the default mapping from a
+   * Converts a Gradle project name into a system dependent path relative to root project. Please note this is the default mapping from a
    * Gradle "logical" path to a physical path. Users can override this mapping in settings.gradle and this mapping may not always be
    * accurate.
    * <p/>
    * E.g. ":module" becomes "module" and ":directory:module" is converted to "directory/module"
    */
   @NotNull
-  public static String getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
-    List<String> segments = getPathSegments(name);
+  public static String getDefaultPhysicalPathFromGradlePath(@NotNull String gradlePath) {
+    List<String> segments = getPathSegments(gradlePath);
     return FileUtil.join(ArrayUtil.toStringArray(segments));
   }
 
   /**
-   * Obtain default path for the Gradle sub-project with the given name in the project.
+   * Obtains the default path for the module (Gradle sub-project) with the given name inside the given directory.
    */
   @NotNull
-  public static File getDefaultSubprojectLocation(@NotNull VirtualFile project, @NotNull String gradlePath) {
+  public static File getModuleDefaultPath(@NotNull VirtualFile parentDir, @NotNull String gradlePath) {
     assert gradlePath.length() > 0;
     String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
-    return new File(VfsUtilCore.virtualToIoFile(project), relativePath);
+    return new File(VfsUtilCore.virtualToIoFile(parentDir), relativePath);
   }
 
   /**
-   * Prefixes string with colon if there isn't one already there.
-   */
-  @Nullable
-  @Contract("null -> null;!null -> !null")
-  public static String makeAbsolute(String string) {
-    if (string == null) {
-      return null;
-    }
-    else if (string.trim().length() == 0) {
-      return ":";
-    }
-    else if (!string.startsWith(":")) {
-      return ":" + string.trim();
-    }
-    else {
-      return string.trim();
-    }
-  }
-
-  /**
-   * Tests if the Gradle path is valid and return index of the offending
-   * character or -1 if none.
-   * <p/>
+   * Tests if the Gradle path is valid and return index of the offending character or -1 if none.
    */
   public static int isValidGradlePath(@NotNull String gradlePath) {
     return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
@@ -460,7 +437,7 @@ public final class GradleUtil {
       }
     }
     if (checkProjectFolder) {
-      File location = getDefaultSubprojectLocation(project.getBaseDir(), gradlePath);
+      File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
       if (location.isFile()) {
         return true;
       }
@@ -633,7 +610,7 @@ public final class GradleUtil {
   @Nullable
   static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
     GradleCoordinate found = null;
-    String pluginDefinitionString = getPluginDefinitionString(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
+    String pluginDefinitionString = getPluginDefinition(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
     if (pluginDefinitionString != null) {
       found = GradleCoordinate.parseCoordinateString(pluginDefinitionString);
     }
@@ -659,7 +636,7 @@ public final class GradleUtil {
    * @return target plugin's definition string if found (unquoted); {@code null} otherwise
    */
   @Nullable
-  public static String getPluginDefinitionString(@NotNull String fileContents, @NotNull String pluginName) {
+  public static String getPluginDefinition(@NotNull String fileContents, @NotNull String pluginName) {
     return forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
       @Override
       public String fun(Pair<String, GroovyLexer> pair) {
@@ -984,7 +961,6 @@ public final class GradleUtil {
   public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
     Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
     return dependsOn(dependencies, artifact);
-
   }
 
   /**

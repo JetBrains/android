@@ -74,7 +74,7 @@ public class OutdatedAppEngineGradlePluginErrorHandler extends AbstractSyncError
         File fileToCheck = VfsUtilCore.virtualToIoFile(virtualFile);
         try {
           String contents = FileUtil.loadFile(fileToCheck);
-          String pluginVersion = GradleUtil.getPluginDefinitionString(contents, APPENGINE_PLUGIN_DEFINITION_START);
+          String pluginVersion = GradleUtil.getPluginDefinition(contents, APPENGINE_PLUGIN_DEFINITION_START);
           if (Strings.isNullOrEmpty(pluginVersion)) {
             return true; // Continue processing.
           }
