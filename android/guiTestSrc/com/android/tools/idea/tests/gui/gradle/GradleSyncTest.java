@@ -221,8 +221,8 @@ public class GradleSyncTest extends GuiTestCase {
     rtJarChildren.get(1).requireDirectory("javax");
   }
 
-  @Test @IdeGuiTest @Ignore // Ignored because when testing all version of plugin, 'minifyEnabled()' is not recognized.
-  public void testUnsupportedPluginAndGradleVersion() throws IOException {
+  @Test @IdeGuiTest
+  public void testUnsupportedPluginVersion() throws IOException {
     // Open the project without updating the version of the plug-in
     IdeFrameFixture projectFrame = openSimpleApplication();
 
@@ -251,10 +251,10 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSyncAndExpectFailure();
 
     MessagesToolWindowFixture.AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    String errorPrefix = "The project is using an unsupported version of the Android Gradle";
+    String errorPrefix = "The minimum supported version of the Android Gradle plugin";
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
 
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version and re-import project");
+    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version");
     hyperlink.click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -521,7 +521,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest @Ignore
   public void testOutdatedAppEnginePlugin() throws IOException {
     IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin", false);
 

@@ -18,7 +18,11 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.PreciseRevision;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,12 +40,12 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.*;
-import static com.intellij.notification.NotificationType.ERROR;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 final class PreSyncChecks {
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
+  private static final String PROJECT_SYNCING_ERROR_GROUP = "Project syncing error";
 
   private PreSyncChecks() {
   }
@@ -54,6 +58,9 @@ final class PreSyncChecks {
       return PreSyncCheckResult.success();
     }
 
+    ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
+    syncMessages.removeMessages(PROJECT_SYNCING_ERROR_GROUP);
+
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Don't check Gradle settings in unit tests. They should be set up properly.
       FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
@@ -63,23 +70,27 @@ final class PreSyncChecks {
           String cause = "The minimum supported version of the Android Gradle plugin is " + GRADLE_PLUGIN_MINIMUM_VERSION +
                          ", but the project is using " + modelVersion.toString() + ".";
 
-          String msg = cause + " Please click the link to perform a textual search and then update the build files manually.";
-          SearchInBuildFilesHyperlink hyperlink = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
-          AndroidGradleNotification.getInstance(project).showBalloon(GRADLE_SYNC_MSG_TITLE, msg, ERROR, hyperlink);
+          NotificationHyperlink hyperlink = new FixGradleModelVersionHyperlink("Fix plugin version", false);
+          syncMessages.add(new Message(PROJECT_SYNCING_ERROR_GROUP, Message.Type.ERROR, cause), hyperlink);
 
           return PreSyncCheckResult.failure(cause);
         }
       }
-      ensureCorrectGradleSettings(project, modelVersion);
+      PreSyncCheckResult result = ensureCorrectGradleSettings(project, modelVersion);
+      if (!result.isSuccess()) {
+        return result;
+      }
       GradleUtil.attemptToUseEmbeddedGradle(project);
     }
 
     return PreSyncCheckResult.success();
   }
 
-  private static void ensureCorrectGradleSettings(@NotNull Project project, @Nullable FullRevision modelVersion) {
+  @NotNull
+  private static PreSyncCheckResult ensureCorrectGradleSettings(@NotNull Project project, @Nullable FullRevision modelVersion) {
     if (modelVersion == null || createWrapperIfNecessary(project)) {
-      return;
+      // Continue with sync and let it fail.
+      return PreSyncCheckResult.success();
     }
 
     GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
@@ -89,7 +100,10 @@ final class PreSyncChecks {
 
     boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
     if (usingWrapper) {
-      attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion, project);
+      PreSyncCheckResult result = attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion, project);
+      if (!result.isSuccess()) {
+        return result;
+      }
       if (gradleSettings != null) {
         // Do this just to ensure that the right distribution type is set.
         gradleSettings.setDistributionType(DEFAULT_WRAPPED);
@@ -98,6 +112,7 @@ final class PreSyncChecks {
     else if (distributionType == DistributionType.LOCAL) {
       attemptToUseSupportedLocalGradle(modelVersion, gradleSettings, project);
     }
+    return PreSyncCheckResult.success();
   }
 
   // Returns true if wrapper was created or sync should continue immediately after executing this method.
@@ -161,14 +176,15 @@ final class PreSyncChecks {
     return false;
   }
 
-  private static void attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
-                                                            @NotNull FullRevision modelVersion,
-                                                            @NotNull Project project) {
+  @NotNull
+  private static PreSyncCheckResult attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
+                                                                          @NotNull FullRevision modelVersion,
+                                                                          @NotNull Project project) {
     FullRevision minimumPluginVersion = FullRevision.parseRevision(GRADLE_PLUGIN_MINIMUM_VERSION);
     if (modelVersion.compareTo(minimumPluginVersion) < 0) {
       // Do not perform this check for plug-in 0.14. It supports many versions of Gradle.
       // Let sync fail if using an unsupported Gradle versions.
-      return;
+      return PreSyncCheckResult.success();
     }
 
     String gradleVersion = null;
@@ -181,7 +197,7 @@ final class PreSyncChecks {
 
     if (gradleVersion == null) {
       // There is a wrapper, but the Gradle version could not be read. Continue with sync.
-      return;
+      return PreSyncCheckResult.success();
     }
 
     FullRevision gradleRevision = null;
@@ -192,18 +208,17 @@ final class PreSyncChecks {
       // ignored;
     }
 
-    if (gradleRevision != null && !isSupportedGradleVersion(gradleRevision)) {
-      String newGradleVersion = GRADLE_LATEST_VERSION;
-      String msg = getMinimumGradleVersionErrorPrefix(modelVersion) +
-                   "\nClick 'OK' to automatically update the Gradle version in the Gradle wrapper and continue.";
-      Messages.showMessageDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
-      try {
-        GradleUtil.updateGradleDistributionUrl(newGradleVersion, wrapperPropertiesFile);
-      }
-      catch (IOException e) {
-        LOG.warn("Failed to update Gradle wrapper file to Gradle version " + newGradleVersion);
-      }
+    if (gradleRevision != null && !GradleUtil.isSupportedGradleVersion(gradleRevision)) {
+      String cause = getMinimumGradleVersionErrorPrefix(modelVersion);
+      NotificationHyperlink hyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
+
+      ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
+      syncMessages.add(new Message(PROJECT_SYNCING_ERROR_GROUP, Message.Type.ERROR, cause), hyperlink);
+
+      return PreSyncCheckResult.failure(cause);
     }
+
+    return PreSyncCheckResult.success();
   }
 
   private static void attemptToUseSupportedLocalGradle(@NotNull FullRevision modelVersion,
@@ -227,11 +242,10 @@ final class PreSyncChecks {
     }
 
     if (!askToSwitchToWrapper) {
-      askToSwitchToWrapper = !isSupportedGradleVersion(gradleVersion);
+      askToSwitchToWrapper = !GradleUtil.isSupportedGradleVersion(gradleVersion);
     }
 
     if (askToSwitchToWrapper) {
-
       String msg = getMinimumGradleVersionErrorPrefix(modelVersion) +
                    "A local Gradle distribution was not found, or was not properly set in the IDE.\n\n" +
                    "Would you like your project to use the Gradle wrapper instead?\n" +
@@ -263,11 +277,6 @@ final class PreSyncChecks {
   @NotNull
   private static String getMinimumGradleVersionErrorPrefix(@NotNull FullRevision modelVersion) {
     return "Version " + modelVersion + " of the Android Gradle plug-in requires Gradle " + GRADLE_MINIMUM_VERSION + " or newer.\n";
-  }
-
-  private static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
-    FullRevision supported = FullRevision.parseRevision(GRADLE_MINIMUM_VERSION);
-    return supported.compareTo(gradleVersion) <= 0;
   }
 
   static class PreSyncCheckResult {
