@@ -119,7 +119,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
     // set.
     updateLibrarySourcesIfAbsent(library, sourcePaths, OrderRootType.SOURCES);
-    updateLibrarySourcesIfAbsent(library, documentationPaths, OrderRootType.DOCUMENTATION);
+    updateLibrarySourcesIfAbsent(library, documentationPaths, JavadocOrderRootType.getInstance());
 
     // Add external annotations.
     // TODO: Add this to the model instead!
