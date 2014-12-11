@@ -121,13 +121,15 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           return currentValue;
         }
         Integer selectedApi = selectedItem.apiLevel;
+        float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
         return String.format(
-          Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                               "By targeting API %d and later, your app will run on approximately <b>%.1f%%</b> of the " +
-                               "devices that are active on the Google Play Store. " +
-                               "<span color=\"#%s\">Help me choose.</span></html>", selectedApi,
-          DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100,
-          Integer.toHexString(JBColor.blue.getRGB()).substring(2));
+          Locale.getDefault(),
+          "<html>Lower API levels target more devices, but have fewer features available. " +
+          "By targeting API %1$d and later, your app will run on " +
+          // escape the %'s such that the outer String.format does not attempt to format them
+          (percentage < 1 ? "&lt; 1%%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%%%</b>", percentage)) +
+          " of the devices that are active on the Google Play Store. " +
+          "<span color=\"#%2$s\">Help me choose.</span></html>", selectedApi, Integer.toHexString(JBColor.blue.getRGB()).substring(2));
       }
     });
 
@@ -254,7 +256,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   public String getHelpText(@NotNull String param) {
     if (param.equals(ATTR_MIN_API)) {
       return "Choose the lowest version of Android that your application will support. Lower API levels target more devices, " +
-             "but means fewer features are available. By targeting API 8 and later, you reach approximately 95% of the market.";
+             "but means fewer features are available. By targeting API 10 and later, you reach approximately 99% of the market.";
     } else if (param.equals(ATTR_TARGET_API)) {
       return "Choose the highest API level that the application is known to work with. This attribute informs the system that you have " +
              "tested against the target version and the system should not enable any compatibility behaviors to maintain your app's " +
