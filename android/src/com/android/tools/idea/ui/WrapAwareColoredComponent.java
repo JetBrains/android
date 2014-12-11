@@ -990,7 +990,7 @@ public class WrapAwareColoredComponent extends JComponent implements Accessible,
 
     @Override
     public Insets getBorderInsets(@NotNull final Component c) {
-      return myInsets;
+      return (Insets)myInsets.clone();
     }
 
     @Override
