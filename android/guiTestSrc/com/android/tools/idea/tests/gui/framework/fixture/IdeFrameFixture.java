@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -84,10 +83,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
-import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
-import static org.jetbrains.android.AndroidPlugin.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.android.AndroidPlugin.*;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.*;
 
@@ -176,13 +172,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   private ModuleManager getModuleManager() {
     return ModuleManager.getInstance(getProject());
-  }
-
-  @NotNull
-  public Project getProject() {
-    Project project = target.getProject();
-    assertNotNull(project);
-    return project;
   }
 
   @NotNull
@@ -724,8 +713,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public ProjectViewFixture getProjectView() {
-    ProjectView projectView = ProjectView.getInstance(getProject());
-    return new ProjectViewFixture(projectView);
+    return new ProjectViewFixture(getProject(), robot);
+  }
+
+  @NotNull
+  public Project getProject() {
+    Project project = target.getProject();
+    assertNotNull(project);
+    return project;
   }
 
   private static class NoOpDisposable implements Disposable {
