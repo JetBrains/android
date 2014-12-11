@@ -100,7 +100,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
                                       @NotNull String gradlePath,
                                       @NotNull File jarFile,
                                       boolean sourceFileShouldExist) throws IOException {
-    File defaultSubprojectLocation = GradleUtil.getDefaultSubprojectLocation(project.getBaseDir(), gradlePath);
+    File defaultSubprojectLocation = GradleUtil.getModuleDefaultPath(project.getBaseDir(), gradlePath);
     File copy = new File(defaultSubprojectLocation, jarFile.getName());
     assertTrue(String.format("File %s does not exist", copy), copy.exists());
     File buildGradle = new File(defaultSubprojectLocation, SdkConstants.FN_BUILD_GRADLE);
@@ -150,8 +150,8 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     else {
       List<Module> modules = Lists.newArrayList();
       for (String name : moduleNames) {
-        Module module = GradleUtil.findModuleByGradlePath(project, GradleUtil.makeAbsolute(name));
-        assert module != null : "Module \"" + GradleUtil.makeAbsolute(name) + "\" was not found in the project ";
+        Module module = GradleUtil.findModuleByGradlePath(project, WrapArchiveWizardPath.makeAbsolute(name));
+        assert module != null : "Module \"" + WrapArchiveWizardPath.makeAbsolute(name) + "\" was not found in the project ";
         modules.add(module);
       }
       return Iterables.toArray(modules, Module.class);
@@ -240,28 +240,28 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
 
   public void testCreateModuleDefaultName() throws Exception {
     Project project = myFixture.getProject();
-    String gradlePath = GradleUtil.makeAbsolute(Files.getNameWithoutExtension(myJarFile.getAbsolutePath()));
+    String gradlePath = WrapArchiveWizardPath.makeAbsolute(Files.getNameWithoutExtension(myJarFile.getAbsolutePath()));
     createModule(project, myJarFile, gradlePath, false, null);
     assertJarImport(project, gradlePath, myJarFile, true);
   }
 
   public void testCreateModuleNonDefaultSimpleName() throws Exception {
     Project project = myFixture.getProject();
-    String gradlePath = GradleUtil.makeAbsolute("testmodule");
+    String gradlePath = WrapArchiveWizardPath.makeAbsolute("testmodule");
     createModule(project, myJarFile, gradlePath, false, null);
     assertJarImport(project, gradlePath, myJarFile, true);
   }
 
   public void testCreateModuleNonDefaultNestedName() throws Exception {
     Project project = myFixture.getProject();
-    String gradlePath = GradleUtil.makeAbsolute(":category:module");
+    String gradlePath = WrapArchiveWizardPath.makeAbsolute(":category:module");
     createModule(project, myJarFile, gradlePath, false, null);
     assertJarImport(project, gradlePath, myJarFile, true);
   }
 
   public void testMoveJarFromProject() throws IOException {
     String buildGradleText = String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY);
-    String newModuleName = GradleUtil.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
+    String newModuleName = WrapArchiveWizardPath.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
     String buildGradleWithReplacedDependency = String.format(BUILD_GRADLE_TEMPLATE,
                                                              LIBS_DEPENDENCY + "\n    compile project('" + newModuleName + "')");
     asseryJarProperlyMoved(buildGradleText, buildGradleWithReplacedDependency);
@@ -270,7 +270,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
   public void testMoveJarFromProjectReplaceFileDependency() throws IOException {
     String buildGradleText = String.format(BUILD_GRADLE_TEMPLATE,
                                            LIBS_DEPENDENCY + "\n    compile files('lib/" + LIBRARY_JAR_NAME + "')");
-    String newModuleName = GradleUtil.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
+    String newModuleName = WrapArchiveWizardPath.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
     String buildGradleWithReplacedDependency = String.format(BUILD_GRADLE_TEMPLATE,
                                                              LIBS_DEPENDENCY + "\n    compile project('" + newModuleName + "')");
     asseryJarProperlyMoved(buildGradleText, buildGradleWithReplacedDependency);
@@ -280,7 +280,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     String buildGradleText = String.format(BUILD_GRADLE_TEMPLATE,
                                            LIBS_DEPENDENCY +
                                            "\n    compile files('lib/" + LIBRARY_JAR_NAME + "', 'some/other/file.jar')");
-    String newModuleName = GradleUtil.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
+    String newModuleName = WrapArchiveWizardPath.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
     String buildGradleWithReplacedDependency = String.format(BUILD_GRADLE_TEMPLATE,
                                                              LIBS_DEPENDENCY +
                                                              "\n    compile files('some/other/file.jar')" +
@@ -293,7 +293,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     Project project = getProject();
 
     File fileToImport = new CreateAndroidStudioProjectAction(project, moduleName, initialBuildGradle).execute().getResultObject();
-    String newModuleName = GradleUtil.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
+    String newModuleName = WrapArchiveWizardPath.makeAbsolute(Files.getNameWithoutExtension(LIBRARY_JAR_NAME));
     createModule(project, fileToImport, newModuleName, true, getModules(project, moduleName));
     assertJarImport(project, newModuleName, fileToImport, false);
     VirtualFile buildGradle = project.getBaseDir().findFileByRelativePath(moduleName + "/" + SdkConstants.FN_BUILD_GRADLE);
@@ -323,7 +323,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
       final VirtualFile moduleBuildGradle = createFile(directory.getParent(), SdkConstants.FN_BUILD_GRADLE, myModuleBuildGradleBody);
       final VirtualFile topBuildGradle = createFile(myProject.getBaseDir(), SdkConstants.FN_BUILD_GRADLE, TOP_LEVEL_BUILD_GRADLE);
       GradleSettingsFile settingsGradle = GradleSettingsFile.getOrCreate(myProject);
-      settingsGradle.addModule(GradleUtil.makeAbsolute(myModuleName), VfsUtilCore.virtualToIoFile(directory.getParent()));
+      settingsGradle.addModule(WrapArchiveWizardPath.makeAbsolute(myModuleName), VfsUtilCore.virtualToIoFile(directory.getParent()));
       final AtomicReference<String> error = Atomics.newReference();
       final AtomicBoolean done = new AtomicBoolean(false);
       GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener.Adapter() {
@@ -335,7 +335,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
           ModifiableFacetModel modifiableModel = facetManager.createModifiableModel();
           AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
           GradleProject gradleProject = new GradleProjectStub(myProject.getName(),
-                                                              GradleUtil.makeAbsolute(myModuleName),
+                                                              WrapArchiveWizardPath.makeAbsolute(myModuleName),
                                                               VfsUtilCore.virtualToIoFile(topBuildGradle),
                                                               "compile");
           IdeaGradleProject ideaGradleProject = IdeaGradleProject.newIdeaGradleProject(myModuleName,

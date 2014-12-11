@@ -29,9 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -39,7 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 import com.intellij.util.PathUtil;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -49,7 +46,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.io.File;
-import java.io.IOError;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -151,7 +147,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }
     // We get location relative to this file parent
     VirtualFile parent = getFile().getParent();
-    File defaultLocation = GradleUtil.getDefaultSubprojectLocation(parent, modulePath);
+    File defaultLocation = GradleUtil.getModuleDefaultPath(parent, modulePath);
     if (!FileUtil.filesEqual(defaultLocation, location)) {
       final String path;
       File parentFile = VfsUtilCore.virtualToIoFile(parent);
