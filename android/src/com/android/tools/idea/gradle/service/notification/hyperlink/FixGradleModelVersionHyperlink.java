@@ -92,7 +92,9 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
                 return GRADLE_PLUGIN_RECOMMENDED_VERSION;
               }
             });
-            atLeastOneUpdated.set(updated);
+            if (updated) {
+              atLeastOneUpdated.set(true);
+            }
           }
         }
         return true;
