@@ -37,10 +37,12 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
 
 public abstract class ToolWindowFixture {
-  @NotNull protected final ToolWindow myToolWindow;
+  @NotNull protected final Project myProject;
   @NotNull protected final Robot myRobot;
+  @NotNull protected final ToolWindow myToolWindow;
 
   protected ToolWindowFixture(@NotNull final String toolWindowId, @NotNull final Project project, @NotNull Robot robot) {
+    myProject = project;
     final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
     Pause.pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
       @Override
@@ -50,8 +52,8 @@ public abstract class ToolWindowFixture {
         return toolWindow != null;
       }
     }, SHORT_TIMEOUT);
-    myToolWindow = toolWindowRef.get();
     myRobot = robot;
+    myToolWindow = toolWindowRef.get();
   }
 
   @Nullable

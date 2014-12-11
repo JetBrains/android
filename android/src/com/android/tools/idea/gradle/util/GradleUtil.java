@@ -33,7 +33,9 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -43,10 +45,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.KeyValue;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -93,7 +92,9 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 public final class GradleUtil {
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
 
-  /** The name of the gradle wrapper executable associated with the current OS. */
+  /**
+   * The name of the gradle wrapper executable associated with the current OS.
+   */
   @NonNls public static final String GRADLE_WRAPPER_EXECUTABLE_NAME =
     SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WRAPPER_WIN : SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 
@@ -106,7 +107,7 @@ public final class GradleUtil {
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
-   *
+   * <p/>
    * I was unable to find any specification for Gradle paths. In my
    * experiments, Gradle only failed with slashes. This list may grow if
    * we find any other unsupported characters.
@@ -115,6 +116,11 @@ public final class GradleUtil {
   private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
+  }
+
+  public static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
+    FullRevision supported = FullRevision.parseRevision(GRADLE_MINIMUM_VERSION);
+    return supported.compareTo(gradleVersion) <= 0;
   }
 
   /**
@@ -166,7 +172,7 @@ public final class GradleUtil {
 
   /**
    * Returns whether the given module is the module corresponding to the project root (i.e. gradle path of ":") and has no source roots.
-   *
+   * <p/>
    * The default Android Studio projects create an empty module at the root level. In theory, users could add sources to that module, but
    * we expect that most don't and keep that as a module simply to tie together other modules.
    */
@@ -403,7 +409,7 @@ public final class GradleUtil {
   }
 
   /**
-   * Obtain default path for the Gradle subproject with the given name in the project.
+   * Obtain default path for the Gradle sub-project with the given name in the project.
    */
   @NotNull
   public static File getDefaultSubprojectLocation(@NotNull VirtualFile project, @NotNull String gradlePath) {
@@ -532,7 +538,6 @@ public final class GradleUtil {
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
-   *
    * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
    */
   public static boolean createGradleWrapper(@NotNull File projectDirPath) throws IOException {
@@ -543,11 +548,10 @@ public final class GradleUtil {
    * Creates the Gradle wrapper in the project at the given directory.
    *
    * @param projectDirPath the project's root directory.
-   * @param gradleVersion the version of Gradle to use.
+   * @param gradleVersion  the version of Gradle to use.
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
-   *
    * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
    */
   @VisibleForTesting
@@ -648,12 +652,11 @@ public final class GradleUtil {
   }
 
   /**
-   * Delegates to the {@link #forPluginDefinition(String, String, Function)} and just returns target plugin's definition string (unquoted).
+   * Returns target plugin's definition string (unquoted).
    *
-   * @param fileContents  target gradle config text
-   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @return              target plugin's definition string if found (unquoted); <code>null</code> otherwise
-   * @see #forPluginDefinition(String, String, Function)
+   * @param fileContents target gradle config text
+   * @param pluginName   target plugin's name in a form {@code 'group-id:artifact-id:'}
+   * @return target plugin's definition string if found (unquoted); {@code null} otherwise
    */
   @Nullable
   public static String getPluginDefinitionString(@NotNull String fileContents, @NotNull String pluginName) {
@@ -663,6 +666,40 @@ public final class GradleUtil {
         return pair.getFirst();
       }
     });
+  }
+
+  /**
+   * Updates the version of a Gradle plugin used in a build.gradle file.
+   *
+   * @param project           the project containing the build.gradle file.
+   * @param buildFileDocument document of the build.gradle file, which declares the version of the plugin.
+   * @param pluginName        the name of the plugin to look for.
+   * @param versionTask       returns the version of the plugin to update the file to.
+   * @return {@code true} if the build.gradle file was updated; {@code false} otherwise.
+   */
+  public static boolean updateGradlePluginVersion(@NotNull Project project,
+                                                  @NotNull final Document buildFileDocument,
+                                                  @NotNull final String pluginName,
+                                                  @NotNull final Computable<String> versionTask) {
+    String contents = buildFileDocument.getText();
+    Function<Pair<String, GroovyLexer>, TextRange> consumer = new Function<Pair<String, GroovyLexer>, TextRange>() {
+      @Override
+      public TextRange fun(Pair<String, GroovyLexer> pair) {
+        GroovyLexer lexer = pair.getSecond();
+        return TextRange.create(lexer.getTokenStart() + 1 + pluginName.length(), lexer.getTokenEnd() - 1);
+      }
+    };
+    final TextRange range = forPluginDefinition(contents, pluginName, consumer);
+    if (range != null) {
+      WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+        @Override
+        public void run() {
+          buildFileDocument.replaceString(range.getStartOffset(), range.getEndOffset(), versionTask.compute());
+        }
+      });
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -688,16 +725,16 @@ public final class GradleUtil {
    * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
    * version.
    *
-   * @param fileContents  target gradle config text
-   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @param consumer      a callback to be notified for the target plugin's definition string
-   * @param <T>           given callback's return type
-   * @return              given callback's call result if target plugin definition is found; <code>null</code> otherwise
+   * @param fileContents target gradle config text
+   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @param consumer     a callback to be notified for the target plugin's definition string
+   * @param <T>          given callback's return type
+   * @return given callback's call result if target plugin definition is found; <code>null</code> otherwise
    */
   @Nullable
-  public static <T> T forPluginDefinition(@NotNull String fileContents,
-                                          @NotNull String pluginName,
-                                          @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
+  private static <T> T forPluginDefinition(@NotNull String fileContents,
+                                           @NotNull String pluginName,
+                                           @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
     GroovyLexer lexer = new GroovyLexer();
     lexer.start(fileContents);
     while (lexer.getTokenType() != null) {
@@ -811,13 +848,13 @@ public final class GradleUtil {
       File file = FileUtil.createTempFile("asLocalRepo", SdkConstants.DOT_GRADLE);
       file.deleteOnExit();
 
-      String contents ="allprojects {\n" +
-                       "  buildscript {\n" +
-                       "    repositories {\n" +
-                       "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
-                       "    }\n" +
-                       "  }\n" +
-                       "}\n";
+      String contents = "allprojects {\n" +
+                        "  buildscript {\n" +
+                        "    repositories {\n" +
+                        "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}\n";
       FileUtil.writeToFile(file, contents);
       ContainerUtil.addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
 
@@ -893,7 +930,7 @@ public final class GradleUtil {
     String wrapperDirNamePrefix = "gradle-" + gradleVersion + "-";
 
     // Try both distributions "all" and "bin".
-    String[] wrapperDirNames = { wrapperDirNamePrefix + "all", wrapperDirNamePrefix + "bin" };
+    String[] wrapperDirNames = {wrapperDirNamePrefix + "all", wrapperDirNamePrefix + "bin"};
 
     for (File gradleServicePath : getGradleServicePaths(project)) {
       for (String wrapperDirName : wrapperDirNames) {
@@ -940,7 +977,7 @@ public final class GradleUtil {
    * Returns true if the given project depends on the given artifact, which consists of
    * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
    *
-   * @param project the Gradle project to check
+   * @param project  the Gradle project to check
    * @param artifact the artifact
    * @return true if the project depends on the given artifact (including transitively)
    */
@@ -955,7 +992,7 @@ public final class GradleUtil {
    * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
    *
    * @param dependencies the Gradle dependencies object to check
-   * @param artifact the artifact
+   * @param artifact     the artifact
    * @return true if the dependencies include the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
@@ -971,8 +1008,8 @@ public final class GradleUtil {
    * Returns true if the given library depends on the given artifact, which consists of
    * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
    *
-   * @param library the Gradle library to check
-   * @param artifact the artifact
+   * @param library      the Gradle library to check
+   * @param artifact     the artifact
    * @param transitively if false, checks only direct dependencies, otherwise checks transitively
    * @return true if the project depends on the given artifact
    */
