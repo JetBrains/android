@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.List;
 
 import static org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
+import static org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.OPEN_GRADLE_SETTINGS;
 
 public class UnsupportedGradleVersionErrorHandler extends AbstractSyncErrorHandler {
   @Override
@@ -41,7 +42,7 @@ public class UnsupportedGradleVersionErrorHandler extends AbstractSyncErrorHandl
                              @NotNull Project project) {
     String lastLine = message.get(message.size() - 1);
 
-    if (lastLine.contains(FIX_GRADLE_VERSION)) {
+    if (OPEN_GRADLE_SETTINGS.equals(lastLine) || lastLine.contains(FIX_GRADLE_VERSION)) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
       if (wrapperPropertiesFile != null) {
