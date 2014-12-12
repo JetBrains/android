@@ -20,6 +20,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
@@ -42,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
@@ -55,9 +57,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
   private JRadioButton myAcceptRadioButton;
 
   private DefaultTreeModel myTreeModel = new DefaultTreeModel(null);
-
   private Map<String, Boolean> myAcceptances = Maps.newHashMap();
-
+  private Set<String> myVisibleLicenses = Sets.newHashSet();
   private String myCurrentLicense;
 
   public LicenseAgreementStep(@NotNull Disposable disposable) {
@@ -197,8 +198,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
 
   @Override
   public boolean validate() {
-    for (String s : myAcceptances.keySet()) {
-      if (!myAcceptances.get(s)) {
+    for (String licenseRef : myVisibleLicenses) {
+      if (!myAcceptances.get(licenseRef)) {
         return false;
       }
     }
@@ -240,21 +241,23 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
 
   public void setChanges(List<Change> changes) {
     Map<String, DefaultMutableTreeNode> licenseNodeMap = Maps.newHashMap();
+    myVisibleLicenses.clear();
 
     DefaultMutableTreeNode root = new DefaultMutableTreeNode();
     DefaultMutableTreeNode firstChild = null;
     for (Change change : changes) {
-      if (!licenseNodeMap.containsKey(change.license.getLicenseRef())) {
+      String licenseRef = change.license.getLicenseRef();
+      myVisibleLicenses.add(licenseRef);
+      if (!licenseNodeMap.containsKey(licenseRef)) {
         DefaultMutableTreeNode n = new DefaultMutableTreeNode(change.license);
         if (firstChild == null) {
           firstChild = n;
         }
-        String licenceRef = change.license.getLicenseRef();
-        licenseNodeMap.put(licenceRef, n);
-        myAcceptances.put(licenceRef, Boolean.FALSE);
+        licenseNodeMap.put(licenseRef, n);
+        myAcceptances.put(licenseRef, Boolean.FALSE);
         root.add(n);
       }
-      licenseNodeMap.get(change.license.getLicenseRef()).add(new DefaultMutableTreeNode(change));
+      licenseNodeMap.get(licenseRef).add(new DefaultMutableTreeNode(change));
     }
     myTreeModel = new DefaultTreeModel(root);
     myChangeTree.setModel(myTreeModel);
