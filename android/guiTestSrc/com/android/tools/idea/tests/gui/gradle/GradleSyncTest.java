@@ -451,9 +451,10 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
     findGradleSyncMessageDialog(myRobot).clickCancel();
 
-    String gradleHome = System.getProperty(GRADLE_2_2_HOME_PROPERTY);
+    String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_2_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.2.1 distribution using the system property "
+           + quote(SUPPORTED_GRADLE_HOME_PROPERTY));
     }
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
@@ -482,7 +483,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessagesToolWindowFixture.MessageFixture msg =
-      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.2 is required."));
+      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle version 2.2 is required."));
     msg.findHyperlink("Migrate to Gradle wrapper and sync project").click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish()
@@ -550,9 +551,10 @@ public class GradleSyncTest extends GuiTestCase {
 
   @NotNull
   private static String getUnsupportedGradleHome() {
-    String unsupportedGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
+    String unsupportedGradleHome = System.getProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(unsupportedGradleHome)) {
-      fail("Please specify the path of a local, Gradle 1.12 distribution using the system property " + quote(GRADLE_1_12_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(
+        UNSUPPORTED_GRADLE_HOME_PROPERTY));
     }
     return unsupportedGradleHome;
   }

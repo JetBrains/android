@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
-
   public CreateGradleWrapperHyperlink() {
     super("createGradleWrapper", "Migrate to Gradle wrapper and sync project");
   }
