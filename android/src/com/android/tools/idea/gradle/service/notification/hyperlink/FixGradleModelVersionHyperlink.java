@@ -78,7 +78,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
       return false;
     }
 
-    final Ref<Boolean> atLeastOneUpdated = new Ref<Boolean>();
+    final Ref<Boolean> atLeastOneUpdated = new Ref<Boolean>(false);
 
     VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
