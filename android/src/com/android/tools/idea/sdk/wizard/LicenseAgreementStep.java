@@ -29,6 +29,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -105,6 +106,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
       public void actionPerformed(ActionEvent e) {
         myAcceptances.put(myCurrentLicense, Boolean.FALSE);
         invokeUpdate(null);
+        myChangeTree.repaint();
       }
     });
 
@@ -113,6 +115,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
       public void actionPerformed(ActionEvent e) {
         myAcceptances.put(myCurrentLicense, Boolean.TRUE);
         invokeUpdate(null);
+        myChangeTree.repaint();
       }
     });
 
@@ -159,14 +162,27 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         if (!leaf) {
           License license = (License)node.getUserObject();
-          append(license.getLicenseRef(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          if (license.getLicenseRef() != null) {
+            appendLicenseText(license, license.getLicenseRef());
+          }
         } else {
           Change change = (Change)node.getUserObject();
           if (change == null) {
             return;
           }
-          append(change.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          appendLicenseText(change.license, change.toString());
           setIcon(change.getIcon());
+        }
+      }
+
+      private void appendLicenseText(@Nullable License license, String text) {
+        boolean notAccepted = license != null && !myAcceptances.get(license.getLicenseRef());
+        if (notAccepted) {
+          append("*", SimpleTextAttributes.ERROR_ATTRIBUTES);
+          append(text, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+        } else {
+          append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+
         }
       }
     });
