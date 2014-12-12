@@ -422,8 +422,18 @@ class GradleTasksExecutor extends Task.Backgroundable {
               SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
               selectSdkDialog.setModal(true);
               if (selectSdkDialog.showAndGet()) {
-                String jdkHome = selectSdkDialog.getJdkHome();
-                DefaultSdks.setDefaultJavaHome(new File(jdkHome));
+                final String jdkHome = selectSdkDialog.getJdkHome();
+                UIUtil.invokeLaterIfNeeded(new Runnable() {
+                  @Override
+                  public void run() {
+                    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                      @Override
+                      public void run() {
+                        DefaultSdks.setDefaultJavaHome(new File(jdkHome));
+                      }
+                    });
+                  }
+                });
               }
             }
           }
