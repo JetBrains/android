@@ -99,8 +99,10 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
     super.onEnterStep();
     myCurrentDevice = myState.get(DEVICE_DEFINITION_KEY);
     AvdWizardConstants.SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
-    mySystemImageList.refreshImages(false);
+    // synchronously get the local images in case one should already be selected
+    mySystemImageList.refreshLocalImagesSynchronously();
     mySystemImageList.setSelectedImage(selectedImage);
+    mySystemImageList.refreshImages(false);
   }
 
   @Override
