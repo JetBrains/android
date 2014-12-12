@@ -20,12 +20,12 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler;
-import com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.AbstractContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.google.common.collect.Lists;
@@ -65,7 +65,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
@@ -89,8 +92,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
     File androidRepoPath = new File(DefaultSdks.getDefaultAndroidHome(), FileUtil.join("extras", "android", "m2repository"));
-    assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test")
-                               .isDirectory();
+    assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test").isDirectory();
 
     IdeFrameFixture projectFrame = openSimpleApplication();
 
@@ -141,8 +143,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.waitForGradleProjectSyncToFinish().waitForBackgroundTasksToFinish();
 
-    assertThat(androidRepoPath).as("Android Support Repository must have been reinstalled")
-                               .isDirectory();
+    assertThat(androidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
   }
 
   @Test @IdeGuiTest
@@ -250,7 +251,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture.AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     String errorPrefix = "The minimum supported version of the Android Gradle plugin";
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
 
@@ -363,9 +364,8 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
-                                                                         firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
+    AbstractContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
 
     final EditorFixture editor = projectFrame.getEditor();
     editor.close();
@@ -386,9 +386,8 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
-                                                                         firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
+    AbstractContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
 
     // Ensure the error message contains the location of the error.
     message.requireLocation(settingsFile, 1);
@@ -534,18 +533,18 @@ public class GradleSyncTest extends GuiTestCase {
     VirtualFile vFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
     Document document = FileDocumentManager.getInstance().getDocument(vFile);
     assertNotNull(document);
-    String definitionString =
-      GradleUtil.getPluginDefinitionString(document.getText(), UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START);
+
+    String definitionString = GradleUtil.getPluginDefinition(document.getText(), APPENGINE_PLUGIN_DEFINITION_START);
     assertNotNull(definitionString);
-    int compare = GradleCoordinate.COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString),
-                                                               UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE);
+
+    int compare = COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString), REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isLessThan(0);
+
     hyperlink.click(true);
-    definitionString = GradleUtil.getPluginDefinitionString(document.getText(),
-                                                            UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START);
+
+    definitionString = GradleUtil.getPluginDefinition(document.getText(), APPENGINE_PLUGIN_DEFINITION_START);
     assertNotNull(definitionString);
-    compare = GradleCoordinate.COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString),
-                                                           UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE);
+    compare = COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString), REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isGreaterThanOrEqualTo(0);
   }
 
