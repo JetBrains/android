@@ -18,7 +18,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath 'com.google.appengine:gradle-appengine-plugin:1.9.4'
+    classpath 'com.google.appengine:gradle-appengine-plugin:1.9.17'
   }
 }
 
@@ -34,9 +34,9 @@ sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
 dependencies {
-  appengineSdk 'com.google.appengine:appengine-java-sdk:1.9.4'
-  compile 'com.google.appengine:appengine-endpoints:1.9.4'
-  compile 'com.google.appengine:appengine-endpoints-deps:1.9.4'
+  appengineSdk 'com.google.appengine:appengine-java-sdk:1.9.17'
+  compile 'com.google.appengine:appengine-endpoints:1.9.17'
+  compile 'com.google.appengine:appengine-endpoints-deps:1.9.17'
   compile 'javax.servlet:servlet-api:2.5'
 }
 

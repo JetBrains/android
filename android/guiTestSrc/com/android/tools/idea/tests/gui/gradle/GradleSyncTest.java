@@ -36,6 +36,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
@@ -71,6 +72,7 @@ import static com.android.tools.idea.gradle.service.notification.hyperlink.Upgra
 import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.updateGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
@@ -521,9 +523,29 @@ public class GradleSyncTest extends GuiTestCase {
                 .requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest @Ignore
+  @Test @IdeGuiTest
   public void testOutdatedAppEnginePlugin() throws IOException {
-    IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin", false);
+    String[] appenginePluginNames = {"com.google.appengine:gradle-appengine-plugin:", "com.google.appengine:appengine-java-sdk:",
+      "com.google.appengine:appengine-endpoints:", "com.google.appengine:appengine-endpoints-deps:"};
+
+    IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin");
+
+    VirtualFile backendBuildFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(backendBuildFile);
+    assertNotNull(document);
+
+    Project project = projectFrame.getProject();
+    Computable<String> appengineOutdatedPluginVersionTask = new Computable<String>() {
+      @Override
+      public String compute() {
+        return "1.9.4";
+      }
+    };
+    for (String pluginName : appenginePluginNames) {
+      updateGradlePluginVersion(project, document, pluginName, appengineOutdatedPluginVersionTask);
+    }
+
+    projectFrame.requestProjectSyncAndExpectFailure();
 
     // Check that sync output has an 'update appengine plugin version' link.
     MessagesToolWindowFixture.MessageMatcher matcher = firstLineStartingWith(OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT);
@@ -531,10 +553,6 @@ public class GradleSyncTest extends GuiTestCase {
     HyperlinkFixture hyperlink = message.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
 
     // Ensure that clicking 'appengine plugin version' link really updates *.gradle config.
-    VirtualFile vFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
-    Document document = FileDocumentManager.getInstance().getDocument(vFile);
-    assertNotNull(document);
-
     String definitionString = GradleUtil.getPluginDefinition(document.getText(), APPENGINE_PLUGIN_DEFINITION_START);
     assertNotNull(definitionString);
 
