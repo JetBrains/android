@@ -28,6 +28,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
@@ -43,7 +44,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Matcher;
@@ -62,23 +62,84 @@ public class SystemImagePreview extends JPanel {
   private SystemImageDescription myImageDescription;
   private Distribution myDistribution;
   private static final int PADDING = 20;
+  LinkListener myHaxmInstallationListener;
 
-  public SystemImagePreview() {
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent mouseEvent) {
-        int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
-        if (myDistribution != null && mouseEvent.getY() > getHeight() - PADDING - standardFontHeight) {
-          try {
-            Desktop.getDesktop().browse(new URI(myDistribution.getUrl()));
-          } catch (URISyntaxException e) {
-            LOG.error("Syntax exception in url for distribution " + myDistribution.getVersion().toShortString());
-          } catch (IOException e) {
-            LOG.error("IOException trying to open url " + myDistribution.getUrl());
-          }
+  private abstract class LinkListener extends MouseAdapter {
+    boolean myInRegion = false;
+    int myMinY = -1000;
+    @Override
+    public void mouseClicked(MouseEvent mouseEvent) {
+      int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
+      if (mouseEvent.getY() > getMinY() - standardFontHeight && mouseEvent.getY() < getMinY()) {
+        try {
+          BrowserUtil.browse(new URI(getUrl()));
+        }
+        catch (URISyntaxException e) {
+          LOG.error("Syntax exception in url for distribution " + myDistribution.getVersion().toShortString());
         }
       }
-    });
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+      myInRegion = false;
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+      updateCursor(e);
+    }
+
+    private void updateCursor(MouseEvent e) {
+      int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
+      if (e.getY() > getMinY() - standardFontHeight && e.getY() < getMinY()) {
+        if (!myInRegion) {
+          e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+          myInRegion = true;
+        }
+      } else if (myInRegion) {
+        e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        myInRegion = false;
+      }
+    }
+
+    abstract String getUrl();
+
+    int getMinY() {
+      return myMinY;
+    };
+
+    void setMinY(int minY) {
+      myMinY = minY;
+    }
+  }
+
+  public SystemImagePreview() {
+    LinkListener listener = new LinkListener() {
+      @Override
+      String getUrl() {
+        return myDistribution.getUrl();
+      }
+
+      @Override
+      int getMinY() {
+        if (myDistribution != null) {
+          return getHeight() - PADDING;
+        } else {
+          return -1000;
+        }
+      }
+    };
+    addMouseListener(listener);
+    addMouseMotionListener(listener);
+    myHaxmInstallationListener = new LinkListener() {
+      @Override
+      String getUrl() {
+        return "http://developer.android.com/tools/devices/emulator.html#acceleration";
+      }
+    };
+    addMouseListener(myHaxmInstallationListener);
+    addMouseMotionListener(myHaxmInstallationListener);
   }
 
   /**
@@ -199,20 +260,34 @@ public class SystemImagePreview extends JPanel {
 
     // If this system image is not x86, paint a warning
     HaxmState haxmState = getHaxmState(false);
-    if (haxmState == HaxmState.NOT_INSTALLED && !myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
-      infoSegmentY += stringHeight * 2;
+    if (haxmState == HaxmState.NOT_INSTALLED) {
+      infoSegmentY += stringHeight * 3;
       g2d.setFont(AvdWizardConstants.TITLE_FONT);
       g2d.setColor(JBColor.RED);
-      g2d.drawString("Consider using a x86 System Image", PADDING, infoSegmentY);
+      if (!myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
+        g2d.drawString("Consider installing HAXM", PADDING, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("for better emulation speed", PADDING, infoSegmentY);
+      } else {
+        g2d.drawString("HAXM is required for running", PADDING, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("x86 System Images", PADDING, infoSegmentY);
+      }
       infoSegmentY += stringHeight;
-      g2d.drawString("for better emulation speed", PADDING, infoSegmentY);
-    } else if (haxmState == HaxmState.NOT_LATEST) {
-      infoSegmentY += stringHeight * 2;
-      g2d.setColor(JBColor.RED);
-      g2d.setFont(AvdWizardConstants.TITLE_FONT);
-      g2d.drawString("Newer HAXM Version Available", PADDING, infoSegmentY);
-      infoSegmentY += stringHeight;
-      g2d.drawString("(Use SDK Manager)", PADDING, infoSegmentY);
+      g2d.setFont(AvdWizardConstants.STANDARD_FONT);
+      g2d.setColor(JBColor.BLUE);
+      g2d.drawString("HAXM installation instructions", PADDING, infoSegmentY);
+      myHaxmInstallationListener.setMinY(infoSegmentY);
+    } else {
+      myHaxmInstallationListener.setMinY(-1000);
+      if (haxmState == HaxmState.NOT_LATEST) {
+        infoSegmentY += stringHeight * 2;
+        g2d.setColor(JBColor.RED);
+        g2d.setFont(AvdWizardConstants.TITLE_FONT);
+        g2d.drawString("Newer HAXM Version Available", PADDING, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("(Use SDK Manager)", PADDING, infoSegmentY);
+      }
     }
 
     if (myDistribution != null) {
