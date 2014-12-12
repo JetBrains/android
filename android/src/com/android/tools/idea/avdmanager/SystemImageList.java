@@ -192,14 +192,17 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     public void mouseMoved(MouseEvent e) {
       possiblySwitchEditors(e);
     }
+
     @Override
     public void mouseEntered(MouseEvent e) {
       possiblySwitchEditors(e);
     }
+
     @Override
     public void mouseExited(MouseEvent e) {
       possiblySwitchEditors(e);
     }
+
     @Override
     public void mouseClicked(MouseEvent e) {
       possiblySwitchEditors(e);
@@ -226,7 +229,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Override
       public void run(@NotNull ProgressIndicator progressIndicator) {
         refreshImagesBackground(forceRefresh);
-      }});
+      }
+    });
   }
 
   static class ImageFingerprint {
@@ -262,34 +266,20 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     if (forceRefresh) {
       mySdk.clearLocalPkg(PkgType.PKG_ALL);
     }
-    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
-    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
 
-    Set<ImageFingerprint> seen = Sets.newHashSet();
-    for (IAndroidTarget target : targets) {
-      ISystemImage[] systemImages = target.getSystemImages();
-      if (systemImages != null) {
-        for (ISystemImage image : systemImages) {
-          // If we don't have a filter or this image passes the filter
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
-          if (myFilter == null || myFilter.apply(desc)) {
-            items.add(desc);
-            ImageFingerprint si = new ImageFingerprint();
-            si.tag = image.getTag();
-            si.abiType = image.getAbiType();
-            si.version = target.getVersion();
-            seen.add(si);
-          }
-        }
-      }
-    }
-
+    List<AvdWizardConstants.SystemImageDescription> items = getLocalImages();
     // Update list in the UI immediately with the locally available system images
     updateListModel(items);
 
     // Then perform the network call which may take a long time (e.g. 5 seconds or more);
     // we'll merge in the results of the remotely-available images and update the UI a second
     // time when this is done.
+    items.addAll(getRemoteImages(getLocalFingerprints(items)));
+    updateListModel(items);
+  }
+
+  private List<AvdWizardConstants.SystemImageDescription> getRemoteImages(Set<ImageFingerprint> seen) {
+    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
     SdkSources sources = myRemoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, ILOG);
     Multimap<PkgType, RemotePkgInfo> packages = myRemoteSdk.fetch(sources, ILOG);
 
@@ -332,6 +322,46 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         myRefreshButton.setEnabled(true);
       }
     });
+    return items;
+  }
+
+  public void refreshLocalImagesSynchronously() {
+    myModel.setItems(getLocalImages());
+  }
+
+  private Set<ImageFingerprint> getLocalFingerprints(List<AvdWizardConstants.SystemImageDescription> images) {
+    Set<ImageFingerprint> fingerprints = Sets.newHashSet();
+    for (AvdWizardConstants.SystemImageDescription image : images) {
+      // If we don't have a filter or this image passes the filter
+      if (myFilter == null || myFilter.apply(image)) {
+        ImageFingerprint si = new ImageFingerprint();
+        si.tag = image.getTag();
+        si.abiType = image.getAbiType();
+
+        si.version = image.getTarget().getVersion();
+        fingerprints.add(si);
+      }
+    }
+    return fingerprints;
+  }
+
+  private List<AvdWizardConstants.SystemImageDescription> getLocalImages() {
+    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
+    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
+
+    for (IAndroidTarget target : targets) {
+      ISystemImage[] systemImages = target.getSystemImages();
+      if (systemImages != null) {
+        for (ISystemImage image : systemImages) {
+          // If we don't have a filter or this image passes the filter
+          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          if (myFilter == null || myFilter.apply(desc)) {
+            items.add(desc);
+          }
+        }
+      }
+    }
+    return items;
   }
 
   /**
