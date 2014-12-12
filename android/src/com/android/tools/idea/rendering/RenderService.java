@@ -250,7 +250,7 @@ public class RenderService implements IImageFactory {
         if (version.isPreview()) {
           revision = 4;
         } else {
-          revision = 1;
+          revision = 2;
         }
         break;
       case 20: revision = 2; break;
