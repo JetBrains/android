@@ -274,7 +274,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     assert gradleSettingsFile != null : "File should have been created";
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
-      File targetFile = GradleUtil.getDefaultSubprojectLocation(projectRoot, name);
+      File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
       VirtualFile moduleSource = module.getValue();
       if (moduleSource != null) {
         if (!VfsUtilCore.isAncestor(projectRoot, moduleSource, true)) {
