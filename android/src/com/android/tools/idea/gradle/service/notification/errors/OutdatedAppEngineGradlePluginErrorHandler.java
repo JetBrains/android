@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.base.Strings;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -74,17 +73,16 @@ public class OutdatedAppEngineGradlePluginErrorHandler extends AbstractSyncError
         File fileToCheck = VfsUtilCore.virtualToIoFile(virtualFile);
         try {
           String contents = FileUtil.loadFile(fileToCheck);
-          String pluginVersion = GradleUtil.getPluginDefinition(contents, APPENGINE_PLUGIN_DEFINITION_START);
-          if (Strings.isNullOrEmpty(pluginVersion)) {
+          GradleCoordinate coordinate = GradleUtil.getPluginDefinition(contents, APPENGINE_PLUGIN_NAME);
+          if (coordinate == null) {
             return true; // Continue processing.
           }
-          GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(pluginVersion);
           // There is a possible case that plugin version is externalized. E.g. there is a multiproject with two
           // modules - android module (client) and server module (appengine). All versions might be defined at the
           // root project's build.gradle and appengine's build.gradle is configured like
           // 'classpath "com.google.appengine:gradle-appengine-plugin:$APPENGINE_PLUGIN_VERSION"'.
           // We want to handle that situation by substituting externalized value by a hard-coded one.
-          if (coordinate == null || GradleCoordinate.COMPARE_PLUS_HIGHER.compare(coordinate, REFERENCE_APPENGINE_COORDINATE) < 0) {
+          if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(coordinate, REFERENCE_APPENGINE_COORDINATE) < 0) {
             ServiceManager.getService(ExternalRepository.class).refreshFor(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
             updateNotification(notification, project, notification.getMessage(), new UpgradeAppenginePluginVersionHyperlink(virtualFile));
             handled.set(true);
@@ -94,7 +92,7 @@ public class OutdatedAppEngineGradlePluginErrorHandler extends AbstractSyncError
         }
         catch (IOException e) {
           LOG.warn("Failed to read contents of " + fileToCheck.getPath() + " on attempt to check if project sync failure is caused "
-                   + "by an outdated appengine gradle plugin");
+                   + "by an outdated AppEngine Gradle plugin");
         }
         return false;
       }
