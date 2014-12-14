@@ -609,12 +609,7 @@ public final class GradleUtil {
   @VisibleForTesting
   @Nullable
   static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
-    GradleCoordinate found = null;
-    String pluginDefinitionString = getPluginDefinition(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
-    if (pluginDefinitionString != null) {
-      found = GradleCoordinate.parseCoordinateString(pluginDefinitionString);
-    }
-
+    GradleCoordinate found = getPluginDefinition(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);
       if (StringUtil.isNotEmpty(revision)) {
@@ -629,20 +624,21 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns target plugin's definition string (unquoted).
+   * Returns target plugin's definition.
    *
-   * @param fileContents target gradle config text
-   * @param pluginName   target plugin's name in a form {@code 'group-id:artifact-id:'}
-   * @return target plugin's definition string if found (unquoted); {@code null} otherwise
+   * @param fileContents target Gradle build file contents
+   * @param pluginName   target plugin's name in a form {@code group-id:artifact-id:}
+   * @return target plugin's definition if found; {@code null} otherwise
    */
   @Nullable
-  public static String getPluginDefinition(@NotNull String fileContents, @NotNull String pluginName) {
-    return forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
+  public static GradleCoordinate getPluginDefinition(@NotNull String fileContents, @NotNull String pluginName) {
+    String definition = forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
       @Override
       public String fun(Pair<String, GroovyLexer> pair) {
         return pair.getFirst();
       }
     });
+    return StringUtil.isNotEmpty(definition) ? GradleCoordinate.parseCoordinateString(definition) : null;
   }
 
   /**
