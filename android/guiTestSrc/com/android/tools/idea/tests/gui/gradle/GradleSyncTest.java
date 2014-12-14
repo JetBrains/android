@@ -68,11 +68,8 @@ import java.util.concurrent.TimeUnit;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE;
-import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradlePluginVersion;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
@@ -525,8 +522,8 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testOutdatedAppEnginePlugin() throws IOException {
-    String[] appenginePluginNames = {"com.google.appengine:gradle-appengine-plugin:", "com.google.appengine:appengine-java-sdk:",
-      "com.google.appengine:appengine-endpoints:", "com.google.appengine:appengine-endpoints-deps:"};
+    String[] appenginePluginNames = {APPENGINE_PLUGIN_NAME, APPENGINE_PLUGIN_GROUP_ID + ":appengine-java-sdk:",
+      APPENGINE_PLUGIN_GROUP_ID + ":appengine-endpoints:", APPENGINE_PLUGIN_GROUP_ID +":appengine-endpoints-deps:"};
 
     IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin");
 
@@ -547,23 +544,24 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    // Check that sync output has an 'update appengine plugin version' link.
+    // Check that sync output has an 'update AppEngine plugin version' link.
     MessagesToolWindowFixture.MessageMatcher matcher = firstLineStartingWith(OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT);
     MessageFixture message = projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, matcher);
     HyperlinkFixture hyperlink = message.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
 
-    // Ensure that clicking 'appengine plugin version' link really updates *.gradle config.
-    String definitionString = GradleUtil.getPluginDefinition(document.getText(), APPENGINE_PLUGIN_DEFINITION_START);
-    assertNotNull(definitionString);
+    // Ensure that clicking 'AppEngine plugin version' link really updates *.gradle config.
+    GradleCoordinate definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
+    assertNotNull(definition);
 
-    int compare = COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString), REFERENCE_APPENGINE_COORDINATE);
+    int compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isLessThan(0);
 
     hyperlink.click(true);
 
-    definitionString = GradleUtil.getPluginDefinition(document.getText(), APPENGINE_PLUGIN_DEFINITION_START);
-    assertNotNull(definitionString);
-    compare = COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString), REFERENCE_APPENGINE_COORDINATE);
+    definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
+    assertNotNull(definition);
+
+    compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isGreaterThanOrEqualTo(0);
   }
 
@@ -571,8 +569,8 @@ public class GradleSyncTest extends GuiTestCase {
   private static String getUnsupportedGradleHome() {
     String unsupportedGradleHome = System.getProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(unsupportedGradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(
-        UNSUPPORTED_GRADLE_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property "
+           + quote(UNSUPPORTED_GRADLE_HOME_PROPERTY));
     }
     return unsupportedGradleHome;
   }
