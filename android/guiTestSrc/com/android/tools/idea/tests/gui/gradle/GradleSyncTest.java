@@ -31,15 +31,21 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
+import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -69,6 +75,7 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.*;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -78,12 +85,14 @@ import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.util.Strings.quote;
+import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -563,6 +572,79 @@ public class GradleSyncTest extends GuiTestCase {
 
     compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isGreaterThanOrEqualTo(0);
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74842
+  @Test @IdeGuiTest
+  public void testPrematureEndOfContentLength() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    // Simulate this Gradle error.
+    final String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
+    projectFrame.requestProjectSyncAndSimulateFailure(failure);
+
+    final String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
+    HyperlinkFixture hyperlink = message.findHyperlink("Re-download dependencies and sync project (requires network)");
+    hyperlink.click(true);
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // This is the only way we can at least know that we pass the right command-line option.
+    String[] commandLineOptions = ApplicationManager.getApplication().getUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY);
+    assertThat(commandLineOptions).contains("--refresh-dependencies");
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74259
+  @Test @IdeGuiTest
+  public void testImportProjectWithCentralBuildDirectoryInRootModule() throws IOException {
+    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
+    // outside the content root of the "app" module.
+    String projectDirName = "CentralBuildDirectory";
+    File projectPath = new File(getProjectCreationDirPath(), projectDirName);
+
+    // The bug appears only when the central build folder does not exist.
+    final File centralBuildDirPath = new File(projectPath, FileUtil.join("central", "build"));
+    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
+    delete(centralBuildParentDirPath);
+
+    IdeFrameFixture ideFrame = importProject(projectDirName);
+    final Module app = ideFrame.getModule("app");
+
+    // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
+    // prevent unnecessary file indexing, which decreases performance.)
+    VirtualFile[] excludeFolders = GuiActionRunner.execute(new GuiQuery<VirtualFile[]>() {
+      @Override
+      protected VirtualFile[] executeInEDT() throws Throwable {
+        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
+        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+        try {
+          ContentEntry[] contentEntries = rootModel.getContentEntries();
+          ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
+          Assert.assertNotNull(parent);
+          return parent.getExcludeFolderFiles();
+        }
+        finally {
+          rootModel.dispose();
+        }
+      }
+    });
+
+    assertThat(excludeFolders).isNotEmpty();
+
+    VirtualFile centralBuildDir = findFileByIoFile(centralBuildParentDirPath, true);
+    Assert.assertNotNull(centralBuildDir);
+    boolean isExcluded = false;
+    for (VirtualFile folder : excludeFolders) {
+      if (isAncestor(centralBuildDir, folder, true)) {
+        isExcluded = true;
+        break;
+      }
+    }
+
+    assertTrue(isExcluded);
   }
 
   @NotNull
