@@ -54,8 +54,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
         if (value == NO_SKIN) {
           append("No Skin");
         } else {
-          String path = ((File)value).getPath();
-          append(path.replaceAll(".*/", ""));
+          append(((File)value).getName());
         }
       }
     });
@@ -77,6 +76,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
         }
       });
     getComboBox().addItemListener(this);
+    setTextFieldPreferredWidth(20);
   }
 
   private void setItems(List<File> items) {
