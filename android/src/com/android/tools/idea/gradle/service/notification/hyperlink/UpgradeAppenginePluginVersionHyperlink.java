@@ -55,7 +55,7 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     if (document == null) {
       return;
     }
-    boolean updated = GradleUtil.updateGradlePluginVersion(project, document, APPENGINE_PLUGIN_NAME, new Computable<String>() {
+    boolean updated = GradleUtil.updateGradleDependencyVersion(project, document, APPENGINE_PLUGIN_NAME, new Computable<String>() {
       @Override
       public String compute() {
         ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);

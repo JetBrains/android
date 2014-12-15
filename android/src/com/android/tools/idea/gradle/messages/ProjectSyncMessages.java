@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -52,6 +53,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
 
@@ -109,51 +111,99 @@ public class ProjectSyncMessages {
     return myNotificationManager.getMessageCount(NotificationSource.PROJECT_SYNC, null, GradleConstants.SYSTEM_ID) == 0;
   }
 
+  public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
+    if (syncIssues.isEmpty()) {
+      return;
+    }
+
+    boolean hasSyncErrors = false;
+    VirtualFile buildFile = getBuildFile(module);
+
+    for (SyncIssue syncIssue : syncIssues) {
+      if (syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR) {
+        hasSyncErrors = true;
+      }
+      switch (syncIssue.getType()) {
+        case SyncIssue.TYPE_UNRESOLVED_DEPENDENCY:
+          reportUnresolvedDependency(syncIssue.getData(), module, buildFile);
+          break;
+        default:
+          String group = UNHANDLED_SYNC_ISSUE_TYPE;
+          String text = syncIssue.getMessage();
+          Message.Type severity = syncIssue.getType() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+
+          Message msg;
+          if (buildFile != null) {
+            msg = new Message(module.getProject(), group, severity, buildFile, -1, -1, text);
+          }
+          else {
+            msg = new Message(group, severity, AbstractNavigatable.NOT_NAVIGATABLE, text);
+          }
+          add(msg);
+      }
+    }
+
+    if (hasSyncErrors) {
+      myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
+    }
+  }
+
   public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    VirtualFile buildFile = null;
+    if (unresolvedDependencies.isEmpty()) {
+      return;
+    }
+
+    VirtualFile buildFile = getBuildFile(module);
+
+    for (String dep : unresolvedDependencies) {
+      reportUnresolvedDependency(dep, module, buildFile);
+    }
+
+    myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
+  }
+
+  @Nullable
+  private static VirtualFile getBuildFile(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
     if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
       IdeaGradleProject gradleProject = gradleFacet.getGradleProject();
-      buildFile = gradleProject.getBuildFile();
+      return gradleProject.getBuildFile();
+    }
+    return null;
+  }
+
+  private void reportUnresolvedDependency(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
+    List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+    File androidHome = getAndroidHome(module);
+    String group;
+    if (dependency.startsWith("com.android.support")) {
+      group = UNRESOLVED_ANDROID_DEPENDENCIES;
+      addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.ANDROID);
+    }
+    else if (dependency.startsWith("com.google.android.gms")) {
+      group = UNRESOLVED_ANDROID_DEPENDENCIES;
+      addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.GOOGLE);
+    }
+    else {
+      group = UNRESOLVED_DEPENDENCIES;
     }
 
-    for (String dep : unresolvedDependencies) {
-      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      File androidHome = getAndroidHome(module);
-      String group;
-      if (dep.startsWith("com.android.support")) {
-        group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.ANDROID);
-      }
-      else if (dep.startsWith("com.google.android.gms")) {
-        group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.GOOGLE);
-      }
-      else {
-        group = UNRESOLVED_DEPENDENCIES;
-      }
-
-      String text = "Failed to find: " + dep;
-      Message msg;
-      if (buildFile != null) {
-        msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, -1, -1, text);
-        hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
-      }
-      else {
-        msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
-      }
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dep);
-        if (coordinate != null) {
-          hyperlinks.add(new OpenDependencyInProjectStructureHyperlink(module, coordinate));
-        }
-      }
-      add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+    String text = "Failed to resolve: " + dependency;
+    Message msg;
+    if (buildFile != null) {
+      msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, -1, -1, text);
+      hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
     }
-
-    if (!unresolvedDependencies.isEmpty()) {
-      myProject.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, true);
+    else {
+      msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
     }
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
+      if (coordinate != null) {
+        hyperlinks.add(new OpenDependencyInProjectStructureHyperlink(module, coordinate));
+      }
+    }
+    add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
   }
 
   private static void addHyperlinkIfNeeded(@NotNull List<NotificationHyperlink> hyperlinks,
