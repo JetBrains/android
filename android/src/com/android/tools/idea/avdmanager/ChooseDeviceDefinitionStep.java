@@ -73,7 +73,12 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    myDeviceDefinitionList.setSelectedDevice(myState.get(DEVICE_DEFINITION_KEY));
+    Device selectedDevice = myState.get(DEVICE_DEFINITION_KEY);
+    if (selectedDevice == null) {
+      myDeviceDefinitionList.selectDefaultDevice();
+    } else {
+      myDeviceDefinitionList.setSelectedDevice(selectedDevice);
+    }
   }
 
   @Override
