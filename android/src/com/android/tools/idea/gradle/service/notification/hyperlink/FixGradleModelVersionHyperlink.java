@@ -86,7 +86,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
         if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
           final Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
           if (document != null) {
-            boolean updated = GradleUtil.updateGradlePluginVersion(project, document, GRADLE_PLUGIN_NAME, new Computable<String>() {
+            boolean updated = GradleUtil.updateGradleDependencyVersion(project, document, GRADLE_PLUGIN_NAME, new Computable<String>() {
               @Override
               public String compute() {
                 return GRADLE_PLUGIN_RECOMMENDED_VERSION;

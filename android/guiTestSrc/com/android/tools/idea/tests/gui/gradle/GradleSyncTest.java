@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
-import com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -45,7 +44,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
-import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -74,6 +72,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
+import static com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.*;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -109,7 +108,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     MessageFixture message =
-      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to find:"));
+      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     HyperlinkFixture hyperlink = message.findHyperlink("Install Repository and sync project");
     hyperlink.click(false);
@@ -548,15 +547,15 @@ public class GradleSyncTest extends GuiTestCase {
       }
     };
     for (String pluginName : appenginePluginNames) {
-      updateGradlePluginVersion(project, document, pluginName, appengineOutdatedPluginVersionTask);
+      updateGradleDependencyVersion(project, document, pluginName, appengineOutdatedPluginVersionTask);
     }
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
     // Check that sync output has an 'update AppEngine plugin version' link.
-    MessagesToolWindowFixture.MessageMatcher matcher = firstLineStartingWith(OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT);
-    MessageFixture message = projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, matcher);
-    HyperlinkFixture hyperlink = message.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture msg = syncMessages.findMessage(ERROR, firstLineStartingWith(MARKER_TEXT));
+    HyperlinkFixture hyperlink = msg.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
 
     // Ensure that clicking 'AppEngine plugin version' link really updates *.gradle config.
     GradleCoordinate definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
@@ -623,7 +622,8 @@ public class GradleSyncTest extends GuiTestCase {
         try {
           ContentEntry[] contentEntries = rootModel.getContentEntries();
           ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
-          Assert.assertNotNull(parent);
+          assertNotNull(parent);
+
           return parent.getExcludeFolderFiles();
         }
         finally {
@@ -635,7 +635,8 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(excludeFolders).isNotEmpty();
 
     VirtualFile centralBuildDir = findFileByIoFile(centralBuildParentDirPath, true);
-    Assert.assertNotNull(centralBuildDir);
+    assertNotNull(centralBuildDir);
+
     boolean isExcluded = false;
     for (VirtualFile folder : excludeFolders) {
       if (isAncestor(centralBuildDir, folder, true)) {
@@ -645,6 +646,48 @@ public class GradleSyncTest extends GuiTestCase {
     }
 
     assertTrue(isExcluded);
+  }
+
+  @Test @IdeGuiTest
+  public void testSyncWithUnresolvedDependencies() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+    testSyncWithUnresolvedAppCompat(projectFrame);
+  }
+
+  @Test @IdeGuiTest
+  public void testSyncWithUnresolvedDependenciesWithAndroidGradlePluginOneDotZero() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    VirtualFile projectBuildFile = projectFrame.findFileByRelativePath("build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(projectBuildFile);
+    assertNotNull(document);
+
+    updateGradleDependencyVersion(projectFrame.getProject(), document, GRADLE_PLUGIN_NAME, new Computable<String>() {
+      @Override
+      public String compute() {
+        return "1.0.0";
+      }
+    });
+
+    testSyncWithUnresolvedAppCompat(projectFrame);
+  }
+
+  private static void testSyncWithUnresolvedAppCompat(@NotNull IdeFrameFixture projectFrame) {
+    VirtualFile appBuildFile = projectFrame.findFileByRelativePath("app/build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(appBuildFile);
+    assertNotNull(document);
+
+    updateGradleDependencyVersion(projectFrame.getProject(), document, "com.android.support:appcompat-v7:", new Computable<String>() {
+      @Override
+      public String compute() {
+        return "100.0.0";
+      }
+    });
+
+    projectFrame.requestProjectSync();
+
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
   }
 
   @NotNull

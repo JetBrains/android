@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.Dependency;
@@ -55,9 +56,15 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       updateDependency(model, dependency, errorsFound);
     }
 
-    Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
-    messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
+    Collection<SyncIssue> syncIssues = androidProject.getSyncIssues();
+    if (syncIssues != null) {
+      messages.reportSyncIssues(syncIssues, model.getModule());
+    }
+    else {
+      Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
+      messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
+    }
   }
 
   private void updateDependency(@NotNull ModifiableRootModel model, @NotNull LibraryDependency dependency) {

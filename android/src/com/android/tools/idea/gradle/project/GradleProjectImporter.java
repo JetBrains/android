@@ -449,7 +449,7 @@ public class GradleProjectImporter {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
-    project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, false);
+    project.putUserData(Projects.HAS_SYNC_ERRORS, false);
     project.putUserData(Projects.HAS_WRONG_JDK, false);
 
     PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
