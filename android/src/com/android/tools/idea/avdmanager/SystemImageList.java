@@ -47,10 +47,7 @@ import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.AbstractTableCellEditor;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.*;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +80,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private final LocalSdk mySdk;
   private final RemoteSdk myRemoteSdk;
   private final Project myProject;
+  private final JPanel myRefreshPanel = new JPanel(new FlowLayout());
   private TableView<AvdWizardConstants.SystemImageDescription> myTable = new TableView<AvdWizardConstants.SystemImageDescription>();
   private ListTableModel<AvdWizardConstants.SystemImageDescription> myModel = new ListTableModel<AvdWizardConstants.SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
@@ -133,7 +131,16 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     setLayout(new BorderLayout());
     add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
-    southPanel.add(myRefreshButton, BorderLayout.EAST);
+    JPanel refreshMessageAndButton = new JPanel(new FlowLayout());
+    AsyncProcessIcon refreshIcon = new AsyncProcessIcon("refresh images");
+    JLabel refreshingLabel = new JLabel("Refreshing...");
+    refreshingLabel.setForeground(JBColor.GRAY);
+    myRefreshPanel.add(refreshIcon);
+    myRefreshPanel.add(refreshingLabel);
+    myRefreshPanel.setVisible(false);
+    refreshMessageAndButton.add(myRefreshPanel);
+    refreshMessageAndButton.add(myRefreshButton);
+    southPanel.add(refreshMessageAndButton, BorderLayout.EAST);
     southPanel.add(myShowRemoteCheckbox, BorderLayout.WEST);
     myShowRemoteCheckbox.addActionListener(new ActionListener() {
       @Override
@@ -245,10 +252,16 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   public void refreshImagesBackground(boolean forceRefresh) {
     // Should not be run on the AWT thread
     assert !ApplicationManager.getApplication().isDispatchThread();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myRefreshPanel.setVisible(true);
+        myRefreshButton.setEnabled(false);
+      }
+    });
     if (forceRefresh) {
       mySdk.clearLocalPkg(PkgType.PKG_ALL);
     }
-
     List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
     List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
 
@@ -312,6 +325,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       }
       updateListModel(items);
     }
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myRefreshPanel.setVisible(false);
+        myRefreshButton.setEnabled(true);
+      }
+    });
   }
 
   /**
