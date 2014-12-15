@@ -28,6 +28,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -147,12 +148,17 @@ public class AvdWizardConstants {
 
     @Override
     public int hashCode() {
-      return super.hashCode();
+      return Objects.hashCode(target, systemImage, remotePackage);
     }
 
     @Override
     public boolean equals(Object obj) {
-      return super.equals(obj);
+      if (!(obj instanceof SystemImageDescription)) {
+        return false;
+      }
+      SystemImageDescription other = (SystemImageDescription) obj;
+      return Objects.equal(target, other.target) && Objects.equal(systemImage, other.systemImage) &&
+             Objects.equal(remotePackage, other.remotePackage);
     }
 
     @Nullable
