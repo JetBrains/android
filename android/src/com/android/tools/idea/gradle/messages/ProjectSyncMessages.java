@@ -26,21 +26,25 @@ import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErr
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -191,8 +195,24 @@ public class ProjectSyncMessages {
     String text = "Failed to resolve: " + dependency;
     Message msg;
     if (buildFile != null) {
-      msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, -1, -1, text);
-      hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
+      int lineNumber = -1;
+      int column = -1;
+
+      Document document = FileDocumentManager.getInstance().getDocument(buildFile);
+      if (document != null) {
+        TextRange textRange = GradleUtil.findDependency(dependency, document.getText());
+        if (textRange != null) {
+          lineNumber = document.getLineNumber(textRange.getStartOffset());
+          if (lineNumber > -1) {
+            int lineStartOffset = document.getLineStartOffset(lineNumber);
+            column = textRange.getStartOffset() - lineStartOffset;
+          }
+        }
+      }
+
+      msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, lineNumber, column, text);
+      String hyperlinkText = lineNumber > -1 ? "Show in File": "Open File";
+      hyperlinks.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, lineNumber, column));
     }
     else {
       msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
@@ -234,7 +254,7 @@ public class ProjectSyncMessages {
     @NotNull private final GradleCoordinate myDependency;
 
     OpenDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull GradleCoordinate dependency) {
-      super("open.dependency.in.project.structure", "Open in Project Structure dialog");
+      super("open.dependency.in.project.structure", "Show in Project Structure dialog");
       myModule = module;
       myDependency = dependency;
     }
