@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,7 +45,8 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private final String myModuleName;
   @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
-  @NotNull private String mySelectedVariantName;
+
+  @Nullable private String mySelectedVariantName;
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private AndroidVersion myMinSdkVersion;
 
@@ -354,5 +357,25 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull
   public File[] getExtraGeneratedSourceFolders() {
     return myExtraGeneratedSourceFolders.toArray(new File[myExtraGeneratedSourceFolders.size()]);
+  }
+
+  @Nullable
+  public Collection<SyncIssue> getSyncIssues() {
+    if (supportsIssueReporting()) {
+      return myDelegate.getSyncIssues();
+    }
+    return null;
+  }
+
+  private boolean supportsIssueReporting() {
+    String original = myDelegate.getModelVersion();
+    FullRevision modelVersion;
+    try {
+      modelVersion = FullRevision.parseRevision(original);
+    } catch (NumberFormatException e) {
+      Logger.getInstance(IdeaAndroidProject.class).warn("Failed to parse '" + original + "'", e);
+      return false;
+    }
+    return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
   }
 }
