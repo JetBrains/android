@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -82,6 +81,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
@@ -800,18 +801,11 @@ public final class GradleUtil {
 
   public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
     if (AndroidStudioSpecificInitializer.isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
-      File repoPath = getAndroidStudioLocalMavenRepoPath();
+      File repoPath = findAndroidStudioLocalMavenRepoPath();
       if (repoPath != null && repoPath.isDirectory()) {
         addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);
       }
     }
-  }
-
-  @Nullable
-  public static File getAndroidStudioLocalMavenRepoPath() {
-    File repoPath = new File(getEmbeddedGradleArtifactsDirPath(), "m2repository");
-    LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
-    return repoPath.isDirectory() ? repoPath : null;
   }
 
   @VisibleForTesting
@@ -855,13 +849,12 @@ public final class GradleUtil {
         if (gradleVersion != null &&
             isCompatibleWithEmbeddedGradleVersion(gradleVersion) &&
             !isWrapperInGradleCache(project, gradleVersion)) {
-          File embeddedPath = new File(getEmbeddedGradleArtifactsDirPath(), "gradle-" + GRADLE_LATEST_VERSION);
-          LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-          if (embeddedPath.isDirectory()) {
+          File embeddedGradlePath = findEmbeddedGradleDistributionPath();
+          if (embeddedGradlePath != null) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
               gradleSettings.setDistributionType(DistributionType.LOCAL);
-              gradleSettings.setGradleHome(embeddedPath.getPath());
+              gradleSettings.setGradleHome(embeddedGradlePath.getPath());
             }
           }
         }
@@ -937,13 +930,6 @@ public final class GradleUtil {
       paths.add(path);
     }
     return paths;
-  }
-
-
-  @NotNull
-  private static File getEmbeddedGradleArtifactsDirPath() {
-    String homePath = PathManager.getHomePath();
-    return new File(homePath, "gradle");
   }
 
   /**
