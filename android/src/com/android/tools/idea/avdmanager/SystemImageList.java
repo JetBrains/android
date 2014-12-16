@@ -372,7 +372,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
+        AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
         myModel.setItems(items);
+        if (selected == null || !items.contains(selected)) {
+          selectDefaultImage();
+        }
       }
     });
   }
@@ -383,6 +387,18 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   public void addSelectionListener(SystemImageSelectionListener listener) {
     myListeners.add(listener);
+  }
+
+  public void selectDefaultImage() {
+    AndroidVersion maxVersion = null;
+    AvdWizardConstants.SystemImageDescription best = null;
+    for (AvdWizardConstants.SystemImageDescription desc : myModel.getItems()) {
+      if (!desc.isRemote() && ((maxVersion == null || desc.getVersion().compareTo(maxVersion) > 0) || (desc.getVersion().equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))) {
+        best = desc;
+        maxVersion = best.getVersion();
+      }
+    }
+    setSelectedImage(best);
   }
 
   public void setSelectedImage(@Nullable AvdWizardConstants.SystemImageDescription selectedImage) {
