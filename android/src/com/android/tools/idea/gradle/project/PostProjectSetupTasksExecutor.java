@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -110,11 +109,13 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 public class PostProjectSetupTasksExecutor {
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
-  private static boolean ourSdkVersionWarningShown;
+  /** Whether a message indicating that "a new SDK Tools version is available" is already shown.  */
+  private static boolean ourNewSdkVersionToolsInfoAlreadyShown;
+
+  private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
 
   @NotNull private final Project myProject;
 
-  private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
   @NotNull
@@ -126,6 +127,10 @@ public class PostProjectSetupTasksExecutor {
     myProject = project;
   }
 
+  /**
+   * Invoked after project state (e.g. {@code AndroidProject} instances) have been restored from disk cache (e.g. when reopening a project
+   * that was successfully synced with Gradle before being closed).
+   */
   public void onProjectRestoreFromDisk() {
     ensureValidSdks();
 
@@ -142,110 +147,9 @@ public class PostProjectSetupTasksExecutor {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
-  public void ensureValidSdks() {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
-
-    boolean checkJdkVersion = true;
-
-    Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
-        Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-        if (sdk != null && !invalidAndroidSdks.contains(sdk) && isMissingAndroidLibrary(sdk)) {
-          // First try to recreate SDK; workaround for issue 78072
-          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-          AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
-          if (additionalData != null && sdkData != null) {
-            IAndroidTarget target = additionalData.getBuildTarget(sdkData);
-            if (target == null) {
-              LocalSdk localSdk = sdkData.getLocalSdk();
-              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
-              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
-            }
-            if (target != null) {
-              SdkModificator sdkModificator = sdk.getSdkModificator();
-              sdkModificator.removeAllRoots();
-              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
-                sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
-              }
-              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-              sdkModificator.commitChanges();
-            }
-          }
-
-          // If attempting to fix up the roots in the SDK fails, install the target over again
-          // (this is a truly corrupt install, as opposed to an incorrectly synced SDK which the
-          // above workaround deals with)
-          if (isMissingAndroidLibrary(sdk)) {
-            invalidAndroidSdks.add(sdk);
-          }
-        }
-
-        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        Collection<String> unresolved = androidProject.getDelegate().getUnresolvedDependencies();
-        messages.reportUnresolvedDependencies(unresolved, module);
-        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
-          // we already displayed the error, no need to check each module.
-          checkJdkVersion = false;
-        }
-        continue;
-      }
-      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
-      if (javaFacet != null && javaFacet.getJavaModel() != null) {
-        List<String> unresolved = javaFacet.getJavaModel().getUnresolvedDependencyNames();
-        messages.reportUnresolvedDependencies(unresolved, module);
-      }
-    }
-
-    if (!invalidAndroidSdks.isEmpty()) {
-      reinstallMissingPlatforms(invalidAndroidSdks);
-    }
-  }
-
-  private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
-    if (isAndroidSdk(sdk)) {
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
-        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
-        // annotations.jar and res folder.
-        if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
-
-    List<AndroidVersion> versionsToInstall = Lists.newArrayList();
-    List<String> missingPlatforms = Lists.newArrayList();
-
-    for (Sdk sdk : invalidAndroidSdks) {
-      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
-      if (additionalData instanceof AndroidSdkAdditionalData) {
-        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
-        if (platform != null) {
-          missingPlatforms.add("'" + platform + "'");
-          AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
-          if (version != null) {
-            versionsToInstall.add(version);
-          }
-        }
-      }
-    }
-
-    if (!versionsToInstall.isEmpty()) {
-      String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
-      String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
-      Message msg = new Message(group, Message.Type.ERROR, text);
-      messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
-    }
-  }
-
+  /**
+   * Invoked after a project has been synced with Gradle.
+   */
   public void onProjectSyncCompletion() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
@@ -262,10 +166,10 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    attachSourcesToLibraries();
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        attachSourcesToLibraries();
         ensureAllModulesHaveValidSdks();
       }
     });
@@ -298,6 +202,14 @@ public class PostProjectSetupTasksExecutor {
     ensureValidSdks();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+  }
+
+  private boolean hasCorrectJdkVersion(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.getIdeaAndroidProject() != null) {
+      return hasCorrectJdkVersion(module, facet.getIdeaAndroidProject());
+    }
+    return true;
   }
 
   private void ensureAllModulesHaveValidSdks() {
@@ -637,7 +549,7 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private static void checkSdkToolsVersion(@NotNull Project project) {
-    if (project.isDisposed() || ourSdkVersionWarningShown) {
+    if (project.isDisposed() || ourNewSdkVersionToolsInfoAlreadyShown) {
       return;
     }
     File androidHome = DefaultSdks.getDefaultAndroidHome();
@@ -645,16 +557,101 @@ public class PostProjectSetupTasksExecutor {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
       String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
       AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
-      ourSdkVersionWarningShown = true;
+      ourNewSdkVersionToolsInfoAlreadyShown = true;
     }
   }
 
-  private boolean hasCorrectJdkVersion(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.getIdeaAndroidProject() != null) {
-      return hasCorrectJdkVersion(module, facet.getIdeaAndroidProject());
+  private void ensureValidSdks() {
+    boolean checkJdkVersion = true;
+    Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+        Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+        if (sdk != null && !invalidAndroidSdks.contains(sdk) && isMissingAndroidLibrary(sdk)) {
+          // First try to recreate SDK; workaround for issue 78072
+          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+          AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+          if (additionalData != null && sdkData != null) {
+            IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+            if (target == null) {
+              LocalSdk localSdk = sdkData.getLocalSdk();
+              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
+              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
+            }
+            if (target != null) {
+              SdkModificator sdkModificator = sdk.getSdkModificator();
+              sdkModificator.removeAllRoots();
+              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
+                sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+              }
+              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+              sdkModificator.commitChanges();
+            }
+          }
+
+          // If attempting to fix up the roots in the SDK fails, install the target over again
+          // (this is a truly corrupt install, as opposed to an incorrectly synced SDK which the
+          // above workaround deals with)
+          if (isMissingAndroidLibrary(sdk)) {
+            invalidAndroidSdks.add(sdk);
+          }
+        }
+
+        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
+        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
+          // we already displayed the error, no need to check each module.
+          checkJdkVersion = false;
+        }
+      }
+    }
+
+    if (!invalidAndroidSdks.isEmpty()) {
+      reinstallMissingPlatforms(invalidAndroidSdks);
+    }
+  }
+
+  private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
+    if (isAndroidSdk(sdk)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
+        // annotations.jar and res folder.
+        if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
+          return false;
+        }
+      }
     }
     return true;
+  }
+
+  private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+
+    List<AndroidVersion> versionsToInstall = Lists.newArrayList();
+    List<String> missingPlatforms = Lists.newArrayList();
+
+    for (Sdk sdk : invalidAndroidSdks) {
+      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
+      if (additionalData instanceof AndroidSdkAdditionalData) {
+        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
+        if (platform != null) {
+          missingPlatforms.add("'" + platform + "'");
+          AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
+          if (version != null) {
+            versionsToInstall.add(version);
+          }
+        }
+      }
+    }
+
+    if (!versionsToInstall.isEmpty()) {
+      String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
+      String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
+      Message msg = new Message(group, Message.Type.ERROR, text);
+      messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
+    }
   }
 
   private boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject model) {

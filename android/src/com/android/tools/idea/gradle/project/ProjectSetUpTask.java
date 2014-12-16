@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -37,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
@@ -70,11 +68,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
           if (!isTest) {
             myProject.save();
           }
-        }
-        if (!isAndroidProject(projectInfo)) {
-          // For non-Android projects, we need to tell the IDE that sync has finished, because the project is being configured by IDEA
-          // and not by the Android plug-in.
-          PostProjectSetupTasksExecutor.getInstance(myProject).onProjectSyncCompletion();
         }
 
         if (myProjectIsNew) {
@@ -120,21 +113,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
                 }
               }
             });
+            // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
+            // sources for it. This happens on new projects.
+            PostProjectSetupTasksExecutor.getInstance(myProject).onProjectSyncCompletion();
           }
         });
       }
     });
-  }
-
-  public boolean isAndroidProject(@NotNull DataNode<ProjectData> projectInfo) {
-    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
-    for (DataNode<ModuleData> moduleInfo : modules) {
-      Collection<DataNode<IdeaAndroidProject>> androidProjects = findAll(moduleInfo, IDE_ANDROID_PROJECT);
-      if (!androidProjects.isEmpty()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override
