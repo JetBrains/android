@@ -632,7 +632,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleCoordinate getPluginDefinition(@NotNull String fileContents, @NotNull String pluginName) {
-    String definition = forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
+    String definition = forDependencyDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
       @Override
       public String fun(Pair<String, GroovyLexer> pair) {
         return pair.getFirst();
@@ -642,27 +642,27 @@ public final class GradleUtil {
   }
 
   /**
-   * Updates the version of a Gradle plugin used in a build.gradle file.
+   * Updates the version of a Gradle dependency used in a build.gradle file.
    *
    * @param project           the project containing the build.gradle file.
-   * @param buildFileDocument document of the build.gradle file, which declares the version of the plugin.
-   * @param pluginName        the name of the plugin to look for.
-   * @param versionTask       returns the version of the plugin to update the file to.
+   * @param buildFileDocument document of the build.gradle file, which declares the version of the dependency.
+   * @param dependencyName    the name of the dependency to look for.
+   * @param versionTask       returns the version of the dependency to update the file to.
    * @return {@code true} if the build.gradle file was updated; {@code false} otherwise.
    */
-  public static boolean updateGradlePluginVersion(@NotNull Project project,
-                                                  @NotNull final Document buildFileDocument,
-                                                  @NotNull final String pluginName,
-                                                  @NotNull final Computable<String> versionTask) {
+  public static boolean updateGradleDependencyVersion(@NotNull Project project,
+                                                      @NotNull final Document buildFileDocument,
+                                                      @NotNull final String dependencyName,
+                                                      @NotNull final Computable<String> versionTask) {
     String contents = buildFileDocument.getText();
     Function<Pair<String, GroovyLexer>, TextRange> consumer = new Function<Pair<String, GroovyLexer>, TextRange>() {
       @Override
       public TextRange fun(Pair<String, GroovyLexer> pair) {
         GroovyLexer lexer = pair.getSecond();
-        return TextRange.create(lexer.getTokenStart() + 1 + pluginName.length(), lexer.getTokenEnd() - 1);
+        return TextRange.create(lexer.getTokenStart() + 1 + dependencyName.length(), lexer.getTokenEnd() - 1);
       }
     };
-    final TextRange range = forPluginDefinition(contents, pluginName, consumer);
+    final TextRange range = forDependencyDefinition(contents, dependencyName, consumer);
     if (range != null) {
       WriteCommandAction.runWriteCommandAction(project, new Runnable() {
         @Override
@@ -676,9 +676,9 @@ public final class GradleUtil {
   }
 
   /**
-   * Checks given file contents (assuming that it's build.gradle config) and finds target plugin's definition (given the plugin
-   * name in a form <code>'group-id:artifact-id:'</code>. Supplies given callback with the plugin definition string (unquoted) and
-   * a {@link GroovyLexer} which state points to the plugin definition string (quoted).
+   * Checks given file contents (assuming that it's build.gradle config) and finds target dependency's definition (given the dependency
+   * name in a form <code>'group-id:artifact-id:'</code>. Supplies given callback with the dependency definition string (unquoted) and
+   * a {@link GroovyLexer} which state points to the dependency definition string (quoted).
    * <p/>
    * Example:
    * <pre>
@@ -692,29 +692,29 @@ public final class GradleUtil {
    *     }
    * </pre>
    * Suppose that this method is called for the given build script content and
-   * <code>'com.google.appengine:gradle-appengine-plugin:'</code> as a plugin name argument. Given callback is supplied by a
+   * <code>'com.google.appengine:gradle-appengine-plugin:'</code> as a dependency name argument. Given callback is supplied by a
    * string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code> (without quotes) and a {@link GroovyLexer} which
    * {@link GroovyLexer#getTokenStart() points} to the string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code>
-   * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
+   * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing dependency's
    * version.
    *
-   * @param fileContents target gradle config text
-   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @param consumer     a callback to be notified for the target plugin's definition string
-   * @param <T>          given callback's return type
-   * @return given callback's call result if target plugin definition is found; <code>null</code> otherwise
+   * @param fileContents   target gradle config text
+   * @param dependencyName target dependency's name in a form {@code 'group-id:artifact-id:'}
+   * @param consumer       a callback to be notified for the target dependency's definition string
+   * @param <T>            given callback's return type
+   * @return given callback's call result if target dependency definition is found; {@code null} otherwise
    */
   @Nullable
-  private static <T> T forPluginDefinition(@NotNull String fileContents,
-                                           @NotNull String pluginName,
-                                           @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
+  private static <T> T forDependencyDefinition(@NotNull String fileContents,
+                                               @NotNull String dependencyName,
+                                               @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
     GroovyLexer lexer = new GroovyLexer();
     lexer.start(fileContents);
     while (lexer.getTokenType() != null) {
       IElementType type = lexer.getTokenType();
       if (type == GroovyTokenTypes.mSTRING_LITERAL) {
         String text = StringUtil.unquoteString(lexer.getTokenText());
-        if (text.startsWith(pluginName)) {
+        if (text.startsWith(dependencyName)) {
           return consumer.fun(Pair.create(text, lexer));
         }
       }

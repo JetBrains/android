@@ -27,6 +27,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
+import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+
 /**
  * Builds a project, regardless of the compiler strategy being used (JPS or "direct Gradle invocation.")
  */
@@ -43,8 +46,8 @@ public class ProjectBuilder {
   }
 
   public void assembleTranslate() {
-    if (Projects.isGradleProject(myProject)) {
-      if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+    if (isGradleProject(myProject)) {
+      if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).assembleTranslate();
         return;
       }
@@ -53,8 +56,8 @@ public class ProjectBuilder {
   }
 
   public void compileJava() {
-    if (Projects.isGradleProject(myProject)) {
-      if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+    if (isGradleProject(myProject)) {
+      if (isDirectGradleInvocationEnabled(myProject)) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
         GradleInvoker.getInstance(myProject).compileJava(modules);
         return;
@@ -64,8 +67,8 @@ public class ProjectBuilder {
   }
 
   public void clean() {
-    if (Projects.isGradleProject(myProject)) {
-      if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+    if (isGradleProject(myProject)) {
+      if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).cleanProject();
         return;
       }
@@ -78,12 +81,13 @@ public class ProjectBuilder {
    * Gradle task to invoke.
    */
   public void generateSourcesOnly() {
-    if (Projects.isGradleProject(myProject)) {
-      if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+    if (isGradleProject(myProject)) {
+      if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).generateSources();
-        return;
       }
-      buildProjectWithJps(BuildMode.SOURCE_GEN);
+      else {
+        buildProjectWithJps(BuildMode.SOURCE_GEN);
+      }
     }
   }
 
