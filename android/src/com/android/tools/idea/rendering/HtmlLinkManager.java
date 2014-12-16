@@ -45,6 +45,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -571,6 +572,37 @@ public class HtmlLinkManager {
     return URL_ASSIGN_FRAGMENT_URL + (id != null ? id : "");
   }
 
+  /**
+   * Converts a (possibly ambiguous) class name like A.B.C.D into an Android-style class name
+   * like A.B$C$D where package names are separated by dots and inner classes are separated by dollar
+   * signs (similar to how the internal JVM format uses dollar signs for inner classes but slashes
+   * as package separators)
+   */
+  @NotNull
+  private static String getFragmentClass(@NotNull final Module module, @NotNull final String fqcn) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      @NotNull
+      public String compute() {
+        Project project = module.getProject();
+        JavaPsiFacade finder = JavaPsiFacade.getInstance(project);
+        PsiClass psiClass = finder.findClass(fqcn, module.getModuleScope());
+        if (psiClass == null) {
+          psiClass = finder.findClass(fqcn, GlobalSearchScope.allScope(project));
+        }
+
+        if (psiClass != null) {
+          String jvmClassName = ClassUtil.getJVMClassName(psiClass);
+          if (jvmClassName != null) {
+            return jvmClassName.replace('/', '.');
+          }
+        }
+
+        return fqcn;
+      }
+    });
+  }
+
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
@@ -579,7 +611,7 @@ public class HtmlLinkManager {
     if (!dialog.isOK()) {
       return;
     }
-    final String fragmentClass = dialog.getClassName();
+    final String fragmentClass = getFragmentClass(module, dialog.getClassName());
 
     int start = URL_ASSIGN_FRAGMENT_URL.length();
     final String id;
