@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -70,6 +71,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 
 /**
@@ -203,7 +205,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   private static List<File> findAndroidGradlePluginJarPaths() {
-    File repoPath = GradleUtil.getAndroidStudioLocalMavenRepoPath();
+    File repoPath = findAndroidStudioLocalMavenRepoPath();
     if (repoPath != null) {
       File parentPath = new File(repoPath, FileUtil.join("com", "android", "tools", "build"));
       if (parentPath.isDirectory()) {
