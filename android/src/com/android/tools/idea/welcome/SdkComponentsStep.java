@@ -23,10 +23,12 @@ import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -66,9 +68,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private JLabel myNeededSpace;
   private JLabel myAvailableSpace;
   private JLabel myErrorMessage;
-  private JSplitPane mySplitPane;
   private ScopedStateStore.Key<String> mySdkDownloadPathKey;
   private TextFieldWithBrowseButton myPath;
+  private JPanel myBody;
   private boolean myUserEditedPath = false;
 
   public SdkComponentsStep(@NotNull InstallableComponent[] components,
@@ -83,12 +85,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
     mySdkDownloadPathKey = sdkDownloadPathKey;
-    myComponentDescription.setEditable(false);
-    myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
-                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
-                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
-                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE));
-    mySplitPane.setBorder(null);
     Font labelFont = UIUtil.getLabelFont();
     Font smallLabelFont = labelFont.deriveFont(labelFont.getSize() - 1.0f);
     myNeededSpace.setFont(smallLabelFont);
@@ -304,6 +300,24 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @Override
   public boolean isStepVisible() {
     return !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true);
+  }
+
+  private void createUIComponents() {
+    Splitter splitter = new Splitter(false, 0.5f, 0.2f, 0.8f);
+    myBody = splitter;
+    myComponentsTable = new JBTable();
+    myComponentDescription = new JTextPane();
+    splitter.setShowDividerIcon(false);
+    splitter.setShowDividerControls(false);
+    splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myComponentsTable, false));
+    splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myComponentDescription, false));
+
+    myComponentDescription.setFont(UIUtil.getLabelFont());
+    myComponentDescription.setEditable(false);
+    myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                                                     WizardConstants.STUDIO_WIZARD_INSET_SIZE));
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
