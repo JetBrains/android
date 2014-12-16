@@ -101,7 +101,11 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
     AvdWizardConstants.SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
     // synchronously get the local images in case one should already be selected
     mySystemImageList.refreshLocalImagesSynchronously();
-    mySystemImageList.setSelectedImage(selectedImage);
+    if (selectedImage != null) {
+      mySystemImageList.setSelectedImage(selectedImage);
+    } else {
+      mySystemImageList.selectDefaultImage();
+    }
     mySystemImageList.refreshImages(false);
   }
 
