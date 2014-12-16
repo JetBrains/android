@@ -260,7 +260,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     File skinFile = state.get(CUSTOM_SKIN_FILE_KEY);
     if (skinFile == null) {
-      skinFile = getHardwareSkinPath(device.getDefaultHardware());
+      skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription);
     }
 
     // Add defaults if they aren't already set differently
@@ -331,18 +331,34 @@ public class AvdEditWizard extends DynamicWizard {
     return infoReference.get();
   }
 
+  /**
+   * Resolve a possibly relative path into a skin directory. If {@code image} is provided, try to match the given path
+   * against a skin path from {@code image.getSkins()}. If no match is found or no image is provided, look in the path given by
+   * {@link DeviceArtDescriptor#getBundledDescriptorsFolder()}. If no match is found, return {@code path}.
+   * @param path The path to resolve.
+   * @param image A SystemImageDescription to use as an additional source of skin directories.
+   * @return The resolved path.
+   */
   @Nullable
-  public static File getHardwareSkinPath(@NotNull Hardware hardware) {
-    File path = hardware.getSkinFile();
-    if (path != null && !path.isAbsolute()) {
-      if (path.getPath().isEmpty()) {
-        return null;
+  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image) {
+    if (path == null || path.getPath().isEmpty() || path.equals(NO_SKIN)) {
+      return path;
+    }
+    if (!path.isAbsolute()) {
+      if (image != null) {
+        File[] skins = image.getSkins();
+        for (File skin : skins) {
+          if (skin.getPath().endsWith("/" + path.getPath())) {
+            return skin;
+          }
+        }
       }
       File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
       if (resourceDir != null) {
-        path = new File(resourceDir, path.getPath());
-      } else {
-        return null;
+        File resourcePath = new File(resourceDir, path.getPath());
+        if (resourcePath.exists()) {
+          return resourcePath;
+        }
       }
     }
     return path;

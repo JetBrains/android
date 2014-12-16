@@ -415,6 +415,7 @@ public class AvdManagerConnection {
     }
     if (FileUtil.filesEqual(skinFolder, NO_SKIN)) {
       skinFolder = null;
+      hardwareProperties.remove(AvdManager.AVD_INI_SKIN_PATH);
     }
     if (skinFolder == null) {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
