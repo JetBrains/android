@@ -27,6 +27,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.DynamicWizard;
+import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.SingleStepPath;
 import com.google.common.base.Predicate;
@@ -65,13 +66,20 @@ public class AvdEditWizard extends DynamicWizard {
   public void init() {
     if (myAvdInfo != null) {
       fillExistingInfo(myAvdInfo);
+      if (myForceCreate) {
+        String displayName = myAvdInfo.getProperties().get(AvdWizardConstants.DISPLAY_NAME_KEY.name);
+        getState().put(DISPLAY_NAME_KEY, String.format("Copy of %1$s", displayName));
+      }
     } else {
       initDefaultInfo();
     }
     addPath(new AvdConfigurationPath(getDisposable()));
-    addPath(new SingleStepPath(new ConfigureAvdOptionsStep(getDisposable())));
-
+    DynamicWizardStep configStep = new ConfigureAvdOptionsStep(getDisposable());
+    addPath(new SingleStepPath(configStep));
     super.init();
+    if (myForceCreate && myAvdInfo != null) {
+      getState().put(IS_IN_EDIT_MODE_KEY, false);
+    }
   }
 
   /**
@@ -290,6 +298,10 @@ public class AvdEditWizard extends DynamicWizard {
           }
         }
       }
+    }
+
+    if (forceCreate) {
+      avdInfo = null;
     }
 
     return createWithProgress(avdInfo, device, systemImageDescription, orientation, hardwareProperties, sdCard, skinFile, isCircular,
