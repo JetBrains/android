@@ -193,8 +193,8 @@ public final class AndroidSdkUtils {
       }
     }
 
-    if (sdkPath != null) {
-      // todo: check if we should do it for new android platforms (api_level >= 15)
+    // Explicitly add annotations.jar unless the target platform already provides it (API16+).
+    if (sdkPath != null && target.getVersion().getApiLevel() <= 15) {
       JarFileSystem jarFileSystem = JarFileSystem.getInstance();
       String annotationsJarPath =
         FileUtil.toSystemIndependentName(sdkPath) + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH + JarFileSystem.JAR_SEPARATOR;
