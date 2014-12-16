@@ -103,11 +103,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         refreshAvds();
       }
     });
-
+    myRefreshButton.putClientProperty("JButton.buttonType", "segmented-only");
     CreateAvdAction createAvdAction = new CreateAvdAction(this);
     JButton newButton = new JButton(createAvdAction);
     newButton.setIcon(createAvdAction.getIcon());
     newButton.setText(createAvdAction.getText());
+    newButton.putClientProperty("JButton.buttonType", "segmented-only");
     southPanel.add(newButton, BorderLayout.WEST);
     nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
