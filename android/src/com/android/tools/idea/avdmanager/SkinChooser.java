@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.wizard.ScopedDataBinder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -25,6 +28,8 @@ import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +39,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -51,10 +57,16 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     getComboBox().setRenderer(new ColoredListCellRenderer() {
       @Override
       protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value == NO_SKIN) {
+        File skinFile = (File)value;
+        String skinPath = skinFile.getPath();
+        if (skinFile.equals(NO_SKIN)) {
           append("No Skin");
+        } else if (skinPath.contains("/sdk/platforms/")) {
+          append(skinPath.replaceAll(".*/sdk/platforms/(.*)/skins/(.*)","$2 ($1)"));
+        } else if (skinPath.contains("/sdk/system-images/")) {
+          append(skinPath.replaceAll(".*/sdk/system-images/(.*)/(.*)/(.*)/skins/(.*)","$4 ($1 $3)"));
         } else {
-          append(((File)value).getName());
+          append(skinFile.getName());
         }
       }
     });
@@ -88,9 +100,25 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
     Set<File> result = Sets.newTreeSet();
     for (Device device : devices) {
-      File skinFile = AvdEditWizard.getHardwareSkinPath(device.getDefaultHardware());
-      if (skinFile != null) {
+      File skinFile = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), null);
+      if (skinFile != null && skinFile.exists()) {
         result.add(skinFile);
+      }
+    }
+    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    LocalSdk mySdk = androidSdkData.getLocalSdk();
+    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
+    for (IAndroidTarget target : targets) {
+      ISystemImage[] systemImages = target.getSystemImages();
+      if (systemImages != null) {
+        for (ISystemImage image : systemImages) {
+          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          for (File skin : desc.getSkins()) {
+            if (skin.exists()) {
+              result.add(skin);
+            }
+          }
+        }
       }
     }
     List<File> resultList = Lists.newArrayList();
