@@ -1016,7 +1016,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     List<String> abis = device.getAbis();
     int density = device.getDensity();
     Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
-    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
+    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, null /* lamguage */, null /* language */, abis);
     if (apkFiles.isEmpty()) {
       String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
       LOG.error(message);
