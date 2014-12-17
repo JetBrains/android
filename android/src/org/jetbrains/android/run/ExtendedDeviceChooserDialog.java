@@ -82,7 +82,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
       public void selectedDevicesChanged() {
-        updateOkButton();
+        myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
+        myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.hasDevices());
+        updateEnabled();
       }
     });
 
