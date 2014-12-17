@@ -62,6 +62,8 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     } else {
       assert ApplicationManager.getApplication().isUnitTestMode();
     }
+    setTitle("Android Platform/API Version Distribution");
+
     init();
   }
 
