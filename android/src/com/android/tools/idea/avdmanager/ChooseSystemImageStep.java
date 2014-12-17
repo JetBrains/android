@@ -20,6 +20,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -97,7 +98,14 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    myCurrentDevice = myState.get(DEVICE_DEFINITION_KEY);
+    Device newDevice = myState.get(DEVICE_DEFINITION_KEY);
+    String newTag = newDevice == null ? null : newDevice.getTagId();
+    String oldTag = myCurrentDevice == null ? null : myCurrentDevice.getTagId();
+    // If we've changed device types, the previously selected device is invalid
+    if (!Objects.equal(newTag, oldTag)) {
+      myState.remove(SYSTEM_IMAGE_KEY);
+    }
+    myCurrentDevice = newDevice;
     AvdWizardConstants.SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
     // synchronously get the local images in case one should already be selected
     mySystemImageList.refreshLocalImagesSynchronously();
