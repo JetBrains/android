@@ -89,6 +89,11 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testSuperCall() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   // This test does not yet work reliably; need to ensure correct JDK 7 loading.
   @Ignore
   public void DISABLEDtestTryWithResources() throws Exception {
