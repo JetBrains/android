@@ -24,20 +24,28 @@ import org.jetbrains.annotations.NotNull;
 
 public class OpenFileHyperlink extends NotificationHyperlink {
   @NotNull private final String myFilePath;
-  private final int myLine;
+  private final int myLineNumber;
+  private final int myColumn;
 
   public OpenFileHyperlink(@NotNull final String filePath) {
     this(filePath, -1);
   }
 
   /**
-   * Creates a file hyperlink. The line number should be 0-based. The file path should be a file system dependent
-   * path.
+   * Creates a file hyperlink. The line number should be 0-based. The file path should be a file system dependent path.
    */
-  public OpenFileHyperlink(@NotNull String filePath, int line) {
-    super("openFile", "Open File");
+  public OpenFileHyperlink(@NotNull String filePath, int lineNumber) {
+    this(filePath, "Open File", lineNumber, -1);
+  }
+
+  /**
+   * Creates a file hyperlink. The line and column numbers should be 0-based. The file path should be a file system dependent path.
+   */
+  public OpenFileHyperlink(@NotNull String filePath, @NotNull String text, int lineNumber, int column) {
+    super("openFile", text);
     myFilePath = FileUtil.toSystemIndependentName(filePath);
-    myLine = line;
+    myLineNumber = lineNumber;
+    myColumn = column;
   }
 
   @Override
@@ -49,7 +57,7 @@ public class OpenFileHyperlink extends NotificationHyperlink {
     }
     VirtualFile file = projectFile.getParent().getFileSystem().findFileByPath(myFilePath);
     if (file != null) {
-      Navigatable openFile = new OpenFileDescriptor(project, file, myLine, -1, false);
+      Navigatable openFile = new OpenFileDescriptor(project, file, myLineNumber, myColumn, false);
       if (openFile.canNavigate()) {
         openFile.navigate(true);
       }

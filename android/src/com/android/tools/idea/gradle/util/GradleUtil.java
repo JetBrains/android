@@ -633,7 +633,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleCoordinate getPluginDefinition(@NotNull String fileContents, @NotNull String pluginName) {
-    String definition = forDependencyDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
+    String definition = findStringLiteral(pluginName, fileContents, new Function<Pair<String, GroovyLexer>, String>() {
       @Override
       public String fun(Pair<String, GroovyLexer> pair) {
         return pair.getFirst();
@@ -656,14 +656,13 @@ public final class GradleUtil {
                                                       @NotNull final String dependencyName,
                                                       @NotNull final Computable<String> versionTask) {
     String contents = buildFileDocument.getText();
-    Function<Pair<String, GroovyLexer>, TextRange> consumer = new Function<Pair<String, GroovyLexer>, TextRange>() {
+    final TextRange range = findStringLiteral(dependencyName, contents, new Function<Pair<String, GroovyLexer>, TextRange>() {
       @Override
       public TextRange fun(Pair<String, GroovyLexer> pair) {
         GroovyLexer lexer = pair.getSecond();
         return TextRange.create(lexer.getTokenStart() + 1 + dependencyName.length(), lexer.getTokenEnd() - 1);
       }
-    };
-    final TextRange range = forDependencyDefinition(contents, dependencyName, consumer);
+    });
     if (range != null) {
       WriteCommandAction.runWriteCommandAction(project, new Runnable() {
         @Override
@@ -676,46 +675,28 @@ public final class GradleUtil {
     return false;
   }
 
-  /**
-   * Checks given file contents (assuming that it's build.gradle config) and finds target dependency's definition (given the dependency
-   * name in a form <code>'group-id:artifact-id:'</code>. Supplies given callback with the dependency definition string (unquoted) and
-   * a {@link GroovyLexer} which state points to the dependency definition string (quoted).
-   * <p/>
-   * Example:
-   * <pre>
-   *     buildscript {
-   *       repositories {
-   *         mavenCentral()
-   *       }
-   *       dependencies {
-   *         classpath 'com.google.appengine:gradle-appengine-plugin:1.9.4'
-   *       }
-   *     }
-   * </pre>
-   * Suppose that this method is called for the given build script content and
-   * <code>'com.google.appengine:gradle-appengine-plugin:'</code> as a dependency name argument. Given callback is supplied by a
-   * string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code> (without quotes) and a {@link GroovyLexer} which
-   * {@link GroovyLexer#getTokenStart() points} to the string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code>
-   * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing dependency's
-   * version.
-   *
-   * @param fileContents   target gradle config text
-   * @param dependencyName target dependency's name in a form {@code 'group-id:artifact-id:'}
-   * @param consumer       a callback to be notified for the target dependency's definition string
-   * @param <T>            given callback's return type
-   * @return given callback's call result if target dependency definition is found; {@code null} otherwise
-   */
   @Nullable
-  private static <T> T forDependencyDefinition(@NotNull String fileContents,
-                                               @NotNull String dependencyName,
-                                               @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
+  public static TextRange findDependency(@NotNull final String dependency, @NotNull String contents) {
+    return findStringLiteral(dependency, contents, new Function<Pair<String, GroovyLexer>, TextRange>() {
+      @Override
+      public TextRange fun(Pair<String, GroovyLexer> pair) {
+        GroovyLexer lexer = pair.getSecond();
+        return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
+      }
+    });
+  }
+
+  @Nullable
+  private static <T> T findStringLiteral(@NotNull String textToSearchPrefix,
+                                         @NotNull String fileContents,
+                                         @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
     GroovyLexer lexer = new GroovyLexer();
     lexer.start(fileContents);
     while (lexer.getTokenType() != null) {
       IElementType type = lexer.getTokenType();
       if (type == GroovyTokenTypes.mSTRING_LITERAL) {
         String text = StringUtil.unquoteString(lexer.getTokenText());
-        if (text.startsWith(dependencyName)) {
+        if (text.startsWith(textToSearchPrefix)) {
           return consumer.fun(Pair.create(text, lexer));
         }
       }
@@ -953,7 +934,7 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return true if the dependencies include the given artifact (including transitively)
    */
-  public static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
+  private static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (dependsOn(library, artifact, true)) {
         return true;
