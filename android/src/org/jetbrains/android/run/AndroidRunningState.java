@@ -1198,7 +1198,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     try {
       InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
       if (installedApks.isInstalled(device, new File(localPath), packageName)) {
-        message("No apk changes detected. Skipping file upload.", STDOUT);
+        message("No apk changes detected. Skipping file upload, force stopping package instead.", STDOUT);
+        forceStopPackageSilently(device, packageName, true);
         return true;
       } else {
         device.pushFile(localPath, remotePath);
@@ -1263,6 +1264,18 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       message(errorMessage + '\n' + exceptionMessage, STDERR);
     }
     return false;
+  }
+
+  /** Attempts to force stop package running on given device. */
+  private void forceStopPackageSilently(@NotNull IDevice device, @NotNull String packageName, boolean ignoreErrors) {
+    try {
+      executeDeviceCommandAndWriteToConsole(device, "am force-stop " + packageName, new MyReceiver());
+    }
+    catch (Exception e) {
+      if (!ignoreErrors) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @SuppressWarnings({"DuplicateThrows"})
