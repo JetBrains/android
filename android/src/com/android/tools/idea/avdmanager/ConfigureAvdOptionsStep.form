@@ -349,15 +349,12 @@
                   <text value="AVD Id"/>
                 </properties>
               </component>
-              <component id="9abcf" class="javax.swing.JTextField" binding="myAvdId">
+              <component id="7e00f" class="com.intellij.ui.components.JBLabel" binding="myAvdId">
                 <constraints>
                   <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
                   </grid>
                 </constraints>
-                <properties>
-                  <editable value="false"/>
-                </properties>
               </component>
               <component id="52182" class="javax.swing.JSeparator">
                 <constraints>

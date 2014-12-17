@@ -59,6 +59,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.*;
  *   <li>JSpinner</li>
  *   <li>TextFieldWithBrowseButton (from IntelliJPlatform)</li>
  *   <li>ColorPanel</li>
+ *   <li>JLabel</li>
  * </ul>
  *
  * Additional components (including custom built components) that inherit from JComponent can be registered by providing an
@@ -300,6 +301,8 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       ((JSpinner)component).setValue(value);
     } else if (component instanceof ColorPanel && value != null) {
       ((ColorPanel)component).setSelectedColor((Color)value);
+    } else if (component instanceof JLabel) {
+      ((JLabel)component).setText((String)value);
     }
   }
 
@@ -523,6 +526,15 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     textField.addFocusListener(this);
     textField.getDocument().addDocumentListener(this);
+  }
+
+  protected void register(@NotNull Key<String> key, @NotNull JLabel label) {
+    String value = bindAndGet(key, label, null);
+    if (value != null) {
+      label.setText(value);
+    } else {
+      myState.put(key, label.getText());
+    }
   }
 
   /**
