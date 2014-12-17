@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This file was created by NSISDialogDesigner 1.3.0.0
+http://coolsoft.altervista.org/nsisdialogdesigner
+Do not edit manually!
+-->
+<Dialog Name="HaxmPage" Title="Configuration Settings" Subtitle="Emulator Setup" Style="none" ExStyle="none">
+  <HeaderCustomScript>Var var_HaxmPage_MinMB
+Var var_HaxmPage_MaxMB
+Var var_HaxmPage_RecommendedMB
+Var var_HaxmPage_SelectedMB
+Var var_HaxmPage_MinStr
+Var var_HaxmPage_MaxStr
+Var var_HaxmPage_RecommendedStr
+
+!define HAXM_LINK "http://www.intel.com/software/android/"
+
+!define 4GB 4096
+!define 2GB 2048
+!define 1GB 1024
+
+!define STR_RANGE "* This value must be between $var_HaxmPage_MinStr and $var_HaxmPage_MaxStr"
+!define STR_RECOMMENDED "$var_HaxmPage_RecommendedStr"</HeaderCustomScript>
+  <CreateFunctionCustomScript>Call fnc_HaxmPage_InitializeControls</CreateFunctionCustomScript>
+  <FooterCustomScript>Function fnc_HaxmPage_RadioChanged
+    # Store values
+    Push $0 # Check state
+    Push $1 # Enable boolean
+
+    ${NSD_GetState} $hCtl_HaxmPage_RadioCustom $0
+    ${If} $0 == ${BST_CHECKED}
+        StrCpy $1 1
+    ${Else}
+        StrCpy $1 0
+    ${EndIf}
+
+    EnableWindow $hCtl_HaxmPage_NumberCustom $1
+    EnableWindow $hCtl_HaxmPage_ListUnits $1
+
+    # Restore values
+    Pop $1
+    Pop $0
+FunctionEnd
+
+Function fnc_HaxmPage_LinkAboutHaxm_OnClick
+    ExecShell "open" ${HAXM_LINK}
+FunctionEnd
+
+# Initializes various HAXM page values based on the passed in system memory.
+# Call this after pushing the amount of system memory (in MB) on the stack.
+# It is assumed this method will not get called if the user has less than 1GB
+# of memory!
+Function fnc_HaxmPage_SetSystemMemory
+    Exch $0 # Save existing $0. Now set to amount of system memory in MB
+    Push $1 # Save existing $1. Used as a temp var later.
+
+    # Pseudo-code for the following logic:
+    # min = 512MB
+    # if (mem &gt; 4GB) {
+    #   max = mem - 2GB;
+    #   default = 2GB;
+    # }
+    # else {
+    #   max = mem / 2;
+    #   default = (mem &gt; 2GB) ? 1GB : 512MB;
+    # }
+
+    # Initialize memory bounds (max, max, recommended)
+    StrCpy $var_HaxmPage_MinMB 512
+
+    ${If} $0 &gt;= ${4GB}
+        IntOp $var_HaxmPage_MaxMB $0 - ${2GB}
+        StrCpy $var_HaxmPage_RecommendedMB ${2GB}
+    ${Else}
+        IntOp $var_HaxmPage_MaxMB $0 / 2
+
+        ${If} $var_HaxmPage_MaxMB &gt;= ${2GB}
+            StrCpy $var_HaxmPage_RecommendedMB ${1GB}
+        ${Else}
+            StrCpy $var_HaxmPage_RecommendedMB 512
+        ${EndIf}
+    ${EndIf}
+
+    # Max can be less than min only if a user's memory &lt; 1GB, but really we
+    # should never be getting here ever. But it's easy enough to handle it
+    # here just in case.
+    ${If} $var_HaxmPage_MaxMB &lt; $var_HaxmPage_MinMB
+        StrCpy $var_HaxmPage_MaxMB $var_HaxmPage_MinMB
+    ${EndIf}
+
+    # Update strings
+
+    StrCpy $var_HaxmPage_MinStr "$var_HaxmPage_MinMB MB"
+
+    ${If} $var_HaxmPage_MaxMB &gt;= ${1GB}
+        IntOp $0 $var_HaxmPage_MaxMB / ${1GB}
+        StrCpy $var_HaxmPage_MaxStr "$0 GB"
+    ${Else}
+        StrCpy $var_HaxmPage_MaxStr "$var_HaxmPage_MaxMB MB"
+    ${EndIf}
+
+    ${If} $var_HaxmPage_RecommendedMB &gt;= ${1GB}
+        IntOp $0 $var_HaxmPage_RecommendedMB / ${1GB}
+        StrCpy $var_HaxmPage_RecommendedStr "$0 GB"
+    ${Else}
+        StrCpy $var_HaxmPage_RecommendedStr "$var_HaxmPage_RecommendedMB MB"
+    ${EndIf}
+
+    # Update controls
+
+    # If we pressed back to come back to this page, var_HaxmPage_SelectedMB
+    # will already be set, and we should use that value.
+    # After this point, $0 will be the amount of memory to show for the Custom
+    # radio button.
+    ${If} $var_HaxmPage_SelectedMB &gt; 0
+        StrCpy $0 $var_HaxmPage_SelectedMB
+
+        # Use the recommended radio button if possible, but select custom if
+        # we are coming back to this page and the user changed it before.
+        ${If} $var_HaxmPage_SelectedMB != $var_HaxmPage_RecommendedMB
+            ${NSD_Uncheck} $hCtl_HaxmPage_RadioRecommended
+            ${NSD_Check} $hCtl_HaxmPage_RadioCustom
+            Call fnc_HaxmPage_RadioChanged
+        ${EndIf}
+    ${Else}
+        StrCpy $0 $var_HaxmPage_RecommendedMB
+    ${EndIf}
+
+    # Set custom text input to GB if $0 is a multiple of 1024, else MB for the
+    # extra precision (NSIS doesn't have floats, so 2560 MB, not 2.5 GB).
+    # However, GB looks better, so use it if possible
+    IntOp $1 $0 % ${1GB}
+    ${If} $0 &gt;= ${1GB}
+    ${AndIf} $1 == 0
+        IntOp $0 $0 / ${1GB}
+        ${NSD_SetText} $hCtl_HaxmPage_NumberCustom $0
+        ${NSD_CB_SelectString} $hCtl_HaxmPage_ListUnits "GB"
+    ${Else}
+        ${NSD_SetText} $hCtl_HaxmPage_NumberCustom $0
+        ${NSD_CB_SelectString} $hCtl_HaxmPage_ListUnits "MB"
+    ${EndIf}
+
+    ${NSD_SetText} $hCtl_HaxmPage_LabelBounds "${STR_RANGE}"
+    ${NSD_SetText} $hCtl_HaxmPage_LabelRecommended "${STR_RECOMMENDED}"
+
+    # Restore old values
+    Pop $1
+    Pop $0
+FunctionEnd
+
+# This verifies that the current memory setting that the user chose is correct.
+# Pushes 1 onto the stack if valid, 0 otherwise. The value
+# var_HaxmPage_SelectedMB will be set after this function is complete.
+Function fnc_HaxmPage_Leave
+
+    Push $0 # Save existing $0. Will be used to hold radio checked state
+    Push $1 # Save existing $1. Will be used to hold "MB" or "GB"
+
+    ${NSD_GetState} $hCtl_HaxmPage_RadioRecommended $0
+
+    ${If} $0 == ${BST_CHECKED}
+        StrCpy $var_HaxmPage_SelectedMB $var_HaxmPage_RecommendedMB
+    ${Else}
+        ${NSD_GetText} $hCtl_HaxmPage_NumberCustom $var_HaxmPage_SelectedMB
+        ${NSD_GetText} $hCtl_HaxmPage_ListUnits $1
+
+        ${If} $1 == "GB"
+            IntOp $var_HaxmPage_SelectedMB  $var_HaxmPage_SelectedMB * 1024
+        ${EndIf}
+
+    ${EndIf}
+
+    # Restore old values
+    Pop $1
+    Pop $0
+
+    ${If} $var_HaxmPage_SelectedMB &lt; $var_HaxmPage_MinMB
+    ${OrIf} $var_HaxmPage_SelectedMB &gt; $var_HaxmPage_MaxMB
+    MessageBox MB_OK|MB_ICONEXCLAMATION 'The selected amount of RAM is not in range.'
+        Abort
+    ${EndIf}
+FunctionEnd</FooterCustomScript>
+  <Label Name="LabelWarning" Location="0, 200" Size="450, 27" Text="Note: Setting aside a large memory reservation may cause other programs to run slowly when using the x86 Android emulator with HAXM." TabIndex="0" Style="none" ExStyle="none" />
+  <DropList Name="ListUnits" Location="179, 148" Size="50, 21" TabIndex="1" SelectedItem="GB" Enabled="False" Style="none" ExStyle="none">
+    <Items>
+      <value>GB</value>
+      <value>MB</value>
+    </Items>
+  </DropList>
+  <Number Name="NumberCustom" Location="110, 149" Size="63, 20" TabIndex="2" Enabled="False" Style="none" ExStyle="none" />
+  <Label Name="LabelRecommended" Location="110, 133" Size="100, 15" Text="2 GB" TabIndex="3" Style="none" ExStyle="none" />
+  <Label Name="LabelBounds" Location="110, 172" Size="280, 18" Text="* This value must be between 512MB and 32GB. " TabIndex="4" Style="none" ExStyle="none" />
+  <RadioButton Name="RadioCustom" Location="0, 151" Size="104, 15" Text="Custom:" TabIndex="5" Style="none" ExStyle="none" onClick="fnc_HaxmPage_RadioChanged" />
+  <RadioButton Name="RadioRecommended" Location="0, 132" Size="104, 15" Text="Recommended:" Checked="True" TabIndex="6" Style="none" ExStyle="none" onClick="fnc_HaxmPage_RadioChanged" />
+  <Label Name="LabelAboutHaxmEnd" Location="0, 93" Size="136, 20" Text="for more information." TabIndex="7" Style="none" ExStyle="none" />
+  <Link Name="LinkAboutHaxm" Location="307, 79" Size="141, 20" Text="Intel HAXM Documentation" TabIndex="8" Style="none" ExStyle="none" onClick="fnc_HaxmPage_LinkAboutHaxm_OnClick" />
+  <Label Name="LabelAboutHaxmStart" Location="0, 79" Size="316, 17" Text="You can change these settings at any time. Please refer to the" TabIndex="9" Style="none" ExStyle="none" />
+  <Label Name="LabelHeader" Location="0, 0" Size="450, 65" Text="We have detected that your system can run the Android emulator in an accelerated performance mode.&#xD;&#xA;&#xD;&#xA;Please set the maximum amount of RAM available for the Intel Hardware Accelerated Manager (HAXM) to use for all x86 emulator instances." TabIndex="10" Style="none" ExStyle="none" />
+</Dialog>
