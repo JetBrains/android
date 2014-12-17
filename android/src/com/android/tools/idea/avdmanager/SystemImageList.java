@@ -113,18 +113,22 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myModel.setSortable(true);
     refreshImages(true);
     myTable.setModelAndUpdateColumns(myModel);
-    myTable.setSelectionModel(new SingleSelectionModel() {
-      @Override
-      public void setSelectionInterval(int index0, int index1) {
-        super.setSelectionInterval(index0, index1);
-        TableCellEditor editor = myTable.getCellEditor();
-        if (editor != null) {
-          editor.cancelCellEditing();
+    ListSelectionModel selectionModel =
+      new DefaultListSelectionModel() {
+        @Override
+        public void setSelectionInterval(int index0, int index1) {
+          super.setSelectionInterval(index0, index1);
+          TableCellEditor editor = myTable.getCellEditor();
+          if (editor != null) {
+            editor.cancelCellEditing();
+          }
+          myTable.repaint();
+          possiblySwitchEditors(index0, 0);
         }
-        myTable.repaint();
-        possiblySwitchEditors(index0, 0);
-      }
-    });
+      };
+    selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myTable.setSelectionModel(selectionModel);
+
     myTable.setRowSelectionAllowed(true);
     myTable.addMouseListener(editorListener);
     myTable.addMouseMotionListener(editorListener);
