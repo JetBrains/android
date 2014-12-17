@@ -293,7 +293,6 @@ public class AndroidStatisticsService implements StatisticsService {
    */
   @Nullable
   public String sendData(@NotNull StatsProto.LogRequest request) throws IOException {
-
     if (request == null) {
       return "[SendStats] Invalid arguments";
     }
