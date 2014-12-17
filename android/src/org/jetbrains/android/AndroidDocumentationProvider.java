@@ -153,7 +153,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
       PsiClass typeClass = field.getContainingClass();
       if (typeClass != null) {
         PsiClass rClass = typeClass.getContainingClass();
-        return rClass != null && CLASS_R.equals(rClass.getQualifiedName());
+        return rClass != null && CLASS_R.equals(AndroidPsiUtils.getQualifiedNameSafely(rClass));
       }
 
     }
