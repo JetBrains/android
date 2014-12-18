@@ -38,11 +38,11 @@ import java.util.Map;
 /**
  * Uses {@link com.intellij.openapi.ui.DialogWrapper} to display a wizard in a dialog
  */
-public final class DialogWrapperHost extends DialogWrapper implements DynamicWizardHost {
+public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHost {
   // Action References. myCancelAction and myHelpAction are inherited
-  private Action myPreviousAction = new PreviousAction();
-  private Action myNextAction = new NextAction();
-  private Action myFinishAction = new FinishAction();
+  protected Action myPreviousAction = new PreviousAction();
+  protected Action myNextAction = new NextAction();
+  protected Action myFinishAction = new FinishAction();
 
   private DynamicWizard myWizard;
   private TallImageComponent myIcon = new TallImageComponent(null);
@@ -110,7 +110,7 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
    */
   @NotNull
   @Override
-  protected final Action[] createActions() {
+  protected Action[] createActions() {
     if (getHelpId() == null) {
       if (SystemInfo.isMac) {
         return new Action[]{getCancelAction(), myPreviousAction, myNextAction, myFinishAction};
@@ -179,8 +179,14 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
    */
   @Override
   public void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canCancel, boolean canFinish) {
-    getPreviousButton().setEnabled(canGoPrev);
-    getNextButton().setEnabled(canGoNext);
+    JButton prev = getPreviousButton();
+    if (prev != null) {
+      prev.setEnabled(canGoPrev);
+    }
+    JButton next = getNextButton();
+    if (next != null) {
+      next.setEnabled(canGoNext);
+    }
 
     getFinishButton().setEnabled(canFinish);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -200,18 +206,18 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
     return myCenterPanel;
   }
 
-  @NotNull
-  private JButton getNextButton() {
+  @Nullable
+  protected JButton getNextButton() {
     return myActionToButtonMap.get(myNextAction);
   }
 
-  @NotNull
-  private JButton getPreviousButton() {
+  @Nullable
+  protected JButton getPreviousButton() {
     return myActionToButtonMap.get(myPreviousAction);
   }
 
   @NotNull
-  private JButton getFinishButton() {
+  protected JButton getFinishButton() {
     return myActionToButtonMap.get(myFinishAction);
   }
 
