@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
@@ -28,6 +29,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Utility methods related to a Gradle project's local.properties file.
@@ -87,11 +92,19 @@ public final class LocalProperties {
   @Nullable
   public File getAndroidSdkPath() {
     String path = myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
-    if (path != null && !path.isEmpty()) {
+    if (isNotEmpty(path)) {
       if (!FileUtil.isAbsolute(path)) {
-        path = new File(myProjectDirPath, path).getPath();
+        String canonicalPath = toCanonicalPath(new File(myProjectDirPath, toSystemDependentName(path)).getPath());
+        File file = new File(canonicalPath);
+        if (!file.isDirectory()) {
+          // Only accept resolved relative paths if they exist, otherwise just use the path as it was declared in local.properties.
+          // When getting a path from another platform (e.g. a Windows path when opening a project on Mac), java.io.File will think that the
+          // path is relative and it will prepend the path of the project to it.
+          // See https://code.google.com/p/android/issues/detail?id=82184
+          return new File(path);
+        }
       }
-      return new File(FileUtil.toSystemDependentName(path));
+      return new File(toSystemDependentName(path));
     }
     return null;
   }
@@ -103,12 +116,17 @@ public final class LocalProperties {
   }
 
   public void setAndroidSdkPath(@NotNull String androidSdkPath) {
-    String path = FileUtil.toSystemIndependentName(androidSdkPath);
-    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, path);
+    doSetAndroidSdkPath(toSystemDependentName(androidSdkPath));
   }
 
   public void setAndroidSdkPath(@NotNull File androidSdkPath) {
-    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath.getPath());
+    doSetAndroidSdkPath(androidSdkPath.getPath());
+  }
+
+  // Sets the path as it is given. When invoked from production code, the path is assumed to be "system dependent".
+  @VisibleForTesting
+  void doSetAndroidSdkPath(@NotNull String path) {
+    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, path);
   }
 
   public boolean hasAndroidDirProperty() {
