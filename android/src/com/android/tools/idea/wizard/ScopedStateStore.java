@@ -84,8 +84,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * not found, will query the parent scope.
    * If the object returned is not-null, but cannot be cast to the required type, an exception is thrown.
    * @param key the unique id for the value to retrieve.
-   * @return a pair where the first object is the requested value and the second is the scoped key of that value.
-   *         will return Pair<null, null> if no value exists in the state for the given key.
+   * @return The requested value. Will return null if no value exists in the state for the given key.
    */
   @Nullable
   public <T> T get(@NotNull Key<T> key) {
