@@ -17,7 +17,7 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.sdklib.internal.repository.packages.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -50,7 +50,7 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
 /**
  * A review step for reviewing the changes about to be made and accepting the required licences.
  */
-public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescription {
+public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private JTextPane myLicenseTextField;
   private Tree myChangeTree;
   private JRadioButton myDeclineRadioButton;
@@ -62,7 +62,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
   private String myCurrentLicense;
 
   public LicenseAgreementStep(@NotNull Disposable disposable) {
-    super("License Agreement", "Read and agree to the licenses for the components which will be installed", null, disposable);
+    super(disposable);
     Splitter splitter = new Splitter(false, .30f);
     splitter.setHonorComponentsMinimumSize(true);
 
@@ -210,6 +210,18 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
   @Override
   public String getStepName() {
     return "License Agreement";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "License Agreement";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return "Read and agree to the licenses for the components which will be installed";
   }
 
   private void expandTree() {

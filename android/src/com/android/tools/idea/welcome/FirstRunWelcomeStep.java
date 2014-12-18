@@ -30,7 +30,7 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   private JPanel myNewSdkMessage;
 
   public FirstRunWelcomeStep(boolean sdkExists) {
-    super("Welcome");
+    super("Welcome", "Android Studio");
     myIcons.setIcon(FormFactorUtils.getFormFactorsImage(myIcons, false));
     myExistingSdkMessage.setVisible(sdkExists);
     myNewSdkMessage.setVisible(!sdkExists);
