@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Wizard to setup Android Studio before the first run
  */
 public class FirstRunWizard extends DynamicWizard {
-  public static final String WIZARD_TITLE = "Android Studio Setup";
+  public static final String WIZARD_TITLE = "Android Studio Setup Wizard";
   @NotNull private final FirstRunWizardMode myMode;
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
   /**
@@ -134,7 +134,7 @@ public class FirstRunWizard extends DynamicWizard {
 
   @Override
   protected String getWizardActionDescription() {
-    return "Android Studio Setup";
+    return "Android Studio Setup Wizard";
   }
 
   private class SetupProgressStep extends ProgressStep {
