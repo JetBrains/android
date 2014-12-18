@@ -129,7 +129,41 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private static final String SWITCH_TO_EXISTING_SD_CARD = "Or use an existing data file...";
   private Set<JComponent> myErrorStateComponents = Sets.newHashSet();
 
-  public ConfigureAvdOptionsStep(@Nullable Disposable parentDisposable) {
+  private class MyActionListener<T> implements ActionListener {
+    DynamicWizardStep myStep;
+    String myDescription;
+    Key<T> myResultKey;
+
+    public MyActionListener(DynamicWizardStep step, String description, Key<T> resultKey) {
+      myStep = step;
+      myDescription = description;
+      myResultKey = resultKey;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      DynamicWizard wizard = new SingleStepWizard(getProject(), getModule(), myStep, new SingleStepDialogWrapperHost(getProject())) {
+        @Override
+        protected String getWizardActionDescription() {
+          return myDescription;
+        }
+      };
+      ScopedStateStore subState = wizard.getState();
+      subState.putAllInWizardScope(myState);
+      subState.put(IS_IN_EDIT_MODE_KEY, false);
+      wizard.init();
+      if (wizard.showAndGet()) {
+        myState.put(myResultKey, subState.get(myResultKey));
+      }
+    }
+  }
+
+  public <T> MyActionListener<T> createListener(DynamicWizardStep step, String description, Key<T> resultKey) {
+    return new MyActionListener<T>(step, description, resultKey);
+  }
+
+
+  public ConfigureAvdOptionsStep(@Nullable final Disposable parentDisposable) {
     super(parentDisposable);
     myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
     setBodyComponent(myRoot);
@@ -152,24 +186,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     };
     myShowAdvancedSettingsButton.addActionListener(toggleAdvancedSettingsListener);
-    myChangeDeviceButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        DynamicWizard wizard = getWizard();
-        if (wizard != null) {
-          wizard.navigateToNamedStep(CHOOSE_DEVICE_DEFINITION_STEP, false);
-        }
-      }
-    });
-    myChangeSystemImageButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        DynamicWizard wizard = getWizard();
-        if (wizard != null) {
-          wizard.navigateToNamedStep(CHOOSE_SYSTEM_IMAGE_STEP, false);
-        }
-      }
-    });
+
+
+    myChangeDeviceButton.addActionListener(createListener(new ChooseDeviceDefinitionStep(parentDisposable),
+                                                          "Select a device", DEVICE_DEFINITION_KEY));
+    myChangeSystemImageButton.addActionListener(createListener(new ChooseSystemImageStep(getProject(), parentDisposable),
+                                                               "Select a system image", SYSTEM_IMAGE_KEY));
+
     myToggleSdCardSettingsLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -357,6 +380,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         setErrorState("The AVD name can only contain the characters a-z A-Z 0-9 . _ - ( )", myAvdDisplayNamePanel, myAvdNameLabel);
         valid = false;
       }
+    }
+
+    Device device = myState.get(DEVICE_DEFINITION_KEY);
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    if (!ChooseSystemImageStep.systemImageMatchesDevice(systemImage, device)) {
+      setErrorState("The selected system image is incompatible with the selected device.", mySystemImageDetails);
+      valid = false;
     }
 
     return valid;

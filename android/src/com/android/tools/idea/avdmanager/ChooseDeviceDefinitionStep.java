@@ -88,12 +88,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
 
   @Override
   public boolean isStepVisible() {
-    Boolean isInEditMode = myState.get(IS_IN_EDIT_MODE_KEY);
-    if (isInEditMode != null && isInEditMode) {
-      return myState.get(DEVICE_DEFINITION_KEY) == null;
-    } else {
-      return true;
-    }
+    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false);
   }
 
   @Override

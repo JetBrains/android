@@ -51,32 +51,36 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     Predicate<AvdWizardConstants.SystemImageDescription> filter = new Predicate<AvdWizardConstants.SystemImageDescription>() {
       @Override
       public boolean apply(AvdWizardConstants.SystemImageDescription input) {
-        if (myCurrentDevice == null) {
-          return true;
-        }
-        String deviceTagId = myCurrentDevice.getTagId();
-        IdDisplay inputTag = input.getTag();
-        if (inputTag == null) {
-          return true;
-        }
-
-        // Unknown/generic device?
-        if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
-          // If so include all system images, except those we *know* not to match this type
-          // of device. Rather than just checking "inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
-          // here (which will filter out system images with a non-default tag, such as the Google API
-          // system images (see issue #78947), we instead deliberately skip the other form factor images
-
-          return inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId()) ||
-                 !inputTag.equals(AvdWizardConstants.TV_TAG) && !inputTag.equals(AvdWizardConstants.WEAR_TAG);
-        }
-
-        return deviceTagId.equals(inputTag.getId());
+        return systemImageMatchesDevice(input, myCurrentDevice);
       }
     };
     mySystemImageList.setFilter(filter);
     mySystemImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
     setBodyComponent(myPanel);
+  }
+
+  public static boolean systemImageMatchesDevice(AvdWizardConstants.SystemImageDescription image, Device device) {
+    if (device == null) {
+      return true;
+    }
+    String deviceTagId = device.getTagId();
+    IdDisplay inputTag = image.getTag();
+    if (inputTag == null) {
+      return true;
+    }
+
+    // Unknown/generic device?
+    if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
+      // If so include all system images, except those we *know* not to match this type
+      // of device. Rather than just checking "inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
+      // here (which will filter out system images with a non-default tag, such as the Google API
+      // system images (see issue #78947), we instead deliberately skip the other form factor images
+
+      return inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId()) ||
+             !inputTag.equals(AvdWizardConstants.TV_TAG) && !inputTag.equals(AvdWizardConstants.WEAR_TAG);
+    }
+
+    return deviceTagId.equals(inputTag.getId());
   }
 
   @Override
@@ -86,12 +90,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
   @Override
   public boolean isStepVisible() {
-    Boolean isInEditMode = myState.get(IS_IN_EDIT_MODE_KEY);
-    if (isInEditMode != null && isInEditMode) {
-      return myState.get(SYSTEM_IMAGE_KEY) == null;
-    } else {
-      return true;
-    }
+    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false);
   }
 
   @Override
