@@ -97,7 +97,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.Projects.hasErrors;
@@ -105,6 +106,7 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.needsAnnotationsJarInClasspath;
 
 public class PostProjectSetupTasksExecutor {
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
@@ -570,7 +572,7 @@ public class PostProjectSetupTasksExecutor {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
         Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-        if (sdk != null && !invalidAndroidSdks.contains(sdk) && isMissingAndroidLibrary(sdk)) {
+        if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
           // First try to recreate SDK; workaround for issue 78072
           AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
           AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
@@ -624,6 +626,38 @@ public class PostProjectSetupTasksExecutor {
       }
     }
     return true;
+  }
+
+  /*
+   * Indicates whether annotations.jar should be removed from the given SDK (if it is an Android SDK.)
+   * There are 2 issues:
+   * 1. annotations.jar is not needed for API level 16 and above. The annotations are already included in android.jar. Until recently, the
+   *    IDE added annotations.jar to the IDEA Android SDK definition unconditionally.
+   * 2. Because annotations.jar is in the classpath, the IDE locks the file on Windows making automatic updates of SDK Tools fail. The
+   *    update not only fails, it corrupts the 'tools' folder in the SDK.
+   * From now on, creating IDEA Android SDKs will not include annotations.jar if API level is 16 or above, but we still need to remove
+   * this jar from existing IDEA Android SDKs.
+   */
+  private static boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
+    if (isAndroidSdk(sdk)) {
+      AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+      boolean needsAnnotationsJar = false;
+      if (additionalData != null && sdkData != null) {
+        IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+        if (target != null) {
+          needsAnnotationsJar = needsAnnotationsJarInClasspath(target);
+        }
+      }
+      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
+        // annotations.jar and res folder.
+        if (library.getName().equals(FN_ANNOTATIONS_JAR) && library.exists() && !needsAnnotationsJar) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {

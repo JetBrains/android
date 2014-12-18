@@ -191,7 +191,7 @@ public class AndroidPlatform {
 
   public boolean needToAddAnnotationsJarToClasspath() {
     // todo: check if we really don't need to add this
-    return getApiLevel() <= 15;
+    return AndroidSdkUtils.needsAnnotationsJarInClasspath(myTarget);
   }
 
   public int getApiLevel() {
