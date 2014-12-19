@@ -14,6 +14,43 @@ parts {
     onion {
       image port_fore.png
     }
+    buttons {
+      back {
+        image button.png
+        x 165
+        y 991
+      }
+      soft-left {
+        image button.png
+        x 279
+        y 991
+      }
+      search {
+        image button.png
+        x 390
+        y 991
+      }
+      home {
+        image button.png
+        x 502
+        y 993
+      }
+      volume-up {
+        image volume_up.png
+        x 23
+        y 305
+      }
+      volume-down {
+        image volume_down.png
+        x 23
+        y 412
+      }
+      power {
+        image power.png
+        x 627
+        y 215
+      }
+    }
   }
   landscape {
     background {
@@ -21,6 +58,43 @@ parts {
     }
     onion {
       image land_fore.png
+    }
+    buttons {
+      back {
+        image button.png
+        x 1039
+        y 430
+      }
+      soft-left {
+        image button.png
+        x 1039
+        y 318
+      }
+      search {
+        image button.png
+        x 1039
+        y 206
+      }
+      home {
+        image button.png
+        x 1039
+        y 94
+      }
+      volume-up {
+        image volume_up_land.png
+        x 361
+        y 519
+      }
+      volume-down {
+        image volume_down_land.png
+        x 459
+        y 519
+      }
+      power {
+        image power_land.png
+        x 266
+        y -11
+      }
     }
   }
 }
