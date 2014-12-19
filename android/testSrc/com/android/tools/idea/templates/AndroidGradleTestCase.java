@@ -40,13 +40,18 @@ import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestCase;
@@ -54,6 +59,8 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.Consumer;
+import com.intellij.util.PlatformUtils;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
@@ -64,10 +71,14 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -218,6 +229,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateGradleVersions(projectRoot);
 
+    System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "AndroidStudio");
+    // See org.jetbrains.plugins.gradle.util.GradleEnvironment.Headless#GRADLE_DISTRIBUTION_TYPE
+    System.setProperty("idea.gradle.distributionType", DistributionType.WRAPPED.toString());
+
     if (buildProject) {
       try {
         assertBuildsCleanly(project, true);
@@ -226,7 +241,41 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
 
-    importProject(project, project.getName(), projectRoot, listener);
+    // We need to define android sdk or the ide would ask the user to do that via UI during pre-import check.
+    final Sdk androidSdk = AndroidTestBase.createAndroidSdk(getTestSdkPath(), getPlatformDir());
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ProjectJdkTable.getInstance().addJdk(androidSdk);
+      }
+    });
+
+    GradleProjectSettings gradleProjectSettings = new GradleProjectSettings();
+    gradleProjectSettings.setDistributionType(DistributionType.WRAPPED);
+    gradleProjectSettings.setExternalProjectPath(projectRoot.getAbsolutePath());
+    final CountDownLatch latch = new CountDownLatch(1);
+    final Ref<Boolean> success = new Ref<Boolean>(false);
+    // We use ExternalSystemUtil.linkExternalProject() instead of importProject() in order to be able to configure distribution
+    // type at the gradle settings. Normally it's configured at UI level during importing a project but we run tests automatically.
+    // Distribution type is necessary as couple of places at intellij gradle integration assume that it's defined,
+    // e.g. org.jetbrains.plugins.gradle.service.project.data.BuildClasspathModuleGradleDataService.importData() - it skips given
+    // classpath extension roots if no distribution type is defined (jetbrains team fixed that at their master branch but there
+    // likely be more places like that, at least jetbrains gradle guy says that most of jetbrains gradle plugin logic assumes
+    // that distribution type is defined.
+    ExternalSystemUtil.linkExternalProject(GradleConstants.SYSTEM_ID, gradleProjectSettings, project, new Consumer<Boolean>() {
+      @Override
+      public void consume(Boolean successfulLinkage) {
+        success.set(successfulLinkage);
+        latch.countDown();
+      }
+    }, false, ProgressExecutionMode.IN_BACKGROUND_ASYNC);
+    try {
+      latch.await();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assertTrue(success.get());
 
     assertTrue(Projects.isGradleProject(project));
     assertFalse(Projects.isIdeaAndroidProject(project));
