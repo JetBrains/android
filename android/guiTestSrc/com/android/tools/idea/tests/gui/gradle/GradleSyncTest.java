@@ -467,7 +467,7 @@ public class GradleSyncTest extends GuiTestCase {
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome))
                           .clickOk()
-      .requireNotShowing();
+                          .requireNotShowing();
 
     projectFrame.waitForGradleProjectSyncToFinish();
   }

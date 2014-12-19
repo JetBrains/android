@@ -37,7 +37,7 @@ import java.util.Map;
 public class AndroidVirtualDeviceTest extends AndroidTestBase {
   private static boolean DISABLED = true; // Don't know if all required components are installed on a test farm.
 
-  public static final File ANDROID_HOME = AndroidTestCaseHelper.getAndroidSdkPath();
+  File ANDROID_HOME;
 
   private static Map<String, String> getReferenceMap() {
     // Expected values are defined in http://b.android.com/78945
@@ -82,6 +82,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     if (DISABLED) {
       return; // Disabled
     }
+    ANDROID_HOME = AndroidTestCaseHelper.getAndroidSdkPath();
     super.setUp();
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
