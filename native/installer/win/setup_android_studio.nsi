@@ -62,7 +62,7 @@ Unicode true
 !define APP_NAME "Android Studio"
 Name "${APP_NAME}"
 
-!ifndef DRY_RUN
+!ifndef DRY_RUN && UNINSTALL_BUILDER
     !ifndef DIR_SRC
         !warning "DIR_SRC should be defined! This script won't work without it."
         CompileErrorOnPurpose
