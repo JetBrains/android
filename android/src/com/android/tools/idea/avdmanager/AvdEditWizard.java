@@ -151,6 +151,11 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(HAS_HARDWARE_KEYBOARD_KEY, fromIniString(properties.get(HAS_HARDWARE_KEYBOARD_KEY.name)));
     state.put(DISPLAY_NAME_KEY, AvdManagerConnection.getAvdDisplayName(avdInfo));
 
+    String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
+    if (orientation != null) {
+      state.put(DEFAULT_ORIENTATION_KEY, ScreenOrientation.getByShortDisplayName(orientation));
+    }
+
     String skinPath = properties.get(CUSTOM_SKIN_FILE_KEY.name);
     if (skinPath != null) {
       File skinFile = new File(skinPath);
@@ -203,7 +208,9 @@ public class AvdEditWizard extends DynamicWizard {
     SystemImageDescription systemImageDescription = state.get(SYSTEM_IMAGE_KEY);
     assert systemImageDescription != null;
     ScreenOrientation orientation = state.get(DEFAULT_ORIENTATION_KEY);
-    assert orientation != null;
+    if (orientation == null) {
+      orientation = device.getDefaultState().getOrientation();
+    }
 
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = state.flatten();
