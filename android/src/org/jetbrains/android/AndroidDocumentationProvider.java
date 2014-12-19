@@ -207,10 +207,10 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     }
 
     @Override
-    protected void doBuildFromStream(String surl, Reader input, StringBuffer data) throws IOException {
+    protected void doBuildFromStream(String url, Reader input, StringBuilder data) throws IOException {
       try {
-        if (ourAnchorsuffix.matcher(surl).find()) {
-          super.doBuildFromStream(surl, input, data);
+        if (ourAnchorsuffix.matcher(url).find()) {
+          super.doBuildFromStream(url, input, data);
           return;
         }
         final BufferedReader buf = new BufferedReader(input);
@@ -246,7 +246,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
           if (read != null) {
             data.append("<br><div>\n");
-            while (((read = buf.readLine()) != null) && !read.toUpperCase().startsWith("<H2>")) {
+            while (((read = buf.readLine()) != null) && !read.toUpperCase(Locale.ENGLISH).startsWith("<H2>")) {
               data.append(read).append("\n");
             }
             data.append("</div>\n");
@@ -258,7 +258,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
         }
       }
       catch (Exception e) {
-        LOG.error(e.getMessage(), e, "URL: " + surl);
+        LOG.error(e.getMessage(), e, "URL: " + url);
       }
     }
   }
