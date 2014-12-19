@@ -45,6 +45,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -60,6 +61,7 @@ import com.intellij.ui.AppUIUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.remote.GradleJavaHelper;
@@ -404,6 +406,8 @@ public class GradleProjectImporter {
             assert compilerProjectExt != null;
             compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
             setUpGradleSettings(newProject);
+            // This allows to customize UI when android project is opened inside IDEA with android plugin.
+            ProjectTypeService.setProjectType(newProject, AndroidModuleBuilder.ANDROID_PROJECT_TYPE);
           }
         });
       }

@@ -475,7 +475,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appClosing() {
-        GradleUtil.stopAllGradleDaemons();
+        try {
+          GradleUtil.stopAllGradleDaemons(false);
+        }
+        catch (IOException e) {
+          LOG.info("Failed to stop Gradle daemons", e);
+        }
       }
     });
   }

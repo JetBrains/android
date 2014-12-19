@@ -141,8 +141,9 @@ public final class DefaultSdks {
   public static void setDefaultJavaHome(@NotNull File path) {
     if (JavaSdk.checkForJdk(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
-
       File canonicalPath = resolvePath(path);
+      Sdk chosenJdk = null;
+
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
         // Delete all JDKs in Android Studio. We want to have only one.
         List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
@@ -150,24 +151,35 @@ public final class DefaultSdks {
           ProjectJdkTable.getInstance().removeJdk(jdk);
         }
       }
-
-      VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
-      if (virtualPath != null) {
-        Sdk newJdk = createJdk(virtualPath);
-        if (newJdk == null) {
-          // Unlikely to happen
-          throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
-        }
-        updateAllSdks(newJdk);
-
-        ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-        Project[] openProjects = projectManager.getOpenProjects();
-        for (Project project : openProjects) {
-          NewProjectUtil.applyJdkToProject(project, newJdk);
+      else {
+        for (Sdk jdk : ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())) {
+          if (FileUtil.pathsEqual(jdk.getHomePath(), canonicalPath.getPath())) {
+            chosenJdk = jdk;
+            break;
+          }
         }
       }
-      else {
-        throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
+
+      if (chosenJdk == null) {
+        VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
+        if (virtualPath != null) {
+          chosenJdk = createJdk(virtualPath);
+          if (chosenJdk == null) {
+            // Unlikely to happen
+            throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
+          }
+        }
+        else {
+          throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
+        }
+      }
+
+      updateAllSdks(chosenJdk);
+
+      ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
+      Project[] openProjects = projectManager.getOpenProjects();
+      for (Project project : openProjects) {
+        NewProjectUtil.applyJdkToProject(project, chosenJdk);
       }
     }
   }
