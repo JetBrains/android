@@ -6,7 +6,7 @@ import javax.swing.*;
 
 /**
  * Note: This file should be auto generated once build/scripts/icons.gant is part of CE.
- * http://youtrack.jetbrains.com/issue/IDEA-103558
+ * https://youtrack.jetbrains.com/issue/IDEA-103558
  */
 public class AndroidDesignerIcons {
   private static Icon load(String path) {
