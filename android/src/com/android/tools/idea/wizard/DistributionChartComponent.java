@@ -154,9 +154,11 @@ public class DistributionChartComponent extends JPanel {
     // Draw the titles
     g.setFont(TITLE_FONT);
 
-    g.drawString("API Level".toUpperCase(), leftGutter, titleHeight);
-    String distributionTitle = "Distribution".toUpperCase();
+    g.drawString("Android Platform".toUpperCase(), leftGutter, titleHeight);
+    g.drawString("Version".toUpperCase(), leftGutter, titleHeight * 2);
+    g.drawString("API Level".toUpperCase(), width - API_OFFSET, titleHeight);
     String accumulativeTitle = "Cumulative".toUpperCase();
+    String distributionTitle = "Distribution".toUpperCase();
     g.drawString(accumulativeTitle, totalWidth - titleMetrics.stringWidth(accumulativeTitle), titleHeight);
     g.drawString(distributionTitle, totalWidth - titleMetrics.stringWidth(distributionTitle), titleHeight * 2);
 
@@ -219,7 +221,12 @@ public class DistributionChartComponent extends JPanel {
       if (i < ourDistributions.size() - 1) {
         g.setColor(JBColor.foreground());
         g.setFont(VERSION_NUMBER_FONT);
-        String percentageString = new DecimalFormat("0.0%").format(1.0 - percentageSum);
+        String percentageString;
+        if (percentageSum > 0.999) {
+          percentageString = "< 0.1%";
+        } else {
+          percentageString = new DecimalFormat("0.0%").format(1.0 - percentageSum);
+        }
         int percentStringWidth = versionNumberMetrics.stringWidth(percentageString);
         g.drawString(percentageString, totalWidth - percentStringWidth - 2, bottom - 2);
         g.setColor(JBColor.darkGray);
