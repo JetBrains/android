@@ -15,7 +15,7 @@
   -->
 <component>
   <version codename="Beta" major="0" minor="9.3" eap="false"/>
-  <company name="Google Inc." url="http://developer.android.com"/>
+  <company name="Google Inc." url="https://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.1286"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="8bc34a" progressY="238" progressTailIcon="/community_progress_tail.png"/>
@@ -37,10 +37,10 @@
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>
   <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__,%20$DESCR&amp;status=New"
             release-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__,%20$DESCR&amp;status=New"/>
-  <plugins url="http://plugins.jetbrains.com"/>
+  <plugins url="https://plugins.jetbrains.com"/>
   <whatsnew url="http://tools.android.com/recent"/>
-  <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
-          mac="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
+  <keymap win="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
+          mac="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
 
   <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
   <plugins-page title="Select Other Plugins"/>

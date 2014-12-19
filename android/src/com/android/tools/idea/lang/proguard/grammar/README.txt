@@ -15,7 +15,7 @@ Prerequisites
 Install the GrammarKit plugin for IDEA IntelliJ from the default plug-ins
 repository. The URL for the plugin is:
 
-http://plugins.jetbrains.com/plugin/6606
+https://plugins.jetbrains.com/plugin/6606
 
 More documentation about GrammarKit can be found at:
 
