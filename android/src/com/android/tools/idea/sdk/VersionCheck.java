@@ -36,9 +36,9 @@ public final class VersionCheck {
   /**
    * The minimum version of the SDK Tools that this version of Android Studio requires.
    */
-  public static final FullRevision MIN_TOOLS_REV = new FullRevision(24, 0, 1, 0);
+  public static final FullRevision MIN_TOOLS_REV = new FullRevision(24, 0, 2, 0);
 
-  private static final Pattern mySourcePropPattern = Pattern.compile("^" + PkgProps.PKG_REVISION + "=(.*)$");
+  private static final Pattern SOURCE_PROPERTY_PATTERN = Pattern.compile("^" + PkgProps.PKG_REVISION + "=(.*)$");
 
   private VersionCheck() {
   }
@@ -86,7 +86,7 @@ public final class VersionCheck {
       reader = new BufferedReader(new FileReader(sourceProperties));
       String line;
       while ((line = reader.readLine()) != null) {
-        Matcher m = mySourcePropPattern.matcher(line);
+        Matcher m = SOURCE_PROPERTY_PATTERN.matcher(line);
         if (m.matches()) {
           try {
             toolsRevision = FullRevision.parseRevision(m.group(1));
