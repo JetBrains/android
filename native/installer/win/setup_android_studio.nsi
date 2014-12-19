@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,6 +56,8 @@
 # assets until we're ready to unveil our new logo. After that point, we can
 # safely remove this define and all references to it.
 #!define HIDE_ASSETS
+
+Unicode true
 
 !define APP_NAME "Android Studio"
 Name "${APP_NAME}"
