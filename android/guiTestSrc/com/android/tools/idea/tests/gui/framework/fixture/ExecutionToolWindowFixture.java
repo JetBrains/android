@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
@@ -129,7 +130,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       assertNotNull(toolbar);
       List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
       for (ActionButton button : buttons) {
-        if (button.getAction() != null && button.getAction().getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
+        if (button.getAction() instanceof DefaultExecutionResult.StopAction) {
           boolean enabled = Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
             button.click();
