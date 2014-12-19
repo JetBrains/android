@@ -382,40 +382,34 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
   @NotNull
   private static List<String> searchMavenCentral(@NotNull String text) {
-    try {
-      HttpRequests.request(String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
-        .accept("application/xml")
-        .connect(new HttpRequests.RequestProcessor<List<String>>() {
-          @Override
-          public List<String> process(@NotNull HttpRequests.Request request) throws IOException {
-            try {
-              XPath idPath = XPath.newInstance("str[@name='id']");
-              XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
-              //noinspection unchecked
-              List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getInputStream()));
-              List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
-              for (Element element : artifacts) {
-                try {
-                  String id = ((Element)idPath.selectSingleNode(element)).getValue();
-                  results.add(id + ":" + ((Element)versionPath.selectSingleNode(element)).getValue());
-                }
-                catch (NullPointerException ignored) {
-                  // A result is missing an ID or version. Just skip it.
-                }
+    return HttpRequests.request(String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
+      .accept("application/xml")
+      .connect(new HttpRequests.RequestProcessor<List<String>>() {
+        @Override
+        public List<String> process(@NotNull HttpRequests.Request request) throws IOException {
+          try {
+            XPath idPath = XPath.newInstance("str[@name='id']");
+            XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
+            //noinspection unchecked
+            List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getInputStream()));
+            List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
+            for (Element element : artifacts) {
+              try {
+                String id = ((Element)idPath.selectSingleNode(element)).getValue();
+                results.add(id + ":" + ((Element)versionPath.selectSingleNode(element)).getValue());
               }
-              return results;
+              catch (NullPointerException ignored) {
+                // A result is missing an ID or version. Just skip it.
+              }
             }
-            catch (JDOMException e) {
-              LOG.error(e);
-            }
-            return Collections.emptyList();
+            return results;
           }
-        });
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-    }
-    return Collections.emptyList();
+          catch (JDOMException e) {
+            LOG.error(e);
+          }
+          return Collections.emptyList();
+        }
+      }, Collections.<String>emptyList(), LOG);
   }
 
   @Override
