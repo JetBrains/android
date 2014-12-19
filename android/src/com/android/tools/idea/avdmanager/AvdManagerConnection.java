@@ -22,6 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.utils.ILogger;
@@ -405,8 +406,7 @@ public class AvdManagerConnection {
       return null;
     }
 
-    // TODO: Fix this so that the screen appears in the proper orientation
-    Dimension resolution = device.getScreenSize(device.getDefaultState().getOrientation()); //device.getScreenSize(orientation);
+    Dimension resolution = device.getScreenSize(orientation);
     assert resolution != null;
     String skinName = null;
 
@@ -420,7 +420,9 @@ public class AvdManagerConnection {
     if (skinFolder == null) {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
-
+    if (orientation == ScreenOrientation.LANDSCAPE) {
+      hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION, ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase());
+    }
     if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
       boolean success = ourAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
