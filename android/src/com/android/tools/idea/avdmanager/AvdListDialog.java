@@ -40,7 +40,7 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
     myProject = project;
     myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(ourDefaultBorder);
-    setTitle("AVD Manager");
+    setTitle("Android Virtual Device Manager");
     Window window = getWindow();
     if (window == null) {
       assert ApplicationManager.getApplication().isUnitTestMode();
