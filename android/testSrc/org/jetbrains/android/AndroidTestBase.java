@@ -160,7 +160,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   public static Sdk createAndroidSdk(String sdkPath, String platformDir) {
-    Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
+    Sdk sdk = ProjectJdkTable.getInstance().createSdk(AndroidSdkUtils.SDK_NAME_PREFIX + "android_test_sdk", AndroidSdkType.getInstance());
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 

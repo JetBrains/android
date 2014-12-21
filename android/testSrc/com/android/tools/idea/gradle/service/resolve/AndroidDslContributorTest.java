@@ -44,7 +44,7 @@ import java.util.Set;
 public class AndroidDslContributorTest extends AndroidGradleTestCase {
   // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
   // Temporarily disable this until we find the root cause.
-  public void disabled_testResolutions() throws Exception {
+  public void testResolutions() throws Exception {
     loadProject("projects/resolve/simple");
     PsiFile psiFile = getPsiFile("build.gradle");
     assertNotNull(psiFile);
@@ -55,17 +55,14 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     validateResolution(psiFile, "defaultConfig", "com.android.build.gradle.BaseExtension", "defaultConfig");
 
     // symbols inside defaultConfig
-    validateResolution(psiFile, "minSdkVersion", "com.android.builder.DefaultProductFlavor", "setMinSdkVersion");
+    validateResolution(psiFile, "minSdkVersion", "com.android.build.gradle.internal.dsl.ProductFlavor", "minSdkVersion");
 
     // symbols inside a build type
-    validateResolution(psiFile, "runProguard", "com.android.builder.DefaultBuildType", "setRunProguard");
-    validateResolution(psiFile, "proguardFiles", "com.android.build.gradle.internal.dsl.BuildTypeDsl", "proguardFiles");
-
-    // symbols inside a product flavor
-    validateResolution(psiFile, "packageName", "com.android.builder.DefaultProductFlavor", "setPackageName");
+    validateResolution(psiFile, "minifyEnabled", "com.android.builder.core.DefaultBuildType", "setMinifyEnabled");
+    validateResolution(psiFile, "proguardFiles", "com.android.build.gradle.internal.dsl.BuildType", "proguardFiles");
 
     // symbols inside lintOptions
-    validateResolution(psiFile, "quiet", "com.android.build.gradle.internal.dsl.LintOptionsImpl", "setQuiet");
+    validateResolution(psiFile, "quiet", "com.android.build.gradle.internal.dsl.LintOptions", "setQuiet");
 
     // symbols inside signingConfigs
     validateResolution(psiFile, "storeFile", "com.android.builder.signing.DefaultSigningConfig", "setStoreFile");
@@ -74,7 +71,7 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     validateResolution(psiFile, "aidl", "com.android.build.gradle.api.AndroidSourceSet", "getAidl");
     validateResolution(psiFile, "setRoot", "com.android.build.gradle.api.AndroidSourceSet", "setRoot");
 
-    validateNoResolution(psiFile, "publishNonDefault");
+    validateNoResolution(psiFile, "packageBuildConfig");
   }
 
   // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
