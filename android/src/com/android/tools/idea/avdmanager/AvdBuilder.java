@@ -165,7 +165,6 @@ public class AvdBuilder {
   public AvdBuilder setSdCard(@NotNull File sdCardFile) {
     myState.remove(SD_CARD_STORAGE_KEY);
     myState.put(EXISTING_SD_LOCATION, sdCardFile.getPath());
-    myState.put(USE_EXISTING_SD_CARD, true);
     return this;
   }
 
@@ -173,7 +172,6 @@ public class AvdBuilder {
   public AvdBuilder setSdCard(@NotNull Storage sdCard) {
     myState.remove(EXISTING_SD_LOCATION);
     myState.put(SD_CARD_STORAGE_KEY, sdCard);
-    myState.put(USE_EXISTING_SD_CARD, false);
     return this;
   }
 
