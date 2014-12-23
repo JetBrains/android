@@ -391,7 +391,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
             XPath idPath = XPath.newInstance("str[@name='id']");
             XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
             //noinspection unchecked
-            List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getInputStream()));
+            List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getReader()));
             List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
             for (Element element : artifacts) {
               try {
