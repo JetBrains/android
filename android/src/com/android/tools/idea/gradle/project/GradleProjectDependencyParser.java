@@ -34,14 +34,15 @@ import java.util.Set;
  * Parses list of dependencies from the build.gradle
  */
 public class GradleProjectDependencyParser {
+  @NotNull
   private static Set<String> parse(VirtualFile moduleRoot, Project project) {
-    VirtualFile file1 = moduleRoot.findChild(SdkConstants.FN_BUILD_GRADLE);
-    if (file1 == null) {
+    VirtualFile buildGradle = moduleRoot.findChild(SdkConstants.FN_BUILD_GRADLE);
+    if (buildGradle == null) {
       return Collections.emptySet();
     }
     else {
       Set<String> result = new HashSet<String>();
-      GradleBuildFile buildFile = new GradleBuildFile(file1, project);
+      GradleBuildFile buildFile = new GradleBuildFile(buildGradle, project);
       for (Dependency dependency : Iterables.filter(buildFile.getDependencies(), Dependency.class)) {
         if (dependency.type == Dependency.Type.MODULE) {
           String moduleName = dependency.getValueAsString();
