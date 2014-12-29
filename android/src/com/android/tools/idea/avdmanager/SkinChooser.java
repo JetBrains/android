@@ -84,7 +84,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   }
 
   private static List<File> getSkins() {
-    List<Device> devices = DeviceManagerConnection.getDevices();
+    List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
 
     Set<File> result = Sets.newTreeSet();
     for (Device device : devices) {

@@ -438,7 +438,7 @@ public class PsiResourceItem extends ResourceItem {
 
   @Override
   public String toString() {
-    return super.toString() + ": " + (myTag != null ? getTextContent(myTag) : "null");
+    return super.toString() + ": " + (myTag != null ? getTextContent(myTag) : "null" + (myFile != null ? ":" + myFile.getName() : ""));
   }
 
   private class PsiTextResourceValue extends TextResourceValue {

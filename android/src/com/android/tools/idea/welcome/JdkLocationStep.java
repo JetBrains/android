@@ -48,9 +48,11 @@ public class JdkLocationStep extends FirstRunWizardStep {
   private static final String MAC_JDKS_DIR = "/Library/Java/JavaVirtualMachines/";
   private static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   private static final String WINDOWS_JDKS_DIR = "C:\\Program Files\\Java";
+  private static final String LINUX_SDK_DIR = "/usr/lib/jvm";
   private static final String JDK_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
 
   private final ScopedStateStore.Key<String> myPathKey;
+  @NotNull private final FirstRunWizardMode myMode;
   private JPanel myContents;
   private TextFieldWithBrowseButton myJdkPath;
   private JButton myDownloadPageLink;
@@ -60,9 +62,10 @@ public class JdkLocationStep extends FirstRunWizardStep {
   // Show errors only after the user touched the value
   private boolean myUserInput = false;
 
-  public JdkLocationStep(ScopedStateStore.Key<String> pathKey) {
+  public JdkLocationStep(@NotNull ScopedStateStore.Key<String> pathKey, @NotNull FirstRunWizardMode mode) {
     super("Java Settings");
     myPathKey = pathKey;
+    myMode = mode;
     myDownloadPageLink.setText(getLinkText());
     WelcomeUIUtils.makeButtonAHyperlink(myDownloadPageLink, JDK_URL);
     myDownloadPageLink.getParent().invalidate();
@@ -71,20 +74,12 @@ public class JdkLocationStep extends FirstRunWizardStep {
     FileChooserDescriptor folderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myJdkPath.addBrowseFolderListener("Select JDK Location", "Select compatible JDK location", null, folderDescriptor);
     myError.setText(null);
-    // Does not seem like there's reliable default for JDK locations on Linux...
-    // Hence, "Detect" is only available on Windows/Mac
-    if (SystemInfo.isMac || SystemInfo.isWindows) {
-      myDetectButton.addActionListener(new ActionListener() {
+    myDetectButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           ProgressManager.getInstance().run(new DetectJdkTask());
         }
       });
-    }
-    else {
-      myDetectButton.setVisible(false);
-      myDetectLabel.setVisible(false);
-    }
   }
 
   private static String getLinkText() {
@@ -103,8 +98,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
     }
   }
 
-  private static boolean isJdk7(String path) {
-    String jdkVersion = JavaSdk.getJdkVersion(path);
+  private static boolean isJdk7(@NotNull File path) {
+    String jdkVersion = JavaSdk.getJdkVersion(path.getAbsolutePath());
     if (jdkVersion != null) {
       JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdkVersion);
       if (version != null && !version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
@@ -115,11 +110,11 @@ public class JdkLocationStep extends FirstRunWizardStep {
   }
 
   @Nullable
-  public static String validateJdkLocation(@Nullable String location) {
-    if (StringUtil.isEmpty(location)) {
+  public static String validateJdkLocation(@Nullable File location) {
+    if (location == null) {
       return "Path is empty";
     }
-    if (!JdkUtil.checkForJdk(new File(location))) {
+    if (!JdkUtil.checkForJdk(location)) {
       return "Path specified is not a valid JDK location";
     }
     if (!isJdk7(location)) {
@@ -136,8 +131,10 @@ public class JdkLocationStep extends FirstRunWizardStep {
     else if (SystemInfo.isWindows) {
       return getWindowsCandidateJdks();
     }
+    else if (SystemInfo.isLinux) {
+      return getLinuxCandidateJdks();
+    }
     else {
-      // No default location for Linux...
       return Collections.emptyList();
     }
   }
@@ -152,6 +149,11 @@ public class JdkLocationStep extends FirstRunWizardStep {
   private static Iterable<String> getWindowsCandidateJdks() {
     // See http://docs.oracle.com/javase/7/docs/webnotes/install/windows/jdk-installation-windows.html
     return getCandidatePaths(WINDOWS_JDKS_DIR, "");
+  }
+
+  @NotNull
+  private static Iterable<String> getLinuxCandidateJdks() {
+    return getCandidatePaths(LINUX_SDK_DIR, "");
   }
 
   private static Iterable<String> getCandidatePaths(String basedir, final String suffix) {
@@ -173,7 +175,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
     if (!StringUtil.isEmpty(path)) {
       myUserInput = true;
     }
-    String message = validateJdkLocation(path);
+    File userInput = StringUtil.isEmptyOrSpaces(path) ? null : new File(path);
+    String message = validateJdkLocation(userInput);
     if (myUserInput) {
       setErrorHtml(message);
     }
@@ -187,8 +190,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    InstallerData installerData = InstallerData.get(myState);
-    return !installerData.hasValidJdkLocation();
+    return !myMode.hasValidJdkLocation();
   }
 
   @Override
@@ -219,7 +221,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
         if (myCancelled.get()) {
           return;
         }
-        if (StringUtil.isEmpty(validateJdkLocation(path))) {
+        if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
           String version = JavaSdk.getInstance().getVersionString(path);
           if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
             topVersion = version;

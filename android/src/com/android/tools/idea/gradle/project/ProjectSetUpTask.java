@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Projects;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,8 +27,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
@@ -59,14 +56,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @Override
   public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    final Application application = ApplicationManager.getApplication();
+
+    populateProject(projectInfo);
 
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
-
-        populateProject(projectInfo);
-        boolean isTest = application.isUnitTestMode();
+        boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
         if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
           if (myProjectIsNew) {
             Projects.open(myProject);
@@ -94,7 +90,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         }
       }
     };
-    if (application.isUnitTestMode()) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
       runnable.run();
     }
     else {
@@ -106,15 +102,22 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
-        ExternalSystemApiUtil.executeProjectChangeAction(new DisposeAwareProjectChange(myProject) {
+        final Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
           @Override
-          public void execute() {
-            ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {
+          public void run() {
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
               @Override
               public void run() {
-                ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
-                dataManager.importData(ProjectKeys.MODULE, modules, myProject, true /* synchronous */);
+                if (!myProject.isDisposed()) {
+                  ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {
+                    @Override
+                    public void run() {
+                      ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+                      dataManager.importData(ProjectKeys.MODULE, modules, myProject, true /* synchronous */);
+                    }
+                  });
+                }
               }
             });
           }

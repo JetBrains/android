@@ -17,15 +17,13 @@ package org.jetbrains.android.sdk;
 
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.manifest.Application;
 
 import java.io.File;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,16 +71,16 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   }
 
   public void testGetSdkDataFile() throws Exception {
-    assertSame(sdkData, AndroidSdkData.getSdkData(sdkDir));
-    assertSame(defaultSdkData, AndroidSdkData.getSdkData(defaultSdkDir));
+    assertEquals(sdkData, AndroidSdkData.getSdkData(sdkDir));
+    assertEquals(defaultSdkData, AndroidSdkData.getSdkData(defaultSdkDir));
 
-    assertFalse(AndroidSdkData.getSdkData(sdkDir).equals(AndroidSdkData.getSdkData(defaultSdkDir)));
+    assertThat(AndroidSdkData.getSdkData(sdkDir)).isNotEqualTo(AndroidSdkData.getSdkData(defaultSdkDir));
   }
 
   public void testGetSdkDataPath() throws Exception {
     String testSdkPath = getTestSdkPath();
-    assertSame(sdkData, AndroidSdkData.getSdkData(testSdkPath));
-    assertSame(defaultSdkData, AndroidSdkData.getSdkData(getDefaultTestSdkPath()));
+    assertEquals(sdkData, AndroidSdkData.getSdkData(testSdkPath));
+    assertEquals(defaultSdkData, AndroidSdkData.getSdkData(getDefaultTestSdkPath()));
 
     String otherEnding;
     if (testSdkPath.endsWith(File.separator)) {
@@ -93,18 +91,19 @@ public class AndroidSdkDataTest extends AndroidTestCase {
 
     assertFalse(otherEnding.equals(testSdkPath));
     assertEquals(new File(testSdkPath), new File(otherEnding));
-    assertSame(AndroidSdkData.getSdkData(testSdkPath), AndroidSdkData.getSdkData(otherEnding));
+    assertEquals(AndroidSdkData.getSdkData(testSdkPath), AndroidSdkData.getSdkData(otherEnding));
 
-    assertFalse(AndroidSdkData.getSdkData(getTestSdkPath()).equals(AndroidSdkData.getSdkData(getDefaultTestSdkPath())));
+    assertThat(AndroidSdkData.getSdkData(getTestSdkPath())).isNotEqualTo(AndroidSdkData.getSdkData(getDefaultTestSdkPath()));
   }
 
   public void testGetSdkDataProject() throws Exception {
     AndroidSdkData sdkFromProject = AndroidSdkData.getSdkData(getProject());
-    assertSame(sdkData, sdkFromProject);
+    assertEquals(sdkData, sdkFromProject);
   }
 
   public void testGetSdkDataModule() throws Exception {
-    assertSame(sdkData, AndroidSdkData.getSdkData(myModule));
+    AndroidSdkData actual = AndroidSdkData.getSdkData(myModule);
+    assertEquals(sdkData, actual);
   }
 
   public void testGetSdkDataSdk() throws Exception {
@@ -113,9 +112,9 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     Sdk defaultSdk = mock(Sdk.class);
     when(defaultSdk.getHomePath()).thenReturn(getDefaultTestSdkPath());
 
-    assertSame(sdkData, AndroidSdkData.getSdkData(sdk));
-    assertSame(defaultSdkData, AndroidSdkData.getSdkData(defaultSdk));
+    assertEquals(sdkData, AndroidSdkData.getSdkData(sdk));
+    assertEquals(defaultSdkData, AndroidSdkData.getSdkData(defaultSdk));
 
-    assertFalse(AndroidSdkData.getSdkData(sdk).equals(AndroidSdkData.getSdkData(defaultSdk)));
+    assertThat(AndroidSdkData.getSdkData(sdk)).isNotEqualTo(AndroidSdkData.getSdkData(defaultSdk));
   }
 }

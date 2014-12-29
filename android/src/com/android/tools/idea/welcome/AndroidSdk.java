@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.AndroidVersion;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.intellij.openapi.util.SystemInfo;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Android SDK installable component.
@@ -38,33 +43,59 @@ public final class AndroidSdk extends InstallableComponent {
     ScopedStateStore.createKey("download.sdk", ScopedStateStore.Scope.PATH, Boolean.class);
 
   public AndroidSdk() {
-    super("Android SDK", SIZE, KEY_INSTALL_SDK);
+    super("Android SDK", SIZE, "The collection of Android platform APIs, " +
+                               "tools and utilities that enables you to debug, " +
+                               "profile, and compile your apps.\n\n" +
+                               "The setup wizard will update your current Android SDK " +
+                               "installation (if necessary) or install a new version.", KEY_INSTALL_SDK);
   }
 
-  @VisibleForTesting
-  static PkgDesc.Builder[] getPackages() {
-    AndroidVersion lVersion = new AndroidVersion(21, null);
-    MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
+  private static Collection<IPkgDesc> createAll(PkgDesc.Builder... builders) {
+    ArrayList<IPkgDesc> list = Lists.newArrayListWithCapacity(builders.length + SdkMavenRepository.values().length);
+    for (PkgDesc.Builder builder : builders) {
+      list.add(builder.create());
+    }
+    return list;
+  }
 
-    PkgDesc.Builder androidSdkTools = PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder androidSdkPlatformTools = PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(new FullRevision(21, 0, 2));
-    PkgDesc.Builder supportRepository = InstallComponentsPath.createExtra(true, "android", "m2repository");
-    PkgDesc.Builder googleRepository = InstallComponentsPath.createExtra(true, "google", "m2repository");
-    PkgDesc.Builder atomImage = PkgDesc.Builder.newSysImg(lVersion, new IdDisplay("default", ""), "x86", unspecifiedRevision);
-    PkgDesc.Builder platform = PkgDesc.Builder.newPlatform(lVersion, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder sample = PkgDesc.Builder.newSample(lVersion, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(lVersion, unspecifiedRevision);
-    PkgDesc.Builder usb = InstallComponentsPath.createExtra(SystemInfo.isLinux || SystemInfo.isWindows, "google", "usb_driver");
-
-    return new PkgDesc.Builder[]{androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools, supportRepository, googleRepository,
-      atomImage, platform, sample, platformSources, usb};
+  /**
+   * Find latest build tools revision with compatible major version number.
+   */
+  @NotNull
+  private static FullRevision getLatestCompatibleBuildToolsRevision(@Nullable Multimap<PkgType, RemotePkgInfo> packages) {
+    FullRevision revision = FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION;
+    if (packages != null) {
+      Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
+      for (RemotePkgInfo tool : tools) {
+        FullRevision fullRevision = tool.getDesc().getFullRevision();
+        if (fullRevision != null && fullRevision.getMajor() == FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION.getMajor() &&
+            fullRevision.compareTo(revision) > 0) {
+          revision = fullRevision;
+        }
+      }
+    }
+    return revision;
   }
 
   @NotNull
   @Override
-  public PkgDesc.Builder[] getRequiredSdkPackages() {
-    return getPackages();
+  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+    MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
+
+    PkgDesc.Builder androidSdkTools = PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED);
+    PkgDesc.Builder androidSdkPlatformTools = PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED);
+    PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages));
+    PkgDesc.Builder platform =
+      PkgDesc.Builder.newPlatform(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
+    PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision);
+
+    Collection<IPkgDesc> packages =
+      createAll(androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools, platform, platformSources);
+
+    for (SdkMavenRepository repository : SdkMavenRepository.values()) {
+      packages.add(repository.getPackageDescription());
+    }
+    return packages;
   }
 
   @Override

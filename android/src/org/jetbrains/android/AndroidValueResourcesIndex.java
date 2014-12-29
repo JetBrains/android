@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -139,20 +140,27 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     return new ResourceEntry(type, normalizeDelimiters(name), "TYPE_MARKER_CONTEXT");
   }
 
-  private static String normalizeDelimiters(String s) {
+  @VisibleForTesting
+  static String normalizeDelimiters(String s) {
     int length = s.length();
-    final StringBuilder result = new StringBuilder(length);
-
-    for (int i = 0, n = length; i < n; i++) {
-      final char c = s.charAt(i);
-      if (Character.isLetterOrDigit(c)) {
-        result.append(c);
-      }
-      else {
-        result.append('_');
+    for (int j = 0, n = length; j < n; j++) {
+      final char ch = s.charAt(j);
+      if (!Character.isLetterOrDigit(ch) && ch != '_') {
+        StringBuilder result = new StringBuilder(length);
+        for (int i = 0; i < n; i++) {
+          final char c = s.charAt(i);
+          if (Character.isLetterOrDigit(c)) {
+            result.append(c);
+          }
+          else {
+            result.append('_');
+          }
+        }
+        return result.toString();
       }
     }
-    return result.toString();
+
+    return s;
   }
 
   private final KeyDescriptor<ResourceEntry> myKeyDescriptor = new KeyDescriptor<ResourceEntry>() {

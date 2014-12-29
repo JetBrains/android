@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.intellij.util.download.DownloadableFileDescription;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Component that may be installed by the first run wizard.
@@ -34,21 +36,11 @@ public abstract class InstallableComponent {
   private final String myDescription;
   private final ScopedStateStore.Key<Boolean> myKey;
 
-  public InstallableComponent(@NotNull String name, long size, ScopedStateStore.Key<Boolean> key) {
-    this(name, size, inventDescription(name, size), key);
-  }
-
   public InstallableComponent(@NotNull String name, long size, @NotNull String description, ScopedStateStore.Key<Boolean> key) {
     myName = name;
     mySize = size;
     myDescription = description;
     myKey = key;
-  }
-
-  @NotNull
-  private static String inventDescription(String name, long size) {
-    return String.format("<html><p>This is a description for <em>%s</em> component</p>" +
-                         "<p>We know is that it takes <strong>%s</strong> disk space</p></html>", name, WelcomeUIUtils.getSizeLabel(size));
   }
 
   public boolean isOptional() {
@@ -87,8 +79,11 @@ public abstract class InstallableComponent {
     }
   }
 
+  /**
+   * @param remotePackages an up-to-date list of the packages in the Android SDK repositories, if one can be obtained.
+   */
   @NotNull
-  public abstract PkgDesc.Builder[] getRequiredSdkPackages();
+  public abstract Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages);
 
   public abstract void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep);
 

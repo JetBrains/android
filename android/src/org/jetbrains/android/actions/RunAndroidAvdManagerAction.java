@@ -28,7 +28,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 /**
  * @author Eugene.Kudelevsky
  */

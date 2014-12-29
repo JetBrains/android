@@ -31,6 +31,7 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
   public File tempDir;
   private AvdInfo myAvdInfo;
   private Map<String, String> myPropertiesMap = Maps.newHashMap();
+  private AvdManagerConnection myConnection;
 
   @Override
   public void setUp() throws Exception {
@@ -39,6 +40,7 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
 
     myAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", "target", null, new IdDisplay("mockId", "mockDisplay"), "x86", myPropertiesMap);
+    myConnection = AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 
   @Override
@@ -48,13 +50,13 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
 
   public void testGetAvdResolutionFromInlineDeclaration() throws Exception {
     myPropertiesMap.put("skin.name", "1200x1950");
-    assertEquals(new Dimension(1200, 1950), AvdManagerConnection.getAvdResolution(myAvdInfo));
+    assertEquals(new Dimension(1200, 1950), myConnection.getAvdResolution(myAvdInfo));
   }
 
   public void testGetAvdResolutionFromSkinFile() throws Exception {
     File tempFile = new File(tempDir, "layout");
     FileUtil.writeToFile(tempFile, "parts { device { display { width 123 height 456 } } }");
-    assertEquals(new Dimension(123, 456), AvdManagerConnection.getResolutionFromLayoutFile(tempFile));
+    assertEquals(new Dimension(123, 456), myConnection.getResolutionFromLayoutFile(tempFile));
   }
 
   public void testGetAvdResolutionFromFilePath() throws Exception {
@@ -62,7 +64,7 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
     FileUtil.writeToFile(tempFile, "parts { device { display { width 123 height 456 } } }");
 
     myPropertiesMap.put("skin.path", tempDir.getPath());
-    assertEquals(new Dimension(123, 456), AvdManagerConnection.getAvdResolution(myAvdInfo));
+    assertEquals(new Dimension(123, 456), myConnection.getAvdResolution(myAvdInfo));
   }
 
   public void testGetAvdDensity() throws Exception {

@@ -36,11 +36,11 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 
-abstract class ImportModule implements Comparable<ImportModule> {
+public abstract class ImportModule implements Comparable<ImportModule> {
   @SuppressWarnings("SpellCheckingInspection")
   private static final String SHERLOCK_DEP = "com.actionbarsherlock:actionbarsherlock:4.4.0@aar";
   private static final String PLAY_SERVICES_DEP = "com.google.android.gms:play-services:+";
-  private static final String SUPPORT_GROUP_ID = "com.android.support";
+  public static final String SUPPORT_GROUP_ID = "com.android.support";
 
   public static final String APPCOMPAT_ARTIFACT = "appcompat-v7";
   public static final String SUPPORT_ARTIFACT = "support-v4";

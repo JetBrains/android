@@ -90,7 +90,7 @@ public class AndroidGradleProjectData implements Serializable {
   /**
    * The model version
    */
-  private String myGradlePluginVersion = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+  private String myGradlePluginVersion = SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 
   /**
    * The last time a sync was done.
@@ -499,7 +499,7 @@ public class AndroidGradleProjectData implements Serializable {
    * @throws IOException if there is a problem accessing these files.
    */
   private boolean validate(@NotNull File rootDir) throws IOException {
-    if (!myGradlePluginVersion.equals(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION)) {
+    if (!myGradlePluginVersion.equals(SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION)) {
       return false;
     }
 

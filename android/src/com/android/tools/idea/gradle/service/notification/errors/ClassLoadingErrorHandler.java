@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.StopGradleDaemonsAndSyncHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.StopGradleDaemonsHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,7 +43,7 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
     if (classNotFound || firstLine.startsWith("Unable to find method") || firstLine.contains("cannot be cast to")) {
       NotificationHyperlink openJdkSettingsHyperlink = null;
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
-      NotificationHyperlink stopDaemonsHyperlink = new StopGradleDaemonsAndSyncHyperlink();
+      NotificationHyperlink stopDaemonsHyperlink = StopGradleDaemonsHyperlink.createStopGradleDaemonsHyperlink();
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
 
@@ -86,7 +86,7 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
       String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" + jdk7Hint +
                       "<li>Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
                       syncProjectHyperlink.toHtml() + "</li>" +
-                      "<li>The state of a Gradle build process may be corrupt.\n" +
+                      "<li>The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.\n" +
                       stopDaemonsHyperlink.toHtml() + "</li></ul>" +
                       "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.";
 

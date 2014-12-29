@@ -143,7 +143,6 @@ public class AndroidIcons {
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
     public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
-    public static final Icon FirstRunWizard = load("/icons/wizards/welcome_material.png"); // 80x80
   }
 
   public static class Views {
