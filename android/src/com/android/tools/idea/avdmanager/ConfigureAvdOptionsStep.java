@@ -61,14 +61,12 @@ import java.util.Set;
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
  * Help and error messaging appears on the right hand side.
  */
-public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescription {
+public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   // CardLayout ids for switching between SD card types
   private static final String EXISTING_SDCARD = "existingsdcard";
   private static final String NEW_SDCARD = "newsdcard";
@@ -132,7 +130,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private Set<JComponent> myErrorStateComponents = Sets.newHashSet();
 
   public ConfigureAvdOptionsStep(@Nullable Disposable parentDisposable) {
-    super("Android Virtual Device (AVD)", "Verify Configuration", null, parentDisposable);
+    super(parentDisposable);
     myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
     setBodyComponent(myRoot);
     registerAdvancedOptionsVisibility();
@@ -620,6 +618,18 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     return "Configure AVD Options";
   }
 
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "Android Virtual Device (AVD)";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return "Verify Configuration";
+  }
+
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
@@ -831,17 +841,5 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
     @Nullable
     protected abstract Storage getStorage(@NotNull Device device);
-  }
-
-  @Nullable
-  @Override
-  protected JBColor getTitleBackgroundColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
-  }
-
-  @Nullable
-  @Override
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }
