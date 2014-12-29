@@ -1042,7 +1042,11 @@ Function func_UninstallPreviousPage_Leave
         ${Endif}
 
         StrCpy $R3 "$R1\uninstall.exe"
-        ExecWait '"$R3" /S /D=$R1'
+        # _?=... causes the uninstaller to run directly instead of in the
+        # background. If we don't do this, ExecWait won't work.
+        ExecWait '"$R3" /S _?=$R1'
+        Delete $R3
+        RmDir $R1 # Should be empty after the uninstaller is removed
     ${EndIf}
 
     !endif
