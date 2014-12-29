@@ -19,10 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Suppliers;
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -171,8 +168,15 @@ public final class GradleModuleImporter extends ModuleImporter {
   private static Set<ModuleToImport> buildModulesSet(Map<String, VirtualFile> modules, Function<VirtualFile, Iterable<String>> parser) {
     Set<ModuleToImport> modulesSet = new HashSet<ModuleToImport>(modules.size());
     for (Map.Entry<String, VirtualFile> entry : modules.entrySet()) {
-      modulesSet
-        .add(new ModuleToImport(entry.getKey(), entry.getValue(), Suppliers.compose(parser, Suppliers.ofInstance(entry.getValue()))));
+      VirtualFile location = entry.getValue();
+      Supplier<Iterable<String>> dependencyComputer;
+      if (location != null) {
+        dependencyComputer = Suppliers.compose(parser, Suppliers.ofInstance(location));
+      }
+      else {
+        dependencyComputer = Suppliers.<Iterable<String>>ofInstance(ImmutableSet.<String>of());
+      }
+      modulesSet.add(new ModuleToImport(entry.getKey(), location, dependencyComputer));
     }
     return modulesSet;
   }

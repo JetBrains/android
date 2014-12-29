@@ -1292,6 +1292,7 @@ public class GradleImport {
     mySelectedModules = ImmutableMap.copyOf(moduleLocationToName);
   }
 
+  @NotNull
   public Set<String> getProjectDependencies(String projectName) {
     ImportModule module = null;
     for (ImportModule m : myModules) {
