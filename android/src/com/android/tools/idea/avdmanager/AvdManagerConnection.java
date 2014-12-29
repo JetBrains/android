@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.prefs.AndroidLocation;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
@@ -261,6 +262,15 @@ public class AvdManagerConnection {
     ourAvdManager.deleteAvd(info, SDK_LOG);
   }
 
+  public boolean isAvdRunning(@NotNull AvdInfo info) {
+    return ourAvdManager.isAvdRunning(info);
+  }
+
+
+  public void stopAvd(@NotNull final AvdInfo info) {
+    ourAvdManager.stopAvd(info);
+  }
+
   /**
    * Launch the given AVD in the emulator.
    */
@@ -274,7 +284,7 @@ public class AvdManagerConnection {
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
-    if (info.isRunning()) {
+    if (ourAvdManager.isAvdRunning(info)) {
       String baseFolder;
       try {
         baseFolder = ourAvdManager.getBaseAvdFolder();
