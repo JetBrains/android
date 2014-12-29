@@ -124,7 +124,8 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
                             new WipeAvdDataAction(this),
                             new ShowAvdOnDiskAction(this),
                             new AvdSummaryAction(this),
-                            new DeleteAvdAction(this));
+                            new DeleteAvdAction(this),
+                            new StopAvdAction(this));
   }
 
   @NotNull
