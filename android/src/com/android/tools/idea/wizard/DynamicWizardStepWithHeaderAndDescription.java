@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -25,156 +24,50 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.Map;
-import java.util.WeakHashMap;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
-import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSETS;
 import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
 
 /**
- * Base class for wizard steps with standard design.
- *
- * Subclasses should call {@link #setBodyComponent(javax.swing.JComponent)} from the constructor.
+ * Base class for wizard pages with title and description labels underneath
+ * the standard wizard banner.
  */
-public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicWizardStep implements Disposable {
-  protected static final Key<String> KEY_DESCRIPTION =
-    createKey(DynamicWizardStepWithHeaderAndDescription.class + ".description", ScopedStateStore.Scope.STEP, String.class);
-  protected static final Key<String> KEY_TITLE =
+public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicWizardStepWithDescription implements Disposable {
+  protected static final ScopedStateStore.Key<String> KEY_TITLE =
     createKey(DynamicWizardStepWithHeaderAndDescription.class + ".title", ScopedStateStore.Scope.STEP, String.class);
-  protected static final Key<String> KEY_MESSAGE =
+  protected static final ScopedStateStore.Key<String> KEY_MESSAGE =
     createKey(DynamicWizardStepWithHeaderAndDescription.class + ".message", ScopedStateStore.Scope.STEP, String.class);
-
-  private static final String PROPERTY_FOCUS_OWNER = "focusOwner";
-
   @NotNull private final String myTitle;
   @Nullable private final String myMessage;
-  @Nullable private final Disposable myDisposable;
-  private PropertyChangeListener myFocusListener;
-  private JPanel myRootPane;
   private JBLabel myTitleLabel;
   private JBLabel myMessageLabel;
-  private JBLabel myIcon;
-  private JLabel myDescriptionText;
-  private JBLabel myErrorWarningLabel;
-  private JPanel myNorthPanel;
-  private JPanel myCustomHeaderPanel;
-  private JPanel myTitlePanel;
-  private JPanel mySouthPanel;
-  private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
+  private JPanel myHeaderPane;
 
   /**
-   * @deprecated Use {@link #DynamicWizardStepWithHeaderAndDescription(String, String, javax.swing.Icon, com.intellij.openapi.Disposable)}
-   * to properly deregister focus listener when this page is no longer needed
+   * @deprecated Use {@link #DynamicWizardStepWithHeaderAndDescription(String, String, com.intellij.openapi.Disposable)}
    */
   @Deprecated
-  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Icon icon) {
-    this(title, message, icon, Disposer.newDisposable());
+  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message,
+                                                   @Nullable Icon icon, @Nullable Disposable parentDisposable) {
+    this(title, message, parentDisposable); // TODO remove the whole ctor
   }
 
-  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title,
-                                                   @Nullable String message,
-                                                   @Nullable Icon icon,
-                                                   @Nullable Disposable parentDisposable) {
-    myDisposable = parentDisposable;
-    if (parentDisposable != null) {
-      Disposer.register(parentDisposable, this);
-    }
+  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Disposable parentDisposable) {
+    super(parentDisposable);
     myTitle = title;
     myMessage = message;
-    myIcon.setIcon(icon);
     int fontHeight = myMessageLabel.getFont().getSize();
     myTitleLabel.setBorder(BorderFactory.createEmptyBorder(fontHeight, 0, fontHeight, 0));
-    mySouthPanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
-    if (getTitleBackgroundColor() != null) {
-      myTitlePanel.setBackground(getTitleBackgroundColor());
-      myNorthPanel.setBackground(getTitleBackgroundColor());
-    }
-    if (getTitleTextColor() != null) {
-      myTitleLabel.setForeground(getTitleTextColor());
-      myMessageLabel.setForeground(getTitleTextColor());
-    }
-
-    JComponent header = getHeader();
-    if (header != null) {
-      myCustomHeaderPanel.add(header, BorderLayout.CENTER);
-      myCustomHeaderPanel.setVisible(true);
-      myCustomHeaderPanel.repaint();
-      myTitlePanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
-    } else {
-      Insets topSegmentInsets = new Insets(WizardConstants.STUDIO_WIZARD_TOP_INSET,
-                                           STUDIO_WIZARD_INSET_SIZE,
-                                           0,
-                                           STUDIO_WIZARD_INSET_SIZE);
-      myNorthPanel.setBorder(new EmptyBorder(topSegmentInsets));
-    }
-
+    Insets topSegmentInsets = new Insets(WizardConstants.STUDIO_WIZARD_TOP_INSET, STUDIO_WIZARD_INSET_SIZE, 0, STUDIO_WIZARD_INSET_SIZE);
+    myHeaderPane.setBorder(new EmptyBorder(topSegmentInsets));
     Font font = myTitleLabel.getFont();
     if (font == null) {
       font = UIUtil.getLabelFont();
     }
     font = new Font(font.getName(), font.getStyle() | Font.BOLD, font.getSize() + 4);
     myTitleLabel.setFont(font);
-    myErrorWarningLabel.setForeground(JBColor.red);
-  }
-
-  protected static CompoundBorder createBodyBorder() {
-    int fontSize = UIUtil.getLabelFont().getSize();
-    Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
-    return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()), insetBorder);
-  }
-
-  protected void setControlDescription(Component control, @Nullable String description) {
-    if (myFocusListener == null) {
-      myFocusListener = new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          if (evt.getNewValue() instanceof Component) {
-            updateDescription((Component)evt.getNewValue());
-          }
-        }
-      };
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
-    }
-    if (StringUtil.isEmpty(description)) {
-      myControlDescriptions.remove(control);
-    }
-    else {
-      myControlDescriptions.put(control, description);
-    }
-  }
-
-  private String getDescriptionText(Component component) {
-    while (component instanceof Component && !myControlDescriptions.containsKey(component)) {
-      component = component.getParent();
-    }
-    return component != null ? myControlDescriptions.get(component) : "";
-  }
-
-  private void updateDescription(Component focusedComponent) {
-    myState.put(KEY_DESCRIPTION, getDescriptionText(focusedComponent));
-  }
-
-  @Override
-  public void dispose() {
-    if (myFocusListener != null) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
-    }
-  }
-
-  protected final void setBodyComponent(JComponent component) {
-    component.setBorder(new EmptyBorder(new Insets(STUDIO_WIZARD_INSET_SIZE,
-                                                   STUDIO_WIZARD_INSET_SIZE,
-                                                   STUDIO_WIZARD_INSET_SIZE,
-                                                   STUDIO_WIZARD_INSET_SIZE)));
-    myRootPane.add(component, BorderLayout.CENTER);
   }
 
   @NotNull
@@ -182,16 +75,19 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     return myTitle;
   }
 
+  @NotNull
+  @Override
+  protected JPanel createStepBody() {
+    JPanel body = super.createStepBody();
+    body.add(myHeaderPane, BorderLayout.NORTH);
+    return body;
+  }
+
   @Override
   public void init() {
+    super.init();
     myState.put(KEY_TITLE, myTitle);
     myState.put(KEY_MESSAGE, myMessage);
-    register(KEY_DESCRIPTION, getDescriptionText(), new ComponentBinding<String, JLabel>() {
-      @Override
-      public void setValue(String newValue, @NotNull JLabel component) {
-        setDescriptionText(newValue);
-      }
-    });
     register(KEY_TITLE, myTitleLabel, new ComponentBinding<String, JBLabel>() {
       @Override
       public void setValue(@Nullable String newValue, @NotNull JBLabel component) {
@@ -207,46 +103,88 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     });
   }
 
+  @NotNull
+  protected WizardStepHeaderSettings getStepHeader() {
+    return WizardStepHeaderSettings.createProductHeader(myTitle);
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return getStepHeader().title;
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return getStepHeader().description;
+  }
+
+  @NotNull
+  @Override
+  protected Color getHeaderColor() {
+    Color color = getStepHeader().color;
+    return color == null ? super.getHeaderColor() : color;
+  }
+
+  @Nullable
+  @Override
+  protected Icon getStepIcon() {
+    return getStepHeader().stepIcon;
+  }
+
+  public static final class WizardStepHeaderSettings {
+    public static final String PRODUCT_DESCRIPTION = "Android Studio";
+
+    @NotNull public final String title;
+    @Nullable public final String description;
+    @Nullable public final Icon stepIcon;
+    @Nullable public final Color color;
+
+    private WizardStepHeaderSettings(@NotNull String title, @Nullable String description, @Nullable Icon stepIcon, @Nullable Color color) {
+      this.title = title;
+      this.description = description;
+      this.stepIcon = stepIcon;
+      this.color = color;
+    }
+
+    @NotNull
+    public static WizardStepHeaderSettings createCustomColorHeader(@NotNull Color color, @NotNull String title) {
+      return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, color);
+    }
+
+    @NotNull
+    public static WizardStepHeaderSettings createProductHeader(@NotNull String title) {
+      return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, null);
+    }
+
+    @NotNull
+    public static WizardStepHeaderSettings createTitleOnlyHeader(@NotNull String title) {
+      return new WizardStepHeaderSettings(title, null, null, null);
+    }
+
+    @NotNull
+    public static WizardStepHeaderSettings createTitleAndDescriptionHeader(@NotNull String title, @NotNull String description) {
+      return new WizardStepHeaderSettings(title, description, null, null);
+    }
+  }
+
+  // TODO Remove methods below
   /**
-   * Subclasses may override this method if they want to provide a custom description label.
+   * @deprecated No longer used, retain to avoid compilation errors.
    */
-  protected JLabel getDescriptionText() {
-    return myDescriptionText;
-  }
-
-  protected final void setDescriptionText(@Nullable String templateDescription) {
-    getDescriptionText().setText(ImportUIUtil.makeHtmlString(templateDescription));
-  }
-
-  @Nullable
-  protected JBColor getTitleBackgroundColor() {
-    return null;
-  }
-
-  @Nullable
-  protected JBColor getTitleTextColor() {
-    return null;
-  }
-
+  @Deprecated
   @Nullable
   protected JComponent getHeader() {
     return null;
   }
 
-  @NotNull
-  @Override
-  public final JComponent getComponent() {
-    return myRootPane;
-  }
-
-  @NotNull
-  @Override
-  public final JBLabel getMessageLabel() {
-    return myErrorWarningLabel;
-  }
-
+  /**
+   * @deprecated Unused. Will be removed when no code left in downstream projects using this.
+   */
   @Nullable
-  protected Disposable getDisposable() {
-    return myDisposable;
+  @Deprecated
+  protected JBColor getTitleTextColor() {
+    return null;
   }
 }

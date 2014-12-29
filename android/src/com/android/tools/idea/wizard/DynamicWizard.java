@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -519,6 +520,11 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
   public boolean canCancel() {
     return true;
+  }
+
+  @Nullable
+  public Icon getIcon() {
+    return AndroidIcons.Wizards.NewProjectMascotGreen;
   }
 
   protected static class PathIterator {

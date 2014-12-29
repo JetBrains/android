@@ -63,6 +63,7 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
     ConfigureAndroidProjectPath.putSdkDependentParams(getState());
   }
 
+  @Deprecated
   @Nullable
   protected static JComponent buildHeader() {
     return DynamicWizardStep.createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
