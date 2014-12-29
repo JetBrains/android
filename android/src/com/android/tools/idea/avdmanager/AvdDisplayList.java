@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IdeBorderFactory;
@@ -66,6 +67,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final Project myProject;
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
+  private final AvdListDialog myDialog;
 
   private TableView<AvdInfo> myTable;
   private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
@@ -79,7 +81,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
-  public AvdDisplayList(@Nullable Project project) {
+  public AvdDisplayList(@NotNull AvdListDialog dialog, @Nullable Project project) {
+    myDialog = dialog;
     myProject = project;
     myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
@@ -145,7 +148,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    */
   @Override
   public void refreshAvds() {
-    List<AvdInfo> avds = AvdManagerConnection.getAvds(true);
+    List<AvdInfo> avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
     myModel.setItems(avds);
     if (avds.isEmpty()) {
       ((CardLayout)myCenterCardPanel.getLayout()).show(myCenterCardPanel, EMPTY);
@@ -158,6 +161,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   @Override
   public Project getProject() {
     return myProject;
+  }
+
+  @Override
+  public void notifyRun() {
+    if (myDialog.isShowing()) {
+      myDialog.close(DialogWrapper.CANCEL_EXIT_CODE);
+    }
   }
 
   private final MouseAdapter myEditingListener = new MouseAdapter() {
@@ -219,7 +229,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    */
   protected static String getResolution(AvdInfo info) {
     String resolution;
-    Dimension res = AvdManagerConnection.getAvdResolution(info);
+    Dimension res = AvdManagerConnection.getDefaultAvdManagerConnection().getAvdResolution(info);
     Density density = AvdManagerConnection.getAvdDensity(info);
     String densityString = density == null ? "Unknown Density" : density.getResourceValue();
     if (res != null) {
@@ -280,8 +290,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return new Comparator<AvdInfo>() {
           @Override
           public int compare(AvdInfo o1, AvdInfo o2) {
-            Dimension d1 = AvdManagerConnection.getAvdResolution(o1);
-            Dimension d2 = AvdManagerConnection.getAvdResolution(o2);
+            AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
+            Dimension d1 = connection.getAvdResolution(o1);
+            Dimension d2 = connection.getAvdResolution(o2);
             if (d1 == d2) {
               return 0;
             } else if (d1 == null) {

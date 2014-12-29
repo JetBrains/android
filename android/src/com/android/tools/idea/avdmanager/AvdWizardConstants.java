@@ -26,9 +26,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.internal.repository.packages.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +81,8 @@ public class AvdWizardConstants {
   public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_SKIN_PATH, WIZARD, File.class);
 
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
-  public static final Key<String> AVD_ID_KEY = createKey("AvdId", WIZARD, String.class);
+  public static final String AVD_INI_AVD_ID = "AvdId";
+  public static final Key<String> AVD_ID_KEY = createKey(AVD_INI_AVD_ID, WIZARD, String.class);
 
   // Device definition keys
 
@@ -127,6 +126,8 @@ public class AvdWizardConstants {
   // Tags
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
+
+  public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   public static final File NO_SKIN = new File("_no_skin");
 
@@ -175,7 +176,8 @@ public class AvdWizardConstants {
     public String getAbiType() {
       if (systemImage != null) {
         return systemImage.getAbiType();
-      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE) {
+      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE
+              || remotePackage.getPkgDesc().getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
         return remotePackage.getPkgDesc().getPath();
       } else {
         return "";

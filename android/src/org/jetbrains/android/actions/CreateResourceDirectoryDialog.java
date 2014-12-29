@@ -15,16 +15,23 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,13 +49,17 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
   private JTextField myDirectoryNameTextField;
   private JPanel myContentPanel;
   private JBLabel myErrorLabel;
+  private JComboBox mySourceSetCombo;
+  private JBLabel mySourceSetLabel;
 
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
   private InputValidator myValidator;
+  private PsiDirectory myResDirectory;
 
-  public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable ResourceFolderType resType) {
+  public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable ResourceFolderType resType,
+                                       @Nullable PsiDirectory resDirectory, @Nullable Module module) {
     super(project);
-
+    myResDirectory = resDirectory;
     myResourceTypeComboBox.setModel(new EnumComboBoxModel<ResourceFolderType>(ResourceFolderType.class));
     myResourceTypeComboBox.setRenderer(new ListCellRendererWrapper() {
       @Override
@@ -88,7 +99,13 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
     if (resType != null) {
       myResourceTypeComboBox.setSelectedItem(resType);
       myResourceTypeComboBox.setEnabled(false);
+    } else {
+      // Select values by default if not otherwise specified
+      myResourceTypeComboBox.setSelectedItem(ResourceFolderType.VALUES);
     }
+
+    AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, facet, myResDirectory);
 
     myDeviceConfiguratorPanel.updateAll();
     setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);
@@ -124,6 +141,26 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
 
   public InputValidator getValidator() {
     return myValidator;
+  }
+
+  @Nullable
+  public SourceProvider getSourceProvider() {
+    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
+  }
+
+  @Contract("_,true -> !null")
+  @Nullable
+  public PsiDirectory getResourceDirectory(@Nullable DataContext context, boolean create) {
+    if (myResDirectory != null) {
+      return myResDirectory;
+    }
+    if (context != null) {
+      Module module = LangDataKeys.MODULE.getData(context);
+      assert module != null;
+      return CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, create);
+    }
+
+    return null;
   }
 
   @Override

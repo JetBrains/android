@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -140,6 +141,11 @@ public class ProjectViewFixture {
       assertNotNull(file);
       assertThat(file.getName()).isEqualTo(name);
       return this;
+    }
+
+    @Override
+    public String toString() {
+      return Strings.nullToEmpty(myNode.getName());
     }
   }
 }

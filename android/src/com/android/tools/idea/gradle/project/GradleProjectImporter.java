@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -63,6 +64,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.remote.GradleJavaHelper;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -253,15 +255,6 @@ public class GradleProjectImporter {
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
-        GradleSyncState.getInstance(project).runIdeProjectModificationAction(new Runnable() {
-          @Override
-          public void run() {
-            doExecute();
-          }
-        });
-      }
-
-      private void doExecute() {
         LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
         LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
         try {
@@ -466,6 +459,14 @@ public class GradleProjectImporter {
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
+
+    // Set the JDK to use when syncing project.
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      File javaHome = DefaultSdks.getDefaultJavaHome();
+      if (javaHome != null) {
+        System.setProperty(GradleJavaHelper.GRADLE_JAVA_HOME_KEY, javaHome.getAbsolutePath());
+      }
+    }
 
     myDelegate.importProject(project, new ProjectSetUpTask(project, newProject, listener), progressExecutionMode);
   }

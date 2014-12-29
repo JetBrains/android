@@ -25,27 +25,32 @@ import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
+import org.gradle.tooling.CancellationTokenSource;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -58,6 +63,7 @@ public class GradleInvoker {
 
   @NotNull private Collection<BeforeGradleInvocationTask> myBeforeTasks = Sets.newLinkedHashSet();
   @NotNull private Collection<AfterGradleInvocationTask> myAfterTasks = Sets.newLinkedHashSet();
+  @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myCancellationMap = Maps.newConcurrentMap();
 
   public static GradleInvoker getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleInvoker.class);
@@ -174,7 +180,9 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
-    executeTasks(gradleTasks, commandLineArguments, null, null, false);
+    ExternalSystemTaskId id =
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
+    executeTasks(gradleTasks, commandLineArguments, id, null, false);
   }
 
   /**
@@ -190,7 +198,7 @@ public class GradleInvoker {
    */
   public void executeTasks(@NotNull final List<String> gradleTasks,
                            @NotNull final List<String> commandLineArguments,
-                           @Nullable final ExternalSystemTaskId taskId,
+                           @NotNull final ExternalSystemTaskId taskId,
                            @Nullable final ExternalSystemTaskNotificationListener taskListener,
                            final boolean waitForCompletion)
   {
@@ -205,7 +213,9 @@ public class GradleInvoker {
       return;
     }
 
-    final GradleTasksExecutor executor = new GradleTasksExecutor(this, myProject, gradleTasks, commandLineArguments, taskId, taskListener);
+    GradleTaskExecutionContext context =
+      new GradleTaskExecutionContext(this, myProject, gradleTasks, commandLineArguments, myCancellationMap, taskId, taskListener);
+    final GradleTasksExecutor executor = new GradleTasksExecutor(context);
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
@@ -213,11 +223,19 @@ public class GradleInvoker {
       }
     });
 
-    if (waitForCompletion && !ApplicationManager.getApplication().isDispatchThread()) {
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      executor.queue();
+    }
+    else if (waitForCompletion) {
       executor.queueAndWaitForCompletion();
     }
     else {
-      executor.queue();
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          executor.queue();
+        }
+      });
     }
   }
 
@@ -305,6 +323,12 @@ public class GradleInvoker {
     return TestCompileType.NONE;
   }
 
+  public void cancelTask(@NotNull ExternalSystemTaskId id) {
+    CancellationTokenSource token = myCancellationMap.remove(id);
+    if (token != null) {
+      token.cancel();
+    }
+  }
 
   public enum TestCompileType {
     NONE,            // don't compile any tests

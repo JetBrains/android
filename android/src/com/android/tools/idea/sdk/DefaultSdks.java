@@ -22,20 +22,21 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
@@ -121,43 +122,33 @@ public final class DefaultSdks {
   }
 
   public static void setDefaultJavaHome(@NotNull File path) {
-    // Set up a list of SDKs we don't need any more. At the end we'll delete them.
-    List<Sdk> sdksToDelete = Lists.newArrayList();
-
     if (JavaSdk.checkForJdk(path)) {
       File canonicalPath = resolvePath(path);
-      // Try to set this path into the "default" JDK associated with the IntelliJ SDKs.
-      Sdk defaultJdk = getDefaultJdk();
-      if (defaultJdk != null) {
-        setJdkPath(defaultJdk, canonicalPath);
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        // Delete all JDKs in Android Studio. We want to have only one.
+        List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+        for (final Sdk jdk : jdks) {
+          ProjectJdkTable.getInstance().removeJdk(jdk);
+        }
+      }
 
-        // Flip through the IntelliJ SDKs and make sure they point to this JDK.
-        updateAllSdks(defaultJdk);
+      VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
+      if (virtualPath != null) {
+        Sdk newJdk = createJdk(virtualPath);
+        if (newJdk == null) {
+          // Unlikely to happen
+          throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
+        }
+        updateAllSdks(newJdk);
+
+        ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
+        Project[] openProjects = projectManager.getOpenProjects();
+        for (Project project : openProjects) {
+          NewProjectUtil.applyJdkToProject(project, newJdk);
+        }
       }
       else {
-        // We didn't have a JDK set at all. Try to create one.
-        VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
-        if (virtualPath != null) {
-          defaultJdk = createJdk(virtualPath);
-        }
-      }
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        // Now iterate through all the JDKs and delete any that aren't the default one.
-        List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
-        if (defaultJdk != null) {
-          for (Sdk jdk : jdks) {
-            if (jdk.getName() != defaultJdk.getName()) {
-              sdksToDelete.add(defaultJdk);
-            }
-            else {
-              // This may actually be a different copy of the SDK than what we obtained from the JDK. Set its path to be sure.
-              setJdkPath(jdk, canonicalPath);
-            }
-          }
-        }
-      }
-      for (final Sdk sdk : sdksToDelete) {
-        ProjectJdkTable.getInstance().removeJdk(sdk);
+        throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
       }
     }
   }
@@ -165,18 +156,6 @@ public final class DefaultSdks {
   @NotNull
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Project currentProject) {
     return setDefaultAndroidHome(path, null, currentProject);
-  }
-
-  /**
-   * Sets the given JDK's home path to the given path, and resets all of its content roots.
-   */
-  private static void setJdkPath(@NotNull Sdk sdk, @NotNull File path) {
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.setHomePath(path.getPath());
-    sdkModificator.removeAllRoots();
-    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-    sdkModificator.commitChanges();
-    JavaSdk.getInstance().setupSdkPaths(sdk);
   }
 
   /**
@@ -216,9 +195,8 @@ public final class DefaultSdks {
       List<Sdk> sdksToDelete = Lists.newArrayList();
 
       File resolved = resolvePath(path);
-      String resolvedPath = resolved.getPath();
       // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
-      AndroidSdkData sdkData = AndroidSdkData.getSdkData(resolvedPath);
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(resolved, true);
       if (sdkData != null) {
         // Iterate over all current existing IJ Android SDKs
         for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
@@ -408,6 +386,11 @@ public final class DefaultSdks {
    */
   @Nullable
   public static Sdk getDefaultJdk() {
+    return getDefaultJdk(null);
+  }
+
+  @Nullable
+  public static Sdk getDefaultJdk(@Nullable JavaSdkVersion preferredVersion) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
@@ -418,11 +401,20 @@ public final class DefaultSdks {
         return jdk;
       }
     }
-    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+    JavaSdk javaSdk = JavaSdk.getInstance();
+
+    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
-      return jdks.get(0);
+      if (preferredVersion == null) {
+        return jdks.get(0);
+      }
+      for (Sdk jdk : jdks) {
+        if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
+          return jdk;
+        }
+      }
     }
-    final Collection<String> jdkPaths = JavaSdk.getInstance().suggestHomePaths();
+    final Collection<String> jdkPaths = javaSdk.suggestHomePaths();
     VirtualFile javaHome = null;
 
     for (String jdkPath : jdkPaths) {
@@ -435,7 +427,33 @@ public final class DefaultSdks {
     if (javaHome == null) {
       javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
     }
-    return javaHome != null ? createJdk(javaHome) : null;
+    if (javaHome != null) {
+      File path = VfsUtilCore.virtualToIoFile(javaHome);
+      if (JavaSdk.checkForJdk(path)) {
+        Sdk jdk = createJdk(javaHome);
+        if (jdk != null && preferredVersion != null) {
+          return javaSdk.isOfVersionOrHigher(jdk, preferredVersion) ? jdk : null;
+        }
+        return jdk;
+      }
+      // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
+      if (SystemInfo.isLinux && preferredVersion != null) {
+        Sdk jdk = null;
+        for (File child : FileUtil.notNullize(path.listFiles())) {
+          if (child.isDirectory() && JavaSdk.checkForJdk(child)) {
+            jdk = Jdks.createJdk(child.getPath());
+            if (jdk != null) {
+              if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
+                // Prefer JDK 1.7+
+                return jdk;
+              }
+            }
+          }
+        }
+        return jdk;
+      }
+    }
+    return null;
   }
 
   /**
@@ -462,11 +480,7 @@ public final class DefaultSdks {
    */
   @Nullable
   private static Sdk createJdk(@NotNull VirtualFile homeDirectory) {
-    Sdk newSdk = SdkConfigurationUtil.setupSdk(ProjectJdkTable.getInstance().getAllJdks(), homeDirectory, JavaSdk.getInstance(), true, null,
-                                               AndroidSdkUtils.DEFAULT_JDK_NAME);
-    if (newSdk != null) {
-      SdkConfigurationUtil.addSdk(newSdk);
-    }
-    return newSdk;
+    File path = VfsUtilCore.virtualToIoFile(homeDirectory);
+    return Jdks.createJdk(path.getPath());
   }
 }

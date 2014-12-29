@@ -142,6 +142,23 @@ public class AndroidPsiUtils {
     }
   }
 
+  /**
+   * Returns the {@link PsiDirectory} for the given {@link VirtualFile}, with a read lock.
+   *
+   * @param dir the file to look up the PSI directory for
+   * @return the corresponding PSI directory, if any
+   */
+  @Nullable
+  public static PsiDirectory getPsiDirectorySafely(@NotNull final Project project, @NotNull final VirtualFile dir) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<PsiDirectory>() {
+      @Nullable
+      @Override
+      public PsiDirectory compute() {
+        return PsiManager.getInstance(project).findDirectory(dir);
+      }
+    });
+  }
+
   /** Type of resource reference: R.type.name or android.R.type.name or neither */
   public enum ResourceReferenceType { NONE, APP, FRAMEWORK }
 

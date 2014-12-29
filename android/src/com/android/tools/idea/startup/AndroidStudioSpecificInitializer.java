@@ -19,11 +19,12 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.welcome.AndroidStudioWelcomeScreenProvider;
+import com.android.tools.idea.welcome.FirstRunWizardMode;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -46,8 +47,6 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -88,6 +87,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
   static {
     System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
+    // We need to disable IDEA's "enhanced Tooling API" otherwise --init-script pointing to embedded repo won't work.
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      System.setProperty("gradle.disable.enhanced.tooling.api", "true");
+    }
   }
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
   private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
@@ -387,7 +390,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
           return;
         }
 
-        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), true);
+        FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+        // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
+        boolean promptSdkSelection = wizardMode == null;
+
+        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
           if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
@@ -521,17 +528,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appClosing() {
-        try {
-          for (Project p : ProjectManager.getInstance().getOpenProjects()) {
-            if (Projects.isBuildWithGradle(p)) {
-              GradleUtil.stopAllGradleDaemons(false);
-              return;
-            }
-          }
-        }
-        catch (IOException e) {
-          LOG.info("Failed to stop Gradle daemons", e);
-        }
+        GradleUtil.stopAllGradleDaemons();
       }
     });
   }

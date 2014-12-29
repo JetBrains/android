@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
@@ -43,10 +44,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project) {
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
-      String supportedGradleVersion = GradleUtil.getSupportedGradleVersion(project);
-      if (StringUtil.isNotEmpty(supportedGradleVersion)) {
-        return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, supportedGradleVersion);
-      }
+      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, SdkConstants.GRADLE_LATEST_VERSION);
     }
     return null;
   }

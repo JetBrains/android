@@ -27,12 +27,10 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -83,9 +81,9 @@ public class ExternalToolRunner {
     return new OSProcessHandler(process);
   }
 
-  private void initConsoleUi() {
+  protected ConsoleView initConsoleUi() {
     ConsoleView consoleView = createConsoleView();
-    consoleView.print(myCommandLine.getCommandLineString() + '\n', ConsoleViewContentType.NORMAL_OUTPUT);
+    consoleView.print(myCommandLine.getCommandLineString() + '\n', ConsoleViewContentType.USER_INPUT);
     consoleView.attachToProcess(myProcessHandler);
 
     JPanel panel = new JPanel(new BorderLayout());
@@ -106,6 +104,7 @@ public class ExternalToolRunner {
 
     myProcessHandler.addProcessListener(new ConsoleListener(myProject, defaultExecutor, myProcessHandler));
     myProcessHandler.startNotify();
+    return consoleView;
   }
 
   protected ConsoleView createConsoleView() {

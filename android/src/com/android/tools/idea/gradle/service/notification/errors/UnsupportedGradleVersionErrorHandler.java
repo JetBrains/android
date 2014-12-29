@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -55,10 +54,7 @@ public class UnsupportedGradleVersionErrorHandler extends AbstractSyncErrorHandl
       else {
         GradleProjectSettings gradleProjectSettings = GradleUtil.getGradleProjectSettings(project);
         if (gradleProjectSettings != null && gradleProjectSettings.getDistributionType() == DistributionType.LOCAL) {
-          String gradleVersion = GradleUtil.getSupportedGradleVersion(project);
-          if (StringUtil.isNotEmpty(gradleVersion)) {
-            hyperlinks.add(new CreateGradleWrapperHyperlink(gradleVersion));
-          }
+          hyperlinks.add(new CreateGradleWrapperHyperlink());
         }
       }
       hyperlinks.add(new OpenGradleSettingsHyperlink());
