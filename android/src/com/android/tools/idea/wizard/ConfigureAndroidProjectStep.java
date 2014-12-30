@@ -75,7 +75,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   }
 
   public ConfigureAndroidProjectStep(String title, Disposable parentDisposable) {
-    super(title, null, null, parentDisposable);
+    super(title, null, parentDisposable);
     setBodyComponent(myPanel);
   }
 
@@ -283,15 +283,9 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     }
   };
 
-  @Nullable
+  @NotNull
   @Override
-  protected JComponent getHeader() {
+  protected WizardStepHeaderSettings getStepHeader() {
     return ConfigureAndroidProjectPath.buildConfigurationHeader();
-  }
-
-  @Override
-  @Nullable
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
   }
 }

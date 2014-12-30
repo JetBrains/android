@@ -41,7 +41,6 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaCodeFragment;
@@ -79,7 +78,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 /**
  * Wizard step for specifying template-specific parameters.
  */
-public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescription {
+public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
   public static final int COLUMN_COUNT = 3;
   private static final Key<File> KEY_TEMPLATE_ICON = createKey("page.template.icon", ScopedStateStore.Scope.STEP, File.class);
@@ -88,6 +87,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
   @NotNull private final Key<String> myPackageNameKey;
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  @NotNull private final FormFactorUtils.FormFactor myFormFactor; // TODO: Use for icon
   private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
@@ -114,7 +114,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
                                 @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
                                 SourceProvider[] sourceProviders) {
-    super("Choose options for your new file", null, formFactor.getIcon(), disposable);
+    super(disposable);
+    myFormFactor = formFactor;
     mySourceProviders = sourceProviders;
     myPresetParameters.putAll(presetParameters);
     myPackageNameKey = packageNameKey;
@@ -855,6 +856,24 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   @Override
   public String getStepName() {
     return "Template parameters";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "Customize the Activity";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  protected Icon getStepIcon() {
+    return myFormFactor.getIcon();
   }
 
   @Override
