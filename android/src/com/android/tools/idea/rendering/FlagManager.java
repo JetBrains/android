@@ -104,9 +104,12 @@ public class FlagManager {
       @SuppressWarnings("UnnecessaryFullyQualifiedName")
       java.util.Locale locale = java.util.Locale.getDefault();
       if (language.equals(locale.getLanguage())) {
-        Icon flag = getFlag(locale.getCountry());
-        if (flag != null) {
-          return flag;
+        String country = locale.getCountry();
+        if (country.length() == 2) {
+          Icon flag = getFlag(country.toUpperCase(java.util.Locale.US));
+          if (flag != null) {
+            return flag;
+          }
         }
       }
 

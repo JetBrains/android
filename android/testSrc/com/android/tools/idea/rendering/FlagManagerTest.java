@@ -73,6 +73,19 @@ public class FlagManagerTest extends TestCase {
     assertSame(ca, manager.getFlagForFolderName("values-en"));
   }
 
+  public void testNonIso3166DefaultLocale() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=91988
+    Locale previous = Locale.getDefault();
+    try {
+      Locale.setDefault(new Locale("es", "419"));
+      FlagManager.get().getFlag("es", null);
+      Locale.setDefault(new Locale("es", "es"));
+      FlagManager.get().getFlag("es", null);
+    } finally {
+      Locale.setDefault(previous);
+    }
+  }
+
   public void testAvailableIcons() {
     // Icons we have from WindowBuilder
     String[] icons = new String[] {
