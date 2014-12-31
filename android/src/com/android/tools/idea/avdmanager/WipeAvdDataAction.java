@@ -31,11 +31,12 @@ public class WipeAvdDataAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     AvdInfo avdInfo = getAvdInfo();
     if (avdInfo == null) {
       return;
     }
-    if (avdInfo.isRunning()) {
+    if (connection.isAvdRunning(avdInfo)) {
       JOptionPane.showMessageDialog(null, "The selected AVD is currently running in the Emulator. " +
                                           "Please exit the emulator instance and try wiping again.", "Cannot Wipe A Running AVD",
                                     JOptionPane.ERROR_MESSAGE);
@@ -44,7 +45,7 @@ public class WipeAvdDataAction extends AvdUiAction {
     int result = JOptionPane.showConfirmDialog(null, "Do you really want to wipe user files from AVD " + avdInfo.getName() + "?",
                                                "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
     if (result == JOptionPane.YES_OPTION) {
-      AvdManagerConnection.getDefaultAvdManagerConnection().wipeUserData(avdInfo);
+      connection.wipeUserData(avdInfo);
       refreshAvds();
     }
   }
