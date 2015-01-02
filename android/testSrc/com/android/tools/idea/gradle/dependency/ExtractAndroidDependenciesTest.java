@@ -25,6 +25,7 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
@@ -46,7 +47,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNotNull(myVariant);
 
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
+    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
   }
 
   @Override
