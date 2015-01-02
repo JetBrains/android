@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -121,7 +120,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (androidProject != null) {
       Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
-        new IdeaAndroidProject(gradleModule.getName(), moduleRootDirPath, androidProject, selectedVariant.getName());
+        new IdeaAndroidProject(GradleConstants.SYSTEM_ID,
+                               gradleModule.getName(), moduleRootDirPath, androidProject, selectedVariant.getName());
       ideModule.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
     }
 
