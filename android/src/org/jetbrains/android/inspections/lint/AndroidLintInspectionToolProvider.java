@@ -1347,6 +1347,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.invalid.id"), WrongIdDetector.INVALID);
     }
   }
+
+  public static class AndroidLintJavascriptInterfaceInspection extends AndroidLintInspectionBase {
+    public AndroidLintJavascriptInterfaceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.javascript.interface"), JavaScriptInterfaceDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintLabelForInspection extends AndroidLintInspectionBase {
     public AndroidLintLabelForInspection() {
       super(AndroidBundle.message("android.lint.inspections.label.for"), LabelForDetector.ISSUE);
