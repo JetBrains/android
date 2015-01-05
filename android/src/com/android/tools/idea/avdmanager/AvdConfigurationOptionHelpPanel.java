@@ -25,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.text.View;
 import java.awt.*;
 import java.util.Map;
 
@@ -108,10 +106,11 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(BACK_CAMERA_KEY, "Back Camera").
     put(USE_HOST_GPU_KEY, "Use Host GPU").
     put(USE_SNAPSHOT_KEY, "Enable Snapshot").
-    put(CUSTOM_SKIN_FILE_KEY, "Custom Hardware Skin").
+    put(CUSTOM_SKIN_FILE_KEY, "Custom Device Frame").
     put(DISPLAY_NAME_KEY, "AVD Name").
     put(HAS_HARDWARE_KEYBOARD_KEY, "Enable keyboard input").
     put(AVD_ID_KEY, "AVD Id").
+    put(DEVICE_FRAME_KEY, "Enable device frame").
     build();
 
   private static Map<ScopedStateStore.Key<?>, String> DESCRIPTIONS = ImmutableMap.<ScopedStateStore.Key<?>, String>builder().
@@ -127,7 +126,8 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
                               "SD Card data (pictures, media, files, etc.) between Android Virtual Devices. " +
                               "See http://d.android.com/tools/help/mksdcard.html for more details. ").
     put(SCALE_SELECTION_KEY, "Enables you to test your application on a screen that uses a resolution or density not supported by the " +
-                             "built-in AVD skins, you can create an AVD that uses a custom resolution by selecting one of the scale values.").
+                             "built-in AVD device frames, you can create an AVD that uses a custom resolution by selecting one of the " +
+                             "scale values.").
     put(DEFAULT_ORIENTATION_KEY, "Sets the initial orientation of the device. During AVD emulation you can also rotate the device screen. ").
     put(NETWORK_SPEED_KEY, "Sets the initial state of the simulated network transfer rate used by AVD.  " +
                            "The network speed can also be adjusted in the emulator.").
@@ -153,6 +153,8 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(HAS_HARDWARE_KEYBOARD_KEY, "Enables you to enter text input and interact with the AVD with your hardware computer keyboard " +
                                    "instead of a of the on on-screen software keyboard.").
     put(AVD_ID_KEY, "Identification name used to save an AVD on disk. This AVD name can also be used with Android command line tools.").
+    put(DEVICE_FRAME_KEY, "Enable a frame around the Android emulator window that mimics the look of a real " +
+                          "Android device. Click on Show Advanced Settings for more options.").
     build();
 
   /**
