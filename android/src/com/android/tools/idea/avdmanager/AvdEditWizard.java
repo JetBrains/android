@@ -183,6 +183,13 @@ public class AvdEditWizard extends DynamicWizard {
         state.put(CUSTOM_SKIN_FILE_KEY, skinFile);
       }
     }
+    String backupSkinPath = properties.get(BACKUP_SKIN_FILE_KEY.name);
+    if (backupSkinPath != null) {
+      File skinFile = new File(backupSkinPath);
+      if (skinFile.isDirectory() || FileUtil.filesEqual(skinFile, NO_SKIN)) {
+        state.put(BACKUP_SKIN_FILE_KEY, skinFile);
+      }
+    }
     state.put(IS_IN_EDIT_MODE_KEY, true);
   }
 
@@ -298,6 +305,10 @@ public class AvdEditWizard extends DynamicWizard {
     File skinFile = state.get(CUSTOM_SKIN_FILE_KEY);
     if (skinFile == null) {
       skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription);
+    }
+    File backupSkinFile = state.get(BACKUP_SKIN_FILE_KEY);
+    if (backupSkinFile != null) {
+      hardwareProperties.put(AvdManager.AVD_INI_BACKUP_SKIN_PATH, backupSkinFile.getPath());
     }
 
     // Add defaults if they aren't already set differently
