@@ -20,10 +20,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
-import com.intellij.psi.PsiBinaryFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
@@ -139,6 +136,16 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
             if (descriptors.length > 0) {
               problemDescriptionsProcessor.addProblemElement(globalContext.getRefManager().getReference(psiFile), descriptors);
             }
+          } else if (vFile.isDirectory()) {
+            final PsiDirectory psiDirectory = psiManager.findDirectory(vFile);
+
+            if (psiDirectory != null) {
+              final ProblemDescriptor[] descriptors = computeProblemDescriptors(psiDirectory, manager, entry.getValue());
+
+              if (descriptors.length > 0) {
+                problemDescriptionsProcessor.addProblemElement(globalContext.getRefManager().getReference(psiDirectory), descriptors);
+              }
+            }
           }
         }
       });
@@ -146,7 +153,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   }
 
   @NotNull
-  private ProblemDescriptor[] computeProblemDescriptors(@NotNull PsiFile psiFile,
+  private ProblemDescriptor[] computeProblemDescriptors(@NotNull PsiElement psiFile,
                                                         @NotNull InspectionManager manager,
                                                         @NotNull List<ProblemData> problems) {
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
@@ -158,9 +165,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
 
       if (range.getStartOffset() == range.getEndOffset()) {
 
-        if (psiFile instanceof PsiBinaryFile) {
+        if (psiFile instanceof PsiBinaryFile || psiFile instanceof PsiDirectory) {
           final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage);
-          result.add(new BinaryFileProblemDescriptor(psiFile, formattedMessage, fixes));
+          result.add(new NonTextFileProblemDescriptor((PsiFileSystemItem)psiFile, formattedMessage, fixes));
         } else if (!isSuppressedFor(psiFile)) {
           result.add(manager.createProblemDescriptor(psiFile, formattedMessage, false,
                                                      getLocalQuickFixes(psiFile, psiFile, originalMessage),
@@ -437,7 +444,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   }
 
   /**
-   * A {@link com.intellij.codeInspection.ProblemDescriptor} for image files. This is
+   * A {@link com.intellij.codeInspection.ProblemDescriptor} for image and directory files. This is
    * necessary because the {@link InspectionManager}'s createProblemDescriptor methods
    * all use {@link com.intellij.codeInspection.ProblemDescriptorBase} where in the constructor
    * it insists that the start and end {@link PsiElement} instances must have a valid
@@ -445,15 +452,16 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
    * <p>
    * This custom descriptor allows the batch lint analysis to correctly handle lint errors
    * associated with image files (such as the various {@link com.android.tools.lint.checks.IconDetector}
-   * warnings), and clicking on them will navigate to the correct icon.
+   * warnings), as well as directory errors (such as incorrect locale folders),
+   * and clicking on them will navigate to the correct icon.
    */
-  private static class BinaryFileProblemDescriptor implements ProblemDescriptor {
-    private final PsiFile myFile;
+  private static class NonTextFileProblemDescriptor implements ProblemDescriptor {
+    private final PsiFileSystemItem myFile;
     private final String myMessage;
     private final LocalQuickFix[] myFixes;
     private ProblemGroup myGroup;
 
-    public BinaryFileProblemDescriptor(@NotNull PsiFile file, @NotNull String message, @NotNull LocalQuickFix[] fixes) {
+    public NonTextFileProblemDescriptor(@NotNull PsiFileSystemItem file, @NotNull String message, @NotNull LocalQuickFix[] fixes) {
       myFile = file;
       myMessage = message;
       myFixes = fixes;
