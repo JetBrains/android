@@ -718,36 +718,40 @@ ${Switch} $0
 ${Case} 0
     ${If} $1 = 1
         # We are the user script, and we successfully elevated ourselves to the
-        # admin installer, which will do all the real work.
-
-        # Normally, we delete the handoff file right after being elevated to
-        # admin mode. However, if the user can't elevate to admin mode for some
-        # reason, we still need to clean this up.
-        Delete ${USER_ADMIN_HANDOFF_FILE}
+        # admin installer, which did all the real work. (This case is hit after
+        # the admin installer has finished)
         Quit
     ${ElseIf} $3 <> 0
         # We are already admin - we must be the spawned, elevated process. Continue!
-        ${Break}
+        Goto uac_success
     ${ElseIf} $1 = 3
         # Somehow the user simply chose another non-admin account. Try again?
         MessageBox MB_YESNO|MB_ICONEXCLAMATION "You must choose an account with administrative privileges. Try again?" \
             /SD IDNO IDYES uac_tryagain IDNO 0
-        Quit
     ${EndIf}
-
+    ${Break}
     # If here, something went wrong. Fall to the next case to show the abort message.
 ${Case} 1223
     MessageBox MB_ICONSTOP "The installer could not request administrative privileges and must abort."
-    Quit
+    ${Break}
 ${Case} 1062
     MessageBox MB_ICONSTOP "Logon service not running, which is needed to request administrative privileges, and the installer must abort."
-    Quit
+    ${Break}
 ${Default}
     MessageBox MB_ICONSTOP "Unable to elevate [error: $0]"
-    Quit
+    ${Break}
 ${EndSwitch}
 
+# Normally, we delete the handoff file right after being elevated to
+# admin mode. However, if the user can't elevate to admin mode for some
+# reason, we still need to clean this up.
+Delete ${USER_ADMIN_HANDOFF_FILE}
+Quit
+
+uac_success:
+Delete ${USER_ADMIN_HANDOFF_FILE}
 SetShellVarContext all
+
 !macroend
 
 # Installer functions
