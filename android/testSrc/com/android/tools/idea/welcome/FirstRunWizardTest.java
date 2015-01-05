@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 
 public final class FirstRunWizardTest extends AndroidTestBase {
@@ -148,8 +149,8 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
         @NotNull
         @Override
-        public JComponent getComponent() {
-          return myLabel;
+        protected Component createStepBody() {
+          return new JLabel();
         }
 
         @Nullable
@@ -162,6 +163,18 @@ public final class FirstRunWizardTest extends AndroidTestBase {
         @Override
         public String getStepName() {
           return "Always visible wizard step";
+        }
+
+        @NotNull
+        @Override
+        protected String getStepTitle() {
+          return "test step";
+        }
+
+        @Nullable
+        @Override
+        protected String getStepDescription() {
+          return null;
         }
 
         @Override
