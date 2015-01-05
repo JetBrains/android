@@ -35,6 +35,7 @@ import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
@@ -139,6 +140,8 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    * Create a header banner for steps in this path.
    * @return
    */
+  @Deprecated
+  @Nullable
   protected static JPanel buildConfigurationHeader() {
     return DynamicWizardStep.createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
                                                     AndroidIcons.Wizards.NewProjectMascotGreen, "New Project");

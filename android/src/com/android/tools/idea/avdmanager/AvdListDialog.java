@@ -16,8 +16,8 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.WizardStepHeaderPanel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -57,8 +57,9 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   @Nullable
   @Override
   protected JComponent createNorthPanel() {
-    return DynamicWizardStep
-      .createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, "Your Virtual Devices");
+    return WizardStepHeaderPanel
+      .create(WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, null, "Your Virtual Devices",
+              "Android Studio");
   }
 
   @Nullable

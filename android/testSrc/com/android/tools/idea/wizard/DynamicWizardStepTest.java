@@ -159,7 +159,7 @@ public class DynamicWizardStepTest extends TestCase {
 
     @NotNull
     @Override
-    public JComponent getComponent() {
+    public JComponent createStepBody() {
       return myPanel;
     }
 
@@ -178,6 +178,18 @@ public class DynamicWizardStepTest extends TestCase {
     @Override
     public String getStepName() {
       return myName;
+    }
+
+    @NotNull
+    @Override
+    protected String getStepTitle() {
+      return getStepName();
+    }
+
+    @Nullable
+    @Override
+    protected String getStepDescription() {
+      return null;
     }
   }
 }
