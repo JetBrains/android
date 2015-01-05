@@ -27,13 +27,18 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.graph.Graph;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -101,11 +106,20 @@ class IntellijLintProject extends Project {
     }
   }
 
-  @Nullable
-  public static Project createForSingleFile(@NonNull IntellijLintClient client, @Nullable VirtualFile file, @NonNull Module module) {
+  /**
+   * Creates a project for a single file. Also optionally creates a main project for the file, if applicable.
+   *
+   * @param client the lint client
+   * @param file the file to create a project for
+   * @param module the module to create a project for
+   * @return a project for the file, as well as a project (or null) for the main Android module
+   */
+  @NonNull
+  public static Pair<Project,Project> createForSingleFile(@NonNull IntellijLintClient client, @Nullable VirtualFile file, @NonNull Module module) {
     // TODO: Can make this method even more lightweight: we don't need to initialize anything in the project (source paths etc)
     // other than the metadata necessary for this file's type
     LintModuleProject project = createModuleProject(client, module);
+    LintModuleProject main = null;
     Map<Project,Module> projectMap = Maps.newHashMap();
     if (project != null) {
       project.setDirectLibraries(Collections.<Project>emptyList());
@@ -113,10 +127,72 @@ class IntellijLintProject extends Project {
         project.addFile(VfsUtilCore.virtualToIoFile(file));
       }
       projectMap.put(project, module);
+
+      // Supply a main project too, such that when you for example edit a file in a Java library,
+      // and lint asks for getMainProject().getMinSdk(), we return the min SDK of an application
+      // using the library, not "1" (the default for a module without a manifest)
+      if (!project.isAndroidProject()) {
+        Module androidModule = findAndroidModule(module);
+        if (androidModule != null) {
+          main = createModuleProject(client, androidModule);
+          if (main != null) {
+            projectMap.put(main, androidModule);
+            main.setDirectLibraries(Collections.<Project>singletonList(project));
+          }
+        }
+      }
     }
     client.setModuleMap(projectMap);
 
-    return project;
+    //noinspection ConstantConditions
+    return Pair.<Project,Project>create(project,main);
+  }
+
+  /** Find an Android module that depends on this module; prefer app modules over library modules */
+  @Nullable
+  private static Module findAndroidModule(@NonNull final Module module) {
+    // Search for dependencies of this module
+    Graph<Module> graph = ApplicationManager.getApplication().runReadAction(new Computable<Graph<Module>>() {
+      @Override
+      public Graph<Module> compute() {
+        return ModuleManager.getInstance(module.getProject()).moduleGraph();
+      }
+    });
+
+    Set<AndroidFacet> facets = Sets.newHashSet();
+    HashSet<Module> seen = Sets.newHashSet();
+    seen.add(module);
+    addAndroidModules(facets, seen, graph, module);
+
+    // Prefer Android app modules
+    for (AndroidFacet facet : facets) {
+      if (!facet.isLibraryProject()) {
+        return facet.getModule();
+      }
+    }
+
+    // Resort to library modules if no app module depends directly on it
+    if (!facets.isEmpty()) {
+      return facets.iterator().next().getModule();
+    }
+
+    return null;
+  }
+
+  private static void addAndroidModules(Set<AndroidFacet> androidFacets, Set<Module> seen, Graph<Module> graph, Module module) {
+    Iterator<Module> iterator = graph.getOut(module);
+    while (iterator.hasNext()) {
+      Module dep = iterator.next();
+      AndroidFacet facet = AndroidFacet.getInstance(dep);
+      if (facet != null) {
+        androidFacets.add(facet);
+      }
+
+      if (!seen.contains(dep)) {
+        seen.add(dep);
+        addAndroidModules(androidFacets, seen, graph, dep);
+      }
+    }
   }
 
   /**
