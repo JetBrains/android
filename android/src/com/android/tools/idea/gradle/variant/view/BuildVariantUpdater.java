@@ -19,16 +19,14 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
-import com.google.common.collect.ImmutableList;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -49,9 +47,6 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findCon
  */
 class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
-
-  private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
@@ -131,7 +126,7 @@ class BuildVariantUpdater {
 
     Module module = androidFacet.getModule();
     Project project = module.getProject();
-    for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
+    for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
       customizer.customizeModule(module, project, androidProject);
     }
 
@@ -150,6 +145,29 @@ class BuildVariantUpdater {
     return true;
   }
 
+  @NotNull
+  private static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
+    return getCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
+                                                                               @NotNull BuildVariantModuleCustomizer... allCustomizers) {
+    List<BuildVariantModuleCustomizer<IdeaAndroidProject>> customizers = Lists.newArrayList();
+    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
+      // Supported model type must be IdeaAndroidProject or subclass.
+      if (IdeaAndroidProject.class.isAssignableFrom(customizer.getSupportedModelType())) {
+        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
+        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
+        if (projectSystemId == targetProjectSystemId || projectSystemId == ProjectSystemId.IDE) {
+          //noinspection unchecked
+          customizers.add(customizer);
+        }
+      }
+    }
+    return customizers;
+  }
 
   private void ensureVariantIsSelected(@NotNull Project project,
                                        @NotNull String moduleGradlePath,

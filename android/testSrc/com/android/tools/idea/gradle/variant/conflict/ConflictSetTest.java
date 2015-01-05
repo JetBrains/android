@@ -29,6 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.List;
@@ -68,7 +69,7 @@ public class ConflictSetTest extends IdeaTestCase {
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");
 
-    myApp = new IdeaAndroidProject(myModule.getName(), rootDirPath, project, variant.getName());
+    myApp = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDirPath, project, variant.getName());
   }
 
   private void setUpLib() {
@@ -78,7 +79,8 @@ public class ConflictSetTest extends IdeaTestCase {
     project.setIsLibrary(true);
     VariantStub variant = project.addVariant("debug");
 
-    myLib = new IdeaAndroidProject(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
+    myLib = new IdeaAndroidProject(GradleConstants.SYSTEM_ID,
+                                   myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
   }
 
   private void setUpMainModuleAsApp() {
