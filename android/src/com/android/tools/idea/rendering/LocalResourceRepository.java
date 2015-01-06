@@ -347,4 +347,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
     return null;
   }
+
+  /**
+   * Forces the repository to update itself synchronously, if necessary (in case there
+   * are pending updates). This method must be called on the event dispatch thread!
+   */
+  public void sync() {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+  }
 }

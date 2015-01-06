@@ -2090,6 +2090,51 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
                  resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
   }
 
+  public void testSync() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=79629
+    // Ensure that sync() handles rescanning immediately
+    VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+
+    final long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        // The sync() call must be called from the dispatch thread
+        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+          @Override
+          public void run() {
+            String string = "    <string name=\"hello_world\">Hello world!</string>";
+            final int offset = document.getText().indexOf(string);
+            assertTrue(offset != -1);
+            document.deleteString(offset, offset + string.length());
+            documentManager.commitDocument(document);
+          }
+        });
+
+        assertTrue(generation < resources.getModificationCount());
+
+        assertTrue(resources.isScanPending(psiFile1));
+        assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+
+        assertTrue(ApplicationManager.getApplication().isDispatchThread());
+        resources.sync();
+        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertFalse(resources.isScanPending(psiFile1));
+      }
+    });
+  }
+
   @Nullable
   private static XmlTag findTagById(@NotNull PsiFile file, @NotNull String id) {
     assertFalse(id.startsWith(PREFIX_RESOURCE_REF)); // just the id
