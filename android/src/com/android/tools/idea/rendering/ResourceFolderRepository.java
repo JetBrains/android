@@ -411,17 +411,58 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            rescanImmediately(psiFile, folderType);
+            boolean rescan;
             synchronized (SCAN_LOCK) {
-              myPendingScans.remove(psiFile);
-              if (myPendingScans.isEmpty()) {
-                myPendingScans = null;
+              // Handled by {@link #sync()} after the {@link #rescan} call and before invokeLater ?
+              rescan = myPendingScans != null && myPendingScans.contains(psiFile);
+            }
+            if (rescan) {
+              rescanImmediately(psiFile, folderType);
+              synchronized (SCAN_LOCK) {
+                // myPendingScans can't be null here because the only method which clears it
+                // is sync() which also requires a write lock, and we've held the write lock
+                // since null checking it above
+                myPendingScans.remove(psiFile);
+                if (myPendingScans.isEmpty()) {
+                  myPendingScans = null;
+                }
               }
             }
           }
         });
       }
     });
+  }
+
+  @Override
+  public void sync() {
+    super.sync();
+
+    final List<PsiFile> files;
+    synchronized(SCAN_LOCK) {
+      if (myPendingScans == null || myPendingScans.isEmpty()) {
+        return;
+      }
+      files = new ArrayList<PsiFile>(myPendingScans);
+    }
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        for (PsiFile file : files) {
+          if (file.isValid()) {
+            ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+            if (folderType != null) {
+              rescanImmediately(file, folderType);
+            }
+          }
+        }
+      }
+    });
+
+    synchronized(SCAN_LOCK) {
+      myPendingScans = null;
+    }
   }
 
   private void rescanImmediately(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {

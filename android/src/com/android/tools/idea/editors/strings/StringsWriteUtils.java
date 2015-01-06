@@ -163,6 +163,8 @@ public class StringsWriteUtils {
   @Nullable
   private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
     LocalResourceRepository repository = facet.getModuleResources(true);
+    // Ensure that items *just* created are processed by the resource repository
+    repository.sync();
     List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
     if (items == null) {
       return null;
