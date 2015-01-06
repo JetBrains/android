@@ -239,6 +239,16 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     return false;
   }
 
+  @Override
+  public void sync() {
+    super.sync();
+
+    for (int i = myChildren.size() - 1; i >= 0; i--) {
+      LocalResourceRepository resources = myChildren.get(i);
+      resources.sync();
+    }
+  }
+
   @VisibleForTesting
   int getChildCount() {
     return myChildren.size();
