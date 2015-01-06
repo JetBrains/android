@@ -37,11 +37,13 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
 
 public abstract class ToolWindowFixture {
+  @NotNull protected final String myToolWindowId;
   @NotNull protected final Project myProject;
   @NotNull protected final Robot myRobot;
   @NotNull protected final ToolWindow myToolWindow;
 
   protected ToolWindowFixture(@NotNull final String toolWindowId, @NotNull final Project project, @NotNull Robot robot) {
+    myToolWindowId = toolWindowId;
     myProject = project;
     final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
     Pause.pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
@@ -100,7 +102,7 @@ public abstract class ToolWindowFixture {
       }
     });
 
-    pause(new Condition("Wait for ToolWindow to be activated") {
+    pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be activated") {
       @Override
       public boolean test() {
         if (callback.finished) {
@@ -122,7 +124,7 @@ public abstract class ToolWindowFixture {
   }
 
   protected void waitUntilIsVisible() {
-    pause(new Condition("Wait for ToolWindow to be visible") {
+    pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be visible") {
       @Override
       public boolean test() {
         if (!isActive()) {

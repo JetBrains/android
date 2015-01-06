@@ -124,6 +124,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   }
 
   @Override
+  @NotNull
   public Class<IdeaAndroidProject> getSupportedModelType() {
     return IdeaAndroidProject.class;
   }

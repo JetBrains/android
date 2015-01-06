@@ -37,5 +37,6 @@ public interface BuildVariantModuleCustomizer<T> extends ModuleCustomizer<T> {
   /**
    * @return the type of model this customizer can handle.
    */
+  @NotNull
   Class<T> getSupportedModelType();
 }

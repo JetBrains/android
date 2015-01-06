@@ -55,6 +55,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
   }
 
   @Override
+  @NotNull
   public Class<IdeaAndroidProject> getSupportedModelType() {
     return IdeaAndroidProject.class;
   }
