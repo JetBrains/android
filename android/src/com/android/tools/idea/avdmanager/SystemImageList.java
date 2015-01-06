@@ -111,7 +111,6 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myRemoteSdk = androidSdkData.getRemoteSdk();
     myModel.setColumnInfos(ourColumnInfos);
     myModel.setSortable(true);
-    refreshImages(true);
     myTable.setModelAndUpdateColumns(myModel);
     ListSelectionModel selectionModel =
       new DefaultListSelectionModel() {
@@ -280,6 +279,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     // time when this is done.
     items.addAll(getRemoteImages(getLocalFingerprints(items)));
     updateListModel(items);
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myRefreshPanel.setVisible(false);
+        myRefreshButton.setEnabled(true);
+      }
+    });
   }
 
   private List<AvdWizardConstants.SystemImageDescription> getRemoteImages(Set<ImageFingerprint> seen) {
@@ -289,7 +295,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     if (packages.isEmpty()) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
+      @Override
         public void run() {
           myShowRemoteCheckbox.setEnabled(false);
           myShowRemoteCheckbox.setSelected(false);
@@ -317,15 +323,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
           }
         }
       }
-      updateListModel(items);
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        myRefreshPanel.setVisible(false);
-        myRefreshButton.setEnabled(true);
-      }
-    });
     return items;
   }
 
@@ -373,7 +371,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * that the updates are applied in the UI thread.
    */
   private void updateListModel(@NotNull final List<AvdWizardConstants.SystemImageDescription> items) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    Runnable r = new Runnable() {
       @Override
       public void run() {
         AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
@@ -381,8 +379,12 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         if (selected == null || !items.contains(selected)) {
           selectDefaultImage();
         }
+        else {
+          setSelectedImage(selected);
+        }
       }
-    });
+    };
+    UIUtil.invokeLaterIfNeeded(r);
   }
 
   public void setFilter(Predicate<AvdWizardConstants.SystemImageDescription> filter) {
