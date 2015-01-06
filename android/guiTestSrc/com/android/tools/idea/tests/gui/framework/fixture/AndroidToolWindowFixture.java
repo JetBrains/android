@@ -34,61 +34,11 @@ import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertTrue;
 
 public class AndroidToolWindowFixture extends ToolWindowFixture {
-  private static class ProcessListFixture extends JListFixture {
-    ProcessListFixture(@NotNull Robot robot, @NotNull JList target) {
-      super(robot, target);
-    }
-
-    @NotNull
-    public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      pause(new Condition("Wait for the process list to show the package name.") {
-        @Override
-        public boolean test() {
-          return GuiActionRunner.execute(new GuiQuery<Boolean>() {
-            @Override
-            protected Boolean executeInEDT() throws Throwable {
-              for (int i = 0; i < target.getModel().getSize(); ++i) {
-                String clientDescription = ((Client)target.getModel().getElementAt(i)).getClientData().getClientDescription();
-                if (clientDescription != null && clientDescription.equals(packageName)) {
-                  return true;
-                }
-              }
-              return false;
-            }
-          });
-        }
-      }, LONG_TIMEOUT);
-      return this;
-    }
-
-    @Override
-    @NotNull
-    public ProcessListFixture selectItem(@NotNull final String packageName) {
-      clearSelection();
-      Integer index = GuiActionRunner.execute(new GuiQuery<Integer>() {
-        @Override
-        protected Integer executeInEDT() throws Throwable {
-          for (int i = 0; i < target.getModel().getSize(); ++i) {
-            Client client = (Client)target.getModel().getElementAt(i);
-            if (client.getClientData().getClientDescription() != null &&
-                client.getClientData().getClientDescription().equals(packageName)) {
-              return i;
-            }
-          }
-          return -1;
-        }
-      });
-      assertTrue(index >= 0);
-      selectItem(index);
-      return this;
-    }
-  }
-
-  private ProcessListFixture myProcessListFixture;
+  @NotNull private final ProcessListFixture myProcessListFixture;
 
   public AndroidToolWindowFixture(@NotNull Project project, final @NotNull Robot robot) {
     super(AndroidToolWindowFactory.TOOL_WINDOW_ID, project, robot);
@@ -134,7 +84,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     TabLabel tabLabel = myRobot.finder().find(tabs, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
       protected boolean isMatching(TabLabel component) {
-        return component.toString().equals(tabName);
+        return tabName.equals(component.toString());
       }
     });
     myRobot.click(tabLabel);
@@ -153,5 +103,57 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
   private void show() {
     activate();
     waitUntilIsVisible();
+  }
+
+  private static class ProcessListFixture extends JListFixture {
+    ProcessListFixture(@NotNull Robot robot, @NotNull JList target) {
+      super(robot, target);
+    }
+
+    @NotNull
+    public ProcessListFixture waitForProcess(@NotNull final String packageName) {
+      pause(new Condition("Wait for the process list to show the package name.") {
+        @Override
+        public boolean test() {
+          return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+            @Override
+            protected Boolean executeInEDT() throws Throwable {
+              ListModel model = target.getModel();
+              int size = model.getSize();
+              for (int i = 0; i < size; ++i) {
+                Client client = (Client)model.getElementAt(i);
+                String clientDescription = client.getClientData().getClientDescription();
+                if (packageName.equals(clientDescription)) {
+                  return true;
+                }
+              }
+              return false;
+            }
+          });
+        }
+      }, LONG_TIMEOUT);
+      return this;
+    }
+
+    @Override
+    @NotNull
+    public ProcessListFixture selectItem(@NotNull final String packageName) {
+      clearSelection();
+      Integer index = GuiActionRunner.execute(new GuiQuery<Integer>() {
+        @Override
+        protected Integer executeInEDT() throws Throwable {
+          for (int i = 0; i < target.getModel().getSize(); ++i) {
+            Client client = (Client)target.getModel().getElementAt(i);
+            if (packageName.equals(client.getClientData().getClientDescription())) {
+              return i;
+            }
+          }
+          return -1;
+        }
+      });
+      assertThat(index).isGreaterThanOrEqualTo(0);
+      selectItem(index);
+      return this;
+    }
   }
 }
