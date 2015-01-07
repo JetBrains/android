@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -53,7 +54,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class JdkLocationStep extends FirstRunWizardStep {
   private static final String MAC_JDKS_DIR = "/Library/Java/JavaVirtualMachines/";
-  private static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   private static final String WINDOWS_JDKS_DIR = "C:\\Program Files\\Java";
   private static final String LINUX_SDK_DIR = "/usr/lib/jvm";
   private static final String JDK_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
@@ -227,7 +227,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @NotNull
   private static Iterable<String> getMacCandidateJdks() {
     // See http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html
-    return getCandidatePaths(MAC_JDKS_DIR, MAC_JDK_CONTENT_PATH);
+    return getCandidatePaths(MAC_JDKS_DIR, DefaultSdks.MAC_JDK_CONTENT_PATH);
   }
 
   @NotNull
