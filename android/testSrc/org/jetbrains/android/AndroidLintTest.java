@@ -309,6 +309,30 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Set application icon", "AndroidManifest.xml", "xml");
   }
 
+  public void testMipmap() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "/src/p1/p2/R.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MyCode.java", "/src/p1/p2/MyCode.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/icon.png", "/res/drawable-mdpi/icon.png");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/icon.png", "/res/drawable-hdpi/icon.png");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/icon.png", "/res/drawable-xhdpi/icon.png");
+
+    // Apply quickfix and check that the manifest file is updated
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMipmapIconsInspection(), "Convert @drawable/icon to @mipmap/icon",
+                  "AndroidManifest.xml", "xml");
+
+    // Make sure files were moved
+    assertNotNull(myFixture.findFileInTempDir("res/mipmap-mdpi/icon.png"));
+    assertNotNull(myFixture.findFileInTempDir("res/mipmap-hdpi/icon.png"));
+    assertNotNull(myFixture.findFileInTempDir("res/mipmap-xhdpi/icon.png"));
+
+    // Make sure code references (in addition to Manifest XML file reference checked above) have been updated
+    myFixture.checkResultByFile("src/p1/p2/MyCode.java", getGlobalTestDir() + "/MyCode_after.java", true);
+
+    // The R.java file should not have been edited:
+    myFixture.checkResultByFile("src/p1/p2/R.java", getGlobalTestDir() + "/R.java", true);
+  }
+
   public void testAllowBackup() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAllowBackupInspection(),
