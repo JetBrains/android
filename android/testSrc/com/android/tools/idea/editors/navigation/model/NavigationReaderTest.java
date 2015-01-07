@@ -38,12 +38,16 @@ public class NavigationReaderTest extends TestCase {
     return out.toString();
   }
 
+  private static Transition transition(String type, State source, State destination) {
+    return new Transition(type, Locator.of(source), Locator.of(destination));
+  }
+
   public void test0() throws FileNotFoundException {
     NavigationModel model = new NavigationModel();
     State s0 = createState("com.acme.MasterController");
     State s1 = createState("com.acme.SlaveController");
-    Transition t1 = Transition.of("click", s0, s1);
-    Transition t2 = Transition.of("swipe", s1, s0);
+    Transition t1 = transition("click", s0, s1);
+    Transition t2 = transition("swipe", s1, s0);
     model.add(t1);
     model.add(t2);
 

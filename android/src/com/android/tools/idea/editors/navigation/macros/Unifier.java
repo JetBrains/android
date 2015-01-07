@@ -181,7 +181,7 @@ public class Unifier {
           if (leaf1.getChars().equals(leaf2.getChars())) {
             PsiElement r1 = reference.resolve();
             if (r1 == null) {
-              LOG.error("Pattern contains unresolvable (unqualified?) class name: " + reference.getText());
+              LOG.warn("Pattern contains unresolvable (unqualified?) class name: " + reference.getText());
             }
             PsiElement r2 = other.resolve();
             // a.foo() and b.foo() will resolve to the same method, make sure we only compare classes
