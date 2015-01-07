@@ -37,7 +37,7 @@ import java.util.Map;
 public class AndroidVirtualDeviceTest extends AndroidTestBase {
   private static boolean DISABLED = true; // Don't know if all required components are installed on a test farm.
 
-  public static final File ANDROID_HOME = AndroidTestCaseHelper.getAndroidSdkPath();
+  private File myAndroidSdkPath;
 
   private static Map<String, String> getReferenceMap() {
     // Expected values are defined in http://b.android.com/78945
@@ -88,7 +88,8 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
-    AndroidSdkUtils.createNewAndroidPlatform(ANDROID_HOME.getAbsolutePath(), false);
+    myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    AndroidSdkUtils.createNewAndroidPlatform(myAndroidSdkPath.getAbsolutePath(), false);
   }
 
   @Override
@@ -105,7 +106,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
       return; // Disabled
     }
     final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    SdkManager manager = SdkManager.createManager(ANDROID_HOME.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
+    SdkManager manager = SdkManager.createManager(myAndroidSdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assertNotNull(manager);
     LocalSdk localSdk = manager.getLocalSdk();
     final AvdInfo avdInfo = AndroidVirtualDevice.createAvd(connection, localSdk);
