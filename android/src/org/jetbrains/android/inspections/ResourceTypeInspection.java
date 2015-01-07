@@ -680,8 +680,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (type.getName().equals(typeName)) {
           return VALID;
         }
-        if (type == ResourceType.DRAWABLE && ResourceType.COLOR.getName().equals(typeName)) {
-          // Can also supply colors for drawables
+        if (type == ResourceType.DRAWABLE
+            && (ResourceType.COLOR.getName().equals(typeName) || ResourceType.MIPMAP.getName().equals(typeName))) {
+          // Can also supply colors and mipmaps for drawables
           return VALID;
         }
       }

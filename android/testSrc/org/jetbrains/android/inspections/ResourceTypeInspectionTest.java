@@ -78,4 +78,9 @@ public class ResourceTypeInspectionTest extends InspectionTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=73464
     doTest();
   }
+
+  public void testMipmap() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=81396
+    doTest();
+  }
 }
