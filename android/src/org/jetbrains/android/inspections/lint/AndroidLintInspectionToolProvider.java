@@ -1550,6 +1550,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSimpleDateFormatInspection extends AndroidLintInspectionBase {
+    public AndroidLintSimpleDateFormatInspection() {
+      super(AndroidBundle.message("android.lint.inspections.simple.date.format"), DateFormatDetector.DATE_FORMAT);
+    }
+  }
+
   public static class AndroidLintSmallSpInspection extends AndroidLintInspectionBase {
     public AndroidLintSmallSpInspection() {
       super(AndroidBundle.message("android.lint.inspections.small.sp"), PxUsageDetector.SMALL_SP_ISSUE);
