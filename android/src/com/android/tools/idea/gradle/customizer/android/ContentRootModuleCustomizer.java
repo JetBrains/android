@@ -234,6 +234,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   @Override
+  @NotNull
   public Class<IdeaAndroidProject> getSupportedModelType() {
     return IdeaAndroidProject.class;
   }
