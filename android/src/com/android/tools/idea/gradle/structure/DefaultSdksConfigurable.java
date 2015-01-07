@@ -146,7 +146,26 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   }
 
   private void createJdkLocationTextField() {
-    final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose JDK Location", new Function<File, Void>() {
+
+    JTextField textField = new JTextField(10);
+    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        chooseJdkLocation();
+      }
+    });
+    installValidationListener(textField);
+  }
+
+  public void chooseJdkLocation() {
+    myJdkLocationTextField.getTextField().requestFocus();
+
+    VirtualFile suggestedDir = null;
+    File jdkLocation = getJdkLocation();
+    if (jdkLocation.isDirectory()) {
+      suggestedDir = VfsUtil.findFileByIoFile(jdkLocation, false);
+    }
+    VirtualFile chosen = FileChooser.chooseFile(createSingleFolderDescriptor("Choose JDK Location", new Function<File, Void>() {
       @Override
       public Void fun(File file) {
         if (!validateAndUpdateJdkPath(file)) {
@@ -154,25 +173,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
         }
         return null;
       }
-    });
-
-    JTextField textField = new JTextField(10);
-    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        VirtualFile suggestedDir = null;
-        File jdkLocation = getJdkLocation();
-        if (jdkLocation.isDirectory()) {
-          suggestedDir = VfsUtil.findFileByIoFile(jdkLocation, false);
-        }
-        VirtualFile chosen = FileChooser.chooseFile(descriptor, null, suggestedDir);
-        if (chosen != null) {
-          File f = VfsUtilCore.virtualToIoFile(chosen);
-          myJdkLocationTextField.setText(f.getPath());
-        }
-      }
-    });
-    installValidationListener(textField);
+    }), null, suggestedDir);
+    if (chosen != null) {
+      File f = VfsUtilCore.virtualToIoFile(chosen);
+      myJdkLocationTextField.setText(f.getPath());
+    }
   }
 
   private void installValidationListener(JTextField textField) {
