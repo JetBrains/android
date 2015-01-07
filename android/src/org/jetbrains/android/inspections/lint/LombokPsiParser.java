@@ -360,12 +360,29 @@ public class LombokPsiParser extends JavaParser {
 
       return modifiers;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ResolvedPsiMethod that = (ResolvedPsiMethod)o;
+
+      if (!myMethod.equals(that.myMethod)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myMethod.hashCode();
+    }
   }
 
   private static class ResolvedPsiVariable extends ResolvedVariable {
     private PsiVariable myVariable;
 
-    private ResolvedPsiVariable(PsiVariable variable) {
+    private ResolvedPsiVariable(@NonNull PsiVariable variable) {
       myVariable = variable;
     }
 
@@ -395,12 +412,29 @@ public class LombokPsiParser extends JavaParser {
     public String getSignature() {
       return myVariable.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ResolvedPsiVariable that = (ResolvedPsiVariable)o;
+
+      if (!myVariable.equals(that.myVariable)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myVariable.hashCode();
+    }
   }
 
   private static class ResolvedPsiField extends ResolvedField {
     private PsiField myField;
 
-    private ResolvedPsiField(PsiField field) {
+    private ResolvedPsiField(@NonNull PsiField field) {
       myField = field;
     }
 
@@ -442,6 +476,23 @@ public class LombokPsiParser extends JavaParser {
     public String getSignature() {
       return myField.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ResolvedPsiField that = (ResolvedPsiField)o;
+
+      if (!myField.equals(that.myField)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myField.hashCode();
+    }
   }
 
   private static class ResolvedPsiClassName extends ResolvedPsiClass {
@@ -449,7 +500,7 @@ public class LombokPsiParser extends JavaParser {
     private final PsiManager myManager;
     private boolean myInitialized;
 
-    private ResolvedPsiClassName(PsiManager manager, String name) {
+    private ResolvedPsiClassName(PsiManager manager, @NonNull String name) {
       super(null);
       myManager = manager;
       myName = name;
@@ -546,6 +597,23 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public String getSignature() {
       return myName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ResolvedPsiClassName that = (ResolvedPsiClassName)o;
+
+      if (!myName.equals(that.myName)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myName.hashCode();
     }
   }
 
@@ -672,6 +740,23 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public String getSignature() {
       return getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ResolvedPsiClass that = (ResolvedPsiClass)o;
+
+      if (myClass != null ? !myClass.equals(that.myClass) : that.myClass != null) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myClass != null ? myClass.hashCode() : 0;
     }
   }
 }
