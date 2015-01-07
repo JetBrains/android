@@ -43,6 +43,7 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.*;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +57,9 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.chooseNameForNewLibrary;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 public final class DefaultSdks {
-  private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
+  @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
+
+  @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
   private static final Logger LOG = Logger.getInstance(DefaultSdks.class);
 
   private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
