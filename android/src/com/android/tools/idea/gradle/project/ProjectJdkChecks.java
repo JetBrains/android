@@ -71,7 +71,7 @@ final class ProjectJdkChecks {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
         ProjectSettingsService service = ProjectSettingsService.getInstance(project);
         if (service instanceof AndroidProjectSettingsService) {
-          hyperlinks.add(new OpenSdkSettingsHyperlink((AndroidProjectSettingsService)service));
+          hyperlinks.add(new SelectJdkHyperlink((AndroidProjectSettingsService)service));
         }
         Message msg;
         String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
@@ -141,17 +141,17 @@ final class ProjectJdkChecks {
     return -1;
   }
 
-  private static class OpenSdkSettingsHyperlink extends NotificationHyperlink {
+  private static class SelectJdkHyperlink extends NotificationHyperlink {
     @NotNull private final AndroidProjectSettingsService mySettingsService;
 
-    OpenSdkSettingsHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
-      super("open.sdk.settings", "Open SDK Settings");
+    SelectJdkHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
+      super("select.jdk", "Select a JDK from the File System");
       mySettingsService = settingsService;
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      mySettingsService.openSdkSettings();
+      mySettingsService.chooseJdkLocation();
     }
   }
 }
