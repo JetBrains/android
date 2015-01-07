@@ -94,6 +94,13 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testThisCall() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=93158
+    // Make sure we properly resolve super classes in Class.this.call()
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   // This test does not yet work reliably; need to ensure correct JDK 7 loading.
   @Ignore
   public void DISABLEDtestTryWithResources() throws Exception {
