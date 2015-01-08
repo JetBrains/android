@@ -1065,6 +1065,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.duplicate.uses.feature"), ManifestDetector.DUPLICATE_USES_FEATURE);
     }
   }
+
+  public static class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase {
+    public AndroidLintMipmapIconsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.mipmap.icons"), ManifestDetector.MIPMAP);
+    }
+  }
+
   public static class AndroidLintMissingApplicationIconInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingApplicationIconInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestDetector.APPLICATION_ICON);
