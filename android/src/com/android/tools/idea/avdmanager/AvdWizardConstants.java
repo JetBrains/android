@@ -20,6 +20,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
@@ -29,10 +30,13 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
@@ -112,6 +116,8 @@ public class AvdWizardConstants {
   public static final Key<Hardware> WIP_HARDWARE_KEY = createKey("HardwareUnderConstruction" ,STEP, Hardware.class);
   public static final Key<Double> WIP_SCREEN_DPI_KEY = createKey("ScreenDPI", STEP, Double.class);
 
+  public static final Key<IdDisplay> TAG_ID_KEY = createKey("TagId", STEP, IdDisplay.class);
+
   // Defaults
   public static final AvdScaleFactor DEFAULT_SCALE = AvdScaleFactor.AUTO;
   public static final String DEFAULT_NETWORK_SPEED = "full";
@@ -127,6 +133,9 @@ public class AvdWizardConstants {
   // Tags
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
+
+  public static final List<IdDisplay> ALL_TAGS =
+    Collections.unmodifiableList(Lists.newArrayList(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG));
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
