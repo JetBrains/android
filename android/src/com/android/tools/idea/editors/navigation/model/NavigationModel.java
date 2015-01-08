@@ -197,20 +197,6 @@ public class NavigationModel {
     return null;
   }
 
-  public ActivityState findAssociatedActivityState(MenuState menuState) {
-    for (Transition t : getTransitions()) {
-      if (t.getDestination().getState() == menuState) {
-        State state = t.getSource().getState();
-        if (state instanceof ActivityState) {
-          return (ActivityState)state;
-
-        }
-      }
-    }
-    assert false;
-    return null;
-  }
-
   public List<State> findDestinationsFor(@NotNull State source) {
     List<State> result = new ArrayList<State>();
     for (Transition transition : getTransitions()) {
