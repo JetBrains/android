@@ -91,7 +91,9 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.*;
-import org.jetbrains.android.util.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,7 +209,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     List<IdeaSourceProvider> providers = Lists.newArrayList();
     for (SourceProviderContainer container : myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders()) {
-      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+      if (myIdeaAndroidProject.getSelectedTestArtifactName().equals(container.getArtifactName())) {
         providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
       }
     }
@@ -260,7 +262,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
     assert buildType != null;
     for (SourceProviderContainer container : buildType.getExtraSourceProviders()) {
-      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+      if (myIdeaAndroidProject.getSelectedTestArtifactName().equals(container.getArtifactName())) {
         providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
       }
     }
@@ -347,7 +349,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
       assert productFlavor != null;
       for (SourceProviderContainer container : productFlavor.getExtraSourceProviders()) {
-        if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+        if (myIdeaAndroidProject.getSelectedTestArtifactName().equals(container.getArtifactName())) {
           providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
         }
       }
@@ -1117,11 +1119,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myIdeaAndroidProject;
   }
 
-  public void syncSelectedVariant() {
+  public void syncSelectedVariantAndTestArtifact() {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
       state.SELECTED_BUILD_VARIANT = variant.getName();
+      state.SELECTED_TEST_ARTIFACT = myIdeaAndroidProject.getSelectedTestArtifactName();
 
       AndroidArtifact mainArtifact = variant.getMainArtifact();
       AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();

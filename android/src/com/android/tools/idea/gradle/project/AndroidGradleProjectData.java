@@ -161,6 +161,7 @@ public class AndroidGradleProjectData implements Serializable {
         if (ideaAndroidProject != null) {
           moduleData.myAndroidProject = reproxy(AndroidProject.class, ideaAndroidProject.getDelegate());
           moduleData.mySelectedVariant = ideaAndroidProject.getSelectedVariant().getName();
+          moduleData.mySelectedTestArtifact = ideaAndroidProject.getSelectedTestArtifactName();
         }
         else {
           LOG.warn(String.format("Trying to create project data from a not initialized project '%1$s'. Abort.", project.getName()));
@@ -540,7 +541,11 @@ public class AndroidGradleProjectData implements Serializable {
           File moduleRootDirPath = moduleFile.getParentFile();
           IdeaAndroidProject ideaAndroidProject =
             new IdeaAndroidProject(GradleConstants.SYSTEM_ID,
-                                   module.getName(), moduleRootDirPath, data.myAndroidProject, data.mySelectedVariant);
+                                   module.getName(),
+                                   moduleRootDirPath,
+                                   data.myAndroidProject,
+                                   data.mySelectedVariant,
+                                   data.mySelectedTestArtifact);
           androidFacet.setIdeaAndroidProject(ideaAndroidProject);
         }
         else {
@@ -602,6 +607,7 @@ public class AndroidGradleProjectData implements Serializable {
     public IdeaGradleProject myIdeaGradleProject;
     public AndroidProject myAndroidProject;
     public String mySelectedVariant;
+    public String mySelectedTestArtifact;
     public JavaModel myJavaModel;
   }
 
