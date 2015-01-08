@@ -30,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -44,6 +45,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
+import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -78,8 +80,8 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture.findByTitle;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -456,7 +458,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog(myRobot).clickCancel();
+    findGradleSyncMessageDialog().clickCancel();
 
     String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
@@ -481,7 +483,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog(myRobot).clickCancel();
+    findGradleSyncMessageDialog().clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.clickCancel();
@@ -506,7 +508,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(myRobot).clickOk();
+    findGradleSyncMessageDialog().clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -522,7 +524,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(myRobot).clickOk();
+    findGradleSyncMessageDialog().clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -688,6 +690,49 @@ public class GradleSyncTest extends GuiTestCase {
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
+  }
+
+  @Test @IdeGuiTest
+  public void testImportProjectWithoutWrapper() throws IOException {
+    File projectDirPath = copyProjectBeforeOpening("AarDependency");
+
+    IdeFrameFixture.deleteWrapper(projectDirPath);
+
+    cleanUpProjectForImport(projectDirPath);
+
+    // Import project
+    findWelcomeFrame().clickImportProjectButton();
+    FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
+
+    VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
+    Assert.assertNotNull(toSelect);
+
+    importProjectDialog.select(toSelect).clickOk();
+
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    findGradleSyncMessageDialog().clickOk();
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectDirPath);
+    projectFrame.waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
+  }
+
+
+  @NotNull
+  private MessageDialogFixture findGradleSyncMessageDialog() {
+    return findByTitle(myRobot, "Gradle Sync");
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74341
+  @Test @IdeGuiTest
+  public void testEditorFindsAppCompatStyle() throws IOException {
+    IdeFrameFixture ideFrame = importProject("AarDependency");
+
+    String stringsXmlPath = "app/src/main/res/values/strings.xml";
+    ideFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
+
+    FileFixture file = ideFrame.findExistingFileByRelativePath(stringsXmlPath);
+    file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
   @NotNull
