@@ -150,4 +150,11 @@ public class StorageField extends JPanel {
       myValueField.setBorder(myBorder);
     }
   }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    myUnitsCombo.setEnabled(enabled);
+    myValueField.setEnabled(enabled);
+  }
 }

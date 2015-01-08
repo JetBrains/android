@@ -61,6 +61,12 @@ public class AvdWizardConstants {
   public static final Key<Storage> SD_CARD_STORAGE_KEY = createKey(AvdManager.AVD_INI_SDCARD_SIZE, WIZARD, Storage.class);
   public static final Key<String> EXISTING_SD_LOCATION = createKey(AvdManager.AVD_INI_SDCARD_PATH, WIZARD, String.class);
 
+  // Keys used for display properties within the wizard. The values are derived from (and used to derive) the values for
+  // SD_CARD_STORAGE_KEY and EXISTING_SD_LOCATION
+  public static final Key<Storage> DISPLAY_SD_SIZE_KEY = createKey(WIZARD_ONLY + "displaySdCardSize", WIZARD, Storage.class);
+  public static final Key<String> DISPLAY_SD_LOCATION_KEY = createKey(WIZARD_ONLY + "displaySdLocation", WIZARD, String.class);
+  public static final Key<Boolean> DISPLAY_USE_EXTERNAL_SD_KEY = createKey(WIZARD_ONLY + "displayUseExistingSd", WIZARD, Boolean.class);
+
   public static final String AVD_INI_SCALE_FACTOR = "runtime.scalefactor";
   public static final Key<AvdScaleFactor> SCALE_SELECTION_KEY = createKey(AVD_INI_SCALE_FACTOR, WIZARD, AvdScaleFactor.class);
 
@@ -75,8 +81,6 @@ public class AvdWizardConstants {
   public static final Key<String> BACK_CAMERA_KEY = createKey(AvdManager.AVD_INI_CAMERA_BACK, WIZARD, String.class);
   public static final String CHOOSE_DEVICE_DEFINITION_STEP = "Choose Device Definition Step";
   public static final String CHOOSE_SYSTEM_IMAGE_STEP = "Choose System Image Step";
-
-  public static final Key<Boolean> USE_EXISTING_SD_CARD = createKey(WIZARD_ONLY + "UseExistingSdCard", WIZARD, Boolean.class);
 
   public static final Key<Boolean> USE_HOST_GPU_KEY = createKey(AvdManager.AVD_INI_GPU_EMULATION, WIZARD, Boolean.class);
   public static final Key<Boolean> USE_SNAPSHOT_KEY = createKey(AvdManager.AVD_INI_SNAPSHOT_PRESENT, WIZARD, Boolean.class);

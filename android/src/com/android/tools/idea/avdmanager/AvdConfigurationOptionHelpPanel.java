@@ -141,8 +141,8 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(RAM_STORAGE_KEY, "Device RAM").
       put(VM_HEAP_STORAGE_KEY, "Virtual Machine Heap").
       put(INTERNAL_STORAGE_KEY, "Internal Flash").
-      put(SD_CARD_STORAGE_KEY, "New SD Card Size").
-      put(EXISTING_SD_LOCATION, "Location of SD card image").
+      put(SD_CARD_STORAGE_KEY, "Built-in SD Card Size").
+      put(EXISTING_SD_LOCATION, "Location of external SD card image").
       put(SCALE_SELECTION_KEY, "Start-Up Size").
       put(DEFAULT_ORIENTATION_KEY, "Default Orientation").
       put(NETWORK_SPEED_KEY, "Network Speed").

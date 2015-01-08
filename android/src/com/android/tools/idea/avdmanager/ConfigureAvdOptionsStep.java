@@ -29,9 +29,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.wizard.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -56,6 +54,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -69,9 +68,6 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
  * Help and error messaging appears on the right hand side.
  */
 public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
-  // CardLayout ids for switching between SD card types
-  private static final String EXISTING_SDCARD = "existingsdcard";
-  private static final String NEW_SDCARD = "newsdcard";
   private JBLabel myDeviceName;
   private JBLabel myDeviceDetails;
   private JButton myChangeDeviceButton;
@@ -79,7 +75,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel mySystemImageDetails;
   private JButton myChangeSystemImageButton;
   private TextFieldWithBrowseButton myExistingSdCard;
-  private JPanel mySdCardSettings;
   private JComboBox myScalingComboBox;
   private ASGallery<ScreenOrientation> myOrientationToggle;
   private JPanel myRoot;
@@ -91,12 +86,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JComboBox myLatencyCombo;
   private JButton myShowAdvancedSettingsButton;
   private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
-  private JBLabel myToggleSdCardSettingsLabel;
-  private JPanel myMemoryAndStoragePanel;
-  private JPanel myStartupOptionsPanel;
-  private JPanel myNetworkPanel;
-  private JPanel myCameraPanel;
-  private JPanel myPerformancePanel;
   private StorageField myRamStorage;
   private StorageField myVmHeapStorage;
   private StorageField myInternalStorage;
@@ -106,7 +95,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel myVmHeapLabel;
   private JBLabel myInternalStorageLabel;
   private JBLabel mySdCardLabel;
-  private JPanel mySkinPanel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JTextField myAvdDisplayName;
   private JBLabel mySkinDefinitionLabel;
@@ -116,10 +104,22 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JPanel myAvdDisplayNamePanel;
   private JBLabel myAvdNameLabel;
   private JCheckBox myEnableComputerKeyboard;
-  private JPanel myKeyboardPanel;
-  private JBLabel myOrientationLabel;
-  private Set<JComponent> myAdvancedOptionsComponents;
+  private JRadioButton myBuiltInRadioButton;
+  private JRadioButton myExternalRadioButton;
+  private Iterable<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
+  private JSeparator myStorageSeparator;
+  private JBLabel myCameraLabel;
+  private JBLabel myFrontCameraLabel;
+  private JBLabel myBackCameraLabel;
+  private JSeparator myCameraSeparator;
+  private JBLabel myNetworkLabel;
+  private JBLabel mySpeedLabel;
+  private JBLabel myLatencyLabel;
+  private JSeparator mySkinSeparator;
+  private JBLabel myKeyboardLabel;
+  private JSeparator myKeyboardSeparator;
+  private JSeparator myNetworkSeparator;
 
   private PropertyChangeListener myFocusListener;
 
@@ -128,9 +128,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private static final String SHOW = "Show " + ADVANCED_SETTINGS;
   private static final String HIDE = "Hide " + ADVANCED_SETTINGS;
 
-  // Labels used for the SD card-type toggle link
-  private static final String SWITCH_TO_NEW_SD_CARD = "Or create a new image...";
-  private static final String SWITCH_TO_EXISTING_SD_CARD = "Or use an existing data file...";
   private Set<JComponent> myErrorStateComponents = Sets.newHashSet();
 
   private class MyActionListener<T> implements ActionListener {
@@ -173,7 +170,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     setBodyComponent(myRoot);
     registerAdvancedOptionsVisibility();
     toggleAdvancedSettings(false);
-    myToggleSdCardSettingsLabel.setText(SWITCH_TO_EXISTING_SD_CARD);
     myShowAdvancedSettingsButton.setText(SHOW);
 
     ActionListener toggleAdvancedSettingsListener = new ActionListener() {
@@ -191,19 +187,20 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     };
     myShowAdvancedSettingsButton.addActionListener(toggleAdvancedSettingsListener);
 
+    myChangeDeviceButton.addActionListener(
+      createListener(new ChooseDeviceDefinitionStep(parentDisposable), "Select a device", DEVICE_DEFINITION_KEY));
+    myChangeSystemImageButton.addActionListener(
+      createListener(new ChooseSystemImageStep(getProject(), parentDisposable), "Select a system image", SYSTEM_IMAGE_KEY));
 
-    myChangeDeviceButton.addActionListener(createListener(new ChooseDeviceDefinitionStep(parentDisposable),
-                                                          "Select a device", DEVICE_DEFINITION_KEY));
-    myChangeSystemImageButton.addActionListener(createListener(new ChooseSystemImageStep(getProject(), parentDisposable),
-                                                               "Select a system image", SYSTEM_IMAGE_KEY));
-
-    myToggleSdCardSettingsLabel.addMouseListener(new MouseAdapter() {
+    ActionListener sdActionListener = new ActionListener() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        toggleSdCardSettings(SWITCH_TO_EXISTING_SD_CARD.equals(myToggleSdCardSettingsLabel.getText()));
+      public void actionPerformed(ActionEvent e) {
+        updateSdCardSettings();
       }
-    });
-    myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
+    };
+    myExternalRadioButton.addActionListener(sdActionListener);
+    myBuiltInRadioButton.addActionListener(sdActionListener);
+
     myOrientationToggle.setOpaque(false);
 
     myFocusListener = new PropertyChangeListener() {
@@ -233,16 +230,15 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   /**
    * Toggle the SD card between using an existing file and creating a new file.
    */
-  private void toggleSdCardSettings(boolean useExisting) {
+  private void updateSdCardSettings() {
+    boolean useExisting = myState.get(DISPLAY_USE_EXTERNAL_SD_KEY);
     if (useExisting) {
-      ((CardLayout)mySdCardSettings.getLayout()).show(mySdCardSettings, EXISTING_SDCARD);
-      myToggleSdCardSettingsLabel.setText(SWITCH_TO_NEW_SD_CARD);
-      myState.put(USE_EXISTING_SD_CARD, true);
+      myExistingSdCard.setEnabled(true);
+      myNewSdCardStorage.setEnabled(false);
     }
     else {
-      ((CardLayout)mySdCardSettings.getLayout()).show(mySdCardSettings, NEW_SDCARD);
-      myToggleSdCardSettingsLabel.setText(SWITCH_TO_EXISTING_SD_CARD);
-      myState.put(USE_EXISTING_SD_CARD, false);
+      myExistingSdCard.setEnabled(false);
+      myNewSdCardStorage.setEnabled(true);
     }
   }
 
@@ -295,6 +291,24 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     });
   }
 
+  @Override
+  public boolean commitStep() {
+    if (!myState.containsKey(DISPLAY_USE_EXTERNAL_SD_KEY) || !myState.get(DISPLAY_USE_EXTERNAL_SD_KEY)) {
+      Storage orig = myState.get(SD_CARD_STORAGE_KEY);
+      Storage current = myState.get(DISPLAY_SD_SIZE_KEY);
+      if (orig != null && !orig.equals(current)) {
+        int result = JOptionPane
+          .showConfirmDialog(null, "Changing the size of the built-in SD card will erase " +
+                                   "the current contents of the card. Continue?",
+                             "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
+        if (result != JOptionPane.YES_OPTION) {
+          return false;
+        }
+      }
+    }
+    return super.commitStep();
+  }
+
   private static String uniquifyDisplayName(String name) {
     int suffix = 1;
     String result = name;
@@ -320,10 +334,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     if (device != null) {
       toggleOptionals(device);
     }
-    Boolean useExisting = myState.get(USE_EXISTING_SD_CARD);
-    if (useExisting != null) {
-      toggleSdCardSettings(useExisting);
-    }
+    updateSdCardSettings();
 
     // Disable GPU acceleration for images with API <= 15
     if (myState.get(SYSTEM_IMAGE_KEY).getVersion().getApiLevel() <= 15) {
@@ -364,16 +375,16 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
 
     // If we're using an existing SD card, make sure it exists
-    Boolean useExistingSd = myState.get(USE_EXISTING_SD_CARD);
+    Boolean useExistingSd = myState.get(DISPLAY_USE_EXTERNAL_SD_KEY);
     if (useExistingSd != null && useExistingSd) {
-      String path = myState.get(EXISTING_SD_LOCATION);
+      String path = myState.get(DISPLAY_SD_LOCATION_KEY);
       if (path == null || !new File(path).isFile()) {
         setErrorState("The specified SD image file must be a valid image file", myMemoryAndStorageLabel, mySdCardLabel, myExistingSdCard);
         valid = false;
       }
     }
     else {
-      Storage sdCard = myState.get(SD_CARD_STORAGE_KEY);
+      Storage sdCard = myState.get(DISPLAY_SD_SIZE_KEY);
       if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 10)) {
         setErrorState("The SD card must be larger than 10MB", myMemoryAndStorageLabel, mySdCardLabel, myNewSdCardStorage);
         valid = false;
@@ -517,7 +528,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     register(INTERNAL_STORAGE_KEY, myInternalStorage, myInternalStorage.getBinding());
     setControlDescription(myInternalStorage, myAvdConfigurationOptionHelpPanel.getDescription(INTERNAL_STORAGE_KEY));
 
-    register(SD_CARD_STORAGE_KEY, myNewSdCardStorage, myNewSdCardStorage.getBinding());
+    register(DISPLAY_SD_SIZE_KEY, myNewSdCardStorage, myNewSdCardStorage.getBinding());
     setControlDescription(myNewSdCardStorage, myAvdConfigurationOptionHelpPanel.getDescription(SD_CARD_STORAGE_KEY));
 
     register(USE_SNAPSHOT_KEY, myStoreASnapshotForCheckBox);
@@ -595,7 +606,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     };
     fileChooserDescriptor.setHideIgnored(false);
     myExistingSdCard.addBrowseFolderListener("Select SD Card", "Select an existing SD card image", getProject(), fileChooserDescriptor);
-    register(EXISTING_SD_LOCATION, myExistingSdCard);
+    register(DISPLAY_SD_LOCATION_KEY, myExistingSdCard);
     setControlDescription(myExistingSdCard, myAvdConfigurationOptionHelpPanel.getDescription(EXISTING_SD_LOCATION));
 
     register(FRONT_CAMERA_KEY, myFrontCameraCombo, STRING_COMBO_BINDING);
@@ -648,6 +659,15 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
     register(HAS_HARDWARE_KEYBOARD_KEY, myEnableComputerKeyboard);
     setControlDescription(myEnableComputerKeyboard, myAvdConfigurationOptionHelpPanel.getDescription(HAS_HARDWARE_KEYBOARD_KEY));
+
+    RadioButtonGroupBinding<Boolean> sdCardBinding = new RadioButtonGroupBinding<Boolean>(ImmutableMap.of(
+        myExternalRadioButton, true,
+        myBuiltInRadioButton, false));
+
+    register(DISPLAY_USE_EXTERNAL_SD_KEY, myExternalRadioButton, sdCardBinding);
+    setControlDescription(myExternalRadioButton, myAvdConfigurationOptionHelpPanel.getDescription(EXISTING_SD_LOCATION));
+    register(DISPLAY_USE_EXTERNAL_SD_KEY, myBuiltInRadioButton, sdCardBinding);
+    setControlDescription(myBuiltInRadioButton, myAvdConfigurationOptionHelpPanel.getDescription(SD_CARD_STORAGE_KEY));
 
     invokeUpdate(null);
   }
@@ -806,8 +826,42 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   };
 
   private void registerAdvancedOptionsVisibility() {
-    myAdvancedOptionsComponents = ImmutableSet.<JComponent>of(myMemoryAndStoragePanel, myCameraPanel, myNetworkPanel,
-                                                              mySkinPanel, myAvdIdLabel, myAvdId, myKeyboardPanel);
+    // Unfortunately the use of subpanels here seems to cause layout issues, so each component must be listed separately.
+    myAdvancedOptionsComponents = Iterables.concat(
+      getMemoryAndStorageComponents(),
+      getCameraComponents(),
+      getNetworkComponents(),
+      getSkinComponents(),
+      getKeyboardComponents(),
+      getAvdNameComponents()
+      );
+  }
+
+  private List<JComponent> getAvdNameComponents() {
+    return ImmutableList.<JComponent>of( myAvdIdLabel, myAvdId);
+  }
+
+  private List<JComponent> getKeyboardComponents() {
+    return ImmutableList.<JComponent>of(myEnableComputerKeyboard, myKeyboardSeparator, myKeyboardLabel);
+  }
+
+  private List<JComponent> getSkinComponents() {
+    return ImmutableList.of(mySkinComboBox, mySkinDefinitionLabel, mySkinSeparator, myHardwareSkinHelpLabel);
+  }
+
+  private List<JComponent> getMemoryAndStorageComponents() {
+    return ImmutableList.<JComponent>of(myMemoryAndStorageLabel, myRamLabel, myVmHeapLabel, myInternalStorageLabel, mySdCardLabel,
+                                        myRamStorage, myVmHeapStorage, myInternalStorage, myExistingSdCard, myExternalRadioButton,
+                                        myNewSdCardStorage, myBuiltInRadioButton, myStorageSeparator);
+  }
+
+  private List<JComponent> getCameraComponents() {
+    return ImmutableList.<JComponent>of(myCameraLabel, myCameraSeparator, myBackCameraLabel,
+                                        myFrontCameraLabel, myBackCameraCombo, myFrontCameraCombo);
+  }
+
+  private List<JComponent> getNetworkComponents() {
+    return ImmutableList.<JComponent>of(myNetworkLabel, mySpeedLabel, mySpeedCombo, myLatencyCombo, myLatencyLabel, myNetworkSeparator);
   }
 
   /**
