@@ -235,6 +235,16 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   }
 
   /**
+   * Adds all the keys from {@code store} to {@code this} at the wizard level.
+   */
+  public void putAllInWizardScope(@NotNull ScopedStateStore store) {
+    for (Key key : store.getAllKeys()) {
+      Key newKey = new Key(key.name, Scope.WIZARD, key.expectedClass);
+      put(newKey, store.get(key));
+    }
+  }
+
+  /**
    * Remove the value in the state for the given key. If the given scope matches this state's scope, it will be removed
    * in this state store. If the given scope is larger than this store's scope, it will be delegated to the parent
    * scope if possible.
