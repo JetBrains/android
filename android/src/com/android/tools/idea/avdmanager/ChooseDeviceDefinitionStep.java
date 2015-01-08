@@ -16,8 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +31,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MO
  * Wizard step for selecting a device definition from the devices declared in the SDK and
  * defined by the user.
  */
-public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDescription implements DeviceUiAction.DeviceProvider {
+public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription implements DeviceUiAction.DeviceProvider {
   private JPanel myPanel;
   private DeviceDefinitionList myDeviceDefinitionList;
   private DeviceDefinitionPreview myDeviceDefinitionPreview;
@@ -44,7 +43,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
   private final CloneDeviceAction myCloneDeviceAction = new CloneDeviceAction(this, "Clone Device...");
 
   public ChooseDeviceDefinitionStep(@Nullable Disposable parentDisposable) {
-    super("Select Hardware", "Choose a device definition", null, parentDisposable);
+    super(parentDisposable);
     setBodyComponent(myPanel);
     myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
       @Override
@@ -119,15 +118,15 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
     myDeviceDefinitionList.refreshDevices();
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JBColor getTitleBackgroundColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  protected String getStepTitle() {
+    return "Select Hardware";
   }
 
   @Nullable
   @Override
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  protected String getStepDescription() {
+    return "Choose a device definition";
   }
 }
