@@ -20,6 +20,9 @@ import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -40,6 +43,9 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Comparator;
+import java.util.List;
 
 // TODO: Test available actions for each node!
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
@@ -259,9 +265,25 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  gradlew\n" +
       "  gradlew.bat\n";
     int numLines = expected.split("\n").length;
-    ProjectViewTestUtil
-      .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
-                            printInfo);
+
+    Object rootNode = structure.getRootElement();
+    ProjectViewTestUtil.checkGetParentConsistency(structure, rootNode);
+    Comparator<AbstractTreeNode> comparator = PlatformTestUtil.createComparator(printInfo);
+
+    // Android Studio now bundles a local maven repo. Our gradle builds pass this via an init script. It turns out that this drops
+    // in an additional gradle file into the project view. This gradle file is named asLocalRepo???.gradle. Since we can't predict
+    // the exact name, we just trim it out from the actual output.
+    String actual = PlatformTestUtil.print(structure, rootNode, 0, comparator, numLines + 1, ' ', printInfo).toString();
+    List<String> filtered = Lists.newArrayList();
+    for (String s : Splitter.on('\n').split(actual)) {
+      if (!s.contains("asLocalRepo")) {
+        filtered.add(s);
+      }
+    }
+
+    actual = Joiner.on('\n').join(filtered);
+
+    assertEquals(expected, actual);
   }
 
   @Nullable
