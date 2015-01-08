@@ -450,30 +450,33 @@ bool LoadVMOptions()
 bool LoadJVMLibrary()
 {
     std::string dllName(jvmPath);
-    std::string serverDllName = dllName + "\\bin\\server\\jvm.dll";
-    std::string clientDllName = dllName + "\\bin\\client\\jvm.dll";
+    std::string binDir = dllName + "\\bin";
+    std::string serverDllName = binDir + "\\server\\jvm.dll";
+    std::string clientDllName = binDir + "\\client\\jvm.dll";
     if ((bServerJVM && FileExists(serverDllName)) || !FileExists(clientDllName))
     {
-        hJVM = LoadLibraryA(serverDllName.c_str());
+        dllName = serverDllName;
     }
     else
     {
-        hJVM = LoadLibraryA(clientDllName.c_str());
+        dllName = clientDllName;
     }
 
+    // ensure we can find msvcr100.dll which is located in jre/bin directory; jvm.dll depends on it.
+    SetCurrentDirectoryA(binDir.c_str());
+    hJVM = LoadLibraryA(dllName.c_str());
     if (hJVM)
     {
         pCreateJavaVM = (JNI_createJavaVM) GetProcAddress(hJVM, "JNI_CreateJavaVM");
     }
     if (!pCreateJavaVM)
     {
-        char buf[_MAX_PATH + 256];
-        sprintf(buf, "Failed to load JVM DLL %s.\n"
-            "If you already have a %s JDK installed, define a JAVA_HOME variable in "
-            "Computer > System Properties > System Settings > Environment Variables.",
-            dllName.c_str(),
-            BITS_STR);
-        MessageBoxA(NULL, buf, ERROR_LAUNCHING_APP, MB_OK);
+        std::string jvmError = "Failed to load JVM DLL ";
+        jvmError += dllName.c_str();
+        jvmError += "\n"
+            "If you already have a " BITS_STR " JDK installed, define a JAVA_HOME variable in "
+            "Computer > System Properties > System Settings > Environment Variables.";
+        MessageBoxA(NULL, jvmError.c_str(), ERROR_LAUNCHING_APP, MB_OK);
         return false;
     }
     return true;
