@@ -54,6 +54,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithHeaderAndDe
         updateEditButton(selectedDevice);
       }
     });
+    myDeviceDefinitionList.addCategoryListener(myDeviceDefinitionPreview);
     myEditButtonContainer.setBackground(JBColor.background());
     myEditDeviceButton.setBackground(JBColor.background());
     myDeviceDefinitionList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
