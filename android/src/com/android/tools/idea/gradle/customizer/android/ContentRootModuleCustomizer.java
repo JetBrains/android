@@ -19,7 +19,9 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.util.FilePaths;
+import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
@@ -42,7 +45,8 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject>
+  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
   // TODO This is a temporary solution. The real fix is in the Android Gradle plug-in we need to take exploded-aar/${library}/${version}/res
   // folder somewhere else out of "exploded-aar" so the IDE can index it, but we need to exclude everything else in "exploded-aar"
   // (e.g. jar files) to avoid unnecessary indexing.
@@ -221,5 +225,16 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
         addExcludedFolder(parentContentEntry, child);
       }
     }
+  }
+
+  @Override
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return GradleConstants.SYSTEM_ID;
+  }
+
+  @Override
+  public Class<IdeaAndroidProject> getSupportedModelType() {
+    return IdeaAndroidProject.class;
   }
 }

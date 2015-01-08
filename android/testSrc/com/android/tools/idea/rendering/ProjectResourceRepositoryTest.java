@@ -47,6 +47,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.*;
@@ -169,7 +170,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(androidProject.getName(), rootDir, androidProject, variant.getName());
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir, androidProject, variant.getName());
     myFacet.setIdeaAndroidProject(ideaAndroidProject);
 
     File bundle = new File(rootDir, "bundle.aar");

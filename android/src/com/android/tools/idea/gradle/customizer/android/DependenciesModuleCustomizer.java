@@ -25,13 +25,16 @@ import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +44,8 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAI
 /**
  * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject>
+  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
   private static final Logger LOG = Logger.getInstance(AbstractDependenciesModuleCustomizer.class);
 
   @Override
@@ -111,5 +115,16 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (hasLibraryBackup) {
       updateDependency(model, backup);
     }
+  }
+
+  @Override
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return GradleConstants.SYSTEM_ID;
+  }
+
+  @Override
+  public Class<IdeaAndroidProject> getSupportedModelType() {
+    return IdeaAndroidProject.class;
   }
 }
