@@ -87,8 +87,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
   static {
     System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
+
     // We need to disable IDEA's "enhanced Tooling API" otherwise --init-script pointing to embedded repo won't work.
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    if (isAndroidStudio() && !ApplicationManager.getApplication().isUnitTestMode()) {
       System.setProperty("gradle.disable.enhanced.tooling.api", "true");
     }
   }
