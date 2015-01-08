@@ -112,6 +112,15 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     return ServiceManager.getService(project, AndroidProjectStructureConfigurable.class);
   }
 
+  public boolean showDialogAndChooseJdkLocation() {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        mySidePanel.chooseJdkLocation();
+      }
+    });
+  }
+
   public boolean showDialogAndSelectSdksPage() {
     return doShowDialog(new Runnable() {
       @Override
@@ -597,6 +606,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         }
       }
       return null;
+    }
+
+    void chooseJdkLocation() {
+      selectSdk();
+      mySdksConfigurable.chooseJdkLocation();
     }
 
     void selectSdk() {
