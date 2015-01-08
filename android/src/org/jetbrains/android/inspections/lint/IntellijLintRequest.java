@@ -21,6 +21,7 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Scope;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.io.File;
@@ -34,6 +35,7 @@ public class IntellijLintRequest extends LintRequest {
   @NonNull private final List<Module> myModules;
   @NonNull private final IntellijLintClient mLintClient;
   @Nullable private final List<VirtualFile> myFileList;
+  @Nullable private com.android.tools.lint.detector.api.Project myMainProject;
   private final boolean myIncremental;
 
   /**
@@ -90,7 +92,11 @@ public class IntellijLintRequest extends LintRequest {
   public Collection<com.android.tools.lint.detector.api.Project> getProjects() {
     if (mProjects == null) {
       if (myIncremental && myFileList != null && myFileList.size() == 1 && myModules.size() == 1) {
-        mProjects = Collections.singletonList(IntellijLintProject.createForSingleFile(mLintClient, myFileList.get(0), myModules.get(0)));
+        Pair<com.android.tools.lint.detector.api.Project,com.android.tools.lint.detector.api.Project> pair =
+          IntellijLintProject.createForSingleFile(mLintClient, myFileList.get(0), myModules.get(0));
+        mProjects = pair.first != null ? Collections.singletonList(pair.first)
+                                       : Collections.<com.android.tools.lint.detector.api.Project>emptyList();
+        myMainProject = pair.second;
       } else if (!myModules.isEmpty()) {
         // Make one project for each module, mark each one as a library,
         // and add projects for the gradle libraries and set error reporting to
@@ -103,5 +109,14 @@ public class IntellijLintRequest extends LintRequest {
     }
 
     return mProjects;
+  }
+
+  @NonNull
+  @Override
+  public com.android.tools.lint.detector.api.Project getMainProject(@NonNull com.android.tools.lint.detector.api.Project project) {
+    if (myMainProject != null) {
+      return myMainProject;
+    }
+    return super.getMainProject(project);
   }
 }
