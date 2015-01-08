@@ -56,6 +56,7 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.*;
 import java.lang.reflect.*;
@@ -538,7 +539,8 @@ public class AndroidGradleProjectData implements Serializable {
           assert moduleFile.getParent() != null : moduleFile.getPath();
           File moduleRootDirPath = moduleFile.getParentFile();
           IdeaAndroidProject ideaAndroidProject =
-            new IdeaAndroidProject(module.getName(), moduleRootDirPath, data.myAndroidProject, data.mySelectedVariant);
+            new IdeaAndroidProject(GradleConstants.SYSTEM_ID,
+                                   module.getName(), moduleRootDirPath, data.myAndroidProject, data.mySelectedVariant);
           androidFacet.setIdeaAndroidProject(ideaAndroidProject);
         }
         else {

@@ -27,6 +27,7 @@ import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.List;
@@ -53,7 +54,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG);
+    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG);
     //noinspection unchecked
     myCustomizer1 = createMock(ModuleCustomizer.class);
     //noinspection unchecked

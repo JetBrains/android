@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -42,6 +43,7 @@ import static com.android.tools.idea.gradle.customizer.android.ContentRootModule
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
+  @NotNull private final ProjectSystemId myProjectSystemId;
   @NotNull private final String myModuleName;
   @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
@@ -58,16 +60,18 @@ public class IdeaAndroidProject implements Serializable {
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
-   *
+   * @param projectSystemId     the external system used to build the project (e.g. Gradle).
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
    * @param rootDir             the root directory of the imported Android-Gradle project.
    * @param delegate            imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
-  public IdeaAndroidProject(@NotNull String moduleName,
+  public IdeaAndroidProject(@NotNull ProjectSystemId projectSystemId,
+                            @NotNull String moduleName,
                             @NotNull File rootDir,
                             @NotNull AndroidProject delegate,
                             @NotNull String selectedVariantName) {
+    myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
     VirtualFile found = VfsUtil.findFileByIoFile(rootDir, true);
     // the module's root directory can never be null.
@@ -100,6 +104,11 @@ public class IdeaAndroidProject implements Serializable {
     for (Variant variant : myDelegate.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
+  }
+
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return myProjectSystemId;
   }
 
   @Nullable
