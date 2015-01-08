@@ -263,9 +263,12 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       newValue = ((JCheckBox)component).isSelected();
     }
     else if (component instanceof JComboBox) {
-      ComboBoxItem selectedItem = (ComboBoxItem)((JComboBox)component).getSelectedItem();
-      if (selectedItem != null) {
+      Object selectedObject = ((JComboBox)component).getSelectedItem();
+      if (selectedObject instanceof ComboBoxItem) {
+        ComboBoxItem selectedItem = (ComboBoxItem)selectedObject;
         newValue = selectedItem.id;
+      } else {
+        newValue = selectedObject;
       }
     }
     else if (component instanceof JTextField) {
@@ -501,10 +504,10 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     int index = -1;
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
-      if (!(item instanceof ComboBoxItem)) {
-        continue;
+      if (item instanceof ComboBoxItem) {
+        item = ((ComboBoxItem)item).id;
       }
-      if (((ComboBoxItem)item).id.equals(value)) {
+      if (Objects.equal(item, value)) {
         index = i;
         break;
       }
