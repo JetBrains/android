@@ -585,7 +585,26 @@ public class IntellijApiDetector extends ApiDetector {
           } else {
             // Unqualified call; need to search in our super hierarchy
             PsiClass cls = PsiTreeUtil.getParentOfType(expression, PsiClass.class);
+
+            //noinspection ConstantConditions
+            if (qualifier instanceof PsiThisExpression || qualifier instanceof PsiSuperExpression) {
+              PsiQualifiedExpression pte = (PsiQualifiedExpression)qualifier;
+              PsiJavaCodeReferenceElement operand = pte.getQualifier();
+              if (operand != null) {
+                PsiElement resolved = operand.resolve();
+                if (resolved instanceof PsiClass) {
+                  cls = (PsiClass)resolved;
+                }
+              }
+            }
+
             while (cls != null) {
+              if (cls instanceof PsiAnonymousClass) {
+                // If it's an unqualified call in an anonymous class, we need to rely on the
+                // resolve method to find out whether the method is picked up from the anonymous
+                // class chain or any outer classes
+                break;
+              }
               String expressionOwner = IntellijLintUtils.getInternalName(cls);
               if (expressionOwner == null) {
                 break;
