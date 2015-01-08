@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public abstract class AbstractSyncErrorHandler {
 
   public static final ExtensionPointName<AbstractSyncErrorHandler> EP_NAME
-    = ExtensionPointName.create("org.jetbrains.android.androidSyncErrorHandler");
+    = ExtensionPointName.create("com.android.gradle.syncErrorHandler");
 
   public static final String FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT = "Failed to sync Gradle project '%1$s'";
 
