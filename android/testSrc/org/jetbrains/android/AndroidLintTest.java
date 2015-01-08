@@ -393,7 +393,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testPropertyFiles() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintPropertyEscapeInspection(),
-                  "Replace with C:\\\\foo\\\\bar", "local.properties", "properties");
+                  "Replace with C\\:\\\\foo\\\\bar", "local.properties", "properties");
   }
 
   public void testReferenceTypes() throws Exception {
