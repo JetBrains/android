@@ -783,7 +783,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Override
   public void disposeFacet() {
     if (myConfigurationManager != null) {
-      myConfigurationManager.dispose();
+      Disposer.dispose(myConfigurationManager);
     }
   }
 
