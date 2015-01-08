@@ -18,8 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
@@ -37,7 +36,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.SYSTEM_IMAGE_
 /**
  * Wizard step for selecting a {@link SystemImage} from the installed images in the SDK.
  */
-public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescription
+public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
   implements SystemImageList.SystemImageSelectionListener {
   private SystemImageList mySystemImageList;
   private JPanel myPanel;
@@ -46,7 +45,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   private Project myProject;
 
   public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
-    super("System Image", "Select a system image", null, parentDisposable);
+    super(parentDisposable);
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
     Predicate<AvdWizardConstants.SystemImageDescription> filter = new Predicate<AvdWizardConstants.SystemImageDescription>() {
@@ -134,16 +133,16 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
     myState.put(SYSTEM_IMAGE_KEY, systemImage);
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JBColor getTitleBackgroundColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  protected String getStepTitle() {
+    return "System Image";
   }
 
   @Nullable
   @Override
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  protected String getStepDescription() {
+    return "Select a system image";
   }
 
   private void createUIComponents() {

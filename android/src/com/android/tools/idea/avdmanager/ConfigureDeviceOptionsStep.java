@@ -20,9 +20,8 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -50,7 +49,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 /**
  * UI for configuring a Device Hardware Profile.
  */
-public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDescription {
+public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription {
   @Nullable private final Device myTemplateDevice;
   private final boolean myForceCreation;
   private DeviceDefinitionPreview myDeviceDefinitionPreview;
@@ -87,7 +86,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private Device.Builder myBuilder = new Device.Builder();
 
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
-    super("Configure Hardware Profile", null, null, parentDisposable);
+    super(parentDisposable);
     myTemplateDevice = templateDevice;
     myForceCreation = forceCreation;
     setBodyComponent(myRootPanel);
@@ -800,15 +799,15 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JBColor getTitleBackgroundColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  protected String getStepTitle() {
+    return "Configure Hardware Profile";
   }
 
   @Nullable
   @Override
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  protected String getStepDescription() {
+    return null;
   }
 }

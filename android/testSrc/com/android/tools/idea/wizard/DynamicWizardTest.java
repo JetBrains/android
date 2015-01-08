@@ -123,7 +123,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
 
     @NotNull
     @Override
-    public JComponent getComponent() {
+    public JComponent createStepBody() {
       return myLabel;
     }
 
@@ -142,6 +142,18 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     @Override
     public String getStepName() {
       return "visible step";
+    }
+
+    @NotNull
+    @Override
+    protected String getStepTitle() {
+      return getStepName();
+    }
+
+    @Nullable
+    @Override
+    protected String getStepDescription() {
+      return null;
     }
   }
 
