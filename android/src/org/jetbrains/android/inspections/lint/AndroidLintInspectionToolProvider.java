@@ -245,6 +245,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintCommitTransactionInspection extends AndroidLintInspectionBase {
+    public AndroidLintCommitTransactionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.commit.transaction"), CleanupDetector.COMMIT_FRAGMENT);
+    }
+  }
+
   /**
    * Local inspections processed by AndroidLintExternalAnnotator
    */
@@ -1452,6 +1458,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.protected.permissions"), SystemPermissionsDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintRecycleInspection extends AndroidLintInspectionBase {
+    public AndroidLintRecycleInspection() {
+      super(AndroidBundle.message("android.lint.inspections.recycle"), CleanupDetector.RECYCLE_RESOURCE);
+    }
+  }
+
   public static class AndroidLintReferenceTypeInspection extends AndroidLintInspectionBase {
     public AndroidLintReferenceTypeInspection() {
       super(AndroidBundle.message("android.lint.inspections.reference.type"), DuplicateResourceDetector.TYPE_MISMATCH);

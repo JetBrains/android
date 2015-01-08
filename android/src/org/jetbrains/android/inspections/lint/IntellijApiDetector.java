@@ -269,7 +269,7 @@ public class IntellijApiDetector extends ApiDetector {
           locationNode = method;
         }
         Location location = IntellijLintUtils.getLocation(myContext.file, locationNode);
-        myContext.report(OVERRIDE, location, message, null);
+        myContext.report(OVERRIDE, location, message);
       }
     }
 
@@ -320,7 +320,7 @@ public class IntellijApiDetector extends ApiDetector {
         }
         String fqcn = type.getClassName();
         String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-        myContext.report(UNSUPPORTED, location, message, null);
+        myContext.report(UNSUPPORTED, location, message);
       }
     }
 
@@ -381,7 +381,7 @@ public class IntellijApiDetector extends ApiDetector {
             }
           }
 
-          myContext.report(issue, location, message, null);
+          myContext.report(issue, location, message);
         }
       }
     }
@@ -400,7 +400,7 @@ public class IntellijApiDetector extends ApiDetector {
         }
         Location location = IntellijLintUtils.getLocation(myContext.file, resourceList);
         String message = String.format("Try-with-resources requires API level %1$d (current min is %2$d)", api, minSdk);
-        myContext.report(UNSUPPORTED, location, message, null);
+        myContext.report(UNSUPPORTED, location, message);
       }
 
       for (PsiParameter parameter : statement.getCatchBlockParameters()) {
@@ -441,7 +441,7 @@ public class IntellijApiDetector extends ApiDetector {
               location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
               String fqcn = referenceType.getClassName();
               String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-              myContext.report(UNSUPPORTED, location, message, null);
+              myContext.report(UNSUPPORTED, location, message);
             }
           }
         }
@@ -655,7 +655,7 @@ public class IntellijApiDetector extends ApiDetector {
         String message = String.format("Call requires API level %1$d (current min is %2$d): %3$s", api, minSdk,
                                        fqcn + '#' + method.getName());
 
-        myContext.report(UNSUPPORTED, location, message, null);
+        myContext.report(UNSUPPORTED, location, message);
       }
     }
   }
