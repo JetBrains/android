@@ -61,13 +61,16 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
   }
 
   private void updateEditButton(@Nullable Device selectedDevice) {
+    myEditDeviceButton.setAction(null);
+    Action action;
     if (selectedDevice == null) {
-      myEditDeviceButton.setAction(myCreateDeviceAction);
+      action = myCreateDeviceAction;
     } else if (DeviceManagerConnection.getDefaultDeviceManagerConnection().isUserDevice(selectedDevice)) {
-      myEditDeviceButton.setAction(myEditDeviceAction);
+      action = myEditDeviceAction;
     } else {
-      myEditDeviceButton.setAction(myCloneDeviceAction);
+      action = myCloneDeviceAction;
     }
+    myEditDeviceButton.setAction(action);
   }
 
   @Override
@@ -106,6 +109,16 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
   @Override
   public Device getDevice() {
     return myDeviceDefinitionList.getDevice();
+  }
+
+  @Override
+  public void setDevice(@Nullable Device device) {
+    myDeviceDefinitionList.setSelectedDevice(device);
+  }
+
+  @Override
+  public void selectDefaultDevice() {
+    myDeviceDefinitionList.selectDefaultDevice();
   }
 
   @Override
