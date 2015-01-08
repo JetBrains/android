@@ -108,7 +108,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JTextField myAvdDisplayName;
   private JBLabel mySkinDefinitionLabel;
-  private JTextField myAvdId;
+  private JBLabel myAvdId;
   private JLabel myAvdIdLabel;
   private SkinChooser mySkinComboBox;
   private JPanel myAvdDisplayNamePanel;
@@ -237,6 +237,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     if (myState.get(DEFAULT_ORIENTATION_KEY) == null) {
       myState.put(DEFAULT_ORIENTATION_KEY, device.getDefaultState().getOrientation());
     }
+    myAvdId.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        myAvdId.requestFocusInWindow();
+      }
+    });
   }
 
   private static String uniquifyDisplayName(String name) {
@@ -439,7 +445,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     });
     setControlDescription(myAvdDisplayName, myAvdConfigurationOptionHelpPanel.getDescription(DISPLAY_NAME_KEY));
-
+    setControlDescription(myAvdId, myAvdConfigurationOptionHelpPanel.getDescription(AVD_ID_KEY));
     register(DEVICE_DEFINITION_KEY, myDeviceName, DEVICE_NAME_BINDING);
     register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
