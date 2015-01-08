@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.utils.Pair;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -66,6 +67,7 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
       if (Comparing.equal(name, FN_RESOURCE_TEXT, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, SystemInfo.isFileSystemCaseSensitive) ||
+          Comparing.equal(name, GradleImport.IMPORT_SUMMARY_TXT, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, ".gitignore", SystemInfo.isFileSystemCaseSensitive)) {
         lastIgnore = true;
       }
