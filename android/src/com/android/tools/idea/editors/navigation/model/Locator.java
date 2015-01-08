@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.Property;
 
 public class Locator {
   @NonNull
@@ -31,8 +30,8 @@ public class Locator {
     this.viewName = viewName;
   }
 
-  public Locator(@NonNull State state) {
-    this(state, null, null);
+  public static Locator of(@NonNull State state) {
+    return new Locator(state, null, null);
   }
 
   public static Locator of(@NonNull State state, @Nullable String viewName) {
@@ -46,6 +45,28 @@ public class Locator {
   @NonNull
   public State getState() {
     return state;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Locator locator = (Locator)o;
+
+    if (fragmentName != null ? !fragmentName.equals(locator.fragmentName) : locator.fragmentName != null) return false;
+    if (!state.equals(locator.state)) return false;
+    if (viewName != null ? !viewName.equals(locator.viewName) : locator.viewName != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = state.hashCode();
+    result = 31 * result + (fragmentName != null ? fragmentName.hashCode() : 0);
+    result = 31 * result + (viewName != null ? viewName.hashCode() : 0);
+    return result;
   }
 
   @Override

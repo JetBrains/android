@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.navigation.model;
 
 public class Transition {
   public static final String PRESS = "Press";
+  @SuppressWarnings("UnusedDeclaration")
   public static final String SWIPE = "Swipe";
 
   private String type;
@@ -27,10 +28,6 @@ public class Transition {
     this.type = type;
     this.source = source;
     this.destination = destination;
-  }
-
-  public static Transition of(String type, State source, State destination) {
-    return new Transition(type, new Locator(source), new Locator(destination));
   }
 
   public String getType() {
