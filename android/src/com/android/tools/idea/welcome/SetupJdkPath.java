@@ -20,11 +20,14 @@ import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.ScopedStateStore.Scope;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Guides the user through setting up the JDK location.
@@ -32,17 +35,29 @@ import java.io.File;
 public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
   @NotNull private final FirstRunWizardMode myMode;
+  private final boolean myHasCompatibleJdk;
   private JdkLocationStep myJdkLocationStep;
 
   public SetupJdkPath(@NotNull FirstRunWizardMode mode) {
     myMode = mode;
     myJdkLocationStep = new JdkLocationStep(KEY_JDK_LOCATION, myMode);
+    myHasCompatibleJdk = hasCompatibleJdk();
+  }
+
+  private static boolean hasCompatibleJdk() {
+    JavaSdk sdkType = JavaSdk.getInstance();
+    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(sdkType);
+    for (Sdk jdk : jdks) {
+      if (sdkType.isOfVersionOrHigher(jdk, FirstRunWizardDefaults.MIN_JDK_VERSION)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
   public boolean isPathVisible() {
-    Sdk defaultJdk = DefaultSdks.getDefaultJdk(JavaSdkVersion.JDK_1_7);
-    return defaultJdk == null;
+    return !myHasCompatibleJdk;
   }
 
   @Override
@@ -51,6 +66,12 @@ public class SetupJdkPath extends DynamicWizardPath {
     File javaDir = myMode.getJavaDir();
     if (javaDir != null) {
       path = javaDir.getAbsolutePath();
+    }
+    else {
+      Sdk jdk = DefaultSdks.getDefaultJdk(FirstRunWizardDefaults.MIN_JDK_VERSION);
+      if (jdk != null) {
+        path = jdk.getHomePath();
+      }
     }
     myState.put(KEY_JDK_LOCATION, path);
     addStep(myJdkLocationStep);
