@@ -20,7 +20,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -30,6 +29,7 @@ import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.SingleStepPath;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -95,7 +95,8 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
     state.put(USE_HOST_GPU_KEY, true);
-    state.put(SD_CARD_STORAGE_KEY, new Storage(100, Storage.Unit.MiB));
+    state.put(DISPLAY_SD_SIZE_KEY, new Storage(100, Storage.Unit.MiB));
+    state.put(DISPLAY_USE_EXTERNAL_SD_KEY, false);
   }
 
   /**
@@ -135,9 +136,24 @@ public class AvdEditWizard extends DynamicWizard {
       sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
     }
     state.put(EXISTING_SD_LOCATION, sdCardLocation);
+    String dataFolderPath = avdInfo.getDataFolderPath();
+    File sdLocationFile = null;
     if (sdCardLocation != null) {
-      state.put(USE_EXISTING_SD_CARD, true);
+      sdLocationFile = new File(sdCardLocation);
     }
+    if (sdLocationFile != null && Objects.equal(sdLocationFile.getParent(), dataFolderPath)) {
+      // the image is in the AVD folder, consider it to be internal
+      File sdFile = new File(sdCardLocation);
+      Storage sdCardSize = new Storage(sdFile.length());
+      myState.put(DISPLAY_USE_EXTERNAL_SD_KEY, false);
+      myState.put(SD_CARD_STORAGE_KEY, sdCardSize);
+      myState.put(DISPLAY_SD_SIZE_KEY, sdCardSize);
+    } else {
+      // the image is external
+      myState.put(DISPLAY_USE_EXTERNAL_SD_KEY, true);
+      myState.put(DISPLAY_SD_LOCATION_KEY, sdCardLocation);
+    }
+
     String scale = properties.get(SCALE_SELECTION_KEY.name);
     if (scale != null) {
       state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(scale));
@@ -217,21 +233,31 @@ public class AvdEditWizard extends DynamicWizard {
 
     // Remove the SD card setting that we're not using
     String sdCard = null;
-    Boolean useExistingSdCard = state.get(USE_EXISTING_SD_CARD);
-    boolean hasSdCard = false;
-    if (useExistingSdCard != null && useExistingSdCard) {
-      userEditedProperties.remove(SD_CARD_STORAGE_KEY.name);
-      sdCard = state.get(EXISTING_SD_LOCATION);
-      assert sdCard != null;
-      hasSdCard = true;
-      hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(true));
-    } else {
+
+    Boolean useExternalSdCard = state.get(DISPLAY_USE_EXTERNAL_SD_KEY);
+    boolean useExisting = useExternalSdCard != null && useExternalSdCard;
+    if (!useExisting) {
+      if (Objects.equal(state.get(SD_CARD_STORAGE_KEY), state.get(DISPLAY_SD_SIZE_KEY))) {
+        // unchanged, use existing card
+        useExisting = true;
+      }
+    }
+    boolean hasSdCard;
+    if (!useExisting) {
       userEditedProperties.remove(EXISTING_SD_LOCATION.name);
-      Storage storage = state.get(SD_CARD_STORAGE_KEY);
+      Storage storage = state.get(DISPLAY_SD_SIZE_KEY);
+      state.put(SD_CARD_STORAGE_KEY, storage);
       if (storage != null) {
         sdCard = toIniString(storage, false);
       }
       hasSdCard = storage != null && storage.getSize() > 0;
+    } else {
+      sdCard = state.get(DISPLAY_SD_LOCATION_KEY);
+      state.put(EXISTING_SD_LOCATION, sdCard);
+      userEditedProperties.remove(SD_CARD_STORAGE_KEY.name);
+      assert sdCard != null;
+      hasSdCard = true;
+      hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(true));
     }
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
