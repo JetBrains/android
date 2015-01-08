@@ -299,6 +299,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintHandlerLeakInspection extends AndroidLintInspectionBase {
+    public AndroidLintHandlerLeakInspection() {
+      super(AndroidBundle.message("android.lint.inspections.handler.leak"), HandlerDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintHardcodedDebugModeInspection extends AndroidLintInspectionBase {
     public AndroidLintHardcodedDebugModeInspection() {
       super(AndroidBundle.message("android.lint.inspections.hardcoded.debug.mode"), HardcodedDebugModeDetector.ISSUE);
