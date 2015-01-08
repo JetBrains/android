@@ -53,6 +53,8 @@ import javax.swing.event.ListSelectionListener;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Locale;
 import java.util.Map;
@@ -118,6 +120,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel myOrientationLabel;
   private Set<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
+
+  private PropertyChangeListener myFocusListener;
 
   // Labels used for the advanced settings toggle button
   private static final String ADVANCED_SETTINGS = "Advanced Settings";
@@ -201,7 +205,30 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
     myOrientationToggle.setOpaque(false);
+
+    myFocusListener = new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent evt) {
+        Object value = evt.getNewValue();
+        if (evt.getNewValue() instanceof JComponent) {
+          JComponent component = (JComponent)value;
+          Component parent = component.getParent();
+          if (parent instanceof JComponent) {
+            ((JComponent)parent).scrollRectToVisible(component.getBounds());
+          }
+        }
+      }
+    };
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myFocusListener);
   }
+
+  @Override
+  public void dispose() {
+    if (myFocusListener != null) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myFocusListener);
+    }
+  }
+
 
   /**
    * Toggle the SD card between using an existing file and creating a new file.
@@ -668,7 +695,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return null;
+    return myAvdDisplayName;
   }
 
   private static final class NamedIcon {
