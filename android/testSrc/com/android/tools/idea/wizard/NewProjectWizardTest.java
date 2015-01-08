@@ -172,11 +172,8 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertFalse(manifestContents.contains("android:theme"));
 
     assertFilesExist(moduleDir,
-                     "src/main/java/com/test/package",
-                     "src/main/res/drawable-hdpi/ic_launcher.png",
-                     "src/main/res/drawable-mdpi/ic_launcher.png",
-                     "src/main/res/drawable-xhdpi/ic_launcher.png",
-                     "src/main/res/drawable-xxhdpi/ic_launcher.png");
+                     // Libraries no longer have launcher icons in them
+                     "src/main/java/com/test/package");
   }
 
   public void testCreateProjectNoActivityNoIconsApplication() throws Exception {
@@ -200,10 +197,10 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertFilesExist(moduleDir,
                      "src/main/res/values/styles.xml",
                      "src/main/java/com/test/package",
-                     "src/main/res/drawable-hdpi/ic_launcher.png",
-                     "src/main/res/drawable-mdpi/ic_launcher.png",
-                     "src/main/res/drawable-xhdpi/ic_launcher.png",
-                     "src/main/res/drawable-xxhdpi/ic_launcher.png");
+                     "src/main/res/mipmap-hdpi/ic_launcher.png",
+                     "src/main/res/mipmap-mdpi/ic_launcher.png",
+                     "src/main/res/mipmap-xhdpi/ic_launcher.png",
+                     "src/main/res/mipmap-xxhdpi/ic_launcher.png");
   }
 
   @SuppressWarnings("unchecked")
