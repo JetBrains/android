@@ -34,6 +34,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
+import java.util.List;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 
@@ -43,7 +44,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
  * (both physical and in pixels) and some information about the screen
  * size and shape.
  */
-public class DeviceDefinitionPreview extends JPanel {
+public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionList.DeviceCategorySelectionListener {
 
   private static final double PIXELS_PER_INCH = 45;
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
@@ -52,6 +53,8 @@ public class DeviceDefinitionPreview extends JPanel {
   public static final int DIMENSION_LINE_WIDTH = 1; // px
   public static final int OUTLINE_LINE_WIDTH = 5;   // px
   private Device myDevice;
+  double myMaxOutlineHeight;
+  double myMaxOutlineWidth;
   private static final int PADDING = 20;
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
@@ -230,17 +233,12 @@ public class DeviceDefinitionPreview extends JPanel {
     if (pixelSize == null) {
       return null;
     }
-    int density = device.getDefaultHardware().getScreen().getPixelDensity().getDpiValue();
-    double inchWidth = pixelSize.width * 1.0 / density;
-    double inchHeight = pixelSize.height * 1.0 / density;
-
-    int pixelWidth = round(inchWidth * PIXELS_PER_INCH);
-    int pixelHeight = round(inchHeight * PIXELS_PER_INCH);
-    while (pixelHeight > getHeight() / 2 || pixelWidth > getWidth() / 2) {
-      pixelHeight /= 2;
-      pixelWidth /= 2;
-    }
-    return new Dimension(pixelWidth, pixelHeight);
+    double diagonal = device.getDefaultHardware().getScreen().getDiagonalLength();
+    double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
+    double pixelHeight = diagonal / Math.sqrt(1 + sideRatio);
+    double pixelWidth = sideRatio * pixelHeight;
+    double scalingFactor = 2 * Math.max(myMaxOutlineHeight / getHeight(), myMaxOutlineWidth / getWidth());
+    return new Dimension((int)(pixelWidth / scalingFactor), (int)(pixelHeight / scalingFactor));
   }
 
   /**
@@ -259,5 +257,30 @@ public class DeviceDefinitionPreview extends JPanel {
     } else {
       return AndroidIcons.FormFactors.Mobile_32;
     }
+  }
+
+  @Override
+  public void onCategorySelectionChanged(@Nullable String category, @Nullable List<Device> devices) {
+    if (devices == null) {
+      myMaxOutlineHeight = 0;
+      myMaxOutlineWidth = 0;
+    }
+    double maxHeight = 0;
+    double maxWidth = 0;
+    for (Device d : devices) {
+      Dimension pixelSize = d.getScreenSize(d.getDefaultState().getOrientation());
+      if (pixelSize == null) {
+        continue;
+      }
+      double diagonal = d.getDefaultHardware().getScreen().getDiagonalLength();
+      double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
+      double heightIn = diagonal / Math.sqrt(1 + sideRatio * sideRatio);
+      double widthIn = sideRatio * heightIn;
+
+      maxWidth = Math.max(maxWidth, widthIn);
+      maxHeight = Math.max(maxHeight, heightIn);
+    }
+    myMaxOutlineHeight = maxHeight;
+    myMaxOutlineWidth = maxWidth;
   }
 }
