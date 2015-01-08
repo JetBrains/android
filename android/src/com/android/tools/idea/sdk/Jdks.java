@@ -28,6 +28,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,9 @@ import java.util.*;
  * Utility methods related to IDEA JDKs.
  */
 public class Jdks {
+  @NonNls
+  public static final String DOWNLOAD_JDK_7_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
+
   private static final LanguageLevel DEFAULT_LANG_LEVEL = LanguageLevel.JDK_1_6;
 
   @Nullable
