@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface BuildVariantModuleCustomizer<T> extends ModuleCustomizer<T> {
   ExtensionPointName<BuildVariantModuleCustomizer> EP_NAME =
-    ExtensionPointName.create("com.android.gradle.androidBuildVariantModuleCustomizer");
+    ExtensionPointName.create("com.android.gradle.buildVariantModuleCustomizer");
 
   /**
    * @return the "external system" where this customizer is available (e.g. Gradle), or {@link ProjectSystemId#IDE} if it is always

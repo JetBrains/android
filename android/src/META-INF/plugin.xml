@@ -647,9 +647,9 @@
     <extensionPoint name="newModuleWizardPathFactory" interface="com.android.tools.idea.wizard.NewModuleWizardPathFactory"/>
     <extensionPoint name="newModuleDynamicPathFactory" interface="com.android.tools.idea.wizard.NewModuleDynamicPathFactory"/>
     <extensionPoint name="wizardParameterFactory" interface="com.android.tools.idea.wizard.WizardParameterFactory"/>
-    <extensionPoint name="androidSyncErrorHandler"
+    <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
-    <extensionPoint qualifiedName="com.android.gradle.androidBuildVariantModuleCustomizer"
+    <extensionPoint qualifiedName="com.android.gradle.buildVariantModuleCustomizer"
                     interface="com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer"/>
   </extensionPoints>
 
@@ -657,36 +657,37 @@
     <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.LegacyWizardPathProvider"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.JavaWizardPathProvider"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ErrorOpeningZipFileErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ConnectionPermissionDeniedErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GradleDslMethodNotFoundErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSupportRepoErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.SdkBuildToolsTooLowErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingPlatformErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingBuildToolsErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.InternetConnectionErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingDependencyErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CachedDependencyNotFoundErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnexpectedErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CorruptGradleDependencyErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.JavaHeapSpaceErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ClassLoadingErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ObjectStreamErrorHandler"/>
-    <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
-    <androidBuildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
-    <androidBuildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
-    <androidBuildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ErrorOpeningZipFileErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ConnectionPermissionDeniedErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GradleDslMethodNotFoundErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSupportRepoErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.SdkBuildToolsTooLowErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingPlatformErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingBuildToolsErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.InternetConnectionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingDependencyErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CachedDependencyNotFoundErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnexpectedErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CorruptGradleDependencyErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.JavaHeapSpaceErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ClassLoadingErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ObjectStreamErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
+
+    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
+    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
+    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
   </extensions>
 
   <!-- Layout editor -->
