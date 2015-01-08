@@ -25,6 +25,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
@@ -52,7 +53,7 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(myModule.getName(), rootDir, androidProject, "debug");
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject, "debug");
     customizer.customizeModule(myModule, myProject, ideaAndroidProject);
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);

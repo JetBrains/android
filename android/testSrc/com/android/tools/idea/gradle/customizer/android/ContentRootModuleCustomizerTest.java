@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     Collection<Variant> variants = myAndroidProject.getVariants();
     Variant selectedVariant = ContainerUtil.getFirstItem(variants);
     assertNotNull(selectedVariant);
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), baseDir, myAndroidProject, selectedVariant.getName());
+    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject, selectedVariant.getName());
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();

@@ -649,6 +649,8 @@
     <extensionPoint name="wizardParameterFactory" interface="com.android.tools.idea.wizard.WizardParameterFactory"/>
     <extensionPoint name="androidSyncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
+    <extensionPoint qualifiedName="com.android.gradle.androidBuildVariantModuleCustomizer"
+                    interface="com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="org.jetbrains.android">
@@ -680,6 +682,16 @@
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ObjectStreamErrorHandler"/>
     <androidSyncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.gradle">
+    <androidBuildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
+    <androidBuildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
+    <androidBuildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
+  </extensions>
+
+  <!-- Layout editor -->
+
+  <xi:include href="/META-INF/DesignerCorePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
