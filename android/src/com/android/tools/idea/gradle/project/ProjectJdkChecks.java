@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
@@ -63,8 +65,8 @@ final class ProjectJdkChecks {
     AndroidProject androidProject = model.getDelegate();
     String compileTarget = androidProject.getCompileTarget();
 
-    // TODO this is good for now, adjust this in the future to deal with 22, 23, etc.
-    if ("android-L".equals(compileTarget) || "android-21".equals(compileTarget)) {
+    AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
+    if (version != null && version.getFeatureLevel() >= 21) {
       Sdk jdk = DefaultSdks.getDefaultJdk();
       if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
