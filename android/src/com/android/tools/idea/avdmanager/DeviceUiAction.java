@@ -34,6 +34,8 @@ public abstract class DeviceUiAction implements Action {
     @Nullable
     Device getDevice();
     void refreshDevices();
+    void setDevice(@Nullable Device device);
+    void selectDefaultDevice();
   }
 
   public DeviceUiAction(@NotNull DeviceProvider provider, @NotNull String text) {

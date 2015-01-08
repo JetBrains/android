@@ -17,6 +17,8 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A simple wizard containing a single step, presented as a dialog box with OK/Cancel buttons.
@@ -24,7 +26,13 @@ import com.intellij.openapi.project.Project;
 public abstract class SingleStepWizard extends DynamicWizard {
   private DynamicWizardStep myStep;
 
-  public SingleStepWizard(Project project, Module module, DynamicWizardStep step, DynamicWizardHost host) {
+  public SingleStepWizard(DynamicWizardStep step) {
+    this(null, null, step, new SingleStepDialogWrapperHost(null));
+    myStep = step;
+  }
+
+  public SingleStepWizard(@Nullable Project project, @Nullable Module module,
+                          @NotNull DynamicWizardStep step, @NotNull DynamicWizardHost host) {
     super(project, module, "WizardStep", host);
     myStep = step;
   }

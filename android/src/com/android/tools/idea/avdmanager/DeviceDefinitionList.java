@@ -208,6 +208,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myListeners.remove(listener);
   }
 
+  @Override
   public void selectDefaultDevice() {
     setSelectedDevice(myDefaultDevice);
   }
@@ -513,6 +514,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   @Override
   public Device getDevice() {
     return myTable.getSelectedObject();
+  }
+
+  @Override
+  public void setDevice(@Nullable Device device) {
+    setSelectedDevice(device);
   }
 
   @Override
