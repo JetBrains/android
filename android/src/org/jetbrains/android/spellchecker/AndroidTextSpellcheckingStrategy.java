@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
 
 /**
  * Spelling strategy for text and property files which is used to mask out typos in
@@ -65,6 +66,7 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
       if (Comparing.equal(name, FN_RESOURCE_TEXT, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, SystemInfo.isFileSystemCaseSensitive) ||
+          Comparing.equal(name, IMPORT_SUMMARY_TXT, SystemInfo.isFileSystemCaseSensitive) ||
           Comparing.equal(name, ".gitignore", SystemInfo.isFileSystemCaseSensitive)) {
         return myLastIgnore = true;
       }
