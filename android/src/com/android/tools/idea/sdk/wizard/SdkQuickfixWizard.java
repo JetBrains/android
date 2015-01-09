@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
@@ -67,6 +68,12 @@ public class SdkQuickfixWizard extends DynamicWizard {
   public SdkQuickfixWizard(@Nullable Project project, @Nullable Module module, List<IPkgDesc> requestedPackages) {
     super(project, module, "SDK Quickfix Installation");
     myRequestedPackages = requestedPackages;
+  }
+
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return null;
   }
 
   @Override

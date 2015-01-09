@@ -19,23 +19,17 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.ContainerUtil;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JComponent;
 import java.io.File;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 import java.util.List;
 
@@ -63,11 +57,9 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
     ConfigureAndroidProjectPath.putSdkDependentParams(getState());
   }
 
-  @Deprecated
-  @Nullable
-  protected static JComponent buildHeader() {
-    return DynamicWizardStep.createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
-                                                    AndroidIcons.Wizards.NewProjectMascotGreen, "New Module");
+  @NotNull
+  protected static WizardStepHeaderSettings buildHeader() {
+    return WizardStepHeaderSettings.createProductHeader("New Module");
   }
 
   @Override

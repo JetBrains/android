@@ -22,7 +22,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -51,7 +51,7 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
 
-public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescription {
+public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   private Logger LOG = Logger.getInstance(SmwOldApiDirectInstall.class);
   private JBLabel myLabelSdkPath;
   private JTextArea mySdkManagerOutput;
@@ -64,7 +64,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
   private Boolean myBackgroundSuccess = null;
 
   public SmwOldApiDirectInstall(@NotNull Disposable disposable) {
-    super("Installing Requested Components", "", null, disposable);
+    super(disposable);
     setBodyComponent(myContentPanel);
   }
 
@@ -163,6 +163,18 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
   @Override
   public String getStepName() {
     return "InstallingSDKComponentsStep";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "Installing Requested Components";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return null;
   }
 
   @Override
