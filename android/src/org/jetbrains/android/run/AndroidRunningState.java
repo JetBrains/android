@@ -30,9 +30,11 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
@@ -314,6 +316,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
     else if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
+      // Ensure the local file system is up to date to enable accurate calculation of the package name.
+      LocalFileSystem.getInstance().refresh(false);
+
       File manifestCopy = null;
       final Manifest manifest;
       final String manifestLocalPath;
@@ -618,8 +623,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   void start(boolean chooseTargetDevice) {
-    LocalFileSystem.getInstance().refresh(false);
-
     myPackageName = computePackageName(myFacet);
     if (myPackageName == null) {
       getProcessHandler().destroyProcess();
@@ -899,7 +902,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       if (myDeploy) {
         if (!checkPackageNames()) return false;
         IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject == null) {
+        if (ideaAndroidProject == null || !Projects.isBuildWithGradle(myFacet.getModule())) {
           if (!uploadAndInstall(device, myPackageName, myFacet)) return false;
           if (!uploadAndInstallDependentModules(device)) return false;
         } else {
@@ -1138,7 +1141,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private static String computeTestPackageName(@NotNull AndroidFacet facet, @NotNull String packageName) {
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject == null) {
+    if (ideaAndroidProject == null || !Projects.isBuildWithGradle(facet.getModule())) {
       return packageName;
     }
 

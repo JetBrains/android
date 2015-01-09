@@ -18,10 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.project.AdtModuleImporter;
-import com.android.tools.idea.gradle.project.GradleModuleImporter;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.ProjectImportUtil;
+import com.android.tools.idea.gradle.project.*;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.impl.NewProjectUtil;
@@ -51,6 +48,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -106,12 +104,31 @@ public class AndroidImportProjectAction extends AnAction {
     LOG.error(e1);
   }
 
-  @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
-    FileChooserDescriptor descriptor = new OpenProjectFileChooserDescriptor(true);
+  @NotNull
+  protected FileChooserDescriptor createFileChooserDescriptor() {
+    FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
+      FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
+
+      @Override
+      public Icon getIcon(VirtualFile file) {
+        Icon icon = myDelegate.getIcon(file);
+        return icon == null ? super.getIcon(file) : icon;
+      }
+    };
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
     descriptor.setDescription(WIZARD_DESCRIPTION);
+    return descriptor;
+  }
+
+  @Nullable
+  private AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
+    return selectFileAndCreateWizard(createFileChooserDescriptor());
+  }
+
+  @Nullable
+  private AddModuleWizard selectFileAndCreateWizard(@NotNull FileChooserDescriptor descriptor)
+      throws IOException, ConfigurationException {
     FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null);
     VirtualFile toSelect = null;
     String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
@@ -128,7 +145,7 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
+  protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
 
     VirtualFile target = ProjectImportUtil.findImportTarget(file);
     if (target == null) {

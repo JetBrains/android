@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -344,7 +345,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
           facet.setGradleProject(ideaGradleProject);
           modifiableModel.addFacet(facet);
           modifiableModel.commit();
-          assert AndroidGradleFacet.getInstance(module) != null;
+          assert Projects.isBuildWithGradle(module);
           done.set(true);
         }
 
