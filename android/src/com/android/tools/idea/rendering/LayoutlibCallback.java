@@ -80,6 +80,7 @@ public class LayoutlibCallback extends LegacyCallback {
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
   @NotNull private final ActionBarHandler myActionBarHandler;
+  @Nullable private final RenderService myRenderService;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
@@ -101,13 +102,15 @@ public class LayoutlibCallback extends LegacyCallback {
                            @NotNull AndroidFacet facet,
                            @NotNull RenderLogger logger,
                            @Nullable Object credential,
-                           @Nullable ActionBarHandler actionBarHandler) {
+                           @Nullable ActionBarHandler actionBarHandler,
+                           @Nullable RenderService renderService) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
+    myRenderService = renderService;
   }
 
   /** Resets the callback state for another render */
@@ -322,8 +325,8 @@ public class LayoutlibCallback extends LegacyCallback {
               assert myLogger != null;
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
               if (parentName.startsWith(FD_RES_LAYOUT)) {
-                // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
-                parser.setProvideViewCookies(false);
+                // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
+                parser.setProvideViewCookies(myRenderService != null && myRenderService.getProvideCookiesForIncludedViews());
               }
               return parser;
             }

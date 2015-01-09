@@ -264,6 +264,7 @@ public class AndroidRootComponent extends JComponent {
         RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
         final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
         if (service != null) {
+          service.setProvideCookiesForIncludedViews(true);
           if (!isMenu) {
             // Don't show menus in the layout view
             service.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
