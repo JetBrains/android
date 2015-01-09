@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 
 public final class FirstRunWizardTest extends AndroidTestBase {
@@ -149,8 +148,8 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
         @NotNull
         @Override
-        protected Component createStepBody() {
-          return new JLabel();
+        public JComponent createStepBody() {
+          return myLabel;
         }
 
         @Nullable

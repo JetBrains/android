@@ -75,7 +75,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                            @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
                            @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
                            @NotNull FirstRunWizardMode mode) {
-    super("SDK Settings");
+    super("SDK Components Setup");
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
 

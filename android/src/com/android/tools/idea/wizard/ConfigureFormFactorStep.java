@@ -69,8 +69,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
-    super("Select the form factors your app will run on", "Different platforms require separate SDKs",
-          null, disposable);
+    super("Select the form factors your app will run on", "Different platforms require separate SDKs", disposable);
     myDisposable = disposable;
     Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
     setBodyComponent(myPanel);
@@ -122,14 +121,15 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
         Integer selectedApi = selectedItem.apiLevel;
         float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
-        return String.format(
-          Locale.getDefault(),
-          "<html>Lower API levels target more devices, but have fewer features available. " +
-          "By targeting API %1$d and later, your app will run on " +
-          // escape the %'s such that the outer String.format does not attempt to format them
-          (percentage < 1 ? "&lt; 1%%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%%%</b>", percentage)) +
-          " of the devices that are active on the Google Play Store. " +
-          "<span color=\"#%2$s\">Help me choose.</span></html>", selectedApi, Integer.toHexString(JBColor.blue.getRGB()).substring(2));
+        return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
+                                                  "By targeting API %1$d and later, your app will run on " +
+                                                  // escape the %'s such that the outer String.format does not attempt to format them
+                                                  (percentage < 1
+                                                   ? "&lt; 1%%"
+                                                   : String.format(Locale.getDefault(), "approximately <b>%.1f%%%%</b>", percentage)) +
+                                                  " of the devices that are active on the Google Play Store. " +
+                                                  "<span color=\"#%2$s\">Help me choose.</span></html>", selectedApi,
+                             Integer.toHexString(JBColor.blue.getRGB()).substring(2));
       }
     });
 
@@ -275,16 +275,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     return myPanel;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JComponent getHeader() {
-    return ConfigureAndroidProjectPath.buildConfigurationHeader();
-  }
-
-  @Override
-  @Nullable
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
+  protected WizardStepHeaderSettings getStepHeader() {
+    return WizardStepHeaderSettings.createTitleOnlyHeader("Target Android Devices");
   }
 
   private static final class FormFactorSdkControls {
