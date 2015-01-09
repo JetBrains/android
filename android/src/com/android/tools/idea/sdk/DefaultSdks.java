@@ -389,7 +389,9 @@ public final class DefaultSdks {
           // Don't sync in tests. For now.
           continue;
         }
-        projectImporter.requestProjectSync(project, null);
+        if (Projects.isBuildWithGradle(project)) {
+          projectImporter.requestProjectSync(project, null);
+        }
       }
     }
   }

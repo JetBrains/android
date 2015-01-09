@@ -170,7 +170,7 @@ public final class Projects {
   public static boolean isIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (AndroidFacet.getInstance(module) != null && AndroidGradleFacet.getInstance(module) == null) {
+      if (AndroidFacet.getInstance(module) != null && !isBuildWithGradle(module)) {
         return true;
       }
     }
@@ -240,7 +240,14 @@ public final class Projects {
     if (moduleRootDirPath == null) {
       return false;
     }
-    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && AndroidGradleFacet.getInstance(module) == null;
+    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && !isBuildWithGradle(module);
+  }
+
+  /**
+   * Indicates whether Gradle is used to build the module.
+   */
+  public static boolean isBuildWithGradle(@NotNull Module module) {
+    return AndroidGradleFacet.getInstance(module) != null;
   }
 
   /**
@@ -252,7 +259,7 @@ public final class Projects {
   public static boolean isBuildWithGradle(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (AndroidGradleFacet.getInstance(module) != null) {
+      if (isBuildWithGradle(module)) {
         return true;
       }
     }
@@ -303,7 +310,7 @@ public final class Projects {
       return FileUtil.pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
-    return AndroidGradleFacet.getInstance(module) == null;
+    return !isBuildWithGradle(module);
   }
 
   @Nullable
