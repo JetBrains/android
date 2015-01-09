@@ -64,7 +64,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 /**
  * {@linkplain IconStep} is a wizard page that lets the user create a variety of density-scaled assets.
  */
-public class IconStep extends DynamicWizardStepWithHeaderAndDescription implements Disposable {
+public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
   public static final Key<String> ATTR_CLIPART_NAME = createKey(AssetStudioAssetGenerator.ATTR_CLIPART_NAME, PATH, String.class);
   public static final Key<String> ATTR_TEXT = createKey(AssetStudioAssetGenerator.ATTR_TEXT, PATH, String.class);
@@ -153,7 +153,7 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public IconStep(Key<TemplateEntry> templateKey, Key<SourceProvider> sourceProviderKey,
                   @Nullable SourceProvider[] sourceProviders, Disposable disposable) {
-    super("Asset Studio", null, null, disposable);
+    super(disposable);
     myTemplateKey = templateKey;
     mySourceProviderKey = sourceProviderKey;
     mySourceProviders = sourceProviders;
@@ -709,6 +709,18 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
   @Override
   public String getStepName() {
     return "Asset Studio";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "Asset Studio";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return null;
   }
 
   @Override

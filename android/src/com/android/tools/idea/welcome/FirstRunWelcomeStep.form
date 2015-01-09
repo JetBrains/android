@@ -81,7 +81,7 @@
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Welcome Back! This setup wizard will validate your current Android SDK and"/>
+              <text value="Welcome back! This setup wizard will validate your current Android SDK and"/>
             </properties>
           </component>
           <component id="863ee" class="javax.swing.JLabel">
