@@ -116,7 +116,7 @@ public class GraphicsLayoutRenderer {
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(layoutLib, appResources, module, facet, logger, new Object(), null) {
+    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(layoutLib, appResources, module, facet, logger, new Object(), null, null) {
       @Override
       public ActionBarCallback getActionBarCallback() {
         return actionBarCallback;
