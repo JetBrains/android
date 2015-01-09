@@ -76,12 +76,13 @@ public class NavigationEditorTest extends AndroidGradleTestCase {
     assertTrue(model.getTransitions().size() == expectedTransitionCount);
   }
 
-  public void testTransitionDerivationForDefaultDevice() throws Exception {
+// Use 'ignore' prefix instead of @Ignore annotation as we're extending the TestCase base class from JUnit3.
+  public void ignoreTestTransitionDerivationForDefaultDevice() throws Exception {
     testTransitionDerivation("raw", 2, 1);
   }
 
   /* When a master-detail app like simplemail runs on a tablet, there is one less transition in landscape. */
-  public void testTransitionDerivationForTabletInLandscape() throws Exception {
+  public void ignoreTestTransitionDerivationForTabletInLandscape() throws Exception {
     testTransitionDerivation("raw-sw600dp-land", 2, 0);
   }
 }
