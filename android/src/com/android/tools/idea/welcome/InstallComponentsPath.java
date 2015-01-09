@@ -23,6 +23,7 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.welcome.installoperations.CheckSdkOperation;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
@@ -148,7 +149,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull
   @VisibleForTesting
   static InstallOperation<File, File> downloadAndUnzipSdkSeed(@NotNull InstallContext context,
-                                                              @NotNull File destination,
+                                                              @NotNull final File destination,
                                                               double progressShare) {
     final double DOWNLOAD_OPERATION_PROGRESS_SHARE = progressShare * 0.8;
     final double UNZIP_OPERATION_PROGRESS_SHARE = progressShare * 0.15;
@@ -291,12 +292,13 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     final InstallOperation<File, File> initialize = createInitSdkOperation(installContext, destination, INIT_SDK_OPERATION_PROGRESS_SHARE);
 
     final Collection<? extends InstallableComponent> selectedComponents = getSelectedComponents();
+    CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
     InstallComponentsOperation install =
       new InstallComponentsOperation(installContext, selectedComponents, myRemotePackages, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
 
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
     try {
-      initialize.then(install).then(setPreference, 0).then(new ConfigureComponents(installContext, selectedComponents), 0)
+      initialize.then(checkSdk).then(install).then(setPreference).then(new ConfigureComponents(installContext, selectedComponents))
         .execute(destination);
     }
     catch (InstallationCancelledException e) {
@@ -475,4 +477,5 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       return input;
     }
   }
+
 }
