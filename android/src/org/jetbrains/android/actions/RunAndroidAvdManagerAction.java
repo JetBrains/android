@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public class RunAndroidAvdManagerAction extends AnAction {
+public class RunAndroidAvdManagerAction extends DumbAwareAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidAvdManagerAction");
   private AvdListDialog myDialog;
 
