@@ -47,7 +47,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -140,6 +139,8 @@ public class RenderService implements IImageFactory {
   private final Object myCredential = new Object();
 
   private ResourceFolderType myFolderType;
+
+  private boolean myProvideCookiesForIncludedViews = false;
 
   /**
    * Creates a new {@link RenderService} associated with the given editor.
@@ -344,7 +345,7 @@ public class RenderService implements IImageFactory {
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, actionBarHandler);
+    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, actionBarHandler, this);
     myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -571,6 +572,16 @@ public class RenderService implements IImageFactory {
     return myIncludedWithin != null ? myIncludedWithin : IncludeReference.NONE;
   }
 
+  /** Returns whether this parser will provide view cookies for included views. */
+  public boolean getProvideCookiesForIncludedViews() {
+    return myProvideCookiesForIncludedViews;
+  }
+
+  /** Sets whether this parser will provide view cookies for included views. */
+  public void setProvideCookiesForIncludedViews(boolean provideCookiesForIncludedViews) {
+    myProvideCookiesForIncludedViews = provideCookiesForIncludedViews;
+  }
+
   /**
    * Renders the model and returns the result as a {@link com.android.ide.common.rendering.api.RenderSession}.
    *
@@ -746,8 +757,8 @@ public class RenderService implements IImageFactory {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), layoutVirtualFile);
         if (psiFile instanceof XmlFile) {
           LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
-          // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
-          parser.setProvideViewCookies(false);
+          // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
+          parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
           topParser = parser;
         }
 
