@@ -104,8 +104,8 @@ public class AndroidImportProjectAction extends AnAction {
     LOG.error(e1);
   }
 
-  @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
+  @NotNull
+  protected FileChooserDescriptor createFileChooserDescriptor() {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
       FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
 
@@ -118,11 +118,16 @@ public class AndroidImportProjectAction extends AnAction {
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
     descriptor.setDescription(WIZARD_DESCRIPTION);
-    return selectFileAndCreateWizard(descriptor);
+    return descriptor;
   }
 
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@NotNull FileChooserDescriptor descriptor)
+  private AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
+    return selectFileAndCreateWizard(createFileChooserDescriptor());
+  }
+
+  @Nullable
+  private AddModuleWizard selectFileAndCreateWizard(@NotNull FileChooserDescriptor descriptor)
       throws IOException, ConfigurationException {
     FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null);
     VirtualFile toSelect = null;
@@ -140,7 +145,7 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
+  protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
 
     VirtualFile target = ProjectImportUtil.findImportTarget(file);
     if (target == null) {

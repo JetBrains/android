@@ -196,7 +196,10 @@ public class MergedManifestInfo extends ManifestInfo {
       PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(f);
       if (psiFile instanceof XmlFile) {
         Manifest m = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), (XmlFile)psiFile, Manifest.class);
-        manifests.add(m);
+        // If the file reported as a manifest is invalid, m will be null.
+        if (m != null) {
+          manifests.add(m);
+        }
       }
     }
 
