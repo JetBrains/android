@@ -71,6 +71,10 @@ public class Unifier {
     return bindings;
   }
 
+  private static boolean equals2(@Nullable Object a, @Nullable Object b) {
+    return a == null ? b == null : a.equals(b);
+  }
+
   private class Matcher extends JavaElementVisitor {
     Map<String, PsiElement> bindings = new HashMap<String, PsiElement>();
     Map<String, String> parameterBindings = new HashMap<String, String>();
@@ -185,8 +189,13 @@ public class Unifier {
             }
             PsiElement r2 = other.resolve();
             // a.foo() and b.foo() will resolve to the same method, make sure we only compare classes
-            if (r1 instanceof PsiClass && r2 instanceof PsiClass && r1 == r2) {
-              return;
+            if (r1 instanceof PsiClass && r2 instanceof PsiClass) {
+              PsiClass c1 = (PsiClass)r1;
+              PsiClass c2 = (PsiClass)r2;
+              // When one psi class is compiled but the other is from source, the instances are not '=='. Compare qualified names.
+              if (equals2(c1.getQualifiedName(), c2.getQualifiedName())){
+                return;
+              }
             }
           }
         }
