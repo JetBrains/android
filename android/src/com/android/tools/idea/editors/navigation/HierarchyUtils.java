@@ -17,13 +17,10 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.RenderedView;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.Nullable;
 
 class HierarchyUtils {
-  private static final Logger LOG = Logger.getInstance(HierarchyUtils.class.getName());
-
   private static String getTagName(@Nullable RenderedView leaf) {
     if (leaf != null) {
       if (leaf.tag != null) {
@@ -44,31 +41,51 @@ class HierarchyUtils {
     return "null";
   }
 
-  static void display(@Nullable RenderedView root) {
-    if (root == null) {
-      return;
+  private static String getClassName(@Nullable ViewInfo leaf) {
+    if (leaf != null) {
+      return leaf.getViewObject().getClass().getSimpleName();
     }
+    return "null";
+  }
+
+  private static String getClassName(@Nullable RenderedView leaf) {
+    if (leaf != null) {
+      return getClassName(leaf.view);
+    }
+    return "null";
+  }
+
+  static String display(@Nullable RenderedView root) {
+    if (root == null) {
+      return "";
+    }
+    final StringBuilder buffer = new StringBuilder();
     new Object() {
       public void display(RenderedView view, String indent) {
-        LOG.info(indent + getTagName(view) + " " + NavigationView.getViewId(view));
+        //noinspection StringConcatenationInsideStringBufferAppend
+        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + NavigationView.getViewId(view) + "\n");
         for (RenderedView c : view.getChildren()) {
           display(c, "  " + indent);
         }
       }
     }.display(root, "");
+    return buffer.toString();
   }
 
-  static void display(@Nullable ViewInfo root) {
+  static String display(@Nullable ViewInfo root) {
     if (root == null) {
-      return;
+      return "";
     }
+    final StringBuilder buffer = new StringBuilder();
     new Object() {
       public void display(ViewInfo view, String indent) {
-        LOG.info(indent + getTagName(view) + " " + NavigationView.getViewId(view));
+        //noinspection StringConcatenationInsideStringBufferAppend
+        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + NavigationView.getViewId(view) + "\n");
         for (ViewInfo c : view.getChildren()) {
           display(c, ".." + indent);
         }
       }
     }.display(root, "");
+    return buffer.toString();
   }
 }
