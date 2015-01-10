@@ -407,9 +407,11 @@ public class Analyser {
 
     // Search for 'subclass style' listeners in ListActivities and ListFragments
     PsiClass listActivityClass = Utilities.getPsiClass(myModule, "android.app.ListActivity");
-    assert listActivityClass != null;
     PsiClass listFragmentClass = Utilities.getPsiClass(myModule, "android.app.ListFragment");
-    assert listFragmentClass != null;
+    if (listActivityClass == null || listFragmentClass == null) {
+      LOG.warn("Couldn't find: android.app.ListActivity/ListFragment classes");
+      return;
+    }
     if (isActivity && activityClass.isInheritor(listActivityClass, true) ||
         isFragment && fragmentClass.isInheritor(listFragmentClass, true)) {
       // Search for subclass style item click listeners on ListActivities

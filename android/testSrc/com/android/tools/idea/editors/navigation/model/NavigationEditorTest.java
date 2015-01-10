@@ -76,6 +76,24 @@ public class NavigationEditorTest extends AndroidGradleTestCase {
     assertTrue(model.getTransitions().size() == expectedTransitionCount);
   }
 
+/*
+  Fix (ignore) unit tests for transition derivation in Navigation Editor
+
+   The following lines fail for a (this) gradle-based test project:
+
+      Project project = myModule.getProject();
+      JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+      GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+      PsiClass activityClass = facade.findClass("android.app.Activity", scope);
+      assertNotNull(activityClass);
+
+   The ignored tests previously raised an assertion error because of the lines:
+
+        PsiClass listActivityClass = Utilities.getPsiClass(myModule, "android.app.ListActivity");
+        assert listActivityClass != null;
+
+   in com.android.tools.idea.editors.navigation.macros.Analyser.java.
+  */
 // Use 'ignore' prefix instead of @Ignore annotation as we're extending the TestCase base class from JUnit3.
   public void ignoreTestTransitionDerivationForDefaultDevice() throws Exception {
     testTransitionDerivation("raw", 2, 1);
