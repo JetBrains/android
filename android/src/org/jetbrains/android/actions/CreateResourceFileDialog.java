@@ -397,6 +397,12 @@ public class CreateResourceFileDialog extends DialogWrapper {
     return myDirectoryNameTextField;
   }
 
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "reference.new.resource.file";
+  }
+
   public CreateTypedResourceFileAction getSelectedAction() {
     return myResType2ActionMap.get(myResourceTypeCombo.getSelectedName());
   }
