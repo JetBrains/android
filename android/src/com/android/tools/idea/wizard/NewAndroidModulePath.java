@@ -68,8 +68,18 @@ public final class NewAndroidModulePath implements WizardPath {
     Disposer.register(disposable, myAssetSetStep);
     myChooseActivityStep =
       new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null,
-                             ContainerUtil.newHashSet("Android TV Activity"));
-    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder);
+                             ContainerUtil.newHashSet("Android TV Activity")) {
+        @Override
+        public String getHelpId() {
+          return "Android_Application_Template_Page";
+        }
+      };
+    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder) {
+      @Override
+      public String getHelpId() {
+        return "Android_Activity_Settings_Page";
+      }
+    };
     myJavaModuleTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, builder);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
   }
