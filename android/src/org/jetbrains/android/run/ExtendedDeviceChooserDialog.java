@@ -176,6 +176,12 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     return myDeviceChooser.getPreferredFocusComponent();
   }
 
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "reference.android.chooseDevice";
+  }
+
   @Override
   protected void doOKAction() {
     myDeviceChooser.finish();
