@@ -124,6 +124,12 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
     }
   }
 
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "reference.new.resource.directory";
+  }
+
   @Override
   protected String getDimensionServiceKey() {
     return "AndroidCreateResourceDirectoryDialog";
