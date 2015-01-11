@@ -96,8 +96,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   private static final Key<Set<MavenId>> RESOLVED_APKLIB_ARTIFACTS_KEY = Key.create("RESOLVED_APKLIB_ARTIFACTS");
   private static final Key<Map<MavenId, String>> IMPORTED_AAR_ARTIFACTS = Key.create("IMPORTED_AAR_ARTIFACTS");
 
-  public AndroidFacetImporterBase(@NotNull String pluginId) {
-    super("com.jayway.maven.plugins.android.generation2", pluginId, FacetType.findInstance(AndroidFacetType.class));
+  public AndroidFacetImporterBase(@NotNull String groupId, @NotNull String pluginId) {
+    super(groupId, pluginId, FacetType.findInstance(AndroidFacetType.class));
   }
 
   @Override

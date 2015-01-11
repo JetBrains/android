@@ -5,6 +5,6 @@ package org.jetbrains.android.maven;
  */
 public class AndroidFacetImporter1 extends AndroidFacetImporterBase {
   public AndroidFacetImporter1() {
-    super("maven-android-plugin");
+    super("com.jayway.maven.plugins.android.generation2", "maven-android-plugin");
   }
 }
