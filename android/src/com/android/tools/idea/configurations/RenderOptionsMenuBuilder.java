@@ -80,7 +80,7 @@ public class RenderOptionsMenuBuilder {
 
   @NotNull
   public RenderOptionsMenuBuilder addHideOption() {
-    myGroup.addAction(new CheckboxAction("Hide for non-layout files") {
+    myGroup.addAction(new CheckboxAction("Hide for Non-layout Files") {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return mySettings.getGlobalState().isHideForNonLayoutFiles();
