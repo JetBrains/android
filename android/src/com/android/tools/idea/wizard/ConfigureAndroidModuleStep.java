@@ -313,6 +313,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @Override
+  public String getHelpId() {
+    return "Android-Gradle_Page";
+  }
+
+  @Override
   public JComponent getPreferredFocusedComponent() {
     return myAppName;
   }
