@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -29,11 +28,9 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
@@ -46,24 +43,24 @@ import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
-import com.intellij.openapi.module.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -82,7 +79,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
@@ -170,13 +166,7 @@ public class PostProjectSetupTasksExecutor {
     });
     Projects.enforceExternalBuild(myProject);
 
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      // We remove modules not present in settings.gradle in Android Studio only. IDEA allows to have non-Gradle modules in Gradle projects.
-      removeModulesNotInGradleSettingsFile();
-    }
-    else {
-      AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
-    }
+    AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
     findAndShowVariantConflicts();
     checkSdkToolsVersion(myProject);
@@ -393,114 +383,6 @@ public class PostProjectSetupTasksExecutor {
       path = path.substring(0, index);
     }
     return new File(FileUtil.toSystemDependentName(path));
-  }
-
-
-  private void removeModulesNotInGradleSettingsFile() {
-    GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(myProject);
-    final List<Module> modulesToRemove = Lists.newArrayList();
-
-    final ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    Module[] modules = moduleManager.getModules();
-
-    if (gradleSettingsFile == null) {
-      // If there is no settings.gradle file, it means that the top-level module is the only module recognized by Gradle.
-      if (modules.length == 1) {
-        return;
-      }
-      boolean topLevelModuleFound = false;
-      for (Module module : modules) {
-        if (!topLevelModuleFound && isTopLevel(module)) {
-          topLevelModuleFound = true;
-        }
-        else {
-          modulesToRemove.add(module);
-        }
-      }
-    }
-    else {
-      for (Module module : modules) {
-        if (isNonGradleModule(module) || isOrphanGradleModule(module, gradleSettingsFile)) {
-          modulesToRemove.add(module);
-        }
-      }
-    }
-
-    if (!modulesToRemove.isEmpty()) {
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
-          try {
-            for (Module module : modulesToRemove) {
-              removeDependencyLinks(module, moduleManager);
-              moduleModel.disposeModule(module);
-            }
-          }
-          finally {
-            moduleModel.commit();
-          }
-        }
-      });
-    }
-  }
-
-  private static boolean isNonGradleModule(@NotNull Module module) {
-    ModuleType moduleType = ModuleType.get(module);
-    if (moduleType instanceof JavaModuleType) {
-      String externalSystemId = module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
-      return !GradleConstants.SYSTEM_ID.getId().equals(externalSystemId);
-    }
-    return false;
-  }
-
-  private static boolean isOrphanGradleModule(@NotNull Module module, @NotNull GradleSettingsFile settingsFile) {
-    if (isTopLevel(module)) {
-      return false;
-    }
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
-    if (facet == null) {
-      return true;
-    }
-    String gradleProjectPath = facet.getConfiguration().GRADLE_PROJECT_PATH;
-    Iterable<String> allModules = settingsFile.getModules();
-    return !Iterables.contains(allModules, gradleProjectPath);
-  }
-
-  private static boolean isTopLevel(@NotNull Module module) {
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
-    if (facet == null) {
-      // if this is the top-level module, it may not have the Gradle facet but it is still valid, because it represents the project.
-      String moduleRootDirPath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath())).getParent();
-      return moduleRootDirPath.equals(module.getProject().getBasePath());
-    }
-    String gradleProjectPath = facet.getConfiguration().GRADLE_PROJECT_PATH;
-    // top-level modules have Gradle path ":"
-    return SdkConstants.GRADLE_PATH_SEPARATOR.equals(gradleProjectPath);
-  }
-
-  private static void removeDependencyLinks(@NotNull Module module, @NotNull ModuleManager moduleManager) {
-    List<Module> dependents = moduleManager.getModuleDependentModules(module);
-    for (Module dependent : dependents) {
-      if (dependent.isDisposed()) {
-        continue;
-      }
-      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(dependent);
-      ModifiableRootModel modifiableModel = moduleRootManager.getModifiableModel();
-      try {
-        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
-          if (orderEntry instanceof ModuleOrderEntry) {
-            Module orderEntryModule = ((ModuleOrderEntry)orderEntry).getModule();
-            if (module.equals(orderEntryModule)) {
-              modifiableModel.removeOrderEntry(orderEntry);
-            }
-          }
-        }
-      }
-      finally {
-        modifiableModel.commit();
-      }
-    }
   }
 
   private void findAndShowVariantConflicts() {
