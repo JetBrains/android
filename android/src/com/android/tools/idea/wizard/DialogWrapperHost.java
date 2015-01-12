@@ -52,18 +52,22 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
   // UI references
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMapWithExpectedSize(5);
 
+  public DialogWrapperHost(@Nullable Project project, IdeModalityType modalityType) {
+    super(project, true, modalityType);
+  }
+
   public DialogWrapperHost(@Nullable Project project) {
     super(project);
+  }
+
+  @Override
+  public void init(@NotNull DynamicWizard wizard) {
     Window window = getWindow();
     if (window == null) {
       assert ApplicationManager.getApplication().isUnitTestMode();
     } else {
       window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
     }
-  }
-
-  @Override
-  public void init(@NotNull DynamicWizard wizard) {
     myWizard = wizard;
     super.init();
     // Clear out the large border

@@ -20,18 +20,20 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.WizardStepHeaderPanel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.FrameWrapper;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
  * Display existing AVDs and offer actions for editing/creating.
  */
-public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoProvider {
+public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoProvider {
   private final Project myProject;
   private AvdDisplayList myAvdDisplayList;
 
@@ -39,33 +41,26 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
     super(project);
     myProject = project;
     myAvdDisplayList = new AvdDisplayList(this, project);
-    myAvdDisplayList.setBorder(ourDefaultBorder);
+    myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     setTitle("Android Virtual Device Manager");
-    Window window = getWindow();
+
+    Window window = getFrame();
     if (window == null) {
       assert ApplicationManager.getApplication().isUnitTestMode();
-    } else {
+    }
+    else {
       window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
     }
   }
 
-  @Override
   public void init() {
-    super.init();
-  }
-
-  @Nullable
-  @Override
-  protected JComponent createNorthPanel() {
-    return WizardStepHeaderPanel
+    JPanel root = new JPanel(new BorderLayout());
+    setComponent(root);
+    JPanel northPanel = WizardStepHeaderPanel
       .create(WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, null, "Your Virtual Devices",
               "Android Studio");
-  }
-
-  @Nullable
-  @Override
-  protected JComponent createCenterPanel() {
-    return myAvdDisplayList;
+    root.add(northPanel, BorderLayout.NORTH);
+    root.add(myAvdDisplayList, BorderLayout.CENTER);
   }
 
   @Nullable
@@ -87,25 +82,6 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
 
   @Override
   public void notifyRun() {
-    if (isShowing()) {
-      close(DialogWrapper.CANCEL_EXIT_CODE);
-    }
-  }
-
-  @Override
-  @Nullable
-  protected Border createContentPaneBorder() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  protected JComponent createSouthPanel() {
-    JComponent panel = super.createSouthPanel();
-    if (panel != null) {
-      panel.setBorder(ourDefaultBorder);
-    }
-    return panel;
   }
 
   @Nullable
