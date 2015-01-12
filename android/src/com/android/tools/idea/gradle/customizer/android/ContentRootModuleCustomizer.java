@@ -104,6 +104,14 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     BuildTypeContainer buildTypeContainer = androidProject.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
       addSourceFolder(androidProject, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
+
+      Collection<SourceProvider> testSourceProviders =
+        androidProject.getSourceProvidersForSelectedTestArtifact(buildTypeContainer.getExtraSourceProviders());
+
+
+      for (SourceProvider testSourceProvider : testSourceProviders) {
+        addSourceFolder(androidProject, contentEntries, testSourceProvider, true, orphans);
+      }
     }
 
     ProductFlavorContainer defaultConfig = androidProject.getDelegate().getDefaultConfig();
@@ -113,22 +121,22 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
-                                @NotNull Collection<ContentEntry> contentEntry,
+                                @NotNull Collection<ContentEntry> contentEntries,
                                 @NotNull BaseArtifact androidArtifact,
                                 boolean isTest,
                                 @NotNull List<RootSourceFolder> orphans) {
     if (androidArtifact instanceof AndroidArtifact) {
-      addGeneratedSourceFolder(androidProject, contentEntry, (AndroidArtifact) androidArtifact, isTest, orphans);
+      addGeneratedSourceFolder(androidProject, contentEntries, (AndroidArtifact) androidArtifact, isTest, orphans);
     }
 
     SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
-      addSourceFolder(androidProject, contentEntry, variantSourceProvider, isTest, orphans);
+      addSourceFolder(androidProject, contentEntries, variantSourceProvider, isTest, orphans);
     }
 
     SourceProvider multiFlavorSourceProvider = androidArtifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
-      addSourceFolder(androidProject, contentEntry, multiFlavorSourceProvider, isTest, orphans);
+      addSourceFolder(androidProject, contentEntries, multiFlavorSourceProvider, isTest, orphans);
     }
   }
 
@@ -150,12 +158,11 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                @NotNull List<RootSourceFolder> orphans) {
     addSourceFolder(androidProject, contentEntries, flavor.getSourceProvider(), false, orphans);
 
-    Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
-    for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
-      if (androidProject.getSelectedTestArtifactName().equals(sourceProviders.getArtifactName())) {
-        addSourceFolder(androidProject, contentEntries, sourceProviders.getSourceProvider(), true, orphans);
-        break;
-      }
+    Collection<SourceProvider> testSourceProviders =
+      androidProject.getSourceProvidersForSelectedTestArtifact(flavor.getExtraSourceProviders());
+
+    for (SourceProvider sourceProvider : testSourceProviders) {
+      addSourceFolder(androidProject, contentEntries, sourceProvider, true, orphans);
     }
   }
 
