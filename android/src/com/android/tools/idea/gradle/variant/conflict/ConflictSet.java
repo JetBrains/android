@@ -126,7 +126,7 @@ public class ConflictSet {
 
   @Nullable
   private static String getExpectedVariant(@NotNull IdeaAndroidProject dependentProject, @NotNull String dependencyGradlePath) {
-    List<AndroidLibrary> dependencies = GradleUtil.getDirectLibraryDependencies(dependentProject.getSelectedVariant());
+    List<AndroidLibrary> dependencies = GradleUtil.getDirectLibraryDependencies(dependentProject.getSelectedVariant(), dependentProject);
     for (AndroidLibrary dependency : dependencies) {
       if (!dependencyGradlePath.equals(dependency.getProject())) {
         continue;
