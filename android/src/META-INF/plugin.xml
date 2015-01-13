@@ -152,6 +152,7 @@
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.JavaProjectDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.ProjectCleanupDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
