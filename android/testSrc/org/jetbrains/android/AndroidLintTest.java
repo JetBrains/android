@@ -2,7 +2,6 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.lint.checks.CommentDetector;
-import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -216,6 +215,18 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTypographyQuotesInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
                   "/res/values/typography.xml", "xml");
+  }
+
+  public void testGridLayoutAttribute() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGridLayoutInspection(),
+                  "Update to myns:layout_column",
+                  "/res/layout/grid_layout.xml", "xml");
+  }
+
+  public void testGridLayoutAttributeMissing() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGridLayoutInspection(),
+                  "Update to app:layout_column",
+                  "/res/layout/grid_layout.xml", "xml");
   }
 
   public void testAlwaysShowAction() throws Exception {
