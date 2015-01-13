@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.SdkConstants;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.wizard.DialogWrapperHost;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +59,11 @@ public class SdkQuickfixWizard extends DynamicWizard {
   private final List<IPkgDesc> myRequestedPackages;
 
   public SdkQuickfixWizard(@Nullable Project project, @Nullable Module module, List<IPkgDesc> requestedPackages) {
-    super(project, module, "SDK Quickfix Installation");
+    this(project, module, requestedPackages, new DialogWrapperHost(project));
+  }
+
+  public SdkQuickfixWizard(@Nullable Project project, @Nullable Module module, List<IPkgDesc> requestedPackages, DialogWrapperHost host) {
+    super(project, module, "SDK Quickfix Installation", host);
     myRequestedPackages = requestedPackages;
   }
 

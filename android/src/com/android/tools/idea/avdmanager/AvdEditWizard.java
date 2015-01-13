@@ -25,16 +25,14 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.DynamicWizardStep;
-import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.tools.idea.wizard.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +54,7 @@ public class AvdEditWizard extends DynamicWizard {
   private final boolean myForceCreate;
 
   public AvdEditWizard(@Nullable Project project, @Nullable Module module, @Nullable AvdInfo avdInfo, boolean forceCreate) {
-    super(project, module, "AvdEditWizard");
+    super(project, module, "AvdEditWizard", new DialogWrapperHost(project, DialogWrapper.IdeModalityType.PROJECT));
     myAvdInfo = avdInfo;
     myForceCreate = forceCreate;
     setTitle("Virtual Device Configuration");
