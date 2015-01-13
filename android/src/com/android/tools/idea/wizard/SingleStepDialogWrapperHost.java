@@ -31,6 +31,10 @@ public class SingleStepDialogWrapperHost extends DialogWrapperHost {
     super(project);
   }
 
+  public SingleStepDialogWrapperHost(@Nullable Project project, IdeModalityType modalityType) {
+    super(project, modalityType);
+  }
+
   @NotNull
   @Override
   protected Action[] createActions() {

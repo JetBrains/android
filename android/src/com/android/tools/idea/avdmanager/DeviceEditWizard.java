@@ -16,13 +16,9 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.DeviceManager;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.tools.idea.wizard.SingleStepDialogWrapperHost;
 import com.android.tools.idea.wizard.SingleStepWizard;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -34,7 +30,8 @@ public class DeviceEditWizard extends SingleStepWizard {
    * @param forceCreation if set to true, the given device will be edited rather than cloned
    */
   public DeviceEditWizard(@Nullable Device deviceTemplate, boolean forceCreation) {
-    super(new ConfigureDeviceOptionsStep(deviceTemplate, forceCreation, null));
+    super(null, null, new ConfigureDeviceOptionsStep(deviceTemplate, forceCreation, null),
+          new SingleStepDialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
     setTitle("Hardware Profile Configuration");
   }
 

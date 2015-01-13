@@ -166,9 +166,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   @Override
   public void notifyRun() {
-    if (myDialog.isShowing()) {
-      myDialog.close(DialogWrapper.CANCEL_EXIT_CODE);
-    }
   }
 
   private final MouseAdapter myEditingListener = new MouseAdapter() {
