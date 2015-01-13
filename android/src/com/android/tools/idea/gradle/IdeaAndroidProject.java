@@ -138,12 +138,6 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @Nullable
-  public AndroidArtifact findInstrumentationTestArtifactInSelectedVariant() {
-    Variant variant = getSelectedVariant();
-    return findInstrumentationTestArtifact(variant);
-  }
-
-  @Nullable
   public BaseArtifact findSelectedTestArtifact(@NotNull Variant variant) {
     Iterable<BaseArtifact> allExtraArtifacts = Iterables.concat(variant.getExtraAndroidArtifacts(), variant.getExtraJavaArtifacts());
     for (BaseArtifact artifact : allExtraArtifacts) {
@@ -155,14 +149,8 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @Nullable
-  public static AndroidArtifact findInstrumentationTestArtifact(@NotNull Variant variant) {
-    Collection<AndroidArtifact> extraAndroidArtifacts = variant.getExtraAndroidArtifacts();
-    for (AndroidArtifact extraArtifact : extraAndroidArtifacts) {
-      if (extraArtifact.getName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
-        return extraArtifact;
-      }
-    }
-    return null;
+  public BaseArtifact findSelectedTestArtifactInSelectedVariant() {
+    return findSelectedTestArtifact(getSelectedVariant());
   }
 
   @NotNull
@@ -223,8 +211,8 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
-    checkArgument(selectedTestArtifactName == AndroidProject.ARTIFACT_ANDROID_TEST
-                  || selectedTestArtifactName == AndroidProject.ARTIFACT_UNIT_TEST);
+    checkArgument(selectedTestArtifactName.equals(AndroidProject.ARTIFACT_ANDROID_TEST)
+                  || selectedTestArtifactName.equals(AndroidProject.ARTIFACT_UNIT_TEST));
     mySelectedTestArtifactName = selectedTestArtifactName;
   }
 
