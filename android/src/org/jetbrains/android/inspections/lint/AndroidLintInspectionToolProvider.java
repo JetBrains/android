@@ -13,15 +13,12 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiExpressionList;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -31,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
@@ -454,6 +449,27 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintGridLayoutInspection extends AndroidLintInspectionBase {
     public AndroidLintGridLayoutInspection() {
       super(AndroidBundle.message("android.lint.inspections.grid.layout"), GridLayoutDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      String obsolete = GridLayoutDetector.getOldValue(message, RAW);
+      String available = GridLayoutDetector.getNewValue(message, RAW);
+      if (obsolete != null && available != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Update to " + available, obsolete, available) {
+          @Override
+          protected void editBefore(@NotNull Document document) {
+            Project project = startElement.getProject();
+            final XmlFile file = PsiTreeUtil.getParentOfType(startElement, XmlFile.class);
+            if (file != null) {
+              SuppressLintIntentionAction.ensureNamespaceImported(project, file, AUTO_URI);
+              PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document);
+            }
+          }
+        }};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
