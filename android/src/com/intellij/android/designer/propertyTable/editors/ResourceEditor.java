@@ -221,6 +221,7 @@ public class ResourceEditor extends PropertyEditor {
         case Reference:
           types.add(ResourceType.COLOR);
           types.add(ResourceType.DRAWABLE);
+          types.add(ResourceType.MIPMAP);
           types.add(ResourceType.STRING);
           types.add(ResourceType.ID);
           types.add(ResourceType.STYLE);
