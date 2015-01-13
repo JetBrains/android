@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -246,13 +247,7 @@ public class TemplateUtils {
   */
   @NotNull
   public static File[] listFiles(@Nullable File dir) {
-    if (dir != null) {
-      File[] files = dir.listFiles();
-      if (files != null) {
-        return files;
-      }
-    }
-    return ArrayUtil.EMPTY_FILE_ARRAY;
+    return WizardUtils.listFiles(dir);
   }
 
   /**

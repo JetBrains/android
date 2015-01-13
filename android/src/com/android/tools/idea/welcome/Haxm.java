@@ -21,9 +21,9 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Joiner;
@@ -48,6 +48,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Intel® HAXM installable component
@@ -58,19 +59,17 @@ public final class Haxm extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(Haxm.class);
   public static final IdDisplay ID_INTEL = new IdDisplay("intel", "");
   public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
-  private static final ScopedStateStore.Key<Boolean> KEY_INSTALL_HAXM =
-    ScopedStateStore.createKey("install.haxm", ScopedStateStore.Scope.PATH, Boolean.class);
+  public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
   private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY_MB =
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
-  public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
   private static long memorySize = -1;
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
-  private ScopedStateStore myState;
   private ProgressStep myProgressStep;
 
-  public Haxm(ScopedStateStore.Key<Boolean> isCustomInstall) {
-    super("Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
-                                                 "Android app emulation on your development computer. (Recommended)", KEY_INSTALL_HAXM);
+  public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall) {
+    super(store, "Performance (Intel ® HAXM)", 2306867,
+          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+          "Android app emulation on your development computer. (Recommended)");
     myIsCustomInstall = isCustomInstall;
   }
 
@@ -155,21 +154,20 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   private static IPkgDesc createExtra(@NotNull IdDisplay vendor, @NotNull String path) {
-    return PkgDesc.Builder.newExtra(vendor, path, "", null,
-                                    new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV)).create();
+    return PkgDesc.Builder.newExtra(vendor, path, "", null, new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV)).create();
   }
 
   @Override
-  public void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep) {
-    myState = state;
+  public void init(@NotNull ProgressStep progressStep) {
     myProgressStep = progressStep;
-    state.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
-    state.put(KEY_INSTALL_HAXM, true);
+    myStateStore.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
   }
 
+  @NotNull
   @Override
-  public DynamicWizardStep[] createSteps() {
-    return new DynamicWizardStep[]{new HaxmInstallSettingsStep(myIsCustomInstall, KEY_INSTALL_HAXM, KEY_EMULATOR_MEMORY_MB)};
+  public Collection<DynamicWizardStep> createSteps() {
+    return Collections
+      .<DynamicWizardStep>singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
   }
 
   @Override
@@ -191,7 +189,7 @@ public final class Haxm extends InstallableComponent {
       int exitCode = process.runProcess().getExitCode();
       if (exitCode != 0) {
         // HAXM is not required so we do not stop setup process if this install failed.
-        myProgressStep.print("HAXM installation failed. To install HAXM follow the instructions found at " +
+        installContext.print("HAXM installation failed. To install HAXM follow the instructions found at " +
                              FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL + ".\n", ConsoleViewContentType.ERROR_OUTPUT);
       }
       progressIndicator.setFraction(1);
@@ -210,7 +208,7 @@ public final class Haxm extends InstallableComponent {
    */
   @NotNull
   private GeneralCommandLine getCommandLine(File sdk) {
-    int memorySize = myState.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+    int memorySize = myStateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     File sourceLocation = new File(sdk, path);
     if (SystemInfo.isMac) {

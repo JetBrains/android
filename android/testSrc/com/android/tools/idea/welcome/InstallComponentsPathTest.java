@@ -22,6 +22,7 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
+import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
 import com.google.common.base.Function;
@@ -101,7 +102,8 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       throw new IOException("SDK not found");
     }
 
-    Collection<IPkgDesc> sdkPackages = new AndroidSdk().getRequiredSdkPackages(null);
+    Collection<IPkgDesc> sdkPackages =
+      new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null)).getRequiredSdkPackages(null);
     Set<String> toInstall = Sets.newHashSet();
     for (IPkgDesc sdkPackage : sdkPackages) {
       if (sdkPackage != null) {
@@ -109,7 +111,8 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       }
     }
 
-    ComponentInstaller operation = new ComponentInstaller(Collections.singleton(new AndroidSdk()), null);
+    ComponentInstaller operation =
+      new ComponentInstaller(Collections.singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))), null);
     ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
     operation.installPackages(manager, packagesToDownload, new LoggerForTest());
     manager.reloadSdk(log);
@@ -142,7 +145,8 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
   public void DISABLEDtestComponentsToInstall() {
     File sdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
-    ComponentInstaller operation = new ComponentInstaller(Collections.singleton(new AndroidSdk()), null);
+    ComponentInstaller operation =
+      new ComponentInstaller(Collections.singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))), null);
 
     SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assert manager != null;
