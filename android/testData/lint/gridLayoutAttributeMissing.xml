@@ -1,0 +1,19 @@
+<android.support.v7.widget.GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="HardcodedText">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1"
+        foobar:layout_column="1" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        <error>android:lay<caret>out_column="1"</error>
+        android:text="2" />
+
+</android.support.v7.widget.GridLayout>
