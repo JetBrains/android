@@ -19,10 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -53,6 +50,7 @@ import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -102,6 +100,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    ImportedModule importedModule = new ImportedModule(gradleModule);
+    ideModule.createChild(AndroidProjectKeys.IMPORTED_MODULE, importedModule);
+
     GradleScript buildScript = null;
     try {
       buildScript = gradleModule.getGradleProject().getBuildScript();
