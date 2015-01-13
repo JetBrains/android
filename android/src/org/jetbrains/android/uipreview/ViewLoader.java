@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.containers.HashSet;
@@ -188,54 +189,70 @@ public class ViewLoader {
 
   @Nullable
   private Object createViewFromSuperclass(final String className, final Class[] constructorSignature, final Object[] constructorArgs) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Object>() {
-      @Nullable
-      @Override
-      public Object compute() {
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-        PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+    // Creating views from the superclass calls into PSI which may need
+    // I/O access (for example when it consults the Java class index
+    // and that index needs to be lazily updated.)
+    // We run most of the method as a safe region, but we exit the
+    // safe region before calling {@link #createNewInstance} (which can
+    // call user code), and enter it again upon return.
+    final Ref<Boolean> token = new Ref<Boolean>();
+    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+    try {
+      return ApplicationManager.getApplication().runReadAction(new Computable<Object>() {
+        @Nullable
+        @Override
+        public Object compute() {
+          final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
+          PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
 
-        if (psiClass == null) {
-          return null;
-        }
-        psiClass = psiClass.getSuperClass();
-        final Set<String> visited = new HashSet<String>();
-
-        while (psiClass != null) {
-          final String qName = psiClass.getQualifiedName();
-
-          if (qName == null ||
-              !visited.add(qName) ||
-              AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
-            break;
-          }
-
-          if (!AndroidUtils.isAbstract(psiClass)) {
-            try {
-              Class<?> aClass = myLoadedClasses.get(qName);
-              if (aClass == null && myParentClassLoader != null) {
-                aClass = myParentClassLoader.loadClass(qName);
-                if (aClass != null) {
-                  myLoadedClasses.put(qName, aClass);
-                }
-              }
-              if (aClass != null) {
-                final Object instance = createNewInstance(aClass, constructorSignature, constructorArgs);
-
-                if (instance != null) {
-                  return instance;
-                }
-              }
-            }
-            catch (Throwable e) {
-              LOG.debug(e);
-            }
+          if (psiClass == null) {
+            return null;
           }
           psiClass = psiClass.getSuperClass();
+          final Set<String> visited = new HashSet<String>();
+
+          while (psiClass != null) {
+            final String qName = psiClass.getQualifiedName();
+
+            if (qName == null ||
+                !visited.add(qName) ||
+                AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
+              break;
+            }
+
+            if (!AndroidUtils.isAbstract(psiClass)) {
+              try {
+                Class<?> aClass = myLoadedClasses.get(qName);
+                if (aClass == null && myParentClassLoader != null) {
+                  aClass = myParentClassLoader.loadClass(qName);
+                  if (aClass != null) {
+                    myLoadedClasses.put(qName, aClass);
+                  }
+                }
+                if (aClass != null) {
+                  try {
+                    RenderSecurityManager.exitSafeRegion(token.get());
+                    final Object instance = createNewInstance(aClass, constructorSignature, constructorArgs);
+                    if (instance != null) {
+                      return instance;
+                    }
+                  } finally {
+                    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+                  }
+                }
+              }
+              catch (Throwable e) {
+                LOG.debug(e);
+              }
+            }
+            psiClass = psiClass.getSuperClass();
+          }
+          return null;
         }
-        return null;
-      }
-    });
+      });
+    } finally {
+      RenderSecurityManager.exitSafeRegion(token.get());
+    }
   }
 
   private Object createMockView(String className, Class[] constructorSignature, Object[] constructorArgs)
