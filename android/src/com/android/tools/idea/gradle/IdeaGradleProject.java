@@ -93,11 +93,6 @@ public class IdeaGradleProject implements Serializable {
   }
 
   @Nullable
-  public File getIoBuildFile() {
-    return myBuildFile;
-  }
-
-  @Nullable
   public VirtualFile getBuildFile() {
     return myBuildFile != null ? VfsUtil.findFileByIoFile(myBuildFile, true) : null;
   }
