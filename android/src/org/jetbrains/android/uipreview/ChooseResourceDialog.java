@@ -134,7 +134,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   private String myResultResourceName;
 
-  public static ResourceType[] COLOR_TYPES = {ResourceType.COLOR, ResourceType.DRAWABLE};
+  public static ResourceType[] COLOR_TYPES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
 
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
     super(module.getProject());
