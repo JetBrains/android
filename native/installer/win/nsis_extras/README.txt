@@ -1,8 +1,7 @@
-This directory contains plugins that should be copied over a vanilla NSIS 3+
+This directory contains content that should be copied over a vanilla NSIS 3+
 installation, as our script depends on them.
 
-*.nsh -> $NSIS_DIR\Include
-*.dll -> $NSIS_DIR\Plugins\x86-unicode
+The Include/ and Plugins/ directories contain the following plugins:
 
 FindProcDLL - A plugin which lets you search through all running processes,
   useful for detecting if Studio is running or not. We use the version modified
