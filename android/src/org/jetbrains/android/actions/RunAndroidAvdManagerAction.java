@@ -58,9 +58,13 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   public void openAvdManager(@Nullable Project project) {
-    myDialog = new AvdListDialog(project);
-    myDialog.init();
-    myDialog.show();
+    if (myDialog != null && !myDialog.isDisposed()) {
+      myDialog.getFrame().toFront();
+    } else {
+      myDialog = new AvdListDialog(project);
+      myDialog.init();
+      myDialog.show();
+    }
   }
 
   @Nullable

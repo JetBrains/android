@@ -29,6 +29,7 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.wizard.DialogWrapperHost;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -39,11 +40,11 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -645,7 +646,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
                                                  (MajorRevision)image.getRemotePackage().getRevision()).create();
       }
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
-      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
+      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
+                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
       sdkQuickfixWizard.init();
       sdkQuickfixWizard.show();
       refreshImages(true);
