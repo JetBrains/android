@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
-import static com.android.tools.idea.editors.navigation.model.Utilities.getPropertyName;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analyser {
@@ -223,7 +222,7 @@ public class Analyser {
           PsiLiteral literal = (PsiLiteral)exp;
           return literal.getValue();
         }
-        MultiMatch.Bindings<PsiElement> match1 = myMacros.findViewById.match(exp);
+        MultiMatch.Bindings<PsiElement> match1 = myMacros.findViewById1.match(exp);
         if (match1 != null) {
           String id = match1.bindings.get("$id").getText();
           return ids.contains(id) ? new Object() : null;
@@ -307,23 +306,26 @@ public class Analyser {
       @Override
       public String locateIn(MultiMatch.Bindings<PsiElement> args) {
         PsiElement view = args.get("$view");
-        MultiMatch.Bindings<PsiElement> bindings = macros.findViewById.match(view);
-        return (bindings == null) ? null : bindings.get("$id").getText();
+        {
+          MultiMatch.Bindings<PsiElement> bindings = macros.findViewById1.match(view);
+          if (bindings != null) {
+            return bindings.get("$id").getText();
+          }
+        }
+        {
+          MultiMatch.Bindings<PsiElement> bindings = macros.findViewById2.match(view);
+          if (bindings != null) {
+            return bindings.get("$id").getText();
+          }
+        }
+        return null;
       }
     };
   }
 
-  private static final PsiLocator<String> GET_PROPERTY_NAME = new PsiLocator<String>() {
-    @Nullable
-    @Override
-    public String locateIn(MultiMatch.Bindings<PsiElement> args) {
-      PsiElement $listView = args.get("$listView");
-      return $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-    }
-  };
-
   private static Processor createProcessor(final NavigationModel model,
                                            final ActivityState activityState,
+                                           @Nullable final String fromFragmentClassName,
                                            final Evaluator evaluator,
                                            final Map<String, ActivityState> classNameToActivityState,
                                            final String name,
@@ -334,7 +336,8 @@ public class Analyser {
       @Override
       public void process(MultiMatch.Bindings<PsiElement> args) {
         search(args.get(name), evaluator, matcher,
-               createProcessor(model, classNameToActivityState, activityState, constant(locator1.locateIn(args)), locator2));
+               createProcessor(model, classNameToActivityState, activityState, fromFragmentClassName,
+                               constant(locator1.locateIn(args)), locator2));
       }
     };
   }
@@ -383,10 +386,10 @@ public class Analyser {
             for (PsiClass superClass = activityClass; superClass != null; superClass = superClass.getSuperClass()) {
               // Search for menu item bindings in the style the Navigation Editor generates them
               search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
-                     createProcessor(model, classNameToActivityState, menu, MENU_ITEM_NAME, CLASS_NAME_2));
+                     createProcessor(model, classNameToActivityState, menu, fragmentClassName, MENU_ITEM_NAME, CLASS_NAME_2));
               // Search for switch statement style menu item bindings
               search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
-                     createProcessor(model, classNameToActivityState, menu, constant(null), CLASS_NAME_1));
+                     createProcessor(model, classNameToActivityState, menu, fragmentClassName, constant(null), CLASS_NAME_1));
             }
           }
         });
@@ -398,11 +401,11 @@ public class Analyser {
     String[] signatures = isActivity ? ACTIVITY_SIGNATURES : FRAGMENT_SIGNATURES;
     for (String signature : signatures) {
       search(activityOrFragmentClass, signature, myMacros.installClickAndCallMacro,
-             createProcessor(model, activityState, evaluator, classNameToActivityState, "$f", myMacros.createIntent, getGetTag(myMacros),
-                             CLASS_NAME_1));
+             createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
+                             getGetTag(myMacros), CLASS_NAME_1));
       search(activityOrFragmentClass, signature, myMacros.installItemClickAndCallMacro,
-             createProcessor(model, activityState, evaluator, classNameToActivityState, "$f", myMacros.createIntent, GET_PROPERTY_NAME,
-                             CLASS_NAME_1));
+             createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
+                             constant(NavigationView.LIST_VIEW_SENTINEL), CLASS_NAME_1));
     }
 
     // Search for 'subclass style' listeners in ListActivities and ListFragments
@@ -415,8 +418,8 @@ public class Analyser {
     if (isActivity && activityClass.isInheritor(listActivityClass, true) ||
         isFragment && fragmentClass.isInheritor(listFragmentClass, true)) {
       // Search for subclass style item click listeners on ListActivities
-      search(activityClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
-             createProcessor(model, classNameToActivityState, activityState, constant(null), CLASS_NAME_1));
+      search(activityOrFragmentClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
+             createProcessor(model, classNameToActivityState, activityState, fragmentClassName, constant(null), CLASS_NAME_1));
     }
 
     // Accommodate idioms from Master-Detail template
@@ -439,7 +442,8 @@ public class Analyser {
                        if (implementation != null) {
                          Evaluator evaluator = getEvaluator(configuration, activityClass, activityClass, true);
                          search(implementation.getBody(), evaluator, myMacros.createIntent,
-                                createProcessor(model, classNameToActivityState, activityState, constant(null), CLASS_NAME_1));
+                                createProcessor(model, classNameToActivityState, activityState, fragmentClassName,
+                                                constant(null), CLASS_NAME_1));
                        }
                      }
                    }
@@ -549,6 +553,7 @@ public class Analyser {
   private static Processor createProcessor(final NavigationModel model,
                                            final Map<String, ActivityState> activities,
                                            final State fromState,
+                                           @Nullable final String fromFragmentClassName,
                                            final PsiLocator<String> fromViewIdLocator,
                                            final PsiLocator<PsiElement> toStateClassLocator) {
     return new Processor() {
@@ -559,7 +564,7 @@ public class Analyser {
         if (qualifiedName != null) {
           ActivityState toState = getActivityState(qualifiedName, activities);
           String viewId = fromViewIdLocator.locateIn(args);
-          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, viewId), Locator.of(toState)));
+          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, fromFragmentClassName, viewId), Locator.of(toState)));
         }
       }
     };
@@ -636,10 +641,6 @@ public class Analyser {
       }
     });
     return result;
-  }
-
-  private static String removeTrailingParens(String text) {
-    return text.endsWith("()") ? text.substring(0, text.length() - 2) : text;
   }
 
   private static boolean addTransition(NavigationModel model, Transition transition) {

@@ -55,7 +55,7 @@ class HierarchyUtils {
     return "null";
   }
 
-  static String display(@Nullable RenderedView root) {
+  static String toString(@Nullable RenderedView root) {
     if (root == null) {
       return "";
     }
@@ -72,7 +72,7 @@ class HierarchyUtils {
     return buffer.toString();
   }
 
-  static String display(@Nullable ViewInfo root) {
+  static String toString(@Nullable ViewInfo root) {
     if (root == null) {
       return "";
     }
