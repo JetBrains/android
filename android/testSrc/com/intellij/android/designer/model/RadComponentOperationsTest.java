@@ -252,7 +252,9 @@ public class RadComponentOperationsTest extends LayoutEditorTestBase {
     assertNotNull(root);
 
     assertEquals("LinearLayout[x=0,y=0,width=768,height=1280](" +
-                    "LinearLayout[x=0,y=100,width=768,height=1084](Button[x=0,y=100,width=191,height=96], ), ), ",
+                    // Using button dimensions here seems flaky; it will depend on the Android theme's
+                    // padding and nine patches etc.
+                    "LinearLayout[x=0,y=100,width=768,height=1084](Button[x=0,y=100,width=188,height=96], ), ), ",
                  toBoundsString(root, rootView));
   }
 }
