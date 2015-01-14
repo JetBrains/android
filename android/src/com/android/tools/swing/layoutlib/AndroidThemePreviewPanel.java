@@ -17,7 +17,8 @@ package com.android.tools.swing.layoutlib;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.DomPullParser;
+import com.android.tools.idea.rendering.LayoutPullParserFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,8 +28,6 @@ import org.xml.sax.SAXException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.io.IOException;
 
 /**
@@ -42,16 +41,14 @@ public class AndroidThemePreviewPanel extends JComponent {
   private final PsiFile myPsiFile;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
   private ILayoutPullParser myParser;
+  private Configuration myConfiguration;
 
-  public AndroidThemePreviewPanel(PsiFile psiFile, Configuration configuration) throws IOException, SAXException {
+  public AndroidThemePreviewPanel(PsiFile psiFile, Configuration configuration) {
     super();
 
     myPsiFile = psiFile;
     myFacet = AndroidFacet.getInstance(myPsiFile);
-    final Document document =
-      DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
-    myParser = new DomPullParser(document.getDocumentElement());
-    updateConfiguration(configuration);
+    myConfiguration = configuration;
   }
 
   @Override
@@ -65,22 +62,39 @@ public class AndroidThemePreviewPanel extends JComponent {
 
   /**
    * Updates the current configuration. You need to call this method is you change the configuration and want to update the rendered view.
-   *
+   * <p/>
    * <p/>This will re-inflate the sample view with the new parameters in the configuration.
+   *
    * @param configuration
    */
   public void updateConfiguration(@NotNull Configuration configuration) {
-    try {
-      myGraphicsLayoutRenderer = GraphicsLayoutRenderer.create(myPsiFile, configuration, myParser);
-    }
-    catch (InitializationException e) {
-      LOG.error(e);
-    }
+    myConfiguration = configuration;
+    // Invalidate current configuration if any.
+    myGraphicsLayoutRenderer = null;
   }
 
   @Override
   public void paintComponent(final Graphics graphics) {
     super.paintComponent(graphics);
+
+    if (myGraphicsLayoutRenderer == null) {
+      try {
+        final Document document =
+          DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
+        myParser = new DomPullParser(document.getDocumentElement());
+        myGraphicsLayoutRenderer = GraphicsLayoutRenderer.create(myPsiFile, myConfiguration, myParser);
+        myGraphicsLayoutRenderer.setSize(getSize());
+      }
+      catch (InitializationException e) {
+        LOG.error(e);
+      }
+      catch (SAXException e) {
+        LOG.error(e);
+      }
+      catch (IOException e) {
+        LOG.error(e);
+      }
+    }
 
     if (myGraphicsLayoutRenderer != null) {
       myGraphicsLayoutRenderer.render((Graphics2D)graphics);

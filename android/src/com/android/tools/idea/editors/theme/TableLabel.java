@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swing.layoutlib;
+package com.android.tools.idea.editors.theme;
 
-/**
- * An {@linkplain InitializationException} is thrown when there is an error while initializing the {@link GraphicsLayoutRenderer}.
- */
-public class InitializationException extends Exception {
-  InitializationException(String message) {
-    super(message);
+import org.jetbrains.annotations.NotNull;
+
+public class TableLabel {
+  public final @NotNull String myLabelName;
+  public final int myRowPosition;
+
+  public TableLabel(@NotNull String labelName, int rowPosition) {
+    myLabelName = labelName;
+    myRowPosition = rowPosition;
   }
 
-  InitializationException(Throwable cause) {
-    super(cause);
+  @NotNull
+  public String getLabelName() {
+    return myLabelName;
+  }
+
+  public int getRowPosition() {
+    return myRowPosition;
+  }
+
+  @Override
+  public String toString() {
+    return myLabelName;
   }
 }

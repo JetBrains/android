@@ -22,7 +22,10 @@ import com.android.ide.common.rendering.api.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LayoutlibCallback;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderSecurityManagerFactory;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,9 +51,9 @@ import java.io.IOException;
 /**
  * Class to render layouts to a {@link Graphics} instance. This renderer does not allow for much customization of the device and does not
  * include any kind of frames.
- *
+ * <p/>
  * <p/>This class will render a layout to a {@link Graphics} object and can be used to paint in controls that require live updates.
- *
+ * <p/>
  * <p/>Note: This class is not thread safe.
  */
 public class GraphicsLayoutRenderer {
@@ -62,7 +65,9 @@ public class GraphicsLayoutRenderer {
   private final DynamicHardwareConfig myHardwareConfig;
   private final Object myCredential = new Object();
   private final RenderSecurityManager mySecurityManager;
-  /** Invalidate the layout in the next render call */
+  /**
+   * Invalidate the layout in the next render call
+   */
   private boolean myInvalidate;
 
   /*
@@ -87,11 +92,11 @@ public class GraphicsLayoutRenderer {
 
   @NotNull
   protected static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
-                                               @NotNull AndroidPlatform platform,
-                                               @NotNull IAndroidTarget target,
-                                               @NotNull Project project,
-                                               @NotNull Configuration configuration,
-                                               @NotNull ILayoutPullParser parser) throws InitializationException {
+                                                 @NotNull AndroidPlatform platform,
+                                                 @NotNull IAndroidTarget target,
+                                                 @NotNull Project project,
+                                                 @NotNull Configuration configuration,
+                                                 @NotNull ILayoutPullParser parser) throws InitializationException {
     Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
 
@@ -128,9 +133,8 @@ public class GraphicsLayoutRenderer {
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
     final SessionParams params =
       new SessionParams(parser, SessionParams.RenderingMode.NORMAL, module, hardwareConfig, configuration.getResourceResolver(),
-                        layoutlibCallback,
-                        moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(), logger,
-                        target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
+                        layoutlibCallback, moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(),
+                        logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
@@ -140,8 +144,8 @@ public class GraphicsLayoutRenderer {
 
   @Nullable
   public static GraphicsLayoutRenderer create(@NotNull PsiFile layoutFile,
-                                            @NotNull Configuration configuration,
-                                            @NotNull ILayoutPullParser parser) throws InitializationException {
+                                              @NotNull Configuration configuration,
+                                              @NotNull ILayoutPullParser parser) throws InitializationException {
     AndroidFacet facet = AndroidFacet.getInstance(layoutFile);
     if (facet == null) {
       return null;
@@ -178,7 +182,7 @@ public class GraphicsLayoutRenderer {
 
   /**
    * Render the layout to the passed {@link Graphics2D} instance using the defined viewport.
-   *
+   * <p/>
    * <p/>Please note that this method is not thread safe so, if used from multiple threads, it's the caller's responsibility to synchronize
    * the access to it.
    */
@@ -208,7 +212,17 @@ public class GraphicsLayoutRenderer {
         // We need to log the errors after disabling the security manager since the logger will cause a security exception when trying to
         // access the system properties.
         if (result != null && result.getStatus() != Result.Status.SUCCESS) {
-          LOG.error(result.getException());
+          if (result.getException() != null) {
+            if (result.getException() instanceof IllegalArgumentException &&
+                result.getException().getMessage().startsWith("Raster Integer")) {
+              // Suppress incompatible Raster exception since we don't use the bitmap.
+              return;
+            }
+            LOG.error(result.getException());
+          }
+          else {
+            LOG.error("Render error (no exception). Status=" + result.getStatus().name());
+          }
         }
       }
     });
@@ -250,7 +264,7 @@ public class GraphicsLayoutRenderer {
     public BufferedImage getImage(final int w, final int h) {
       // BufferedImage can not have a 0 size. We pass 1,1 since we are not really interested in the bitmap,
       // only in the createGraphics call.
-      return new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY) {
+      return new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB) {
         @Override
         public Graphics2D createGraphics() {
           // TODO: Check if we can stop layoutlib from reseting the transforms.
@@ -278,7 +292,7 @@ public class GraphicsLayoutRenderer {
 
   /**
    * {@link HardwareConfig} that allows changing the screen size of the device on the fly.
-   *
+   * <p/>
    * <p/>This allows to pass the HardwareConfig to the LayoutLib and then dynamically modify the size
    * for every render call.
    */

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (C) 2014 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,271 +13,166 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<ScrollView
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              android:padding="5dp">
 
+  <!-- Row -->
   <LinearLayout
-      android:orientation="vertical"
       android:layout_width="fill_parent"
-      android:layout_height="wrap_content">
+      android:layout_height="fill_parent">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
       <TextView
-          android:layout_width="wrap_content"
+          android:id="@+id/textView"
+          android:layout_width="fill_parent"
           android:layout_height="wrap_content"
-          android:text="New Text"
-          android:id="@+id/textView"/>
+          android:text="New Text" />
 
       <TextView
-          android:layout_width="wrap_content"
+          android:id="@+id/textView2"
+          android:layout_width="fill_parent"
           android:layout_height="wrap_content"
-          android:textAppearance="?android:attr/textAppearanceLarge"
           android:text="Large Text"
-          android:id="@+id/textView2"/>
+          android:textAppearance="?android:attr/textAppearanceLarge" />
 
       <TextView
-          android:layout_width="wrap_content"
+          android:id="@+id/textView3"
+          android:layout_width="fill_parent"
           android:layout_height="wrap_content"
-          android:textAppearance="?android:attr/textAppearanceMedium"
           android:text="Medium Text"
-          android:id="@+id/textView3"/>
+          android:textAppearance="?android:attr/textAppearanceMedium" />
 
       <TextView
-          android:layout_width="wrap_content"
+          android:id="@+id/textView4"
+          android:layout_width="fill_parent"
           android:layout_height="wrap_content"
-          android:textAppearance="?android:attr/textAppearanceSmall"
           android:text="Small Text"
-          android:id="@+id/textView4"/>
+          android:textAppearance="?android:attr/textAppearanceSmall" />
 
-      <Button
+      <EditText
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:text="Input text" />
+
+      <EditText
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:inputType="textLongMessage"
+          android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tempus ut est in rhoncus. Sed tempus malesuada diam, vel feugiat quam mollis et. Vivamus vulputate erat non sapien auctor." />
+
+      <EditText
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="New Button"
-          android:id="@+id/button"/>
+          android:ems="10"
+          android:inputType="textMultiLine"
+          android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tempus ut est in rhoncus. Sed tempus malesuada diam, vel feugiat quam mollis et. Vivamus vulputate erat non sapien auctor." />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
       <Button
+          android:id="@+id/button"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Button" />
+
+      <Button
+          android:id="@+id/button2"
           style="?android:attr/buttonStyleSmall"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="New Button"
-          android:id="@+id/button2"/>
+          android:text="Small button" />
 
       <RadioButton
+          android:id="@+id/radioButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="New RadioButton"
-          android:id="@+id/radioButton"/>
+          android:text="RadioButton" />
 
       <CheckBox
+          android:id="@+id/checkBox"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="New CheckBox"
-          android:id="@+id/checkBox"/>
+          android:text="CheckBox" />
 
       <Switch
+          android:id="@+id/switch1"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="New Switch"
-          android:id="@+id/switch1"/>
+          android:text="Switch" />
 
       <ToggleButton
+          android:id="@+id/toggleButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="New ToggleButton"
-          android:id="@+id/toggleButton"/>
+          android:text="ToggleButton" />
 
       <ImageButton
+          android:id="@+id/imageButton"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/imageButton"/>
+          android:layout_height="wrap_content" />
+    </LinearLayout>
 
-      <ImageView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/imageView"/>
-
-      <ProgressBar
-          style="?android:attr/progressBarStyleLarge"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/progressBar"/>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
       <ProgressBar
+          android:id="@+id/progressBar2"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/progressBar2"/>
+          android:layout_height="wrap_content" />
 
       <ProgressBar
+          android:id="@+id/progressBar3"
           style="?android:attr/progressBarStyleSmall"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/progressBar3"/>
+          android:layout_height="wrap_content" />
 
       <ProgressBar
+          android:id="@+id/progressBar4"
           style="?android:attr/progressBarStyleHorizontal"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/progressBar4"/>
+          android:layout_height="wrap_content" />
 
       <SeekBar
+          android:id="@+id/seekBar"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/seekBar"/>
+          android:layout_height="wrap_content" />
 
       <RatingBar
+          android:id="@+id/ratingBar"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/ratingBar"/>
+          android:layout_height="wrap_content" />
 
       <Spinner
+          android:id="@+id/spinner"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/spinner"/>
-      <!--
-                  <WebView
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:id="@+id/webView"/>
-      -->
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/editText"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="textPersonName"
-          android:text="Name"
-          android:ems="10"
-          android:id="@+id/editText2"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="textPassword"
-          android:ems="10"
-          android:id="@+id/editText3"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="numberPassword"
-          android:ems="10"
-          android:id="@+id/editText4"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="textEmailAddress"
-          android:ems="10"
-          android:id="@+id/editText5"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="phone"
-          android:ems="10"
-          android:id="@+id/editText6"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="textPostalAddress"
-          android:ems="10"
-          android:id="@+id/editText7"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="textMultiLine"
-          android:ems="10"
-          android:id="@+id/editText8"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="time"
-          android:ems="10"
-          android:id="@+id/editText9"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="date"
-          android:ems="10"
-          android:id="@+id/editText10"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="number"
-          android:ems="10"
-          android:id="@+id/editText11"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="numberSigned"
-          android:ems="10"
-          android:id="@+id/editText12"/>
-
-      <EditText
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="numberDecimal"
-          android:ems="10"
-          android:id="@+id/editText13"/>
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-
-      <TextClock
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/textClock"/>
-
-      <AnalogClock
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/analogClock"/>
-
-      <DigitalClock
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/digitalClock"/>
-
-      <Chronometer
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/chronometer"/>
-
-      <DatePicker
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/datePicker"/>
-
-      <TimePicker
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:id="@+id/timePicker"/>
-
+          android:layout_height="wrap_content" />
 
     </LinearLayout>
+
   </LinearLayout>
-</ScrollView>
+
+
+</LinearLayout>

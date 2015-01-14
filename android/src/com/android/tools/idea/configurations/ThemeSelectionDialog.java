@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-class ThemeSelectionDialog extends DialogWrapper {
+public class ThemeSelectionDialog extends DialogWrapper {
   @NotNull private final ThemeSelectionPanel myPanel;
 
-  ThemeSelectionDialog(@NotNull Configuration configuration) {
+  public ThemeSelectionDialog(@NotNull Configuration configuration) {
     super(configuration.getModule().getProject());
     myPanel = new ThemeSelectionPanel(this, configuration);
     setTitle("Select Theme");
