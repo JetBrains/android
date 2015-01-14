@@ -93,8 +93,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
       myAtomController = new AtomController(myView.getAtomTree());
       myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
       myFrameBufferController =
-        new FrameBufferController(this, myView.getColorScrollPane(), myView.getWireframeButton(), myView.getDepthScrollPane(),
-                                  myView.getStencilScrollPane());
+        new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeButton(),
+                                  myView.getDepthScrollPane(), myView.getStencilScrollPane());
       myStateController = new StateController(this, myView.getStateScrollPane());
 
       myControllers.add(myAtomController);
