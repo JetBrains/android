@@ -88,7 +88,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(androidProject, contentEntries, mainArtifact, false, orphans);
 
-    AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(androidProject.getSelectedVariant());
     if (testArtifact != null) {
       addSourceFolders(androidProject, contentEntries, testArtifact, true, orphans);
     }
@@ -114,10 +114,12 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
                                 @NotNull Collection<ContentEntry> contentEntry,
-                                @NotNull AndroidArtifact androidArtifact,
+                                @NotNull BaseArtifact androidArtifact,
                                 boolean isTest,
                                 @NotNull List<RootSourceFolder> orphans) {
-    addGeneratedSourceFolder(androidProject, contentEntry, androidArtifact, isTest, orphans);
+    if (androidArtifact instanceof AndroidArtifact) {
+      addGeneratedSourceFolder(androidProject, contentEntry, (AndroidArtifact) androidArtifact, isTest, orphans);
+    }
 
     SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
@@ -150,8 +152,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
     Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
     for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
-      String artifactName = sourceProviders.getArtifactName();
-      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName)) {
+      if (androidProject.getSelectedTestArtifactName().equals(sourceProviders.getArtifactName())) {
         addSourceFolder(androidProject, contentEntries, sourceProviders.getSourceProvider(), true, orphans);
         break;
       }

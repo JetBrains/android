@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
@@ -170,7 +171,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir, androidProject, variant.getName());
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir,
+                                                                   androidProject, variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
     myFacet.setIdeaAndroidProject(ideaAndroidProject);
 
     File bundle = new File(rootDir, "bundle.aar");
