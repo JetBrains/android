@@ -201,17 +201,19 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns the library dependencies in the given variant. This method checks dependencies in the "main" and "instrumentation tests"
-   * artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
+   * Returns the library dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
+   * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
    *
    * @param variant the given variant.
+   * @param ideaAndroidProject
    * @return the library dependencies in the given variant.
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant) {
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant,
+                                                                  @NotNull IdeaAndroidProject ideaAndroidProject) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
-    AndroidArtifact testArtifact = IdeaAndroidProject.findInstrumentationTestArtifact(variant);
+    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifact(variant);
     if (testArtifact != null) {
       libraries.addAll(testArtifact.getDependencies().getLibraries());
     }

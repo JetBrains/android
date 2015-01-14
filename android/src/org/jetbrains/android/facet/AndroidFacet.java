@@ -1151,7 +1151,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       state.SELECTED_TEST_ARTIFACT = myIdeaAndroidProject.getSelectedTestArtifactName();
 
       AndroidArtifact mainArtifact = variant.getMainArtifact();
-      AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
+      BaseArtifact testArtifact = myIdeaAndroidProject.findSelectedTestArtifactInSelectedVariant();
       updateGradleTaskNames(state, mainArtifact, testArtifact);
     }
   }
@@ -1159,13 +1159,17 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @VisibleForTesting
   static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
                                     @NotNull AndroidArtifact mainArtifact,
-                                    @Nullable AndroidArtifact testArtifact) {
+                                    @Nullable BaseArtifact testArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
 
     if (testArtifact != null) {
-      state.TEST_SOURCE_GEN_TASK_NAME = testArtifact.getSourceGenTaskName();
       state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
+      if (testArtifact instanceof AndroidArtifact) {
+        state.TEST_SOURCE_GEN_TASK_NAME = ((AndroidArtifact) testArtifact).getSourceGenTaskName();
+      } else {
+        state.TEST_SOURCE_GEN_TASK_NAME = "";
+      }
     }
     else {
       state.TEST_SOURCE_GEN_TASK_NAME = "";
