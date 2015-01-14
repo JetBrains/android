@@ -21,6 +21,7 @@ import com.intellij.ui.content.Content;
 import org.fest.swing.cell.JTableCellReader;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.data.TableCellFinder;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
   }
 
   @NotNull
-  public BuildVariantsToolWindowFixture select(@NotNull String module, @NotNull String variant) {
+  public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull String module, @NotNull String variant) {
     activate();
     Content[] contents = myToolWindow.getContentManager().getContents();
     assertThat(contents.length).isGreaterThanOrEqualTo(1);
@@ -79,6 +80,21 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
 
       myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
     }
+
+    return this;
+  }
+
+  @NotNull
+  public BuildVariantsToolWindowFixture selectTestArtifact(@NotNull String testArtifactDescription) {
+    activate();
+    Content[] contents = myToolWindow.getContentManager().getContents();
+    assertThat(contents.length).isGreaterThanOrEqualTo(1);
+
+    Content content = contents[0];
+    JComboBox comboBox = myRobot.finder().findByType(content.getComponent(), JComboBox.class, true);
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, comboBox);
+
+    comboBoxFixture.selectItem(testArtifactDescription);
 
     return this;
   }
