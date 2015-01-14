@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependency;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
@@ -47,7 +48,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNotNull(myVariant);
 
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
+    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
+                                                  myVariant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
   }
 
   @Override
