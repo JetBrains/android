@@ -65,6 +65,7 @@ public class GfxTraceViewPanel implements Disposable {
   private JBPanel myDocsPanel;
   private JBScrollPane myDocsScrollPane;
   private JTextPane myDocsPane;
+  private JBRunnerTabs myBufferTabs;
 
   @NotNull
   public JPanel getRootComponent() {
@@ -114,13 +115,21 @@ public class GfxTraceViewPanel implements Disposable {
     return myHiddenComponents;
   }
 
-  public void setHiddenComponents(@Nullable JPanel hiddenComponents) {
+  private void setHiddenComponents(@Nullable JPanel hiddenComponents) {
     //noinspection BoundFieldAssignment
     myHiddenComponents = hiddenComponents;
   }
 
   public JToolBar getBufferToolbar() {
     return myBufferToolbar;
+  }
+
+  public void setBufferTabs(@NotNull JBRunnerTabs bufferTabs) {
+    myBufferTabs = bufferTabs;
+  }
+
+  public JBRunnerTabs getBufferTabs() {
+    return myBufferTabs;
   }
 
   public JBScrollPane getScrubberScrollPane() {
@@ -199,11 +208,12 @@ public class GfxTraceViewPanel implements Disposable {
     final JBRunnerTabs bufferTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    bufferTabs.addTab(new TabInfo(getColorBuffer()).setText(FrameBufferController.BufferNames.COLOR_BUFFER.getValue())
+    bufferTabs.addTab(new TabInfo(getColorBuffer()).setText(FrameBufferController.BufferTabNames.COLOR_BUFFER.getValue())
                         .setSideComponent(getBufferToolbar()));
-    bufferTabs.addTab(new TabInfo(getDepthBuffer()).setText(FrameBufferController.BufferNames.DEPTH_BUFFER.getValue()));
-    bufferTabs.addTab(new TabInfo(getStencilBuffer()).setText(FrameBufferController.BufferNames.STENCIL_BUFFER.getValue()));
+    bufferTabs.addTab(new TabInfo(getDepthBuffer()).setText(FrameBufferController.BufferTabNames.DEPTH_BUFFER.getValue()));
+    bufferTabs.addTab(new TabInfo(getStencilBuffer()).setText(FrameBufferController.BufferTabNames.STENCIL_BUFFER.getValue()));
     bufferTabs.setInnerInsets(new Insets(2, 2, 2, 2));
+    setBufferTabs(bufferTabs);
 
     // Put the buffer views in a wrapper so a border can be drawn around it.
     Wrapper bufferWrapper = new Wrapper();
