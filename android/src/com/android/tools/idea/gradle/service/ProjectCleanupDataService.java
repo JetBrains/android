@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ImportedModule;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -26,9 +27,12 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,14 +62,22 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
+            List<File> imlFilesToRemove = Lists.newArrayList();
             ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
             try {
               for (Module module : modulesByName.values()) {
+                File imlFile = new File(FileUtil.toSystemDependentName(module.getModuleFilePath()));
+                imlFilesToRemove.add(imlFile);
                 moduleModel.disposeModule(module);
               }
             }
             finally {
               moduleModel.commit();
+            }
+            for (File imlFile : imlFilesToRemove) {
+              if (imlFile.isFile()) {
+                FileUtil.delete(imlFile);
+              }
             }
           }
         });
