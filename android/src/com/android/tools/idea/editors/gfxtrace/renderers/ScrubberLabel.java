@@ -59,7 +59,7 @@ public class ScrubberLabel extends JBLabel {
 
   /**
    * This method is a custom paint method to handle cases where the underlying image is still being generated/loaded on the server.
-   *
+   * <p/>
    * All images are generated remotely on the server. Since the image may not necessarily be resident in memory when they need to be
    * rendered, there needs to exist a way for the UI to let the user know that the image is still being loaded. This method mimics the IJ
    * JBLoadingPanel class's painting behavior (even using the same icons). However, instead of creating multiple heavyweight components,
