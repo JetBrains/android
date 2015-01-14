@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
 import com.android.ide.common.build.SplitOutputMatcher;
@@ -30,7 +31,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -924,9 +924,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           // install test apk
           if (getConfiguration() instanceof AndroidTestRunConfiguration) {
-            AndroidArtifact testArtifactInfo = ideaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
-            if (testArtifactInfo != null) {
-              AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
+            BaseArtifact testArtifactInfo = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+            if (testArtifactInfo instanceof AndroidArtifact) {
+              AndroidArtifactOutput output = GradleUtil.getOutput((AndroidArtifact) testArtifactInfo);
               File testApk = output.getMainOutputFile().getOutputFile();
               if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
                 return false;
