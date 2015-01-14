@@ -21,12 +21,12 @@ import com.android.annotations.Nullable;
 public class Locator {
   @NonNull
   public final State state;
-  public final String fragmentName;
+  public final String fragmentClassName;
   public final String viewName;
 
-  private Locator(@NonNull State state, @Nullable String fragmentName, @Nullable String viewName) {
+  private Locator(@NonNull State state, @Nullable String fragmentClassName, @Nullable String viewName) {
     this.state = state;
-    this.fragmentName = fragmentName;
+    this.fragmentClassName = fragmentClassName;
     this.viewName = viewName;
   }
 
@@ -38,8 +38,8 @@ public class Locator {
     return new Locator(state, null, viewName);
   }
 
-  public static Locator of(@NonNull State state, @Nullable String fragmentName, @Nullable String viewName) {
-    return new Locator(state, fragmentName, viewName);
+  public static Locator of(@NonNull State state, @Nullable String fragmentClassName, @Nullable String viewName) {
+    return new Locator(state, fragmentClassName, viewName);
   }
 
   @NonNull
@@ -54,7 +54,7 @@ public class Locator {
 
     Locator locator = (Locator)o;
 
-    if (fragmentName != null ? !fragmentName.equals(locator.fragmentName) : locator.fragmentName != null) return false;
+    if (fragmentClassName != null ? !fragmentClassName.equals(locator.fragmentClassName) : locator.fragmentClassName != null) return false;
     if (!state.equals(locator.state)) return false;
     if (viewName != null ? !viewName.equals(locator.viewName) : locator.viewName != null) return false;
 
@@ -64,7 +64,7 @@ public class Locator {
   @Override
   public int hashCode() {
     int result = state.hashCode();
-    result = 31 * result + (fragmentName != null ? fragmentName.hashCode() : 0);
+    result = 31 * result + (fragmentClassName != null ? fragmentClassName.hashCode() : 0);
     result = 31 * result + (viewName != null ? viewName.hashCode() : 0);
     return result;
   }

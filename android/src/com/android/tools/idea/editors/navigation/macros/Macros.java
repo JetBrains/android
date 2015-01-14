@@ -81,8 +81,11 @@ public class Macros {
     "    context.startActivity(new android.content.Intent(context, activityClass).putExtra(name, value));" +
     "}";
 
-  private static final String FIND_VIEW_BY_ID =
+  private static final String FIND_VIEW_BY_ID_1 =
     "void macro(int $id) { findViewById(R.id.$id);}";
+
+  private static final String FIND_VIEW_BY_ID_2 =
+    "void macro(Object $finder, int $id) { $finder.findViewById(R.id.$id);}";
 
   public static final String FIND_FRAGMENT_BY_TAG =
     "void macro(void $fragmentManager, int $tag) { $fragmentManager.findFragmentByTag($tag);}";
@@ -92,7 +95,8 @@ public class Macros {
   public final MultiMatch installItemClickAndCallMacro;
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
-  public final MultiMatch findViewById;
+  public final MultiMatch findViewById1;
+  public final MultiMatch findViewById2;
   public final MultiMatch findFragmentByTag;
   private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
   private final Project myProject;
@@ -117,7 +121,8 @@ public class Macros {
     myProject = project;
 
     createIntent = createMacro(CREATE_INTENT);
-    findViewById = createMacro(FIND_VIEW_BY_ID);
+    findViewById1 = createMacro(FIND_VIEW_BY_ID_1);
+    findViewById2 = createMacro(FIND_VIEW_BY_ID_2);
     findFragmentByTag = createMacro(FIND_FRAGMENT_BY_TAG);
 
     installClickAndCallMacro = createMacro(INSTALL_CLICK_LISTENER);
