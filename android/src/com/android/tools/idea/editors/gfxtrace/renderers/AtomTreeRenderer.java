@@ -15,35 +15,26 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
+import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomTreeNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
 import com.android.tools.rpclib.schema.AtomReader;
-import com.intellij.openapi.Disposable;
-import com.intellij.util.containers.hash.HashMap;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeCellRenderer;
-import java.awt.*;
-import java.util.Map;
+import java.util.List;
 
 /**
- * Need to create a renderer for each tree this attaches to.
+ * This object is the renderer for AtomTreeNodes.
+ * <p/>
+ * Note that each atom tree needs its own AtomTreeRenderer.
  */
-public class AtomTreeRenderer implements TreeCellRenderer, Disposable {
-  @NotNull private static DefaultTreeCellRenderer defaultRenderer = new DefaultTreeCellRenderer();
+public class AtomTreeRenderer extends ColoredTreeCellRenderer {
   private EnumInfoCache myEnumInfoCache;
   private AtomReader myAtomReader;
-  @NotNull private Map<DefaultMutableTreeNode, Component> myPool = new HashMap<DefaultMutableTreeNode, Component>();
 
   public AtomTreeRenderer() {
-    defaultRenderer.setOpenIcon(UIUtil.getTreeExpandedIcon());
-    defaultRenderer.setClosedIcon(UIUtil.getTreeCollapsedIcon());
   }
 
   public void init(@NotNull EnumInfoCache enumInfoCache, @NotNull AtomReader atomReader) {
@@ -51,61 +42,27 @@ public class AtomTreeRenderer implements TreeCellRenderer, Disposable {
     myAtomReader = atomReader;
   }
 
-  public void clear() {
-    clearCache();
+  public void clearState() {
     myEnumInfoCache = null;
     myAtomReader = null;
   }
 
-  public void clearCache() {
-    myPool.clear();
-  }
-
-  @Nullable
   @Override
-  public Component getTreeCellRendererComponent(@NotNull JTree jTree,
-                                                @NotNull Object o,
-                                                boolean selected,
-                                                boolean expanded,
-                                                boolean isLeaf,
-                                                int row,
-                                                boolean hasFocus) {
-    assert (o instanceof DefaultMutableTreeNode);
-    if (!selected) {
-      Component cachedComponent = myPool.get(o);
-      if (cachedComponent != null) {
-        // Caching fixes an issue with Swing rendering.
-        return cachedComponent;
-      }
-    }
-
-    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)o;
+  public void customizeCellRenderer(@NotNull JTree tree,
+                                    Object value,
+                                    boolean selected,
+                                    boolean expanded,
+                                    boolean leaf,
+                                    int row,
+                                    boolean hasFocus) {
+    assert (value != null && value instanceof DefaultMutableTreeNode);
+    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
     Object userObject = treeNode.getUserObject();
-    Component newComponent;
 
-    assert (userObject instanceof AtomNode || userObject instanceof HierarchyNode);
-    if (userObject instanceof AtomNode) {
-      newComponent = ((AtomNode)userObject).getComponent(myEnumInfoCache, myAtomReader, jTree, treeNode, selected);
+    assert (userObject instanceof AtomTreeNode);
+    List<AtomTreeNode.TextPiece> textPieceList = ((AtomTreeNode)userObject).getTextPieces(tree, treeNode, myEnumInfoCache, myAtomReader);
+    for (AtomTreeNode.TextPiece textPiece : textPieceList) {
+      append(textPiece.myString, textPiece.myTextAttributes);
     }
-    else {
-      newComponent = ((HierarchyNode)userObject).getComponent(selected);
-    }
-
-    if (!selected) { // Don't cache selected rows.
-      myPool.put(treeNode, newComponent);
-    }
-    return newComponent;
-  }
-
-  @Nullable
-  public Component getInteractiveComponent(@NotNull Object o) {
-    if (o instanceof DefaultMutableTreeNode) {
-      return myPool.get(o);
-    }
-    return null;
-  }
-
-  @Override
-  public void dispose() {
   }
 }

@@ -16,14 +16,16 @@
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
 import com.android.tools.rpclib.rpc.AtomGroup;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import com.android.tools.rpclib.schema.AtomReader;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
+import javax.swing.tree.TreeNode;
+import java.util.Collections;
+import java.util.List;
 
-public class HierarchyNode {
-  @NotNull private static Font treeFont = UIUtil.getTreeFont();
+public class HierarchyNode extends AtomTreeNode {
   @NotNull private AtomGroup myAtomGroup;
 
   public HierarchyNode(@NotNull AtomGroup atomGroup) {
@@ -39,17 +41,17 @@ public class HierarchyNode {
     return myAtomGroup == atomGroup;
   }
 
-  @NotNull
-  public Component getComponent(boolean selected) {
-    JBLabel label = new JBLabel(myAtomGroup.getName());
-    label.setFont(treeFont);
-    label.setForeground(UIUtil.getTableForeground(selected));
-    return label;
-  }
-
   @Override
   @NotNull
   public String toString() {
     return myAtomGroup.getName();
+  }
+
+  @Override
+  public List<TextPiece> getTextPieces(@NotNull JTree tree,
+                                       @NotNull TreeNode node,
+                                       @NotNull EnumInfoCache enumInfoCache,
+                                       @NotNull AtomReader atomReader) {
+    return Collections.singletonList(new TextPiece(myAtomGroup.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
   }
 }

@@ -19,32 +19,25 @@ import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.AtomTreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.AtomTreeWideSelectionTreeUI;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
 import com.android.tools.rpclib.rpc.AtomGroup;
 import com.android.tools.rpclib.rpc.Hierarchy;
 import com.android.tools.rpclib.schema.AtomReader;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Condition;
 import com.intellij.ui.treeStructure.SimpleTree;
-import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 
 public class AtomController implements GfxController {
-  @NotNull private final SimpleTree myTreeComponent;
+  @NotNull private final SimpleTree myTree;
   @NotNull private final AtomTreeRenderer myAtomTreeRenderer;
   private TreeNode myAtomTreeRoot;
   private EnumInfoCache myEnumInfoCache;
 
-  public AtomController(@NotNull SimpleTree treeComponent) {
-    myTreeComponent = treeComponent;
+  public AtomController(@NotNull SimpleTree tree) {
+    myTree = tree;
     myAtomTreeRenderer = new AtomTreeRenderer();
   }
 
@@ -87,12 +80,6 @@ public class AtomController implements GfxController {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  @NotNull
-  private static Condition<Integer> getWideSelectionBackgroundCondition() {
-    return Condition.TRUE;
-  }
-
   @Override
   public void commitData(@NotNull GfxContextChangeState state) {
     myEnumInfoCache = state.myEnumInfoCache;
@@ -105,44 +92,10 @@ public class AtomController implements GfxController {
 
     myAtomTreeRenderer.init(myEnumInfoCache, atomReader);
 
-    myTreeComponent.setModel(new DefaultTreeModel(myAtomTreeRoot));
-    myTreeComponent.setLargeModel(true); // Set some performance optimizations for large models.
-    myTreeComponent.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
-    myTreeComponent.setCellRenderer(myAtomTreeRenderer);
-    boolean isWideSelection = ((WideSelectionTreeUI)myTreeComponent.getUI()).isWideSelection();
-    myTreeComponent.setUI(new AtomTreeWideSelectionTreeUI(isWideSelection, getWideSelectionBackgroundCondition()));
-
-    myTreeComponent.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent mouseEvent) {
-        super.mousePressed(mouseEvent);
-        if (mouseEvent.getClickCount() != 1) {
-          return;
-        }
-
-        TreePath path = myTreeComponent.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-        if (path == null) {
-          return;
-        }
-
-        Component interactiveComponent = myAtomTreeRenderer.getInteractiveComponent(path.getLastPathComponent());
-        if (interactiveComponent == null) {
-          return;
-        }
-
-        Point localPoint = SwingUtilities.convertPoint(myTreeComponent, mouseEvent.getPoint(), interactiveComponent);
-        Component subComponent = interactiveComponent.getComponentAt(localPoint);
-        if (subComponent != null && subComponent instanceof JLabel) {
-          // TODO: It seems like the sub components are all in the same local space as the encapsulating component (AtomNode's component),
-          // rather than the usual parent-child relationship). This should be verified.
-          MouseEvent localMouseEvent =
-            new MouseEvent((Component)mouseEvent.getSource(), mouseEvent.getID(), mouseEvent.getWhen(), mouseEvent.getModifiers(),
-                           localPoint.x, localPoint.y, mouseEvent.getClickCount(), mouseEvent.isPopupTrigger(), mouseEvent.getButton());
-          // Manually forward mouse events.
-          subComponent.dispatchEvent(localMouseEvent);
-        }
-      }
-    });
+    myTree.setModel(new DefaultTreeModel(myAtomTreeRoot));
+    myTree.setLargeModel(true); // Set some performance optimizations for large models.
+    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
+    myTree.setCellRenderer(myAtomTreeRenderer);
   }
 
   public void selectFrame(@NotNull AtomGroup group) {
@@ -166,20 +119,19 @@ public class AtomController implements GfxController {
 
   @Override
   public void clear() {
-    myTreeComponent.setModel(null);
-    myAtomTreeRenderer.clear();
+    myTree.setModel(null);
+    myAtomTreeRenderer.clearState();
     myAtomTreeRoot = null;
     myEnumInfoCache = null;
   }
 
   @Override
   public void clearCache() {
-    myAtomTreeRenderer.clearCache();
-    myTreeComponent.clearSelection();
+    myTree.clearSelection();
   }
 
   private void select(@NotNull TreePath path) {
-    myTreeComponent.setSelectionPath(path);
-    myTreeComponent.scrollPathToVisible(path);
+    myTree.setSelectionPath(path);
+    myTree.scrollPathToVisible(path);
   }
 }
