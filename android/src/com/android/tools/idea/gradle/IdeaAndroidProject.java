@@ -19,9 +19,7 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.util.io.FileUtil;
@@ -38,6 +36,7 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -48,7 +47,12 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
 
-  @Nullable private String mySelectedVariantName;
+  @SuppressWarnings("NullableProblems") // Set in the constructor.
+  @NotNull private String mySelectedVariantName;
+
+  @SuppressWarnings("NullableProblems") // Set in the constructor.
+  @NotNull private String mySelectedTestArtifactName;
+
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private AndroidVersion myMinSdkVersion;
 
@@ -70,7 +74,8 @@ public class IdeaAndroidProject implements Serializable {
                             @NotNull String moduleName,
                             @NotNull File rootDir,
                             @NotNull AndroidProject delegate,
-                            @NotNull String selectedVariantName) {
+                            @NotNull String selectedVariantName,
+                            @NotNull String selectedTestArtifactName) {
     myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
     VirtualFile found = VfsUtil.findFileByIoFile(rootDir, true);
@@ -84,6 +89,7 @@ public class IdeaAndroidProject implements Serializable {
     populateVariantsByName();
 
     setSelectedVariantName(selectedVariantName);
+    setSelectedTestArtifactName(selectedTestArtifactName);
   }
 
   private void populateBuildTypesByName() {
@@ -135,6 +141,17 @@ public class IdeaAndroidProject implements Serializable {
   public AndroidArtifact findInstrumentationTestArtifactInSelectedVariant() {
     Variant variant = getSelectedVariant();
     return findInstrumentationTestArtifact(variant);
+  }
+
+  @Nullable
+  public BaseArtifact findSelectedTestArtifact(@NotNull Variant variant) {
+    Iterable<BaseArtifact> allExtraArtifacts = Iterables.concat(variant.getExtraAndroidArtifacts(), variant.getExtraJavaArtifacts());
+    for (BaseArtifact artifact : allExtraArtifacts) {
+      if (getSelectedTestArtifactName().equals(artifact.getName())) {
+        return artifact;
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -203,6 +220,17 @@ public class IdeaAndroidProject implements Serializable {
     // force lazy recompute
     myOverridesManifestPackage = null;
     myMinSdkVersion = null;
+  }
+
+  public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
+    checkArgument(selectedTestArtifactName == AndroidProject.ARTIFACT_ANDROID_TEST
+                  || selectedTestArtifactName == AndroidProject.ARTIFACT_UNIT_TEST);
+    mySelectedTestArtifactName = selectedTestArtifactName;
+  }
+
+  @NotNull
+  public String getSelectedTestArtifactName() {
+    return mySelectedTestArtifactName;
   }
 
   @NotNull
