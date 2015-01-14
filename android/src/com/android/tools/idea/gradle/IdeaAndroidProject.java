@@ -234,6 +234,19 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @NotNull
+  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> extraSourceProviders) {
+    ImmutableSet.Builder<SourceProvider> sourceProviders = ImmutableSet.builder();
+
+    for (SourceProviderContainer extraSourceProvider : extraSourceProviders) {
+      if (mySelectedTestArtifactName.equals(extraSourceProvider.getArtifactName())) {
+        sourceProviders.add(extraSourceProvider.getSourceProvider());
+      }
+    }
+
+    return sourceProviders.build();
+  }
+
+  @NotNull
   public Collection<String> getVariantNames() {
     return myVariantsByName.keySet();
   }
