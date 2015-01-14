@@ -526,7 +526,9 @@ public class BuildVariantView {
         public void actionPerformed(ActionEvent e) {
           if (myValue instanceof Module) {
             Module module = (Module)myValue;
-            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module);
+            IdeaAndroidProject ideaAndroidProject = getAndroidProject(module);
+            assert ideaAndroidProject != null;
+            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, ideaAndroidProject);
             dialog.show();
           }
         }

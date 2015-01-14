@@ -52,8 +52,8 @@ public class IdeaAndroidProjectTest extends IdeaTestCase {
     assertSame(myDelegate.findProductFlavor(flavorName), flavor);
   }
 
-  public void testFindInstrumentationTestArtifactInSelectedVariant() throws Exception {
-    AndroidArtifact instrumentationTestArtifact = myAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
+  public void testFindSelectedTestArtifactInSelectedVariant() throws Exception {
+    BaseArtifact instrumentationTestArtifact = myAndroidProject.findSelectedTestArtifactInSelectedVariant();
     VariantStub firstVariant = myDelegate.getFirstVariant();
     assertNotNull(firstVariant);
     assertSame(firstVariant.getInstrumentTestArtifact(), instrumentationTestArtifact);

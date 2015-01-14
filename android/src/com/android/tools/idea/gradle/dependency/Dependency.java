@@ -84,7 +84,7 @@ public abstract class Dependency {
     DependencySet dependencies = new DependencySet();
     Variant selectedVariant = androidProject.getSelectedVariant();
 
-    AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();
     if (testArtifact != null) {
       populate(dependencies, testArtifact, DependencyScope.TEST);
     }
@@ -95,7 +95,7 @@ public abstract class Dependency {
   }
 
   private static void populate(@NotNull DependencySet dependencies,
-                               @NotNull AndroidArtifact androidArtifact,
+                               @NotNull BaseArtifact androidArtifact,
                                @NotNull DependencyScope scope) {
     addJavaLibraries(dependencies, androidArtifact.getDependencies().getJavaLibraries(), scope);
 
