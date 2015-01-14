@@ -209,11 +209,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return Collections.emptyList();
     }
 
+    Collection<SourceProviderContainer> extraSourceProviders =
+      myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders();
+
     List<IdeaSourceProvider> providers = Lists.newArrayList();
-    for (SourceProviderContainer container : myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders()) {
-      if (myIdeaAndroidProject.getSelectedTestArtifactName().equals(container.getArtifactName())) {
-        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
-      }
+    for (SourceProvider sourceProvider : myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(extraSourceProviders)) {
+      providers.add(IdeaSourceProvider.create(sourceProvider));
     }
 
     return providers;
@@ -263,11 +264,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
     BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
     assert buildType != null;
-    for (SourceProviderContainer container : buildType.getExtraSourceProviders()) {
-      if (myIdeaAndroidProject.getSelectedTestArtifactName().equals(container.getArtifactName())) {
-        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
-      }
+
+    Collection<SourceProvider> testSourceProviders =
+      myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders());
+
+
+    for (SourceProvider sourceProvider : testSourceProviders) {
+      providers.add(IdeaSourceProvider.create(sourceProvider));
     }
+
     return providers;
   }
 
@@ -350,10 +355,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     for (String flavor : productFlavors) {
       ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
       assert productFlavor != null;
-      for (SourceProviderContainer container : productFlavor.getExtraSourceProviders()) {
-        if (myIdeaAndroidProject.getSelectedTestArtifactName().equals(container.getArtifactName())) {
-          providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
-        }
+
+      Collection<SourceProvider> testSourceProviders =
+        myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders());
+
+      for (SourceProvider sourceProvider : testSourceProviders) {
+        providers.add(IdeaSourceProvider.create(sourceProvider));
       }
     }
 
