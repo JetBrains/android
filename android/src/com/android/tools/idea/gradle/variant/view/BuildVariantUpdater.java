@@ -122,7 +122,7 @@ class BuildVariantUpdater {
     }
     androidProject.setSelectedVariantName(variantToSelect);
 
-    androidFacet.syncSelectedVariant();
+    androidFacet.syncSelectedVariantAndTestArtifact();
 
     Module module = androidFacet.getModule();
     Project project = module.getProject();
