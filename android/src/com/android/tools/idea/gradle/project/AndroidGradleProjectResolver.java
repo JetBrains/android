@@ -76,6 +76,9 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+  /** Default test artifact selected when importing a project. */
+  private static final String DEFAULT_TEST_ARTIFACT = AndroidProject.ARTIFACT_ANDROID_TEST;
+
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
   public AndroidGradleProjectResolver() {
@@ -122,7 +125,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
         new IdeaAndroidProject(GradleConstants.SYSTEM_ID,
-                               gradleModule.getName(), moduleRootDirPath, androidProject, selectedVariant.getName());
+                               gradleModule.getName(),
+                               moduleRootDirPath,
+                               androidProject,
+                               selectedVariant.getName(),
+                               DEFAULT_TEST_ARTIFACT);
       ideModule.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
     }
 

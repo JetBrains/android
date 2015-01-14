@@ -70,8 +70,9 @@ public class BuildVariantUpdaterTest extends TestCase {
                                   @NotNull String moduleName,
                                   @NotNull File rootDir,
                                   @NotNull AndroidProject delegate,
-                                  @NotNull String selectedVariantName) {
-      super(projectSystemId, moduleName, rootDir, delegate, selectedVariantName);
+                                  @NotNull String selectedVariantName,
+                                  @NotNull String selectedTestArtifactName) {
+      super(projectSystemId, moduleName, rootDir, delegate, selectedVariantName, selectedTestArtifactName);
     }
   }
 }
