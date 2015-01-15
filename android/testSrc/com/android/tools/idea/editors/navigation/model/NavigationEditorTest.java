@@ -19,88 +19,42 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-
-import static org.junit.Assume.assumeTrue;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
- * Tests for NavigationEditor's parsing infrastructure.
+ * Base class for NavigationEditor's parsing infrastructure.
+ * <p/>
+ * Derived from {@link org.jetbrains.android.AndroidRenameTest}
  */
-public class NavigationEditorTest extends AndroidGradleTestCase {
-  private Module myModule;
-  private AndroidFacet myFacet;
+public abstract class NavigationEditorTest extends AndroidTestCase {
+  public NavigationEditorTest() {
+    super(false);
+  }
+
+  protected abstract String getPath();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    assumeTrue(CAN_SYNC_PROJECTS);
-
-    loadProject("projects/navigationEditor/masterDetail");
-    assertNotNull(myAndroidFacet);
-    IdeaAndroidProject gradleProject = myAndroidFacet.getIdeaAndroidProject();
-    assertNotNull(gradleProject);
-
-    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-
-    assertTrue(modules.length == 1);
-    myModule = modules[0];
-    assertNotNull(myModule);
-
-    myFacet = AndroidFacet.getInstance(myModule);
-    assertNotNull(myFacet);
-
-    addAndroidSdk(myModule, getTestSdkPath(), getPlatformDir());
-    assertNotNull(AndroidPlatform.getInstance(myModule));
+    myFixture.copyDirectoryToProject(getPath(), ".");
   }
 
-  private NavigationModel getNavigationModel(String deviceQualifier) {
-    Project project = myModule.getProject();
-    VirtualFile navFile = Utilities.getNavigationFile(project.getBaseDir(), myModule.getName(), deviceQualifier,
-                                                      NavigationEditor.NAVIGATION_FILE_NAME);
+  protected NavigationModel getNavigationModel(String deviceQualifier) {
+    Project project = myFixture.getProject();
+    Module module = myFixture.getModule();
+    VirtualFile navFile =
+      Utilities.getNavigationFile(project.getBaseDir(), module.getName(), deviceQualifier, NavigationEditor.NAVIGATION_FILE_NAME);
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(navFile);
-    Analyser analyser = new Analyser(myModule);
+    Analyser analyser = new Analyser(module);
     return analyser.getNavigationModel(configuration);
   }
 
-  @SuppressWarnings("TestMethodWithIncorrectSignature")
-  private void testTransitionDerivation(String deviceQualifier, int expectedStateCount, int expectedTransitionCount) {
+  protected void assertDerivationCounts(String deviceQualifier, int expectedStateCount, int expectedTransitionCount) {
     NavigationModel model = getNavigationModel(deviceQualifier);
-    assertTrue(model.getStates().size() == expectedStateCount);
-    assertTrue(model.getTransitions().size() == expectedTransitionCount);
-  }
-
-/*
-  Fix (ignore) unit tests for transition derivation in Navigation Editor
-
-   The following lines fail for a (this) gradle-based test project:
-
-      Project project = myModule.getProject();
-      JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-      GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-      PsiClass activityClass = facade.findClass("android.app.Activity", scope);
-      assertNotNull(activityClass);
-
-   The ignored tests previously raised an assertion error because of the lines:
-
-        PsiClass listActivityClass = Utilities.getPsiClass(myModule, "android.app.ListActivity");
-        assert listActivityClass != null;
-
-   in com.android.tools.idea.editors.navigation.macros.Analyser.java.
-  */
-// Use 'ignore' prefix instead of @Ignore annotation as we're extending the TestCase base class from JUnit3.
-  public void ignoreTestTransitionDerivationForDefaultDevice() throws Exception {
-    testTransitionDerivation("raw", 2, 1);
-  }
-
-  /* When a master-detail app like simplemail runs on a tablet, there is one less transition in landscape. */
-  public void ignoreTestTransitionDerivationForTabletInLandscape() throws Exception {
-    testTransitionDerivation("raw-sw600dp-land", 2, 0);
+    assertEquals(model.getStates().size(), expectedStateCount);
+    assertEquals(model.getTransitions().size(), expectedTransitionCount);
   }
 }
