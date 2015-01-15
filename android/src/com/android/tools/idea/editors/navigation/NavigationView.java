@@ -23,6 +23,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
+import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
@@ -54,7 +55,6 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
@@ -89,6 +89,8 @@ public class NavigationView extends JComponent {
   // See http://www.google.com/design/spec/patterns/gestures.html#gestures-gestures
   private static final Color GESTURE_ICON_COLOR = new JBColor(new Color(0xE64BA7), new Color(0xE64BA7));
   private static final String DEVICE_DEFAULT_THEME_NAME = SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
+  public static final int RESOURCE_SUFFIX_LENGTH = ".xml".length();
+  public static final String LIST_VIEW_SENTINEL = "listView";
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
@@ -108,8 +110,7 @@ public class NavigationView extends JComponent {
   // Configuration
 
   private boolean myShowRollover = false;
-  @SuppressWarnings("FieldCanBeLocal")
-  private boolean myDrawGrid = false;
+  @SuppressWarnings("FieldCanBeLocal") private boolean myDrawGrid = false;
 
   public NavigationView(RenderingParameters renderingParams,
                         NavigationModel model,
@@ -188,6 +189,45 @@ public class NavigationView extends JComponent {
     return c.getRenderedView(diff(location, c.getLocation()));
   }
 
+  @Nullable
+  private String getFragmentClassName(State sourceState, @Nullable RenderedView namedSourceLeaf) {
+    if (namedSourceLeaf == null) {
+      return null;
+    }
+    if (sourceState instanceof ActivityState) {
+      ActivityState sourceActivityState = (ActivityState)sourceState;
+      XmlTag tag = namedSourceLeaf.tag;
+      if (tag == null) {
+        return null;
+      }
+      PsiFile fragmentFile = tag.getContainingFile();
+      String resourceFileName = fragmentFile.getName();
+      String resourceName = resourceFileName.substring(0, resourceFileName.length() - RESOURCE_SUFFIX_LENGTH);
+      for (FragmentEntry fragment : sourceActivityState.getFragments()) {
+        Module module = myRenderingParams.myFacet.getModule();
+        String fragmentClassName = fragment.className;
+        String resource = Analyser.getXMLFileName(module, fragmentClassName, false);
+        if (resource == null) {
+          PsiClass listClass = Utilities.getPsiClass(module, "android.app.ListFragment");
+          if (listClass == null) {
+            LOG.warn("Can't find: android.app.ListFragment");
+            continue;
+          }
+          PsiClass psiClass = Utilities.getPsiClass(module, fragmentClassName);
+          if (psiClass != null && (psiClass.isInheritor(listClass, true))) {
+            if (tag.getName().equals("ListView")) {
+              return fragmentClassName;
+            }
+          }
+        }
+        if (resourceName.equals(resource)) {
+          return fragmentClassName;
+        }
+      }
+    }
+    return null;
+  }
+
   void createTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
     Component destComponent = getComponentAt(mouseUpLocation);
     if (sourceComponent != destComponent) {
@@ -200,7 +240,9 @@ public class NavigationView extends JComponent {
         RenderedView namedEndLeaf = getNamedParent(endLeaf);
 
         Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
-        Locator sourceLocator = Locator.of(rootComponentToState.get(sourceComponent), getViewId(namedSourceLeaf));
+        State sourceState = rootComponentToState.get(sourceComponent);
+        String fragmentClassName = getFragmentClassName(sourceState, namedSourceLeaf);
+        Locator sourceLocator = Locator.of(sourceState, fragmentClassName, getViewId(namedSourceLeaf));
         Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), getViewId(namedEndLeaf));
         myCodeGenerator.implementTransition(new Transition(Transition.PRESS, sourceLocator, destinationLocator));
       }
@@ -297,12 +339,31 @@ public class NavigationView extends JComponent {
     return null;
   }
 
+  @NotNull
+  static RenderedView getRoot(@NotNull RenderedView view) {
+    while (true) {
+      RenderedView parent = view.getParent();
+      if (parent == null) {
+        return view;
+      }
+      view = parent;
+    }
+  }
+
   @Nullable
   static RenderedView getNamedParent(@Nullable RenderedView view) {
     while (view != null && getViewId(view) == null) {
       view = view.getParent();
     }
     return view;
+  }
+
+  private static Map<String, RenderedView> computeNameToRenderedView(RenderedViewHierarchy hierarchy) {
+    Map<String, RenderedView> result = new HashMap<String, RenderedView>();
+    for (RenderedView root : hierarchy.getRoots()) {
+      result.putAll(createViewNameToRenderedView(root));
+    }
+    return result;
   }
 
   private Map<String, RenderedView> getNameToRenderedView(State state) {
@@ -323,12 +384,7 @@ public class NavigationView extends JComponent {
         return Collections.emptyMap();
       }
 
-      List<RenderedView> roots = hierarchy.getRoots();
-      Map<String, RenderedView> renderedViews = new HashMap<String, RenderedView>();
-      for (RenderedView root : roots) {
-        renderedViews.putAll(createViewNameToRenderedView(root));
-      }
-      myLocationToRenderedView.put(state, result = renderedViews);
+      myLocationToRenderedView.put(state, result = computeNameToRenderedView(hierarchy));
     }
     return result;
   }
@@ -341,6 +397,15 @@ public class NavigationView extends JComponent {
           String id = getViewId(child);
           if (id != null) {
             result.put(id, child);
+          }
+          // The view of a ListActivity or ListFragment may not have an id.
+          // To make th views of these special classes locatable, add an entry for all elements where the tag name is "ListView".
+          // todo deal with multiple listViews in a single layout
+          XmlTag tag = child.tag;
+          if (tag != null) {
+            if (tag.getName().equals("ListView")) {
+              result.put(LIST_VIEW_SENTINEL, child);
+            }
           }
           walk(child);
         }
@@ -918,6 +983,25 @@ public class NavigationView extends JComponent {
     }
   }
 
+  private static void debug(@Nullable String s) {
+    //if (DEBUG) System.out.println(s);
+    //noinspection ConstantConditions
+    LOG.debug(s);
+  }
+
+  private static void debug(String name, @Nullable RenderedView view) {
+    if (DEBUG) debug(name + ": \n" + HierarchyUtils.toString(view));
+  }
+
+  private static void debug(String name, @Nullable ViewInfo view) {
+    if (DEBUG) debug(name + ": \n" + HierarchyUtils.toString(view));
+  }
+
+  private static void debug2(String name, RenderedView root) {
+    debug(name, root);
+    debug(name + ".view", root.view);
+  }
+
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
     Component component = getComponentAt(mouseDownLocation);
     if (component instanceof NavigationView) {
@@ -925,6 +1009,7 @@ public class NavigationView extends JComponent {
     }
     Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
     if (component instanceof AndroidRootComponent) {
+      // Select a top-level 'screeen'
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
       if (!shiftDown) {
@@ -937,15 +1022,20 @@ public class NavigationView extends JComponent {
                                                             mouseDownLocation, state, myTransform);
       }
       else {
+        // Select a specific view
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
-        if (DEBUG) HierarchyUtils.display(leaf);
-        if (DEBUG) HierarchyUtils.display(leaf.view);
+        if (leaf == null) {
+          return Selections.NULL;
+        }
+        debug2("root", getRoot(leaf));
+        debug2("leaf", leaf);
+
         RenderedView namedParent = getNamedParent(leaf);
-        if (DEBUG) HierarchyUtils.display(namedParent);
         if (namedParent == null) {
           return Selections.NULL;
         }
-        if (DEBUG) HierarchyUtils.display(namedParent.view);
+        debug2("namedParent", namedParent);
+
         if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
@@ -953,6 +1043,7 @@ public class NavigationView extends JComponent {
       }
     }
     else {
+      // Select the transition/gesture component
       return new Selections.ComponentSelection<Component>(myRenderingParams, myNavigationModel, component, transition);
     }
   }
