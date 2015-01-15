@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.editors.navigation.model.ModelDimension;
-import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
+import com.android.tools.idea.editors.navigation.model.*;
+import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.rendering.RenderedView;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
@@ -33,7 +32,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
-import java.awt.Point;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Map;
@@ -89,7 +87,7 @@ class Selections {
 
   private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
                                                           HyperlinkLabel link,
-                                                          final String className) {
+                                                          @Nullable final String className) {
     link.setOpaque(false);
     if (className == null) {
       return;
@@ -108,10 +106,11 @@ class Selections {
 
   private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
                                                    HyperlinkLabel link,
+                                                   @Nullable final String linkText,
                                                    @Nullable final String xmlFileName,
                                                    final boolean isMenu) {
     link.setOpaque(false);
-    link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
+    link.setHyperlinkText(linkText == null ? "" : linkText);
     link.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
@@ -120,6 +119,13 @@ class Selections {
         AndroidRootComponent.launchEditor(renderingParameters, layoutXmlFile, false);
       }
     });
+  }
+
+  private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
+                                                   HyperlinkLabel link,
+                                                   @Nullable final String xmlFileName,
+                                                   final boolean isMenu) {
+    configureHyperlinkForXMLFile(renderingParameters, link, xmlFileName, xmlFileName, isMenu);
   }
 
   static class ComponentSelection<T extends Component> extends Selection {
@@ -167,9 +173,16 @@ class Selections {
 
     @Override
     protected void configureInspector(Inspector inspector) {
+      final Module module = myRenderingParameters.myConfiguration.getModule();
       TransitionInspector transitionInspector = new TransitionInspector();
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source,
-                                          myTransition.getSource().getState().getClassName());
+      Locator source = myTransition.getSource();
+      State sourceState = source.getState();
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceActivity, sourceState.getClassName());
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceFragment, source.fragmentClassName);
+      boolean isFragment = source.fragmentClassName != null;
+      String hostClassName = isFragment ? source.fragmentClassName : sourceState.getClassName();
+      String xmlFileName = Analyser.getXMLFileName(module, hostClassName, !isFragment);
+      configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.viewName, xmlFileName, false);
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
@@ -191,8 +204,7 @@ class Selections {
   static class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
     protected final Point myMouseDownLocation;
     protected final Point myOrigComponentLocation;
-    @NotNull
-    private final State myState;
+    @NotNull private final State myState;
     private final Transform myTransform;
 
     AndroidRootComponentSelection(NavigationModel navigationModel,
@@ -250,7 +262,8 @@ class Selections {
           }
           {
             HyperlinkLabel link = activityInspector.xmlFileNameLabel;
-            configureHyperlinkForXMLFile(myRenderingParameters, link, Analyser.getXMLFileName(module, activity.getClassName(), true), false);
+            String xmlFileName = Analyser.getXMLFileName(module, activity.getClassName(), true);
+            configureHyperlinkForXMLFile(myRenderingParameters, link, xmlFileName, false);
           }
           {
             JPanel fragmentList = activityInspector.fragmentList;
