@@ -242,6 +242,9 @@ public class RenderService implements IImageFactory {
       return;
     }
 
+    if (target instanceof CompatibilityRenderTarget) {
+      target = ((CompatibilityRenderTarget)target).getRenderTarget();
+    }
     final AndroidVersion version = target.getVersion();
     final int revision;
     // Look up the current minimum required version for layoutlib for each API level. Note that these
