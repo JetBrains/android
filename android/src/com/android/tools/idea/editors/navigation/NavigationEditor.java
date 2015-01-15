@@ -17,7 +17,6 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
@@ -48,6 +47,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -89,7 +89,6 @@ public class NavigationEditor implements FileEditor {
   private NavigationModel myNavigationModel;
   private final VirtualFile myFile;
   private JComponent myComponent;
-  private CodeGenerator myCodeGenerator;
   private boolean myModified;
   private boolean myPendingFileSystemChanges;
   private Analyser myAnalyser;
@@ -119,7 +118,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   @Nullable
-  public static RenderingParameters getRenderingParams(@NotNull Project project, @NotNull VirtualFile file, @NotNull Module module) {
+  public static RenderingParameters getRenderingParams(@NotNull VirtualFile file, @NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
@@ -130,7 +129,7 @@ public class NavigationEditor implements FileEditor {
       return null;
     }
     Configuration configuration = facet.getConfigurationManager().getConfiguration(layoutFile);
-    return new RenderingParameters(project, configuration, facet);
+    return new RenderingParameters(facet, configuration);
   }
 
   public NavigationEditor(Project project, VirtualFile file) {
@@ -145,7 +144,7 @@ public class NavigationEditor implements FileEditor {
       myComponent = createErrorComponent("", errorMessage);
       return;
     }
-    RenderingParameters renderingParams = getRenderingParams(project, file, module);
+    RenderingParameters renderingParams = getRenderingParams(file, module);
     if (renderingParams == null) {
       myComponent = createErrorComponent("", "Invalid file name: please remove the file and/or close this editor");
       return;
@@ -153,13 +152,13 @@ public class NavigationEditor implements FileEditor {
     myRenderingParams = renderingParams;
     myAnalyser = new Analyser(module);
     myNavigationModel = read(file);
-    myCodeGenerator = new CodeGenerator(myNavigationModel, module, new Listener<String>() {
+    CodeGenerator codeGenerator = new CodeGenerator(myNavigationModel, module, new Listener<String>() {
       @Override
-      public void notify(@NonNull String event) {
+      public void notify(@NotNull String event) {
         postDelayedRefresh();
       }
     });
-    myComponent = createUI(renderingParams, myNavigationModel, myCodeGenerator, myFile.getParent().getName());
+    myComponent = createUI(renderingParams, myNavigationModel, codeGenerator, myFile.getParent().getName());
     createListeners();
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, mySaveListener);
   }
@@ -356,7 +355,7 @@ public class NavigationEditor implements FileEditor {
         }
       }
     }
-    return qualifiers.toArray(new String[qualifiers.size()]);
+    return ArrayUtil.toStringArray(qualifiers);
   }
 
   private static String[] getDisplayNames(String[] dirNames) {
@@ -374,10 +373,10 @@ public class NavigationEditor implements FileEditor {
 
     // UI for module and configuration selection
     {
-      final Module module = renderingParams.myFacet.getModule();
+      final Module module = renderingParams.facet.getModule();
 
       JPanel combos = new JPanel(new FlowLayout());
-      final Module[] androidModules = Utilities.getAndroidModules(renderingParams.myProject);
+      final Module[] androidModules = Utilities.getAndroidModules(renderingParams.project);
       // Module selector
       if (androidModules.length > 1) {
         final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
@@ -394,7 +393,7 @@ public class NavigationEditor implements FileEditor {
             int selectedIndex = moduleSelector.getSelectedIndex();
             Module newModule = androidModules[selectedIndex];
             AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
-            newEditor.showNavigationEditor(renderingParams.myProject, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
+            newEditor.showNavigationEditor(renderingParams.project, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
             disabled = true;
             moduleSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
             disabled = false;
@@ -403,7 +402,7 @@ public class NavigationEditor implements FileEditor {
         combos.add(moduleSelector);
       }
       // Configuration selector
-      String[] dirNames = resourceDirectoryNames(renderingParams.myFacet, LAYOUT_DIR_NAME);
+      String[] dirNames = resourceDirectoryNames(renderingParams.facet, LAYOUT_DIR_NAME);
       String[] navDirNames = getDisplayNames(dirNames);
       if (dirNames.length > 1) {
         final ComboBox deviceSelector = new ComboBox(navDirNames);
@@ -419,7 +418,7 @@ public class NavigationEditor implements FileEditor {
             }
             String dirName = (String)deviceSelector.getSelectedItem();
             AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
-            newEditor.showNavigationEditor(renderingParams.myProject, module, dirName, NAVIGATION_FILE_NAME);
+            newEditor.showNavigationEditor(renderingParams.project, module, dirName, NAVIGATION_FILE_NAME);
             disabled = true;
             deviceSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
             disabled = false;
@@ -616,10 +615,10 @@ public class NavigationEditor implements FileEditor {
 
   private void updateNavigationModelFromProject() {
     if (DEBUG) System.out.println("NavigationEditor: updateNavigationModelFromProject...");
-    if (myRenderingParams == null || myRenderingParams.myProject.isDisposed()) {
+    if (myRenderingParams == null || myRenderingParams.project.isDisposed()) {
       return;
     }
-    final NavigationModel newModel = myAnalyser.getNavigationModel(myRenderingParams.myConfiguration);
+    final NavigationModel newModel = myAnalyser.getNavigationModel(myRenderingParams.configuration);
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -636,7 +635,7 @@ public class NavigationEditor implements FileEditor {
   @Override
   public void selectNotify() {
     if (myRenderingParams != null) {
-      AndroidFacet facet = myRenderingParams.myFacet;
+      AndroidFacet facet = myRenderingParams.facet;
       updateNavigationModelFromProject();
       VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
       getResourceFolderManager(facet).addListener(myResourceFolderListener);
@@ -647,7 +646,7 @@ public class NavigationEditor implements FileEditor {
   @Override
   public void deselectNotify() {
     if (myRenderingParams != null) {
-      AndroidFacet facet = myRenderingParams.myFacet;
+      AndroidFacet facet = myRenderingParams.facet;
       VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileListener);
       getResourceFolderManager(facet).removeListener(myResourceFolderListener);
       myNavigationModel.getListeners().remove(myNavigationModelListener);

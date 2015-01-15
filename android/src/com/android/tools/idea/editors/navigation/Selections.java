@@ -96,7 +96,7 @@ class Selections {
     link.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.myConfiguration.getModule(), className);
+        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.configuration.getModule(), className);
         if (psiClass != null) {
           AndroidRootComponent.launchEditor(renderingParameters, psiClass.getContainingFile(), false);
         }
@@ -115,7 +115,7 @@ class Selections {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
         PsiFile layoutXmlFile =
-          NavigationView.getLayoutXmlFile(isMenu, xmlFileName, renderingParameters.myConfiguration, renderingParameters.myProject);
+          NavigationView.getLayoutXmlFile(isMenu, xmlFileName, renderingParameters.configuration, renderingParameters.project);
         AndroidRootComponent.launchEditor(renderingParameters, layoutXmlFile, false);
       }
     });
@@ -173,16 +173,16 @@ class Selections {
 
     @Override
     protected void configureInspector(Inspector inspector) {
-      final Module module = myRenderingParameters.myConfiguration.getModule();
+      final Module module = myRenderingParameters.configuration.getModule();
       TransitionInspector transitionInspector = new TransitionInspector();
       Locator source = myTransition.getSource();
       State sourceState = source.getState();
       configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceActivity, sourceState.getClassName());
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceFragment, source.fragmentClassName);
-      boolean isFragment = source.fragmentClassName != null;
-      String hostClassName = isFragment ? source.fragmentClassName : sourceState.getClassName();
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceFragment, source.getFragmentClassName());
+      boolean isFragment = source.getFragmentClassName() != null;
+      String hostClassName = isFragment ? source.getFragmentClassName() : sourceState.getClassName();
       String xmlFileName = Analyser.getXMLFileName(module, hostClassName, !isFragment);
-      configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.viewName, xmlFileName, false);
+      configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, false);
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
@@ -253,7 +253,7 @@ class Selections {
       myState.accept(new State.Visitor() {
         @Override
         public void visit(ActivityState activity) {
-          final Module module = myRenderingParameters.myConfiguration.getModule();
+          final Module module = myRenderingParameters.configuration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
           {
             HyperlinkLabel link = activityInspector.classNameLabel;
@@ -289,16 +289,16 @@ class Selections {
     }
   }
 
-  static class RelationSelection extends Selection {
+  static class ViewSelection extends Selection {
     private final AndroidRootComponent mySourceComponent;
     private final NavigationView myNavigationView;
     private final RenderedView myNamedLeaf;
     @NotNull private Point myMouseLocation;
 
-    RelationSelection(@NotNull AndroidRootComponent sourceComponent,
-                      @NotNull Point mouseDownLocation,
-                      @Nullable RenderedView namedLeaf,
-                      @NotNull NavigationView navigationView) {
+    ViewSelection(@NotNull AndroidRootComponent sourceComponent,
+                  @NotNull Point mouseDownLocation,
+                  @Nullable RenderedView namedLeaf,
+                  @NotNull NavigationView navigationView) {
       mySourceComponent = sourceComponent;
       myMouseLocation = mouseDownLocation;
       myNamedLeaf = namedLeaf;
