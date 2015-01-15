@@ -29,18 +29,21 @@ import static com.android.tools.idea.editors.navigation.Utilities.ZERO_SIZE;
 import static com.android.tools.idea.editors.navigation.Utilities.notNull;
 
 public class RenderingParameters {
-  @NotNull final Project myProject;
-  @NotNull final Configuration myConfiguration;
-  @NotNull final AndroidFacet myFacet;
+  @NotNull
+  public final Project project;
+  @NotNull
+  public final AndroidFacet facet;
+  @NotNull
+  public final Configuration configuration;
 
-  public RenderingParameters(@NotNull Project project, @NotNull Configuration configuration, @NotNull AndroidFacet facet) {
-    this.myProject = project;
-    this.myConfiguration = configuration;
-    this.myFacet = facet;
+  public RenderingParameters(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
+    this.project = facet.getModule().getProject();
+    this.facet = facet;
+    this.configuration = configuration;
   }
 
   public RenderingParameters withConfiguration(Configuration configuration) {
-    return new RenderingParameters(myProject, configuration, myFacet);
+    return new RenderingParameters(facet, configuration);
   }
 
   ModelDimension getDeviceScreenSize() {
@@ -48,7 +51,6 @@ public class RenderingParameters {
   }
 
   private Dimension getDeviceScreenSize1() {
-    Configuration configuration = myConfiguration;
     Device device = configuration.getDevice();
     if (device == null) {
       return ZERO_SIZE;
