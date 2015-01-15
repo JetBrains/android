@@ -256,10 +256,14 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       if (!myModel.getItems().equals(newItems)) {
         myModel.setItems(newItems);
         setSelectedDevice(myDefaultCategoryDeviceMap.get(selectedCategory));
-        for (DeviceCategorySelectionListener listener : myCategoryListeners) {
-          listener.onCategorySelectionChanged(selectedCategory, newItems);
-        }
+        notifyCategoryListeners(selectedCategory, newItems);
       }
+    }
+  }
+
+  private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
+    for (DeviceCategorySelectionListener listener : myCategoryListeners) {
+      listener.onCategorySelectionChanged(selectedCategory, items);
     }
   }
 
@@ -502,12 +506,14 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       myCategoryModel.addRow(SEARCH_RESULTS);
       myCategoryList.setSelection(ImmutableSet.of(SEARCH_RESULTS));
     }
-    myModel.setItems(Lists.newArrayList(Iterables.filter(myDevices, new Predicate<Device>() {
+    List<Device> items = Lists.newArrayList(Iterables.filter(myDevices, new Predicate<Device>() {
       @Override
       public boolean apply(Device input) {
         return input.getDisplayName().toLowerCase().contains(searchString.toLowerCase());
       }
-    })));
+    }));
+    myModel.setItems(items);
+    notifyCategoryListeners(null, items);
   }
 
   @Nullable
