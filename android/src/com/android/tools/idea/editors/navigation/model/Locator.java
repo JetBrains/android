@@ -20,14 +20,16 @@ import com.android.annotations.Nullable;
 
 public class Locator {
   @NonNull
-  public final State state;
-  public final String fragmentClassName;
-  public final String viewName;
+  private final State state;
+  @Nullable
+  private final String fragmentClassName;
+  @Nullable
+  private final String viewId;
 
-  private Locator(@NonNull State state, @Nullable String fragmentClassName, @Nullable String viewName) {
+  private Locator(@NonNull State state, @Nullable String fragmentClassName, @Nullable String viewId) {
     this.state = state;
     this.fragmentClassName = fragmentClassName;
-    this.viewName = viewName;
+    this.viewId = viewId;
   }
 
   public static Locator of(@NonNull State state) {
@@ -47,6 +49,16 @@ public class Locator {
     return state;
   }
 
+  @Nullable
+  public String getFragmentClassName() {
+    return fragmentClassName;
+  }
+
+  @Nullable
+  public String getViewId() {
+    return viewId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -56,7 +68,7 @@ public class Locator {
 
     if (fragmentClassName != null ? !fragmentClassName.equals(locator.fragmentClassName) : locator.fragmentClassName != null) return false;
     if (!state.equals(locator.state)) return false;
-    if (viewName != null ? !viewName.equals(locator.viewName) : locator.viewName != null) return false;
+    if (viewId != null ? !viewId.equals(locator.viewId) : locator.viewId != null) return false;
 
     return true;
   }
@@ -65,7 +77,7 @@ public class Locator {
   public int hashCode() {
     int result = state.hashCode();
     result = 31 * result + (fragmentClassName != null ? fragmentClassName.hashCode() : 0);
-    result = 31 * result + (viewName != null ? viewName.hashCode() : 0);
+    result = 31 * result + (viewId != null ? viewId.hashCode() : 0);
     return result;
   }
 
@@ -73,7 +85,7 @@ public class Locator {
   public String toString() {
     return "Locator{" +
            "state=" + state +
-           ", viewName='" + viewName + '\'' +
+           ", viewName='" + viewId + '\'' +
            '}';
   }
 }

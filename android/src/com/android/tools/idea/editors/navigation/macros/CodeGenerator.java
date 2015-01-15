@@ -77,7 +77,7 @@ public class CodeGenerator {
         @Override
         public String fun(Transition transition) {
           Locator source = transition.getSource();
-          String viewName = source.viewName;
+          String viewName = source.getViewId();
           String sourceClassName = source.getState().getClassName();
           String destinationClassName = transition.getDestination().getState().getClassName();
 
@@ -109,7 +109,7 @@ public class CodeGenerator {
           @Override
           public String fun(Transition transition) {
             Locator source = transition.getSource();
-            String viewName = source.viewName;
+            String viewName = source.getViewId();
             String sourceClassName = source.getState().getClassName();
             Locator destination = transition.getDestination();
             String destinationClassName = destination.getState().getClassName();
@@ -241,7 +241,7 @@ public class CodeGenerator {
   public void implementTransition(final Transition transition) {
     Locator source = transition.getSource();
     State sourceState = source.getState();
-    String fragmentClassName = source.fragmentClassName;
+    String fragmentClassName = source.getFragmentClassName();
     final boolean targetIsFragment = fragmentClassName != null;
     String targetClassName = targetIsFragment ? fragmentClassName : sourceState.getClassName();
     final PsiClass hostClass = Utilities.getPsiClass(module, targetClassName);
