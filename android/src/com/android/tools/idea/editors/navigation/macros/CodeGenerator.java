@@ -95,59 +95,64 @@ public class CodeGenerator {
     }
   };
 
-  private static final Template ON_CLICK = new Template() {
-    {
-      signature = "void onCreate(Bundle savedInstanceState)";
-      body = "@Override " +
-             "public void onCreate(Bundle savedInstanceState) { " +
-             "    super.onCreate(savedInstanceState);" +
-             "}";
-      insertCodeBeforeLastStatement = false;
-      imports = new String[]{"android.view.View"};
-      code = new Function<Transition, String>() {
-        @Override
-        public String fun(Transition transition) {
-          Locator source = transition.getSource();
-          String viewName = source.viewName;
-          String sourceClassName = source.getState().getClassName();
-          Locator destination = transition.getDestination();
-          String destinationClassName = destination.getState().getClassName();
+  private static Template setOnClickListener(final boolean isFragment) {
+    return new Template() {
+      {
+        signature = isFragment ? "void onViewCreated(View view, Bundle savedInstanceState)" : "void onCreate(Bundle savedInstanceState)";
+        body = "@Override\n" +
+               "public " + signature + " { " +
+               "    super.onCreate(savedInstanceState);" +
+               "}";
+        insertCodeBeforeLastStatement = false;
+        imports = new String[]{"android.view.View"};
+        code = new Function<Transition, String>() {
+          @Override
+          public String fun(Transition transition) {
+            Locator source = transition.getSource();
+            String viewName = source.viewName;
+            String sourceClassName = source.getState().getClassName();
+            Locator destination = transition.getDestination();
+            String destinationClassName = destination.getState().getClassName();
+            String finder = isFragment ? "view." : "";
+            String activity = isFragment ? "getActivity()" : sourceClassName + ".this";
 
-          String code = "findViewById(R.id." + viewName + ").setOnClickListener(new View.OnClickListener() { " +
-                        "    @Override" +
-                        "    public void onClick(View v) {" +
-                        "        $context.startActivity(new Intent($context, " + destinationClassName + ".class));" +
-                        "    }" +
-                        "});";
-          code = code.replaceAll("\\$context", sourceClassName + ".this");
-          return code;
-        }
-      };
-    }
-  };
+            return finder + "findViewById(R.id." + viewName + ").setOnClickListener(new View.OnClickListener() { " +
+                   "    @Override" +
+                   "    public void onClick(View v) {" +
+                   "        startActivity(new Intent(" + activity + ", " + destinationClassName + ".class));" +
+                   "    }" +
+                   "});";
+          }
+        };
+      }
+    };
+  }
 
-  private static final Template ON_ITEM_CLICK = new Template() {
-    {
-      signature = "void onListItemClick(ListView l, View v, int position, long id)";
-      body = "@Override" +
-             "protected void onListItemClick(ListView l, View v, int position, long id) {" +
-             "    super.onListItemClick(l, v, position, id);\n" +
-             "}";
-      insertCodeBeforeLastStatement = false;
-      imports = new String[]{"android.view.View", "android.view.ListView"};
-      code = new Function<Transition, String>() {
-        @Override
-        public String fun(Transition transition) {
-          Locator source = transition.getSource();
-          String sourceClassName = source.getState().getClassName();
-          Locator destination = transition.getDestination();
-          String destinationClassName = destination.getState().getClassName();
+  private static Template overrideOnItemClickInList(final boolean isFragment) {
+    return new Template() {
+      {
+        signature = "void onListItemClick(ListView l, View v, int position, long id)";
+        body = "@Override\n" +
+               (isFragment ? "public" : "protected") + " " + signature + " {" +
+               "    super.onListItemClick(l, v, position, id);\n" +
+               "}";
+        insertCodeBeforeLastStatement = false;
+        imports = new String[]{"android.view.View", "android.view.ListView"};
+        code = new Function<Transition, String>() {
+          @Override
+          public String fun(Transition transition) {
+            Locator source = transition.getSource();
+            String sourceClassName = source.getState().getClassName();
+            Locator destination = transition.getDestination();
+            String destinationClassName = destination.getState().getClassName();
+            String activity = isFragment ? "getActivity()" : sourceClassName + ".this";
 
-          return "startActivity(new Intent(" + sourceClassName + ".this, " + destinationClassName + ".class));";
-        }
-      };
-    }
-  };
+            return "startActivity(new Intent(" + activity + ", " + destinationClassName + ".class));";
+          }
+        };
+      }
+    };
+  }
 
   public final Module module;
   public final NavigationModel navigationModel;
@@ -234,9 +239,13 @@ public class CodeGenerator {
   }
 
   public void implementTransition(final Transition transition) {
-    State sourceState = transition.getSource().getState();
-    final PsiClass psiClass = Utilities.getPsiClass(module, sourceState.getClassName());
-    if (psiClass == null) {
+    Locator source = transition.getSource();
+    State sourceState = source.getState();
+    String fragmentClassName = source.fragmentClassName;
+    final boolean targetIsFragment = fragmentClassName != null;
+    String targetClassName = targetIsFragment ? fragmentClassName : sourceState.getClassName();
+    final PsiClass hostClass = Utilities.getPsiClass(module, targetClassName);
+    if (hostClass == null) {
       return;
     }
     final State destinationState = transition.getDestination().getState();
@@ -246,15 +255,16 @@ public class CodeGenerator {
         destinationState.accept(new State.Visitor() {
           @Override
           public void visit(ActivityState destinationState) {
-            PsiClass ListActivityClass = Utilities.getPsiClass(module, "android.app.ListActivity");
-            assert ListActivityClass != null;
-            Template t = psiClass.isInheritor(ListActivityClass, true) ? ON_ITEM_CLICK : ON_CLICK;
-            t.installTransition(CodeGenerator.this, psiClass, transition);
+            PsiClass listClass = Utilities.getPsiClass(module, targetIsFragment ? "android.app.ListFragment" : "android.app.ListActivity");
+            assert listClass != null;
+            Template t =
+              hostClass.isInheritor(listClass, true) ? overrideOnItemClickInList(targetIsFragment) : setOnClickListener(targetIsFragment);
+            t.installTransition(CodeGenerator.this, hostClass, transition);
           }
 
           @Override
           public void visit(MenuState destinationState) {
-            SHOW_MENU.installTransition(CodeGenerator.this, psiClass, transition);
+            SHOW_MENU.installTransition(CodeGenerator.this, hostClass, transition);
           }
         });
       }
@@ -264,7 +274,7 @@ public class CodeGenerator {
         destinationState.accept(new State.BaseVisitor() {
           @Override
           public void visit(ActivityState destinationState) {
-            MENU_ACTION.installTransition(CodeGenerator.this, psiClass, transition);
+            MENU_ACTION.installTransition(CodeGenerator.this, hostClass, transition);
           }
         });
       }
