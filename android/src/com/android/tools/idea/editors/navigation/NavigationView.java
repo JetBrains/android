@@ -204,7 +204,7 @@ public class NavigationView extends JComponent {
       String resourceFileName = fragmentFile.getName();
       String resourceName = resourceFileName.substring(0, resourceFileName.length() - RESOURCE_SUFFIX_LENGTH);
       for (FragmentEntry fragment : sourceActivityState.getFragments()) {
-        Module module = myRenderingParams.myFacet.getModule();
+        Module module = myRenderingParams.facet.getModule();
         String fragmentClassName = fragment.className;
         String resource = Analyser.getXMLFileName(module, fragmentClassName, false);
         if (resource == null) {
@@ -733,7 +733,7 @@ public class NavigationView extends JComponent {
   }
 
   private RenderedView getRenderedView(Locator locator) {
-    return getNameToRenderedView(locator.getState()).get(locator.viewName);
+    return getNameToRenderedView(locator.getState()).get(locator.getViewId());
   }
 
   private void paintRollover(Graphics2D lineGraphics) {
@@ -898,7 +898,7 @@ public class NavigationView extends JComponent {
 
   private RenderingParameters getActivityRenderingParameters(Module module, String className) {
     ManifestInfo manifestInfo = ManifestInfo.get(module, false);
-    Configuration newConfiguration = myRenderingParams.myConfiguration.clone();
+    Configuration newConfiguration = myRenderingParams.configuration.clone();
     String theme = manifestInfo.getManifestTheme();
     ManifestInfo.ActivityAttributes activityAttributes = manifestInfo.getActivityAttributes(className);
     if (activityAttributes != null) {
@@ -912,21 +912,21 @@ public class NavigationView extends JComponent {
   // If an activity specifies android:Theme.DeviceDefault.NoActionBar.Fullscreen or similar
   // we won't render the menu at all. For menus, unconditionally replace the theme with a default.
   private RenderingParameters getMenuRenderingParameters() {
-    Configuration newConfiguration = myRenderingParams.myConfiguration.clone();
+    Configuration newConfiguration = myRenderingParams.configuration.clone();
     newConfiguration.setTheme(DEVICE_DEFAULT_THEME_NAME);
     return myRenderingParams.withConfiguration(newConfiguration);
   }
 
   private AndroidRootComponent createUnscaledRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
-    Module module = myRenderingParams.myFacet.getModule();
+    Module module = myRenderingParams.facet.getModule();
     String resourceName = isMenu ? ((MenuState)state).getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
-    VirtualFile virtualFile = getLayoutXmlVirtualFile(isMenu, resourceName, myRenderingParams.myConfiguration);
+    VirtualFile virtualFile = getLayoutXmlVirtualFile(isMenu, resourceName, myRenderingParams.configuration);
     if (virtualFile == null) {
       return new AndroidRootComponent(myRenderingParams, null, isMenu);
     }
     else {
-      PsiFile psiFile = PsiManager.getInstance(myRenderingParams.myProject).findFile(virtualFile);
+      PsiFile psiFile = PsiManager.getInstance(myRenderingParams.project).findFile(virtualFile);
       RenderingParameters params = isMenu ? getMenuRenderingParameters() : getActivityRenderingParameters(module, state.getClassName());
       return new AndroidRootComponent(params, psiFile, isMenu);
     }
@@ -993,15 +993,6 @@ public class NavigationView extends JComponent {
     if (DEBUG) debug(name + ": \n" + HierarchyUtils.toString(view));
   }
 
-  private static void debug(String name, @Nullable ViewInfo view) {
-    if (DEBUG) debug(name + ": \n" + HierarchyUtils.toString(view));
-  }
-
-  private static void debug2(String name, RenderedView root) {
-    debug(name, root);
-    debug(name + ".view", root.view);
-  }
-
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
     Component component = getComponentAt(mouseDownLocation);
     if (component instanceof NavigationView) {
@@ -1009,7 +1000,7 @@ public class NavigationView extends JComponent {
     }
     Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
     if (component instanceof AndroidRootComponent) {
-      // Select a top-level 'screeen'
+      // Select a top-level 'screen'
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
       if (!shiftDown) {
@@ -1027,19 +1018,18 @@ public class NavigationView extends JComponent {
         if (leaf == null) {
           return Selections.NULL;
         }
-        debug2("root", getRoot(leaf));
-        debug2("leaf", leaf);
-
+        debug("root", getRoot(leaf));
+        debug("leaf", leaf);
         RenderedView namedParent = getNamedParent(leaf);
         if (namedParent == null) {
           return Selections.NULL;
         }
-        debug2("namedParent", namedParent);
+        debug("namedParent", namedParent);
 
         if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
-        return new Selections.RelationSelection(androidRootComponent, mouseDownLocation, namedParent, this);
+        return new Selections.ViewSelection(androidRootComponent, mouseDownLocation, namedParent, this);
       }
     }
     else {
@@ -1055,7 +1045,7 @@ public class NavigationView extends JComponent {
       anItem.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-          Module module = myRenderingParams.myFacet.getModule();
+          Module module = myRenderingParams.facet.getModule();
           NewAndroidActivityWizard dialog = new NewAndroidActivityWizard(module, null, null);
           dialog.init();
           dialog.setOpenCreatedFiles(false);

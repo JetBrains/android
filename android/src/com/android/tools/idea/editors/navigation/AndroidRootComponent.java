@@ -65,7 +65,7 @@ public class AndroidRootComponent extends JComponent {
 
   public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
     if (file != null) {
-      Project project = renderingParameters.myProject;
+      Project project = renderingParameters.project;
       VirtualFile virtualFile = file.getVirtualFile();
       OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
       FileEditorManager manager = FileEditorManager.getInstance(project);
@@ -244,9 +244,9 @@ public class AndroidRootComponent extends JComponent {
     if (myLayoutFile == null) {
       return;
     }
-    Project project = myRenderingParameters.myProject;
-    final AndroidFacet facet = myRenderingParameters.myFacet;
-    final Configuration configuration = myRenderingParameters.myConfiguration;
+    Project project = myRenderingParameters.project;
+    final AndroidFacet facet = myRenderingParameters.facet;
+    final Configuration configuration = myRenderingParameters.configuration;
 
     if (project.isDisposed()) {
       return;
