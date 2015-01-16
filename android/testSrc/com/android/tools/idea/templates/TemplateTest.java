@@ -31,11 +31,14 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -423,6 +426,21 @@ public class TemplateTest extends AndroidGradleTestCase {
     activityState.setTemplateLocation(activity);
 
     checkApiTarget(8, 18, target, state, "Test15", null, overrides);
+  }
+
+  public void testTemplateFormatting() throws Exception {
+    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
+    template.render(new File(myFixture.getTempDirPath()), new File("dummy"),
+                    Maps.<String, Object>newHashMap(), myFixture.getProject());
+    FileDocumentManager.getInstance().saveAllDocuments();
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFile desired = fileSystem.findFileByIoFile(new File(getTestDataPath(),
+                                                               FileUtil.join("templates", "TestTemplate", "MergedStringsFile.xml")));
+    VirtualFile actual = fileSystem.findFileByIoFile(new File(myFixture.getTempDirPath(),
+                                                              FileUtil.join("values", "TestTargetResourceFile.xml")));
+    desired.refresh(false, false);
+    actual.refresh(false, false);
+    PlatformTestUtil.assertFilesEqual(desired, actual);
   }
 
   // ---- Test support code below ----

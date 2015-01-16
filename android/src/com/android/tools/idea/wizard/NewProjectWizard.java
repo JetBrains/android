@@ -173,7 +173,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
           activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
-          template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+          template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters, project);
           wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
         }
         if (ApplicationManager.getApplication().isUnitTestMode()) {
