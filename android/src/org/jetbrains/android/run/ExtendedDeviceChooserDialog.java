@@ -60,7 +60,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
                                      boolean multipleSelection,
                                      boolean showReuseDevicesCheckbox,
                                      boolean selectReuseDevicesCheckbox) {
-    super(facet.getModule().getProject(), true);
+    super(facet.getModule().getProject(), true, IdeModalityType.PROJECT);
     setTitle(AndroidBundle.message("choose.device.dialog.title"));
 
     myProject = facet.getModule().getProject();
