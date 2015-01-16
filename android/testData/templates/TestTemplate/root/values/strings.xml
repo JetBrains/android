@@ -1,0 +1,7 @@
+<resources>
+    <!-- comment 1 -->
+    <string name="foo">A string</string>
+    <!-- comment 2 -->
+    <string name="bar" templateMergeStrategy="replace">Another string</string>
+    <!-- comment 3 -->
+</resources>
