@@ -676,6 +676,7 @@ public class Template {
       }
     }
 
+    List<XmlTagChild> prependElements = Lists.newArrayList();
     if (folderType == ResourceFolderType.VALUES) {
       // Try to merge items of the same name
       Map<String, XmlTag> old = Maps.newHashMap();
@@ -683,7 +684,10 @@ public class Template {
         old.put(getResourceId(newSibling), newSibling);
       }
       for (PsiElement child : sourcePsiFile.getRootTag().getChildren()) {
-        if (child instanceof XmlTag) {
+        if (child instanceof XmlComment) {
+          prependElements.add((XmlTagChild)child);
+        }
+        else if (child instanceof XmlTag) {
           XmlTag subTag = (XmlTag)child;
           String mergeStrategy = subTag.getAttributeValue(ATTR_TEMPLATE_MERGE_STRATEGY);
           subTag.setAttribute(ATTR_TEMPLATE_MERGE_STRATEGY, null);
@@ -702,7 +706,10 @@ public class Template {
             // we should NOT go and set the value back to the template's
             // default!
             if (VALUE_MERGE_STRATEGY_REPLACE.equals(mergeStrategy)) {
-              replace.replace(child);
+              child = replace.replace(child);
+              for (XmlTagChild element : prependElements) {
+                root.addBefore(element, child);
+              }
             }
             else if (VALUE_MERGE_STRATEGY_PRESERVE.equals(mergeStrategy)) {
               // Preserve the existing value.
@@ -711,10 +718,13 @@ public class Template {
               // No explicit directive given, preserve the original value by default.
               LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
             }
+          } else {
+            subTag = root.addSubTag(subTag, false);
+            for (XmlTagChild element : prependElements) {
+              root.addBefore(element, subTag);
+            }
           }
-          else {
-            root.addSubTag(subTag, false);
-          }
+          prependElements.clear();
         }
       }
     } else {
