@@ -30,6 +30,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,6 +43,7 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,7 +109,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() && runConfiguration instanceof AndroidRunConfigurationBase) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()
+        // Enable "Gradle-aware Make" only for android configurations...
+        && (runConfiguration instanceof AndroidRunConfigurationBase  ||
+            // ...and JUnit configurations if unit-testing support is enabled.
+            (AndroidUtils.isUnitTestingSupportEnabled() && runConfiguration instanceof JUnitConfiguration))) {
       return new MakeBeforeRunTask();
     } else {
       return null;
