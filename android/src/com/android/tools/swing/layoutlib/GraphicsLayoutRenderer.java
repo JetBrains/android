@@ -33,7 +33,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.Graphics2DDelegate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -142,11 +141,16 @@ public class GraphicsLayoutRenderer {
 
   }
 
+  /**
+   * Creates a new {@link GraphicsLayoutRenderer}.
+   * @param configuration The configuration to use when rendering.
+   * @param parser A layout pull-parser.
+   * @throws InitializationException if layoutlib fails to initialize.
+   */
   @Nullable
-  public static GraphicsLayoutRenderer create(@NotNull PsiFile layoutFile,
-                                              @NotNull Configuration configuration,
+  public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
                                               @NotNull ILayoutPullParser parser) throws InitializationException {
-    AndroidFacet facet = AndroidFacet.getInstance(layoutFile);
+    AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       return null;
     }

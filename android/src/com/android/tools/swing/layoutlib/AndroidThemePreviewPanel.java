@@ -82,7 +82,7 @@ public class AndroidThemePreviewPanel extends JComponent {
         final Document document =
           DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
         myParser = new DomPullParser(document.getDocumentElement());
-        myGraphicsLayoutRenderer = GraphicsLayoutRenderer.create(myPsiFile, myConfiguration, myParser);
+        myGraphicsLayoutRenderer = GraphicsLayoutRenderer.create(myConfiguration, myParser);
         myGraphicsLayoutRenderer.setSize(getSize());
       }
       catch (InitializationException e) {
