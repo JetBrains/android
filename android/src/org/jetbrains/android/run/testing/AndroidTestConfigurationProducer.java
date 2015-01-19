@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.run.testing;
 
+import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -142,6 +144,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     if (module == null) {
       return false;
     }
+
     Location location = context.getLocation();
 
     if (location == null) {
@@ -156,6 +159,12 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
+      return false;
+    }
+
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+    if (ideaAndroidProject != null && !ideaAndroidProject.getSelectedTestArtifactName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
+      // Only suggest the android test run configuration if it makes sense for the selected test artifact.
       return false;
     }
 

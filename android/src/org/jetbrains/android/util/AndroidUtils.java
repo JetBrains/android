@@ -272,7 +272,7 @@ public class AndroidUtils {
           configuration.PREFERRED_AVD = preferredAvdName;
         }
         runManager.addConfiguration(settings, false);
-        runManager.setActiveConfiguration(settings);
+        runManager.setSelectedConfiguration(settings);
       }
     };
     if (!ask) {
