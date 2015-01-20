@@ -30,9 +30,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -135,7 +137,8 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   protected boolean setupConfigurationFromContext(AndroidTestRunConfiguration configuration,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    if (AndroidUtils.getAndroidModule(context) == null) {
+    Module module = AndroidUtils.getAndroidModule(context);
+    if (module == null) {
       return false;
     }
     Location location = context.getLocation();
@@ -150,6 +153,12 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     }
     final PsiElement element = location.getPsiElement();
 
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return false;
+    }
+
+    setupInstrumentationTestRunner(configuration, facet);
     if (setupAllInPackageConfiguration(configuration, element, context, sourceElement)) {
       return true;
     }
@@ -157,6 +166,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       return true;
     }
     return setupClassConfiguration(configuration, element, context, sourceElement);
+  }
+
+  private static void setupInstrumentationTestRunner(@NotNull AndroidTestRunConfiguration configuration, @NotNull AndroidFacet facet) {
+    configuration.INSTRUMENTATION_RUNNER_CLASS = AndroidTestRunConfiguration.getInstrumentationRunner(facet, "");
   }
 
   @Override
