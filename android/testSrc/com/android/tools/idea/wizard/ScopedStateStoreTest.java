@@ -151,7 +151,8 @@ public class ScopedStateStoreTest extends TestCase {
 
   public void testListOperations() throws Exception {
     myPathState = new ScopedStateStore(PATH, null, myScopedStoreListener);
-    Key<List> listKey = createKey("list", PATH, List.class);
+    @SuppressWarnings("unchecked")
+    Key<List<String>> listKey = createKey("list", PATH, (Class<List<String>>) (Class) List.class);
     assertFalse(myPathState.containsKey(listKey));
 
     assertTrue(myPathState.listPush(listKey, "hello"));
