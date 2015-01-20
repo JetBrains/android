@@ -1391,6 +1391,25 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.local.suppress"), AnnotationDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintLogConditionalInspection extends AndroidLintInspectionBase {
+    public AndroidLintLogConditionalInspection() {
+      super(AndroidBundle.message("android.lint.inspections.log.conditional"), LogDetector.CONDITIONAL);
+    }
+  }
+
+  public static class AndroidLintLogTagMismatchInspection extends AndroidLintInspectionBase {
+    public AndroidLintLogTagMismatchInspection() {
+      super(AndroidBundle.message("android.lint.inspections.log.tag.mismatch"), LogDetector.WRONG_TAG);
+    }
+  }
+
+  public static class AndroidLintLongLogTagInspection extends AndroidLintInspectionBase {
+    public AndroidLintLongLogTagInspection() {
+      super(AndroidBundle.message("android.lint.inspections.long.log.tag"), LogDetector.LONG_TAG);
+    }
+  }
+
   // THIS ISSUE IS PROBABLY NOT NEEDED HERE!
   public static class AndroidLintMangledCRLFInspection extends AndroidLintInspectionBase {
     public AndroidLintMangledCRLFInspection() {
