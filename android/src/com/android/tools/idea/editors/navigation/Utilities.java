@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.ui.JBColor;
 import com.intellij.util.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ import java.util.List;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
+  static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 255));
 
   public static Point sum(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
@@ -321,6 +323,92 @@ public class Utilities {
     }
     catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public static Graphics2D createLineGraphics(Graphics g, int lineWidth) {
+    Graphics2D g2D = (Graphics2D)g.create();
+    g2D.setColor(TRANSITION_LINE_COLOR);
+    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2D.setStroke(new BasicStroke(lineWidth));
+    return g2D;
+  }
+
+  static Rectangle getCorner(Point a, int cornerDiameter) {
+    int cornerRadius = cornerDiameter / 2;
+    return new Rectangle(a.x - cornerRadius, a.y - cornerRadius, cornerDiameter, cornerDiameter);
+  }
+
+  static void drawLine(Graphics g, Point a, Point b) {
+    g.drawLine(a.x, a.y, b.x, b.y);
+  }
+
+  static void drawArrow(Graphics g, Point a, Point b, int lineWidth) {
+    drawArrow(g, a.x, a.y, b.x, b.y, lineWidth);
+  }
+
+  static void drawRectangle(Graphics g, Rectangle r) {
+    g.drawRect(r.x, r.y, r.width, r.height);
+  }
+
+  private static int x1(Rectangle src) {
+    return src.x;
+  }
+
+  private static int x2(Rectangle dst) {
+    return dst.x + dst.width;
+  }
+
+  private static int y1(Rectangle src) {
+    return src.y;
+  }
+
+  private static int y2(Rectangle dst) {
+    return dst.y + dst.height;
+  }
+
+  static Line getMidLine(Rectangle src, Rectangle dst) {
+    Point midSrc = centre(src);
+    Point midDst = centre(dst);
+
+    int dx = Math.abs(midSrc.x - midDst.x);
+    int dy = Math.abs(midSrc.y - midDst.y);
+    boolean horizontal = dx >= dy;
+
+    int middle;
+    if (horizontal) {
+      middle = x1(src) - x2(dst) > 0 ? (x2(dst) + x1(src)) / 2 : (x2(src) + x1(dst)) / 2;
+    }
+    else {
+      middle = y1(src) - y2(dst) > 0 ? (y2(dst) + y1(src)) / 2 : (y2(src) + y1(dst)) / 2;
+    }
+
+    Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
+    Point b = horizontal ? new Point(middle, midDst.y) : new Point(midDst.x, middle);
+
+    return new Line(a, b);
+  }
+
+  static class Line {
+    public final Point a;
+    public final Point b;
+
+    Line(Point a, Point b) {
+      this.a = a;
+      this.b = b;
+    }
+
+    Point project(Point p) {
+      boolean horizontal = a.x == b.x;
+      boolean vertical = a.y == b.y;
+      if (!horizontal && !vertical) {
+        throw new UnsupportedOperationException();
+      }
+      // Components are perfectly aligned, the 'mid line' has zero length and the transition is shown with no 'dog-leg'.
+      if (horizontal && vertical) {
+        return a;
+      }
+      return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
 }
