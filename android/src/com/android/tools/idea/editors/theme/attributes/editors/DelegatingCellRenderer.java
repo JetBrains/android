@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import spantable.CellSpanModel;
 import com.intellij.openapi.module.Module;
 
@@ -29,7 +32,7 @@ import java.awt.*;
  *
  * Uses delegate to draw "simple" extracted value (which is usually a String or a Boolean)
  */
-class DelegatingCellRenderer implements TableCellRenderer {
+public class DelegatingCellRenderer implements TableCellRenderer {
   private final Module myModule;
   private final Configuration myConfiguration;
   private final TableCellRenderer myDelegate;

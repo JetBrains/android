@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -29,7 +31,7 @@ import java.util.EventObject;
  * which is usually a String or a Boolean, with the purpose of using standard JTable cell
  * editors, such as checkbox for Boolean values
  */
-class DelegatingCellEditor implements TableCellEditor {
+public class DelegatingCellEditor implements TableCellEditor {
   private final TableCellEditor myDelegate;
   private final boolean myConvertValueToString;
 

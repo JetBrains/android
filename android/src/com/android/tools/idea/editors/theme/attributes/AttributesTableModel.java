@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import spantable.CellSpanModel;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -33,7 +35,7 @@ import java.util.regex.Pattern;
  * {@link javax.swing.table.TableModel} for style attributes. It implements {@link spantable.CellSpanModel} so rows
  * can span over more than one column for things like color attributes.
  */
-class AttributesTableModel extends AbstractTableModel implements CellSpanModel {
+public class AttributesTableModel extends AbstractTableModel implements CellSpanModel {
   private static final Logger LOG = Logger.getInstance(AttributesTableModel.class);
 
   private static final Pattern ANDROID_PREFIX_START = Pattern.compile("^android:");

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +23,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
+ * A {@link ListCellRenderer} to render {@link com.android.tools.idea.editors.theme.ThemeEditorStyle} elements.
  */
 public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
   protected JLabel myStyleNameLabel = new JLabel();
