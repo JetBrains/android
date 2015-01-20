@@ -97,23 +97,7 @@ public class FlagManager {
         return getIcon("wales");        //$NON-NLS-1$
       }
 
-      // Prefer the local registration of the current locale; even if
-      // for example the default locale for English is the US, if the current
-      // default locale is English, then use its associated country, which could
-      // for example be Australia.
-      @SuppressWarnings("UnnecessaryFullyQualifiedName")
-      java.util.Locale locale = java.util.Locale.getDefault();
-      if (language.equals(locale.getLanguage())) {
-        String country = locale.getCountry();
-        if (country.length() == 2) {
-          Icon flag = getFlag(country.toUpperCase(java.util.Locale.US));
-          if (flag != null) {
-            return flag;
-          }
-        }
-      }
-
-      // Attempt to look up the country from the language
+      // Pick based on various heuristics
       region = LocaleManager.getLanguageRegion(language);
     }
 
