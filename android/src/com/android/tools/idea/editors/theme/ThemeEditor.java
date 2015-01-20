@@ -22,6 +22,8 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.attributes.*;
+import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.swing.layoutlib.AndroidThemePreviewPanel;
 import com.google.common.base.Strings;
