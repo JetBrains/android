@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.navigation;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.rendering.RenderedView;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
@@ -42,7 +41,8 @@ import static com.android.tools.idea.editors.navigation.Utilities.sum;
 
 class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
-  private static final int SELECTION_RECTANGLE_LINE_WIDTH = 4;
+  private static final int SELECTION_RECTANGLE_LINE_WIDTH = 2;
+  public static final Event STATE_LOCATIONS_UPDATED = Event.update(Map.class); // just avoid State.class, which would trigger reload
 
   public static Selection NULL = new EmptySelection();
 
@@ -234,7 +234,7 @@ class Selections {
         Point delta = diff(newLocation, oldLocation);
         stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
       }
-      myNavigationModel.getListeners().notify(Event.update(Map.class)); // just avoid State.class, which would trigger reload
+      myNavigationModel.getListeners().notify(STATE_LOCATIONS_UPDATED);
     }
 
     @Override
