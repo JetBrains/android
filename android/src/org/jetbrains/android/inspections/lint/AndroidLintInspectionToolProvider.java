@@ -228,6 +228,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintWrongRegionInspection extends AndroidLintInspectionBase {
+    public AndroidLintWrongRegionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.wrong.region"), LocaleFolderDetector.WRONG_REGION);
+    }
+  }
+
   public static class AndroidLintWrongViewCastInspection extends AndroidLintInspectionBase {
     public AndroidLintWrongViewCastInspection() {
       super(AndroidBundle.message("android.lint.inspections.wrong.view.cast"), ViewTypeDetector.ISSUE);
@@ -1377,7 +1383,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintLocaleFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintLocaleFolderInspection() {
-      super(AndroidBundle.message("android.lint.inspections.locale.folder"), LocaleFolderDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.locale.folder"), LocaleFolderDetector.DEPRECATED_CODE);
     }
   }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
