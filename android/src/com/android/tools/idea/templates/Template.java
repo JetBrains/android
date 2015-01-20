@@ -259,6 +259,10 @@ public class Template {
                        @Nullable Project project) {
     myFilesToOpen.clear();
     myOutputRoot = outputRootPath;
+    if (project == null) {
+      // Project creation: no current project to read code style settings from yet, so use defaults
+      project = ProjectManagerEx.getInstanceEx().getDefaultProject();
+    }
     myProject = project;
 
     Map<String, Object> paramMap = createParameterMap(args);
@@ -285,7 +289,7 @@ public class Template {
         }
       }
     }
-    if (myNeedsGradleSync && myProject != null) {
+    if (myNeedsGradleSync && !myProject.isDefault()) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
@@ -618,7 +622,8 @@ public class Template {
       String parentFolderName = targetFile.getParentFile().getName();
       ResourceFolderType folderType = ResourceFolderType.getFolderType(parentFolderName);
       // mergeResourceFile handles the file updates itself, so no content is returned in this case.
-      ok = mergeResourceFile(targetFile, sourceXml, folderType);
+      contents = mergeResourceFile(targetXml, sourceXml, folderType);
+      ok = contents != null;
     }
 
     // Finally write out the merged file
@@ -648,26 +653,12 @@ public class Template {
 
   /** Merges the given resource file contents into the given resource file
    * @param paramMap */
-  private boolean mergeResourceFile(@NotNull File targetFile, @NotNull String sourceXml,
+  private String mergeResourceFile(@NotNull String targetXml, @NotNull String sourceXml,
                                    @Nullable ResourceFolderType folderType) {
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    VirtualFile vf = fileSystem.findFileByIoFile(targetFile);
-    if (vf == null) {
-      LOG.warn("Error creating virtual file for " + targetFile.getPath());
-      return false;
-    }
-    vf.refresh(false, false);
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vf);
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    if (!(psiFile instanceof XmlFile)) {
-      LOG.warn("Target file is not an XML file: " + targetFile.getPath());
-      return false;
-    }
-    XmlFile xmlTarget = (XmlFile)psiFile;
-
+    XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(myProject).createFileFromText("targetFile", XMLLanguage.INSTANCE, targetXml);
     XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(myProject).createFileFromText("sourceFile", XMLLanguage.INSTANCE, sourceXml);
-    XmlTag root = xmlTarget.getDocument().getRootTag();
-    assert root != null : "Cannot find XML root in document " + targetFile;
+    XmlTag root = targetPsiFile.getDocument().getRootTag();
+    assert root != null : "Cannot find XML root in target: " + targetXml;
 
     XmlAttribute[] attributes = sourcePsiFile.getRootTag().getAttributes();
     for (XmlAttribute attr : attributes) {
@@ -677,6 +668,7 @@ public class Template {
     }
 
     List<XmlTagChild> prependElements = Lists.newArrayList();
+    XmlText indent = null;
     if (folderType == ResourceFolderType.VALUES) {
       // Try to merge items of the same name
       Map<String, XmlTag> old = Maps.newHashMap();
@@ -685,12 +677,18 @@ public class Template {
       }
       for (PsiElement child : sourcePsiFile.getRootTag().getChildren()) {
         if (child instanceof XmlComment) {
+          if (indent != null) {
+            prependElements.add(indent);
+          }
           prependElements.add((XmlTagChild)child);
-        }
-        else if (child instanceof XmlTag) {
+        } else if (child instanceof XmlText) {
+          indent = (XmlText)child;
+        } else if (child instanceof XmlTag) {
           XmlTag subTag = (XmlTag)child;
           String mergeStrategy = subTag.getAttributeValue(ATTR_TEMPLATE_MERGE_STRATEGY);
           subTag.setAttribute(ATTR_TEMPLATE_MERGE_STRATEGY, null);
+          // remove the space left by the deleted attribute
+          CodeStyleManager.getInstance(myProject).reformat(subTag);
           String name = getResourceId(subTag);
           XmlTag replace = name != null ? old.get(name) : null;
           if (replace != null) {
@@ -707,6 +705,14 @@ public class Template {
             // default!
             if (VALUE_MERGE_STRATEGY_REPLACE.equals(mergeStrategy)) {
               child = replace.replace(child);
+              // When we're replacing, the line is probably already indented. Skip the initial indent
+              if (child.getPrevSibling() instanceof XmlText && prependElements.get(0) instanceof XmlText) {
+                prependElements.remove(0);
+                // If we're adding something we'll need a newline/indent after it
+                if (!prependElements.isEmpty()) {
+                  prependElements.add(indent);
+                }
+              }
               for (XmlTagChild element : prependElements) {
                 root.addBefore(element, child);
               }
@@ -719,6 +725,9 @@ public class Template {
               LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
             }
           } else {
+            if (indent != null) {
+              prependElements.add(indent);
+            }
             subTag = root.addSubTag(subTag, false);
             for (XmlTagChild element : prependElements) {
               root.addBefore(element, subTag);
@@ -736,7 +745,7 @@ public class Template {
         }
       }
     }
-    return true;
+    return targetPsiFile.getText();
   }
 
   /** Merges the given manifest fragment into the given manifest file */
@@ -943,14 +952,9 @@ public class Template {
     return name;
   }
   private String format(@NotNull String contents, File to) {
-    Project project = myProject;
-    if (project == null) {
-      // Project creation: no current project to read code style settings from yet, so use defaults
-      project = ProjectManagerEx.getInstanceEx().getDefaultProject();
-    }
     FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
-    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(to.getName(), type, StringUtil.convertLineSeparators(contents));
-    CodeStyleManager.getInstance(project).reformat(file);
+    PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, contents);
+    CodeStyleManager.getInstance(myProject).reformat(file);
     return file.getText();
   }
 
