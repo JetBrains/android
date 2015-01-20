@@ -574,7 +574,24 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
         }
       }
 
-      if (vFile != null && myScope.contains(vFile)) {
+      boolean inScope = vFile != null && myScope.contains(vFile);
+      // In analysis batch mode, the AnalysisScope contains a specific set of virtual
+      // files, not directories, so any errors reported against a directory will not
+      // be considered part of the scope and therefore won't be reported. Correct
+      // for this.
+      if (!inScope && vFile != null && vFile.isDirectory()) {
+        if (myScope.getScopeType() == AnalysisScope.PROJECT) {
+          inScope = true;
+        } else if (myScope.getScopeType() == AnalysisScope.MODULE ||
+          myScope.getScopeType() == AnalysisScope.MODULES) {
+          final Module module = findModuleForLintProject(myProject, context.getProject());
+          if (module != null && myScope.containsModule(module)) {
+            inScope = true;
+          }
+        }
+      }
+
+      if (inScope) {
         file = new File(PathUtil.getCanonicalPath(file.getPath()));
 
         Map<File, List<ProblemData>> file2ProblemList = myProblemMap.get(issue);
