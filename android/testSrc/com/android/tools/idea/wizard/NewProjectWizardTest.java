@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 
@@ -224,7 +225,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
     verify(launcherIconStateMock).outputImagesIntoDefaultVariant(eq(moduleRoot));
     verify(activityTemplateMock).render(eq(moduleRoot), eq(moduleRoot),
-                                        eq(myWizardState.myActivityTemplateState.myParameters));
+                                        eq(myWizardState.myActivityTemplateState.myParameters), (Project)isNull());
   }
 
   @SuppressWarnings("unchecked")
