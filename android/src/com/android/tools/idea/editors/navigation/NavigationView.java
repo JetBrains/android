@@ -90,7 +90,7 @@ public class NavigationView extends JComponent {
   private static final Color GESTURE_ICON_COLOR = new JBColor(new Color(0xE64BA7), new Color(0xE64BA7));
   private static final String DEVICE_DEFAULT_THEME_NAME = SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
   public static final int RESOURCE_SUFFIX_LENGTH = ".xml".length();
-  public static final String LIST_VIEW_SENTINEL = "listView";
+  public static final String LIST_VIEW_ID = "list_view";
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
@@ -167,15 +167,18 @@ public class NavigationView extends JComponent {
 
     // Model listener
     {
-      myNavigationModel.getListeners().add(new Listener<NavigationModel.Event>() {
+      myNavigationModel.getListeners().add(new Listener<Event>() {
         @Override
-        public void notify(@NotNull NavigationModel.Event event) {
+        public void notify(@NotNull Event event) {
           if (DEBUG) LOG.info("NavigationView:: <listener> " + myStateCacheIsValid + " " + myTransitionEditorCacheIsValid);
           if (event.operandType.isAssignableFrom(State.class)) {
             myStateCacheIsValid = false;
           }
           if (event.operandType.isAssignableFrom(Transition.class)) {
             myTransitionEditorCacheIsValid = false;
+          }
+          if (event == NavigationEditor.PROJECT_READ) {
+            setSelection(Selections.NULL);
           }
           revalidate();
           repaint();
@@ -404,7 +407,7 @@ public class NavigationView extends JComponent {
           XmlTag tag = child.tag;
           if (tag != null) {
             if (tag.getName().equals("ListView")) {
-              result.put(LIST_VIEW_SENTINEL, child);
+              result.put(LIST_VIEW_ID, child);
             }
           }
           walk(child);

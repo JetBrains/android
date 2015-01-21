@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.tools.idea.editors.navigation.model.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 public class SelectionModel {
+  public static final Event SELECTION_UPDATED = Event.update(SelectionModel.class);
+
   @NotNull private Selections.Selection mySelection = Selections.NULL;
-  public final EventDispatcher<Object> listeners = new EventDispatcher<Object>();
+  public final EventDispatcher<Event> listeners = new EventDispatcher<Event>();
 
   @NotNull
   public Selections.Selection getSelection() {
@@ -28,7 +29,10 @@ public class SelectionModel {
   }
 
   public void setSelection(@NotNull Selections.Selection selection) {
+    if (mySelection == selection) {
+      return;
+    }
     mySelection = selection;
-    listeners.notify("");
+    listeners.notify(SELECTION_UPDATED);
   }
 }

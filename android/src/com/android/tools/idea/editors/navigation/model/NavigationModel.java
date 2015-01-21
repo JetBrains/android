@@ -18,40 +18,14 @@ package com.android.tools.idea.editors.navigation.model;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.Event;
+import com.android.tools.idea.editors.navigation.EventDispatcher;
 import com.intellij.openapi.util.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class NavigationModel {
-  public static class Event {
-    public enum Operation {INSERT, UPDATE, DELETE}
-
-    public final Operation operation;
-    public final Class<?> operandType;
-
-    public Event(@NonNull Operation operation, @NonNull Class operandType) {
-      this.operation = operation;
-      this.operandType = operandType;
-    }
-
-    public static Event of(@NonNull Operation operation, @NonNull Class operandType) {
-      return new Event(operation, operandType);
-    }
-
-    public static Event insert(@NonNull Class operandType) {
-      return of(Operation.INSERT, operandType);
-    }
-
-    public static Event update(@NonNull Class operandType) {
-      return of(Operation.UPDATE, operandType);
-    }
-
-    public static Event delete(@NonNull Class operandType) {
-      return of(Operation.DELETE, operandType);
-    }
-  }
-
   private final EventDispatcher<Event> listeners = new EventDispatcher<Event>();
 
   private final ArrayList<State> states = new ArrayList<State>();
