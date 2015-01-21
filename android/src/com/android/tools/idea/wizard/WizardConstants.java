@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.JBColor;
@@ -49,7 +50,9 @@ public class WizardConstants {
   // State Store Keys
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<List> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", WIZARD, List.class);
+  @SuppressWarnings("unchecked")
+  public static final Key<List<IPkgDesc>> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", WIZARD,
+                                                                           (Class<List<IPkgDesc>>) (Class) List.class);
   public static final Key<String> GRADLE_VERSION_KEY =
     createKey(TemplateMetadata.ATTR_GRADLE_VERSION, WIZARD, String.class);
   public static final Key<String> GRADLE_PLUGIN_VERSION_KEY =
