@@ -174,15 +174,26 @@ class Selections {
     @Override
     protected void configureInspector(Inspector inspector) {
       final Module module = myRenderingParameters.configuration.getModule();
-      TransitionInspector transitionInspector = new TransitionInspector();
-      Locator source = myTransition.getSource();
+      final TransitionInspector transitionInspector = new TransitionInspector();
+      final Locator source = myTransition.getSource();
       State sourceState = source.getState();
       configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceActivity, sourceState.getClassName());
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceFragment, source.getFragmentClassName());
-      boolean isFragment = source.getFragmentClassName() != null;
-      String hostClassName = isFragment ? source.getFragmentClassName() : sourceState.getClassName();
-      String xmlFileName = Analyser.getXMLFileName(module, hostClassName, !isFragment);
-      configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, false);
+      sourceState.accept(new State.Visitor() {
+        @Override
+        public void visit(ActivityState state) {
+          configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceFragment, source.getFragmentClassName());
+          boolean isFragment = source.getFragmentClassName() != null;
+          String hostClassName = isFragment ? source.getFragmentClassName() : state.getClassName();
+          String xmlFileName = Analyser.getXMLFileName(module, hostClassName, !isFragment);
+          configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, false);
+        }
+
+        @Override
+        public void visit(MenuState state) {
+          String xmlFileName = state.getXmlResourceName();
+          configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, true);
+        }
+      });
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
