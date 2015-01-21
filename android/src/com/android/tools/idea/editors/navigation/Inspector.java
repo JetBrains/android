@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.editors.navigation.model.Listener;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;
@@ -30,10 +29,12 @@ public class Inspector {
     this.container = new JPanel(new BorderLayout());
     container.setBackground(JBColor.WHITE);
     this.selectionModel = selectionModel;
-    this.selectionModel.listeners.add(new Listener<Object>() {
+    this.selectionModel.listeners.add(new Listener<Event>() {
       @Override
-      public void notify(@NonNull Object event) {
-        Inspector.this.selectionModel.getSelection().configureInspector(Inspector.this);
+      public void notify(@NonNull Event event) {
+        if (event == SelectionModel.SELECTION_UPDATED) {
+          Inspector.this.selectionModel.getSelection().configureInspector(Inspector.this);
+        }
       }
     });
   }

@@ -405,7 +405,7 @@ public class Analyser {
                              getGetTag(myMacros), CLASS_NAME_1));
       search(activityOrFragmentClass, signature, myMacros.installItemClickAndCallMacro,
              createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
-                             constant(NavigationView.LIST_VIEW_SENTINEL), CLASS_NAME_1));
+                             constant(NavigationView.LIST_VIEW_ID), CLASS_NAME_1));
     }
 
     // Search for 'subclass style' listeners in ListActivities and ListFragments

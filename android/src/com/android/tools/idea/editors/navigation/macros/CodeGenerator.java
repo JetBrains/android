@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.editors.navigation.Listener;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.intellij.openapi.application.Result;
