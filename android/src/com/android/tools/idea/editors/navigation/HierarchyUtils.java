@@ -16,11 +16,63 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.rendering.RenderedView;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class HierarchyUtils {
+  @Nullable
+  static String getViewId(@Nullable RenderedView leaf) {
+    if (leaf != null) {
+      XmlTag tag = leaf.tag;
+      if (tag != null) {
+        String attributeValue = tag.getAttributeValue("android:id");
+        int prefixLength = Analyser.getPrefix(attributeValue).length();
+        if (attributeValue != null && prefixLength != 0) {
+          return attributeValue.substring(prefixLength);
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  static String getViewId(@Nullable ViewInfo leaf) {
+    if (leaf != null) {
+      Object cookie = leaf.getCookie();
+      if (cookie instanceof XmlTag) {
+        XmlTag tag = (XmlTag)cookie;
+        String attributeValue = tag.getAttributeValue("android:id");
+        int prefixLength = Analyser.getPrefix(attributeValue).length();
+        if (attributeValue != null && prefixLength != 0) {
+          return attributeValue.substring(prefixLength);
+        }
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  static RenderedView getRoot(@NotNull RenderedView view) {
+    while (true) {
+      RenderedView parent = view.getParent();
+      if (parent == null) {
+        return view;
+      }
+      view = parent;
+    }
+  }
+
+  @Nullable
+  static RenderedView getNamedParent(@Nullable RenderedView view) {
+    while (view != null && getViewId(view) == null) {
+      view = view.getParent();
+    }
+    return view;
+  }
+
   private static String getTagName(@Nullable RenderedView leaf) {
     if (leaf != null) {
       if (leaf.tag != null) {
@@ -63,7 +115,7 @@ class HierarchyUtils {
     new Object() {
       public void display(RenderedView view, String indent) {
         //noinspection StringConcatenationInsideStringBufferAppend
-        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + NavigationView.getViewId(view) + "\n");
+        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
         for (RenderedView c : view.getChildren()) {
           display(c, "  " + indent);
         }
@@ -80,7 +132,7 @@ class HierarchyUtils {
     new Object() {
       public void display(ViewInfo view, String indent) {
         //noinspection StringConcatenationInsideStringBufferAppend
-        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + NavigationView.getViewId(view) + "\n");
+        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
         for (ViewInfo c : view.getChildren()) {
           display(c, ".." + indent);
         }

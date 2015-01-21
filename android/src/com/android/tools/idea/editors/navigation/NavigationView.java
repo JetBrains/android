@@ -81,7 +81,6 @@ public class NavigationView extends JComponent {
 
   public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
-  private static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 255));
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
@@ -240,13 +239,13 @@ public class NavigationView extends JComponent {
           return;
         }
         RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
-        RenderedView namedEndLeaf = getNamedParent(endLeaf);
+        RenderedView namedEndLeaf = HierarchyUtils.getNamedParent(endLeaf);
 
         Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
         State sourceState = rootComponentToState.get(sourceComponent);
         String fragmentClassName = getFragmentClassName(sourceState, namedSourceLeaf);
-        Locator sourceLocator = Locator.of(sourceState, fragmentClassName, getViewId(namedSourceLeaf));
-        Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), getViewId(namedEndLeaf));
+        Locator sourceLocator = Locator.of(sourceState, fragmentClassName, HierarchyUtils.getViewId(namedSourceLeaf));
+        Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), HierarchyUtils.getViewId(namedEndLeaf));
         myCodeGenerator.implementTransition(new Transition(Transition.PRESS, sourceLocator, destinationLocator));
       }
     }
@@ -267,7 +266,7 @@ public class NavigationView extends JComponent {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
         if (!destinationRoot.isMenu) {
           RenderedView endLeaf = getRenderedView(destinationRoot, location);
-          RenderedView namedEndLeaf = getNamedParent(endLeaf);
+          RenderedView namedEndLeaf = HierarchyUtils.getNamedParent(endLeaf);
           return getBounds(destinationRoot, namedEndLeaf);
         }
       }
@@ -311,56 +310,6 @@ public class NavigationView extends JComponent {
     return myTransitionEditorAssociation;
   }
 
-  @Nullable
-  static String getViewId(@Nullable RenderedView leaf) {
-    if (leaf != null) {
-      XmlTag tag = leaf.tag;
-      if (tag != null) {
-        String attributeValue = tag.getAttributeValue("android:id");
-        int prefixLength = Analyser.getPrefix(attributeValue).length();
-        if (attributeValue != null && prefixLength != 0) {
-          return attributeValue.substring(prefixLength);
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  static String getViewId(@Nullable ViewInfo leaf) {
-    if (leaf != null) {
-      Object cookie = leaf.getCookie();
-      if (cookie instanceof XmlTag) {
-        XmlTag tag = (XmlTag)cookie;
-        String attributeValue = tag.getAttributeValue("android:id");
-        int prefixLength = Analyser.getPrefix(attributeValue).length();
-        if (attributeValue != null && prefixLength != 0) {
-          return attributeValue.substring(prefixLength);
-        }
-      }
-    }
-    return null;
-  }
-
-  @NotNull
-  static RenderedView getRoot(@NotNull RenderedView view) {
-    while (true) {
-      RenderedView parent = view.getParent();
-      if (parent == null) {
-        return view;
-      }
-      view = parent;
-    }
-  }
-
-  @Nullable
-  static RenderedView getNamedParent(@Nullable RenderedView view) {
-    while (view != null && getViewId(view) == null) {
-      view = view.getParent();
-    }
-    return view;
-  }
-
   private static Map<String, RenderedView> computeNameToRenderedView(RenderedViewHierarchy hierarchy) {
     Map<String, RenderedView> result = new HashMap<String, RenderedView>();
     for (RenderedView root : hierarchy.getRoots()) {
@@ -397,7 +346,7 @@ public class NavigationView extends JComponent {
     new Object() {
       void walk(RenderedView parent) {
         for (RenderedView child : parent.getChildren()) {
-          String id = getViewId(child);
+          String id = HierarchyUtils.getViewId(child);
           if (id != null) {
             result.put(id, child);
           }
@@ -423,7 +372,7 @@ public class NavigationView extends JComponent {
     new Object() {
       void walk(ViewInfo parent) {
         for (ViewInfo child : parent.getChildren()) {
-          String id = getViewId(child);
+          String id = HierarchyUtils.getViewId(child);
           if (id != null) {
             result.put(id, child);
           }
@@ -549,97 +498,11 @@ public class NavigationView extends JComponent {
     }
   }
 
-  public static Graphics2D createLineGraphics(Graphics g, int lineWidth) {
-    Graphics2D g2D = (Graphics2D)g.create();
-    g2D.setColor(TRANSITION_LINE_COLOR);
-    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2D.setStroke(new BasicStroke(lineWidth));
-    return g2D;
-  }
-
-  private static Rectangle getCorner(Point a, int cornerDiameter) {
-    int cornerRadius = cornerDiameter / 2;
-    return new Rectangle(a.x - cornerRadius, a.y - cornerRadius, cornerDiameter, cornerDiameter);
-  }
-
-  private static void drawLine(Graphics g, Point a, Point b) {
-    g.drawLine(a.x, a.y, b.x, b.y);
-  }
-
-  private static void drawArrow(Graphics g, Point a, Point b, int lineWidth) {
-    Utilities.drawArrow(g, a.x, a.y, b.x, b.y, lineWidth);
-  }
-
-  private static void drawRectangle(Graphics g, Rectangle r) {
-    g.drawRect(r.x, r.y, r.width, r.height);
-  }
-
-  private static int x1(Rectangle src) {
-    return src.x;
-  }
-
-  private static int x2(Rectangle dst) {
-    return dst.x + dst.width;
-  }
-
-  private static int y1(Rectangle src) {
-    return src.y;
-  }
-
-  private static int y2(Rectangle dst) {
-    return dst.y + dst.height;
-  }
-
-  static class Line {
-    public final Point a;
-    public final Point b;
-
-    Line(Point a, Point b) {
-      this.a = a;
-      this.b = b;
-    }
-
-    Point project(Point p) {
-      boolean horizontal = a.x == b.x;
-      boolean vertical = a.y == b.y;
-      if (!horizontal && !vertical) {
-        throw new UnsupportedOperationException();
-      }
-      // Components are perfectly aligned, the 'mid line' has zero length and the transition is shown with no 'dog-leg'.
-      if (horizontal && vertical) {
-        return a;
-      }
-      return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
-    }
-  }
-
-  static Line getMidLine(Rectangle src, Rectangle dst) {
-    Point midSrc = centre(src);
-    Point midDst = centre(dst);
-
-    int dx = Math.abs(midSrc.x - midDst.x);
-    int dy = Math.abs(midSrc.y - midDst.y);
-    boolean horizontal = dx >= dy;
-
-    int middle;
-    if (horizontal) {
-      middle = x1(src) - x2(dst) > 0 ? (x2(dst) + x1(src)) / 2 : (x2(src) + x1(dst)) / 2;
-    }
-    else {
-      middle = y1(src) - y2(dst) > 0 ? (y2(dst) + y1(src)) / 2 : (y2(src) + y1(dst)) / 2;
-    }
-
-    Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
-    Point b = horizontal ? new Point(middle, midDst.y) : new Point(midDst.x, middle);
-
-    return new Line(a, b);
-  }
-
   private Line getMidLine(Transition t) {
     Map<State, AndroidRootComponent> m = getStateComponentAssociation().keyToValue;
     State src = t.getSource().getState();
     State dst = t.getDestination().getState();
-    return getMidLine(m.get(src).getBounds(), m.get(dst).getBounds());
+    return Utilities.getMidLine(m.get(src).getBounds(), m.get(dst).getBounds());
   }
 
   static Point[] getControlPoints(Rectangle src, Rectangle dst, Line midLine) {
@@ -749,7 +612,7 @@ public class NavigationView extends JComponent {
       lineGraphics.setStroke(new BasicStroke(1));
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       RenderedView leaf = getRenderedView(androidRootComponent, myMouseLocation);
-      RenderedView namedLeaf = getNamedParent(leaf);
+      RenderedView namedLeaf = HierarchyUtils.getNamedParent(leaf);
       paintLeaf(lineGraphics, leaf, JBColor.RED, androidRootComponent);
       paintLeaf(lineGraphics, namedLeaf, JBColor.BLUE, androidRootComponent);
       lineGraphics.setStroke(oldStroke);
@@ -1021,15 +884,15 @@ public class NavigationView extends JComponent {
         if (leaf == null) {
           return Selections.NULL;
         }
-        debug("root", getRoot(leaf));
+        debug("root", HierarchyUtils.getRoot(leaf));
         debug("leaf", leaf);
-        RenderedView namedParent = getNamedParent(leaf);
+        RenderedView namedParent = HierarchyUtils.getNamedParent(leaf);
         if (namedParent == null) {
           return Selections.NULL;
         }
         debug("namedParent", namedParent);
 
-        if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
+        if (myNavigationModel.findTransitionWithSource(Locator.of(state, HierarchyUtils.getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
         return new Selections.ViewSelection(androidRootComponent, mouseDownLocation, namedParent, this);
