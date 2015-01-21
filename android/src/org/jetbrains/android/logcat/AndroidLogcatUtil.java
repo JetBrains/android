@@ -122,24 +122,19 @@ public class AndroidLogcatUtil {
       console.writeToConsole("Unable to run logcat. IOException: " + e.getMessage() + '\n', ProcessOutputTypes.STDERR);
       return null;
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            if (clearLogcat) {
-              clearLogcat(project, device);
-            }
-            try {
-              startLogging(device, receiver);
-            }
-            catch (final Exception e) {
-              LOG.info(e);
-              console.writeToConsole(e.getMessage() + '\n', ProcessOutputTypes.STDERR);
-            }
-          }
-        });
+        if (clearLogcat) {
+          clearLogcat(project, device);
+        }
+        try {
+          startLogging(device, receiver);
+        }
+        catch (final Exception e) {
+          LOG.info(e);
+          console.writeToConsole(e.getMessage() + '\n', ProcessOutputTypes.STDERR);
+        }
       }
     });
     return new Pair<Reader, Writer>(logReader, logWriter);
