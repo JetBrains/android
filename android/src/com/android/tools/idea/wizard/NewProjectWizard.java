@@ -163,11 +163,11 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
-          ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+          ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters, project);
           ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
         }
 
-        wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+        wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters, project);
         if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
           activityTemplateState.populateRelativePackage(null);

@@ -227,11 +227,15 @@ public class Template {
 
   /**
    * Executes the template, rendering it to output files under the given module root directory.
+   * Note: This method might cause the creation of a new project to perform certain PSI based operations (Gradle file merging).
+   * Not only is creating a project expensive, but it performing PSI operations right after a project creation could lead to
+   * IndexNotReadyException. If you have a project available at call time, use {@link #render(File, File, Map, Project)} instead.
    *
    * @param outputRootPath the filesystem directory that represents the root directory where the template will be expanded.
    * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
    * @param args the key/value pairs that are fed into the input parameters for the template.
    */
+  @Deprecated
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
     render(outputRootPath, moduleRootPath, args, null);
   }

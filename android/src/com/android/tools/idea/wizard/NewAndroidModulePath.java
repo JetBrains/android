@@ -114,7 +114,7 @@ public final class NewAndroidModulePath implements WizardPath {
             activityTemplateState.populateRelativePackage(null);
             Template activityTemplate = activityTemplateState.getTemplate();
             assert activityTemplate != null;
-            activityTemplate.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+            activityTemplate.render(moduleRoot, moduleRoot, activityTemplateState.myParameters, myProject);
           }
         }
       }
