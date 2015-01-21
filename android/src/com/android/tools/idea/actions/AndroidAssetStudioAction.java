@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.wizard.AssetStudioWizard;
 import com.intellij.ide.IdeView;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 
 /**
  * Action to invoke the Asset Studio. This action is visible
@@ -77,7 +77,23 @@ public class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    final PsiDirectory dir = view.getOrChooseDirectory();
+    // If you're invoking the Asset Studio by right clicking in the Android Project view on a drawable or
+    // mipmap folder for example, the IDE will ask you to pick a specific folder from one of the many
+    // actual folders packed into the single resource directory.
+    //
+    // However, in this case we don't need those folders; we just want the corresponding source set, so
+    // asking the user to choose between "drawable-mdpi" and "drawable-hdpi" isn't helpful.
+    final PsiDirectory dir;
+    AbstractProjectViewPane pane = ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane();
+    if (pane instanceof AndroidProjectViewPane) {
+      PsiDirectory[] directories = view.getDirectories();
+      if (directories.length == 0) {
+        return;
+      }
+      dir = directories[0];
+    } else {
+      dir = view.getOrChooseDirectory();
+    }
     if (dir == null) {
       return;
     }
