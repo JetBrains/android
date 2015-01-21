@@ -48,7 +48,7 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   public static final String ERROR_CANT_RUN_TOOL;
   public static final String URL_MISSING_LIBRARIES = "http://tools.android.com/tech-docs/linux-32-bit-libraries";
   public static final String LINK_MISSING_LIBRARIES = "Show Android SDK web page";
-  public static final String TOOL_NAME = "mksdcard";
+  public static final String TOOL_NAME = "mksdcard" + (SystemInfo.isWindows ? ".exe" : "");
 
   static {
     ERROR_CANT_RUN_TOOL = "Unable to run " + TOOL_NAME + " SDK tool.";
