@@ -22,8 +22,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
-import com.android.tools.idea.editors.navigation.model.NavigationModel.Event.Operation;
+import com.android.tools.idea.editors.navigation.Event.Operation;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -81,7 +80,7 @@ public class NavigationEditor implements FileEditor {
   private static final String NAME = "Navigation";
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
-  private static final NavigationModel.Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
+  public static final Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
   private static final ModelDimension UNATTACHED_STRIDE = new ModelDimension(50, 50);
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
@@ -92,7 +91,7 @@ public class NavigationEditor implements FileEditor {
   private boolean myModified;
   private boolean myPendingFileSystemChanges;
   private Analyser myAnalyser;
-  private Listener<NavigationModel.Event> myNavigationModelListener;
+  private Listener<Event> myNavigationModelListener;
   private ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private VirtualFileAdapter myVirtualFileListener;
   private FileDocumentManagerListener mySaveListener;
@@ -196,9 +195,9 @@ public class NavigationEditor implements FileEditor {
 
   private void createListeners() {
     // NavigationModel listener
-    myNavigationModelListener = new Listener<NavigationModel.Event>() {
+    myNavigationModelListener = new Listener<Event>() {
       @Override
-      public void notify(@NotNull NavigationModel.Event event) {
+      public void notify(@NotNull Event event) {
         if (event != PROJECT_READ) { // exempt the case when we are updating the model ourselves (because of a file read)
           myModified = true;
         }
