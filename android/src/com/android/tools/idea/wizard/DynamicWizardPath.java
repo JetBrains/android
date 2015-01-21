@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.Nullable;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -23,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -178,7 +178,6 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
       // If we don't have a queue (ie we're not attached to a wizard) then just update immediately
       update();
     }
-    updateButtons();
   }
 
   /**
@@ -190,6 +189,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
       deriveValues(myState.getRecentUpdates());
       myIsValid = validate();
       myUpdateInProgress = false;
+      updateButtons();
     }
   }
 
@@ -431,15 +431,17 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     }
   }
 
+  /**
+   * @return update queue if there is one
+   */
+  @Nullable
+  public MergingUpdateQueue getUpdateQueue() {
+    return myUpdateQueue;
+  }
+
   private class PathUpdate extends Update {
     public PathUpdate() {
-      super("Path Update");
-    }
-
-    @NotNull
-    @Override
-    public Object[] getEqualityObjects() {
-      return new Object[] {DynamicWizardPath.this};
+      super(DynamicWizardPath.this);
     }
 
     @Override
