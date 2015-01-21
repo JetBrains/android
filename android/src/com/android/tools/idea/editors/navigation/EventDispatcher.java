@@ -13,10 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.navigation.model;
+package com.android.tools.idea.editors.navigation;
 
 import com.android.annotations.NonNull;
 
-public interface Listener<E> {
-  void notify(@NonNull E event);
+import java.util.ArrayList;
+
+public class EventDispatcher<E> extends ArrayList<Listener<E>> implements Listener<E> {
+  @Override
+  public void notify(@NonNull E event) {
+    for (Listener<E> listener : this) {
+      listener.notify(event);
+    }
+  }
+
+  @Override
+  public boolean add(Listener<E> listener) {
+    //noinspection SimplifiableConditionalExpression
+    return !contains(listener) ? super.add(listener) : false;
+  }
 }
