@@ -22,6 +22,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +62,8 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   private boolean myIsValid;
   private boolean myInitialized;
   protected WizardStepHeaderPanel myHeader;
+  // Used to postpone and coalesce update requests
+  @Nullable MergingUpdateQueue myUpdateQueue;
 
   public DynamicWizardStep() {
     myState = new ScopedStateStore(STEP, null, this);
@@ -85,6 +89,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     for (String keyName : myCurrentValues.keySet()) {
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
+    myUpdateQueue = path.getUpdateQueue();
   }
 
   /**
@@ -194,7 +199,16 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * scope is PATH or WIZARD. Should generally not be overridden.
    */
   @Override
-  public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
+  public <T> void invokeUpdate(@Nullable final Key<T> changedKey) {
+    if (myUpdateQueue != null) {
+      myUpdateQueue.queue(new StepUpdate(changedKey));
+    }
+    else {
+      performUpdate(changedKey);
+    }
+  }
+
+  private <T> void performUpdate(@Nullable Key<T> changedKey) {
     super.invokeUpdate(changedKey);
     update();
     if (myPath != null) {
@@ -359,4 +373,18 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
 
   @Nullable
   protected abstract String getStepDescription();
+
+  private class StepUpdate extends Update {
+    private final Key<?> myChangedKey;
+
+    public StepUpdate(@Nullable Key<?> changedKey) {
+      super(DynamicWizardStep.this);
+      myChangedKey = changedKey;
+    }
+
+    @Override
+    public void run() {
+      performUpdate(myChangedKey);
+    }
+  }
 }
