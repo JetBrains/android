@@ -320,6 +320,9 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Set application icon", "AndroidManifest.xml", "xml");
   }
 
+  /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use
+   * density filtering. Re-enable this if we broaden the mipmap check, or if we update the AndroidLintTest
+   * to also check Gradle projects.
   public void testMipmap() throws Exception {
     deleteManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "/src/p1/p2/R.java");
@@ -343,6 +346,7 @@ public class AndroidLintTest extends AndroidTestCase {
     // The R.java file should not have been edited:
     myFixture.checkResultByFile("src/p1/p2/R.java", getGlobalTestDir() + "/R.java", true);
   }
+  */
 
   public void testAllowBackup() throws Exception {
     deleteManifest();
