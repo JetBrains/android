@@ -138,6 +138,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  build.gradle (Module: javamodule)\n" +
       "  build.gradle (Module: lib)\n" +
       "  gradle-wrapper.properties (Gradle Version)\n" +
+      "  proguard-rules.pro (ProGuard Rules for app)\n" +
+      "  proguard.cfg (ProGuard Rules for lib)\n" +
       "  settings.gradle (Project Settings)\n" +
       "  local.properties (SDK Location)\n";
     int numLines = expected.split("\n").length;
