@@ -16,18 +16,12 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.jetbrains.annotations.Contract;
+import com.google.common.collect.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.ref.WeakReference;
+import java.util.*;
 
 /**
  * Used by {@link DynamicWizard}, {@link DynamicWizardPath}, and {@link DynamicWizardStep} to store their state.
@@ -61,8 +55,16 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   // Set of changed key/scope pairs which have been modified since the last call to clearRecentUpdates()
   private Set<Key> myRecentlyUpdated = Sets.newHashSet();
   private Scope myScope;
-  @Nullable private ScopedStoreListener myListener;
+  private final Collection<WeakReference<ScopedStoreListener>> myListeners = Lists.newArrayListWithCapacity(4);
   @Nullable private ScopedStateStore myParent;
+  // Note that this should live as long as the store instance. Otherwise it gets GCed and no notifications are propagated.
+  @SuppressWarnings("FieldCanBeLocal")
+  private final ScopedStoreListener myParentListener = new ScopedStoreListener() {
+    @Override
+    public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
+      notifyListeners(changedKey);
+    }
+  };
 
   public interface ScopedStoreListener {
     <T> void invokeUpdate(@Nullable Key<T> changedKey);
@@ -70,12 +72,24 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
 
   public ScopedStateStore(@NotNull Scope scope, @Nullable ScopedStateStore parent, @Nullable ScopedStoreListener listener) {
     myScope = scope;
-    myListener = listener;
     if (myParent != null && myScope.isGreaterThan(myParent.myScope)) {
       throw new IllegalArgumentException("Attempted to add store of scope " + myScope.toString() +
                                          " as child of lesser scope " + myParent.myScope.toString());
     }
     myParent = parent;
+    if (listener != null) {
+      addListener(listener);
+    }
+    if (myParent != null) {
+      myParent.addListener(myParentListener);
+    }
+  }
+
+  /**
+   * Adds a listener that gets notified when stored values change.
+   */
+  public final void addListener(@NotNull ScopedStoreListener listener) {
+    myListeners.add(new WeakReference<ScopedStoreListener>(listener));
   }
 
   /**
@@ -130,43 +144,50 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
     } else if (myScope.equals(key.scope)) {
       stateChanged = !myState.containsKey(key) || !equals(myState.get(key), value);
       myState.put(key, value);
+      if (stateChanged) {
+        notifyListeners(key);
+      }
     } else if (key.scope.isGreaterThan(myScope) && myParent != null) {
       stateChanged = myParent.put(key, value);
     } else {
       throw new IllegalArgumentException("Attempted to store a value of scope " + key.scope.toString() + " in lesser scope of "
                                           + myScope.toString() + " which does not have a parent of the proper scope");
     }
-    if (stateChanged) {
-      myRecentlyUpdated.add(key);
-      if (myListener != null) {
-        myListener.invokeUpdate(key);
+    return stateChanged;
+  }
+
+  private <T> void notifyListeners(@Nullable Key<T> key) {
+    myRecentlyUpdated.add(key);
+    for (Iterator<WeakReference<ScopedStoreListener>> iterator = myListeners.iterator(); iterator.hasNext(); ) {
+      ScopedStoreListener listener = iterator.next().get();
+      if (listener == null) {
+        iterator.remove();
+      }
+      else {
+        listener.invokeUpdate(key);
       }
     }
-    return stateChanged;
   }
 
   /**
    * Push the given value onto a list. If no list is present for the given key it will be created.
    * @return true iff the state changed as a result of this operation.
    */
-  public <T extends List> boolean listPush(@NotNull Key<T> key, @Nullable Object value) {
+  public <T> boolean listPush(@NotNull Key<List<T>> key, @Nullable T value) {
     boolean stateChanged = false;
     if (value != null) {
-      T list = null;
+      List<T> list = null;
       if (containsKey(key)) {
         list = get(key);
       }
       if (list == null) {
-        list = (T)new ArrayList<Object>();
+        list = Lists.newArrayList();
       }
       stateChanged = list.add(value);
       put(key, list);
     }
     if (stateChanged) {
-      myRecentlyUpdated.add(key);
-      if (myListener != null) {
-        myListener.invokeUpdate(key);
-      }
+      notifyListeners(key);
     }
     return stateChanged;
   }
@@ -196,10 +217,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
       }
     }
     if (stateChanged) {
-      myRecentlyUpdated.add(key);
-      if (myListener != null) {
-        myListener.invokeUpdate(key);
-      }
+      notifyListeners(key);
     }
     return stateChanged;
   }
@@ -239,9 +257,16 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    */
   public void putAllInWizardScope(@NotNull ScopedStateStore store) {
     for (Key key : store.getAllKeys()) {
-      Key newKey = new Key(key.name, Scope.WIZARD, key.expectedClass);
-      put(newKey, store.get(key));
+      copyValue(store, key);
     }
+  }
+
+  /**
+   * Typesafe copy operation for copying key value between stores.
+   */
+  private <T> void copyValue(@NotNull ScopedStateStore store, @NotNull Key<T> key) {
+    Key newKey = new Key<T>(key.name, Scope.WIZARD, key.expectedClass);
+    put(newKey, store.get(key));
   }
 
   /**
@@ -266,10 +291,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
                                          + myScope.toString() + " which does not have a parent of the proper scope");
     }
     if (stateChanged) {
-      myRecentlyUpdated.add(key);
-      if (myListener != null) {
-        myListener.invokeUpdate(key);
-      }
+      notifyListeners(key);
     }
     return stateChanged;
   }
