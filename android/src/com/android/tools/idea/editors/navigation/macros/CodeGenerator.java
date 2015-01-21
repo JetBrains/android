@@ -32,12 +32,14 @@ import org.jetbrains.annotations.NotNull;
 public class CodeGenerator {
   private static final String[] FRAMEWORK_IMPORTS = new String[]{"android.app.Activity", "android.content.Intent", "android.os.Bundle"};
   public static final String TRANSITION_ADDED = "Transition added";
+  private static final String LIST_POSITION_EXTRA_NAME = "position";
+  private static final boolean PREPEND_PACKAGE_NAME_TO_EXTRA_NAME = false;
 
   private static class Template {
+    public String[] imports;
     public String signature;
     public String body;
     public boolean insertCodeBeforeLastStatement;
-    public String[] imports;
     public Function<Transition, String> code;
 
     private void installTransition(CodeGenerator codeGenerator, PsiClass psiClass, Transition transition) {
@@ -47,13 +49,13 @@ public class CodeGenerator {
 
   private static final Template SHOW_MENU = new Template() {
     {
+      imports = new String[]{"android.view.Menu"};
       signature = "boolean onCreateOptionsMenu(Menu menu)";
       body = "@Override " +
              "public boolean onCreateOptionsMenu(Menu menu) { " +
              "    return true;" +
              "}";
       insertCodeBeforeLastStatement = true;
-      imports = new String[]{"android.view.Menu"};
       code = new Function<Transition, String>() {
         @Override
         public String fun(Transition transition) {
@@ -66,6 +68,7 @@ public class CodeGenerator {
 
   private static final Template MENU_ACTION = new Template() {
     {
+      imports = new String[]{"android.view.Menu", "android.view.MenuItem"};
       signature = "boolean onPrepareOptionsMenu(Menu menu)";
       body = "@Override " +
              "public boolean onPrepareOptionsMenu(Menu menu) { " +
@@ -73,7 +76,6 @@ public class CodeGenerator {
              "    return result;" +
              "}";
       insertCodeBeforeLastStatement = true;
-      imports = new String[]{"android.view.Menu", "android.view.MenuItem"};
       code = new Function<Transition, String>() {
         @Override
         public String fun(Transition transition) {
@@ -81,16 +83,15 @@ public class CodeGenerator {
           String viewName = source.getViewId();
           String sourceClassName = source.getState().getClassName();
           String destinationClassName = transition.getDestination().getState().getClassName();
+          String activity = sourceClassName + ".this";
 
-          String code = "$0.findItem(R.id." + viewName + ").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
+          return "$0.findItem(R.id." + viewName + ").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
                         "    @Override" +
                         "    public boolean onMenuItemClick(MenuItem menuItem) {" +
-                        "        $context.startActivity(new Intent($context, " + destinationClassName + ".class));" +
+                        "        startActivity(new Intent(" + activity + ", " + destinationClassName + ".class));" +
                         "        return true;" +
                         "    }" +
                         "});";
-          code = code.replaceAll("\\$context", sourceClassName + ".this");
-          return code;
         }
       };
     }
@@ -99,13 +100,13 @@ public class CodeGenerator {
   private static Template setOnClickListener(final boolean isFragment) {
     return new Template() {
       {
+        imports = new String[]{"android.view.View"};
         signature = isFragment ? "void onViewCreated(View view, Bundle savedInstanceState)" : "void onCreate(Bundle savedInstanceState)";
         body = "@Override\n" +
                "public " + signature + " { " +
                "    super.onCreate(savedInstanceState);" +
                "}";
         insertCodeBeforeLastStatement = false;
-        imports = new String[]{"android.view.View"};
         code = new Function<Transition, String>() {
           @Override
           public String fun(Transition transition) {
@@ -132,23 +133,28 @@ public class CodeGenerator {
   private static Template overrideOnItemClickInList(final boolean isFragment) {
     return new Template() {
       {
+        imports = new String[]{"android.view.View", "android.view.ListView"};
         signature = "void onListItemClick(ListView l, View v, int position, long id)";
         body = "@Override\n" +
                (isFragment ? "public" : "protected") + " " + signature + " {" +
                "    super.onListItemClick(l, v, position, id);\n" +
                "}";
         insertCodeBeforeLastStatement = false;
-        imports = new String[]{"android.view.View", "android.view.ListView"};
         code = new Function<Transition, String>() {
           @Override
           public String fun(Transition transition) {
             Locator source = transition.getSource();
             String sourceClassName = source.getState().getClassName();
+            String sourcePackageName = sourceClassName.substring(0, sourceClassName.lastIndexOf('.'));
             Locator destination = transition.getDestination();
             String destinationClassName = destination.getState().getClassName();
             String activity = isFragment ? "getActivity()" : sourceClassName + ".this";
 
-            return "startActivity(new Intent(" + activity + ", " + destinationClassName + ".class));";
+            //noinspection ConstantConditions
+            return "startActivity(new Intent(" + activity + ", " + destinationClassName +
+                   ".class).putExtra(\"" +
+                   (PREPEND_PACKAGE_NAME_TO_EXTRA_NAME ? sourcePackageName + "." + LIST_POSITION_EXTRA_NAME : LIST_POSITION_EXTRA_NAME) +
+                   "\", position));";
           }
         };
       }

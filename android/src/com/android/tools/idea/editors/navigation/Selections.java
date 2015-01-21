@@ -43,6 +43,7 @@ class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
   private static final int SELECTION_RECTANGLE_LINE_WIDTH = 2;
   public static final Event STATE_LOCATIONS_UPDATED = Event.update(Map.class); // just avoid State.class, which would trigger reload
+  public static final boolean MOVE_MENUS_WITH_ACTIVITIES = true;
 
   public static Selection NULL = new EmptySelection();
 
@@ -177,13 +178,12 @@ class Selections {
       final TransitionInspector transitionInspector = new TransitionInspector();
       final Locator source = myTransition.getSource();
       State sourceState = source.getState();
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceActivity, sourceState.getClassName());
+      final boolean isFragment = source.getFragmentClassName() != null;
+      final String hostClassName = isFragment ? source.getFragmentClassName() : sourceState.getClassName();
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, hostClassName);
       sourceState.accept(new State.Visitor() {
         @Override
         public void visit(ActivityState state) {
-          configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.sourceFragment, source.getFragmentClassName());
-          boolean isFragment = source.getFragmentClassName() != null;
-          String hostClassName = isFragment ? source.getFragmentClassName() : state.getClassName();
           String xmlFileName = Analyser.getXMLFileName(module, hostClassName, !isFragment);
           configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, false);
         }
@@ -240,10 +240,13 @@ class Selections {
       Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
       Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
       stateToLocation.put(myState, myTransform.viewToModel(newLocation));
-      MenuState menuState = myNavigationModel.findAssociatedMenuState(myState);
-      if (menuState != null) {
-        Point delta = diff(newLocation, oldLocation);
-        stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
+      //noinspection ConstantConditions
+      if (MOVE_MENUS_WITH_ACTIVITIES && myState instanceof ActivityState) {
+        MenuState menuState = myNavigationModel.findAssociatedMenuState((ActivityState)myState);
+        if (menuState != null) {
+          Point delta = diff(newLocation, oldLocation);
+          stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
+        }
       }
       myNavigationModel.getListeners().notify(STATE_LOCATIONS_UPDATED);
     }
@@ -330,11 +333,8 @@ class Selections {
       int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
       Graphics2D lineGraphics = Utilities.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
-      Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
-      Rectangle sourceComponentBounds = mySourceComponent.getBounds();
-      // if the mouse hasn't left the bounds of the originating component yet, use leaf bounds instead for the midLine calculation
-      Rectangle startBounds = sourceComponentBounds.contains(myMouseLocation) ? sourceBounds : sourceComponentBounds;
-      Line midLine = Utilities.getMidLine(startBounds, new Rectangle(myMouseLocation));
+      Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation, false);
+      Line midLine = Utilities.getMidLine(sourceBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationView.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
