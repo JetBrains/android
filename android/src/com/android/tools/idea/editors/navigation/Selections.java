@@ -35,7 +35,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Map;
 
-import static com.android.tools.idea.editors.navigation.NavigationView.Line;
+import static com.android.tools.idea.editors.navigation.Utilities.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
 import static com.android.tools.idea.editors.navigation.Utilities.sum;
 
@@ -317,13 +317,13 @@ class Selections {
     @Override
     protected void paintOver(Graphics g) {
       int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
-      Graphics2D lineGraphics = NavigationView.createLineGraphics(g, lineWidth);
+      Graphics2D lineGraphics = Utilities.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
       Rectangle sourceComponentBounds = mySourceComponent.getBounds();
       // if the mouse hasn't left the bounds of the originating component yet, use leaf bounds instead for the midLine calculation
       Rectangle startBounds = sourceComponentBounds.contains(myMouseLocation) ? sourceBounds : sourceComponentBounds;
-      Line midLine = NavigationView.getMidLine(startBounds, new Rectangle(myMouseLocation));
+      Line midLine = Utilities.getMidLine(startBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationView.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
