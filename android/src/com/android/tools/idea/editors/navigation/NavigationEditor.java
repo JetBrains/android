@@ -28,7 +28,6 @@ import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -306,24 +305,13 @@ public class NavigationEditor implements FileEditor {
     // Post to the event queue to coalesce events and effect re-parse when they're all in
     if (!myPendingFileSystemChanges) {
       myPendingFileSystemChanges = true;
-      final Application app = ApplicationManager.getApplication();
-      app.invokeLater(new Runnable() {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          app.executeOnPooledThread(new Runnable() {
-            @Override
-            public void run() {
-              app.runReadAction(new Runnable() {
-                @Override
-                public void run() {
-                  myPendingFileSystemChanges = false;
-                  long l = System.currentTimeMillis();
-                  updateNavigationModelFromProject();
-                  if (DEBUG) System.out.println("Navigation Editor: model read took: " + (System.currentTimeMillis() - l) / 1000.0);
-                }
-              });
-            }
-          });
+          myPendingFileSystemChanges = false;
+          long l = System.currentTimeMillis();
+          updateNavigationModelFromProject();
+          if (DEBUG) System.out.println("Navigation Editor: model read took: " + (System.currentTimeMillis() - l) / 1000.0);
         }
       });
     }
