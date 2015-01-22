@@ -90,6 +90,8 @@ public class NavigationView extends JComponent {
   private static final String DEVICE_DEFAULT_THEME_NAME = SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
   public static final int RESOURCE_SUFFIX_LENGTH = ".xml".length();
   public static final String LIST_VIEW_ID = "list_view";
+  public static final int FAKE_OVERFLOW_MENU_WIDTH = 10;
+  public static final boolean SHOW_FAKE_OVERFLOW_MENUS = true;
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
@@ -101,7 +103,7 @@ public class NavigationView extends JComponent {
 
   private boolean myStateCacheIsValid;
   private boolean myTransitionEditorCacheIsValid;
-  private Map<State, Map<String, RenderedView>> myLocationToRenderedView = new IdentityHashMap<State, Map<String, RenderedView>>();
+  private Map<State, Map<String, RenderedView>> myNameToRenderedView = new IdentityHashMap<State, Map<String, RenderedView>>();
   private Image myBackgroundImage;
   private Point myMouseLocation;
   private Transform myTransform = new Transform(1 / 4f);
@@ -259,14 +261,17 @@ public class NavigationView extends JComponent {
     return new Rectangle(c.getX() + r.x, c.getY() + r.y, r.width, r.height);
   }
 
-  Rectangle getNamedLeafBoundsAt(Component sourceComponent, Point location) {
+  Rectangle getNamedLeafBoundsAt(Component sourceComponent, Point location, boolean penetrate) {
     Component destComponent = getComponentAt(location);
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
         if (!destinationRoot.isMenu) {
+          if (!penetrate) {
+            return destinationRoot.getBounds();
+          }
           RenderedView endLeaf = getRenderedView(destinationRoot, location);
-          RenderedView namedEndLeaf = HierarchyUtils.getNamedParent(endLeaf);
+          RenderedView namedEndLeaf = HierarchyUtils.getNamedParent(endLeaf) ;
           return getBounds(destinationRoot, namedEndLeaf);
         }
       }
@@ -319,7 +324,7 @@ public class NavigationView extends JComponent {
   }
 
   private Map<String, RenderedView> getNameToRenderedView(State state) {
-    Map<String, RenderedView> result = myLocationToRenderedView.get(state);
+    Map<String, RenderedView> result = myNameToRenderedView.get(state);
     if (result == null) {
       AndroidRootComponent androidRootComponent = getStateComponentAssociation().keyToValue.get(state);
       if (androidRootComponent == null) {
@@ -336,13 +341,18 @@ public class NavigationView extends JComponent {
         return Collections.emptyMap();
       }
 
-      myLocationToRenderedView.put(state, result = computeNameToRenderedView(hierarchy));
+      myNameToRenderedView.put(state, result = computeNameToRenderedView(hierarchy));
     }
     return result;
   }
 
   private static Map<String, RenderedView> createViewNameToRenderedView(@NotNull RenderedView root) {
     final Map<String, RenderedView> result = new HashMap<String, RenderedView>();
+    // Add fake rendered view for overflow menus so that sources of a menu transitions are shown upper right
+    if (SHOW_FAKE_OVERFLOW_MENUS) {
+      int w = FAKE_OVERFLOW_MENU_WIDTH;
+      result.put(Analyser.FAKE_OVERFLOW_MENU_ID, new RenderedView(root, null, null, root.x + root.w - w, 0, w, w));
+    }
     new Object() {
       void walk(RenderedView parent) {
         for (RenderedView child : parent.getChildren()) {
@@ -498,21 +508,16 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private Line getMidLine(Transition t) {
-    Map<State, AndroidRootComponent> m = getStateComponentAssociation().keyToValue;
-    State src = t.getSource().getState();
-    State dst = t.getDestination().getState();
-    return Utilities.getMidLine(m.get(src).getBounds(), m.get(dst).getBounds());
-  }
-
   static Point[] getControlPoints(Rectangle src, Rectangle dst, Line midLine) {
-    Point a = midLine.project(centre(src));
-    Point b = midLine.project(centre(dst));
+    Point a = midLine.a;
+    Point b = midLine.b;
     return new Point[]{project(a, src), a, b, project(b, dst)};
   }
 
   private Point[] getControlPoints(Transition t) {
-    return getControlPoints(getBounds(t.getSource()), getBounds(t.getDestination()), getMidLine(t));
+    Rectangle srcBounds = getBounds(t.getSource());
+    Rectangle dstBounds = getBounds(t.getDestination());
+    return getControlPoints(srcBounds, dstBounds, Utilities.getMidLine(srcBounds, dstBounds));
   }
 
   private static int getTurnLength(Point[] points, float scale) {
@@ -874,7 +879,9 @@ public class NavigationView extends JComponent {
           return Selections.NULL;
         }
         bringToFront(state);
-        bringToFront(myNavigationModel.findAssociatedMenuState(state));
+        if (state instanceof ActivityState) {
+          bringToFront(myNavigationModel.findAssociatedMenuState((ActivityState)state));
+        }
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition, myRenderingParams,
                                                             mouseDownLocation, state, myTransform);
       }
