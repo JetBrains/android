@@ -44,6 +44,7 @@ class Selections {
   private static final int SELECTION_RECTANGLE_LINE_WIDTH = 2;
   public static final Event STATE_LOCATIONS_UPDATED = Event.update(Map.class); // just avoid State.class, which would trigger reload
   public static final boolean MOVE_MENUS_WITH_ACTIVITIES = true;
+  public static final boolean SNAP_ON_MOUSE_UP = false;
 
   public static Selection NULL = new EmptySelection();
 
@@ -258,7 +259,7 @@ class Selections {
 
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
-      moveTo(location, true);
+      moveTo(location, SNAP_ON_MOUSE_UP);
       return this;
     }
 
