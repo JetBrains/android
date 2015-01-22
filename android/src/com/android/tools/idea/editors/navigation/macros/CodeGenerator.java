@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.navigation.Utilities;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -30,7 +31,8 @@ import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class CodeGenerator {
-  private static final String[] FRAMEWORK_IMPORTS = new String[]{"android.app.Activity", "android.content.Intent", "android.os.Bundle"};
+  private static final Logger LOG = Logger.getInstance(CodeGenerator.class.getName());
+  private static final String[] FRAMEWORK_IMPORTS = new String[]{"android.content.Intent"};
   public static final String TRANSITION_ADDED = "Transition added";
   private static final String LIST_POSITION_EXTRA_NAME = "position";
   private static final boolean PREPEND_PACKAGE_NAME_TO_EXTRA_NAME = false;
@@ -100,7 +102,7 @@ public class CodeGenerator {
   private static Template setOnClickListener(final boolean isFragment) {
     return new Template() {
       {
-        imports = new String[]{"android.view.View"};
+        imports = new String[]{"android.view.View", "android.os.Bundle"};
         signature = isFragment ? "void onViewCreated(View view, Bundle savedInstanceState)" : "void onCreate(Bundle savedInstanceState)";
         body = "@Override\n" +
                "public " + signature + " { " +
@@ -133,7 +135,7 @@ public class CodeGenerator {
   private static Template overrideOnItemClickInList(final boolean isFragment) {
     return new Template() {
       {
-        imports = new String[]{"android.view.View", "android.view.ListView"};
+        imports = new String[]{"android.view.View", "android.widget.ListView"};
         signature = "void onListItemClick(ListView l, View v, int position, long id)";
         body = "@Override\n" +
                (isFragment ? "public" : "protected") + " " + signature + " {" +
@@ -176,6 +178,8 @@ public class CodeGenerator {
       PsiClass psiClass = Utilities.getPsiClass(module, className);
       if (psiClass != null) {
         importHelper.addImport(file, psiClass);
+      } else {
+        LOG.warn("Class not found: " + className);
       }
     }
   }
