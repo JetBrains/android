@@ -112,6 +112,21 @@ public abstract class AndroidLogcatView implements Disposable {
     return myLogConsole;
   }
 
+  public void clearLogcat(@Nullable IDevice device) {
+    if (device == null) {
+      return;
+    }
+
+    AndroidLogcatUtil.clearLogcat(myProject, device);
+
+    // In theory, we only need to clear the console. However, due to issues in the platform, clearing logcat via "logcat -c" could
+    // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
+    // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
+    if (device.equals(getSelectedDevice())) {
+      restartLogging();
+    }
+  }
+
   private class MyLoggingReader extends AndroidLoggingReader {
     @Override
     @NotNull
@@ -475,9 +490,13 @@ public abstract class AndroidLogcatView implements Disposable {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      myDevice = null;
-      updateLogConsole();
+      restartLogging();
     }
+  }
+
+  private void restartLogging() {
+    myDevice = null;
+    updateLogConsole();
   }
 
   public class AndroidLogConsole extends LogConsoleBase {
@@ -498,11 +517,7 @@ public abstract class AndroidLogcatView implements Disposable {
     }
 
     public void clearLogcat() {
-      IDevice device = getSelectedDevice();
-      if (device != null) {
-        AndroidLogcatUtil.clearLogcat(myProject, device);
-      }
-      myLogConsole.clear();
+      AndroidLogcatView.this.clearLogcat(getSelectedDevice());
     }
   }
 

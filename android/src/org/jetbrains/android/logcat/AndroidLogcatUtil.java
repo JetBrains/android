@@ -67,7 +67,7 @@ public class AndroidLogcatUtil {
     AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
   }
 
-  public static void clearLogcat(final Project project, IDevice device) {
+  static void clearLogcat(@Nullable final Project project, @NotNull IDevice device) {
     try {
       AndroidUtils.executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(LOG), false);
     }
