@@ -157,12 +157,12 @@ public class NavigationModel {
   }
 
   @Nullable
-  public MenuState findAssociatedMenuState(State state) {
-    final Locator locator = Locator.of(state, null);
+  public MenuState findAssociatedMenuState(ActivityState state) {
+    final String className = state.getClassName();
     Transition transition = findTransition(new Condition<Transition>() {
       @Override
       public boolean value(Transition transition) {
-        return locator.equals(transition.getSource()) && transition.getDestination().getState() instanceof MenuState;
+        return className.equals(transition.getSource().getState().getClassName()) && transition.getDestination().getState() instanceof MenuState;
       }
     });
     if (transition != null) {
