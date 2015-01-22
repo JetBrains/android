@@ -24,10 +24,10 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.swing.layoutlib.AndroidThemePreviewPanel;
-import spantable.CellSpanTable;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ProjectTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -39,6 +39,8 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootAdapter;
+import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -56,6 +58,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import spantable.CellSpanTable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -234,6 +237,9 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myAdvancedFilterCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
+        if (myPropertiesTable.isEditing()) {
+          myPropertiesTable.getCellEditor().cancelCellEditing();
+        }
         myPropertiesTable.clearSelection();
         myPropertiesFilter.setAdvancedMode(myAdvancedFilterCheckBox.isSelected());
         ((TableRowSorter)myPropertiesTable.getRowSorter()).sort();
@@ -304,6 +310,18 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     split.setSecondComponent(rightPanel);
     split.setShowDividerControls(false);
     myComponent = split;
+
+    // If project roots change, reload the themes. This happens for example once the libraries have finished loading.
+    project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        long newModificationCount = getModificationCount();
+        if (myModificationCount != newModificationCount) {
+          myModificationCount = newModificationCount;
+          reload(myPreviousSelectedTheme);
+        }
+      }
+    });
 
     // a theme can contain theme attributes (listed in attrs.xml) and also global defaults (all of attrs.xml)
     reload(null/*defaultThemeName*/);
