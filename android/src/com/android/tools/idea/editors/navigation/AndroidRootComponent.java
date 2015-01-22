@@ -96,7 +96,7 @@ public class AndroidRootComponent extends JComponent {
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
-    //repaint();
+    revalidate(); // invalidate parent (NavigationView)
     parent.repaint();
   }
 
