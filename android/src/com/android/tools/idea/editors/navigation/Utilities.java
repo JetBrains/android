@@ -92,11 +92,7 @@ public class Utilities {
   }
 
   public static Point project(Point p, Rectangle r) {
-    Point centre = centre(r);
-    Point diff = diff(p, centre);
-    boolean horizontal = Math.abs((float)diff.y / diff.x) < Math.abs((float)r.height / r.width);
-    float scale = horizontal ? (float)r.width / 2 / diff.x : (float)r.height / 2 / diff.y;
-    return sum(centre, scale(diff, Math.abs(scale)));
+    return new Point(bound(p.x, x1(r), x2(r)), bound(p.y, y1(r), y2(r)));
   }
 
   public static Point centre(@NotNull Rectangle r) {
@@ -210,22 +206,11 @@ public class Utilities {
   }
 
   @Nullable
-  public static PsiClass getPsiClass(Project project, String className) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-    return facade.findClass(className, scope);
-  }
-
-  @Nullable
   public static PsiClass getPsiClass(Module module, String className) {
-    return getPsiClass(module.getProject(), className);
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  @Nullable
-  public static PsiMethod findMethodBySignature(Project project, String className, String signature) {
-    PsiClass psiClass = getPsiClass(project, className);
-    return psiClass == null ? null : findMethodBySignature(psiClass, signature);
+    Project project = module.getProject();
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = module.getModuleWithLibrariesScope();
+    return facade.findClass(className, scope);
   }
 
   @Nullable
@@ -367,13 +352,21 @@ public class Utilities {
     return dst.y + dst.height;
   }
 
-  static Line getMidLine(Rectangle src, Rectangle dst) {
-    Point midSrc = centre(src);
-    Point midDst = centre(dst);
+  private static int bound(int i, int min, int max) {
+      return i < min ? min : i > max ? max : i;
+  }
 
-    int dx = Math.abs(midSrc.x - midDst.x);
-    int dy = Math.abs(midSrc.y - midDst.y);
-    boolean horizontal = dx >= dy;
+  private static boolean overlaps(int min1, int max1, int min2, int max2) {
+      return !(max1 < min2 || max2 < min1);
+  }
+
+  static Line getMidLine(Rectangle src, Rectangle dst) {
+    boolean xOverlap = overlaps(x1(src), x2(src), x1(dst), x2(dst));
+    boolean yOverlap = overlaps(y1(src), y2(src), y1(dst), y2(dst));
+    int dx = Math.min(Math.abs(x1(src) - x2(dst)), Math.abs(x1(dst) - x2(src)));
+    int dy = Math.min(Math.abs(y1(src) - y2(dst)), Math.abs(y1(dst) - y2(src)));
+    //noinspection SimplifiableConditionalExpression
+    boolean horizontal = xOverlap ? yOverlap ? dx >= dy : false : yOverlap ? true : dx >= dy;
 
     int middle;
     if (horizontal) {
@@ -383,31 +376,27 @@ public class Utilities {
       middle = y1(src) - y2(dst) > 0 ? (y2(dst) + y1(src)) / 2 : (y2(src) + y1(dst)) / 2;
     }
 
+    Point midSrc = centre(src);
     Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
-    Point b = horizontal ? new Point(middle, midDst.y) : new Point(midDst.x, middle);
 
-    return new Line(a, b);
+    Point b = horizontal ? new Point(middle, bound(midSrc.y, y1(dst), y2(dst)))
+                         : new Point(bound(midSrc.x, x1(dst), x2(dst)), middle);
+
+    return new Line(a, b, horizontal);
   }
 
   static class Line {
     public final Point a;
     public final Point b;
+    public final boolean horizontal;
 
-    Line(Point a, Point b) {
+    Line(Point a, Point b, boolean horizontal) {
       this.a = a;
       this.b = b;
+      this.horizontal = horizontal;
     }
 
     Point project(Point p) {
-      boolean horizontal = a.x == b.x;
-      boolean vertical = a.y == b.y;
-      if (!horizontal && !vertical) {
-        throw new UnsupportedOperationException();
-      }
-      // Components are perfectly aligned, the 'mid line' has zero length and the transition is shown with no 'dog-leg'.
-      if (horizontal && vertical) {
-        return a;
-      }
       return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
