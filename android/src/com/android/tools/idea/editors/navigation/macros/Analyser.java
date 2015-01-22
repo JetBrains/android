@@ -32,6 +32,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -801,7 +802,7 @@ public class Analyser {
   }
 
   @Nullable
-  private static MultiMatch.Bindings<PsiElement> match(PsiClass clazz, String methodSignature, String matchMacro) {
+  private static MultiMatch.Bindings<PsiElement> match(@NotNull PsiClass clazz, String methodSignature, String matchMacro) {
     PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
     if (method == null) {
       return null;
