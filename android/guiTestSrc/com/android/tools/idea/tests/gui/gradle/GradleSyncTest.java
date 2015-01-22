@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -35,6 +37,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -44,12 +48,13 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.CheckBoxList;
 import com.intellij.util.SystemProperties;
 import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.finder.WindowFinder;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
@@ -58,6 +63,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -91,13 +97,20 @@ import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
+  @After
+  public void resetExperimentalSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+  }
+
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
     File androidRepoPath = new File(DefaultSdks.getDefaultAndroidHome(), FileUtil.join("extras", "android", "m2repository"));
@@ -116,7 +129,7 @@ public class GradleSyncTest extends GuiTestCase {
     hyperlink.click(false);
 
     // TODO implement a proper "SDK Quick Fix wizard" fixture that wraps a SdkQuickfixWizard
-    DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
+    DialogFixture quickFixDialog = findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
       @Override
       protected boolean isMatching(Dialog dialog) {
         return "Install Missing Components".equals(dialog.getTitle());
@@ -733,6 +746,41 @@ public class GradleSyncTest extends GuiTestCase {
 
     FileFixture file = ideFrame.findExistingFileByRelativePath(stringsXmlPath);
     file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+  }
+
+  @Test @IdeGuiTest
+  public void testModuleSelectionOnImport() throws IOException {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
+    File projectPath = setUpProject("Flavoredlib", false, true, null);
+
+    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        GradleProjectImporter.getInstance().importProject(toSelect);
+      }
+    });
+
+    DialogFixture dialog = findDialog(withTitle("Select Modules to Include").andShowing()).withTimeout(SHORT_TIMEOUT.duration())
+                                                                                          .using(myRobot);
+    //noinspection unchecked
+    CheckBoxList<DataNode<ModuleData>> list = myRobot.finder().findByType(dialog.target, CheckBoxList.class, true);
+    CheckBoxListFixture moduleList = new CheckBoxListFixture<DataNode<ModuleData>>(myRobot, list);
+    moduleList.setItemChecked("lib", false);
+
+    findAndClickOkButton(dialog);
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
+    assertThat(projectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
+
+    // subsequent project syncs should respect module selection
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    assertThat(projectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
   }
 
   @NotNull
