@@ -1068,30 +1068,23 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   protected static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
-    final boolean[] result = {true};
-
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
         if (toolWindow == null) {
-          result[0] = false;
           return;
         }
 
         for (Content content : toolWindow.getContentManager().getContents()) {
           final AndroidLogcatView view = content.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
 
-          if (view != null && device == view.getSelectedDevice()) {
-            view.getLogConsole().clear();
+          if (view != null) {
+            view.clearLogcat(device);
           }
         }
       }
     }, ModalityState.defaultModalityState());
-
-    if (result[0]) {
-      AndroidLogcatUtil.clearLogcat(project, device);
-    }
   }
 
   private boolean checkDdms() {
