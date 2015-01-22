@@ -67,7 +67,7 @@ public class AndroidLogcatUtil {
     AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
   }
 
-  public static void clearLogcat(final Project project, IDevice device) {
+  static void clearLogcat(@Nullable final Project project, @NotNull IDevice device) {
     try {
       AndroidUtils.executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(LOG), false);
     }
@@ -122,24 +122,19 @@ public class AndroidLogcatUtil {
       console.writeToConsole("Unable to run logcat. IOException: " + e.getMessage() + '\n', ProcessOutputTypes.STDERR);
       return null;
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            if (clearLogcat) {
-              clearLogcat(project, device);
-            }
-            try {
-              startLogging(device, receiver);
-            }
-            catch (final Exception e) {
-              LOG.info(e);
-              console.writeToConsole(e.getMessage() + '\n', ProcessOutputTypes.STDERR);
-            }
-          }
-        });
+        if (clearLogcat) {
+          clearLogcat(project, device);
+        }
+        try {
+          startLogging(device, receiver);
+        }
+        catch (final Exception e) {
+          LOG.info(e);
+          console.writeToConsole(e.getMessage() + '\n', ProcessOutputTypes.STDERR);
+        }
       }
     });
     return new Pair<Reader, Writer>(logReader, logWriter);
