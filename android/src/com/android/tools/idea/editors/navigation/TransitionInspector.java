@@ -21,8 +21,7 @@ import javax.swing.*;
 
 public class TransitionInspector {
   public JPanel container;
-  public HyperlinkLabel sourceActivity;
-  public HyperlinkLabel sourceFragment;
+  public HyperlinkLabel source;
   public HyperlinkLabel sourceViewId;
   public JComboBox gesture;
   public HyperlinkLabel destination;
