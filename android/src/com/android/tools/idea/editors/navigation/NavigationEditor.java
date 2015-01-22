@@ -19,15 +19,16 @@ package com.android.tools.idea.editors.navigation;
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.Event.Operation;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.editors.navigation.Event.Operation;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -81,6 +82,7 @@ public class NavigationEditor implements FileEditor {
   private static final int SCROLL_UNIT_INCREMENT = 20;
   public static final Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
   private static final ModelDimension UNATTACHED_STRIDE = new ModelDimension(50, 50);
+  private static final boolean RUN_ANALYSIS_ON_BACKGROUND_THREAD = false;
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private RenderingParameters myRenderingParams;
@@ -600,21 +602,41 @@ public class NavigationEditor implements FileEditor {
     return unattached;
   }
 
-  private void updateNavigationModelFromProject() {
-    if (DEBUG) System.out.println("NavigationEditor: updateNavigationModelFromProject...");
-    if (myRenderingParams == null || myRenderingParams.project.isDisposed()) {
-      return;
+  private static void conditionallyExecuteOnBackgroundThread(Runnable action) {
+    if (RUN_ANALYSIS_ON_BACKGROUND_THREAD) {
+      ApplicationManager.getApplication().executeOnPooledThread(action);
+    } else {
+      action.run();
     }
-    final NavigationModel newModel = myAnalyser.getNavigationModel(myRenderingParams.configuration);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  }
+
+  private void updateNavigationModelFromProject() {
+    final Application app = ApplicationManager.getApplication();
+    conditionallyExecuteOnBackgroundThread(new Runnable() {
       @Override
       public void run() {
-        EventDispatcher<Event> listeners = myNavigationModel.getListeners();
-        myNavigationModel.clear();
-        myNavigationModel.copyAllStatesAndTransitionsFrom(newModel);
-        layoutStatesWithUnsetLocations(myNavigationModel, myRenderingParams.getDeviceScreenSize());
-        myModified = false;
-        listeners.notify(PROJECT_READ);
+        app.runReadAction(new Runnable() {
+          @Override
+          public void run() {
+            if (DEBUG) System.out.println("NavigationEditor: updateNavigationModelFromProject...");
+            if (myRenderingParams == null || myRenderingParams.project.isDisposed()) {
+              return;
+            }
+            final NavigationModel newModel = myAnalyser.getNavigationModel(myRenderingParams.configuration);
+            // Return to EDT to install new model and notify listeners
+            app.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                EventDispatcher<Event> listeners = myNavigationModel.getListeners();
+                myNavigationModel.clear();
+                myNavigationModel.copyAllStatesAndTransitionsFrom(newModel);
+                layoutStatesWithUnsetLocations(myNavigationModel, myRenderingParams.getDeviceScreenSize());
+                myModified = false;
+                listeners.notify(PROJECT_READ);
+              }
+            });
+          }
+        });
       }
     });
   }
@@ -623,7 +645,7 @@ public class NavigationEditor implements FileEditor {
   public void selectNotify() {
     if (myRenderingParams != null) {
       AndroidFacet facet = myRenderingParams.facet;
-      updateNavigationModelFromProject();
+      postDelayedRefresh();
       VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
       getResourceFolderManager(facet).addListener(myResourceFolderListener);
       myNavigationModel.getListeners().add(myNavigationModelListener);
