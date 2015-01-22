@@ -457,19 +457,6 @@ public class RenderLogger extends LayoutLog {
       return;
     }
 
-    // TODO: Remove me
-    if ("colorfilter".equals(tag)) {
-      // L layoutlib requires this for actionbar but does not render it yet; for now, silently fix it
-      // Fixed in revision 4, we can remove this check soon
-      return;
-    }
-    else if ("broken".equals(tag) &&
-             ("Unable to load font AndroidEmoji.ttf".equals(message) ||
-              "Unable to load font NotoSansSymbols-Regular-Subsetted.ttf".equals(message))) {
-      // Not yet working. Will be fixed in layoutlib L+.
-      return;
-    }
-
     String description = describe(message);
     if (myFidelityWarningStrings != null && myFidelityWarningStrings.contains(description)) {
       // Exclude duplicates
