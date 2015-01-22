@@ -95,7 +95,8 @@ public class AndroidColorAnnotator implements Annotator {
     if (element instanceof XmlTag) {
       XmlTag tag = (XmlTag)element;
       String tagName = tag.getName();
-      if ((ResourceType.COLOR.getName().equals(tagName) || ResourceType.DRAWABLE.getName().equals(tagName))) {
+      if ((ResourceType.COLOR.getName().equals(tagName) || ResourceType.DRAWABLE.getName().equals(tagName)
+            || ResourceType.MIPMAP.getName().equals(tagName))) {
         DomElement domElement = DomManager.getDomManager(element.getProject()).getDomElement(tag);
         if (domElement instanceof ResourceElement) {
           String value = tag.getValue().getText().trim();
@@ -120,7 +121,7 @@ public class AndroidColorAnnotator implements Annotator {
         // same expression, which would result in both elements getting annotated and the icon showing up
         // in the gutter twice. Instead we only count the outer one.
         ResourceType type = AndroidPsiUtils.getResourceType(element);
-        if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE) {
+        if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
           String name = AndroidPsiUtils.getResourceName(element);
           annotateResourceReference(type, holder, element, name, referenceType == ResourceReferenceType.FRAMEWORK);
         }
@@ -152,6 +153,8 @@ public class AndroidColorAnnotator implements Annotator {
       annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(DRAWABLE_PREFIX.length()), false);
     } else if (value.startsWith(ANDROID_DRAWABLE_PREFIX)) {
       annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(ANDROID_DRAWABLE_PREFIX.length()), true);
+    } else if (value.startsWith(MIPMAP_PREFIX)) {
+      annotateResourceReference(ResourceType.MIPMAP, holder, element, value.substring(MIPMAP_PREFIX.length()), false);
     }
   }
 
@@ -261,7 +264,7 @@ public class AndroidColorAnnotator implements Annotator {
         annotation.setGutterIconRenderer(new MyRenderer(element, color));
       }
     } else {
-      assert type == ResourceType.DRAWABLE;
+      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
 
       File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value));
       if (iconFile != null) {
