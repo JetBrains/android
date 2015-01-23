@@ -35,12 +35,12 @@ public class DelegatingCellEditor implements TableCellEditor {
   private final TableCellEditor myDelegate;
   private final boolean myConvertValueToString;
 
-  DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate) {
+  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate) {
     myConvertValueToString = convertValueToString;
     myDelegate = delegate;
   }
 
-  DelegatingCellEditor(final TableCellEditor delegate) {
+  public DelegatingCellEditor(final TableCellEditor delegate) {
     this(true, delegate);
   }
 

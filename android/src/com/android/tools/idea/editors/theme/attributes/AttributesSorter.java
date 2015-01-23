@@ -58,7 +58,7 @@ public class AttributesSorter {
   );
 
   @SuppressWarnings("unchecked")
-  static List<TableLabel> generateLabels(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+  public static List<TableLabel> generateLabels(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
     final List<EditedStyleItem>[] classes = new List[GROUPS.size() + 1];
     final int otherGroupIndex = GROUPS.size();
 
