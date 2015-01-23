@@ -45,8 +45,8 @@ public class DeviceEditWizardFixture extends AbstractWizardFixture {
   }
 
   @NotNull
-  public DeviceEditWizardFixture clickFinish() {
-    JButton button = findButtonByText("Finish");
+  public DeviceEditWizardFixture clickOk() {
+    JButton button = findButtonByText("OK");
     robot.click(button);
     return this;
   }
