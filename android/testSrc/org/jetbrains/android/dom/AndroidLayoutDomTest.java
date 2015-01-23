@@ -490,6 +490,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.checkHighlighting(true, false, false);
   }
 
+  public void testStyleNamespaceHighlighting() throws Throwable {
+    VirtualFile virtualFile = copyFileToProject("stylesNamespaceHighlight.xml", "res/values/stylesNamespaceHighlight.xml");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
   public void testIdReferenceCompletion() throws Throwable {
     toTestCompletion("idref1.xml", "idref1_after.xml");
   }
