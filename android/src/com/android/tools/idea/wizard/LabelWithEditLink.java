@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.Document;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 /**
  * A label with an "edit" link that turns it into a text button
@@ -36,7 +36,7 @@ public class LabelWithEditLink extends JPanel {
   public static final String DISPLAY = "Display";
   public static final String EDIT = "Edit";
   private JBLabel myContentLabel = new JBLabel();
-  private JBLabel myEditLabel = new JBLabel(EDIT_TEXT);
+  private HyperlinkLabel myEditLabel = new HyperlinkLabel();
   private CardLayout myCardLayout = new CardLayout();
   private JPanel myCardPanel = new JPanel(myCardLayout);
   private JTextField myEditField = new JTextField();
@@ -55,26 +55,27 @@ public class LabelWithEditLink extends JPanel {
     add(myEditLabel, BorderLayout.EAST);
 
     myContentLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
-    myEditLabel.setForeground(JBColor.blue);
-    myEditLabel.addMouseListener(new MouseInputAdapter() {
+    myEditLabel.addHyperlinkListener(new HyperlinkListener() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        toggleEdit();
+      public void hyperlinkUpdate(HyperlinkEvent e) {
+        if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+          toggleEdit();
+        }
       }
     });
-    myEditLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     myContentLabel.setForeground(JBColor.gray);
     setFont(UIUtil.getLabelFont());
+    myEditLabel.setHtmlText(EDIT_TEXT);
   }
 
   private void toggleEdit() {
     if (myInEditMode) {
       myCardLayout.show(myCardPanel, DISPLAY);
-      myEditLabel.setText(EDIT_TEXT);
+      myEditLabel.setHtmlText(EDIT_TEXT);
       myContentLabel.setText(myEditField.getText());
     } else {
       myCardLayout.show(myCardPanel, EDIT);
-      myEditLabel.setText(DONE_TEXT);
+      myEditLabel.setHtmlText(DONE_TEXT);
       myEditField.setText(myContentLabel.getText());
       myEditField.requestFocusInWindow();
     }
