@@ -46,7 +46,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final List<EditedStyleItem> myAttributes;
   protected final ThemeEditorStyle mySelectedStyle;
 
-  AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle, @NotNull List<EditedStyleItem> attributes) {
+  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle, @NotNull List<EditedStyleItem> attributes) {
     mySelectedStyle = selectedStyle;
     myAttributeDefinitions = selectedStyle.getResolver().getAttributeDefinitions();
     myAttributes = attributes;

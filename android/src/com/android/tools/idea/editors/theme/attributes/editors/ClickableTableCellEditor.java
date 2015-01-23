@@ -96,7 +96,7 @@ public class ClickableTableCellEditor extends AbstractTableCellEditor implements
     return myEditLabel.getText();
   }
 
-  interface ClickListener {
+  public interface ClickListener {
     void clicked(@NotNull EditedStyleItem value);
   }
 }
