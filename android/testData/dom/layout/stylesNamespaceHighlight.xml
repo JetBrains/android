@@ -1,0 +1,4 @@
+<resources>
+  <style name="CustomStyle"/>
+  <style name="CustomStyle2" parent="<error>@android:style/CustomStyle</error>"/>
+</resources>
