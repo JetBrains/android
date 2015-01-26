@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
+import com.android.utils.ILogger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,7 @@ public class AndroidPluginOutputParser implements PatternAwareOutputParser {
   private static final int SEGMENT_COUNT = 3;
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     // pattern is type|path|message
     String[] segments = line.split("\\|", SEGMENT_COUNT);

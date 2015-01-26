@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParserUtil;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.ide.common.blame.parser.util.ParserUtil;
+import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.regex.Pattern;
 
 /**
  * A parser for exceptions thrown by dex. They are of the form:
- *
+ * <p/>
  * <pre>
  * UNEXPECTED TOP-LEVEL EXCEPTION:
  * [Stack trace]
@@ -39,7 +40,7 @@ public class DexExceptionParser implements PatternAwareOutputParser {
   private static final Pattern ALREADY_ADDED_EXCEPTION = Pattern.compile("already added: L(.+);");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     Matcher m1 = ERROR.matcher(line);
     if (!m1.matches()) {
