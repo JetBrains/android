@@ -296,16 +296,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   protected AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet) {
-    String runner = getInstrumentationRunner(facet, INSTRUMENTATION_RUNNER_CLASS);
-    return new MyApplicationLauncher(runner);
+    String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
+    return new MyApplicationLauncher(StringUtil.notNullize(runner));
   }
 
   @Nullable
-  public static String getInstrumentationRunner(@NotNull AndroidFacet facet, @NotNull String defaultRunner) {
-    String runner = defaultRunner.isEmpty() ? getRunnerFromManifest(facet) : defaultRunner;
+  public static String findInstrumentationRunner(@NotNull AndroidFacet facet) {
+    String runner = getRunnerFromManifest(facet);
 
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    // if custom runner is not set in the config, then see if it is specified by gradle
     if (runner == null && ideaAndroidProject != null) {
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
       String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
@@ -313,6 +312,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         runner = testRunner;
       }
     }
+
     return runner;
   }
 
