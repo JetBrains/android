@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
@@ -62,13 +63,33 @@ public class ThemeEditorUtils {
   }
 
   public static void openThemeEditor(final @NotNull Module module) {
-    final ThemeEditorVirtualFile file = new ThemeEditorVirtualFile(module);
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
+        ThemeEditorVirtualFile file = null;
         final Project project = module.getProject();
+        final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+
+        for (final FileEditor editor : fileEditorManager.getAllEditors()) {
+          if (!(editor instanceof ThemeEditor)) {
+            continue;
+          }
+
+          ThemeEditor themeEditor = (ThemeEditor) editor;
+          if (themeEditor.getVirtualFile().getModule() == module) {
+            file = themeEditor.getVirtualFile();
+            break;
+          }
+        }
+
+        // If existing virtual file is found, openEditor with created descriptor is going to
+        // show existing editor (without creating a new tab). If we haven't found any existing
+        // virtual file, we're creating one here (new tab with theme editor will be opened).
+        if (file == null) {
+          file = new ThemeEditorVirtualFile(module);
+        }
         final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
-        FileEditorManager.getInstance(project).openEditor(descriptor, true);
+        fileEditorManager.openEditor(descriptor, true);
       }
     });
   }

@@ -89,6 +89,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     TableLabel.class, 35
   );
 
+  private final ThemeEditorVirtualFile myVirtualFile;
   private final Configuration myConfiguration;
   private final Module myModule;
   private StyleResolver myStyleResolver;
@@ -111,7 +112,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
   public ThemeEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
-    myModule = ((ThemeEditorVirtualFile) file).getModule();
+    myVirtualFile = (ThemeEditorVirtualFile)file;
+    myModule = myVirtualFile.getModule();
 
     final ThemeEditorReopener reopener = project.getComponent(ThemeEditorReopener.class);
     reopener.notifyOpened(myModule);
@@ -756,4 +758,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     return myCurrentSubStyle != null;
   }
 
+  public ThemeEditorVirtualFile getVirtualFile() {
+    return myVirtualFile;
+  }
 }
