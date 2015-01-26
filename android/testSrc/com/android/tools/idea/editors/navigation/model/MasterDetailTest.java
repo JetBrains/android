@@ -28,7 +28,7 @@ public class MasterDetailTest extends NavigationEditorTest {
 
   /* When a master-detail app like simplemail runs on a tablet, there is one less transition in landscape. */
   public void testTransitionDerivationForTabletInLandscape() throws Exception {
-    assertDerivationCounts("raw-sw600dp-land", 2, 0);
+    assertDerivationCounts("raw-sw600dp-land", 1, 0);
   }
 
 }
