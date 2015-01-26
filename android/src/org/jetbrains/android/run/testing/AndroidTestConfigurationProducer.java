@@ -25,6 +25,7 @@ import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -169,7 +170,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   private static void setupInstrumentationTestRunner(@NotNull AndroidTestRunConfiguration configuration, @NotNull AndroidFacet facet) {
-    configuration.INSTRUMENTATION_RUNNER_CLASS = AndroidTestRunConfiguration.getInstrumentationRunner(facet, "");
+    configuration.INSTRUMENTATION_RUNNER_CLASS = StringUtil.notNullize(AndroidTestRunConfiguration.findInstrumentationRunner(facet));
   }
 
   @Override
