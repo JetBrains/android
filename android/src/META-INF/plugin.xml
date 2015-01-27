@@ -726,9 +726,6 @@
     <component>
       <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.editors.theme.ThemeEditorReopener</implementation-class>
-    </component>
   </project-components>
 
   <extensions defaultExtensionNs="org.jetbrains.android">

@@ -114,9 +114,6 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myVirtualFile = (ThemeEditorVirtualFile)file;
     myModule = myVirtualFile.getModule();
 
-    final ThemeEditorReopener reopener = project.getComponent(ThemeEditorReopener.class);
-    reopener.notifyOpened(myModule);
-
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile);
     myModificationCount = getModificationCount();
