@@ -83,7 +83,7 @@ public class BuildVariantView {
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
-  private JComboBox myTestArtifactComboBox;
+  private ComboBox myTestArtifactComboBox;
   private JPanel myTestArtifactPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
@@ -109,17 +109,18 @@ public class BuildVariantView {
           }
         }
       });
+
+      myTestArtifactPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
     }
   }
 
   private void updateComboBoxModel() {
-    List<Module> modules = getGradleModules();
+    List<Module> modules = getGradleModulesWithAndroidProjects();
 
-    if (modules.isEmpty()) {
-      myTestArtifactComboBox.setEnabled(false);
-    } else {
-      myTestArtifactComboBox.setEnabled(true);
+    boolean hasModules = !modules.isEmpty();
+    myTestArtifactComboBox.setEnabled(hasModules);
 
+    if (hasModules) {
       IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
       assert androidProject != null; // getGradleModules() returns only android modules and at this stage we have the IdeaAndroidProject.
       String selectedTestArtifactName = androidProject.getSelectedTestArtifactName();
@@ -137,7 +138,7 @@ public class BuildVariantView {
   }
 
   private void updateModulesWithTestArtifact(@NotNull String artifactType) {
-    if (!myUpdater.updateTestArtifactsNames(myProject, getGradleModules(), artifactType).isEmpty()) {
+    if (!myUpdater.updateTestArtifactsNames(myProject, getGradleModulesWithAndroidProjects(), artifactType).isEmpty()) {
       invokeListeners();
     }
   }
@@ -199,7 +200,7 @@ public class BuildVariantView {
     final List<Object[]> rows = Lists.newArrayList();
     final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
 
-    for (Module module : getGradleModules()) {
+    for (Module module : getGradleModulesWithAndroidProjects()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       assert androidFacet != null; // getGradleModules() returns only relevant modules.
 
@@ -236,15 +237,12 @@ public class BuildVariantView {
     }
   }
 
-  /**
-   * Returns all gradle android modules in the project.
-   */
   @NotNull
-  private List<Module> getGradleModules() {
+  private List<Module> getGradleModulesWithAndroidProjects() {
     List<Module> gradleModules = Lists.newArrayList();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.isGradleProject()) {
+      if (androidFacet != null && androidFacet.isGradleProject() && androidFacet.getIdeaAndroidProject() != null) {
         gradleModules.add(module);
       }
     }
