@@ -126,6 +126,9 @@ public class RenderService implements IImageFactory {
   @NotNull
   private final Configuration myConfiguration;
 
+  @NotNull
+  private final AssetRepositoryImpl myAssetRepository;
+
   private long myTimeout;
 
   @Nullable
@@ -343,6 +346,7 @@ public class RenderService implements IImageFactory {
     }
     myPsiFile = (XmlFile)psiFile;
     myConfiguration = configuration;
+    myAssetRepository = new AssetRepositoryImpl(facet);
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
@@ -619,6 +623,7 @@ public class RenderService implements IImageFactory {
     final SessionParams params =
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
+    params.setAssetRepository(myAssetRepository);
 
     params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(myPsiFile));
 
@@ -866,6 +871,7 @@ public class RenderService implements IImageFactory {
       new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
+    params.setAssetRepository(myAssetRepository);
     Result result = myLayoutLib.renderDrawable(params);
     if (result != null && result.isSuccess()) {
       Object data = result.getData();
@@ -1111,6 +1117,7 @@ public class RenderService implements IImageFactory {
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
+    params.setAssetRepository(myAssetRepository);
     ManifestInfo manifestInfo = ManifestInfo.get(myModule);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
