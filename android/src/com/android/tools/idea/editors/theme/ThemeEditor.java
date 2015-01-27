@@ -450,8 +450,10 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
     // The current style is R/O so we need to propagate this change a new style.
     String newStyleName = createNewStyle(selectedStyle.getName(), String
-      .format("<html>The '%1$s' style is Read-Only.<br/>A new style will be created to modify '%2$s'.<br/></html>",
-              selectedStyle.getName(), rv.getName()), rv.getQualifiedName(), strValue);
+      .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
+              isSubStyleSelected() ? "style" : "theme",
+              selectedStyle.getName(),
+              rv.getName()), rv.getQualifiedName(), strValue);
 
     if (newStyleName == null) {
       return;
@@ -524,7 +526,11 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
                                  @Nullable String message,
                                  @Nullable final String newAttributeName,
                                  @Nullable final String newAttributeValue) {
-    final NewStyleDialog dialog = new NewStyleDialog(myConfiguration, defaultParentStyleName, message);
+    final NewStyleDialog dialog = new NewStyleDialog(!isSubStyleSelected() /*isTheme*/,
+                                                     myConfiguration,
+                                                     defaultParentStyleName,
+                                                     getSelectedTheme() != null ? getSelectedTheme().getSimpleName() : null,
+                                                     message);
     boolean createStyle = dialog.showAndGet();
     if (!createStyle) {
       return null;

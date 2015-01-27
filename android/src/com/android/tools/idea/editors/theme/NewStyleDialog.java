@@ -24,6 +24,7 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,8 +38,24 @@ public class NewStyleDialog extends DialogWrapper {
   private JTextField myStyleNameTextField;
   private TextFieldWithBrowseButton myParentStyleTextField;
   private JLabel myMessageLabel;
+  private JLabel myParentStyleLabel;
+  private JLabel myStyleNameLabel;
+  /** Message displayed when the style name is empty */
+  private final String myEmptyStyleValidationText;
 
-  public NewStyleDialog(@NotNull final Configuration configuration, @Nullable String defaultParentStyle, @Nullable String message) {
+  /**
+   * Creates a new style dialog. This dialog it's used both to create new themes and new styles.
+   * @param isTheme Whether the new item will be a theme or a regular style. This will only affect the messages displayed to user.
+   * @param configuration The current device configuration.
+   * @param defaultParentStyle The parent style that will be preselected in the parent text field.
+   * @param currentThemeName The current theme name. This is used to automatically generate style names suggestions.
+   * @param message Message to display to the user when creating the new style.
+   */
+  public NewStyleDialog(boolean isTheme,
+                        @NotNull final Configuration configuration,
+                        @Nullable String defaultParentStyle,
+                        @Nullable final String currentThemeName,
+                        @Nullable String message) {
     super(true);
 
     if (!Strings.isNullOrEmpty(message)) {
@@ -51,15 +68,21 @@ public class NewStyleDialog extends DialogWrapper {
     myResourceNameValidator =
       ResourceNameValidator.create(false, AppResourceRepository.getAppResources(configuration.getModule(), true), ResourceType.STYLE);
 
-    setTitle("New theme");
+    String styleTypeString = isTheme ? "theme"  : "style";
+    setTitle("New " + StringUtil.capitalize(styleTypeString));
+    myStyleNameLabel.setText(String.format("New %1$s name:", styleTypeString));
+    myParentStyleLabel.setText(String.format("Parent %1$s name:", styleTypeString));
+    myEmptyStyleValidationText = String.format("You must specify a %1$s name", styleTypeString);
 
     myParentStyleTextField.setText(defaultParentStyle);
+    myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentStyle, currentThemeName));
     myParentStyleTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         ThemeSelectionDialog themeSelectionDialog = new ThemeSelectionDialog(configuration);
         if (themeSelectionDialog.showAndGet()) {
           myParentStyleTextField.setText(themeSelectionDialog.getTheme());
+          myStyleNameTextField.setText(getNewStyleNameSuggestion(themeSelectionDialog.getTheme(), currentThemeName));
         }
       }
     });
@@ -84,7 +107,7 @@ public class NewStyleDialog extends DialogWrapper {
   protected ValidationInfo doValidate() {
     String newStyleName = myStyleNameTextField.getText();
     if (Strings.isNullOrEmpty(newStyleName)) {
-      return new ValidationInfo("You must specify a style name", myStyleNameTextField);
+      return new ValidationInfo(myEmptyStyleValidationText, myStyleNameTextField);
     }
 
     if (!myResourceNameValidator.checkInput(newStyleName)) {
@@ -100,5 +123,38 @@ public class NewStyleDialog extends DialogWrapper {
 
   public String getStyleParentName() {
     return myParentStyleTextField.getText();
+  }
+
+  static String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
+
+  /**
+   * Returns a suggestion for a new style name based on both the parent style name and the current theme name. It will try to replace parent
+   * theme names with the passed theme name.
+   * <p/>
+   * <p/>For a parent style name like <pre>Widget.Material.Button</pre> and a theme name <pre>MyTheme</pre>, it would generate the name
+   * <pre>Widget.MyTheme.Button</pre>
+   *
+   * @param parentStyleUri  The parent style URI.
+   * @param currentThemeName The current theme name.
+   */
+  @NotNull
+  static String getNewStyleNameSuggestion(@Nullable String parentStyleUri, @Nullable String currentThemeName) {
+    if (Strings.isNullOrEmpty(parentStyleUri) || Strings.isNullOrEmpty(currentThemeName)) {
+      return "";
+    }
+
+    String parentStyleName = parentStyleUri.substring(parentStyleUri.indexOf('/') + 1);
+    if (parentStyleName.equals(currentThemeName)) {
+      return "";
+    }
+    currentThemeName = currentThemeName.replace("Theme.", "");
+    for (String themeName : COMMON_THEME_NAMES) {
+      if (parentStyleName.matches(".*\\b" + themeName + "\\b.*")) {
+        // The name it's at the end
+        return parentStyleName.replaceFirst("\\b" + themeName + "\\b", currentThemeName);
+      }
+    }
+
+    return parentStyleName + '.' + currentThemeName;
   }
 }
