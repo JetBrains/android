@@ -175,6 +175,11 @@
                          provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
+    <projectConfigurable instance="com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable"
+                         id ="gradle.experimental" displayName="Experimental" parentId="reference.settingsdialog.project.gradle"/>
+    <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
+                        serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
+
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
