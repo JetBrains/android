@@ -190,9 +190,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
         try {
           for (ContentEntry contentEntry : rootModel.getContentEntries()) {
             for (SourceFolder folder : contentEntry.getSourceFolders()) {
-              if (folder.isTestSource()) {
-                continue;
-              }
               String path = urlToPath(folder.getUrl());
               String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
               sourceFoldersByType.put(folder.getRootType(), relativePath);

@@ -95,12 +95,12 @@ public abstract class Dependency {
   }
 
   private static void populate(@NotNull DependencySet dependencies,
-                               @NotNull BaseArtifact androidArtifact,
+                               @NotNull BaseArtifact artifact,
                                @NotNull DependencyScope scope) {
-    addJavaLibraries(dependencies, androidArtifact.getDependencies().getJavaLibraries(), scope);
+    addJavaLibraries(dependencies, artifact.getDependencies().getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary lib : androidArtifact.getDependencies().getLibraries()) {
+    for (AndroidLibrary lib : artifact.getDependencies().getLibraries()) {
       ModuleDependency mainDependency = null;
       String gradleProjectPath = lib.getProject();
       if (StringUtil.isNotEmpty(gradleProjectPath)) {
@@ -118,7 +118,7 @@ public abstract class Dependency {
       }
     }
 
-    for (String gradleProjectPath : androidArtifact.getDependencies().getProjects()) {
+    for (String gradleProjectPath : artifact.getDependencies().getProjects()) {
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(dependency);

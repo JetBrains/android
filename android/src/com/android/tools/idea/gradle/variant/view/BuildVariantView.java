@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -44,6 +45,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -81,6 +83,8 @@ public class BuildVariantView {
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
+  private JComboBox myTestArtifactComboBox;
+  private JPanel myTestArtifactPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
   private final List<Conflict> myConflicts = Lists.newArrayList();
@@ -88,6 +92,54 @@ public class BuildVariantView {
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
     myUpdater = new BuildVariantUpdater();
+
+    if (!AndroidUtils.isUnitTestingSupportEnabled()) {
+      myTestArtifactPanel.setVisible(false);
+    }
+    else {
+      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_ANDROID_TEST, "Android instrumentation tests"));
+      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_UNIT_TEST, "Unit tests"));
+
+      myTestArtifactComboBox.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getSelectedItem();
+          if (namedArtifactType != null) {
+            updateModulesWithTestArtifact(namedArtifactType.artifactType);
+          }
+        }
+      });
+    }
+  }
+
+  private void updateComboBoxModel() {
+    List<Module> modules = getGradleModules();
+
+    if (modules.isEmpty()) {
+      myTestArtifactComboBox.setEnabled(false);
+    } else {
+      myTestArtifactComboBox.setEnabled(true);
+
+      IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
+      assert androidProject != null; // getGradleModules() returns only android modules and at this stage we have the IdeaAndroidProject.
+      String selectedTestArtifactName = androidProject.getSelectedTestArtifactName();
+      for (int i = 0; i < myTestArtifactComboBox.getItemCount(); i++) {
+        NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getModel().getElementAt(i);
+        if (namedArtifactType.artifactType.equals(selectedTestArtifactName)) {
+          myTestArtifactComboBox.setSelectedIndex(i);
+          break;
+        }
+      }
+
+      // Make sure all modules use the same test artifact.
+      updateModulesWithTestArtifact(selectedTestArtifactName);
+    }
+  }
+
+  private void updateModulesWithTestArtifact(String artifactType) {
+    if (!myUpdater.updateTestArtifactsNames(myProject, getGradleModules(), artifactType).isEmpty()) {
+      invokeListeners();
+    }
   }
 
   @VisibleForTesting
@@ -123,6 +175,7 @@ public class BuildVariantView {
 
   public void projectImportStarted() {
     getVariantsTable().setLoading(true);
+    myTestArtifactComboBox.setEnabled(false);
   }
 
   /**
@@ -146,14 +199,10 @@ public class BuildVariantView {
     final List<Object[]> rows = Lists.newArrayList();
     final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
 
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    Module[] modules = moduleManager.getModules();
-    Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
-    for (Module module : modules) {
+    for (Module module : getGradleModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet == null || !androidFacet.isGradleProject()) {
-        continue;
-      }
+      assert androidFacet != null; // getGradleModules() returns only relevant modules.
+
       JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
       String variantName = facetProperties.SELECTED_BUILD_VARIANT;
 
@@ -180,10 +229,28 @@ public class BuildVariantView {
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
       setModelTask.run();
+      updateComboBoxModel();
     }
     else {
       application.invokeLater(setModelTask);
     }
+  }
+
+  /**
+   * Returns all gradle android modules in the project.
+   */
+  @NotNull
+  private List<Module> getGradleModules() {
+    List<Module> gradleModules = Lists.newArrayList();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.isGradleProject()) {
+        gradleModules.add(module);
+      }
+    }
+
+    Collections.sort(gradleModules, ModuleTypeComparator.INSTANCE);
+    return gradleModules;
   }
 
   @NotNull
@@ -246,9 +313,8 @@ public class BuildVariantView {
      * <p/>
      * This listener will not be invoked if the project structure update fails.
      *
-     * @param facets the facets affected by the variant selection.
      */
-    void buildVariantSelected(@NotNull List<AndroidFacet> facets);
+    void buildVariantsConfigChanged();
   }
 
   private class NotificationPanel extends JPanel {
@@ -442,21 +508,22 @@ public class BuildVariantView {
     }
   }
 
-  public void selectVariant(@NotNull Module module, @NotNull String variantName) {
-    buildVariantSelected(module.getName(), variantName);
-  }
-
-  private void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    final List<AndroidFacet> facets = myUpdater.updateModule(myProject, moduleName, variantName);
+  @VisibleForTesting
+  void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
+    final List<AndroidFacet> facets = myUpdater.updateSelectedVariant(myProject, moduleName, variantName);
     if (facets.isEmpty()) {
       return;
     }
+    invokeListeners();
+  }
+
+  private void invokeListeners() {
     Runnable invokeListenersTask = new Runnable() {
       @Override
       public void run() {
         updateContents();
         for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
-          listener.buildVariantSelected(facets);
+          listener.buildVariantsConfigChanged();
         }
       }
     };
@@ -643,6 +710,25 @@ public class BuildVariantView {
     @Override
     public Object getCellEditorValue() {
       return myValue;
+    }
+  }
+
+  /**
+   * Mapping from the unique artifact name string to a human readable name. Used as a model for the combo box.
+   */
+  private static class NamedArtifactType {
+    @NotNull final String artifactType;
+    @NotNull final String description;
+
+
+    public NamedArtifactType(@NotNull String artifactName, @NotNull String description) {
+      this.artifactType = artifactName;
+      this.description = description;
+    }
+
+    @Override
+    public String toString() {
+      return description;
     }
   }
 }

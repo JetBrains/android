@@ -30,7 +30,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -143,7 +142,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
 
   @Override
-  public void buildVariantSelected(@NotNull List<AndroidFacet> facets) {
+  public void buildVariantsConfigChanged() {
     notifyGradleSynced();
   }
 }
