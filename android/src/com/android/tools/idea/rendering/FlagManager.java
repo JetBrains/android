@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.resources.LocaleManager;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
@@ -101,7 +104,7 @@ public class FlagManager {
       region = LocaleManager.getLanguageRegion(language);
     }
 
-    if (region == null || region.isEmpty()) {
+    if (region == null || region.isEmpty() || region.length() == 3) {
       // No country specified, and the language is for a country we
       // don't have a flag for
       return null;
@@ -113,8 +116,19 @@ public class FlagManager {
   /**
    * Returns the flag for the given language and region.
    *
-   * @param language the language qualifier, or null (if null, region must not be null),
-   * @param region   the region, or null (if null, language must not be null),
+   * @param configuration the folder configuration
+   * @return a suitable flag icon, or null
+   */
+  @Nullable
+  public Icon getFlag(@NonNull FolderConfiguration configuration) {
+    return getFlag(configuration.getEffectiveLanguage(), configuration.getEffectiveRegion());
+  }
+
+  /**
+   * Returns the flag for the given language and region.
+   *
+   * @param language the language qualifier, or null (if null, region or locale must not be null),
+   * @param region   the region, or null (if null, language or locale must not be null),
    * @return a suitable flag icon, or null
    */
   @Nullable
@@ -139,21 +153,9 @@ public class FlagManager {
    */
   @Nullable
   public Icon getFlagForFolderName(@NotNull String folder) {
-    RegionQualifier region = null;
-    LanguageQualifier language = null;
-    for (String qualifier : Splitter.on('-').split(folder)) {
-      if (qualifier.length() == 3) {
-        region = RegionQualifier.getQualifier(qualifier);
-        if (region != null) {
-          break;
-        }
-      }
-      else if (qualifier.length() == 2 && language == null) {
-        language = LanguageQualifier.getQualifier(qualifier);
-      }
-    }
-    if (region != null || language != null) {
-      return get().getFlag(language, region);
+    FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(folder);
+    if (configuration != null) {
+      return get().getFlag(configuration);
     }
 
     return null;
