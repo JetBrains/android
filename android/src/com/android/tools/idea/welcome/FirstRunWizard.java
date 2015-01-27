@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -138,12 +139,20 @@ public class FirstRunWizard extends DynamicWizard {
   }
 
   private class SetupProgressStep extends ProgressStep {
+    private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
+
     public SetupProgressStep() {
       super(FirstRunWizard.this.getDisposable());
     }
 
     @Override
+    public boolean canGoNext() {
+      return super.canGoNext() && !myIsBusy.get();
+    }
+
+    @Override
     protected void execute() {
+      myIsBusy.set(true);
       myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
         @Override
         public void run() {
@@ -155,6 +164,9 @@ public class FirstRunWizard extends DynamicWizard {
             showConsole();
             mySetupFailed = true;
             print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+          }
+          finally {
+            myIsBusy.set(false);
           }
         }
       });
