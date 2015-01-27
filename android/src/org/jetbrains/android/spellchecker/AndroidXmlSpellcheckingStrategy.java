@@ -188,7 +188,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         if (locale == null) {
           locale = getToolsLocale(file);
         }
-        return locale == null || locale.startsWith("en");
+        return locale == null || locale.startsWith("en") || locale.equals("b+en") || locale.startsWith("b+en+");
       }
     }
 
