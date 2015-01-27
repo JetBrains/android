@@ -96,6 +96,10 @@ public class ClickableTableCellEditor extends AbstractTableCellEditor implements
     return myEditLabel.getText();
   }
 
+  public void setDetailsActive(boolean detailsActive) {
+    myEditButton.setVisible(detailsActive);
+  }
+
   public interface ClickListener {
     void clicked(@NotNull EditedStyleItem value);
   }

@@ -107,6 +107,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   private final JCheckBox myAdvancedFilterCheckBox = myPanel.getAdvancedFilterCheckBox();
   private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
+  private final ClickableTableCellEditor myStyleEditor;
+
   public ThemeEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
     myVirtualFile = (ThemeEditorVirtualFile)file;
@@ -139,7 +141,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     };
 
-    ClickableTableCellEditor styleEditor = new ClickableTableCellEditor(new ClickableTableCellEditor.ClickListener() {
+    myStyleEditor = new ClickableTableCellEditor(new ClickableTableCellEditor.ClickListener() {
       @Override
       public void clicked(EditedStyleItem value) {
         if (value.isAttr()) {
@@ -168,7 +170,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
                                                                                    myPropertiesTable.getDefaultRenderer(Integer.class)));
     myPropertiesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration,
                                                                                    myPropertiesTable.getDefaultRenderer(Boolean.class)));
-    myPropertiesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(myModule, myConfiguration, false, styleEditor));
+    myPropertiesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
 
     myPropertiesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
@@ -185,7 +187,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myPropertiesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Integer.class)));
     myPropertiesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Boolean.class)));
     // We allow to edit style pointers as Strings.
-    myPropertiesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
+    myPropertiesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor));
 
     myPropertiesFilter = new StylePropertiesFilter();
 
@@ -335,8 +337,12 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     if (myCurrentSubStyle != null) {
       mySubStyleLabel.setText("\u27A5 " + myCurrentSubStyle.getSimpleName());
       mySubStyleLabel.setVisible(true);
+
+      // Editing substyle of a substyle is disabled, because it's not clear how to do it properly
+      myStyleEditor.setDetailsActive(false);
     } else {
       mySubStyleLabel.setVisible(false);
+      myStyleEditor.setDetailsActive(true);
     }
 
     // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
