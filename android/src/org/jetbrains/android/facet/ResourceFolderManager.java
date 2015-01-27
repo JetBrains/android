@@ -159,7 +159,7 @@ public class ResourceFolderManager implements ModificationTracker {
           myVariantListenerAdded = true;
           BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(new BuildVariantSelectionChangeListener() {
             @Override
-            public void buildVariantSelected(@NotNull List<AndroidFacet> facets) {
+            public void buildVariantsConfigChanged() {
               invalidate();
             }
           });
