@@ -34,7 +34,7 @@ public class ThemeEditorPanel {
   private JButton myBackButton;
   private JBLabel mySubStyleLabel;
   private CellSpanTable myPropertiesTable;
-  private JBScrollPane myScrollPane;
+  private JBScrollPane myPropertiesScrollPane;
 
   public ThemeEditorPanel() {
     myParentThemeButton.setIcon(AllIcons.Actions.MoveUp);
@@ -74,11 +74,11 @@ public class ThemeEditorPanel {
     return myThemeCombo;
   }
 
-  public JBScrollPane getScrollPane() {
-    return myScrollPane;
+  public JBScrollPane getPropertiesScrollPane() {
+    return myPropertiesScrollPane;
   }
 
-  public JPanel getComponent() {
+  public JPanel getRightSidePanel() {
     return myRightPanel;
   }
 }
