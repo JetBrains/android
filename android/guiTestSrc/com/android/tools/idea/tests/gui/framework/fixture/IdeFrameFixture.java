@@ -148,6 +148,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public List<String> getModuleNames() {
+    List<String> names = Lists.newArrayList();
+    for (Module module : getModuleManager().getModules()) {
+      names.add(module.getName());
+    }
+    return names;
+  }
+
+  @NotNull
   public IdeFrameFixture requireModuleCount(int expected) {
     Module[] modules = getModuleManager().getModules();
     assertThat(modules).as("Module count in project " + quote(getProject().getName())).hasSize(expected);

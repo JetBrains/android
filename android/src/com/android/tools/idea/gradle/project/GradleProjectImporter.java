@@ -137,10 +137,10 @@ public class GradleProjectImporter {
   /**
    * Creates IntelliJ project file in the root of the project directory.
    *
-   * @param selectedFile  <code>build.gradle</code> in the module folder.
-   * @param parentProject existing parent project or <code>null</code> if a new one should be created.
+   * @param selectedFile build.gradle in the module folder.
+   * @param project existing parent project or {@code null} if a new one should be created.
    */
-  private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project parentProject) {
+  private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project project) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
     File projectDirPath = VfsUtilCore.virtualToIoFile(projectDir);
     try {
@@ -149,7 +149,7 @@ public class GradleProjectImporter {
         public void syncSucceeded(@NotNull Project project) {
           activateProjectView(project);
         }
-      }, parentProject, null);
+      }, project, null);
     }
     catch (Exception e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -186,7 +186,7 @@ public class GradleProjectImporter {
       @Override
       public void run() {
         try {
-          doRequestSync(project, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
+          doRequestSync(project, ProgressExecutionMode.IN_BACKGROUND_ASYNC, new ImportOptions(generateSourcesOnSuccess, false), listener);
         }
         catch (ConfigurationException e) {
           Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
@@ -203,7 +203,7 @@ public class GradleProjectImporter {
       @Override
       public void run() {
         try {
-          doRequestSync(project, MODAL_SYNC, generateSourcesOnSuccess, listener);
+          doRequestSync(project, MODAL_SYNC, new ImportOptions(generateSourcesOnSuccess, false), listener);
         }
         catch (ConfigurationException e) {
           Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
@@ -215,13 +215,13 @@ public class GradleProjectImporter {
 
   private void doRequestSync(@NotNull final Project project,
                              @NotNull ProgressExecutionMode progressExecutionMode,
-                             boolean generateSourcesOnSuccess,
+                             @NotNull ImportOptions options,
                              @Nullable final GradleSyncListener listener) throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
-      doImport(project, false /* existing project */, progressExecutionMode, generateSourcesOnSuccess, listener);
+      doImport(project, false /* existing project */, progressExecutionMode, options, listener);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -299,7 +299,7 @@ public class GradleProjectImporter {
                                         @Nullable GradleSyncListener listener,
                                         @Nullable Project project,
                                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDir, true, listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDir, new ImportOptions(true, false), listener, project, initialLanguageLevel);
   }
 
   /**
@@ -322,12 +322,12 @@ public class GradleProjectImporter {
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDir, generateSourcesOnSuccess, listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDir, new ImportOptions(generateSourcesOnSuccess, true), listener, project, initialLanguageLevel);
   }
 
   private void doImport(@NotNull String projectName,
                         @NotNull File projectRootDir,
-                        boolean generateSourcesOnSuccess,
+                        @NotNull ImportOptions options,
                         @Nullable GradleSyncListener listener,
                         @Nullable Project project,
                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
@@ -341,7 +341,7 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    doImport(newProject, true /* new project */, MODAL_SYNC /* synchronous import */, generateSourcesOnSuccess, listener);
+    doImport(newProject, true /* new project */, MODAL_SYNC /* synchronous import */, options, listener);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
@@ -432,7 +432,7 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         final boolean newProject,
                         @NotNull final ProgressExecutionMode progressExecutionMode,
-                        boolean generateSourcesOnSuccess,
+                        @NotNull ImportOptions options,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
     PreSyncChecks.PreSyncCheckResult preSyncCheckResult = PreSyncChecks.canSync(project);
     if (!preSyncCheckResult.isSuccess()) {
@@ -456,7 +456,7 @@ public class GradleProjectImporter {
     project.putUserData(Projects.HAS_SYNC_ERRORS, false);
     project.putUserData(Projects.HAS_WRONG_JDK, false);
 
-    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
+    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
@@ -470,7 +470,8 @@ public class GradleProjectImporter {
       }
     }
 
-    myDelegate.importProject(project, new ProjectSetUpTask(project, newProject, listener), progressExecutionMode);
+    ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, listener);
+    myDelegate.importProject(project, setUpTask, progressExecutionMode);
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
@@ -487,6 +488,16 @@ public class GradleProjectImporter {
         String externalSystemName = SYSTEM_ID.getReadableName();
         throw new ConfigurationException(e.getMessage(), ExternalSystemBundle.message("error.cannot.parse.project", externalSystemName));
       }
+    }
+  }
+
+  private static class ImportOptions {
+    public final boolean generateSourcesOnSuccess;
+    public final boolean importingExistingProject;
+
+    ImportOptions(boolean generateSourcesOnSuccess, boolean importingExistingProject) {
+      this.generateSourcesOnSuccess = generateSourcesOnSuccess;
+      this.importingExistingProject = importingExistingProject;
     }
   }
 }
