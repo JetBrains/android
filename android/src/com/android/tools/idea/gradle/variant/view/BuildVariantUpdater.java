@@ -87,7 +87,10 @@ class BuildVariantUpdater {
    * @param testArtifactName new test artifact name.
    * @return modules that were affected by the change.
    */
-  List<Module> updateTestArtifactsNames(@NotNull Project project, @NotNull final Iterable<Module> modules, @NotNull final String testArtifactName) {
+  @NotNull
+  List<Module> updateTestArtifactsNames(@NotNull Project project,
+                                        @NotNull final Iterable<Module> modules,
+                                        @NotNull final String testArtifactName) {
     final List<Module> affectedModules = Lists.newArrayList();
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
@@ -101,7 +104,7 @@ class BuildVariantUpdater {
           if (!ideaAndroidProject.getSelectedTestArtifactName().equals(testArtifactName)) {
             ideaAndroidProject.setSelectedTestArtifactName(testArtifactName);
             androidFacet.syncSelectedVariantAndTestArtifact();
-            invokeCustomizers(androidFacet, ideaAndroidProject);
+            invokeCustomizers(androidFacet.getModule(), ideaAndroidProject);
             affectedModules.add(module);
           }
         }
@@ -153,7 +156,7 @@ class BuildVariantUpdater {
     }
     androidProject.setSelectedVariantName(variantToSelect);
     androidFacet.syncSelectedVariantAndTestArtifact();
-    Module module = invokeCustomizers(androidFacet, androidProject);
+    Module module = invokeCustomizers(androidFacet.getModule(), androidProject);
 
     selectedVariant = androidProject.getSelectedVariant();
     for (AndroidLibrary library : selectedVariant.getMainArtifact().getDependencies().getLibraries()) {
@@ -169,8 +172,8 @@ class BuildVariantUpdater {
     return true;
   }
 
-  private Module invokeCustomizers(AndroidFacet androidFacet, IdeaAndroidProject androidProject) {
-    Module module = androidFacet.getModule();
+  @NotNull
+  private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidProject) {
     for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
       customizer.customizeModule(module, module.getProject(), androidProject);
     }

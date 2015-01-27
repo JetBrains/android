@@ -97,8 +97,8 @@ public class BuildVariantView {
       myTestArtifactPanel.setVisible(false);
     }
     else {
-      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_ANDROID_TEST, "Android instrumentation tests"));
-      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_UNIT_TEST, "Unit tests"));
+      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_ANDROID_TEST, "Android Instrumentation Tests"));
+      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_UNIT_TEST, "Unit Tests"));
 
       myTestArtifactComboBox.addActionListener(new ActionListener() {
         @Override
@@ -136,7 +136,7 @@ public class BuildVariantView {
     }
   }
 
-  private void updateModulesWithTestArtifact(String artifactType) {
+  private void updateModulesWithTestArtifact(@NotNull String artifactType) {
     if (!myUpdater.updateTestArtifactsNames(myProject, getGradleModules(), artifactType).isEmpty()) {
       invokeListeners();
     }
@@ -309,6 +309,7 @@ public class BuildVariantView {
      * <ul>
      * <li>after the user selected a build variant from the drop-down</li>
      * <li>project structure has been updated according to selected build variant</li>
+     * <li>the selected test artifact is changed</li>
      * </ul>
      * <p/>
      * This listener will not be invoked if the project structure update fails.
@@ -719,7 +720,6 @@ public class BuildVariantView {
   private static class NamedArtifactType {
     @NotNull final String artifactType;
     @NotNull final String description;
-
 
     public NamedArtifactType(@NotNull String artifactName, @NotNull String description) {
       this.artifactType = artifactName;
