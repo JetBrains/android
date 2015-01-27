@@ -263,7 +263,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     });
 
-    final JScrollPane scroll = myPanel.getScrollPane();
+    final JScrollPane scroll = myPanel.getPropertiesScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
 
     mySubStyleLabel.setVisible(false);
@@ -271,7 +271,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
     Splitter split = new Splitter();
     split.setFirstComponent(myPreviewPanel);
-    split.setSecondComponent(myPanel.getComponent());
+    split.setSecondComponent(myPanel.getRightSidePanel());
     split.setShowDividerControls(false);
     myComponent = split;
 
