@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.variant.view;
 
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,10 +51,10 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   public void testSelectVariantWithSuccessfulUpdate() {
-    expect(myUpdater.updateModule(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
     replay(myUpdater);
 
-    myView.selectVariant(myModule, myBuildVariantName);
+    myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
     assertTrue(myListener.myWasCalled);
 
     verify(myUpdater);
@@ -63,10 +62,10 @@ public class BuildVariantViewTest extends AndroidTestCase {
 
   public void testSelectVariantWithFailedUpdate() {
     List<AndroidFacet> facets = Collections.emptyList();
-    expect(myUpdater.updateModule(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
     replay(myUpdater);
 
-    myView.selectVariant(myModule, myBuildVariantName);
+    myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
     assertFalse(myListener.myWasCalled);
 
     verify(myUpdater);
@@ -76,7 +75,7 @@ public class BuildVariantViewTest extends AndroidTestCase {
     boolean myWasCalled;
 
     @Override
-    public void buildVariantSelected(@NotNull List<AndroidFacet> updatedFacets) {
+    public void buildVariantsConfigChanged() {
       myWasCalled = true;
     }
   }
