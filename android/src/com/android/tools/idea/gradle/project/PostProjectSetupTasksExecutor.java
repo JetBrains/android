@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -50,6 +51,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -81,10 +83,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
@@ -102,6 +101,9 @@ public class PostProjectSetupTasksExecutor {
 
   /** Whether a message indicating that "a new SDK Tools version is available" is already shown.  */
   private static boolean ourNewSdkVersionToolsInfoAlreadyShown;
+
+  /** Whether we've checked for build expiration */
+  private static boolean ourCheckedExpiration;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
 
@@ -421,6 +423,10 @@ public class PostProjectSetupTasksExecutor {
     if (project.isDisposed() || ourNewSdkVersionToolsInfoAlreadyShown) {
       return;
     }
+
+    // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
+    checkExpiredPreviewBuild(project);
+
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
@@ -428,6 +434,31 @@ public class PostProjectSetupTasksExecutor {
       AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       ourNewSdkVersionToolsInfoAlreadyShown = true;
     }
+  }
+
+  private static void checkExpiredPreviewBuild(@NotNull Project project) {
+    if (project.isDisposed() || ourCheckedExpiration) {
+      return;
+    }
+
+    String fullVersion = ApplicationInfo.getInstance().getFullVersion();
+    if (fullVersion.contains("Preview") || fullVersion.contains("Beta") || fullVersion.contains("RC")) {
+      // Expire preview builds two months after their build date (which is going to be roughly six weeks after release; by
+      // then will definitely have updated the build
+      Calendar expirationDate = (Calendar)ApplicationInfo.getInstance().getBuildDate().clone();
+      expirationDate.add(Calendar.MONTH, 2);
+
+      Calendar now = Calendar.getInstance();
+      if (now.after(expirationDate)) {
+        OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
+        String message = String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version",
+                                       fullVersion);
+        AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
+        // If we show an expiration message, don't also show a second balloon regarding available SDKs
+        ourNewSdkVersionToolsInfoAlreadyShown = true;
+      }
+    }
+    ourCheckedExpiration = true;
   }
 
   private void ensureValidSdks() {
