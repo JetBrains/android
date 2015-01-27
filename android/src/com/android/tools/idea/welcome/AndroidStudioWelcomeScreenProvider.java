@@ -17,23 +17,35 @@ package com.android.tools.idea.welcome;
 
 import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.internal.repository.updater.SettingsController;
+import com.android.sdklib.repository.SdkAddonsListConstants;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.avdmanager.LogWrapper;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.utils.NullLogger;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Atomics;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
+import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.proxy.CommonProxy;
 import org.jetbrains.android.AndroidPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Shows a wizard first time Android Studio is launched
@@ -81,6 +93,52 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     return AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD);
   }
 
+  @NotNull
+  private static ConnectionState checkInternetConnection() {
+    CommonProxy.isInstalledAssertion();
+    ConnectionState result = null;
+    while (result == null) {
+      try {
+        HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(SdkAddonsListConstants.URL_ADDON_LIST);
+        connection.connect();
+        connection.disconnect();
+        result = ConnectionState.OK;
+      }
+      catch (IOException e) {
+        result = promptToRetryFailedConnection();
+      }
+    }
+    return result;
+  }
+
+  @Nullable
+  private static ConnectionState promptToRetryFailedConnection() {
+    final AtomicReference<ConnectionState> atomicBoolean = Atomics.newReference();
+    Application application = ApplicationManager.getApplication();
+    application.invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        atomicBoolean.set(promptUserForProxy());
+      }
+    }, application.getAnyModalityState());
+    return atomicBoolean.get();
+  }
+
+  @Nullable
+  private static ConnectionState promptUserForProxy() {
+    int selection = Messages
+      .showDialog("Unable to access Android SDK add-on list", "Android Studio First Run", new String[]{"Setup Proxy", "Cancel"}, 1,
+                  Messages.getErrorIcon());
+    if (selection == 0) {
+      //noinspection ConstantConditions
+      HttpConfigurable.editConfigurable(null);
+      return null;
+    }
+    else {
+      return ConnectionState.NO_CONNECTION;
+    }
+  }
+
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
@@ -98,7 +156,17 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     return new FirstRunWizardHost(wizardMode, remotePackages);
   }
 
-  private Multimap<PkgType,RemotePkgInfo> fetchPackages() {
+  private Multimap<PkgType, RemotePkgInfo> fetchPackages() {
+    ConnectionState connectionState = checkInternetConnection();
+    switch (connectionState) {
+      case OK:
+        break;
+      case NO_CONNECTION:
+        return ImmutableMultimap.of();
+      default:
+        throw new IllegalArgumentException(connectionState.name());
+    }
+
     ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
     if (progressIndicator != null) {
       progressIndicator.setIndeterminate(true);
@@ -113,4 +181,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     return !ourWasShown && !isWizardDisabled() && getWizardMode() != null;
   }
 
+  private enum ConnectionState {
+    OK, NO_CONNECTION
+  }
 }
