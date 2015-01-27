@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ProjectTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,13 +42,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.ComboboxSpeedSearch;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
@@ -60,10 +57,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import spantable.CellSpanTable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -96,19 +91,21 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   private AndroidThemePreviewPanel myPreviewPanel;
   private VirtualFile myFile;
   private final JComponent myComponent;
-  private final JComboBox myThemeCombo;
-  private final JButton myParentThemeButton;
-  private final JButton myBackButton;
   private final StylePropertiesFilter myPropertiesFilter;
-  private final JTable myPropertiesTable;
-  private final JCheckBox myAdvancedFilterCheckBox;
-  private final JLabel mySubStyleLabel;
   private long myModificationCount;
   private String myPreviousSelectedTheme;
   // Points to the current selected substyle within the theme.
   private ThemeEditorStyle myCurrentSubStyle;
   // Points to the attribute that original pointed to the substyle.
   private EditedStyleItem mySubStyleSourceAttribute;
+  private ThemeEditorPanel myPanel = new ThemeEditorPanel();
+
+  private final JComboBox myThemeCombo = myPanel.getThemeCombo();
+  private final JButton myParentThemeButton = myPanel.getParentThemeButton();
+  private final JButton myBackButton = myPanel.getBackButton();
+  private final JTable myPropertiesTable = myPanel.getPropertiesTable();
+  private final JCheckBox myAdvancedFilterCheckBox = myPanel.getAdvancedFilterCheckBox();
+  private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
   public ThemeEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
@@ -130,7 +127,6 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myConfiguration.setDevice(device, false);
     myPreviewPanel = new AndroidThemePreviewPanel(psiFile, myConfiguration);
 
-    myPropertiesTable = new CellSpanTable();
     myPropertiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myPropertiesTable.setTableHeader(null);
 
@@ -193,12 +189,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
     myPropertiesFilter = new StylePropertiesFilter();
 
-    Border toolBarElementsBorder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
     // Button to go to the parent theme (if available).
-    myParentThemeButton = new JButton(AllIcons.Actions.MoveUp);
-    myParentThemeButton.setBorder(toolBarElementsBorder);
-    myBackButton = new JButton(AllIcons.Actions.Back);
-    myBackButton.setBorder(toolBarElementsBorder);
     myBackButton.setToolTipText("Back to the theme");
     myBackButton.addActionListener(new ActionListener() {
       @Override
@@ -208,7 +199,6 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     });
 
-    myThemeCombo = new ComboBox();
     // We have our own custom renderer that it's not based on the default one.
     //noinspection GtkPreferredJComboBoxRenderer
     myThemeCombo.setRenderer(new StyleListCellRenderer(myThemeCombo));
@@ -237,7 +227,6 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     });
 
-    myAdvancedFilterCheckBox = new JCheckBox("Advanced");
     myAdvancedFilterCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
@@ -250,8 +239,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     });
 
-    JButton newThemeButton = new JButton(AllIcons.General.Add);
-    newThemeButton.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    JButton newThemeButton = myPanel.getNewThemeButton();
     newThemeButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -276,42 +264,15 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     });
 
-    final JPanel toolbar = new JPanel();
-    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.LINE_AXIS));
-
-    myBackButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-    myAdvancedFilterCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    newThemeButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    myParentThemeButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    toolbar.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, JBColor.GRAY));
-    toolbar.add(myBackButton);
-    toolbar.add(myAdvancedFilterCheckBox);
-    toolbar.add(Box.createHorizontalGlue());
-    toolbar.add(newThemeButton);
-    toolbar.add(myParentThemeButton);
-    final JScrollPane scroll = new JScrollPane(myPropertiesTable);
+    final JScrollPane scroll = myPanel.getScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
 
-    mySubStyleLabel = new JLabel();
     mySubStyleLabel.setVisible(false);
     mySubStyleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-    toolbar.setAlignmentX(Component.LEFT_ALIGNMENT);
-    mySubStyleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    myThemeCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
-    scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-
-    JPanel rightPanel = new JPanel();
-    rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
-    rightPanel.add(myThemeCombo);
-    rightPanel.add(mySubStyleLabel);
-    rightPanel.add(toolbar);
-    rightPanel.add(scroll);
-
     Splitter split = new Splitter();
     split.setFirstComponent(myPreviewPanel);
-    split.setSecondComponent(rightPanel);
+    split.setSecondComponent(myPanel.getComponent());
     split.setShowDividerControls(false);
     myComponent = split;
 
