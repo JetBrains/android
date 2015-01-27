@@ -17,14 +17,20 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.LocaleManager;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import junit.framework.TestCase;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
+
+import static com.android.SdkConstants.DOT_PNG;
 
 @SuppressWarnings("javadoc")
 public class FlagManagerTest extends TestCase {
@@ -89,60 +95,78 @@ public class FlagManagerTest extends TestCase {
   }
 
   public void testAvailableIcons() {
-    // Icons we have from WindowBuilder
-    String[] icons = new String[] {
-      "ad", "ae", "af", "ag", "ai", "al", "am", "ao", "ar", "as", "at", "au", "aw", "ax",
-      "az", "ba", "bb", "bd", "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn", "bo", "br",
-      "bs", "bt", "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
-      "cl", "cm", "cn", "co", "cr", "cu", "cv", "cx", "cy", "cz", "de", "dj", "dk", "dm",
-      "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et", "fi", "fj", "fk", "fm", "fo",
-      "fr", "ga", "gb", "gd", "ge", "gf", "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr",
-      "gs", "gt", "gu", "gw", "gy", "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il",
-      "in", "io", "iq", "ir", "is", "it", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
-      "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls", "lt",
-      "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm", "mn", "mo",
-      "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz", "na", "nc", "ne",
-      "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om", "pa", "pe", "pf", "pg",
-      "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw", "py", "qa", "re", "ro", "rs",
-      "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg", "sh", "si", "sj", "sk", "sl", "sm",
-      "sn", "so", "sr", "st", "sv", "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk",
-      "tl", "tm", "tn", "to", "tr", "tt", "tv", "tw", "tz", "ua", "ug", "um", "us", "uy",
-      "uz", "va", "vc", "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "za", "zm",
-      "zw",
-    };
+    // Icons we have from WindowBuilder (which are really the famfamfam icons;
+    // see http://www.famfamfam.com/lab/icons/flags)
+    String[] icons =
+      new String[]{
+        "ad", "ae", "af", "ag", "ai", "al", "am", "ao", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb", "bd", "be", "bf",
+        "bg", "bh", "bi", "bj", "bm", "bn", "bo", "br", "bs", "bt", "bv", "bw", "by", "bz", "ca", "catalonia", "cc", "cd", "cf", "cg", "ch",
+        "ci", "ck", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cx", "cy", "cz", "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh",
+        "england", "er", "es", "et", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg", "gh", "gi", "gl", "gm", "gn",
+        "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy", "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq", "ir",
+        "is", "it", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km", "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr",
+        "ls", "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm", "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu",
+        "mv", "mw", "mx", "my", "mz", "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om", "pa", "pe", "pf", "pg",
+        "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw", "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "scotland", "sd",
+        "se", "sg", "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "sv", "sy", "sz", "tc", "td", "tf", "tg", "th", "tj",
+        "tk", "tl", "tm", "tn", "to", "tr", "tt", "tv", "tw", "tz", "ua", "ug", "um", "us", "uy", "uz", "va", "vc", "ve", "vg", "vi", "vn",
+        "vu", "wales", "wf", "ws", "ye", "yt", "za", "zm", "zw"
+      };
+
     Set<String> sIcons = new HashSet<String>(100);
-    Map<String, String> regionNames = LocaleManager.getRegionNamesMap();
-    Map<String, String> languageToCountry = LocaleManager.getLanguageToCountryMap();
-    Map<String, String> languageNames = LocaleManager.getLanguageNamesMap();
-    List<String> unused = new ArrayList<String>();
     for (String code : icons) {
+      if (code.length() > 2) {
+        continue;
+      }
       code = code.toUpperCase(Locale.US);
       sIcons.add(code);
 
-      String country = regionNames.get(code);
-      if (country == null) {
+      if (!LocaleManager.isValidRegionCode(code)) {
         System.out.println("No region name found for region code " + code);
       }
+    }
 
-      if (!languageToCountry.values().contains(code)) {
-        unused.add(code.toLowerCase() + ".png");
+    Set<String> unused = Sets.newHashSet(LocaleManager.getRegionCodes(false));
+    Set<String> reachable = Sets.newHashSet();
+    Multimap<String,String> regionToLanguages = ArrayListMultimap.create();
+    for (String language : LocaleManager.getLanguageCodes(false)) {
+      for (String region : LocaleManager.getRelevantRegions(language)) {
+        reachable.add(region);
+        regionToLanguages.put(region, language);
       }
     }
-    if (!unused.isEmpty()) {
-      System.out.println("The following icons are not referenced by any of the " +
-                         "language to country bindings: " + unused);
-    }
+    unused.removeAll(reachable);
 
-    // Make sure all our language bindings are languages we have maps for
-    for (Map.Entry<String, String> entry : languageToCountry.entrySet()) {
-      String language = entry.getKey();
-      String region = entry.getValue();
-
+    for (String region : reachable) {
       if (!sIcons.contains(region)) {
-        System.out.println("No icon found for region " + region + "  "
-                           + LocaleManager.getRegionName(region) + " (used for language "
-                           + language + "(" + languageNames.get(language) + "))");
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("No icon found for region ").append(region).append("  ").append(LocaleManager.getRegionName(region));
+        sb.append(", used for languages ");
+
+        for (String language : regionToLanguages.get(region)) {
+          sb.append(language).append("(").append(LocaleManager.getLanguageName(language)).append(") ");
+        }
+        System.out.println(sb.toString());
       }
+    }
+
+    // Known regions that we don't have language to region mappings for
+    unused.remove("AQ");
+    unused.remove("VA");
+    unused.remove("GS");
+    unused.remove("TF");
+    unused.remove("BV");
+    unused.remove("HM");
+
+    if (!unused.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("The following icons are not referenced by any of the " + "language to country bindings:");
+      for (String code : unused) {
+        sb.append(code.toLowerCase(Locale.US)).append(DOT_PNG).append(" (");
+        sb.append(LocaleManager.getRegionName(code)).append(") ");
+      }
+      System.out.println(sb.toString());
     }
   }
 
