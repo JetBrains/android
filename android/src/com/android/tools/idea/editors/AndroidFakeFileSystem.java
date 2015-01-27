@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors;
 
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
@@ -58,6 +59,8 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
     String name = components.get(2);
     if (StringsVirtualFile.NAME.equals(name)) {
       return StringsVirtualFile.getStringsVirtualFile(m);
+    } else if (ThemeEditorVirtualFile.FILENAME.equals(name)) {
+      return new ThemeEditorVirtualFile(m);
     }
 
     return null;

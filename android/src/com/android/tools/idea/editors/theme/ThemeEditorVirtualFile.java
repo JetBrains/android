@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.editors.AndroidFakeFileSystem;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +58,18 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   @NotNull
   public Module getModule() {
     return myModule;
+  }
+
+  @NotNull
+  @Override
+  public VirtualFileSystem getFileSystem() {
+    return AndroidFakeFileSystem.INSTANCE;
+  }
+
+  @NotNull
+  @Override
+  public String getPath() {
+    return AndroidFakeFileSystem.constructPathForFile(FILENAME, myModule);
   }
 
   private static class ThemeEditorFileType extends FakeFileType {
