@@ -20,7 +20,6 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
-import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -89,7 +88,7 @@ public abstract class ToolWindowFixture {
     });
   }
 
-  protected void activate() {
+  public void activate() {
     if (isActive()) {
       return;
     }
@@ -105,20 +104,7 @@ public abstract class ToolWindowFixture {
     pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be activated") {
       @Override
       public boolean test() {
-        if (callback.finished) {
-          return true;
-        }
-        // We encountered a situation when a callback given to ToolWindow.activate() was not called though the tool window
-        // was successfully activated. Looks like an IDE bug, and it's hard to debug it without deep understanding of IDE
-        // UI infrastructure. That's why a simple check below was introduced.
-        final boolean[] result = { false };
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            result[0] = myToolWindow.isActive();
-          }
-        });
-        return result[0];
+        return callback.finished;
       }
     }, SHORT_TIMEOUT);
   }
