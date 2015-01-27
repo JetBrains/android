@@ -72,12 +72,12 @@ public class StringResourceParser {
         }
 
         FolderConfiguration config = item.getConfiguration();
-        LanguageQualifier languageQualifier = config == null ? null : config.getLanguageQualifier();
+        LanguageQualifier languageQualifier = config == null ? null : config.getEffectiveLanguage();
         if (languageQualifier == null) {
           defaultValues.put(key, item);
         }
         else {
-          Locale locale = Locale.create(languageQualifier, config.getRegionQualifier());
+          Locale locale = Locale.create(languageQualifier, config.getEffectiveRegion());
           locales.add(locale);
           translations.put(key, locale, item);
         }
