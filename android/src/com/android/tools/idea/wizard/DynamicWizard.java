@@ -95,6 +95,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     myProject = project;
     myModule = module;
     myName = name;
+    myHost.setTitle(name);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       myUpdateQueue = null;
     } else {
