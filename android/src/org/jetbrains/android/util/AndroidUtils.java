@@ -91,6 +91,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
@@ -1082,7 +1083,7 @@ public class AndroidUtils {
    */
   public static boolean isUnitTestingSupportEnabled() {
     return AndroidStudioSpecificInitializer.isAndroidStudio() &&
-           System.getProperties().containsKey("android.unit_testing");
+           SystemProperties.getBooleanProperty("android.unit_testing", false);
   }
 
   /** {@link org.jetbrains.android.util.AndroidUtils.ActivityWrapper} is a simple adapter class that allows {@link Activity} and {@link ActivityAlias} to be treated uniformly */
