@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
@@ -44,8 +45,11 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
       return;
     }
     Variant selectedVariant = androidProject.getSelectedVariant();
-    File outputFile = selectedVariant.getMainArtifact().getClassesFolder();
-    setOutputPaths(module, outputFile, null);
+    File mainClassesFolder = selectedVariant.getMainArtifact().getClassesFolder();
+    BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(selectedVariant);
+    File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
+
+    setOutputPaths(module, mainClassesFolder, testClassesFolder);
   }
 
   @Override
