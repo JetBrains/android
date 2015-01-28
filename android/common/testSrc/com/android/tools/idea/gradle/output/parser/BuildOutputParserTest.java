@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
-import com.android.tools.idea.gradle.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -58,7 +58,7 @@ public class BuildOutputParserTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    parser = new BuildOutputParser(ServiceLoader.load(PatternAwareOutputParser.class));
+    parser = new BuildOutputParser();
   }
 
   @Override
