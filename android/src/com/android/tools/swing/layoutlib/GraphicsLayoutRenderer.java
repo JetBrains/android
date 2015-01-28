@@ -135,6 +135,7 @@ public class GraphicsLayoutRenderer {
                         layoutlibCallback, moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(),
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
+    params.setAssetRepository(new AssetRepositoryImpl(facet));
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
     return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, parser);
