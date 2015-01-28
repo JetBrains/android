@@ -116,8 +116,10 @@ public class AvdEditWizard extends DynamicWizard {
     IAndroidTarget target = avdInfo.getTarget();
     if (target != null) {
       ISystemImage selectedImage = target.getSystemImage(avdInfo.getTag(), avdInfo.getAbiType());
-      SystemImageDescription systemImageDescription = new SystemImageDescription(target, selectedImage);
-      state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
+      if (selectedImage != null) {
+        SystemImageDescription systemImageDescription = new SystemImageDescription(target, selectedImage);
+        state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
+      }
     }
 
     Map<String, String> properties = avdInfo.getProperties();

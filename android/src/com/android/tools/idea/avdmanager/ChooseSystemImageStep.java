@@ -90,7 +90,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
   @Override
   public boolean isStepVisible() {
-    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false);
+    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false) || !myState.containsKey(SYSTEM_IMAGE_KEY);
   }
 
   @Override
