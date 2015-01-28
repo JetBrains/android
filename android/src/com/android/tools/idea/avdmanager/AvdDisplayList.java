@@ -47,10 +47,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -115,6 +112,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myTable.getSelectionModel().addListSelectionListener(this);
     myTable.addMouseListener(myEditingListener);
     myTable.addMouseMotionListener(myEditingListener);
+    LaunchListener launchListener = new LaunchListener();
+    myTable.addMouseListener(launchListener);
+    myTable.addKeyListener(launchListener);
     refreshAvds();
   }
 
@@ -606,5 +606,40 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         }
       };
     }
+  }
+
+  private class LaunchListener extends MouseAdapter implements KeyListener {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      if (e.getClickCount() == 2) {
+        doAction();
+      }
+    }
+
+    private void doAction() {
+      notifyRun();
+      AvdInfo info = getAvdInfo();
+      if (info != null) {
+        if (info.getStatus() == AvdInfo.AvdStatus.OK) {
+          new RunAvdAction(AvdDisplayList.this).actionPerformed(null);
+        } else {
+          new EditAvdAction(AvdDisplayList.this).actionPerformed(null);
+        }
+      }
+    }
+
+    @Override
+
+    public void keyTyped(KeyEvent e) {
+      if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+        doAction();
+      }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {}
+
+    @Override
+    public void keyReleased(KeyEvent e) {}
   }
 }
