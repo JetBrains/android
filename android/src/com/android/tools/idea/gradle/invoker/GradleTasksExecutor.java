@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -445,8 +444,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull
   private List<GradleMessage> showMessages(@NotNull String gradleOutput) {
-    Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-    List<GradleMessage> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
+    List<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(gradleOutput);
     for (GradleMessage msg : compilerMessages) {
       addMessage(msg, null);
     }
