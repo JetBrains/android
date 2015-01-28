@@ -172,7 +172,7 @@ public class StringsWriteUtils {
 
     for (ResourceItem item : items) {
       FolderConfiguration config = item.getConfiguration();
-      LanguageQualifier languageQualifier = config == null ? null : config.getLanguageQualifier();
+      LanguageQualifier languageQualifier = config == null ? null : config.getEffectiveLanguage();
 
       if (languageQualifier == null) {
         if (locale == null) {
@@ -183,7 +183,7 @@ public class StringsWriteUtils {
         }
       }
 
-      Locale l = Locale.create(languageQualifier, config.getRegionQualifier());
+      Locale l = Locale.create(languageQualifier, config.getEffectiveRegion());
       if (l.equals(locale)) {
         return item;
       }
