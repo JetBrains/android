@@ -19,9 +19,8 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.avdmanager.LogWrapper;
+import com.android.tools.idea.wizard.ImportUIUtil;
 import com.android.utils.ILogger;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -51,15 +50,16 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
   }
 
   @Nullable
-  private static String getRetryMessage(ArrayList<String> packages) {
-    String message = null;
-    if (packages.size() == 1) {
-      message = String.format("The following SDK component was not installed: %s", Iterables.getFirst(packages, null));
+  private static String getRetryMessage(Collection<String> packages) {
+    if (!packages.isEmpty()) {
+      return ImportUIUtil.formatElementListString(packages,
+                                                  "The following SDK component was not installed: %s",
+                                                  "The following SDK components were not installed: %1$s and %2$s",
+                                                  "%1$s and %2$s more SDK components were not installed");
     }
-    else if (!packages.isEmpty()) {
-      message = String.format("The following SDK components were not installed: %s", Joiner.on(", ").join(packages));
+    else {
+      return null;
     }
-    return message;
   }
 
   @NotNull
