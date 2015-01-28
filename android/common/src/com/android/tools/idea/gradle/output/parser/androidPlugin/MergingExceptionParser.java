@@ -1,9 +1,10 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * A parser for errors that happen during resource merging, usually via
  * a {@link com.android.ide.common.res2.MergingException}
- * <p>
+ * <p/>
  * The error will be in one of these formats:
  * <pre>
  * path: Error: message
@@ -31,7 +32,7 @@ import java.util.List;
  */
 public class MergingExceptionParser implements PatternAwareOutputParser {
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     boolean hasError = false;
     int messageIndex;
@@ -46,19 +47,21 @@ public class MergingExceptionParser implements PatternAwareOutputParser {
         }
       }
       kind = GradleMessage.Kind.ERROR;
-    } else //noinspection SpellCheckingInspection
+    } else { //noinspection SpellCheckingInspection
       if (line.contains("arning: ")) {
-      messageIndex = line.indexOf(": Warning: ");
-      if (messageIndex == -1) {
-        messageIndex = line.indexOf(": warning: ");
+        messageIndex = line.indexOf(": Warning: ");
         if (messageIndex == -1) {
-          return false;
+          messageIndex = line.indexOf(": warning: ");
+          if (messageIndex == -1) {
+            return false;
+          }
         }
-      }
-      kind = GradleMessage.Kind.WARNING;
-    } else {
+        kind = GradleMessage.Kind.WARNING;
+      } else {
         return false;
       }
+    }
+
 
     // TODO: This doesn't handle ambiguous scenarios where the error message itself contains ": " or the path contains " : ".
     // I could disambiguate this by checking file existence on the path component containing a ":" !

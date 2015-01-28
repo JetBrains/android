@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.jps;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.JpsGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleExtensionImpl;

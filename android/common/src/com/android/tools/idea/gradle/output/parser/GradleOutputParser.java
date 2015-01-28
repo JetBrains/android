@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -25,7 +29,7 @@ public class GradleOutputParser implements PatternAwareOutputParser {
   private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("[\\d]+ error(s)?");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     if (ignoreMessage(line)) {
       return true;
