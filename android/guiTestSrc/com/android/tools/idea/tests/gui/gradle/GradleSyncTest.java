@@ -244,7 +244,7 @@ public class GradleSyncTest extends GuiTestCase {
     rtJarChildren.get(1).requireDirectory("javax");
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest @Ignore // Removed minimum plugin version check. It is failing in some projects.
   public void testUnsupportedPluginVersion() throws IOException {
     // Open the project without updating the version of the plug-in
     IdeFrameFixture projectFrame = openSimpleApplication();
