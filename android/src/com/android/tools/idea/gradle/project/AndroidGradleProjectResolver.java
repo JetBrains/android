@@ -20,12 +20,10 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
-import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,10 +42,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ExceptionUtil;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ContainerUtilRt;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -75,6 +70,9 @@ import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.is
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
+import static com.intellij.util.PathUtil.getJarPathForClass;
+import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
+import static java.util.Collections.sort;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -422,7 +420,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
     List<Variant> sortedVariants = Lists.newArrayList(variants);
-    Collections.sort(sortedVariants, new Comparator<Variant>() {
+    sort(sortedVariants, new Comparator<Variant>() {
       @Override
       public int compare(Variant o1, Variant o2) {
         return o1.getName().compareTo(o2.getName());
@@ -433,15 +431,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void enhanceRemoteProcessing(@NotNull SimpleJavaParameters parameters) {
-    final List<String> classPath = ContainerUtilRt.newArrayList();
+    List<String> classPath = Lists.newArrayList();
     // Android module jars
-    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(getClass()), classPath);
+    addIfNotNull(getJarPathForClass(getClass()), classPath);
     // Android sdklib jar
-    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(FullRevision.class), classPath);
+    addIfNotNull(getJarPathForClass(FullRevision.class), classPath);
     // Android common jar
-    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidGradleSettings.class), classPath);
+    addIfNotNull(getJarPathForClass(AndroidGradleSettings.class), classPath);
     // Android gradle model jar
-    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidProject.class), classPath);
+    addIfNotNull(getJarPathForClass(AndroidProject.class), classPath);
     parameters.getClassPath().addAll(classPath);
   }
 }
