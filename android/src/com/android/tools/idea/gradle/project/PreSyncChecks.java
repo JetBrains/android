@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -62,24 +60,6 @@ final class PreSyncChecks {
     syncMessages.removeMessages(PROJECT_SYNCING_ERROR_GROUP);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      // Don't check Gradle settings in unit tests. They should be set up properly.
-      FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
-      if (modelVersion != null) {
-        PreciseRevision minimumSupportedVersion = PreciseRevision.parseRevision(GRADLE_PLUGIN_MINIMUM_VERSION);
-        if (modelVersion.compareTo(minimumSupportedVersion) < 0) {
-          String cause = "The minimum supported version of the Android Gradle plugin is " + GRADLE_PLUGIN_MINIMUM_VERSION +
-                         ", but the project is using " + modelVersion.toString() + ".";
-
-          NotificationHyperlink hyperlink = new FixGradleModelVersionHyperlink("Fix plugin version", false);
-          syncMessages.add(new Message(PROJECT_SYNCING_ERROR_GROUP, Message.Type.ERROR, cause), hyperlink);
-
-          return PreSyncCheckResult.failure(cause);
-        }
-      }
-      PreSyncCheckResult result = ensureCorrectGradleSettings(project, modelVersion);
-      if (!result.isSuccess()) {
-        return result;
-      }
       GradleUtil.attemptToUseEmbeddedGradle(project);
     }
 
