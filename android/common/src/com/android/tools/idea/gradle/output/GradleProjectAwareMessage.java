@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.output;
 
+import com.android.ide.common.blame.output.GradleMessage;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Message produced by Gradle when building a project, just like {@link GradleMessage} with the difference that this message does not
+ * Message produced by Gradle when building a project, just like {@link com.android.ide.common.blame.output.GradleMessage} with the difference that this message does not
  * contain the path of the file originating the message, but the Gradle path of the project instead.
  */
 public class GradleProjectAwareMessage extends GradleMessage {

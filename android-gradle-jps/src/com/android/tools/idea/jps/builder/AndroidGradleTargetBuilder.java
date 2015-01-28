@@ -16,7 +16,7 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
