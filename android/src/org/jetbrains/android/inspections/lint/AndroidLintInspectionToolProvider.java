@@ -967,6 +967,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintUseAlpha2Inspection extends AndroidLintInspectionBase {
+    public AndroidLintUseAlpha2Inspection() {
+      super(AndroidBundle.message("android.lint.inspections.use.alpha2"), LocaleFolderDetector.USE_ALPHA_2);
+    }
+  }
+
   public static class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
     public AndroidLintUseCheckPermissionInspection() {
       super(AndroidBundle.message("android.lint.inspections.use.check.permission"), CheckPermissionDetector.ISSUE);
@@ -1367,6 +1373,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintInvalidIdInspection extends AndroidLintInspectionBase {
     public AndroidLintInvalidIdInspection() {
       super(AndroidBundle.message("android.lint.inspections.invalid.id"), WrongIdDetector.INVALID);
+    }
+  }
+
+  public static class AndroidLintInvalidResourceFolderInspection extends AndroidLintInspectionBase {
+    public AndroidLintInvalidResourceFolderInspection() {
+      super(AndroidBundle.message("android.lint.inspections.invalid.resource.folder"), LocaleFolderDetector.INVALID_FOLDER);
     }
   }
 

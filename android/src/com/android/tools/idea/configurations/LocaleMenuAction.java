@@ -119,8 +119,8 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
-    RegionQualifier specificRegion = configuration.getEditedConfig().getRegionQualifier();
+    LanguageQualifier specificLanguage = configuration.getEditedConfig().getEffectiveLanguage();
+    RegionQualifier specificRegion = configuration.getEditedConfig().getEffectiveRegion();
 
     // If the layout exists in a non-locale specific folder, then offer all locales, since
     // the user should be able to switch from this layout to some other version. We
@@ -130,7 +130,7 @@ public class LocaleMenuAction extends FlatComboAction {
       List<VirtualFile> variations = ResourceHelper.getResourceVariations(configuration.getFile(), false);
       for (VirtualFile variation : variations) {
         FolderConfiguration config = FolderConfiguration.getConfigForFolder(variation.getParent().getName());
-        if (config != null && config.getLanguageQualifier() == null) {
+        if (config != null && config.getEffectiveLanguage() == null) {
           specificLanguage = null;
           specificRegion = null;
           break;
@@ -165,11 +165,9 @@ public class LocaleMenuAction extends FlatComboAction {
 
   @NotNull
   public static List<Locale> getAllLocales() {
-    Set<String> languageCodes = LocaleManager.getLanguageCodes();
-    List<String> sorted = new ArrayList<String>(languageCodes);
-    Collections.sort(sorted);
-    List<Locale> locales = new ArrayList<Locale>(languageCodes.size());
-    for (String language : languageCodes) {
+    List<String> sorted = LocaleManager.getLanguageCodes(true);
+    List<Locale> locales = new ArrayList<Locale>(sorted.size());
+    for (String language : sorted) {
       Locale locale = Locale.create(new LanguageQualifier(language));
       locales.add(locale);
     }
