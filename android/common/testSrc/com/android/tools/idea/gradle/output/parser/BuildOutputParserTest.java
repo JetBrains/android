@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.blame.SourceFragmentPositionRange;
 import com.android.ide.common.blame.output.GradleMessage;
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
@@ -76,6 +77,21 @@ public class BuildOutputParserTest extends TestCase {
     GradleMessage message = gradleMessages.get(0);
     assertEquals(output, message.getText());
     assertEquals(GradleMessage.Kind.SIMPLE, message.getKind());
+  }
+
+  public void testParseParsedBuildIssue() throws IOException {
+    String output = "Android Gradle Plugin - Build Issue: {\"kind\":\"ERROR\",\"text\":\"" +
+                    "No resource identifier found for attribute \\u0027a\\u0027 in package" +
+                    " \\u0027android\\u0027\",\"sourcePath\":\"/usr/local/google/home/cmw/" +
+                    "udacity/Sunshine/app/src/main/res/menu/detail.xml\",\"position\":" +
+                    "{\"startLine\":5},\"original\":\"\"}";
+    List<GradleMessage> gradleMessages = parser.parseGradleOutput(output);
+    assertEquals("Expect one message.", 1, gradleMessages.size());
+    GradleMessage message = gradleMessages.iterator().next();
+    assertEquals("No resource identifier found for attribute 'a' in package 'android'", message.getText());
+    assertEquals(GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("/usr/local/google/home/cmw/udacity/Sunshine/app/src/main/res/menu/detail.xml", message.getSourcePath());
+    assertEquals(new SourceFragmentPositionRange(5, -1, -1), message.getPosition());
   }
 
   public void testParseAaptOutputWithRange1() throws IOException {
