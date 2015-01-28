@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.ToolOutputParser;
+import com.android.ide.common.blame.parser.aapt.AaptOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.*;
+import com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser;
+import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
+import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -25,64 +34,19 @@ import java.util.List;
 /**
  * Parses Gradle's build output and creates the messages to be displayed in the "Messages" tool window.
  */
-public class BuildOutputParser {
-  private Iterable<? extends PatternAwareOutputParser> myParsers;
+public class BuildOutputParser{
+  private static final PatternAwareOutputParser[] PARSERS =
+    {new AndroidPluginOutputParser(), new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(),
+      new BuildFailureParser(), new ManifestMergeFailureParser(), new DexExceptionParser(), new JavacOutputParser(),
+      new MergingExceptionParser()};
 
-  public BuildOutputParser(Iterable<? extends PatternAwareOutputParser> parsers) {
-    myParsers = parsers;
+  private final ToolOutputParser parser;
+
+  public BuildOutputParser() {
+    parser = new ToolOutputParser(PARSERS, new MessageBuildingSdkLog());
   }
 
-  /**
-   * Parses the given Gradle output and creates the messages to be displayed in the "Messages" tool window.
-   *
-   * @param output the given Gradle output.
-   * @return error messages created from the given output. An empty list is returned if this parser did not recognize any errors in the
-   * output or if an error occurred while parsing the given output.
-   */
-  @NotNull
-  public List<GradleMessage> parseGradleOutput(@NotNull String output) {
-    OutputLineReader outputReader = new OutputLineReader(output);
-
-    if (outputReader.getLineCount() == 0) {
-      return Collections.emptyList();
-    }
-
-    List<GradleMessage> messages = Lists.newArrayList();
-    String line;
-    while ((line = outputReader.readLine()) != null) {
-      if (line.isEmpty()) {
-        continue;
-      }
-      boolean handled = false;
-      for (PatternAwareOutputParser parser : myParsers) {
-        try {
-          if (parser.parse(line, outputReader, messages)) {
-            handled = true;
-            break;
-          }
-        }
-        catch (ParsingFailedException e) {
-          return Collections.emptyList();
-        }
-      }
-      if (handled) {
-        int messageCount = messages.size();
-        if (messageCount > 0) {
-          GradleMessage last = messages.get(messageCount - 1);
-          if (last.getText().contains("Build cancelled")) {
-            // Build was cancelled, just quit. Extra messages are just confusing noise.
-            break;
-          }
-        }
-      }
-      else {
-        // If none of the standard parsers recognize the input, include it as info such
-        // that users don't miss potentially vital output such as gradle plugin exceptions.
-        // If there is predictable useless input we don't want to appear here, add a custom
-        // parser to digest it.
-        messages.add(new GradleMessage(GradleMessage.Kind.SIMPLE, line));
-      }
-    }
-    return messages;
+  public List<GradleMessage> parseGradleOutput(String output) {
+    return parser.parseToolOutput(output);
   }
 }
