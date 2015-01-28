@@ -43,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaCodeFragment;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -314,6 +315,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     return label != null ? Arrays.asList(label, dataComponent) : Arrays.asList(dataComponent);
   }
 
+  @Nullable
   private WizardParameterFactory getExternalFactory(String uiTypeName) {
     if (Strings.isNullOrEmpty(uiTypeName)) {
       return null;
@@ -340,14 +342,14 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     return myExternalWizardParameterFactoryMap.get(uiTypeName);
   }
 
-  private JComponent createClassEntry(Parameter parameter, Module module) {
-    ChooseClassAction browseAction = new ChooseClassAction(module.getProject(), parameter);
+  private JComponent createClassEntry(@NotNull Parameter parameter, @NotNull Module module) {
+    ChooseClassAction browseAction = new ChooseClassAction(parameter, module);
     String historyKey = AddAndroidActivityPath.getRecentHistoryKey(parameter.id);
     // Need to add empty entry to the history, otherwise it will select entry used last
     RecentsManager.getInstance(module.getProject()).registerRecentEntry(historyKey, "");
     ReferenceEditorComboWithBrowseButton control =
         new ReferenceEditorComboWithBrowseButton(browseAction, "", module.getProject(), true,
-                                                 new OnlyShowActivities(), historyKey);
+                                                 new OnlyShowActivities(module), historyKey);
     if (!StringUtil.isEmpty(control.getText())) {
       control.prependItem("");
       control.setText("");
@@ -598,10 +600,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     register(KEY_TEMPLATE_ICON, myTemplateIcon, new ComponentBinding<File, JLabel>() {
       @Override
       public void setValue(@Nullable File newValue, @NotNull JLabel component) {
-        Optional<Icon> thumbnail = newValue == null ? null : myThumbnailsCache.apply(newValue);
-        Icon icon = thumbnail != null ? thumbnail.orNull() : null;
+        Optional<Icon> thumbnail = newValue == null ? Optional.<Icon>absent() : myThumbnailsCache.getUnchecked(newValue);
+        Icon icon = thumbnail.orNull();
         component.setIcon(icon);
-        component.setVisible(thumbnail != null);
+        component.setVisible(icon != null);
       }
     });
     registerValueDeriver(KEY_TEMPLATE_ICON, new ValueDeriver<File>() {
@@ -700,7 +702,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     return location.row;
   }
 
-  class CellLocation {
+  private static class CellLocation {
     public int row = 0, column = 0;
   }
 
@@ -910,10 +912,16 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   private static class OnlyShowActivities implements JavaCodeFragment.VisibilityChecker {
+    private final Module myModule;
+
+    public OnlyShowActivities(Module module) {
+      myModule = module;
+    }
+
     private static boolean isActivitySubclass(@NotNull PsiClass classDecl) {
       for (PsiClass superClass : classDecl.getSupers()) {
         String typename = superClass.getQualifiedName();
-        if ("android.app.Activity".equals(typename) || isActivitySubclass(superClass)) {
+        if (SdkConstants.CLASS_ACTIVITY.equals(typename) || isActivitySubclass(superClass)) {
           return true;
         }
       }
@@ -924,28 +932,36 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     public Visibility isDeclarationVisible(PsiElement declaration, @Nullable PsiElement place) {
       if (declaration instanceof PsiClass) {
         PsiClass classDecl = (PsiClass)declaration;
-        if (PsiClassUtil.isRunnableClass(classDecl, true, true) && isActivitySubclass(classDecl)) {
+        if (PsiClassUtil.isRunnableClass(classDecl, true, true) &&
+            isActivitySubclass(classDecl) && isOnClasspath(classDecl)) {
           return Visibility.VISIBLE;
         }
       }
       return Visibility.NOT_VISIBLE;
     }
+
+    private boolean isOnClasspath(@NotNull PsiClass classDecl) {
+      GlobalSearchScope scope = myModule.getModuleWithDependenciesAndLibrariesScope(false);
+      VirtualFile file = classDecl.getContainingFile().getVirtualFile();
+      return scope.contains(file);
+    }
   }
 
   private class ChooseClassAction implements ActionListener {
-    private final Project myProject;
     private Parameter myParameter;
+    @NotNull private final Module myModule;
 
-    public ChooseClassAction(Project project, Parameter parameter) {
-      myProject = project;
+    public ChooseClassAction(@NotNull Parameter parameter, @NotNull Module module) {
       myParameter = parameter;
+      myModule = module;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      final OnlyShowActivities filter = new OnlyShowActivities();
-      TreeClassChooser chooser = TreeClassChooserFactory.getInstance(myProject)
-        .createWithInnerClassesScopeChooser("Select Activity", GlobalSearchScope.projectScope(myProject), new ClassFilter() {
+      final OnlyShowActivities filter = new OnlyShowActivities(myModule);
+      Project project = myModule.getProject();
+      TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
+        .createWithInnerClassesScopeChooser("Select Activity", GlobalSearchScope.projectScope(project), new ClassFilter() {
                                               @Override
                                               public boolean isAccepted(PsiClass aClass) {
                                                 return filter.isDeclarationVisible(aClass, null) ==
@@ -957,7 +973,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       Key<String> key = (Key<String>)getParameterKey(myParameter);
       final String targetClassName = myState.get(key);
       if (targetClassName != null) {
-        final PsiClass aClass = JavaPsiFacade.getInstance(myProject).findClass(targetClassName, GlobalSearchScope.allScope(myProject));
+        final PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(targetClassName, GlobalSearchScope.allScope(project));
         if (aClass != null) {
           chooser.selectDirectory(aClass.getContainingFile().getContainingDirectory());
         }
