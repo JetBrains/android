@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.output.parser.javac;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.util.StringBuilderSpinAllocator;
 import com.intellij.util.SystemProperties;
@@ -40,7 +41,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
   private static final String WARNING_PREFIX = "warning:"; // default value
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     int colonIndex1 = line.indexOf(COLON);
     if (colonIndex1 == 1) { // drive letter (Windows)
