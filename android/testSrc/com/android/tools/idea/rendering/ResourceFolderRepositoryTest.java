@@ -439,7 +439,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("en", item.getSource().getQualifiers());
-    assertEquals("en", item.getConfiguration().getLanguageQualifier().getValue());
+    assertEquals("en", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue(false).getValue());
 
@@ -459,7 +459,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("no", item.getSource().getQualifiers());
-    assertEquals("no", item.getConfiguration().getLanguageQualifier().getValue());
+    assertEquals("no", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue(false).getValue());
   }
