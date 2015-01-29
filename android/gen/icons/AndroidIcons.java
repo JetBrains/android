@@ -99,7 +99,6 @@ public class AndroidIcons {
     public static final Icon Dpi = load("/icons/dpi.png");
     public static final Icon Height = load("/icons/height.png");
     public static final Icon Keyboard = load("/icons/keyboard.png");
-    public static final Icon Language = load("/icons/language.png");
     public static final Icon Locale = load("/icons/locale.png");
     public static final Icon Mcc = load("/icons/mcc.png");
     public static final Icon Mnc = load("/icons/mnc.png");
@@ -107,13 +106,18 @@ public class AndroidIcons {
     public static final Icon NavpadMethod = load("/icons/navpad_method.png");
     public static final Icon Orientation = load("/icons/orientation.png");
     public static final Icon Ratio = load("/icons/ratio.png");
-    public static final Icon Region = load("/icons/region.png");
     public static final Icon Size = load("/icons/size.png");
     public static final Icon SmallestWidth = load("/icons/swidth.png");
     public static final Icon TextInput = load("/icons/text_input.png");
     public static final Icon Touch = load("/icons/touch.png");
     public static final Icon Width = load("/icons/width.png");
     public static final Icon LayoutDirection = load("/icons/direction.png");
+
+    // We might be able to remove these, but perhaps they're useful if we have individual
+    // buttons (for example in the translation editor) where you can independently add language
+    // or region?
+    public static final Icon Language = load("/icons/language.png");
+    public static final Icon Region = load("/icons/region.png");
   }
 
   public static class Ddms {
