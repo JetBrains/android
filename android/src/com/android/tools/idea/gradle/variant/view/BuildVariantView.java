@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.FullRevision.PreviewComparison;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -115,7 +118,7 @@ public class BuildVariantView {
   }
 
   private void updateComboBoxModel() {
-    List<Module> modules = getGradleModulesWithAndroidProjects();
+    List<Module> modules = getModulesIfProjectSupportsUnitTests();
 
     boolean hasModules = !modules.isEmpty();
     myTestArtifactComboBox.setEnabled(hasModules);
@@ -135,6 +138,38 @@ public class BuildVariantView {
       // Make sure all modules use the same test artifact.
       updateModulesWithTestArtifact(selectedTestArtifactName);
     }
+  }
+
+  @NotNull
+  private List<Module> getModulesIfProjectSupportsUnitTests() {
+    FullRevision minimumSupportedVersion = new PreciseRevision(1, 1, 0);
+
+    List<Module> modules = Lists.newArrayList();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.isGradleProject()) {
+        IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
+        if (ideaAndroidProject != null) {
+          if (!supportsUnitTests(ideaAndroidProject.getDelegate(), minimumSupportedVersion)) {
+            return Collections.emptyList();
+          }
+          modules.add(module);
+        }
+      }
+    }
+    return modules;
+  }
+
+  @VisibleForTesting
+  static boolean supportsUnitTests(@NotNull AndroidProject androidProject, @NotNull FullRevision minimumSupportedVersion) {
+    try {
+      FullRevision modelVersion = PreciseRevision.parseRevision(androidProject.getModelVersion());
+      return minimumSupportedVersion.compareTo(modelVersion, PreviewComparison.IGNORE) <= 0;
+    }
+    catch (NumberFormatException e) {
+      // failed to parse, assume unit tests are not supported.
+    }
+    return false;
   }
 
   private void updateModulesWithTestArtifact(@NotNull String artifactType) {
@@ -247,8 +282,11 @@ public class BuildVariantView {
       }
     }
 
-    Collections.sort(gradleModules, ModuleTypeComparator.INSTANCE);
-    return gradleModules;
+    if (!gradleModules.isEmpty()) {
+      Collections.sort(gradleModules, ModuleTypeComparator.INSTANCE);
+      return gradleModules;
+    }
+    return Collections.emptyList();
   }
 
   @NotNull
