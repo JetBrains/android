@@ -63,6 +63,17 @@ final class PreSyncChecks {
       GradleUtil.attemptToUseEmbeddedGradle(project);
     }
 
+    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+
+    DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
+    boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
+    if (usingWrapper && gradleSettings != null) {
+      // Do this just to ensure that the right distribution type is set. If this is not set, build.gradle editor will not have code
+      // completion (see BuildClasspathModuleGradleDataService, line 119).
+      gradleSettings.setDistributionType(DEFAULT_WRAPPED);
+    }
+
     return PreSyncCheckResult.success();
   }
 
