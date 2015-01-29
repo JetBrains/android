@@ -276,7 +276,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     //noinspection deprecation
     String relativeTemplatePath = FileUtil
       .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
-            "root", "res", "drawable-xhdpi", "ic_launcher.png");
+            "root", "res", "mipmap-xhdpi", "ic_launcher.png");
     myState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), relativeTemplatePath).getAbsolutePath());
 
     register(ATTR_OUTPUT_FOLDER, mySourceSetComboBox);
