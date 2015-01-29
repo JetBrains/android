@@ -35,10 +35,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
@@ -49,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -164,25 +159,23 @@ public final class DefaultSdks {
       }
 
       if (chosenJdk == null) {
-        VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
-        if (virtualPath != null) {
-          chosenJdk = createJdk(virtualPath);
+        if (canonicalPath.isDirectory()) {
+          chosenJdk = createJdk(canonicalPath);
           if (chosenJdk == null) {
             // Unlikely to happen
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
+          }
+          updateAllSdks(chosenJdk);
+
+          ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
+          Project[] openProjects = projectManager.getOpenProjects();
+          for (Project project : openProjects) {
+            NewProjectUtil.applyJdkToProject(project, chosenJdk);
           }
         }
         else {
           throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
         }
-      }
-
-      updateAllSdks(chosenJdk);
-
-      ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-      Project[] openProjects = projectManager.getOpenProjects();
-      for (Project project : openProjects) {
-        NewProjectUtil.applyJdkToProject(project, chosenJdk);
       }
     }
   }
@@ -447,7 +440,7 @@ public final class DefaultSdks {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
       assert data != null;
       Sdk jdk = data.getJavaSdk();
-      if (jdk != null) {
+      if (isJdkCompatible(jdk, preferredVersion)) {
         return jdk;
       }
     }
@@ -455,55 +448,62 @@ public final class DefaultSdks {
 
     List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
-      if (preferredVersion == null) {
-        return jdks.get(0);
-      }
       for (Sdk jdk : jdks) {
-        if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
+        if (isJdkCompatible(jdk, preferredVersion)) {
           return jdk;
         }
       }
     }
-    final Collection<String> jdkPaths = javaSdk.suggestHomePaths();
-    VirtualFile javaHome = null;
-
-    for (String jdkPath : jdkPaths) {
-      javaHome = jdkPath != null ? LocalFileSystem.getInstance().findFileByPath(jdkPath) : null;
-
-      if (javaHome != null) {
-        break;
-      }
-    }
-    if (javaHome == null) {
-      javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
-    }
-    if (javaHome != null) {
-      File path = VfsUtilCore.virtualToIoFile(javaHome);
-      if (JavaSdk.checkForJdk(path)) {
+    List<File> javaHomes = getPotentialJavaHomes();
+    for (File javaHome : javaHomes) {
+      if (JavaSdk.checkForJdk(javaHome)) {
         Sdk jdk = createJdk(javaHome);
-        if (jdk != null && preferredVersion != null) {
-          return javaSdk.isOfVersionOrHigher(jdk, preferredVersion) ? jdk : null;
-        }
-        return jdk;
+        return isJdkCompatible(jdk, preferredVersion) ? jdk : null;
       }
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
-      if (SystemInfo.isLinux && preferredVersion != null) {
-        Sdk jdk = null;
-        for (File child : FileUtil.notNullize(path.listFiles())) {
+      if (SystemInfo.isLinux) {
+        for (File child : FileUtil.notNullize(javaHome.listFiles())) {
           if (child.isDirectory() && JavaSdk.checkForJdk(child)) {
-            jdk = Jdks.createJdk(child.getPath());
-            if (jdk != null) {
-              if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
-                // Prefer JDK 1.7+
-                return jdk;
-              }
+            Sdk jdk = Jdks.createJdk(child.getPath());
+            if (isJdkCompatible(jdk, preferredVersion)) {
+              return jdk;
             }
           }
         }
-        return jdk;
       }
     }
     return null;
+  }
+
+  /**
+   * Find all potential folders that may contain Java SDKs.
+   * Those folders are guaranteed to exist but they may not be valid Java homes.
+   */
+  @NotNull
+  private static List<File> getPotentialJavaHomes() {
+    JavaSdk javaSdk = JavaSdk.getInstance();
+    final List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
+    jdkPaths.add(SystemProperties.getJavaHome());
+    List<File> virtualFiles = Lists.newArrayListWithCapacity(jdkPaths.size());
+    for (String jdkPath : jdkPaths) {
+      if (jdkPath != null) {
+        File javaHome = new File(jdkPath);
+        if (javaHome.isDirectory()) {
+          virtualFiles.add(javaHome);
+        }
+      }
+    }
+    return virtualFiles;
+  }
+
+  private static boolean isJdkCompatible(@Nullable Sdk jdk, @Nullable JavaSdkVersion preferredVersion) {
+    if (jdk == null) {
+      return false;
+    }
+    if (preferredVersion == null) {
+      return true;
+    }
+    return JavaSdk.getInstance().isOfVersionOrHigher(jdk, preferredVersion);
   }
 
   /**
@@ -529,8 +529,7 @@ public final class DefaultSdks {
    * Creates an IntelliJ SDK for the JDK at the given location and returns it, or {@code null} if it could not be created successfully.
    */
   @Nullable
-  private static Sdk createJdk(@NotNull VirtualFile homeDirectory) {
-    File path = VfsUtilCore.virtualToIoFile(homeDirectory);
-    return Jdks.createJdk(path.getPath());
+  private static Sdk createJdk(@NotNull File homeDirectory) {
+    return Jdks.createJdk(homeDirectory.getPath());
   }
 }
