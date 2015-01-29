@@ -95,14 +95,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   static {
     System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
-
-    if (isAndroidStudio() && !ApplicationManager.getApplication().isUnitTestMode()) {
-      boolean useEnhancedToolingApi = SystemProperties.getBooleanProperty("android.studio.use.enhanced.tooling.api", false);
-      if (!useEnhancedToolingApi) {
-        // We need to disable IDEA's "enhanced Tooling API" otherwise --init-script pointing to embedded repo won't work.
-        System.setProperty("gradle.disable.enhanced.tooling.api", "true");
-      }
-    }
   }
 
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
