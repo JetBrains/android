@@ -114,6 +114,9 @@ public class BuildVariantView {
       });
 
       myTestArtifactPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
+
+      // This makes the combobox resize even if the even if it cannot show all its text
+      myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");
     }
   }
 
