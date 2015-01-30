@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,20 +74,11 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @Override
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
-    enableUnitTestingSupport();
+    mySettings.setUnitTestingSupportEnabled(isUnitTestingEnabled());
   }
 
   private boolean isModuleSelectionOnImportEnabled() {
     return myEnableModuleSelectionOnImportCheckBox.isSelected();
-  }
-
-  private void enableUnitTestingSupport() {
-    mySettings.ENABLE_UNIT_TESTING_SUPPORT = isUnitTestingEnabled();
-    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      if (!project.isDefault() && project.isOpen() && !project.isDisposed()) {
-        BuildVariantView.getInstance(project).updateTestArtifactComboBox();
-      }
-    }
   }
 
   private boolean isUnitTestingEnabled() {
