@@ -70,6 +70,8 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   @Nullable private MergingUpdateQueue myUpdateQueue;
   // Used by update() to ensure that multiple updates are not invoked simultaneously.
   private boolean myUpdateInProgress;
+  // Set to true after #init() was invoked
+  private boolean myIsInitialized = false;
 
   public DynamicWizardPath() {
     myState = new ScopedStateStore(ScopedStateStore.Scope.PATH, null, this);
@@ -89,6 +91,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
     init();
+    myIsInitialized = true;
   }
 
   @Nullable
@@ -184,7 +187,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * Call the update steps in order, as well as any parent updates required by the scope.
    */
   private void update() {
-    if (!myUpdateInProgress) {
+    if (myIsInitialized && !myUpdateInProgress) {
       myUpdateInProgress = true;
       deriveValues(myState.getRecentUpdates());
       myIsValid = validate();
