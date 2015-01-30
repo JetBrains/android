@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberFrameData;
+import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.rpclib.rpc.AtomStream;
 import com.android.tools.rpclib.rpc.Schema;
 import com.android.tools.rpclib.schema.AtomReader;
@@ -50,7 +50,7 @@ public interface GfxController {
     public AtomReader myAtomReader;
     public EnumInfoCache myEnumInfoCache;
     public TreeNode myTreeRoot;
-    public List<ScrubberFrameData> myScrubberList;
+    public List<ScrubberLabelData> myScrubberList;
 
     public GfxContextChangeState() {
       myCaptureChangeState = new CaptureChangeState();
