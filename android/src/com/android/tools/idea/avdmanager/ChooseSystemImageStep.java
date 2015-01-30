@@ -60,8 +60,8 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
   }
 
   public static boolean systemImageMatchesDevice(AvdWizardConstants.SystemImageDescription image, Device device) {
-    if (device == null) {
-      return true;
+    if (device == null || image == null) {
+      return false;
     }
     String deviceTagId = device.getTagId();
     IdDisplay inputTag = image.getTag();
