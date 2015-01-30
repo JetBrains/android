@@ -297,7 +297,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet) {
     String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
-    return new MyApplicationLauncher(StringUtil.notNullize(runner));
+    return new MyApplicationLauncher(runner);
   }
 
   @Nullable
@@ -431,8 +431,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   private class MyApplicationLauncher extends AndroidApplicationLauncher {
     private final String myInstrumentationTestRunner;
 
-    private MyApplicationLauncher(String instrumentationTestRunner) {
-      this.myInstrumentationTestRunner = instrumentationTestRunner;
+    private MyApplicationLauncher(@Nullable String instrumentationTestRunner) {
+      myInstrumentationTestRunner = instrumentationTestRunner;
     }
 
     @Override
