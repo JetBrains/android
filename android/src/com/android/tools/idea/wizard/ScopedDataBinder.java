@@ -16,11 +16,13 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.ui.TextAccessors;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
+import com.intellij.ui.TextAccessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +32,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
@@ -270,17 +271,17 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       } else {
         newValue = selectedObject;
       }
-    }
-    else if (component instanceof JTextField) {
-      newValue = ((JTextField)component).getText();
-    } else if (component instanceof TextFieldWithBrowseButton) {
-      newValue = ((TextFieldWithBrowseButton)component).getText();
     } else if (component instanceof JSlider) {
       newValue = ((JSlider)component).getValue();
     } else if (component instanceof JSpinner) {
       newValue = ((JSpinner)component).getValue();
     } else if (component instanceof ColorPanel) {
       newValue = ((ColorPanel)component).getSelectedColor();
+    } else {
+      TextAccessor accessor = TextAccessors.getTextAccessor(component);
+      if (accessor != null) {
+        newValue = accessor.getText();
+      }
     }
     return newValue;
   }
@@ -293,10 +294,6 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       ((JCheckBox)component).setSelected(Boolean.TRUE.equals(value));
     } else if (component instanceof JComboBox) {
       setSelectedItem((JComboBox)component, value);
-    } else if (component instanceof JTextField) {
-      ((JTextField)component).setText((String)value);
-    } else if (component instanceof TextFieldWithBrowseButton) {
-      ((TextFieldWithBrowseButton)component).setText(StringUtil.notNullize((String)value));
     } else if (component instanceof JSlider) {
       assert value != null;
       ((JSlider)component).setValue((Integer)value);
@@ -304,8 +301,14 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       ((JSpinner)component).setValue(value);
     } else if (component instanceof ColorPanel && value != null) {
       ((ColorPanel)component).setSelectedColor((Color)value);
-    } else if (component instanceof JLabel) {
-      ((JLabel)component).setText((String)value);
+    } else {
+      TextAccessor accessor = TextAccessors.getTextAccessor(component);
+      if (accessor != null) {
+        String newValue = StringUtil.notNullize((String)value);
+        if (!newValue.equals(accessor.getText())) {
+          accessor.setText(newValue);
+        }
+      }
     }
   }
 
