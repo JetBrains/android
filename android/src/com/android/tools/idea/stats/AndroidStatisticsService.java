@@ -32,8 +32,6 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
@@ -244,13 +242,9 @@ public class AndroidStatisticsService implements StatisticsService {
 
   private StatsProto.LogRequest getUsageData(@NotNull LegacySdkStatsService sdkstats,
                                              @NotNull Set<String> disabledGroups) {
-    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-
     Map<String, KeyString[]> usages = new LinkedHashMap<String, KeyString[]>();
-    for (Project project : openProjects) {
-      final Map<String, KeyString[]> allUsages = getAllUsages(project, disabledGroups);
-      usages.putAll(allUsages);
-    }
+    final Map<String, KeyString[]> allUsages = getAllUsages(disabledGroups);
+    usages.putAll(allUsages);
 
     String uuid = UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
     String appVersion = ApplicationInfo.getInstance().getFullVersion();
@@ -258,8 +252,7 @@ public class AndroidStatisticsService implements StatisticsService {
   }
 
   @NotNull
-  public Map<String, KeyString[]> getAllUsages(@Nullable Project project,
-                                               @NotNull Set<String> disabledGroups) {
+  public Map<String, KeyString[]> getAllUsages(@NotNull Set<String> disabledGroups) {
     Map<String, KeyString[]> allUsages = new LinkedHashMap<String, KeyString[]>();
 
     for (UsagesCollector usagesCollector : Extensions.getExtensions(UsagesCollector.EP_NAME)) {
@@ -268,7 +261,7 @@ public class AndroidStatisticsService implements StatisticsService {
 
       if (!disabledGroups.contains(groupId)) {
         try {
-          final Set<UsageDescriptor> usages = usagesCollector.getUsages(project);
+          final Set<UsageDescriptor> usages = usagesCollector.getUsages();
           final Set<Counter> counters = new TreeSet<Counter>();
           for (UsageDescriptor usage : usages) {
             Counter counter = new Counter(usage.getKey(), usage.getValue());
