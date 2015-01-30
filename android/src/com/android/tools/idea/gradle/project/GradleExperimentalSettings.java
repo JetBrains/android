@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean SELECT_MODULES_ON_PROJECT_IMPORT;
+  public boolean ENABLE_UNIT_TESTING_SUPPORT;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {
