@@ -21,6 +21,7 @@ import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -48,7 +49,6 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -92,39 +92,39 @@ public class BuildVariantView {
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
   private final List<Conflict> myConflicts = Lists.newArrayList();
 
+  @NotNull
+  public static BuildVariantView getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, BuildVariantView.class);
+  }
+
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
     myUpdater = new BuildVariantUpdater();
 
-    if (!AndroidUtils.isUnitTestingSupportEnabled()) {
-      myTestArtifactPanel.setVisible(false);
-    }
-    else {
-      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_ANDROID_TEST, "Android Instrumentation Tests"));
-      myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_UNIT_TEST, "Unit Tests"));
+    myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_ANDROID_TEST, "Android Instrumentation Tests"));
+    myTestArtifactComboBox.addItem(new NamedArtifactType(AndroidProject.ARTIFACT_UNIT_TEST, "Unit Tests"));
 
-      myTestArtifactComboBox.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getSelectedItem();
-          if (namedArtifactType != null) {
-            updateModulesWithTestArtifact(namedArtifactType.artifactType);
-          }
+    myTestArtifactComboBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getSelectedItem();
+        if (namedArtifactType != null) {
+          updateModulesWithTestArtifact(namedArtifactType.artifactType);
         }
-      });
+      }
+    });
 
-      myTestArtifactPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
+    myTestArtifactPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
 
-      // This makes the combobox resize even if the even if it cannot show all its text
-      myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");
-    }
+    // This makes the combobox resize even if the even if it cannot show all its text
+    myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");
   }
 
-  private void updateComboBoxModel() {
+  public void updateTestArtifactComboBox() {
     List<Module> modules = getModulesIfProjectSupportsUnitTests();
 
     boolean hasModules = !modules.isEmpty();
-    myTestArtifactComboBox.setEnabled(hasModules);
+    myTestArtifactComboBox.setEnabled(GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT && hasModules);
 
     if (hasModules) {
       IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
@@ -184,11 +184,6 @@ public class BuildVariantView {
   @VisibleForTesting
   void setUpdater(@NotNull BuildVariantUpdater updater) {
     myUpdater = updater;
-  }
-
-  @NotNull
-  public static BuildVariantView getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildVariantView.class);
   }
 
   public void addListener(@NotNull BuildVariantSelectionChangeListener listener) {
@@ -268,7 +263,7 @@ public class BuildVariantView {
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
       setModelTask.run();
-      updateComboBoxModel();
+      updateTestArtifactComboBox();
     }
     else {
       application.invokeLater(setModelTask);
