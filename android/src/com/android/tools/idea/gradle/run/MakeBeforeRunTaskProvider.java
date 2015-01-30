@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -43,7 +44,6 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,7 +113,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         // Enable "Gradle-aware Make" only for android configurations...
         && (runConfiguration instanceof AndroidRunConfigurationBase  ||
             // ...and JUnit configurations if unit-testing support is enabled.
-            (AndroidUtils.isUnitTestingSupportEnabled() && runConfiguration instanceof JUnitConfiguration))) {
+            (GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT && runConfiguration instanceof JUnitConfiguration))) {
       return new MakeBeforeRunTask();
     } else {
       return null;

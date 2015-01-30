@@ -1078,14 +1078,6 @@ public class AndroidUtils {
     return false;
   }
 
-  /**
-   * Checks if unit-testing support should be enabled.
-   */
-  public static boolean isUnitTestingSupportEnabled() {
-    return AndroidStudioSpecificInitializer.isAndroidStudio() &&
-           SystemProperties.getBooleanProperty("android.unit_testing", false);
-  }
-
   /** {@link org.jetbrains.android.util.AndroidUtils.ActivityWrapper} is a simple adapter class that allows {@link Activity} and {@link ActivityAlias} to be treated uniformly */
   private static abstract class ActivityWrapper {
     @NotNull
