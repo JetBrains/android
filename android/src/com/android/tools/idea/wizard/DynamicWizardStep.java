@@ -209,6 +209,9 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   }
 
   private <T> void performUpdate(@Nullable Key<T> changedKey) {
+    if (!myInitialized) {
+      return;
+    }
     super.invokeUpdate(changedKey);
     update();
     if (myPath != null) {
