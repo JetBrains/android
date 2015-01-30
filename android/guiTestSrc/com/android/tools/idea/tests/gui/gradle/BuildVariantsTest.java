@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
@@ -22,7 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
@@ -34,7 +35,6 @@ import java.util.Collection;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class BuildVariantsTest extends GuiTestCase {
 
@@ -78,17 +78,14 @@ public class BuildVariantsTest extends GuiTestCase {
   }
 
   /**
-   * Attention: this test needs to be run with -Dandroid.unit_testing (for now) and with MAVEN_REPO pointing to a local repo with the
-   * latest version of the gradle plugin.
-   *
-   * @see org.jetbrains.android.util.AndroidUtils#isUnitTestingSupportEnabled()
+   * Attention: this test needs MAVEN_REPO pointing to a local repo with the version 1.1.0 (or newer) of the Gradle plugin.
    */
   @Test @IdeGuiTest
-  public void switchingTestArtifacts() throws Exception {
+  public void switchingTestArtifacts() throws IOException {
+    GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT = true;
+
     final String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
     final String unitTestSrc = MODULE_NAME + "/src/test/java";
-
-    assertTrue(AndroidUtils.isUnitTestingSupportEnabled());
 
     IdeFrameFixture projectFrame = openProject("SimpleApplicationWithUnitTests");
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
@@ -107,7 +104,8 @@ public class BuildVariantsTest extends GuiTestCase {
     myRobot.waitForIdle();
   }
 
-  private Collection<String> getSourceFolders(IdeFrameFixture projectFrame, JavaSourceRootType source) {
+  @NotNull
+  private static Collection<String> getSourceFolders(@NotNull IdeFrameFixture projectFrame, @NotNull JavaSourceRootType source) {
     Multimap<JpsModuleSourceRootType, String> appSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME);
     return appSourceFolders.get(source);
   }
