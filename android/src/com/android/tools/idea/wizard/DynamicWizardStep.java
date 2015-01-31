@@ -385,6 +385,12 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
       myChangedKey = changedKey;
     }
 
+    @NotNull
+    @Override
+    public Object[] getEqualityObjects() {
+      return new Object[] {DynamicWizardStep.this, myChangedKey};
+    }
+
     @Override
     public void run() {
       performUpdate(myChangedKey);
