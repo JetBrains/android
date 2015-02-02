@@ -27,6 +27,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +77,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private final Key<String> myModuleNameKey;
   private TemplateParameterStep2 myParameterStep;
   private List<File> myFilesToOpen = Lists.newArrayList();
+  private String myDefaultModuleName = null;
 
   public static List<NewFormFactorModulePath> getAvailableFormFactorModulePaths(@NotNull Disposable disposable) {
     TemplateManager manager = TemplateManager.getInstance();
@@ -172,13 +174,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   public void deriveValues(Set<Key> modified) {
     if (modified.contains(NUM_ENABLED_FORM_FACTORS_KEY)) {
-      //noinspection ConstantConditions
-      if (myState.containsKey(NUM_ENABLED_FORM_FACTORS_KEY) && myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
-        myState.put(myModuleNameKey, "app");
-      }
-      else if (!myState.containsKey(myModuleNameKey)) {
-        myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
-      }
+      String moduleName = updateDefaultModuleName(myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0), myState.get(myModuleNameKey));
+      myState.put(myModuleNameKey, moduleName);
     }
     boolean basePathModified = modified.contains(PROJECT_LOCATION_KEY) || modified.contains(myModuleNameKey);
     if (basePathModified) {
@@ -219,6 +216,17 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
         myState.put(FormFactorUtils.getBuildApiLevelKey(myFormFactor), newApiLevel);
         myState.put(FormFactorUtils.getBuildApiKey(myFormFactor), newApiString);
       }
+    }
+  }
+
+  @NotNull
+  private String updateDefaultModuleName(int enabledFormfactorsCount, @Nullable String currentModuleName) {
+    if (currentModuleName == null || currentModuleName.equals(myDefaultModuleName)) {
+      myDefaultModuleName = enabledFormfactorsCount == 1 ? "app" : FormFactorUtils.getModuleName(myFormFactor);
+      return myDefaultModuleName;
+    }
+    else {
+      return currentModuleName;
     }
   }
 
