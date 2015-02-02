@@ -29,7 +29,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   private JPanel myPanel;
   private JCheckBox myEnableModuleSelectionOnImportCheckBox;
-  private JCheckBox myEnableUnitTestingSupportCheckBox;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -67,28 +66,21 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public boolean isModified() {
-    return mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
-           mySettings.ENABLE_UNIT_TESTING_SUPPORT != isUnitTestingEnabled();
+    return mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled();
   }
 
   @Override
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
-    mySettings.setUnitTestingSupportEnabled(isUnitTestingEnabled());
   }
 
   private boolean isModuleSelectionOnImportEnabled() {
     return myEnableModuleSelectionOnImportCheckBox.isSelected();
   }
 
-  private boolean isUnitTestingEnabled() {
-    return myEnableUnitTestingSupportCheckBox.isSelected();
-  }
-
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
-    myEnableUnitTestingSupportCheckBox.setSelected(mySettings.ENABLE_UNIT_TESTING_SUPPORT);
   }
 
   @Override

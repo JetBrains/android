@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
@@ -82,8 +81,6 @@ public class BuildVariantsTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void switchingTestArtifacts() throws IOException {
-    GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT = true;
-
     final String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
     final String unitTestSrc = MODULE_NAME + "/src/test/java";
 

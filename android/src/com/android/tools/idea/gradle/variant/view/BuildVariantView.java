@@ -21,7 +21,6 @@ import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -40,13 +39,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.ui.popup.Balloon;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
-import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
@@ -59,8 +54,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -74,7 +67,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
-import static com.intellij.openapi.ui.MessageType.WARNING;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -123,7 +115,7 @@ public class BuildVariantView {
 
     myTestArtifactPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
 
-    // This makes the combobox resize even if the even if it cannot show all its text
+    // This makes the combo-box resize even if the even if it cannot show all its text
     myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");
   }
 
@@ -131,37 +123,10 @@ public class BuildVariantView {
     List<Module> modules = getModulesIfProjectSupportsUnitTests();
 
     boolean hasModules = !modules.isEmpty();
-    final boolean unitTestSupportEnabled = GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT;
+    myTestArtifactComboBox.setEnabled(hasModules);
 
-    myTestArtifactComboBox.setEnabled(unitTestSupportEnabled && hasModules);
-    if (!myTestArtifactComboBox.isEnabled() && myTestArtifactComboBox.isShowing()) {
-      String msg = "Unit test support is an <b>experimental</b> feature. To use it";
-      HyperlinkListener listener = null;
-      if (unitTestSupportEnabled) {
-        msg += " your project needs to use Android Gradle plugin version 1.1.0 (or newer.)";
-      }
-      else {
-        final String enableSettingUrl = "enable.setting";
-        msg = msg + ":<ol>" +
-              "<li>Your project needs to use Android Gradle plugin version 1.1.0 (or newer)</li>" +
-              "<li><a href=\"" + enableSettingUrl + "\">Enable</a> this feature</li></ol>";
-        listener = new HyperlinkListener() {
-          @Override
-          public void hyperlinkUpdate(HyperlinkEvent e) {
-            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && enableSettingUrl.equals(e.getDescription())) {
-              GradleExperimentalSettings.getInstance().setUnitTestingSupportEnabled(true);
-            }
-          }
-        };
-      }
-
-      Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(msg, WARNING, listener).createBalloon();
-      Disposer.register(myProject, balloon);
-
-      int offset = myTestArtifactComboBox.getHeight() / 2;
-      Point point = new Point(myTestArtifactComboBox.getWidth() - offset, myTestArtifactComboBox.getHeight() - offset);
-      balloon.show(new RelativePoint(myTestArtifactComboBox, point), Balloon.Position.above);
-    }
+    String tooltip = hasModules ? "" : "Unit test support requires Android Gradle plugin version 1.1.0 (or newer)";
+    myTestArtifactComboBox.setToolTipText(tooltip);
 
     if (hasModules) {
       IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
@@ -408,7 +373,7 @@ public class BuildVariantView {
 
       AnAction nextConflictAction = new AnAction() {
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           navigateConflicts(true);
         }
       };
@@ -417,7 +382,7 @@ public class BuildVariantView {
 
       AnAction prevConflictAction = new AnAction() {
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           navigateConflicts(false);
         }
       };
