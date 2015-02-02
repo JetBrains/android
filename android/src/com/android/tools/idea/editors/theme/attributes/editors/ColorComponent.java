@@ -66,6 +66,8 @@ public class ColorComponent extends JButton {
       g.setColor(myDrawnColor);
       g.fillRect(PADDING, PADDING, getWidth() - PADDING, getHeight() - PADDING);
     } else {
+      g.setColor(JBColor.WHITE);
+      g.fillRect(PADDING, PADDING, getWidth() - PADDING, getHeight() - PADDING);
       g.setColor(JBColor.LIGHT_GRAY);
       g.drawLine(PADDING, PADDING, getWidth() - PADDING, getHeight() - PADDING);
       g.drawLine(getWidth() - PADDING, PADDING, PADDING, getHeight() - PADDING);
