@@ -5,6 +5,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
+import com.intellij.reference.SoftReference;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
@@ -20,11 +21,11 @@ import java.util.Set;
  * @author Eugene.Kudelevsky
  */
 public class AndroidDependenciesCache {
-  private static final Key<AndroidDependenciesCache> KEY = Key.create("ANDROID_DEPENDENCIES_CACHE");
+  private static final Key<SoftReference<AndroidDependenciesCache>> KEY = Key.create("ANDROID_DEPENDENCIES_CACHE");
   private final Module myModule;
 
-  private volatile List<WeakReference<AndroidFacet>> myAllDependencies;
-  private volatile List<WeakReference<AndroidFacet>> myAllLibraryDependencies;
+  private final Ref<List<WeakReference<AndroidFacet>>> myAllDependencies = Ref.create();
+  private final Ref<List<WeakReference<AndroidFacet>>> myAllLibraryDependencies = Ref.create();
 
   private AndroidDependenciesCache(@NotNull Module module) {
     myModule = module;
@@ -38,26 +39,29 @@ public class AndroidDependenciesCache {
   }
 
   private synchronized void dropCache() {
-    myAllDependencies = null;
-    myAllLibraryDependencies = null;
+    myAllDependencies.set(null);
+    myAllLibraryDependencies.set(null);
   }
 
   @NotNull
   public static AndroidDependenciesCache getInstance(@NotNull Module module) {
-    AndroidDependenciesCache cache = module.getUserData(KEY);
+    AndroidDependenciesCache cache = SoftReference.dereference(module.getUserData(KEY));
 
     if (cache == null) {
       cache = new AndroidDependenciesCache(module);
-      module.putUserData(KEY, cache);
+      module.putUserData(KEY, new SoftReference<AndroidDependenciesCache>(cache));
     }
     return cache;
   }
 
   @NotNull
   public synchronized List<AndroidFacet> getAllAndroidDependencies(boolean androidLibrariesOnly) {
-    return androidLibrariesOnly
-           ? getAllAndroidDependencies(myModule, true, Ref.create(myAllLibraryDependencies))
-           : getAllAndroidDependencies(myModule, false, Ref.create(myAllDependencies));
+    return getAllAndroidDependencies(myModule, androidLibrariesOnly, getListRef(androidLibrariesOnly));
+  }
+
+  @NotNull
+  private Ref<List<WeakReference<AndroidFacet>>> getListRef(boolean androidLibrariesOnly) {
+    return androidLibrariesOnly ? myAllLibraryDependencies : myAllDependencies;
   }
 
   @NotNull
@@ -70,7 +74,7 @@ public class AndroidDependenciesCache {
       final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
       collectAllAndroidDependencies(module, androidLibrariesOnly, facets, new HashSet<AndroidFacet>());
 
-      refs = ContainerUtil.map(facets, new Function<AndroidFacet, WeakReference<AndroidFacet>>() {
+      refs = ContainerUtil.map(ContainerUtil.reverse(facets), new Function<AndroidFacet, WeakReference<AndroidFacet>>() {
         @Override
         public WeakReference<AndroidFacet> fun(AndroidFacet facet) {
           return new WeakReference<AndroidFacet>(facet);
@@ -82,7 +86,7 @@ public class AndroidDependenciesCache {
   }
 
   @NotNull
-  private static List<AndroidFacet> dereference(List<WeakReference<AndroidFacet>> refs) {
+  private static List<AndroidFacet> dereference(@NotNull List<WeakReference<AndroidFacet>> refs) {
     return ContainerUtil.mapNotNull(refs, new Function<WeakReference<AndroidFacet>, AndroidFacet>() {
       @Override
       public AndroidFacet fun(WeakReference<AndroidFacet> ref) {
@@ -113,8 +117,22 @@ public class AndroidDependenciesCache {
             if (depFacet != null &&
                 (!androidLibrariesOnly || depFacet.isLibraryProject()) &&
                 visited.add(depFacet)) {
-              collectAllAndroidDependencies(depModule, androidLibrariesOnly, result, visited);
-              result.add(0, depFacet);
+              final List<WeakReference<AndroidFacet>> cachedDepDeps =
+                getInstance(depModule).getListRef(androidLibrariesOnly).get();
+
+              if (cachedDepDeps != null) {
+                final List<AndroidFacet> depDeps = dereference(cachedDepDeps);
+
+                for (AndroidFacet depDepFacet : depDeps) {
+                  if (visited.add(depDepFacet)) {
+                    result.add(depDepFacet);
+                  }
+                }
+              }
+              else {
+                collectAllAndroidDependencies(depModule, androidLibrariesOnly, result, visited);
+              }
+              result.add(depFacet);
             }
           }
         }
