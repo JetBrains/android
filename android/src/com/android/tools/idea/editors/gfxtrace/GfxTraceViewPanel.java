@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,12 +124,12 @@ public class GfxTraceViewPanel implements Disposable {
     return myBufferToolbar;
   }
 
-  public void setBufferTabs(@NotNull JBRunnerTabs bufferTabs) {
-    myBufferTabs = bufferTabs;
-  }
-
   public JBRunnerTabs getBufferTabs() {
     return myBufferTabs;
+  }
+
+  public void setBufferTabs(@NotNull JBRunnerTabs bufferTabs) {
+    myBufferTabs = bufferTabs;
   }
 
   public JBScrollPane getScrubberScrollPane() {

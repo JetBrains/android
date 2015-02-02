@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,27 @@ public class FrameBufferController implements GfxController {
         }
       }
     });
+  }
+
+  @Nullable
+  private static FetchedImage fetchImage(long atomId,
+                                         @NotNull ImageFetcher imageFetcher,
+                                         @NotNull BufferType instance,
+                                         @Nullable RenderSettings renderSettings,
+                                         boolean isWireframeMode) {
+    assert (instance == BufferType.DEPTH_BUFFER || renderSettings != null);
+    if (renderSettings != null) {
+      renderSettings.setWireframe(isWireframeMode);
+    }
+
+    ImageFetcher.ImageFetchHandle imageFetchHandle =
+      (instance == BufferType.DEPTH_BUFFER) ? imageFetcher.queueDepthImage(atomId) : imageFetcher.queueColorImage(atomId, renderSettings);
+
+    if (imageFetchHandle == null) {
+      return null;
+    }
+
+    return imageFetcher.resolveImage(imageFetchHandle);
   }
 
   @Override
@@ -165,27 +186,6 @@ public class FrameBufferController implements GfxController {
     for (int i = 0; i < BufferType.length; ++i) {
       myIconCache[i] = null;
     }
-  }
-
-  @Nullable
-  private static FetchedImage fetchImage(long atomId,
-                                         @NotNull ImageFetcher imageFetcher,
-                                         @NotNull BufferType instance,
-                                         @Nullable RenderSettings renderSettings,
-                                         boolean isWireframeMode) {
-    assert (instance == BufferType.DEPTH_BUFFER || renderSettings != null);
-    if (renderSettings != null) {
-      renderSettings.setWireframe(isWireframeMode);
-    }
-
-    ImageFetcher.ImageFetchHandle imageFetchHandle =
-      (instance == BufferType.DEPTH_BUFFER) ? imageFetcher.queueDepthImage(atomId) : imageFetcher.queueColorImage(atomId, renderSettings);
-
-    if (imageFetchHandle == null) {
-      return null;
-    }
-
-    return imageFetcher.resolveImage(imageFetchHandle);
   }
 
   private void setIcons(final long closedAtomId, @NotNull final ImageIcon[] iconCache) {
