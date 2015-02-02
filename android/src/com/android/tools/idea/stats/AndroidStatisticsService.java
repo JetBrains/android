@@ -25,6 +25,7 @@ import com.intellij.internal.statistic.beans.UsageDescriptor;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
+import com.intellij.internal.statistic.persistence.ApplicationStatisticsPersistenceComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -99,14 +100,16 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
+    synchronized (ApplicationStatisticsPersistenceComponent.class) {
 
-    LegacySdkStatsService sdkstats = sendLegacyPing();
+      LegacySdkStatsService sdkstats = sendLegacyPing();
 
-    StatisticsResult result = sendUsageStats(sdkstats);
+      StatisticsResult result = sendUsageStats(sdkstats);
 
-    result = sendBuildStats(sdkstats);
+      result = sendBuildStats(sdkstats);
 
-    return result;
+      return result;
+    }
   }
 
   /**
