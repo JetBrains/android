@@ -321,7 +321,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
           Hierarchy hierarchy = myClient.ResolveHierarchy(myClient.GetHierarchy(captureId, contextId).get()).get();
           state.myAtomReader = new AtomReader(state.myCaptureChangeState.myAtomStream, state.myCaptureChangeState.mySchema);
           state.myTreeRoot = AtomController.prepareData(hierarchy);
-          state.myScrubberList = ScrubberController.prepareData(hierarchy, state.myAtomReader);
+          state.myScrubberList = myScrubberController.prepareData(hierarchy, state.myAtomReader);
 
           return state;
         }

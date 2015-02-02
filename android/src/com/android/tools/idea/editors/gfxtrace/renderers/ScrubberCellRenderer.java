@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.controllers.ImageFetcher;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberFrameData;
+import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.RoundedLineBorder;
 import com.android.tools.rpclib.rpc.RenderSettings;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,21 +50,25 @@ public class ScrubberCellRenderer implements ListCellRenderer {
   @NotNull private static final Dimension DEFAULT_IMAGE_SIZE = new Dimension(MAX_WIDTH, MAX_HEIGHT);
   @NotNull private static final ScheduledExecutorService ourScheduler =
     ConcurrencyUtil.newSingleScheduledThreadExecutor("ScrubberAnimation");
+
+  @NotNull private final ScrubberLabel myScrubberLabel;
   @NotNull private RenderSettings myRenderSettings;
-  @NotNull private Set<Integer> myOutstandingRenders;
+  @NotNull private Set<Integer> myOutstandingIconFetches;
   @NotNull private HashMap<Integer, ImageIcon> myCachedImages;
   @NotNull private ImageIcon myBlankIcon;
   @NotNull private AtomicBoolean shouldStop = new AtomicBoolean(false);
   @NotNull private List<Integer> myPostRenderCleanupCacheHits = new ArrayList<Integer>(20);
   private ScheduledFuture<?> myTicker;
-  private Dimension myLargestKnownIcon = new Dimension(MIN_WIDTH, MIN_HEIGHT);
+  private Dimension myLargestKnownIconDimension = new Dimension(MIN_WIDTH, MIN_HEIGHT);
   private int myRepaintsNeeded;
 
   @NotNull private List<DimensionChangeListener> myDimensionChangeListeners = new ArrayList<DimensionChangeListener>(1);
   private ImageFetcher myImageFetcher;
 
   public ScrubberCellRenderer() {
-    myOutstandingRenders = new HashSet<Integer>();
+    myScrubberLabel = new ScrubberLabel();
+
+    myOutstandingIconFetches = new HashSet<Integer>();
     myCachedImages = new HashMap<Integer, ImageIcon>();
 
     myRenderSettings = new RenderSettings();
@@ -83,23 +87,52 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     myDimensionChangeListeners.add(listener);
   }
 
+  /**
+   * This method returns a custom JBLabel to show the final frame render.
+   * <p/>
+   * The icons that are used in the scrubber view are generated on a remote server. This fact necessitates a few requirements for displaying
+   * icons in the scrubber view:
+   * 1) When the icon is being generated, the UI needs to remain responsive.
+   * 2) While the icon is being generated, there needs to exist UI indicators to notify the user that the the icon is being generated.
+   * 3) The icon should not be regenerated if it has already been generated, within the memory constraints of Studio. This therefore
+   * necessitates some sort of caching mechanism.
+   * 4) Caches need to get periodically evicted since each icon is upwards of ~150kB in size. A capture with 600 frames requires ~88MB of
+   * memory to hold all the thumbnails in memory, and is completely variable depending on the length of capture.
+   * <p/>
+   * Therefore, this method (directly or indirectly) satisfies the above requirements by:
+   * 1) Farming off the icon generation to a separate thread.
+   * 2) Draw the loading indicator via a custom Swing component (ScrubberLabel).
+   * 3) Implementing a simple caching mechanism based on a sliding window view of the film strip.
+   * 4) Periodic cache eviction based on last-rendered time, and the current position in the sliding window. As in, the user is always
+   * seeing a contiguous segment of frames in the UI (a "window"). For most use cases, the user will scroll left or right, which makes cache
+   * locality based on the current viewport position in the view.
+   * <p/>
+   * The general flow of this method is as follows:
+   * 1) Look into the cache to see if an icon exists for the given parameters.
+   * 2a) If so, populate the singleton ScrubberLabel component with the cached icon and return it. Done.
+   * 2b) If not, queue a request to the server to generate the desired icon on a separate thread. When the server returns, cache the state
+   * and the icon, and request a repaint (which will cause the new icon displayed).
+   * 3) (While generating the icon) Start a timer to periodically repaint the loading icon that will be a placeholder for the desired icon.
+   * 4) Populate the singleton ScrubberLabel component with the placeholder icon and return it. Done.
+   */
   @Override
-  public Component getListCellRendererComponent(final JList jList,
-                                                Object o,
+  public Component getListCellRendererComponent(@NotNull final JList jList,
+                                                @NotNull Object data,
                                                 final int index,
                                                 final boolean isSelected,
                                                 boolean cellHasFocus) {
-    assert (o instanceof ScrubberLabel);
-    final ScrubberLabel existingLabel = (ScrubberLabel)o;
+    assert (data instanceof ScrubberLabelData);
+    final ScrubberLabelData labelData = (ScrubberLabelData)data;
+    myScrubberLabel.setUserData(labelData);
 
     ImageIcon result = myCachedImages.get(index);
     if (result == null) {
-      if (myOutstandingRenders.contains(index)) {
+      if (myOutstandingIconFetches.contains(index)) {
         myRepaintsNeeded++;
       }
       else {
-        myOutstandingRenders.add(index);
-        existingLabel.setLoading(true);
+        myOutstandingIconFetches.add(index);
+        labelData.setLoading(true);
         final AtomicBoolean shouldStopReference = shouldStop;
         final ImageFetcher closedImageFetcher = myImageFetcher;
 
@@ -109,8 +142,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
           public void run() {
             ImageIcon imageIcon = null;
             try {
-              ImageFetcher.ImageFetchHandle handle =
-                closedImageFetcher.queueColorImage(existingLabel.getUserData().getAtomId(), myRenderSettings);
+              ImageFetcher.ImageFetchHandle handle = closedImageFetcher.queueColorImage(labelData.getAtomId(), myRenderSettings);
 
               if (handle != null) {
                 FetchedImage fetchedImage = closedImageFetcher.resolveImage(handle);
@@ -125,25 +157,16 @@ public class ScrubberCellRenderer implements ListCellRenderer {
               ApplicationManager.getApplication().invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                  myOutstandingRenders.remove(index);
+                  myOutstandingIconFetches.remove(index);
                   if (shouldStopReference.get() || finalImageIcon == null) {
                     return;
                   }
 
-                  if (finalImageIcon.getIconHeight() > myLargestKnownIcon.getHeight() ||
-                      finalImageIcon.getIconWidth() > myLargestKnownIcon.getWidth()) {
-                    myLargestKnownIcon.setSize(Math.max(finalImageIcon.getIconWidth(), myLargestKnownIcon.width),
-                                               Math.max(finalImageIcon.getIconHeight(), myLargestKnownIcon.height));
-                    myBlankIcon.setImage(createBlankImage(myLargestKnownIcon));
-                    for (DimensionChangeListener listener : myDimensionChangeListeners) {
-                      listener.notifyDimensionChanged(getCellDimensions());
-                    }
-                  }
+                  updateDefaultImageIcon(finalImageIcon);
 
-                  existingLabel.setIcon(finalImageIcon);
-                  existingLabel.setLoading(false);
-                  existingLabel.setBorder(existingLabel.getBorder());
-                  existingLabel.setSelected(isSelected);
+                  labelData.setLoading(false);
+                  labelData.setSelected(isSelected);
+                  labelData.setIcon(finalImageIcon);
                   myCachedImages.put(index, finalImageIcon);
                   jList.repaint();
                 }
@@ -154,12 +177,13 @@ public class ScrubberCellRenderer implements ListCellRenderer {
       }
     }
 
-    existingLabel.setBorder(isSelected ? SELECTED_BORDER : DEFAULT_BORDER);
-    existingLabel.setSelected(isSelected);
+    labelData.setSelected(isSelected);
+    myScrubberLabel.setBorder(isSelected ? SELECTED_BORDER : DEFAULT_BORDER);
 
     queueInvalidateCache();
     myPostRenderCleanupCacheHits.add(index);
 
+    // If necessary, schedule a repeating repaint so that the loading icon animates.
     if (myRepaintsNeeded > 0 && myTicker == null) {
       myTicker = ourScheduler.scheduleAtFixedRate(new Runnable() {
         @Override
@@ -180,32 +204,23 @@ public class ScrubberCellRenderer implements ListCellRenderer {
       myTicker = null;
     }
 
-    return existingLabel;
-  }
-
-  @NotNull
-  public JComponent getBlankLabel(@NotNull ScrubberFrameData data, boolean isSelected) {
-    ScrubberLabel blankLabel = new ScrubberLabel(data);
-    blankLabel.setIcon(myBlankIcon);
-    blankLabel.setLoading(true);
-    blankLabel.setVerticalAlignment(SwingConstants.TOP);
-    blankLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-    blankLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
-    blankLabel.setBorder(DEFAULT_BORDER);
-    blankLabel.setSelected(isSelected);
-
-    return blankLabel;
+    return myScrubberLabel;
   }
 
   @NotNull
   public Dimension getCellDimensions() {
-    if (myLargestKnownIcon.getWidth() > MIN_WIDTH && myLargestKnownIcon.getHeight() > MIN_HEIGHT) {
-      return new Dimension(myLargestKnownIcon.width + 2 * BORDER_SIZE, myLargestKnownIcon.height + 2 * BORDER_SIZE);
+    if (myLargestKnownIconDimension.getWidth() > MIN_WIDTH && myLargestKnownIconDimension.getHeight() > MIN_HEIGHT) {
+      return new Dimension(myLargestKnownIconDimension.width + 2 * BORDER_SIZE, myLargestKnownIconDimension.height + 2 * BORDER_SIZE);
     }
     return new Dimension((int)myRenderSettings.getMaxWidth() + 2 * BORDER_SIZE, (int)myRenderSettings.getMaxHeight() + 2 * BORDER_SIZE);
   }
 
-  public void clear() {
+  @NotNull
+  public ImageIcon getDefaultIcon() {
+    return myBlankIcon;
+  }
+
+  public void clearState() {
     clearCache();
     myImageFetcher = null;
   }
@@ -214,6 +229,24 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     shouldStop.set(true);
     shouldStop = new AtomicBoolean(false);
     myCachedImages.clear();
+  }
+
+  /**
+   * This methods updates the default blank image icon's size.
+   * <p/>
+   * Since there currently is no way to know how large the largest icon will be a priori, this method checks and changes the default icon
+   * to the union of the largest icon dimensions encountered so far.
+   */
+  private void updateDefaultImageIcon(@NotNull ImageIcon newIcon) {
+    if (newIcon.getIconHeight() > myLargestKnownIconDimension.getHeight() ||
+        newIcon.getIconWidth() > myLargestKnownIconDimension.getWidth()) {
+      myLargestKnownIconDimension.setSize(Math.max(newIcon.getIconWidth(), myLargestKnownIconDimension.width),
+                                          Math.max(newIcon.getIconHeight(), myLargestKnownIconDimension.height));
+      myBlankIcon.setImage(createBlankImage(myLargestKnownIconDimension));
+      for (DimensionChangeListener listener : myDimensionChangeListeners) {
+        listener.notifyDimensionChanged(getCellDimensions());
+      }
+    }
   }
 
   /**
@@ -254,7 +287,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     }
   }
 
-  private Image createBlankImage(@NotNull Dimension dimension) {
+  private static Image createBlankImage(@NotNull Dimension dimension) {
     //noinspection UndesirableClassUsage
     BufferedImage blankImage = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_BYTE_BINARY);
     Graphics2D g = blankImage.createGraphics();
