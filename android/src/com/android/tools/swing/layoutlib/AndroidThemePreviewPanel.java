@@ -33,12 +33,13 @@ import java.io.IOException;
 /**
  * UI component that renders a theme.
  */
-public class AndroidThemePreviewPanel extends JComponent {
+public class AndroidThemePreviewPanel extends JComponent implements Scrollable {
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class.getName());
   private static final String THEME_PREVIEW_LAYOUT = "/themeEditor/sample_layout.xml";
 
   private final AndroidFacet myFacet;
   private final PsiFile myPsiFile;
+  private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
   private ILayoutPullParser myParser;
   private Configuration myConfiguration;
@@ -49,6 +50,18 @@ public class AndroidThemePreviewPanel extends JComponent {
     myPsiFile = psiFile;
     myFacet = AndroidFacet.getInstance(myPsiFile);
     myConfiguration = configuration;
+
+    myDocument = null;
+    try {
+      myDocument =
+        DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
+    }
+    catch (SAXException e) {
+      LOG.error(e);
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
   }
 
   @Override
@@ -77,21 +90,13 @@ public class AndroidThemePreviewPanel extends JComponent {
   public void paintComponent(final Graphics graphics) {
     super.paintComponent(graphics);
 
-    if (myGraphicsLayoutRenderer == null) {
+    if (myGraphicsLayoutRenderer == null && myDocument != null) {
       try {
-        final Document document =
-          DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
-        myParser = new DomPullParser(document.getDocumentElement());
+        myParser = new DomPullParser(myDocument.getDocumentElement());
         myGraphicsLayoutRenderer = GraphicsLayoutRenderer.create(myConfiguration, myParser);
         myGraphicsLayoutRenderer.setSize(getSize());
       }
       catch (InitializationException e) {
-        LOG.error(e);
-      }
-      catch (SAXException e) {
-        LOG.error(e);
-      }
-      catch (IOException e) {
         LOG.error(e);
       }
     }
@@ -99,5 +104,31 @@ public class AndroidThemePreviewPanel extends JComponent {
     if (myGraphicsLayoutRenderer != null) {
       myGraphicsLayoutRenderer.render((Graphics2D)graphics);
     }
+  }
+
+  @Override
+  public Dimension getPreferredScrollableViewportSize() {
+    return getPreferredSize();
+  }
+
+  @Override
+  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+    return 5;
+  }
+
+  @Override
+  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+    return 10;
+  }
+
+  @Override
+  public boolean getScrollableTracksViewportWidth() {
+    // We only scroll vertically so the viewport can adjust the size to our real width.
+    return true;
+  }
+
+  @Override
+  public boolean getScrollableTracksViewportHeight() {
+    return false;
   }
 }
