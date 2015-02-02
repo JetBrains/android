@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustom
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
@@ -79,6 +78,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.NonNavigatable;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
@@ -658,7 +658,7 @@ public class PostProjectSetupTasksExecutor {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
       // install any missing platforms.
       String text = "Open Android SDK Manager and install all missing platforms.";
-      Message hint = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, AbstractNavigatable.NOT_NAVIGATABLE, text);
+      Message hint = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, NonNavigatable.INSTANCE, text);
       messages.add(hint, new OpenAndroidSdkManagerHyperlink());
     }
   }
@@ -704,7 +704,7 @@ public class PostProjectSetupTasksExecutor {
           msg = new Message(myProject, "Project Configuration", Message.Type.ERROR, buildFile, -1, -1, text);
         }
         else {
-          msg = new Message("Project Configuration", Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+          msg = new Message("Project Configuration", Message.Type.ERROR, NonNavigatable.INSTANCE, text);
         }
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);

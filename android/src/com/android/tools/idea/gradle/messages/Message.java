@@ -19,6 +19,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.pom.NonNavigatable;
 import com.intellij.util.ui.MessageCategory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +34,7 @@ public class Message {
   private final int myColumn;
 
   public Message(@NotNull String groupName, @NotNull Type type, @NotNull String... text) {
-    this(groupName, type, AbstractNavigatable.NOT_NAVIGATABLE, text);
+    this(groupName, type, NonNavigatable.INSTANCE, text);
   }
 
   public Message(@NotNull Project project,

@@ -44,6 +44,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -140,7 +141,7 @@ public class ProjectSyncMessages {
         hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
       }
       else {
-        msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+        msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
       }
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
         GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dep);
