@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,16 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     myRenderSettings.setWireframe(false);
 
     myBlankIcon = new ImageIcon(createBlankImage(DEFAULT_IMAGE_SIZE));
+  }
+
+  private static Image createBlankImage(@NotNull Dimension dimension) {
+    //noinspection UndesirableClassUsage
+    BufferedImage blankImage = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_BYTE_BINARY);
+    Graphics2D g = blankImage.createGraphics();
+    g.setPaint(UIUtil.getListForeground());
+    g.fillRect(0, 0, dimension.width, dimension.height);
+    g.dispose();
+    return blankImage;
   }
 
   public void setup(@NotNull ImageFetcher imageFetcher) {
@@ -285,16 +295,6 @@ public class ScrubberCellRenderer implements ListCellRenderer {
         }
       });
     }
-  }
-
-  private static Image createBlankImage(@NotNull Dimension dimension) {
-    //noinspection UndesirableClassUsage
-    BufferedImage blankImage = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_BYTE_BINARY);
-    Graphics2D g = blankImage.createGraphics();
-    g.setPaint(UIUtil.getListForeground());
-    g.fillRect(0, 0, dimension.width, dimension.height);
-    g.dispose();
-    return blankImage;
   }
 
   public interface DimensionChangeListener {

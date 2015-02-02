@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,10 @@ public class ScrubberLabelData {
     myImageIcon = icon;
   }
 
+  public boolean isLoading() {
+    return myIsCurrentlyLoadingIcon;
+  }
+
   public void setLoading(boolean isLoading) {
     if (isLoading && !myIsCurrentlyLoadingIcon) {
       myLoadIconStartTime = System.currentTimeMillis();
@@ -67,19 +71,15 @@ public class ScrubberLabelData {
     myIsCurrentlyLoadingIcon = isLoading;
   }
 
-  public boolean isLoading() {
-    return myIsCurrentlyLoadingIcon;
-  }
-
   public long getLoadIconStartTime() {
     return myLoadIconStartTime;
   }
 
-  public void setSelected(boolean isSelected) {
-    myIsSelected = isSelected;
-  }
-
   public boolean isSelected() {
     return myIsSelected;
+  }
+
+  public void setSelected(boolean isSelected) {
+    myIsSelected = isSelected;
   }
 }
