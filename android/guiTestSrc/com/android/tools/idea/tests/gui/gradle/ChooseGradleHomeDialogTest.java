@@ -27,8 +27,8 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.UNSUPPORTED_GRADLE_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SUPPORTED_GRADLE_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.UNSUPPORTED_GRADLE_HOME_PROPERTY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**

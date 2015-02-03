@@ -17,12 +17,10 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 
 import com.android.resources.Navigation;
-import com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

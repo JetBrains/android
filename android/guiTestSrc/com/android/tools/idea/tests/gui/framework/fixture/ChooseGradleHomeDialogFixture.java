@@ -39,9 +39,7 @@ import java.util.Collection;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.*;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.query.ComponentShowingQuery.isShowing;
 

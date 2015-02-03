@@ -24,7 +24,6 @@ import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.JTextComponent;
