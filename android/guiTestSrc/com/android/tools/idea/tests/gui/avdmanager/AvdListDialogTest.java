@@ -17,15 +17,10 @@ package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.fixture.JComboBoxFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class AvdListDialogTest extends GuiTestCase {
   @Test

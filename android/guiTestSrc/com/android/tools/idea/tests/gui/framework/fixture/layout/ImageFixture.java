@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.RenderTestBase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import org.jetbrains.annotations.NotNull;
 

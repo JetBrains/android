@@ -17,15 +17,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
-import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.ComponentFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Collection;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture {
   @NotNull
