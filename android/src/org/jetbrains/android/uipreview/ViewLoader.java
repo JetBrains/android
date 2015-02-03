@@ -25,7 +25,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderProblem;
 import com.android.util.Pair;
+import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -50,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -63,12 +66,12 @@ public class ViewLoader {
   @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
-  @Nullable private final ClassLoader myParentClassLoader;
+  @NotNull private final LayoutLibrary myLayoutLibrary;
   @Nullable private ProjectClassLoader myProjectClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
                     @Nullable Object credential) {
-    myParentClassLoader = layoutLib.getClassLoader();
+    myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
@@ -92,11 +95,13 @@ public class ViewLoader {
 
     try {
       if (aClass != null) {
+        checkModified(className);
         return createNewInstance(aClass, constructorSignature, constructorArgs);
       }
       aClass = loadClass(className);
 
       if (aClass != null) {
+        checkModified(className);
         final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs);
         myLoadedClasses.put(className, aClass);
         return viewObject;
@@ -159,6 +164,18 @@ public class ViewLoader {
     }
   }
 
+  /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
+  private void checkModified(@NotNull String fqcn) {
+    if (myProjectClassLoader != null && myProjectClassLoader.isSourceModified(fqcn, myCredential)) {
+      RenderProblem.Html problem = RenderProblem.create(WARNING);
+      HtmlBuilder builder = problem.getHtmlBuilder();
+      String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
+      builder.addLink("The " + className + " custom view has been edited more recently than the last build: ", "Build", " the project.",
+                      myLogger.getLinkManager().createCompileModuleUrl());
+      myLogger.addMessage(problem);
+    }
+  }
+
   @Nullable
   private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
@@ -178,7 +195,7 @@ public class ViewLoader {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule, myLogger, myCredential);
+        myProjectClassLoader = ProjectClassLoader.get(myLayoutLibrary, myModule);
       } finally {
         RenderSecurityManager.exitSafeRegion(token);
       }
@@ -223,8 +240,8 @@ public class ViewLoader {
             if (!AndroidUtils.isAbstract(psiClass)) {
               try {
                 Class<?> aClass = myLoadedClasses.get(qName);
-                if (aClass == null && myParentClassLoader != null) {
-                  aClass = myParentClassLoader.loadClass(qName);
+                if (aClass == null && myLayoutLibrary.getClassLoader() != null) {
+                  aClass = myLayoutLibrary.getClassLoader().loadClass(qName);
                   if (aClass != null) {
                     myLoadedClasses.put(qName, aClass);
                   }
