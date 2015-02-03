@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.Utilities;
@@ -24,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
@@ -46,6 +48,7 @@ public class Analyser {
     {"void onCreate(Bundle b)", "void onCreateView(View parent, String name, Context context, AttributeSet attrs)"};
   private static final String[] FRAGMENT_SIGNATURES = {"void onCreate(Bundle b)", "void onViewCreated(View v, Bundle b)"};
   public static final String FAKE_OVERFLOW_MENU_ID = "$overflow_menu$";
+  public static final String EMPTY_LAYOUT_TAG = SdkConstants.SPACE;
 
 
   private final Module myModule;
@@ -604,23 +607,17 @@ public class Analyser {
     if (psiFile == null) {
       return false;
     }
-    final boolean[] result = {true};
+    final Ref<Boolean> result = new Ref<Boolean>(false);
     psiFile.accept(new XmlRecursiveElementVisitor() {
-      private int level = 0;
-
       @Override
       public void visitXmlTag(XmlTag tag) {
-        level++;
-        if (level == 1 && tag.getName().endsWith("Layout")) {
-          super.visitXmlTag(tag);
+        // No call to super, we're only interested in the top level element
+        if (tag.getName().equals(EMPTY_LAYOUT_TAG)) {
+          result.set(true);
         }
-        else {
-          result[0] = false;
-        }
-        level--;
       }
     });
-    return result[0];
+    return result.get();
   }
 
   public static String getPrefix(@Nullable String idName) {
