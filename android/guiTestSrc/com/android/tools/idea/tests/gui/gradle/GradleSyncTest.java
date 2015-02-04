@@ -37,8 +37,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,15 +47,15 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.CheckBoxList;
 import com.intellij.util.SystemProperties;
 import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +99,8 @@ import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.data.TableCell.row;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
@@ -159,7 +159,7 @@ public class GradleSyncTest extends GuiTestCase {
     pause(new Condition("Android Support Repository is installed") {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() {
             return finish.target.isEnabled();
@@ -625,7 +625,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
     // prevent unnecessary file indexing, which decreases performance.)
-    final File[] excludeFolderPaths = GuiActionRunner.execute(new GuiQuery<File[]>() {
+    final File[] excludeFolderPaths = execute(new GuiQuery<File[]>() {
       @Override
       protected File[] executeInEDT() throws Throwable {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
@@ -759,7 +759,7 @@ public class GradleSyncTest extends GuiTestCase {
     final VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         GradleProjectImporter.getInstance().importProject(toSelect);
@@ -768,10 +768,10 @@ public class GradleSyncTest extends GuiTestCase {
 
     DialogFixture dialog = findDialog(withTitle("Select Modules to Include").andShowing()).withTimeout(SHORT_TIMEOUT.duration())
                                                                                           .using(myRobot);
-    //noinspection unchecked
-    CheckBoxList<DataNode<ModuleData>> list = myRobot.finder().findByType(dialog.target, CheckBoxList.class, true);
-    CheckBoxListFixture moduleList = new CheckBoxListFixture<DataNode<ModuleData>>(myRobot, list);
-    moduleList.setItemChecked("lib", false);
+
+    JTableFixture table = new JTableFixture(myRobot, myRobot.finder().findByType(dialog.target, JTable.class, true));
+    TableCell cell = table.cell("lib");
+    table.enterValue(row(cell.row).column(0), "false");
 
     findAndClickOkButton(dialog);
 

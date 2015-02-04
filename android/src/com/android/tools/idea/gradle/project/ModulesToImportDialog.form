@@ -32,7 +32,7 @@
               <size top="2" left="2" bottom="2" right="2"/>
             </border>
             <children>
-              <component id="38b69" class="com.intellij.ui.CheckBoxList" binding="myModulesList">
+              <component id="d62d0" class="com.intellij.ui.table.JBTable" binding="myModulesTable" custom-create="true">
                 <constraints/>
                 <properties/>
               </component>
