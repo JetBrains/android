@@ -304,7 +304,7 @@ public class Configuration implements Disposable {
       destination.myStateName = source.myStateName;
       destination.myState = source.myState;
     }
-    if (editedConfig.getEffectiveLanguage() == null) {
+    if (editedConfig.getLocaleQualifier() == null) {
       destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
     }
     if (editedConfig.getUiModeQualifier() == null) {
@@ -437,10 +437,7 @@ public class Configuration implements Disposable {
     FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
     if (currentConfig != null) {
       if (locale.hasLanguage()) {
-        currentConfig.setLanguageQualifier(locale.language);
-        if (locale.hasRegion()) {
-          currentConfig.setRegionQualifier(locale.region);
-        }
+        currentConfig.setLocaleQualifier(locale.qualifier);
 
         if (locale.hasLanguage()) {
           LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
@@ -599,7 +596,7 @@ public class Configuration implements Disposable {
    * @return if this configuration represents a locale-specific layout
    */
   public boolean isLocaleSpecificLayout() {
-    return myEditedConfig.getEffectiveLanguage() != null;
+    return myEditedConfig.getLocaleQualifier() != null;
   }
 
   /**
@@ -924,8 +921,7 @@ public class Configuration implements Disposable {
 
     // sync the selected locale
     Locale locale = getLocale();
-    myFullConfig.setLanguageQualifier(locale.language);
-    myFullConfig.setRegionQualifier(locale.region);
+    myFullConfig.setLocaleQualifier(locale.qualifier);
     if (myEditedConfig.getLayoutDirectionQualifier() != null) {
       myFullConfig.setLayoutDirectionQualifier(myEditedConfig.getLayoutDirectionQualifier());
     } else if (!locale.hasLanguage()) {

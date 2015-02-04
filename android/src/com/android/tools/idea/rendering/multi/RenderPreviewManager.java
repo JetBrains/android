@@ -698,10 +698,10 @@ public class RenderPreviewManager implements Disposable {
   }
 
   private void createLocaleVariation(@NotNull Configuration parent) {
-    LanguageQualifier currentLanguage = parent.getLocale().language;
+    LocaleQualifier currentLanguage = parent.getLocale().qualifier;
     for (Locale locale : parent.getConfigurationManager().getLocales()) {
-      LanguageQualifier language = locale.language;
-      if (!language.equals(currentLanguage)) {
+      LocaleQualifier qualifier = locale.qualifier;
+      if (!qualifier.getLanguage().equals(currentLanguage.getLanguage())) {
         VaryingConfiguration configuration = VaryingConfiguration.create(parent);
         configuration.setAlternateLocale(true);
         addPreview(RenderPreview.create(this, configuration, false));
@@ -863,7 +863,7 @@ public class RenderPreviewManager implements Disposable {
     // Similar to LocaleMenuAction.getLocaleLabel with brief=false, so it includes
     // a full language name, but it inlines the region code without mentioning the
     // full region name.
-    String languageCode = locale.language.getValue();
+    String languageCode = locale.qualifier.getLanguage();
     String languageName = LocaleManager.getLanguageName(languageCode);
 
     if (!locale.hasRegion()) {
@@ -875,7 +875,8 @@ public class RenderPreviewManager implements Disposable {
       }
     }
     else {
-      String regionCode = locale.region.getValue();
+      String regionCode = locale.qualifier.getRegion();
+      assert regionCode != null; // because hasRegion()
       if (languageName != null) {
         return String.format("%1$s (%2$s/%3$s)", languageName, languageCode, regionCode);
       }

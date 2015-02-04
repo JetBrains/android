@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.LocalResourceRepository;
@@ -172,9 +172,9 @@ public class StringsWriteUtils {
 
     for (ResourceItem item : items) {
       FolderConfiguration config = item.getConfiguration();
-      LanguageQualifier languageQualifier = config == null ? null : config.getEffectiveLanguage();
+      LocaleQualifier qualifier = config == null ? null : config.getLocaleQualifier();
 
-      if (languageQualifier == null) {
+      if (qualifier == null) {
         if (locale == null) {
           return item;
         }
@@ -183,7 +183,7 @@ public class StringsWriteUtils {
         }
       }
 
-      Locale l = Locale.create(languageQualifier, config.getEffectiveRegion());
+      Locale l = Locale.create(qualifier);
       if (l.equals(locale)) {
         return item;
       }
@@ -196,10 +196,7 @@ public class StringsWriteUtils {
   private static XmlFile getStringResourceFile(@NotNull Project project, @NotNull final VirtualFile resFolder, @Nullable Locale locale) {
     FolderConfiguration configuration = new FolderConfiguration();
     if (locale != null) {
-      configuration.setLanguageQualifier(locale.language);
-      if (locale.hasRegion()) {
-        configuration.setRegionQualifier(locale.region);
-      }
+      configuration.setLocaleQualifier(locale.qualifier);
     }
     PsiManager manager = PsiManager.getInstance(project);
     final String valuesFolderName = configuration.getFolderName(ResourceFolderType.VALUES);

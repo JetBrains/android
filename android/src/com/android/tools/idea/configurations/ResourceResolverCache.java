@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -200,8 +200,8 @@ public class ResourceResolverCache {
     int apiLevel = target.getVersion().getFeatureLevel();
     FrameworkResources resources = myFrameworkResources.get(apiLevel);
 
-    LanguageQualifier languageQualifier = configuration.getEffectiveLanguage();
-    boolean needLocales = languageQualifier != null && !languageQualifier.hasFakeValue() || myManager.getLocale() != Locale.ANY;
+    LocaleQualifier locale = configuration.getLocaleQualifier();
+    boolean needLocales = locale != null && !locale.hasFakeValue() || myManager.getLocale() != Locale.ANY;
 
     boolean reset = false;
     if (resources instanceof FrameworkResourceLoader.IdeFrameworkResources) {

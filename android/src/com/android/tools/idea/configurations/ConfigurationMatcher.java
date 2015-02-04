@@ -91,6 +91,11 @@ public class ConfigurationMatcher {
       dockModeIndex = bundle.dockModeIndex;
       nightModeIndex = bundle.nightModeIndex;
     }
+
+    @Override
+    public String toString() {
+      return config.getUniqueKey();
+    }
   }
 
   private static class ConfigMatch {
@@ -111,7 +116,7 @@ public class ConfigurationMatcher {
 
     @Override
     public String toString() {
-      return device.getDisplayName() + " - " + state.getName();
+      return device.getDisplayName() + " - " + state.getName() + " - " + bundle;
     }
   }
 
@@ -262,8 +267,7 @@ public class ConfigurationMatcher {
             Locale locale = localeList.get(i);
 
             // update the test config with the locale qualifiers
-            testConfig.setLanguageQualifier(locale.language);
-            testConfig.setRegionQualifier(locale.region);
+            testConfig.setLocaleQualifier(locale.qualifier);
 
             if (editedConfig.isMatchFor(testConfig) && isCurrentFileBestMatchFor(testConfig)) {
               matchState = state;
@@ -313,7 +317,7 @@ public class ConfigurationMatcher {
     // device/state)
     List<ConfigMatch> bestMatches = new ArrayList<ConfigMatch>();
 
-    // get a locale that match the host locale roughly (may not be exact match on the region.)
+    // get a locale that matches the host locale roughly (may not be exact match on the region.)
     int localeHostMatch = getLocaleMatch();
 
     // build a list of combinations of non standard qualifiers to add to each device's
@@ -326,7 +330,7 @@ public class ConfigurationMatcher {
     // However, if it doesn't, we don't randomly take the first locale, we take one
     // matching the current host locale (making sure it actually exist in the project)
     int start, max;
-    if (editedConfig.getLanguageQualifier() != null || localeHostMatch == -1) {
+    if (editedConfig.getLocaleQualifier() != null || localeHostMatch == -1) {
       // add all the locales
       start = 0;
       max = localeList.size();
@@ -341,9 +345,7 @@ public class ConfigurationMatcher {
       Locale l = localeList.get(i);
 
       ConfigBundle bundle = new ConfigBundle();
-      bundle.config.setLanguageQualifier(l.language);
-      bundle.config.setRegionQualifier(l.region);
-
+      bundle.config.setLocaleQualifier(l.qualifier);
       bundle.localeIndex = i;
       configBundles.add(bundle);
     }
@@ -492,25 +494,36 @@ public class ConfigurationMatcher {
       final int count = localeList.size();
       for (int l = 0; l < count; l++) {
         Locale locale = localeList.get(l);
-        LanguageQualifier langQ = locale.language;
-        RegionQualifier regionQ = locale.region;
+        LocaleQualifier qualifier = locale.qualifier;
 
         // there's always a ##/Other or ##/Any (which is the same, the region
         // contains FAKE_REGION_VALUE). If we don't find a perfect region match
         // we take the fake region. Since it's last in the list, this makes the
         // test easy.
-        if (langQ.getValue().equals(currentLanguage) &&
-            (regionQ.getValue().equals(currentRegion) || regionQ.getValue().equals(RegionQualifier.FAKE_REGION_VALUE))) {
+        if (qualifier.getLanguage().equals(currentLanguage) &&
+            (qualifier.getRegion() == null || qualifier.getRegion().equals(currentRegion))) {
           return l;
         }
       }
 
-      // if no locale match the current local locale, it's likely that it is
-      // the default one which is the last one.
-      return count - 1;
+      // If no exact region match, try to just match on the language
+      for (int l = 0; l < count; l++) {
+        Locale locale = localeList.get(l);
+        LocaleQualifier qualifier = locale.qualifier;
+
+        // there's always a ##/Other or ##/Any (which is the same, the region
+        // contains FAKE_REGION_VALUE). If we don't find a perfect region match
+        // we take the fake region. Since it's last in the list, this makes the
+        // test easy.
+        if (qualifier.getLanguage().equals(currentLanguage)) {
+          return l;
+        }
+      }
     }
 
-    return -1;
+    // Nothing found: use the first one (which should be the current locale); see
+    // getPrioritizedLocales()
+    return 0;
   }
 
   @NotNull
