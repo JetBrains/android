@@ -112,22 +112,19 @@
           android:layout_height="wrap_content"
           android:text="CheckBox" />
 
+      <!-- Switch doesn't render correctly in layoutlib right now, so it's disabled for now.
       <Switch
           android:id="@+id/switch1"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:text="Switch" />
+      -->
 
       <ToggleButton
           android:id="@+id/toggleButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:text="ToggleButton" />
-
-      <ImageButton
-          android:id="@+id/imageButton"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
