@@ -15,33 +15,61 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
+import org.jetbrains.annotations.Nullable;
 import spantable.CellSpanModel;
 import com.intellij.openapi.diagnostic.Logger;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Table model which adds rows with row-wide labels to the underlying model.
+ * Table model which uses delegate model (which happens to be {@link AttributesTableModel} in the single use-case) with:
+ *   1. Row-wide labels
+ *   2. Additional "attributes", like theme's parent, which aren't attributes but which we want to edit in uniform w/ attributes way
  */
-public class LabelledModel extends AbstractTableModel implements CellSpanModel {
-  private final static Logger LOG = Logger.getInstance(LabelledModel.class);
+public class AugmentedModel extends AbstractTableModel implements CellSpanModel {
+  private final static Logger LOG = Logger.getInstance(AugmentedModel.class);
 
   private final CellSpanModel myDelegate;
   private final List<TableLabel> myLabels;
+  private String myParentName;
+
+  private final List<ParentChangedListener> myParentChangedListeners = new ArrayList<ParentChangedListener>();
+
+  public interface ParentChangedListener {
+    void parentChanged(final String newParent);
+  }
+
+  public String getParentName() {
+    return myParentName;
+  }
+
+  public void addParentChangedListener(final ParentChangedListener listener) {
+    myParentChangedListeners.add(listener);
+  }
+
+  public void removeParentChangedListener(final ParentChangedListener listener) {
+    myParentChangedListeners.remove(listener);
+  }
 
   /**
    * Constructor
    * @param delegate Model delegate. Its .getRowSpan should always return 1
    * @param labels List of labels, should be in increasing order of .getRowPosition()
    */
-  public LabelledModel(CellSpanModel delegate, List<TableLabel> labels) {
+  public AugmentedModel(final CellSpanModel delegate, final List<TableLabel> labels, final @Nullable String parentName) {
     myDelegate = delegate;
     myLabels = labels;
+    myParentName = parentName;
   }
 
   public RowContents getRowContents(final int rowIndex) {
-    int offset = 0;
+    if (rowIndex == 0) {
+      return new ParentAttribute();
+    }
+
+    int offset = 1;
     for (final TableLabel label : myLabels) {
       final int labelRowIndex = label.getRowPosition() + offset;
 
@@ -59,7 +87,7 @@ public class LabelledModel extends AbstractTableModel implements CellSpanModel {
 
   @Override
   public int getRowCount() {
-    return myDelegate.getRowCount() + myLabels.size();
+    return myDelegate.getRowCount() + myLabels.size() + 1;
   }
 
   @Override
@@ -98,7 +126,7 @@ public class LabelledModel extends AbstractTableModel implements CellSpanModel {
   }
 
   /**
-   * Basically a union type, RowContents = LabelContents | DelegateContents
+   * Basically a union type, RowContents = LabelContents | DelegateContents | ParentAttribute
    */
   private interface RowContents {
     int getColumnSpan(int column);
@@ -106,6 +134,44 @@ public class LabelledModel extends AbstractTableModel implements CellSpanModel {
     void setValueAt(int column, Object value);
     Class<?> getCellClass(int column);
     boolean isCellEditable(int column);
+  }
+
+  private class ParentAttribute implements RowContents {
+    @Override
+    public int getColumnSpan(int column) {
+      return 1;
+    }
+
+    @Override
+    public Object getValueAt(int column) {
+      if (column == 0) {
+        return "Theme Parent";
+      } else {
+        return myParentName == null ? "[no parent]" : myParentName;
+      }
+    }
+
+    @Override
+    public void setValueAt(int column, Object value) {
+      if (column == 0) {
+        throw new RuntimeException("Tried to setValue at parent attribute label");
+      } else {
+        myParentName = (String) value;
+        for (final ParentChangedListener listener : myParentChangedListeners) {
+          listener.parentChanged(myParentName);
+        }
+      }
+    }
+
+    @Override
+    public Class<?> getCellClass(int column) {
+      return String.class;
+    }
+
+    @Override
+    public boolean isCellEditable(int column) {
+      return (column == 1 && myParentName != null);
+    }
   }
 
   private class LabelContents implements RowContents {

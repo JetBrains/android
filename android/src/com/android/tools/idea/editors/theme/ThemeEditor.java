@@ -398,14 +398,17 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
       }
     });
 
-    final LabelledModel model = new LabelledModel(
-      rawModel,
-      labels
-    );
+    final AugmentedModel model = new AugmentedModel(rawModel, labels, parentStyle == null ? null : parentStyle.getName());
+    model.addParentChangedListener(new AugmentedModel.ParentChangedListener() {
+      @Override
+      public void parentChanged(String newParent) {
+        selectedStyle.setParent(newParent);
+      }
+    });
     myPropertiesTable.setRowSorter(null); // Clean any previous row sorters.
     myPropertiesTable.setModel(model);
 
-    TableRowSorter<LabelledModel> sorter = new TableRowSorter<LabelledModel>(model);
+    TableRowSorter<AugmentedModel> sorter = new TableRowSorter<AugmentedModel>(model);
     sorter.setRowFilter(myPropertiesFilter);
     myPropertiesTable.setRowSorter(sorter);
 
@@ -660,7 +663,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     // TODO what should go here?
   }
 
-  class StylePropertiesFilter extends RowFilter<LabelledModel, Integer> {
+  class StylePropertiesFilter extends RowFilter<AugmentedModel, Integer> {
     // TODO: This is just a random list of properties. Replace with a possibly dynamic list of simple properties.
     private final Set<String> SIMPLE_PROPERTIES = ImmutableSet
       .of("android:background", "android:colorAccent", "android:colorBackground", "android:colorForegroundInverse", "android:colorPrimary",
@@ -677,7 +680,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     }
 
     @Override
-    public boolean include(Entry<? extends LabelledModel, ? extends Integer> entry) {
+    public boolean include(Entry<? extends AugmentedModel, ? extends Integer> entry) {
       // We use the column 1 because it's the one that contains the ItemResourceValueWrapper.
       Object value = entry.getModel().getValueAt(entry.getIdentifier().intValue(), 1);
       String propertyName;

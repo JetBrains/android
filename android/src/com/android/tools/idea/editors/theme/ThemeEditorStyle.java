@@ -228,6 +228,21 @@ public class ThemeEditorStyle {
     return true;
   }
 
+  public void setParent(@NotNull final String newParent) {
+    final XmlTag tag = mySourceXml.get();
+    if (tag == null) {
+      LOG.warn("Unable to set parent, tag is null");
+      return;
+    }
+
+    new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent) {
+      @Override
+      protected void run() throws Throwable {
+        tag.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+      }
+    }.execute();
+  }
+
   public StyleResolver getResolver() {
     return myThemeResolver;
   }
