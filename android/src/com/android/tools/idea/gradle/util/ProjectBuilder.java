@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -82,6 +83,11 @@ public class ProjectBuilder {
    */
   public void generateSourcesOnly() {
     if (isGradleProject(myProject)) {
+      // Only generate sources for "small" projects.
+      int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
+      if (moduleCount > GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN) {
+        return;
+      }
       if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).generateSources();
       }

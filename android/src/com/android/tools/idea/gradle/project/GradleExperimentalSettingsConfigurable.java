@@ -23,12 +23,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.NumberFormatter;
 
 public class GradleExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
 
   private JPanel myPanel;
   private JCheckBox myEnableModuleSelectionOnImportCheckBox;
+  private JSpinner myModuleNumberSpinner;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -66,12 +68,17 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public boolean isModified() {
-    return mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled();
+    return mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
+           mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN != myModuleNumberSpinner.getValue();
   }
 
   @Override
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
+    Object value = myModuleNumberSpinner.getValue();
+    if (value instanceof Integer) {
+      mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = (Integer)value;
+    }
   }
 
   private boolean isModuleSelectionOnImportEnabled() {
@@ -81,9 +88,24 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
+    myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
   }
 
   @Override
   public void disposeUIResources() {
+  }
+
+  private void createUIComponents() {
+    int value = GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN;
+    myModuleNumberSpinner = new JSpinner(new SpinnerNumberModel(value, 1, Integer.MAX_VALUE, 1));
+    // Force the spinner to accept numbers only.
+    JComponent editor = myModuleNumberSpinner.getEditor();
+    if (editor instanceof JSpinner.NumberEditor) {
+      JFormattedTextField textField = ((JSpinner.NumberEditor)editor).getTextField();
+      JFormattedTextField.AbstractFormatter formatter = textField.getFormatter();
+      if (formatter instanceof NumberFormatter) {
+        ((NumberFormatter)formatter).setAllowsInvalid(false);
+      }
+    }
   }
 }
