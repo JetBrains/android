@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.HierarchyBoundsAdapter;
 import java.awt.event.HierarchyEvent;
@@ -212,7 +213,7 @@ public class GfxTraceViewPanel implements Disposable {
                         .setSideComponent(getBufferToolbar()));
     bufferTabs.addTab(new TabInfo(getDepthBuffer()).setText(FrameBufferController.BufferTabNames.DEPTH_BUFFER.getValue()));
     bufferTabs.addTab(new TabInfo(getStencilBuffer()).setText(FrameBufferController.BufferTabNames.STENCIL_BUFFER.getValue()));
-    bufferTabs.setInnerInsets(new Insets(2, 2, 2, 2));
+    bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
     setBufferTabs(bufferTabs);
 
     // Put the buffer views in a wrapper so a border can be drawn around it.
@@ -241,6 +242,7 @@ public class GfxTraceViewPanel implements Disposable {
     miscTabs.addTab(new TabInfo(getMemoryPanel()).setText("Memory"));
     miscTabs.addTab(new TabInfo(getImagePanel()).setText("Image"));
     miscTabs.addTab(new TabInfo(getDocsPanel()).setText("Docs"));
+    miscTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
 
     getDocsScrollPane().setViewportView(getDocsPane());
 
