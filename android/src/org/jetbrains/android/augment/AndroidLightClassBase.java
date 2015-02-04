@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
+public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
   protected AndroidLightClassBase(@NotNull PsiManager psiManager) {
     super(psiManager, JavaLanguage.INSTANCE);
   }
