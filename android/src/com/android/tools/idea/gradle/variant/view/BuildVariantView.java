@@ -44,6 +44,7 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.awt.RelativePoint;
@@ -59,6 +60,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -125,6 +127,15 @@ public class BuildVariantView {
 
     // This makes the combobox resize even if the even if it cannot show all its text
     myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");
+
+    myToolWindowPanel.addAncestorListener(new AncestorListenerAdapter() {
+      @Override
+      public void ancestorAdded(AncestorEvent event) {
+        // This gets triggered every time the window appears (after being hidden to the sidebar). We show the balloon when user opens
+        // the window, because his/her attention is already in this area of the screen and we can explain why the dropdown is inactive.
+        showBalloon();
+      }
+    });
   }
 
   public void updateTestArtifactComboBox() {
@@ -134,34 +145,6 @@ public class BuildVariantView {
     final boolean unitTestSupportEnabled = GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT;
 
     myTestArtifactComboBox.setEnabled(unitTestSupportEnabled && hasModules);
-    if (!myTestArtifactComboBox.isEnabled() && myTestArtifactComboBox.isShowing()) {
-      String msg = "Unit test support is an <b>experimental</b> feature. To use it";
-      HyperlinkListener listener = null;
-      if (unitTestSupportEnabled) {
-        msg += " your project needs to use Android Gradle plugin version 1.1.0 (or newer.)";
-      }
-      else {
-        final String enableSettingUrl = "enable.setting";
-        msg = msg + ":<ol>" +
-              "<li>Your project needs to use Android Gradle plugin version 1.1.0 (or newer)</li>" +
-              "<li><a href=\"" + enableSettingUrl + "\">Enable</a> this feature</li></ol>";
-        listener = new HyperlinkListener() {
-          @Override
-          public void hyperlinkUpdate(HyperlinkEvent e) {
-            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && enableSettingUrl.equals(e.getDescription())) {
-              GradleExperimentalSettings.getInstance().setUnitTestingSupportEnabled(true);
-            }
-          }
-        };
-      }
-
-      Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(msg, WARNING, listener).createBalloon();
-      Disposer.register(myProject, balloon);
-
-      int offset = myTestArtifactComboBox.getHeight() / 2;
-      Point point = new Point(myTestArtifactComboBox.getWidth() - offset, myTestArtifactComboBox.getHeight() - offset);
-      balloon.show(new RelativePoint(myTestArtifactComboBox, point), Balloon.Position.above);
-    }
 
     if (hasModules) {
       IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
@@ -178,6 +161,35 @@ public class BuildVariantView {
       // Make sure all modules use the same test artifact.
       updateModulesWithTestArtifact(selectedTestArtifactName);
     }
+  }
+
+  private void showBalloon() {
+    String msg = "Unit test support is an <b>experimental</b> feature. To use it";
+    HyperlinkListener listener = null;
+    if (GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT) {
+      msg += " your project needs to use Android Gradle plugin version 1.1.0 (or newer.)";
+    }
+    else {
+      final String enableSettingUrl = "enable.setting";
+      msg = msg + ":<ol>" +
+            "<li>Your project needs to use Android Gradle plugin version 1.1.0 (or newer)</li>" +
+            "<li><a href=\"" + enableSettingUrl + "\">Enable</a> this feature</li></ol>";
+      listener = new HyperlinkListener() {
+        @Override
+        public void hyperlinkUpdate(HyperlinkEvent e) {
+          if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && enableSettingUrl.equals(e.getDescription())) {
+            GradleExperimentalSettings.getInstance().setUnitTestingSupportEnabled(true);
+          }
+        }
+      };
+    }
+
+    Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(msg, WARNING, listener).createBalloon();
+    Disposer.register(myProject, balloon);
+
+    int offset = myTestArtifactComboBox.getHeight() / 2;
+    Point point = new Point(myTestArtifactComboBox.getWidth() - offset, myTestArtifactComboBox.getHeight() - offset);
+    balloon.show(new RelativePoint(myTestArtifactComboBox, point), Balloon.Position.above);
   }
 
   @NotNull
