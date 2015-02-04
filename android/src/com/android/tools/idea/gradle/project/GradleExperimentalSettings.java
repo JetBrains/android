@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean SELECT_MODULES_ON_PROJECT_IMPORT;
+  public int MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {
