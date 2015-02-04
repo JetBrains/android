@@ -59,6 +59,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private static final String SERVER_HOST = "localhost";
   private static final int SERVER_PORT = 6700;
+
+  @NotNull private final Project myProject;
   @NotNull private final GfxTraceViewPanel myView;
   @NotNull private final ListeningExecutorService myService = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
   private Socket myServerSocket;
@@ -80,8 +82,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
   private boolean myIsConnectedToServer;
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
+    myProject = project;
+
     myView = new GfxTraceViewPanel();
-    myView.setupViewHierarchy(project);
+    myView.setupViewHierarchy(myProject);
 
     try {
       myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
@@ -93,8 +97,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
       myAtomController = new AtomController(myView.getAtomTree());
       myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
       myFrameBufferController =
-        new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeButton(),
-                                  myView.getDepthScrollPane(), myView.getStencilScrollPane());
+        new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeScrollPane(),
+                                  myView.getDepthScrollPane());
       myStateController = new StateController(this, myView.getStateScrollPane());
 
       myControllers.add(myAtomController);
@@ -112,6 +116,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     catch (IOException e) {
       LOG.error(e);
     }
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
   }
 
   @NotNull
