@@ -19,74 +19,59 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.rpclib.rpc.RenderSettings;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FrameBufferController implements GfxController {
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final JBRunnerTabs myBufferTabs;
-  @NotNull private final JBScrollPane myColorScrollPane;
-  @NotNull private final JBScrollPane myDepthScrollPane;
-  @NotNull private final JBScrollPane myStencilScrollPane;
+  @NotNull private final JBScrollPane[] myBufferScrollPanes;
   @NotNull private AtomicLong myCurrentFetchAtomId = new AtomicLong();
   @Nullable private ImageFetcher myImageFetcher;
-  private boolean myIsWireframeMode;
-
-  @NotNull private ImageIcon[] myIconCache = new ImageIcon[BufferType.length];
+  @NotNull private JBLoadingPanel[] myLoadingPanels = new JBLoadingPanel[BufferType.length];
 
   public FrameBufferController(@NotNull GfxTraceEditor editor,
                                @NotNull JBRunnerTabs bufferTabs,
                                @NotNull JBScrollPane colorScrollPane,
-                               @NotNull JToggleButton wireframeButton,
-                               @NotNull JBScrollPane depthScrollPane,
-                               @NotNull JBScrollPane stencilScrollPane) {
+                               @NotNull JBScrollPane wireframePane,
+                               @NotNull JBScrollPane depthScrollPane) {
     myEditor = editor;
     myBufferTabs = bufferTabs;
 
-    myColorScrollPane = colorScrollPane;
-    myDepthScrollPane = depthScrollPane;
-    myStencilScrollPane = stencilScrollPane;
+    myBufferScrollPanes = new JBScrollPane[]{colorScrollPane, wireframePane, depthScrollPane};
+    assert (myBufferScrollPanes.length == BufferType.length);
+
+    for (int i = 0; i < myBufferScrollPanes.length; ++i) {
+      myBufferScrollPanes[i].getVerticalScrollBar().setUnitIncrement(20);
+      myBufferScrollPanes[i].getHorizontalScrollBar().setUnitIncrement(20);
+      myBufferScrollPanes[i].setBorder(BorderFactory.createLineBorder(JBColor.border()));
+
+      myLoadingPanels[i] = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+      myBufferScrollPanes[i].setViewportView(myLoadingPanels[i]);
+    }
 
     // TODO: Add a way to pan the viewport with the keyboard.
-
-    myColorScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-    myColorScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-    myDepthScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-    myDepthScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-    myStencilScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-    myStencilScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-
-    wireframeButton.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-          myIsWireframeMode = true;
-          refreshIcons();
-        }
-        else if (itemEvent.getStateChange() == ItemEvent.DESELECTED) {
-          myIsWireframeMode = false;
-          refreshIcons();
-        }
-      }
-    });
   }
 
   @Nullable
   private static FetchedImage fetchImage(long atomId,
                                          @NotNull ImageFetcher imageFetcher,
                                          @NotNull BufferType instance,
-                                         @Nullable RenderSettings renderSettings,
-                                         boolean isWireframeMode) {
+                                         @Nullable RenderSettings renderSettings) {
     assert (instance == BufferType.DEPTH_BUFFER || renderSettings != null);
     if (renderSettings != null) {
-      renderSettings.setWireframe(isWireframeMode);
+      renderSettings.setWireframe(instance == BufferType.WIREFRAME_BUFFER);
     }
 
     ImageFetcher.ImageFetchHandle imageFetchHandle =
@@ -124,47 +109,61 @@ public class FrameBufferController implements GfxController {
 
     clearCache();
 
+    // Only color, wireframe, and depth are fetched at the moment, since the server hasn't implemented stencil buffers.
+    final List<BufferType> bufferOrder =
+      new ArrayList<BufferType>(Arrays.asList(BufferType.COLOR_BUFFER, BufferType.WIREFRAME_BUFFER, BufferType.DEPTH_BUFFER));
+
+    for (JBLoadingPanel panel : myLoadingPanels) {
+      if (!panel.isLoading()) {
+        panel.startLoading();
+      }
+    }
+
     myCurrentFetchAtomId.set(atomId);
     final ImageFetcher imageFetcher = myImageFetcher;
-    final boolean wireframeFirst = myIsWireframeMode;
 
     // This needs to run in parallel to the main worker thread since it's slow and it doesn't affect the other controllers.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        ImageIcon[] iconCache = new ImageIcon[BufferType.length];
         RenderSettings renderSettings = new RenderSettings();
         renderSettings.setMaxWidth(4096);
         renderSettings.setMaxHeight(4096);
 
-        BufferType[] bufferOrder = new BufferType[3];
-
-        if (myBufferTabs.getSelectedInfo() != null &&
-            BufferTabNames.DEPTH_BUFFER.getValue().equals(myBufferTabs.getSelectedInfo().getText())) {
-          bufferOrder[0] = BufferType.DEPTH_BUFFER;
-          bufferOrder[1] = wireframeFirst ? BufferType.COLOR_BUFFER_WIREFRAME : BufferType.COLOR_BUFFER;
-          bufferOrder[2] = wireframeFirst ? BufferType.COLOR_BUFFER : BufferType.COLOR_BUFFER_WIREFRAME;
+        // Prioritize the currently selected tab in bufferOrder.
+        if (myBufferTabs.getSelectedInfo() != null) {
+          String tabName = myBufferTabs.getSelectedInfo().getText();
+          for (BufferType buffer : BufferType.values()) {
+            if (buffer.getName().equals(tabName)) {
+              if (bufferOrder.remove(buffer)) {
+                bufferOrder.add(0, buffer);
+              }
+              break;
+            }
+          }
         }
-        else {
-          bufferOrder[0] = wireframeFirst ? BufferType.COLOR_BUFFER_WIREFRAME : BufferType.COLOR_BUFFER;
-          bufferOrder[1] = wireframeFirst ? BufferType.COLOR_BUFFER : BufferType.COLOR_BUFFER_WIREFRAME;
-          bufferOrder[2] = BufferType.DEPTH_BUFFER;
-        }
 
-        for (BufferType bufferType : bufferOrder) {
+        for (BufferType buffer : bufferOrder) {
           if (atomId != myCurrentFetchAtomId.get()) {
             return;
           }
 
-          FetchedImage fetchedImage =
-            fetchImage(atomId, imageFetcher, bufferType, renderSettings, bufferType == BufferType.COLOR_BUFFER_WIREFRAME);
+          FetchedImage fetchedImage = fetchImage(atomId, imageFetcher, buffer, renderSettings);
           if (fetchedImage == null) {
-            return;
+            break;
           }
 
-          iconCache[bufferType.ordinal()] = fetchedImage.createImageIcon();
-          setIcons(atomId, iconCache);
+          setIcons(atomId, fetchedImage.createImageIcon(), buffer);
         }
+
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            if (atomId == myCurrentFetchAtomId.get()) {
+              stopLoading();
+            }
+          }
+        });
       }
     });
   }
@@ -172,96 +171,64 @@ public class FrameBufferController implements GfxController {
   @Override
   public void clear() {
     myImageFetcher = null;
+    stopLoading();
     clearCache();
   }
 
   @Override
   public void clearCache() {
-    clearViewCaches();
+    for (JBLoadingPanel panel : myLoadingPanels) {
+      panel.getContentPanel().removeAll();
+    }
     myCurrentFetchAtomId.set(-1);
-    clearIconCache();
   }
 
-  public void clearIconCache() {
-    for (int i = 0; i < BufferType.length; ++i) {
-      myIconCache[i] = null;
+  private void stopLoading() {
+    for (JBLoadingPanel panel : myLoadingPanels) {
+      if (panel.isLoading()) {
+        panel.stopLoading();
+      }
     }
   }
 
-  private void setIcons(final long closedAtomId, @NotNull final ImageIcon[] iconCache) {
+  private void setIcons(final long closedAtomId, @NotNull final ImageIcon image, @NotNull final BufferType bufferType) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         if (myCurrentFetchAtomId.get() == closedAtomId) {
-          System.arraycopy(iconCache, 0, myIconCache, 0, BufferType.length);
-          refreshIcons();
+          int index = bufferType.ordinal();
+          myLoadingPanels[index].add(new JBLabel(image));
+          if (myLoadingPanels[index].isLoading()) {
+            myLoadingPanels[index].stopLoading();
+          }
+
+          myBufferScrollPanes[index].repaint();
         }
       }
     });
   }
 
-  private void refreshIcons() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    clearViewCaches();
-
-    ImageIcon colorImageToSet =
-      myIsWireframeMode ? myIconCache[BufferType.COLOR_BUFFER_WIREFRAME.ordinal()] : myIconCache[BufferType.COLOR_BUFFER.ordinal()];
-    if (colorImageToSet != null) {
-      myColorScrollPane.setViewportView(new JBLabel(colorImageToSet));
-    }
-
-    if (myIconCache[BufferType.DEPTH_BUFFER.ordinal()] != null) {
-      myDepthScrollPane.setViewportView(new JBLabel(myIconCache[BufferType.DEPTH_BUFFER.ordinal()]));
-    }
-
-    if (myIconCache[BufferType.STENCIL_BUFFER.ordinal()] != null) {
-      myStencilScrollPane.setViewportView(new JBLabel(myIconCache[BufferType.STENCIL_BUFFER.ordinal()]));
-    }
-
-    repaint();
-  }
-
-  private void clearViewCaches() {
-    myColorScrollPane.setViewportView(null);
-    myDepthScrollPane.setViewportView(null);
-    myStencilScrollPane.setViewportView(null);
-  }
-
-  private void repaint() {
-    myColorScrollPane.repaint();
-    myDepthScrollPane.repaint();
-    myStencilScrollPane.repaint();
-  }
-
-  public enum BufferTabNames {
+  public enum BufferType {
     COLOR_BUFFER("Color"),
-    DEPTH_BUFFER("Depth"),
-    STENCIL_BUFFER("Stencil");
+    WIREFRAME_BUFFER("Wirefame"),
+    DEPTH_BUFFER("Depth");
 
-    @NotNull final private String myValue;
+    private static final int length = BufferType.values().length;
+    @NotNull final private String myName;
 
-    BufferTabNames(@NotNull String value) {
-      myValue = value;
+    BufferType(@NotNull String name) {
+      myName = name;
     }
 
     @NotNull
-    public String getValue() {
-      return myValue;
+    public String getName() {
+      return myName;
     }
 
     @Override
     @NotNull
     public String toString() {
-      return getValue();
+      return getName();
     }
-  }
-
-  private enum BufferType {
-    COLOR_BUFFER,
-    COLOR_BUFFER_WIREFRAME,
-    DEPTH_BUFFER,
-    STENCIL_BUFFER;
-
-    private static final int length = BufferType.values().length;
   }
 }

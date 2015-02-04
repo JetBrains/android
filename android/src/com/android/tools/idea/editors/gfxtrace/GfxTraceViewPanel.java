@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -44,14 +45,12 @@ public class GfxTraceViewPanel implements Disposable {
   private JPanel mainPanel;
   private JBPanel myColorBuffer;
   private JBPanel myDepthBuffer;
-  private JBPanel myStencilBuffer;
   private JPanel myMemoryPanel;
   private JPanel myImagePanel;
   private SimpleTree myAtomTree;
   private JBList myScrubberList;
   private JBScrollPane myStateScrollPane;
   private JBScrollPane myScrubberScrollPane;
-  private JToolBar myBufferToolbar;
   private ThreeComponentsSplitter myThreePanes;
   private JPanel myHiddenComponents;
   private JBScrollPane myAtomScrollPane;
@@ -60,32 +59,18 @@ public class GfxTraceViewPanel implements Disposable {
   private JBPanel myTopPanel;
   private ComboBox myGfxContextList;
   private JBScrollPane myColorScrollPane;
+  private JBScrollPane myWireframeScrollPane;
   private JBScrollPane myDepthScrollPane;
   private JBScrollPane myStencilScrollPane;
-  private JToggleButton myWireframeButton;
   private JBPanel myDocsPanel;
   private JBScrollPane myDocsScrollPane;
   private JTextPane myDocsPane;
+  private JBPanel myWireframeBuffer;
   private JBRunnerTabs myBufferTabs;
 
   @NotNull
   public JPanel getRootComponent() {
     return mainPanel;
-  }
-
-  @NotNull
-  JBPanel getColorBuffer() {
-    return myColorBuffer;
-  }
-
-  @NotNull
-  JBPanel getDepthBuffer() {
-    return myDepthBuffer;
-  }
-
-  @NotNull
-  JBPanel getStencilBuffer() {
-    return myStencilBuffer;
   }
 
   public JPanel getImagePanel() {
@@ -119,10 +104,6 @@ public class GfxTraceViewPanel implements Disposable {
   private void setHiddenComponents(@Nullable JPanel hiddenComponents) {
     //noinspection BoundFieldAssignment
     myHiddenComponents = hiddenComponents;
-  }
-
-  public JToolBar getBufferToolbar() {
-    return myBufferToolbar;
   }
 
   public JBRunnerTabs getBufferTabs() {
@@ -161,16 +142,16 @@ public class GfxTraceViewPanel implements Disposable {
     return myColorScrollPane;
   }
 
+  public JBScrollPane getWireframeScrollPane() {
+    return myWireframeScrollPane;
+  }
+
   public JBScrollPane getDepthScrollPane() {
     return myDepthScrollPane;
   }
 
   public JBScrollPane getStencilScrollPane() {
     return myStencilScrollPane;
-  }
-
-  public JToggleButton getWireframeButton() {
-    return myWireframeButton;
   }
 
   public JBScrollPane getDocsScrollPane() {
@@ -197,7 +178,7 @@ public class GfxTraceViewPanel implements Disposable {
     threePane.setDividerWidth(5);
 
     // Set some preferences on the scrubber.
-    getTopPanel().setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    getTopPanel().setBorder(BorderFactory.createLineBorder(JBColor.border()));
     getScrubberScrollPane().setViewportView(getScrubberList());
 
     // Get rid of the hidden component and remove references to its children, since it's just a placeholder for us to use the UI designer.
@@ -209,23 +190,23 @@ public class GfxTraceViewPanel implements Disposable {
     final JBRunnerTabs bufferTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    bufferTabs.addTab(new TabInfo(getColorBuffer()).setText(FrameBufferController.BufferTabNames.COLOR_BUFFER.getValue())
-                        .setSideComponent(getBufferToolbar()));
-    bufferTabs.addTab(new TabInfo(getDepthBuffer()).setText(FrameBufferController.BufferTabNames.DEPTH_BUFFER.getValue()));
-    bufferTabs.addTab(new TabInfo(getStencilBuffer()).setText(FrameBufferController.BufferTabNames.STENCIL_BUFFER.getValue()));
+    JBPanel[] frameBuffers = new JBPanel[]{myColorBuffer, myWireframeBuffer, myDepthBuffer};
+    for (int i = 0; i < frameBuffers.length; ++i) {
+      bufferTabs.addTab(new TabInfo(frameBuffers[i]).setText(FrameBufferController.BufferType.values()[i].getName()));
+    }
     bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
     setBufferTabs(bufferTabs);
 
     // Put the buffer views in a wrapper so a border can be drawn around it.
     Wrapper bufferWrapper = new Wrapper();
     bufferWrapper.setLayout(new BorderLayout());
-    bufferWrapper.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    bufferWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     bufferWrapper.setContent(bufferTabs);
 
     // Configure the Atom tree component.
     JBScrollPane atomScrollPane = getAtomScrollPane();
     Wrapper atomTreeWrapper = new Wrapper();
-    atomTreeWrapper.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    atomTreeWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     atomTreeWrapper.setContent(atomScrollPane);
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.
@@ -248,13 +229,13 @@ public class GfxTraceViewPanel implements Disposable {
 
     // More borders for miscellaneous tabs.
     Wrapper miscWrapper = new Wrapper();
-    miscWrapper.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    miscWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     miscWrapper.setContent(miscTabs);
 
     // Borders for the state tree as well.
     Wrapper stateWrapper = new Wrapper();
     stateWrapper.setContent(getStateScrollPane());
-    stateWrapper.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    stateWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
 
     // Configure the bottom splitter.
     final JBSplitter bottomSplitter = new JBSplitter(false);
