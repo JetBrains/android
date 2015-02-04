@@ -47,6 +47,20 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
     return m != null && AndroidFacet.getInstance(m) != null;
   }
 
+  public static void openEditor(@NotNull final Module module) {
+    final VirtualFile vf = StringsVirtualFile.getStringsVirtualFile(module);
+    if (vf != null) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          Project project = module.getProject();
+          OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vf);
+          FileEditorManager.getInstance(project).openEditor(descriptor, true);
+        }
+      });
+    }
+  }
+
   public static void openEditor(@NotNull final Project project, @NotNull VirtualFile file) {
     final VirtualFile vf = StringsVirtualFile.getInstance(project, file);
     ApplicationManager.getApplication().invokeLater(new Runnable() {

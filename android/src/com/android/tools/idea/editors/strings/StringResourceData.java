@@ -255,7 +255,8 @@ public class StringResourceData {
     }
 
     if (locale.hasRegion()) {
-      Locale base = Locale.create(locale.language, null);
+      // Drop region
+      Locale base = Locale.create(locale.qualifier.getLanguage());
       if (myTranslations.get(key, base) != null) {
         return false;
       }

@@ -110,7 +110,7 @@ public class FrameworkResourceLoader {
               // Can I find out which ones we *expose* through public? I should filter JUST those!
               // I guess I could cache this stuff...?
               FolderConfiguration config = FolderConfiguration.getConfigForFolder(resFolderName);
-              if (config == null || config.getEffectiveLanguage() != null) {
+              if (config == null || config.getLocaleQualifier() != null) {
                 continue;
               }
             }
