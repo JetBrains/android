@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
 * @author Eugene.Kudelevsky
 */
-class ResourceTypeClass extends ResourceTypeClassBase {
+public class ResourceTypeClass extends ResourceTypeClassBase {
   protected final AndroidFacet myFacet;
 
   public ResourceTypeClass(@NotNull AndroidFacet facet, @NotNull String name, @NotNull PsiClass context) {
