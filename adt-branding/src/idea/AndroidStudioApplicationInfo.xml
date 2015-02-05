@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <component>
-  <version major="1" minor="2 Preview 1" strict="1.2.0a1" eap="true" />
+  <version major="1" minor="2" strict="1.2.0a1" eap="true" />
   <company name="Google Inc." url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="139.791"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="140.2110"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
@@ -30,6 +30,7 @@
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 
+  <plugins url="http://plugins.jetbrains.com"/>
   <update-urls check="https://dl.google.com/android/studio/patches/updates.xml"
                patches="https://dl.google.com/android/studio/patches/"/>
 
@@ -37,10 +38,9 @@
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>
   <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR&amp;status=New"
         release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR&amp;status=New"/>
-  <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://tools.android.com/recent"/>
-  <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
-          mac="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
+  <keymap win="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
+          mac="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
 
   <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
   <plugins-page title="Select Other Plugins"/>

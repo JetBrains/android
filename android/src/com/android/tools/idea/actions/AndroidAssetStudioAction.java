@@ -103,8 +103,7 @@ public class AndroidAssetStudioAction extends AnAction {
 
     AssetStudioWizard dialog = new AssetStudioWizard(project, module, targetFile);
 
-    dialog.show();
-    if (!dialog.isOK()) {
+    if (!dialog.showAndGet()) {
       return;
     }
     dialog.createAssets();

@@ -659,8 +659,10 @@ public class Template {
    * @param paramMap */
   private String mergeResourceFile(@NotNull String targetXml, @NotNull String sourceXml,
                                    @Nullable ResourceFolderType folderType) {
-    XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(myProject).createFileFromText("targetFile", XMLLanguage.INSTANCE, targetXml);
-    XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(myProject).createFileFromText("sourceFile", XMLLanguage.INSTANCE, sourceXml);
+    XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(myProject).createFileFromText("targetFile", XMLLanguage.INSTANCE,
+                                                                                              StringUtil.convertLineSeparators(targetXml));
+    XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(myProject).createFileFromText("sourceFile", XMLLanguage.INSTANCE,
+                                                                                              StringUtil.convertLineSeparators(sourceXml));
     XmlTag root = targetPsiFile.getDocument().getRootTag();
     assert root != null : "Cannot find XML root in target: " + targetXml;
 
@@ -957,7 +959,7 @@ public class Template {
   }
   private String format(@NotNull String contents, File to) {
     FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
-    PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, contents);
+    PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, StringUtil.convertLineSeparators(contents));
     CodeStyleManager.getInstance(myProject).reformat(file);
     return file.getText();
   }

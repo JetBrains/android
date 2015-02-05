@@ -19,8 +19,9 @@ import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
@@ -84,8 +85,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       public void mouseClicked(MouseEvent e) {
         myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(MOBILE)));
         Disposer.register(myDisposable, myChooseApiLevelDialog.getDisposable());
-        myChooseApiLevelDialog.show();
-        if (myChooseApiLevelDialog.isOK()) {
+        if (myChooseApiLevelDialog.showAndGet()) {
           int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
           myFormFactorApiSelectors.get(MOBILE).setSelectedItem(Integer.toString(minApiLevel));
         }

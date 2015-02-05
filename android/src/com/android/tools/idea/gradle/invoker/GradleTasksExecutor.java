@@ -87,7 +87,6 @@ import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
 import com.intellij.util.ui.UIUtil;
-import org.gradle.api.BuildCancelledException;
 import org.gradle.tooling.*;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;

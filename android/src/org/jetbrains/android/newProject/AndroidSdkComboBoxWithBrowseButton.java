@@ -16,7 +16,6 @@
 package org.jetbrains.android.newProject;
 
 import com.intellij.CommonBundle;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -24,8 +23,8 @@ import com.intellij.openapi.projectRoots.SdkType;
 import com.intellij.openapi.projectRoots.ui.ProjectJdksEditor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ComboboxWithBrowseButton;
+import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 
 import javax.swing.*;
@@ -61,8 +60,7 @@ public class AndroidSdkComboBoxWithBrowseButton extends ComboboxWithBrowseButton
       public void actionPerformed(ActionEvent e) {
         ProjectJdksEditor editor =
           new ProjectJdksEditor(null, ProjectManager.getInstance().getDefaultProject(), AndroidSdkComboBoxWithBrowseButton.this);
-        editor.show();
-        if (editor.isOK()) {
+        if (editor.showAndGet()) {
           final Sdk selectedJdk = editor.getSelectedJdk();
           rebuildSdksListAndSelectSdk(selectedJdk);
           if (selectedJdk == null || !isAndroidSdk(selectedJdk)) {
