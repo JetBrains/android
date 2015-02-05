@@ -17,8 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -385,12 +384,8 @@ public class ConfigurationManager implements Disposable {
     }
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<Locale>();
-      for (String language : projectResources.getLanguages()) {
-        LanguageQualifier languageQualifier = new LanguageQualifier(language);
-        locales.add(Locale.create(languageQualifier));
-        for (String region : projectResources.getRegions(language)) {
-          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
-        }
+      for (LocaleQualifier locale : projectResources.getLocales()) {
+        locales.add(Locale.create(locale));
       }
       myLocales = locales;
       myLocaleCacheStamp = projectResources.getModificationCount();
