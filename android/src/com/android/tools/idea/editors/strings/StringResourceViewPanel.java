@@ -29,7 +29,10 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
@@ -242,7 +245,6 @@ public class StringResourceViewPanel {
 
     myTable.setDefaultEditor(String.class, new StringsCellEditor());
     myTable.getParent().addComponentListener(new ResizeListener(myTable));
-    new TableSpeedSearch(myTable);
   }
 
   @NotNull
