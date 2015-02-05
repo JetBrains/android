@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import spantable.CellSpanModel;
 import com.intellij.openapi.module.Module;
 
@@ -61,7 +60,7 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     if (column == 1 && value instanceof EditedStyleItem) {
       final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
       toolTipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
-      stringValue = AttributesTableModel.extractRealValue(resValue, model.getCellClass(row, column));
+      stringValue = ThemeEditorUtils.extractRealValue(resValue, model.getCellClass(row, column));
     }
     else {
       stringValue = value;

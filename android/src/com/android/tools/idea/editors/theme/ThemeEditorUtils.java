@@ -27,6 +27,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,9 +103,10 @@ public class ThemeEditorUtils {
     ThemeEditorStyle currentStyle = style;
     while (currentStyle != null) {
       for (final ItemResourceValue value : currentStyle.getValues()) {
-        if (!namesSet.contains(value.getName())) {
+        String itemName = ThemeResolver.getQualifiedItemName(value);
+        if (!namesSet.contains(itemName)) {
           allValues.add(new EditedStyleItem(value, currentStyle));
-          namesSet.add(value.getName());
+          namesSet.add(itemName);
         }
       }
 
@@ -112,4 +115,24 @@ public class ThemeEditorUtils {
 
     return allValues;
   }
+
+  public static Object extractRealValue(final ItemResourceValue value, final Class<?> desiredClass) {
+    if (desiredClass == Boolean.class) {
+      return Boolean.valueOf(value.getValue());
+    }
+    else if (desiredClass == Integer.class) {
+      return Integer.parseInt(value.getValue());
+    }
+    else {
+      return value.getRawXmlValue();
+    }
+  }
+
+  public static boolean acceptsFormat(@Nullable AttributeDefinition attrDefByName, @NotNull AttributeFormat want) {
+    if (attrDefByName == null) {
+      return false;
+    }
+    return attrDefByName.getFormats().contains(want);
+  }
+
 }
