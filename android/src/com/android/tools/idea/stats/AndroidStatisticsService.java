@@ -17,6 +17,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.CollectUsagesException;
 import com.intellij.internal.statistic.UsagesCollector;
@@ -85,14 +86,20 @@ public class AndroidStatisticsService implements StatisticsService {
     final String fullProductName = ApplicationNamesInfo.getInstance().getFullProductName();
     final String companyName = ApplicationInfo.getInstance().getCompanyName();
 
-    labels.put("title",
+    labels.put(StatisticsService.TITLE,
                "Help improve " +  fullProductName + " by sending usage statistics to " + companyName);
-    labels.put("allow-checkbox",
+    labels.put(StatisticsService.ALLOW_CHECKBOX,
                "Send usage statistics to " + companyName);
-    labels.put("details",
-               "<html>This allows " + companyName + " to collect information about your plugins configuration (what is enabled and what is not)" +
-               "<br/>and feature usage statistics (e.g. how frequently you're using code completion)." +
-               "<br/>This data is collected in accordance with " + companyName + "'s privacy policy.</html>");
+    labels.put(StatisticsService.DETAILS,
+               "<html>This allows " + companyName + " to collect usage information, such as data about your feature usage," +
+               "<br>resource usage and plugin configuration.</html>");
+
+    // Note: we inline the constants corresponding to the following keys since the corresponding change in IJ
+    // may not be in upstream as yet.
+    labels.put("linkUrl", "http://www.google.com/policies/privacy/");
+    labels.put("linkBeforeText", "This data is collected in accordance with " + companyName + "'s ");
+    labels.put("linkText", "privacy policy");
+    labels.put("linkAfterText", ".");
 
     return labels;
   }
@@ -100,6 +107,10 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
+    }
+
     synchronized (ApplicationStatisticsPersistenceComponent.class) {
 
       LegacySdkStatsService sdkstats = sendLegacyPing();
