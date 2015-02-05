@@ -18,11 +18,16 @@ package com.android.tools.idea.profiling.view;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.android.tools.idea.profiling.view.nodes.CaptureNode;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.actions.DeleteAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -30,8 +35,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+import com.intellij.ui.treeStructure.actions.CollapseAllAction;
+import com.intellij.ui.treeStructure.actions.ExpandAllAction;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,14 +48,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.io.IOException;
 import java.util.List;
 
-public class CapturesToolWindow extends BulkFileListener.Adapter implements Disposable, HierarchyListener, CaptureService.CaptureListener {
+public class CapturesToolWindow extends BulkFileListener.Adapter
+  implements Disposable, HierarchyListener, CaptureService.CaptureListener, DataProvider, DeleteProvider {
+
   @NotNull private final AbstractTreeBuilder myBuilder;
   @NotNull private final CapturesTreeStructure myStructure;
   @NotNull private Project myProject;
   @NotNull private SimpleTree myTree;
   @Nullable private MessageBusConnection myConnection;
+
+  private static final Logger LOG = Logger.getInstance(CapturesToolWindow.class);
 
   public CapturesToolWindow(@NotNull final Project project) {
 
@@ -72,6 +86,21 @@ public class CapturesToolWindow extends BulkFileListener.Adapter implements Disp
 
     CaptureService.getInstance(myProject).update();
     myStructure.update();
+
+    myTree.setPopupGroup(getPopupActions(), "Context");
+    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this);
+  }
+
+  private ActionGroup getPopupActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    group.add(new ExpandAllAction(myTree));
+    group.add(new CollapseAllAction(myTree));
+    group.addSeparator();
+    group.add(new RevealFileAction());
+    group.add(new DeleteAction());
+
+    return group;
   }
 
   @NotNull
@@ -135,5 +164,56 @@ public class CapturesToolWindow extends BulkFileListener.Adapter implements Disp
     myStructure.update();
     myBuilder.updateFromRoot();
     myTree.setSelectedNode(myBuilder, myStructure.getNode(capture), true);
+  }
+
+  @Nullable
+  private VirtualFile[] getSelectedFiles() {
+    SimpleNode[] nodes = myTree.getSelectedNodesIfUniform();
+    if (nodes.length > 0 && nodes[0] instanceof CaptureNode) {
+      VirtualFile[] files = new VirtualFile[nodes.length];
+      for (int i = 0; i < nodes.length; i++) {
+        files[i] = ((CaptureNode)nodes[i]).getCapture().getFile();
+      }
+      return files;
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (CommonDataKeys.VIRTUAL_FILE.getName().equals(dataId)) {
+      VirtualFile[] files = getSelectedFiles();
+      return files != null && files.length == 1 ? files[0] : null;
+    }
+    else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName().equals(dataId)) {
+      return this;
+    }
+    return null;
+  }
+
+  @Override
+  public void deleteElement(@NotNull DataContext dataContext) {
+    final VirtualFile[] files = getSelectedFiles();
+    if (files != null) {
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          for (VirtualFile file : files) {
+            try {
+              file.delete(null);
+            }
+            catch (IOException e) {
+              LOG.error("Cannot delete file " + file.getPath());
+            }
+          }
+        }
+      });
+    }
+  }
+
+  @Override
+  public boolean canDeleteElement(@NotNull DataContext dataContext) {
+    return getSelectedFiles() != null;
   }
 }
