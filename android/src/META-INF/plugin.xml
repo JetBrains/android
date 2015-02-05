@@ -168,6 +168,7 @@
     <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
                         serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUiRegistry"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
@@ -678,6 +679,10 @@
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.buildVariantModuleCustomizer"
                     interface="com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer"/>
+    <extensionPoint qualifiedName="com.android.gradle.gradleEditorModelCustomizer"
+                    interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
+    <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
+                    interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="org.jetbrains.android">
@@ -721,6 +726,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.gradle.editor.GradleFileEditorProvider"/>
 
     <projectService serviceInterface="com.intellij.android.designer.model.ViewsMetaManager"
                     serviceImplementation="com.intellij.android.designer.model.ViewsMetaManager"/>
