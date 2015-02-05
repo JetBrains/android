@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -24,16 +23,12 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.data.TableCellFinder;
-import org.fest.swing.data.TableCellInRowByValue;
-import org.fest.swing.data.TableCellInSelectedRow;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Controls the Avd Manager Dialog for GUI test cases

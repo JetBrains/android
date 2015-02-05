@@ -21,7 +21,6 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static org.junit.Assert.*;
 
