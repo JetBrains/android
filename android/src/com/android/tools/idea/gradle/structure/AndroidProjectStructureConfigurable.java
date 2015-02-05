@@ -54,7 +54,6 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
@@ -105,8 +104,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull private final List<Configurable> myConfigurables = Lists.newLinkedList();
 
   private final GradleSettingsFile mySettingsFile;
-
-  private JComponent myToFocus;
 
   @NotNull
   public static AndroidProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -335,7 +332,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       Runnable navigationTask = new Runnable() {
         @Override
         public void run() {
-          selectConfigurable(mySdksConfigurable, false);
+          selectConfigurable(mySdksConfigurable);
         }
       };
       for (ProjectConfigurationError error : errors) {
@@ -351,28 +348,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     return gradleFacet != null ? gradleFacet.getConfiguration().GRADLE_PROJECT_PATH : null;
   }
 
-  private void selectConfigurable(@NotNull Configurable configurable, boolean requestFocus) {
+  private void selectConfigurable(@NotNull Configurable configurable) {
     JComponent content = configurable.createComponent();
     assert content != null;
     myDetails.setContent(content);
-
-    if (requestFocus) {
-      JComponent toFocus;
-      if (configurable instanceof BaseConfigurable) {
-        toFocus = ((BaseConfigurable)configurable).getPreferredFocusedComponent();
-      }
-      else {
-        toFocus = IdeFocusTraversalPolicy.getPreferredFocusedComponent(content);
-      }
-      if (toFocus == null) {
-        toFocus = content;
-      }
-      myToFocus = toFocus;
-      toFocus.requestFocusInWindow();
-    }
-
     myUiState.lastSelectedConfigurable = configurable.getDisplayName();
-
     revalidateAndRepaint(myDetails);
   }
 
@@ -406,10 +386,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public JComponent getPreferredFocusedComponent() {
-    return myToFocus;
+    return mySidePanel != null ? mySidePanel.myList : null;
   }
 
   @Override
@@ -541,7 +521,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           }
           Object selection = myList.getSelectedValue();
           if (selection instanceof Configurable) {
-            selectConfigurable((Configurable)selection, true);
+            selectConfigurable((Configurable)selection);
           }
         }
       });
