@@ -33,21 +33,21 @@ import javax.swing.*;
 /**
  * Controls the Avd Manager Dialog for GUI test cases
  */
-public class AvdManagerDialogFixture extends ComponentFixture<JDialog> {
+public class AvdManagerDialogFixture extends ComponentFixture<JFrame> {
 
-  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
+  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JFrame target) {
     super(robot, target);
   }
 
   @NotNull
   public static AvdManagerDialogFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JFrame frame = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
-        return "AVD Manager".equals(dialog.getTitle()) && dialog.isShowing();
+      protected boolean isMatching(JFrame dialog) {
+        return "Android Virtual Device Manager".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
-    return new AvdManagerDialogFixture(robot, dialog);
+    return new AvdManagerDialogFixture(robot, frame);
   }
 
   public AvdEditWizardFixture createNew() {
@@ -116,6 +116,6 @@ public class AvdManagerDialogFixture extends ComponentFixture<JDialog> {
   }
 
   public void close() {
-    robot.click(findButtonByText("OK"));
+    robot.close(target);
   }
 }

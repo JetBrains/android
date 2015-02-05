@@ -23,6 +23,7 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JOptionPaneFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -42,13 +43,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   public ChooseDeviceDefinitionStepFixture selectDeviceByName(@NotNull final String deviceName) {
-    final TableView deviceList = robot.finder().find(target, new GenericTypeMatcher<TableView>(TableView.class) {
-      @Override
-      protected boolean isMatching(TableView component) {
-        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
-      }
-    });
-    JTableFixture deviceListFixture = new JTableFixture(robot, deviceList);
+    JTableFixture deviceListFixture = getTableFixture();
 
     TableCell cell = deviceListFixture.cell(deviceName);
     deviceListFixture.selectCell(cell);
@@ -56,13 +51,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   public ChooseDeviceDefinitionStepFixture removeDeviceByName(@NotNull final String deviceName) {
-    final TableView deviceList = robot.finder().find(target, new GenericTypeMatcher<TableView>(TableView.class) {
-      @Override
-      protected boolean isMatching(TableView component) {
-        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
-      }
-    });
-    JTableFixture deviceListFixture = new JTableFixture(robot, deviceList);
+    JTableFixture deviceListFixture = getTableFixture();
 
     TableCell cell = deviceListFixture.cell(deviceName);
     deviceListFixture.click(cell, MouseButton.RIGHT_BUTTON);
@@ -85,5 +74,25 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     JButton newDeviceButton = robot.finder().find(target, JButtonMatcher.withText("New Hardware Profile").andShowing());
     robot.click(newDeviceButton);
     return DeviceEditWizardFixture.find(robot);
+  }
+
+  private JTableFixture getTableFixture() {
+    final TableView deviceList = robot.finder().find(target, new GenericTypeMatcher<TableView>(TableView.class) {
+      @Override
+      protected boolean isMatching(TableView component) {
+        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
+      }
+    });
+    return new JTableFixture(robot, deviceList);
+  }
+
+  public boolean deviceExists(@NotNull final String deviceName) {
+    try {
+      getTableFixture().cell(deviceName);
+      return true;
+    }
+    catch (ActionFailedException e) {
+      return false;
+    }
   }
 }
