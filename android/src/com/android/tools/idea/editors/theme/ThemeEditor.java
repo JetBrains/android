@@ -24,7 +24,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.attributes.AttributesSorter;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
-import com.android.tools.idea.editors.theme.attributes.LabelledModel;
+import com.android.tools.idea.editors.theme.attributes.AugmentedModel;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.rendering.AppResourceRepository;
