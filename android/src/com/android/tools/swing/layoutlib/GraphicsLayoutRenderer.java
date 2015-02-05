@@ -41,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -128,7 +130,7 @@ public class GraphicsLayoutRenderer {
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(configuration.getDevice());
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
     final SessionParams params =
-      new SessionParams(parser, SessionParams.RenderingMode.NORMAL, module, hardwareConfig, configuration.getResourceResolver(),
+      new SessionParams(parser, SessionParams.RenderingMode.V_SCROLL, module, hardwareConfig, configuration.getResourceResolver(),
                         layoutlibCallback, moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(),
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
@@ -145,12 +147,12 @@ public class GraphicsLayoutRenderer {
    * @param parser A layout pull-parser.
    * @throws InitializationException if layoutlib fails to initialize.
    */
-  @Nullable
+  @NotNull
   public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
                                               @NotNull ILayoutPullParser parser) throws InitializationException {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
-      return null;
+      throw new InitializationException("Unable to get AndroidFacet");
     }
 
     Module module = facet.getModule();
@@ -158,20 +160,20 @@ public class GraphicsLayoutRenderer {
     IAndroidTarget target = configuration.getTarget();
 
     if (target == null) {
-      return null;
+      throw new InitializationException("Unable to get IAndroidTarget");
     }
 
     if (sdk == null || !AndroidSdkUtils.isAndroidSdk(sdk)) {
-      return null;
+      throw new InitializationException("Unable to get Android SDK");
     }
 
     AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
     if (data == null) {
-      return null;
+      throw new InitializationException("Unable to get AndroidSdkAdditionalData");
     }
     AndroidPlatform platform = data.getAndroidPlatform();
     if (platform == null) {
-      return null;
+      throw new InitializationException("Unable to get AndroidPlatform");
     }
 
     return create(facet, platform, target, module.getProject(), configuration, parser);
@@ -270,9 +272,65 @@ public class GraphicsLayoutRenderer {
         @Override
         public Graphics2D createGraphics() {
           // TODO: Check if we can stop layoutlib from reseting the transforms.
-          final Graphics2D g = new Graphics2DDelegate((Graphics2D)myGraphics.create(0, 0, w, h)) {
+          final Shape originalClip = myGraphics.getClip();
+          final AffineTransform originalTx = ((Graphics2D)myGraphics).getTransform();
+
+          AffineTransform inverse = null;
+          try {
+            inverse = originalTx.createInverse();
+          }
+          catch (NoninvertibleTransformException e) {
+            LOG.error(e);
+          }
+
+          final AffineTransform originalTxInverse = inverse;
+
+          final Graphics2D g = new Graphics2DDelegate((Graphics2D)myGraphics.create()) {
+            @Nullable
+            private Shape intersect(@Nullable Shape s1, @Nullable Shape s2) {
+              if (s1 == null || s2 == null) {
+                return s1 == null ? s2 : s1;
+              }
+
+              Area a1 = new Area(s1);
+              Area a2 = new Area(s2);
+
+              a1.intersect(a2);
+              return a1;
+            }
+
             @Override
-            public void setTransform(AffineTransform Tx) {
+            public void clip(@Nullable Shape s) {
+              if (s == null) {
+                setClip(null);
+                return;
+              }
+
+              super.clip(s);
+            }
+
+            @Override
+            public void setClip(@Nullable Shape sh) {
+              try {
+                super.setClip(intersect(getTransform().createInverse().createTransformedShape(originalClip), sh));
+              } catch (NoninvertibleTransformException e) {
+                LOG.error(e);
+              }
+            }
+
+            @Override
+            public void setTransform(@Nullable AffineTransform Tx) {
+              AffineTransform transform = (AffineTransform)originalTx.clone();
+              transform.concatenate(Tx);
+              super.setTransform(transform);
+            }
+
+            @Override
+            public AffineTransform getTransform() {
+              AffineTransform currentTransform = super.getTransform();
+              currentTransform.concatenate(originalTxInverse);
+
+              return currentTransform;
             }
           };
 

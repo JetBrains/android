@@ -22,7 +22,10 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.attributes.*;
+import com.android.tools.idea.editors.theme.attributes.AttributesSorter;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.LabelledModel;
+import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.swing.layoutlib.AndroidThemePreviewPanel;
@@ -48,6 +51,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -270,7 +274,19 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     mySubStyleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     Splitter split = new Splitter();
-    split.setFirstComponent(myPreviewPanel);
+    JBScrollPane scrollPanel = new JBScrollPane(myPreviewPanel,
+                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                                                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    /*
+     * Set a preferred size for the preview panel. Since we are using HORIZONTAL_SCROLLBAR_NEVER, the width will be ignored and the panel
+     * size used.
+     * The height should be set according to a reasonable space to display the preview layout.
+     *
+     * TODO: Check the height value.
+     */
+    myPreviewPanel.setPreferredSize(new Dimension(64, 2000));
+
+    split.setFirstComponent(scrollPanel);
     split.setSecondComponent(myPanel.getRightSidePanel());
     split.setShowDividerControls(false);
     myComponent = split;
