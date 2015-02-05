@@ -68,17 +68,26 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public boolean isModified() {
-    return mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
-           mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN != myModuleNumberSpinner.getValue();
+    if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled()) {
+      return true;
+    }
+    Integer value = getMaxModuleCountForSourceGen();
+    return value != null && mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN != value;
   }
 
   @Override
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
-    Object value = myModuleNumberSpinner.getValue();
-    if (value instanceof Integer) {
-      mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = (Integer)value;
+    Integer value = getMaxModuleCountForSourceGen();
+    if (value != null) {
+      mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
     }
+  }
+
+  @Nullable
+  private Integer getMaxModuleCountForSourceGen() {
+    Object value = myModuleNumberSpinner.getValue();
+    return value instanceof Integer ? (Integer)value : null;
   }
 
   private boolean isModuleSelectionOnImportEnabled() {
@@ -97,7 +106,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   private void createUIComponents() {
     int value = GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN;
-    myModuleNumberSpinner = new JSpinner(new SpinnerNumberModel(value, 1, Integer.MAX_VALUE, 1));
+    myModuleNumberSpinner = new JSpinner(new SpinnerNumberModel(value, 0, Integer.MAX_VALUE, 1));
     // Force the spinner to accept numbers only.
     JComponent editor = myModuleNumberSpinner.getEditor();
     if (editor instanceof JSpinner.NumberEditor) {
