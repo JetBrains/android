@@ -1088,7 +1088,7 @@ public class AndroidResourceUtil {
                                            @NotNull String rootTagName,
                                            @NotNull String resourceType,
                                            boolean valuesResourceFile) throws Exception {
-    FileTemplateManager manager = FileTemplateManager.getInstance();
+    FileTemplateManager manager = FileTemplateManager.getInstance(resSubdir.getProject());
     String templateName = getTemplateName(resourceType, valuesResourceFile, rootTagName);
     FileTemplate template = manager.getJ2eeTemplate(templateName);
     Properties properties = new Properties();

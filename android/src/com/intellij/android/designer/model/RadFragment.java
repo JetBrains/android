@@ -104,9 +104,7 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
     }
     ChooseClassDialog dialog =
       new ChooseClassDialog(module, "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
-    dialog.show();
-
-    if (dialog.isOK()) {
+    if (dialog.showAndGet()) {
       return dialog.getClassName();
     }
 
@@ -164,8 +162,7 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
     public void actionPerformed(AnActionEvent e) {
       ChooseResourceDialog dialog = new ChooseResourceDialog(myDesigner.getModule(), new ResourceType[]{ResourceType.LAYOUT}, null, null);
       dialog.setAllowCreateResource(false);
-      dialog.show();
-      if (dialog.isOK()) {
+      if (dialog.showAndGet()) {
         String layout = dialog.getResourceName();
         Project project = myDesigner.getProject();
         XmlFile xmlFile = myDesigner.getXmlFile();

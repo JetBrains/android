@@ -17,7 +17,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Template;
-import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.RecentProjectsManagerImpl;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +67,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
    */
   @NotNull
   public static String getProjectFileDirectory() {
-    final String lastProjectLocation = GeneralSettings.getInstance().getLastProjectCreationLocation();
+    final String lastProjectLocation = RecentProjectsManagerImpl.getInstance().getLastProjectCreationLocation();
     if (lastProjectLocation != null) {
       return lastProjectLocation.replace('/', File.separatorChar);
     }

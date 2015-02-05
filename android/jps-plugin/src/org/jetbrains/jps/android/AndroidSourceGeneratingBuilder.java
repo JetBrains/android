@@ -38,6 +38,7 @@ import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.builders.storage.SourceToOutputMapping;
 import org.jetbrains.jps.incremental.*;
+import org.jetbrains.jps.incremental.fs.CompilationRound;
 import org.jetbrains.jps.incremental.java.FormsParsing;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
@@ -739,7 +740,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         else if (outputFile.exists()) {
           final SourceToOutputMapping sourceToOutputMap = context.getProjectDescriptor().dataManager.getSourceToOutputMap(buildTarget);
           sourceToOutputMap.setOutput(filePath, outputFilePath);
-          FSOperations.markDirty(context, outputFile);
+          FSOperations.markDirty(context, CompilationRound.CURRENT, outputFile);
         }
       }
       catch (final IOException e) {
@@ -824,7 +825,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           sourceToOutputMap.setOutputs(filePath, newFilePaths);
 
           for (File newFile : newFiles) {
-            FSOperations.markDirty(context, newFile);
+            FSOperations.markDirty(context, CompilationRound.CURRENT, newFile);
           }
         }
       }
@@ -1072,7 +1073,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       public boolean process(File file) {
         if (file.isFile() && (!javaFilesOnly || FileUtilRt.extensionEquals(file.getName(), "java"))) {
           try {
-            FSOperations.markDirty(context, file);
+            FSOperations.markDirty(context, CompilationRound.CURRENT, file);
           }
           catch (IOException e) {
             AndroidJpsUtil.reportExceptionError(context, null, e, compilerName);

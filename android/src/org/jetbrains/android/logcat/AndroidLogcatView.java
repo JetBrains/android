@@ -37,7 +37,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -305,8 +304,7 @@ public abstract class AndroidLogcatView implements Disposable {
         if (EDIT_FILTER_CONFIGURATION.equals(myCurrentFilterName)) {
           final EditLogFilterDialog dialog = new EditLogFilterDialog(AndroidLogcatView.this, prev);
           dialog.setTitle(AndroidBundle.message("android.logcat.new.filter.dialog.title"));
-          dialog.show();
-          if (dialog.isOK()) {
+          if (dialog.showAndGet()) {
             final AndroidConfiguredLogFilters.MyFilterEntry newEntry =
               dialog.getCustomLogFiltersEntry();
             updateConfiguredFilters(newEntry != null ? newEntry.getName() : NO_FILTERS);

@@ -187,8 +187,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
       if (dialogTitle != null) {
         dialog.setTitle(dialogTitle);
       }
-      dialog.show();
-      if (!dialog.isOK()) {
+      if (!dialog.showAndGet()) {
         return PsiElement.EMPTY_ARRAY;
       }
       if (chooseResName) {

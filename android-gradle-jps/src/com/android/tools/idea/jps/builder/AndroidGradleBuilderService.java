@@ -30,13 +30,14 @@ import java.util.List;
 public class AndroidGradleBuilderService extends BuilderService {
   @Override
   @NotNull
-  public List<? extends ModuleLevelBuilder> createModuleLevelBuilders() {
-    return Collections.singletonList(new AndroidGradleBuilder());
+  public List<? extends BuildTargetType<?>> getTargetTypes() {
+    return Collections.singletonList(AndroidGradleBuildTarget.TargetType.INSTANCE);
   }
 
   @Override
-  public List<? extends BuildTargetType<?>> getTargetTypes() {
-    return Collections.singletonList(AndroidGradleBuildTarget.TargetType.INSTANCE);
+  @NotNull
+  public List<? extends ModuleLevelBuilder> createModuleLevelBuilders() {
+    return Collections.singletonList(new AndroidGradleBuilder());
   }
 
   @Override

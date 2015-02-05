@@ -25,6 +25,7 @@ import com.intellij.internal.statistic.beans.UsageDescriptor;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
+import com.intellij.internal.statistic.persistence.ApplicationStatisticsPersistenceComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -32,8 +33,6 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
@@ -101,14 +100,16 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
+    synchronized (ApplicationStatisticsPersistenceComponent.class) {
 
-    LegacySdkStatsService sdkstats = sendLegacyPing();
+      LegacySdkStatsService sdkstats = sendLegacyPing();
 
-    StatisticsResult result = sendUsageStats(sdkstats);
+      StatisticsResult result = sendUsageStats(sdkstats);
 
-    result = sendBuildStats(sdkstats);
+      result = sendBuildStats(sdkstats);
 
-    return result;
+      return result;
+    }
   }
 
   /**
@@ -244,13 +245,9 @@ public class AndroidStatisticsService implements StatisticsService {
 
   private StatsProto.LogRequest getUsageData(@NotNull LegacySdkStatsService sdkstats,
                                              @NotNull Set<String> disabledGroups) {
-    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-
     Map<String, KeyString[]> usages = new LinkedHashMap<String, KeyString[]>();
-    for (Project project : openProjects) {
-      final Map<String, KeyString[]> allUsages = getAllUsages(project, disabledGroups);
-      usages.putAll(allUsages);
-    }
+    final Map<String, KeyString[]> allUsages = getAllUsages(disabledGroups);
+    usages.putAll(allUsages);
 
     String uuid = UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
     String appVersion = ApplicationInfo.getInstance().getFullVersion();
@@ -258,8 +255,7 @@ public class AndroidStatisticsService implements StatisticsService {
   }
 
   @NotNull
-  public Map<String, KeyString[]> getAllUsages(@Nullable Project project,
-                                               @NotNull Set<String> disabledGroups) {
+  public Map<String, KeyString[]> getAllUsages(@NotNull Set<String> disabledGroups) {
     Map<String, KeyString[]> allUsages = new LinkedHashMap<String, KeyString[]>();
 
     for (UsagesCollector usagesCollector : Extensions.getExtensions(UsagesCollector.EP_NAME)) {
@@ -268,7 +264,7 @@ public class AndroidStatisticsService implements StatisticsService {
 
       if (!disabledGroups.contains(groupId)) {
         try {
-          final Set<UsageDescriptor> usages = usagesCollector.getUsages(project);
+          final Set<UsageDescriptor> usages = usagesCollector.getUsages();
           final Set<Counter> counters = new TreeSet<Counter>();
           for (UsageDescriptor usage : usages) {
             Counter counter = new Counter(usage.getKey(), usage.getValue());
@@ -293,7 +289,6 @@ public class AndroidStatisticsService implements StatisticsService {
    */
   @Nullable
   public String sendData(@NotNull StatsProto.LogRequest request) throws IOException {
-
     if (request == null) {
       return "[SendStats] Invalid arguments";
     }

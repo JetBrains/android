@@ -20,6 +20,7 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.RecentProjectsManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -107,7 +108,7 @@ public final class GuiTests {
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
-    GeneralSettings.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
+    RecentProjectsManagerImpl.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
   }
 
   // Called by IdeTestApplication via reflection.

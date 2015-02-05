@@ -44,7 +44,6 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Function;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -378,7 +377,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("", group, true);
     JPanel buttonsPanel = new JPanel(new BorderLayout());
     buttonsPanel.add(actionToolBar.getComponent(), BorderLayout.CENTER);
-    buttonsPanel.setBorder(new SideBorder(UIUtil.getBorderColor(), SideBorder.TOP | SideBorder.LEFT | SideBorder.RIGHT, false, 1));
+    buttonsPanel.setBorder(new SideBorder(JBColor.border(), SideBorder.TOP | SideBorder.LEFT | SideBorder.RIGHT, 1));
 
     treePanel.add(buttonsPanel, BorderLayout.NORTH);
     treePanel.add(ScrollPaneFactory.createScrollPane(tree), BorderLayout.CENTER);

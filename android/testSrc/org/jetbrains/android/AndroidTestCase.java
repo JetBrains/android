@@ -248,7 +248,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     final GlobalInspectionContextImpl globalContext =
       CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
 
-    InspectionTestUtil.runTool(wrapper, scope, globalContext, inspectionManager);
+    InspectionTestUtil.runTool(wrapper, scope, globalContext);
     InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
   }
 

@@ -122,9 +122,7 @@ class AndroidInlineUtil {
       final AndroidInlineStyleDialog dialog = new AndroidInlineStyleDialog(
         project, data.myReferredElement, style.getXmlTag(), data.myStyleName,
         attributeValues, parentStyleRef, invokedOnReference, invokedOnReference);
-      dialog.show();
-
-      if (!dialog.isOK()) {
+      if (!dialog.showAndGet()) {
         return;
       }
       inlineThisOnly = dialog.isInlineThisOnly();

@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.content.Content;
@@ -114,6 +115,7 @@ public class BuildVariantView {
     });
 
     myTestArtifactPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
+    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(IdeBorderFactory.createEmptyBorder());
 
     // This makes the combo-box resize even if the even if it cannot show all its text
     myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");

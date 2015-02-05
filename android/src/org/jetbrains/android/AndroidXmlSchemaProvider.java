@@ -34,7 +34,6 @@ import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.xml.XmlSchemaProvider;
 import gnu.trove.THashMap;
-import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
@@ -64,8 +63,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @Override
   public XmlFile getSchema(@NotNull @NonNls String url, @Nullable final Module module, @NotNull PsiFile baseFile) {
-    if (module == null) return null;
-    assert AndroidFacet.getInstance(module) != null;
+    if (module == null || AndroidFacet.getInstance(module) == null) return null;
 
     Map<String, CachedValue<XmlFile>> descriptors = module.getUserData(DESCRIPTORS_MAP_IN_MODULE);
     if (descriptors == null) {

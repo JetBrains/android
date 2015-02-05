@@ -85,9 +85,7 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
         }
       }
     };
-    dialog.show();
-
-    if (dialog.isOK()) {
+    if (dialog.showAndGet()) {
       return dialog.getClassName();
     }
 

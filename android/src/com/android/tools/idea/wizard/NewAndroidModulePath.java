@@ -68,8 +68,18 @@ public final class NewAndroidModulePath implements WizardPath {
     Disposer.register(disposable, myAssetSetStep);
     myChooseActivityStep =
       new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null,
-                             ContainerUtil.newHashSet("Android TV Activity"));
-    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder);
+                             ContainerUtil.newHashSet("Android TV Activity")) {
+        @Override
+        public String getHelpId() {
+          return "Android_Application_Template_Page";
+        }
+      };
+    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder) {
+      @Override
+      public String getHelpId() {
+        return "Android_Activity_Settings_Page";
+      }
+    };
     myJavaModuleTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, builder);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
   }
@@ -78,11 +88,12 @@ public final class NewAndroidModulePath implements WizardPath {
   public void update() {
     boolean isAndroidTemplate = NewModuleWizardState.isAndroidTemplate(myWizardState.getTemplateMetadata());
     myJavaModuleTemplateParameterStep.setVisible(!isAndroidTemplate);
+    myConfigureAndroidModuleStep.setVisible(isAndroidTemplate);
     if (isAndroidTemplate) {
       myConfigureAndroidModuleStep.updateStep();
     }
-    myAssetSetStep.setVisible(myWizardState.getBoolean(ATTR_CREATE_ICONS));
-    boolean createActivity = myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY);
+    myAssetSetStep.setVisible(isAndroidTemplate && myWizardState.getBoolean(ATTR_CREATE_ICONS));
+    boolean createActivity = isAndroidTemplate && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY);
     myChooseActivityStep.setVisible(createActivity);
     myActivityTemplateParameterStep.setVisible(createActivity);
   }

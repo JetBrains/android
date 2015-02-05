@@ -32,6 +32,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -263,7 +264,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @Override
   public void reset() {
     // Need this to ensure VFS operations will not block because of storage flushing and other maintenance IO tasks run in background.
-    HeavyProcessLatch.INSTANCE.processStarted();
+    AccessToken token = HeavyProcessLatch.INSTANCE.processStarted("Resetting project structure");
 
     try {
       for (Configurable configurable: myConfigurables) {
@@ -273,8 +274,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       if (myUiInitialized) {
         validateState();
 
-        Module toSelect = null;
-
         // Populate the "Modules" section.
         ModuleManager moduleManager = ModuleManager.getInstance(myProject);
         removeModules();
@@ -282,6 +281,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         Module[] modules = moduleManager.getModules();
         Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
+        Module toSelect = null;
         for (Module module : modules) {
           AndroidModuleConfigurable configurable = addModule(module);
           if (configurable != null) {
@@ -305,7 +305,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       }
     }
     finally {
-      HeavyProcessLatch.INSTANCE.processFinished();
+      token.finish();
     }
   }
 

@@ -17,6 +17,8 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
   <depends optional="true"  config-file="database-support.xml">com.intellij.database</depends>
 
+  <resource-bundle>messages.AndroidBundle</resource-bundle>
+
   <application-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
@@ -54,7 +56,7 @@
     <action id="NewAndroidAssetImage" class="com.android.tools.idea.actions.AndroidAssetStudioAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
-    <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
+    <action id="Android.CreateResourcesActionGroup" text="Android resource file" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
     </action>
     <action id="Android.CreateResourceDirectory" class="org.jetbrains.android.actions.CreateResourceDirectoryAction">
@@ -131,8 +133,8 @@
             text="Use Style _Where Possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="Android.TraceViewSearch" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find" />
-    <action id="Android.Debugger.ViewBitmapAction" class="com.android.tools.idea.run.ViewBitmapAction">
+    <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
+    <action id="Android.Debugger.ViewBitmapAction" text="View Bitmap" class="com.android.tools.idea.run.ViewBitmapAction">
       <add-to-group group-id="Debugger.FramePanelPopup" anchor="last"/>
     </action>
     <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
@@ -161,8 +163,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
     <consoleActionsPostProcessor implementation="org.jetbrains.android.logcat.LogcatConsoleActionsPostProcessor" />
-    <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
-                        serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApks"/>
     <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
