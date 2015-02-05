@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
-import com.android.resources.Navigation;
-import com.android.tools.idea.avdmanager.DeviceEditWizard;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
