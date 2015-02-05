@@ -17,11 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.intellij.ui.table.TableView;
-import org.fest.swing.cell.JTableCellReader;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.data.TableCell;
-import org.fest.swing.data.TableCellFinder;
 import org.fest.swing.data.TableCellInRowByValue;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
