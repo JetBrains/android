@@ -440,6 +440,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull final BuildMode buildMode) {
     final Project project = getProject();
+    if (buildMode == SOURCE_GEN && !ProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
+      return this;
+    }
+
     pause(new Condition("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'") {
       @Override
       public boolean test() {
