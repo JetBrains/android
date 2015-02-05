@@ -146,7 +146,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   }
 
   private void createJdkLocationTextField() {
-
     JTextField textField = new JTextField(10);
     myJdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
@@ -180,7 +179,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
     }
   }
 
-  private void installValidationListener(JTextField textField) {
+  private void installValidationListener(@NotNull JTextField textField) {
     if (myHost != null) {
       textField.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
