@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.*;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import org.jdom.Element;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -98,7 +99,7 @@ public class StudioBuildStatsPersistenceComponent
   void addBuildRecordImmediately(@NotNull BuildRecord newRecord) {
     // Skip if there is no Application, allowing this to run using non-idea unit tests.
     Application app = ApplicationManager.getApplication();
-    if (app != null && !app.isUnitTestMode()) {
+    if (app != null && !app.isUnitTestMode() && !AndroidPlugin.isGuiTestingMode()) {
       StatisticsResult code = AndroidStatisticsService.areStatisticsAuthorized();
       if (code.getCode() != StatisticsResult.ResultCode.SEND) {
         // Don't even collect the stats.
