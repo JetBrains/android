@@ -20,7 +20,6 @@ import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.utils.XmlUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
@@ -205,9 +204,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       boolean chooseName = ResourceHelper.prependResourcePrefix(facetModule, null) != null;
       final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, null, value, chooseName);
       dialog.setTitle("Extract Resource");
-      dialog.show();
-
-      if (!dialog.isOK()) {
+      if (!dialog.showAndGet()) {
         return;
       }
 

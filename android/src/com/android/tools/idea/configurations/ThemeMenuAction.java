@@ -86,8 +86,7 @@ public class ThemeMenuAction extends FlatAction {
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
       ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
-      dialog.show();
-      if (dialog.isOK()) {
+      if (dialog.showAndGet()) {
         String theme = dialog.getTheme();
         if (theme != null) {
           configuration.setTheme(theme);

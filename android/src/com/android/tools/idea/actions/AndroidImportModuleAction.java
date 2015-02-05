@@ -54,8 +54,7 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
       return;
     }
     NewModuleWizard wizard = NewModuleWizard.createImportModuleWizard(destinationProject, importSource);
-    wizard.show();
-    if (wizard.isOK()) {
+    if (wizard.showAndGet()) {
       wizard.createModule(true);
     }
   }

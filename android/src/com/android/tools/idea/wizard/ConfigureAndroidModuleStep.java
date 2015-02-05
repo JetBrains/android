@@ -313,6 +313,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @Override
+  public String getHelpId() {
+    return "Android-Gradle_Page";
+  }
+
+  @Override
   public JComponent getPreferredFocusedComponent() {
     return myAppName;
   }
@@ -424,6 +429,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myTemplateState.put(ATTR_TARGET_API_STRING, item.target.getVersion().getApiString());
       } else {
         myTemplateState.put(ATTR_TARGET_API_STRING, Integer.toString(item.apiLevel));
+      }
+    }
+
+    item = (AndroidTargetComboBoxItem)myCompileWith.getSelectedItem();
+    if (item != null) {
+      myTemplateState.put(ATTR_BUILD_API, item.apiLevel);
+      if (item.target != null) {
+        myTemplateState.put(ATTR_BUILD_API_STRING, item.target.getVersion().getApiString());
+      } else {
+        myTemplateState.put(ATTR_BUILD_API_STRING, Integer.toString(item.apiLevel));
       }
     }
 

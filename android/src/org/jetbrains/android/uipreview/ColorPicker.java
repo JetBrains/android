@@ -56,7 +56,7 @@ import java.util.List;
  * This is just a copy of {@link com.intellij.ui.ColorPicker}, but with support
  * for ARGB. There is nothing Android specific about this, so these changes
  * have been submitted as a patch for the base ColorPicker in
- * http://youtrack.jetbrains.com/issue/IDEA-123498
+ * https://youtrack.jetbrains.com/issue/IDEA-123498
  * and if that's applied we can get rid of this class and use the base platform
  * one instead.
  */

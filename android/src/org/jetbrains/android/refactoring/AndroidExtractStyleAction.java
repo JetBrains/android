@@ -17,7 +17,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -114,9 +113,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
       final ExtractStyleDialog dialog =
         new ExtractStyleDialog(module, fileName, supportImplicitParent ? parentStyle : null, dirNames, extractableAttributes);
       dialog.setTitle(dialogTitle);
-      dialog.show();
-
-      if (!dialog.isOK()) {
+      if (!dialog.showAndGet()) {
         return null;
       }
       searchStyleApplications = dialog.isToSearchStyleApplications();

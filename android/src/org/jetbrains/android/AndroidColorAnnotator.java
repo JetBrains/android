@@ -53,7 +53,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
-import com.intellij.ui.ColorChooser;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.xml.DomElement;
@@ -61,7 +60,6 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ColorPicker;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -412,7 +410,7 @@ public class AndroidColorAnnotator implements Annotator {
           final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
           if (editor != null) {
             // Need ARGB support in platform color chooser; see
-            //  http://youtrack.jetbrains.com/issue/IDEA-123498
+            //  https://youtrack.jetbrains.com/issue/IDEA-123498
             //final Color color =
             //  ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
             final Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);

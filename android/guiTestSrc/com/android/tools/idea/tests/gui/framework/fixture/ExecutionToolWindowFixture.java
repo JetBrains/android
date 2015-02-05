@@ -16,10 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.ui.content.Content;
@@ -33,6 +33,7 @@ import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.util.List;
@@ -125,12 +126,14 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return true;
     }
 
+    @TestOnly
     public boolean stop() {
       ActionToolbarImpl toolbar = UIUtil.findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
       assertNotNull(toolbar);
       List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
       for (ActionButton button : buttons) {
-        if (button.getAction() instanceof DefaultExecutionResult.StopAction) {
+        final AnAction action = button.getAction();
+        if (action != null && action.getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
           boolean enabled = Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
             button.click();

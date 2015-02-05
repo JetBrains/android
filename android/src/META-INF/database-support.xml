@@ -1,4 +1,4 @@
-<idea-plugin url="http://www.jetbrains.com/idea">
+<idea-plugin url="https://www.jetbrains.com/idea">
   <application-components>
     <component>
       <implementation-class>org.jetbrains.android.database.AndroidDataSourceApplicationComponent</implementation-class>
