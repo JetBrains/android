@@ -177,6 +177,8 @@ public class ResourceEditor extends PropertyEditor {
         myEditor.getChildComponent().requestFocus();
       }
     });
+    myEditor.getButton().setSize(22);
+    myEditor.getButton().setAttachedComponent(null);
   }
 
   public static void selectTextOnFocusGain(JTextField textField) {
@@ -336,13 +338,13 @@ public class ResourceEditor extends PropertyEditor {
       return;
     }
     ResourceDialog dialog = new ResourceDialog(module, myTypes, (String)getValue(), (RadViewComponent)myComponent);
-    dialog.show();
-
-    if (dialog.isOK()) {
+    if (dialog.showAndGet()) {
       setValue(dialog.getResourceName());
     }
-    else if (myBooleanResourceValue != null) {
-      fireEditingCancelled();
+    else {
+      if (myBooleanResourceValue != null) {
+        fireEditingCancelled();
+      }
     }
   }
 

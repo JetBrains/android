@@ -117,31 +117,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         (METHOD_NAME == null || METHOD_NAME.length() == 0)) {
       return JavaExecutionUtil.isNewName(name);
     }
-    return Comparing.equal(name, getGeneratedName());
-  }
-
-  @Nullable
-  @Override
-  public String getGeneratedName() {
-    final JavaRunConfigurationModule confModule = getConfigurationModule();
-    final String moduleName = confModule.getModuleName();
-
-    if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
-      if (PACKAGE_NAME.length() == 0) {
-        return ExecutionBundle.message("default.junit.config.name.all.in.module", moduleName);
-      }
-      if (moduleName.length() > 0) {
-        return ExecutionBundle.message("default.junit.config.name.all.in.package.in.module", PACKAGE_NAME, moduleName);
-      }
-      return PACKAGE_NAME + " in "  + moduleName;
-    }
-    else if (TESTING_TYPE == TEST_CLASS) {
-      return JavaExecutionUtil.getPresentableClassName(CLASS_NAME, confModule);
-    }
-    else if (TESTING_TYPE == TEST_METHOD) {
-      return JavaExecutionUtil.getPresentableClassName(CLASS_NAME, confModule) + "." + METHOD_NAME;
-    }
-    return moduleName;
+    return Comparing.equal(name, suggestedName());
   }
 
   @Override

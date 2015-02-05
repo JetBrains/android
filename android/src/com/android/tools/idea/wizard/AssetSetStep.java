@@ -443,6 +443,11 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
     }
   }
 
+  @Override
+  public String getHelpId() {
+    return "Android-Gradle_Screen_Configuration_Page";
+  }
+
   private void initialize() {
     myTemplateState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
       .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png"))

@@ -27,8 +27,7 @@ public class RtlSupportManager {
 
   public void showDialog() {
     final RtlSupportDialog dialog = new RtlSupportDialog(myProject);
-    dialog.show();
-    if (!dialog.isOK()) {
+    if (!dialog.showAndGet()) {
       return;
     }
     new RtlSupportProcessor(myProject, dialog.getProperties()).run();

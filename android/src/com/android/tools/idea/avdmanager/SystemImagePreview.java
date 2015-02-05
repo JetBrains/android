@@ -316,25 +316,29 @@ public class SystemImagePreview extends JPanel {
     if (codename == null) {
       return null;
     }
+    Icon icon = null;
     try {
-      return IconLoader.getIcon(String.format("/icons/versions/%1$s.png", codename), AndroidIcons.class);
-    } catch (RuntimeException e) {
-      int size = 128;
-      Image image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
-      Graphics g = image.getGraphics();
-      GraphicsUtil.setupAntialiasing(g);
-      GraphicsUtil.setupAAPainting(g);
-      Font f = UIUtil.getLabelFont();
-      Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, 100);
-      g.setColor(JBColor.background());
-      g.fillRect(0, 0, size, size);
-      g.setColor(JBColor.foreground());
-      g.setFont(font);
-      int height = g.getFontMetrics().getHeight();
-      int width = g.getFontMetrics().stringWidth("?");
-      g.drawString("?", (size - width) / 2, height + (size - height) / 2);
-      return new ImageIcon(image);
+      icon = IconLoader.findIcon(String.format("/icons/versions/%1$s.png", codename), AndroidIcons.class);
+    } catch (RuntimeException ignored) {
     }
+    if (icon != null) {
+      return icon;
+    }
+    int size = 128;
+    Image image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    Graphics g = image.getGraphics();
+    GraphicsUtil.setupAntialiasing(g);
+    GraphicsUtil.setupAAPainting(g);
+    Font f = UIUtil.getLabelFont();
+    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, 100);
+    g.setColor(JBColor.background());
+    g.fillRect(0, 0, size, size);
+    g.setColor(JBColor.foreground());
+    g.setFont(font);
+    int height = g.getFontMetrics().getHeight();
+    int width = g.getFontMetrics().stringWidth("?");
+    g.drawString("?", (size - width) / 2, height + (size - height) / 2);
+    return new ImageIcon(image);
   }
 
   enum HaxmState { NOT_INITIALIZED, INSTALLED, NOT_INSTALLED, NOT_LATEST }

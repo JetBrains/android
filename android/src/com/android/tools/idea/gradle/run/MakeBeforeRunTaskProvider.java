@@ -122,8 +122,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     GradleEditTaskDialog dialog = new GradleEditTaskDialog(myProject);
     dialog.setGoal(task.getGoal());
     dialog.setAvailableGoals(createAvailableTasks());
-    dialog.show();
-    if (!dialog.isOK()) {
+    if (!dialog.showAndGet()) {
       // since we allow tasks without any arguments (assumed to be equivalent to assembling the app),
       // we need a way to specify that a task is not valid. This is because of the current restriction
       // of this API, where the return value from configureTask is ignored.

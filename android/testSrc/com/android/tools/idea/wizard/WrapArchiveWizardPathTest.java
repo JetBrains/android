@@ -48,6 +48,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -323,6 +324,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
       archive.setBinaryContent(createRealJarArchive());
       final VirtualFile moduleBuildGradle = createFile(directory.getParent(), SdkConstants.FN_BUILD_GRADLE, myModuleBuildGradleBody);
       final VirtualFile topBuildGradle = createFile(myProject.getBaseDir(), SdkConstants.FN_BUILD_GRADLE, TOP_LEVEL_BUILD_GRADLE);
+      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
       GradleSettingsFile settingsGradle = GradleSettingsFile.getOrCreate(myProject);
       settingsGradle.addModule(WrapArchiveWizardPath.makeAbsolute(myModuleName), VfsUtilCore.virtualToIoFile(directory.getParent()));
       final AtomicReference<String> error = Atomics.newReference();

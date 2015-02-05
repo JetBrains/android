@@ -19,9 +19,6 @@ import com.android.tools.idea.actions.AndroidImportModuleAction;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -207,7 +204,8 @@ public class NewFromGithubWizard extends TemplateWizard implements TemplateWizar
       String error;
       if (githubRepoContents.errorMessage != null) {
         error = githubRepoContents.errorMessage;
-      } else {
+      }
+      else {
         error = "No templates found. Please check the repository that you are attempting to import from.";
       }
       return error;
@@ -215,11 +213,11 @@ public class NewFromGithubWizard extends TemplateWizard implements TemplateWizar
     NewTemplateObjectWizard wizard;
     if (githubRepoContents.templateFolders.size() == 1) {
       wizard = new NewTemplateObjectWizard(project, module, targetLocation, WIZARD_TITLE, githubRepoContents.templateFolders.get(0));
-    } else {
+    }
+    else {
       wizard = new NewTemplateObjectWizard(project, module, targetLocation, WIZARD_TITLE, githubRepoContents.templateFolders);
     }
-    wizard.show();
-    if (wizard.isOK()) {
+    if (wizard.showAndGet()) {
       wizard.createTemplateObject();
     }
     return null;
@@ -246,10 +244,10 @@ public class NewFromGithubWizard extends TemplateWizard implements TemplateWizar
       sourceFolder = VfsUtil.findFileByIoFile(githubRepoContents.rootFolder, false);
     } else {
       ChooseFromFileListDialog dialog = new ChooseFromFileListDialog(project, githubRepoContents.sampleRoots);
-      dialog.show();
-      if (dialog.isOK()) {
+      if (dialog.showAndGet()) {
         sourceFolder = VfsUtil.findFileByIoFile(dialog.getChosenFile(), false);
-      } else {
+      }
+      else {
         return null;
       }
     }

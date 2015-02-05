@@ -112,9 +112,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
       final CreateXmlResourceDialog dialog =
         new CreateXmlResourceDialog(myFacet.getModule(), myResourceType, myResourceName, value, myChooseName, defaultFileToCreate);
       dialog.setTitle("New " + StringUtil.capitalize(myResourceType.getDisplayName()) + " Value Resource");
-      dialog.show();
-
-      if (!dialog.isOK()) {
+      if (!dialog.showAndGet()) {
         return false;
       }
 

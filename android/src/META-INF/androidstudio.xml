@@ -15,7 +15,7 @@
  * limitations under the License.
  *
   -->
-<idea-plugin url="http://www.jetbrains.com/idea">
+<idea-plugin url="https://www.jetbrains.com/idea">
   <extensions defaultExtensionNs="com.intellij">
     <androidStudioInitializer id="Startup.AndroidStudioSpecificInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioSpecificInitializer" />
 
