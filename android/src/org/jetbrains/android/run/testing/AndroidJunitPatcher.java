@@ -24,6 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathsList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -76,5 +77,19 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
 
     classPath.remove(platform.getTarget().getPath(IAndroidTarget.ANDROID_JAR));
+
+    // Move the mockable android jar to the end.
+    String mockableJarPath = null;
+    for (VirtualFile virtualFile : classPath.getVirtualFiles()) {
+      if (virtualFile.getName().startsWith("mockable-android")) {
+        mockableJarPath = virtualFile.getCanonicalPath();
+        break;
+      }
+    }
+
+    if (mockableJarPath != null) {
+      classPath.remove(mockableJarPath);
+      classPath.addTail(mockableJarPath);
+    }
   }
 }
