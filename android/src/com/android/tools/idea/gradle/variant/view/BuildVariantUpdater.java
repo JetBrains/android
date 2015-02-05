@@ -68,13 +68,7 @@ class BuildVariantUpdater {
           conflicts.showSelectionConflicts();
         }
 
-        if (!affectedFacets.isEmpty()) {
-          // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
-          // be there.
-          if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            ProjectBuilder.getInstance(project).generateSourcesOnly();
-          }
-        }
+        generateSourcesIfNeeded(affectedFacets);
       }
     });
     return affectedFacets;
@@ -88,10 +82,10 @@ class BuildVariantUpdater {
    * @return modules that were affected by the change.
    */
   @NotNull
-  List<Module> updateTestArtifactsNames(@NotNull Project project,
+  List<AndroidFacet> updateTestArtifactsNames(@NotNull Project project,
                                         @NotNull final Iterable<Module> modules,
                                         @NotNull final String testArtifactName) {
-    final List<Module> affectedModules = Lists.newArrayList();
+    final List<AndroidFacet> affectedFacets = Lists.newArrayList();
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
@@ -105,13 +99,15 @@ class BuildVariantUpdater {
             ideaAndroidProject.setSelectedTestArtifactName(testArtifactName);
             androidFacet.syncSelectedVariantAndTestArtifact();
             invokeCustomizers(androidFacet.getModule(), ideaAndroidProject);
-            affectedModules.add(module);
+            affectedFacets.add(androidFacet);
           }
         }
+
+        generateSourcesIfNeeded(affectedFacets);
       }
     });
 
-    return affectedModules;
+    return affectedFacets;
   }
 
   @Nullable
@@ -170,6 +166,17 @@ class BuildVariantUpdater {
       }
     }
     return true;
+  }
+
+  private static void generateSourcesIfNeeded(@NotNull List<AndroidFacet> affectedFacets) {
+    if (!affectedFacets.isEmpty()) {
+      // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
+      // be there.
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        Project project1 = affectedFacets.get(0).getModule().getProject();
+        ProjectBuilder.getInstance(project1).generateSourcesOnly();
+      }
+    }
   }
 
   @NotNull
