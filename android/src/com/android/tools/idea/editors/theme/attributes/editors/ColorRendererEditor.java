@@ -72,7 +72,7 @@ public class ColorRendererEditor extends AbstractTableCellEditor implements Tabl
   }
 
   private void configureComponent(final EditedStyleItem resValue, final JTable table, final boolean isSelected) {
-    myComponent.name = resValue.getName();
+    myComponent.name = resValue.getQualifiedName();
     myComponent.value = resValue.getValue();
     myComponent.setToolTipText(ThemeEditorUtils.generateToolTipText(resValue.getItemResourceValue(), myModule, myConfiguration));
     myComponent.setColor(ResourceHelper.resolveColor(myResourceResolver, resValue.getItemResourceValue()));

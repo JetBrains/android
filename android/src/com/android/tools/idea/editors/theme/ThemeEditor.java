@@ -22,9 +22,8 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.attributes.AttributesSorter;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
-import com.android.tools.idea.editors.theme.attributes.AugmentedModel;
+import com.android.tools.idea.editors.theme.attributes.AttributesSorter;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -171,7 +170,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
                                                                                    myPropertiesTable.getDefaultRenderer(Integer.class)));
     myPropertiesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration,
                                                                                    myPropertiesTable.getDefaultRenderer(Boolean.class)));
-    myPropertiesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
+    myPropertiesTable.setDefaultRenderer(ThemeEditorStyle.class,
+                                         new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
 
     myPropertiesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
@@ -369,62 +369,41 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     final List<EditedStyleItem> attributes = new ArrayList<EditedStyleItem>();
     final List<TableLabel> labels = AttributesSorter.generateLabels(rawAttributes, attributes);
 
-    AttributesTableModel rawModel = new AttributesTableModel(selectedStyle, attributes) {
+    final AttributesTableModel
+      model = new AttributesTableModel(attributes, labels, selectedStyle, parentStyle == null ? null : parentStyle.getName());
+
+    model.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
-      protected boolean isReadOnly() {
-        // No theme is R/O since we will create a new one if it is.
-        return false;
-      }
-
-      @Override
-      public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
-        if (aValue == null) {
-          return;
-        }
-
-        if (!super.isReadOnly()) {
-          // Not R/O, just issue the modification to the parent.
-          super.setValueAt(aValue, rowIndex, columnIndex);
-          return;
-        }
-
+      public void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            setAttributeValue(myAttributes.get(rowIndex), aValue.toString());
+            createNewThemeWithAttributeValue(attribute, newValue);
           }
         });
       }
-    };
-    rawModel.addTableModelListener(new TableModelListener() {
+    });
+
+    model.addTableModelListener(new TableModelListener() {
       @Override
       public void tableChanged(TableModelEvent e) {
         if (myPreviewPanel != null) {
           // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
           // If we don't use invokeLater, the repaint will still see the previous cached PSI file value.
           ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                myPreviewPanel.updateConfiguration(myConfiguration);
-                myPreviewPanel.repaint();
-              }
+            @Override
+            public void run() {
+              myPreviewPanel.updateConfiguration(myConfiguration);
+              myPreviewPanel.repaint();
             }
-          );
+          });
         }
-      }
-    });
-
-    final AugmentedModel model = new AugmentedModel(rawModel, labels, parentStyle == null ? null : parentStyle.getName());
-    model.addParentChangedListener(new AugmentedModel.ParentChangedListener() {
-      @Override
-      public void parentChanged(String newParent) {
-        selectedStyle.setParent(newParent);
       }
     });
     myPropertiesTable.setRowSorter(null); // Clean any previous row sorters.
     myPropertiesTable.setModel(model);
 
-    TableRowSorter<AugmentedModel> sorter = new TableRowSorter<AugmentedModel>(model);
+    TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
     sorter.setRowFilter(myPropertiesFilter);
     myPropertiesTable.setRowSorter(sorter);
 
@@ -455,7 +434,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
    * @param rv The attribute to set, including the current value.
    * @param strValue The new value.
    */
-  private void setAttributeValue(@NotNull EditedStyleItem rv, @NotNull String strValue) {
+  private void createNewThemeWithAttributeValue(@NotNull EditedStyleItem rv, @NotNull String strValue) {
     if (strValue.equals(rv.getRawXmlValue())) {
       // No modification required.
       return;
@@ -679,7 +658,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     // TODO what should go here?
   }
 
-  class StylePropertiesFilter extends RowFilter<AugmentedModel, Integer> {
+  class StylePropertiesFilter extends RowFilter<AttributesTableModel, Integer> {
     // TODO: This is just a random list of properties. Replace with a possibly dynamic list of simple properties.
     private final Set<String> SIMPLE_PROPERTIES = ImmutableSet
       .of("android:background", "android:colorAccent", "android:colorBackground", "android:colorForegroundInverse", "android:colorPrimary",
@@ -696,7 +675,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     }
 
     @Override
-    public boolean include(Entry<? extends AugmentedModel, ? extends Integer> entry) {
+    public boolean include(Entry<? extends AttributesTableModel, ? extends Integer> entry) {
       // We use the column 1 because it's the one that contains the ItemResourceValueWrapper.
       Object value = entry.getModel().getValueAt(entry.getIdentifier().intValue(), 1);
       String propertyName;
