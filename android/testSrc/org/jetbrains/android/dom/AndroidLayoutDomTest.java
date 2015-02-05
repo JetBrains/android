@@ -9,7 +9,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.lookup.LookupEx;
-import com.intellij.codeInspection.unusedSymbol.UnusedSymbolLocalInspection;
+import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
@@ -741,7 +741,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testOnClickHighlightingJava() throws Throwable {
-    myFixture.enableInspections(UnusedSymbolLocalInspection.class);
+    myFixture.enableInspections(new UnusedDeclarationInspection());
     final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.checkHighlighting(true, false, false);

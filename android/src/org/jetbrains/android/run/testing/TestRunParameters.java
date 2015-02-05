@@ -182,8 +182,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
         return null;
       }
       final MethodListDlg dialog = new MethodListDlg(testClass, new JUnitUtil.TestMethodFilter(testClass), getField());
-      dialog.show();
-      if (dialog.isOK()) {
+      if (dialog.showAndGet()) {
         final PsiMethod method = dialog.getSelected();
         if (method != null) {
           return method.getName();

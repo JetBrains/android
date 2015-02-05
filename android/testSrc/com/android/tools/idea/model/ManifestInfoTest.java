@@ -23,11 +23,13 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.ResourceHelper;
-
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -184,7 +186,25 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   private ManifestInfo getManifestInfo(String manifestContents) throws Exception {
-    myFixture.addFileToProject("AndroidManifest.xml", manifestContents);
+    String path = "AndroidManifest.xml";
+
+    final VirtualFile manifest = myFixture.findFileInTempDir(path);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+
+        if (manifest != null) {
+          try {
+            manifest.delete(this);
+          }
+          catch (IOException e) {
+            fail("Could not delete manifest");
+          }
+        }
+      }
+    });
+
+    myFixture.addFileToProject(path, manifestContents);
 
     // No sharing between tests:
     myModule.putUserData(ManifestInfo.MANIFEST_FINDER, null);

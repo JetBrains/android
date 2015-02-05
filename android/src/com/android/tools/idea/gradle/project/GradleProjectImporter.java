@@ -64,7 +64,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.remote.GradleJavaHelper;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -466,7 +465,7 @@ public class GradleProjectImporter {
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       File javaHome = DefaultSdks.getDefaultJavaHome();
       if (javaHome != null) {
-        System.setProperty(GradleJavaHelper.GRADLE_JAVA_HOME_KEY, javaHome.getAbsolutePath());
+        System.setProperty("gradle.java.home", javaHome.getAbsolutePath());
       }
     }
 

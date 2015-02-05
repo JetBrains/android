@@ -25,7 +25,6 @@ import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -40,7 +39,7 @@ import com.intellij.slicer.SliceRootNode;
 import com.intellij.slicer.SliceUsage;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.ConcurrentSoftValueHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -695,7 +694,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static PsiExpression getLiteralExpression(@NotNull PsiExpression context, @NotNull PsiManager manager, @NotNull String text) {
     Map<String, PsiExpression> cache = LITERAL_EXPRESSION_CACHE.get(manager);
     if (cache == null) {
-      cache = new ConcurrentSoftValueHashMap<String, PsiExpression>();
+      cache = ContainerUtil.createConcurrentSoftValueMap();
       cache = manager.putUserDataIfAbsent(LITERAL_EXPRESSION_CACHE, cache);
     }
     PsiExpression expression = cache.get(text);

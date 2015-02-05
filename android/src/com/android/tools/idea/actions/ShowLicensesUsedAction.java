@@ -21,12 +21,12 @@ import com.google.common.io.Files;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +58,7 @@ public class ShowLicensesUsedAction extends AnAction {
   private static class LicenseDialog extends DialogWrapper {
     protected LicenseDialog(@Nullable Project project) {
       super(project);
-      getWindow().setMinimumSize(new Dimension(600, 400));
+      getWindow().setMinimumSize(JBUI.size(600, 400));
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ShowLicensesUsedAction extends AnAction {
 
       String text = "<html>" + sb.toString() + "</html>";
       JBScrollPane pane = new JBScrollPane(new JBLabel(text));
-      pane.setPreferredSize(new Dimension(600, 400));
+      pane.setPreferredSize(JBUI.size(600, 400));
       panel.add(pane, BorderLayout.CENTER);
       return panel;
     }

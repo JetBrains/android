@@ -34,25 +34,17 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
   private final Map<Sdk, SoftReference<PsiClass>> myInternalRClasses = new HashMap<Sdk, SoftReference<PsiClass>>();
 
   public AndroidPsiElementFinder(@NotNull Project project) {
-    ApplicationManager.getApplication().getMessageBus().connect(project)
-      .subscribe(ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Listener() {
-      @Override
-      public void jdkAdded(final Sdk sdk) {
-      }
-
-      @Override
-      public void jdkRemoved(final Sdk sdk) {
-        synchronized (myLock) {
-          myInternalRClasses.remove(sdk);
+    ApplicationManager.getApplication().getMessageBus().connect(project).subscribe(
+      ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Adapter() {
+        @Override
+        public void jdkRemoved(final Sdk sdk) {
+          synchronized (myLock) {
+            myInternalRClasses.remove(sdk);
+          }
         }
-      }
-
-      @Override
-      public void jdkNameChanged(final Sdk sdk, final String previousName) {
-      }
-    });
+      });
   }
-  
+
   private boolean processInternalRClasses(@NotNull Project project, @NotNull GlobalSearchScope scope, Processor<PsiClass> processor) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       Sdk sdk = ModuleRootManager.getInstance(module).getSdk();

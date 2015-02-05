@@ -89,7 +89,7 @@ public class AndroidInitialConfigurator {
 
       if (!propertiesComponent.getBoolean(CONFIG_V3, false)) {
         propertiesComponent.setValue(CONFIG_V3, "true");
-        // See http://youtrack.jetbrains.com/issue/IDEA-113332
+        // See https://youtrack.jetbrains.com/issue/IDEA-113332
         // It's not really fixed but worked around by turning off the =-quoting
         WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
       }

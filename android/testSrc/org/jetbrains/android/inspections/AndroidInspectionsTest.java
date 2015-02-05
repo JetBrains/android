@@ -1,11 +1,15 @@
 package org.jetbrains.android.inspections;
 
+import com.intellij.ToolExtensionPoints;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.InspectionEP;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
+import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationPresentation;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.reference.EntryPoint;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -19,22 +23,21 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/inspections/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
 
-  private UnusedDeclarationInspection myUnusedDeclarationTool;
   private GlobalInspectionToolWrapper myUnusedDeclarationToolWrapper;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myUnusedDeclarationToolWrapper = getUnusedDeclarationWrapper();
-    myUnusedDeclarationTool = (UnusedDeclarationInspection)myUnusedDeclarationToolWrapper.getTool();
   }
 
   private static GlobalInspectionToolWrapper getUnusedDeclarationWrapper() {
     final InspectionEP ep = new InspectionEP();
     ep.presentation = UnusedDeclarationPresentation.class.getName();
     ep.implementationClass = UnusedDeclarationInspection.class.getName();
-    ep.shortName = UnusedDeclarationInspection.SHORT_NAME;
-    return new GlobalInspectionToolWrapper(ep);
+    ep.shortName = UnusedDeclarationInspectionBase.SHORT_NAME;
+    UnusedDeclarationInspection tool = new UnusedDeclarationInspection(true);
+    return new GlobalInspectionToolWrapper(tool, ep);
   }
 
   public void testActivityInstantiated1() throws Throwable {
@@ -87,12 +90,19 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   }
 
   @NotNull
-  private AndroidComponentEntryPoint getAndroidEntryPoint() {
+  private static AndroidComponentEntryPoint getAndroidEntryPoint() {
     AndroidComponentEntryPoint result = null;
 
-    for (EntryPoint entryPoint : myUnusedDeclarationTool.myExtensions) {
+    ExtensionPoint<EntryPoint> point = Extensions.getRootArea().getExtensionPoint(ToolExtensionPoints.DEAD_CODE_TOOL);
+    EntryPoint[] extensions = point.getExtensions();
+    for (EntryPoint entryPoint : extensions) {
       if (entryPoint instanceof AndroidComponentEntryPoint) {
-        result = (AndroidComponentEntryPoint)entryPoint;
+        try {
+          result = (AndroidComponentEntryPoint)entryPoint;
+        }
+        catch (Exception e) {
+          throw new RuntimeException(e);
+        }
       }
     }
     assertNotNull(result);

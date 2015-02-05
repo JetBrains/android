@@ -16,10 +16,10 @@
 package com.android.tools.idea.lang.proguard;
 
 import com.android.SdkConstants;
-import com.intellij.openapi.fileTypes.FileNameMatcher;
+import com.intellij.openapi.fileTypes.FileNameMatcherEx;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class ProguardFileTypeFactory extends FileTypeFactory {
@@ -28,11 +28,13 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
     consumer.consume(ProguardFileType.INSTANCE, new ProguardNameMatcher());
   }
 
-  private static class ProguardNameMatcher implements FileNameMatcher {
+  private static class ProguardNameMatcher extends FileNameMatcherEx {
     @Override
-    public boolean accept(@NonNls @NotNull String fileName) {
-      return fileName.endsWith(ProguardFileType.DOT_PRO) || fileName.endsWith(SdkConstants.DOT_TXT) && fileName.startsWith("proguard-")
-          || fileName.equals(SdkConstants.OLD_PROGUARD_FILE);
+    public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
+      return StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
+             StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) && StringUtil.startsWith(fileName, "proguard-") ||
+             StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE)
+        ;
     }
 
     @NotNull

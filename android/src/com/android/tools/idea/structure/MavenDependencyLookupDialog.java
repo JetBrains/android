@@ -36,9 +36,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.io.HttpRequests;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -57,8 +56,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,8 +64,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
   private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
   private static final int RESULT_LIMIT = 50;
-  private static final int SEARCH_TIMEOUT = 10000;
-  private static final String MAVEN_CENTRAL_SEARCH_URL = "http://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=\"%s\"";
+  private static final String MAVEN_CENTRAL_SEARCH_URL = "https://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=\"%s\"";
   private static final Logger LOG = Logger.getInstance(MavenDependencyLookupDialog.class);
 
   /**
@@ -386,45 +382,34 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
   @NotNull
   private static List<String> searchMavenCentral(@NotNull String text) {
-    try {
-      String url = String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text);
-      final HttpURLConnection urlConnection = HttpConfigurable.getInstance().openHttpConnection(url);
-      urlConnection.setConnectTimeout(SEARCH_TIMEOUT);
-      urlConnection.setReadTimeout(SEARCH_TIMEOUT);
-      urlConnection.setRequestProperty("accept", "application/xml");
-
-      InputStream inputStream = urlConnection.getInputStream();
-      Document document;
-      try {
-        document = new SAXBuilder().build(inputStream);
-      }
-      finally {
-        inputStream.close();
-      }
-      XPath idPath = XPath.newInstance("str[@name='id']");
-      XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
-      //noinspection unchecked
-      List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(document);
-      List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
-      for (Element element : artifacts) {
-        try {
-          String id = ((Element)idPath.selectSingleNode(element)).getValue();
-          String version = ((Element)versionPath.selectSingleNode(element)).getValue();
-          results.add(id + ":" + version);
+    return HttpRequests.request(String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
+      .accept("application/xml")
+      .connect(new HttpRequests.RequestProcessor<List<String>>() {
+        @Override
+        public List<String> process(@NotNull HttpRequests.Request request) throws IOException {
+          try {
+            XPath idPath = XPath.newInstance("str[@name='id']");
+            XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
+            //noinspection unchecked
+            List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getReader()));
+            List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
+            for (Element element : artifacts) {
+              try {
+                String id = ((Element)idPath.selectSingleNode(element)).getValue();
+                results.add(id + ":" + ((Element)versionPath.selectSingleNode(element)).getValue());
+              }
+              catch (NullPointerException ignored) {
+                // A result is missing an ID or version. Just skip it.
+              }
+            }
+            return results;
+          }
+          catch (JDOMException e) {
+            LOG.error(e);
+          }
+          return Collections.emptyList();
         }
-        catch (NullPointerException e) {
-          // A result is missing an ID or version. Just skip it.
-        }
-      }
-      return results;
-    }
-    catch (JDOMException e) {
-      LOG.warn(e);
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-    }
-    return Collections.emptyList();
+      }, Collections.<String>emptyList(), LOG);
   }
 
   @Override

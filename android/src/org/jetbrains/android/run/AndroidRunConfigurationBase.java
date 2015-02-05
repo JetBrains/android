@@ -18,7 +18,6 @@ package org.jetbrains.android.run;
 
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -43,11 +42,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.DefaultJDOMExternalizer;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
-import com.intellij.util.containers.ConcurrentHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -71,7 +73,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * A map from launch configuration name to the state of devices at the time of the launch.
    * We want this list of devices persisted across launches, but not across invocations of studio, so we use a static variable.
    */
-  private static Map<String, DeviceStateAtLaunch> ourLastUsedDevices = new ConcurrentHashMap<String, DeviceStateAtLaunch>();
+  private static Map<String, DeviceStateAtLaunch> ourLastUsedDevices = ContainerUtil.newConcurrentMap();
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
   public boolean USE_LAST_SELECTED_DEVICE = false;

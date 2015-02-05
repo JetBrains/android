@@ -1,7 +1,7 @@
 skip: tools-base/**/*
 
 # Uncomment these lines once build/scripts/icons.gant is part of CE.
-# (http://youtrack.jetbrains.com/issue/IDEA-103558)
+# (https://youtrack.jetbrains.com/issue/IDEA-103558)
 skip: android/**/*
 skip: adt-branding/**/*
 skip: android-designer/**/*

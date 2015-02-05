@@ -31,6 +31,10 @@ import org.jetbrains.annotations.NotNull;
  * @author Eugene.Kudelevsky
  */
 public class AndroidReferenceSearchExecutor extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters> {
+  public AndroidReferenceSearchExecutor() {
+    super(true);
+  }
+
   @Override
   public void processQuery(@NotNull ReferencesSearch.SearchParameters params, @NotNull Processor<PsiReference> consumer) {
     final PsiElement refElement = params.getElementToSearch();
