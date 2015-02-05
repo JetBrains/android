@@ -82,12 +82,10 @@ public class ProjectBuilder {
    * Gradle task to invoke.
    */
   public void generateSourcesOnly() {
+    if (!isSourceGenerationEnabled()) {
+      return;
+    }
     if (isGradleProject(myProject)) {
-      // Only generate sources for "small" projects.
-      int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
-      if (moduleCount > GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN) {
-        return;
-      }
       if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).generateSources();
       }
@@ -95,6 +93,14 @@ public class ProjectBuilder {
         buildProjectWithJps(BuildMode.SOURCE_GEN);
       }
     }
+  }
+
+  public boolean isSourceGenerationEnabled() {
+    if (isGradleProject(myProject)) {
+      int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
+      return moduleCount <= GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN;
+    }
+    return false;
   }
 
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {

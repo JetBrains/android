@@ -113,6 +113,7 @@ public final class GuiTests {
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void waitForIdeToStart() {
+    GuiActionRunner.executeInEDT(false);
     Robot robot = null;
     try {
       robot = BasicRobot.robotWithCurrentAwtHierarchy();
@@ -152,6 +153,7 @@ public final class GuiTests {
       }
     }
     finally {
+      GuiActionRunner.executeInEDT(true);
       if (robot != null) {
         robot.cleanUpWithoutDisposingWindows();
       }
