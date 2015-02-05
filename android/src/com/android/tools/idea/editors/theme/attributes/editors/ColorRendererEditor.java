@@ -48,10 +48,6 @@ public class ColorRendererEditor extends AbstractTableCellEditor implements Tabl
   private final ColorComponent myComponent;
   private Object myEditorValue = null;
 
-  public ColorComponent getComponent() {
-    return myComponent;
-  }
-
   public ColorRendererEditor(@NotNull Module module, @NotNull Configuration configuration, @NotNull JTable table) {
     myModule = module;
     myConfiguration = configuration;
