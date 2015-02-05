@@ -84,6 +84,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
 
   @Override
   public void onEnterStep() {
+    super.onEnterStep();
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
