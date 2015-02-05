@@ -59,7 +59,6 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;

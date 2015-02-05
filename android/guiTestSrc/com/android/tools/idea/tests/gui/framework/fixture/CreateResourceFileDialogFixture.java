@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.refactoring.rename.RenameDialog;
-import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.JLabelFixture;
 import org.jetbrains.android.actions.CreateResourceFileDialog;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateResourceFileDialog> {
   @NotNull
