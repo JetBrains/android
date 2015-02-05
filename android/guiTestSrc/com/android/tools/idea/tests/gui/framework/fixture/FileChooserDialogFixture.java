@@ -40,7 +40,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
-        return dialog.isShowing() && "Open Project".equals(dialog.getTitle());
+        return dialog.isShowing() && "Open File or Project".equals(dialog.getTitle());
       }
     });
   }
