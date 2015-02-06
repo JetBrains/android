@@ -80,7 +80,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     classPath.remove(platform.getTarget().getPath(IAndroidTarget.ANDROID_JAR));
 
-    // Move the mockable android jar to the end.
+    // Move the mockable android jar to the end. This is to make sure "empty" classes from android.jar don't end up shadowing real
+    // classes needed by the testing code (e.g. XML/JSON related).
     String mockableJarPath = null;
     for (String path : classPath.getPathList()) {
       if (new File(FileUtil.toSystemDependentName(path)).getName().startsWith("mockable-android")) {
