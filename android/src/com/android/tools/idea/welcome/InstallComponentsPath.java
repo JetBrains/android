@@ -212,6 +212,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myState.put(KEY_SDK_INSTALL_LOCATION, pathString);
 
     myComponentTree = createComponentTree(myMode, myState, createAvd);
+    myComponentTree.init(myProgressStep);
     mySdkComponentsStep = new SdkComponentsStep(myComponentTree, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
     addStep(mySdkComponentsStep);
 
