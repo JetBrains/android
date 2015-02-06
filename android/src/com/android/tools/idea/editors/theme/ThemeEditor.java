@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.intellij.ProjectTopics;
@@ -54,10 +53,6 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile);
     myModificationCount = getModificationCount();
 
-    // We currently use the default device. We will dynamically adjust the width and height depending on the size of the window.
-    // TODO: Add configuration chooser to allow changing parameters of the configuration.
-    final Device device = new Device.Builder(myConfiguration.getDevice()).build();
-    myConfiguration.setDevice(device, false);
     myComponent = new ThemeEditorComponent(myConfiguration, module);
 
     // If project roots change, reload the themes. This happens for example once the libraries have finished loading.
