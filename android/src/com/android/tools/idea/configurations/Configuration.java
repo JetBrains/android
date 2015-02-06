@@ -26,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.rendering.*;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -485,6 +486,8 @@ public class Configuration implements Disposable {
               }
             } else if ("Kotlin".equals(myFile.getFileType().getName())) {
               return device;
+            } else if (ThemeEditorVirtualFile.FILENAME.equals(myFile.getName())) {
+              return device;              // takes care of correct device selection for Theme Editor
             }
           }
         }

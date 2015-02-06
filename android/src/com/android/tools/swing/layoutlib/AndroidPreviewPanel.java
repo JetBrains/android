@@ -18,46 +18,25 @@ package com.android.tools.swing.layoutlib;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
-import com.android.tools.idea.rendering.LayoutPullParserFactory;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
 /**
- * UI component that renders a theme.
+ * Generic UI component for rendering.
  */
-public class AndroidThemePreviewPanel extends JComponent implements Scrollable {
-  private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class.getName());
-  private static final String THEME_PREVIEW_LAYOUT = "/themeEditor/sample_layout.xml";
+public class AndroidPreviewPanel extends JComponent implements Scrollable {
+  private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class.getName());
 
-  private Document myDocument;
+  protected Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
-  private ILayoutPullParser myParser;
-  private Configuration myConfiguration;
+  protected Configuration myConfiguration;
 
-  public AndroidThemePreviewPanel(Configuration configuration) {
-    super();
-
+  public AndroidPreviewPanel(Configuration configuration) {
     myConfiguration = configuration;
-
-    myDocument = null;
-    try {
-      myDocument =
-        DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
-    }
-    catch (SAXException e) {
-      LOG.error(e);
-    }
-    catch (IOException e) {
-      LOG.error(e);
-    }
   }
 
   @Override
@@ -70,7 +49,7 @@ public class AndroidThemePreviewPanel extends JComponent implements Scrollable {
   }
 
   /**
-   * Updates the current configuration. You need to call this method is you change the configuration and want to update the rendered view.
+   * Updates the current configuration. You need to call this method if you change the configuration and want to update the rendered view.
    * <p/>
    * <p/>This will re-inflate the sample view with the new parameters in the configuration.
    *
@@ -88,7 +67,7 @@ public class AndroidThemePreviewPanel extends JComponent implements Scrollable {
 
     if (myGraphicsLayoutRenderer == null && myDocument != null) {
       try {
-        myParser = new DomPullParser(myDocument.getDocumentElement());
+        ILayoutPullParser myParser = new DomPullParser(myDocument.getDocumentElement());
         myGraphicsLayoutRenderer = GraphicsLayoutRenderer.create(myConfiguration, myParser);
         myGraphicsLayoutRenderer.setSize(getSize());
       }

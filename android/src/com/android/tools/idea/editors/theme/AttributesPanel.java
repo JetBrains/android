@@ -26,7 +26,6 @@ import javax.swing.border.Border;
 public class AttributesPanel {
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
 
-  private JPanel myRightPanel;
   private JComboBox myThemeCombo;
   private JCheckBox myAdvancedFilterCheckBox;
   private JButton myParentThemeButton;
@@ -35,6 +34,8 @@ public class AttributesPanel {
   private JBLabel mySubStyleLabel;
   private CellSpanTable myPropertiesTable;
   private JBScrollPane myPropertiesScrollPane;
+  private JPanel myConfigToolbar;
+  private JPanel myRightPanel;
 
   public AttributesPanel() {
     myParentThemeButton.setIcon(AllIcons.Actions.MoveUp);
@@ -78,7 +79,12 @@ public class AttributesPanel {
     return myPropertiesScrollPane;
   }
 
-  public JPanel getRightSidePanel() {
+  public JPanel getRightPanel() {
     return myRightPanel;
   }
+
+  public JPanel getConfigToolbar() {
+    return myConfigToolbar;
+  }
+
 }

@@ -20,14 +20,18 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.editors.theme.attributes.AttributesSorter;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
-import com.android.tools.swing.layoutlib.AndroidThemePreviewPanel;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -95,6 +99,22 @@ public class ThemeEditorComponent extends Splitter {
     this.myConfiguration = configuration;
     this.myModule = module;
     this.myStyleResolver = new StyleResolver(myConfiguration);
+
+    ConfigurationListener myConfigListener = new ConfigurationListener() {
+      @Override
+      public boolean changed(int flags) {
+
+        //reloads the theme editor preview when device is modified
+        if ((flags & CFG_DEVICE) != 0) {
+          loadStyleProperties();
+          myConfiguration.save();
+        }
+
+        return true;
+      }
+    };
+
+    myConfiguration.addListener(myConfigListener);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration);
 
@@ -236,6 +256,16 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    // Adds the Device selection button
+    DefaultActionGroup group = new DefaultActionGroup();
+    DeviceMenuAction deviceAction = new DeviceMenuAction(myPreviewPanel);
+    group.add(deviceAction);
+    ActionManager actionManager = ActionManager.getInstance();
+    ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
+    actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+    JPanel myConfigToolbar = myPanel.getConfigToolbar();
+    myConfigToolbar.add(actionToolbar.getComponent());
+
     final JScrollPane scroll = myPanel.getPropertiesScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
 
@@ -255,7 +285,7 @@ public class ThemeEditorComponent extends Splitter {
     myPreviewPanel.setPreferredSize(new Dimension(64, 2000));
 
     setFirstComponent(scrollPanel);
-    setSecondComponent(myPanel.getRightSidePanel());
+    setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
   }
 
