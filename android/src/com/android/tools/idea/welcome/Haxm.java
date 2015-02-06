@@ -26,7 +26,6 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.execution.ExecutionException;
@@ -39,6 +38,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,9 +67,8 @@ public final class Haxm extends InstallableComponent {
   private ProgressStep myProgressStep;
 
   public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall) {
-    super(store, "Performance (Intel ® HAXM)", 2306867,
-          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
-          "Android app emulation on your development computer. (Recommended)");
+    super(store, "Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+                                                        "Android app emulation on your development computer. (Recommended)");
     myIsCustomInstall = isCustomInstall;
   }
 
@@ -84,32 +83,32 @@ public final class Haxm extends InstallableComponent {
   }
 
   @NotNull
-  private static GeneralCommandLine getMacHaxmInstallCommandLine(File source, int memorySize) {
-    String shellScript = getAbsolutePathString(source, "silent_install.sh");
-    // Explicitly calling bash so we don't have to deal with permissions on the shell script file.
-    // Note that bash is preinstalled on Mac OS X so we can rely on it.
-    String[] installerInvocation = {"/bin/bash", shellScript, "-m", String.valueOf(memorySize)};
-
-    // We can't use 'sudo' here as this requires a terminal. So Apple Script is used to run shell script as admin
-    String appleScript = String.format("do shell script \"%s\" with administrator privileges", Joiner.on(" ").join(installerInvocation));
-    GeneralCommandLine commandLine = new GeneralCommandLine();
-    commandLine.setExePath("/usr/bin/osascript");
-    commandLine.setWorkDirectory(source);
-    commandLine.addParameters("-e", appleScript);
-    return commandLine;
+  private static GeneralCommandLine getMacHaxmInstallCommandLine(File path, int memorySize) throws WizardException {
+    // The new executable now requests admin access and executes the shell script. We need to make sure both exist and
+    // are executable.
+    ensureExistsAndIsExecutable(path, "silent_install.sh");
+    File executable = ensureExistsAndIsExecutable(path, "HAXM installation");
+    return new GeneralCommandLine(executable.getAbsolutePath(), "-m", String.valueOf(memorySize)).withWorkDirectory(path);
   }
 
-  private static String getAbsolutePathString(File source, String filename) {
-    return "'" + new File(source, filename).getAbsolutePath() + "'";
+  @NotNull
+  private static File ensureExistsAndIsExecutable(File path, String exeName) throws WizardException {
+    File executable = new File(path, exeName);
+    if (!executable.isFile()) {
+      throw new WizardException("HAXM installer executable is missing: " + executable.getAbsolutePath());
+    }
+    else if (executable.canExecute() || executable.setExecutable(true)) {
+      return executable;
+    }
+    else {
+      throw new WizardException("Unable to set execute permission bit on HAXM installer executable: " + executable.getAbsolutePath());
+    }
   }
 
   @NotNull
   private static GeneralCommandLine getWindowsHaxmInstallCommandLine(File source, int memorySize) {
-    GeneralCommandLine commandLine = new GeneralCommandLine();
-    commandLine.setExePath(new File(source, "silent_install.bat").getAbsolutePath());
-    commandLine.setWorkDirectory(source);
-    commandLine.addParameters("-m", String.valueOf(memorySize));
-    return commandLine;
+    File batFile = new File(source, "silent_install.bat");
+    return new GeneralCommandLine(batFile.getAbsolutePath(), "-m", String.valueOf(memorySize)).withWorkDirectory(source);
   }
 
   private static int getRecommendedMemoryAllocation() {
@@ -166,8 +165,7 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   @Override
   public Collection<DynamicWizardStep> createSteps() {
-    return Collections
-      .<DynamicWizardStep>singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
+    return Collections.<DynamicWizardStep>singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
   }
 
   @Override
@@ -178,7 +176,21 @@ public final class Haxm extends InstallableComponent {
       installContext.print("Unable to install Intel HAXM", ConsoleViewContentType.ERROR_OUTPUT);
       return;
     }
-    GeneralCommandLine commandLine = getCommandLine(sdk);
+    try {
+      GeneralCommandLine commandLine = getCommandLine(sdk);
+      runInstaller(installContext, commandLine);
+    }
+    catch (WizardException e) {
+      String message = e.getMessage();
+      if (!StringUtil.endsWithLineBreak(message)) {
+        message += "\n";
+      }
+      installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+      LOG.error(e);
+    }
+  }
+
+  private void runInstaller(InstallContext installContext, GeneralCommandLine commandLine) {
     try {
       ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
       progressIndicator.setIndeterminate(true);
@@ -204,10 +216,10 @@ public final class Haxm extends InstallableComponent {
    * Create a platform-dependant command line for running the silent HAXM installer.
    *
    * @return command line object
-   * @throws java.lang.IllegalStateException if called on an unsupported OS
+   * @throws IllegalStateException if called on an unsupported OS
    */
   @NotNull
-  private GeneralCommandLine getCommandLine(File sdk) {
+  private GeneralCommandLine getCommandLine(File sdk) throws WizardException {
     int memorySize = myStateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     File sourceLocation = new File(sdk, path);

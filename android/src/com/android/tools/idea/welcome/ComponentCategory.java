@@ -37,6 +37,13 @@ public class ComponentCategory extends ComponentTreeNode {
     this(name, description, Arrays.asList(components));
   }
 
+  @Override
+  public void init(@NotNull ProgressStep progressStep) {
+    for (ComponentTreeNode component : myComponents) {
+      component.init(progressStep);
+    }
+  }
+
   public ComponentCategory(@NotNull String name, @NotNull String description, @NotNull Collection<ComponentTreeNode> components) {
     super(description);
     myName = name;
