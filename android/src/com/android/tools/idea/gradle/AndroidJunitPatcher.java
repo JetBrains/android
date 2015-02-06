@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.run.testing;
+package com.android.tools.idea.gradle;
 
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
@@ -30,6 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -41,7 +41,7 @@ import java.io.File;
  */
 public class AndroidJunitPatcher extends JUnitPatcher {
   @Override
-  public void patchJavaParameters(@Nullable Module module, JavaParameters javaParameters) {
+  public void patchJavaParameters(@Nullable Module module, @NotNull JavaParameters javaParameters) {
     if (module == null) {
       return;
     }
@@ -61,19 +61,19 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    final PathsList classPath = javaParameters.getClassPath();
+    PathsList classPath = javaParameters.getClassPath();
 
-    final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
       return;
     }
 
-    final SdkAdditionalData data = sdk.getSdkAdditionalData();
+    SdkAdditionalData data = sdk.getSdkAdditionalData();
     if (!(data instanceof AndroidSdkAdditionalData)) {
       return;
     }
 
-    final AndroidPlatform platform = ((AndroidSdkAdditionalData)data).getAndroidPlatform();
+    AndroidPlatform platform = ((AndroidSdkAdditionalData)data).getAndroidPlatform();
     if (platform == null) {
       return;
     }
