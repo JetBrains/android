@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.CloudTestTargetChooser;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -87,6 +88,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean FILTER_LOGCAT_AUTOMATICALLY = true;
+
+  public int SELECTED_MATRIX_CONFIGURATION_ID = 0;
+  public String SELECTED_CLOUD_PROJECT_ID = "";
+  public boolean IS_VALID_CLOUD_SELECTION = false; // indicates whether the selected matrix config + project combo is valid
+  public String INVALID_CLOUD_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -245,11 +251,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       case USB_DEVICE:
         targetChooser = new UsbDeviceTargetChooser();
         break;
+      case CLOUD_TEST_OPTION:
+        targetChooser = new CloudTestTargetChooser(SELECTED_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_PROJECT_ID);
+        break;
       default:
         assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;
         break;
     }
-    
+
     AndroidApplicationLauncher applicationLauncher = getApplicationLauncher(facet);
     if (applicationLauncher != null) {
       final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
