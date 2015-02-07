@@ -36,6 +36,8 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectH
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.CloudTestTargetChooser;
+import com.android.tools.idea.run.CloudTestConfigurationProvider;
 import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.base.Joiner;
@@ -47,6 +49,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -218,23 +221,26 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   @Override
   public ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+    Project project = myFacet.getModule().getProject();
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
-    ConsoleView console;
+    ConsoleView console = null;
     if (isDebugMode()) {
-      Project project = myFacet.getModule().getProject();
       final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
       console = builder.getConsole();
       if (console != null) {
         console.attachToProcess(myProcessHandler);
       }
     }
-    else {
-      console = myConfiguration.attachConsole(this, executor);
-    }
-    myConsole = console;
 
-    if (myTargetChooser instanceof ManualTargetChooser) {
+    CloudTestConfigurationProvider provider = CloudTestConfigurationProvider.getCloudTestingProvider();
+    boolean debugOnCloud = myTargetChooser instanceof CloudTestTargetChooser
+                            && executor instanceof DefaultDebugExecutor;
+    boolean providerSupportsDebugging = provider != null && provider.supportsDebugging();
+
+    // Show the device chooser if either the config specifies it, or if the request is to debug on cloud
+    // while the provider doesn't support that
+    if (myTargetChooser instanceof ManualTargetChooser || (debugOnCloud && !providerSupportsDebugging)) {
       if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
         DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
 
@@ -289,6 +295,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         }
       }
+    } else if (myTargetChooser instanceof CloudTestTargetChooser) {
+      assert provider != null;
+      CloudTestTargetChooser cloudTestTargetChooser = (CloudTestTargetChooser)myTargetChooser;
+      return provider
+        .execute(cloudTestTargetChooser.getMatrixConfigurationId(), cloudTestTargetChooser.getCloudProjectId(), this, executor);
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -297,7 +308,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         start(true);
       }
     });
-    //noinspection ConstantConditions
+
+    if (console == null) { //Will not be null in debug mode or if additional option was chosen.
+      console = myConfiguration.attachConsole(this, executor);
+    }
+    myConsole = console;
+
     return new DefaultExecutionResult(console, myProcessHandler);
   }
 
