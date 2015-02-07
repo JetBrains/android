@@ -46,6 +46,10 @@ public class CaptureNode extends SimpleNode {
     return true;
   }
 
+  public Capture getCapture() {
+    return myCapture;
+  }
+
   @Override
   public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
     OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, myCapture.getFile());
