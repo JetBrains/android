@@ -16,7 +16,8 @@
 
 package com.android.tools.idea.editors.allocations;
 
-import com.android.utils.SdkUtils;
+import com.android.tools.idea.profiling.capture.CaptureType;
+import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -31,11 +32,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class AllocationsEditorProvider implements FileEditorProvider, DumbAware {
   @NonNls private static final String ID = "allocations-editor";
-  @NonNls public static final String DOT_ALLOC = ".alloc";
+
+  public AllocationsEditorProvider() {
+    CaptureTypeService.getInstance().register(AllocationCaptureType.class, new AllocationCaptureType());
+  }
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return SdkUtils.endsWithIgnoreCase(file.getPath(), DOT_ALLOC);
+    CaptureType type = CaptureTypeService.getInstance().getType(AllocationCaptureType.class);
+    return type != null && type.isValidCapture(file);
   }
 
   @NotNull
