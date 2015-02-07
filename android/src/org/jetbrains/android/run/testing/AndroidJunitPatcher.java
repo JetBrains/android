@@ -24,13 +24,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 /**
  * Implementation of {@link com.intellij.execution.JUnitPatcher} that removes android.jar from the class path. It's only applicable to
@@ -80,9 +82,10 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     // Move the mockable android jar to the end.
     String mockableJarPath = null;
-    for (VirtualFile virtualFile : classPath.getVirtualFiles()) {
-      if (virtualFile.getName().startsWith("mockable-android")) {
-        mockableJarPath = virtualFile.getCanonicalPath();
+    for (String path : classPath.getPathList()) {
+      if (new File(FileUtil.toSystemDependentName(path)).getName().startsWith("mockable-android")) {
+        // PathsList stores strings - use the one that's actually stored there.
+        mockableJarPath = path;
         break;
       }
     }
