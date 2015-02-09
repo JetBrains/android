@@ -16,15 +16,14 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.WizardUtils;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.*;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
@@ -34,6 +33,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -50,8 +50,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 /**
  * Wizard page for selecting SDK components to download.
@@ -59,9 +59,10 @@ import java.util.Set;
 public class SdkComponentsStep extends FirstRunWizardStep {
   public static final String FIELD_SDK_LOCATION = "SDK location";
 
-  private final InstallableComponent[] myInstallableComponents;
+  @NotNull private final ComponentTreeNode myRootNode;
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
+  private final ComponentsTableModel myTableModel;
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
@@ -73,14 +74,14 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private JPanel myBody;
   private boolean myUserEditedPath = false;
 
-  public SdkComponentsStep(@NotNull InstallableComponent[] components,
+  public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
                            @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
                            @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
                            @NotNull FirstRunWizardMode mode) {
     super("SDK Components Setup");
+    myRootNode = rootNode;
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
-
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
@@ -92,42 +93,19 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myErrorMessage.setText(null);
     myErrorMessage.setForeground(JBColor.red);
 
-    myInstallableComponents = components;
-    DefaultTableModel model = new DefaultTableModel(0, 1) {
-      @Override
-      public void setValueAt(Object aValue, int row, int column) {
-        boolean isSelected = ((Boolean)aValue);
-        InstallableComponent installableComponent = myInstallableComponents[row];
-        if (isSelected) {
-          select(installableComponent);
-        }
-        else {
-          deselect(installableComponent);
-        }
-        fireTableRowsUpdated(row, row);
-      }
-    };
-    for (InstallableComponent installableComponent : myInstallableComponents) {
-      model.addRow(new Object[]{installableComponent});
-    }
-    myComponentsTable.setModel(model);
+    myTableModel = new ComponentsTableModel(rootNode);
+    myComponentsTable.setModel(myTableModel);
     myComponentsTable.setTableHeader(null);
     myComponentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        int selected = myComponentsTable.getSelectedRow();
-        String description = selected >= 0 ? myInstallableComponents[selected].getDescription() : null;
-        myComponentDescription.setText(description);
+        myComponentDescription.setText(myTableModel.getComponentDescription(e.getFirstIndex()));
       }
     });
     TableColumn column = myComponentsTable.getColumnModel().getColumn(0);
     column.setCellRenderer(new SdkComponentRenderer());
     column.setCellEditor(new SdkComponentRenderer());
     setComponent(myContents);
-  }
-
-  private static boolean isChild(@Nullable InstallableComponent child, @NotNull InstallableComponent installableComponent) {
-    return child != null && (child == installableComponent || isChild(child.getParent(), installableComponent));
   }
 
   @Nullable
@@ -171,6 +149,28 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     return file;
   }
 
+  @Contract("null->false")
+  private static boolean isExistingSdk(@Nullable String path) {
+    if (!StringUtil.isEmptyOrSpaces(path)) {
+      File file = new File(path);
+      return file.isDirectory() && DefaultSdks.isValidAndroidSdkPath(file);
+    }
+    else {
+      return false;
+    }
+  }
+
+  private static boolean isNonEmptyNonSdk(@Nullable String path) {
+    if (path == null) {
+      return false;
+    }
+    File file = new File(path);
+    if (file.exists() && WizardUtils.listFiles(file).length > 0) {
+      return AndroidSdkData.getSdkData(file) == null;
+    }
+    return false;
+  }
+
   @Override
   public boolean validate() {
     String path = myState.get(mySdkDownloadPathKey);
@@ -190,89 +190,39 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         isOk = true;
         message = "Target folder is neither empty nor does it point to an existing SDK installation.";
       }
-      else if (!StringUtil.isEmptyOrSpaces(path)) {
-        File file = new File(path);
-        if (file.isDirectory() && DefaultSdks.isValidAndroidSdkPath(file)) {
-          isOk = true;
-          message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
-        }
+      else if (isExistingSdk(path)) {
+        isOk = true;
+        message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
       }
     }
     setErrorHtml(myUserEditedPath ? message : null);
     return isOk;
   }
 
-  private static boolean isNonEmptyNonSdk(@Nullable String path) {
-    if (path == null) {
-      return false;
-    }
-    File file = new File(path);
-    if (file.exists() && TemplateUtils.listFiles(file).length > 0) {
-      return AndroidSdkData.getSdkData(file) == null;
-    }
-    return false;
-  }
-
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
-    for (int i = 0; i < myInstallableComponents.length; i++) {
-      ScopedStateStore.Key<Boolean> key = myInstallableComponents[i].getKey();
-      if (modified.contains(key)) {
-        myComponentsTable.getModel().setValueAt(myState.getNotNull(key, true), i, 0);
-      }
-    }
-    myAvailableSpace.setText(getDiskSpace(myState.get(mySdkDownloadPathKey)));
-    long selected = getComponentsSize();
-    myNeededSpace.setText(String.format("Total disk space required: %s", WelcomeUIUtils.getSizeLabel(selected)));
     super.deriveValues(modified);
+    if (modified.contains(mySdkDownloadPathKey) || myRootNode.componentStateChanged(modified)) {
+      String path = myState.get(mySdkDownloadPathKey);
+      myAvailableSpace.setText(getDiskSpace(path));
+      long selected = getComponentsSize();
+      myNeededSpace.setText(String.format("Total disk space required: %s", WelcomeUIUtils.getSizeLabel(selected)));
+      myTableModel.valuesUpdated();
+    }
   }
 
   private long getComponentsSize() {
-    long selected = 0;
-    for (InstallableComponent installableComponent : myInstallableComponents) {
-      if (isSelected(installableComponent)) {
-        selected += installableComponent.getSize();
-      }
+    long size = 0;
+    for (InstallableComponent component : myRootNode.getChildrenToInstall()) {
+      size += component.getInstalledSize();
     }
-    return selected;
-  }
-
-  private void deselect(InstallableComponent installableComponent) {
-    for (InstallableComponent child : myInstallableComponents) {
-      if (child.getSize() > 0 && isChild(child, installableComponent)) {
-        myState.put(child.getKey(), false);
-      }
-    }
-  }
-
-  private Iterable<InstallableComponent> getChildren(final InstallableComponent installableComponent) {
-    return Iterables.filter(Arrays.asList(myInstallableComponents), new Predicate<InstallableComponent>() {
-      @Override
-      public boolean apply(@Nullable InstallableComponent input) {
-        assert input != null;
-        InstallableComponent n = input;
-        do {
-          if (n == installableComponent) {
-            return true;
-          }
-          n = n.getParent();
-        }
-        while (n != null);
-        return false;
-      }
-    });
-  }
-
-  private void select(InstallableComponent installableComponent) {
-    for (InstallableComponent child : getChildren(installableComponent)) {
-      myState.put(child.getKey(), true);
-    }
+    return size;
   }
 
   @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
-    if (myInstallableComponents.length > 0) {
+    if (!myRootNode.getImmediateChildren().isEmpty()) {
       myComponentsTable.getSelectionModel().setSelectionInterval(0, 0);
     }
   }
@@ -286,15 +236,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myComponentsTable;
-  }
-
-  private boolean isSelected(InstallableComponent installableComponent) {
-    for (InstallableComponent child : getChildren(installableComponent)) {
-      if (!myState.getNotNull(child.getKey(), true)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @Override
@@ -318,6 +259,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE));
+  }
+
+  public boolean isOptional(@NotNull ComponentTreeNode component) {
+    return component.isOptional();
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
@@ -358,17 +303,15 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myPanel.setBackground(background);
       myCheckBox.setForeground(foreground);
       myPanel.remove(myCheckBox);
-      InstallableComponent installableComponent = (InstallableComponent)value;
+      //noinspection unchecked
+      Pair<ComponentTreeNode, Integer> pair = (Pair<ComponentTreeNode, Integer>)value;
       int indent = 0;
-      if (installableComponent != null) {
-        myCheckBox.setEnabled(installableComponent.isOptional());
-        myCheckBox.setText(installableComponent.getLabel());
-        myCheckBox.setSelected(isSelected((InstallableComponent)value));
-        //noinspection ConstantConditions
-        while (installableComponent.getParent() != null) {
-          indent++;
-          installableComponent = installableComponent.getParent();
-        }
+      if (pair != null) {
+        ComponentTreeNode node = pair.getFirst();
+        myCheckBox.setEnabled(isOptional(node));
+        myCheckBox.setText(node.getLabel());
+        myCheckBox.setSelected(node.isChecked());
+        indent = pair.getSecond();
       }
       myPanel.add(myCheckBox,
                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
@@ -399,6 +342,64 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     @Override
     public Object getCellEditorValue() {
       return myCheckBox.isSelected();
+    }
+  }
+
+  private class ComponentsTableModel extends AbstractTableModel {
+    private final List<Pair<ComponentTreeNode, Integer>> myComponents;
+
+    public ComponentsTableModel(final ComponentTreeNode component) {
+      ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components = ImmutableList.builder();
+      // Note that root component is not present in the table model so the tree appears to have multiple roots
+      traverse(component.getImmediateChildren(), 0, components);
+      myComponents = components.build();
+    }
+
+    private void traverse(Collection<ComponentTreeNode> children, int indent,
+                          ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
+      for (ComponentTreeNode child : children) {
+        components.add(Pair.create(child, indent));
+        traverse(child.getImmediateChildren(), indent + 1, components);
+      }
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      return columnIndex == 0 && isOptional(getInstallableComponent(rowIndex));
+    }
+
+    @Override
+    public int getRowCount() {
+      return myComponents.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+      return 1;
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      return myComponents.get(rowIndex);
+    }
+
+    @NotNull
+    private ComponentTreeNode getInstallableComponent(int rowIndex) {
+      return myComponents.get(rowIndex).getFirst();
+    }
+
+    @Override
+    public void setValueAt(Object aValue, int row, int column) {
+      ComponentTreeNode node = getInstallableComponent(row);
+      node.toggle(((Boolean)aValue));
+    }
+
+    public void valuesUpdated() {
+      fireTableRowsUpdated(0, myComponents.size() - 1);
+    }
+
+    public String getComponentDescription(int index) {
+      return getInstallableComponent(index).getDescription();
     }
   }
 }

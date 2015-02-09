@@ -31,10 +31,7 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -67,9 +64,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull private final FirstRunWizardMode myMode;
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
   @NotNull private final File mySdkLocation;
-  private InstallableComponent[] myComponents;
   private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
+  private ComponentTreeNode myComponentTree;
 
   public InstallComponentsPath(@NotNull ProgressStep progressStep,
                                @NotNull FirstRunWizardMode mode,
@@ -81,18 +78,17 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myRemotePackages = remotePackages;
   }
 
-  private static InstallableComponent[] createComponents(@NotNull FirstRunWizardMode reason, boolean createAvd) {
-    AndroidSdk androidSdk = new AndroidSdk();
-    List<InstallableComponent> components = Lists.newArrayList();
-    components.add(androidSdk);
+  private static ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
+    List<ComponentTreeNode> components = Lists.newArrayList();
+    components.add(new AndroidSdk(stateStore));
+    components.add(Platform.createSubtree(stateStore));
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      components.add(new Haxm(KEY_CUSTOM_INSTALL));
+      components.add(new Haxm(stateStore, KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice());
+      components.add(new AndroidVirtualDevice(stateStore));
     }
-
-    return components.toArray(new InstallableComponent[components.size()]);
+    return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
 
   private static File createTempDir() throws WizardException {
@@ -212,17 +208,18 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL);
       addStep(myInstallationTypeWizardStep);
     }
-    myState.put(KEY_SDK_INSTALL_LOCATION, mySdkLocation.getAbsolutePath());
+    String pathString = mySdkLocation.getAbsolutePath();
+    myState.put(KEY_SDK_INSTALL_LOCATION, pathString);
 
-    myComponents = createComponents(myMode, createAvd);
-    mySdkComponentsStep = new SdkComponentsStep(myComponents, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
+    myComponentTree = createComponentTree(myMode, myState, createAvd);
+    mySdkComponentsStep = new SdkComponentsStep(myComponentTree, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
     addStep(mySdkComponentsStep);
 
-    for (InstallableComponent component : myComponents) {
-      component.init(myState, myProgressStep);
-      for (DynamicWizardStep step : component.createSteps()) {
-        addStep(step);
-      }
+    SdkManager manager = SdkManager.createManager(pathString, new NullLogger());
+    myComponentTree.init(myProgressStep);
+    myComponentTree.updateState(manager);
+    for (DynamicWizardStep step : myComponentTree.createSteps()) {
+      addStep(step);
     }
     if (SystemInfo.isLinux && myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addStep(new LinuxHaxmInfoStep());
@@ -232,13 +229,16 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    if (modified.contains(KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION) || containsComponentVisibilityKey(modified)) {
+    if (!Sets.intersection(modified, ImmutableSet.of(KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION)).isEmpty() ||
+        myComponentTree.componentStateChanged(modified)) {
       String sdkPath = myState.get(KEY_SDK_INSTALL_LOCATION);
       SdkManager manager = null;
       if (sdkPath != null) {
         manager = SdkManager.createManager(sdkPath, new NullLogger());
       }
-      ArrayList<String> installIds = new ComponentInstaller(getSelectedComponents(), myRemotePackages).getPackagesToInstall(manager);
+      myComponentTree.updateState(manager);
+      ArrayList<String> installIds =
+        new ComponentInstaller(myComponentTree.getChildrenToInstall(), myRemotePackages).getPackagesToInstall(manager);
       final List<IPkgDesc> packages = getPackagesList(installIds);
       myState.put(WizardConstants.INSTALL_REQUESTS_KEY, packages);
     }
@@ -262,20 +262,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
-  private boolean containsComponentVisibilityKey(@NotNull Set<ScopedStateStore.Key> modified) {
-    if (myComponents == null) {
-      return false;
-    }
-    else {
-      for (InstallableComponent component : myComponents) {
-        if (modified.contains(component.getKey())) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   @NotNull
   @Override
   public String getPathName() {
@@ -291,7 +277,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     final File destination = getDestination();
     final InstallOperation<File, File> initialize = createInitSdkOperation(installContext, destination, INIT_SDK_OPERATION_PROGRESS_SHARE);
 
-    final Collection<? extends InstallableComponent> selectedComponents = getSelectedComponents();
+    final Collection<? extends InstallableComponent> selectedComponents = myComponentTree.getChildrenToInstall();
     CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
     InstallComponentsOperation install =
       new InstallComponentsOperation(installContext, selectedComponents, myRemotePackages, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
@@ -304,18 +290,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     catch (InstallationCancelledException e) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
     }
-  }
-
-  private List<InstallableComponent> getSelectedComponents() {
-    boolean customInstall = myState.getNotNull(KEY_CUSTOM_INSTALL, true);
-    List<InstallableComponent> selectedOperations = Lists.newArrayListWithCapacity(myComponents.length);
-
-    for (InstallableComponent component : myComponents) {
-      if (!customInstall || myState.getNotNull(component.getKey(), true)) {
-        selectedOperations.add(component);
-      }
-    }
-    return selectedOperations;
   }
 
   @NotNull
@@ -403,7 +377,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         if (!root.renameTo(myDestination)) {
           FileUtil.copyDir(root, myDestination);
           FileUtil.delete(root); // Failure to delete it is not critical, the source is in temp folder.
-                                 // No need to abort installation.
+          // No need to abort installation.
         }
         return myDestination;
       }
@@ -477,5 +451,4 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       return input;
     }
   }
-
 }
