@@ -75,6 +75,27 @@ public class WizardUtils {
   }
 
   /**
+   * Lists the files of the given directory and returns them as an array which
+   * is never null. This simplifies processing file listings from for each
+   * loops since {@link File#listFiles} can return null. This method simply
+   * wraps it and makes sure it returns an empty array instead if necessary.
+   *
+   * @param dir the directory to list
+   * @return the children, or empty if it has no children, is not a directory,
+   *         etc.
+   */
+  @NotNull
+  public static File[] listFiles(@Nullable File dir) {
+    if (dir != null) {
+      File[] files = dir.listFiles();
+      if (files != null) {
+        return files;
+      }
+    }
+    return ArrayUtil.EMPTY_FILE_ARRAY;
+  }
+
+  /**
    * A Validation Result for Wizard Validations, contains a status and a message
    */
   public static class ValidationResult {
@@ -225,7 +246,7 @@ public class WizardUtils {
       return ValidationResult.error(ValidationResult.Message.INSIDE_ANDROID_STUDIO, fieldName, applicationName);
     }
 
-    if (checkEmpty && file.exists() && TemplateUtils.listFiles(file).length > 0) {
+    if (checkEmpty && file.exists() && listFiles(file).length > 0) {
       return ValidationResult.warn(ValidationResult.Message.NON_EMPTY_DIR, fieldName);
     }
 

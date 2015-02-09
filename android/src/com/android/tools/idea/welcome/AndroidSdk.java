@@ -16,14 +16,13 @@
 package com.android.tools.idea.welcome;
 
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -38,16 +37,14 @@ import java.util.Collection;
  * Android SDK installable component.
  */
 public final class AndroidSdk extends InstallableComponent {
-  public static final long SIZE = 2300 * Storage.Unit.MiB.getNumberOfBytes();
-  private static final ScopedStateStore.Key<Boolean> KEY_INSTALL_SDK =
-    ScopedStateStore.createKey("download.sdk", ScopedStateStore.Scope.PATH, Boolean.class);
+  public static final long SIZE = 265 * Storage.Unit.MiB.getNumberOfBytes();
 
-  public AndroidSdk() {
-    super("Android SDK", SIZE, "The collection of Android platform APIs, " +
+  public AndroidSdk(@NotNull ScopedStateStore store) {
+    super(store, "Android SDK", SIZE, "The collection of Android platform APIs, " +
                                "tools and utilities that enables you to debug, " +
                                "profile, and compile your apps.\n\n" +
                                "The setup wizard will update your current Android SDK " +
-                               "installation (if necessary) or install a new version.", KEY_INSTALL_SDK);
+                               "installation (if necessary) or install a new version.");
   }
 
   private static Collection<IPkgDesc> createAll(PkgDesc.Builder... builders) {
@@ -80,17 +77,11 @@ public final class AndroidSdk extends InstallableComponent {
   @NotNull
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
-
     PkgDesc.Builder androidSdkTools = PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder androidSdkPlatformTools = PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages));
-    PkgDesc.Builder platform =
-      PkgDesc.Builder.newPlatform(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(InstallComponentsPath.LATEST_ANDROID_VERSION, unspecifiedRevision);
-
     Collection<IPkgDesc> packages =
-      createAll(androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools, platform, platformSources);
+      createAll(androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools);
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
       packages.add(repository.getPackageDescription());
@@ -99,22 +90,12 @@ public final class AndroidSdk extends InstallableComponent {
   }
 
   @Override
-  public void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep) {
-    state.put(KEY_INSTALL_SDK, true);
-  }
-
-  @Override
-  public DynamicWizardStep[] createSteps() {
-    return new DynamicWizardStep[]{};
-  }
-
-  @Override
   public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
     // Nothing to do, having components installed is enough
   }
 
   @Override
-  public boolean isOptional() {
+  protected boolean isOptionalForSdkLocation(@Nullable SdkManager manager) {
     return false;
   }
 }

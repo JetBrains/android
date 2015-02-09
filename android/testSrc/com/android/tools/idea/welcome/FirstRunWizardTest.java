@@ -61,7 +61,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     InstallerData.set(data);
     FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
     assertVisible(new JdkLocationStep(createKey(String.class), mode), data, isJdkStepVisible);
-    assertVisible(new SdkComponentsStep(new InstallableComponent[0], KEY_TRUE, createKey(String.class), mode),
+    assertVisible(new SdkComponentsStep(new ComponentCategory("test", "test"), KEY_TRUE, createKey(String.class), mode),
                   data, isComponentsStepVisible);
 
     if (data != null) {
