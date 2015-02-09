@@ -17,7 +17,6 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -44,15 +43,6 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   private JBLabel myTitleLabel;
   private JBLabel myMessageLabel;
   private JPanel myHeaderPane;
-
-  /**
-   * @deprecated Use {@link #DynamicWizardStepWithHeaderAndDescription(String, String, com.intellij.openapi.Disposable)}
-   */
-  @Deprecated
-  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message,
-                                                   @Nullable Icon icon, @Nullable Disposable parentDisposable) {
-    this(title, message, parentDisposable); // TODO remove the whole ctor
-  }
 
   public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
@@ -167,24 +157,5 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     public static WizardStepHeaderSettings createTitleAndDescriptionHeader(@NotNull String title, @NotNull String description) {
       return new WizardStepHeaderSettings(title, description, null, null);
     }
-  }
-
-  // TODO Remove methods below
-  /**
-   * @deprecated No longer used, retain to avoid compilation errors.
-   */
-  @Deprecated
-  @Nullable
-  protected JComponent getHeader() {
-    return null;
-  }
-
-  /**
-   * @deprecated Unused. Will be removed when no code left in downstream projects using this.
-   */
-  @Nullable
-  @Deprecated
-  protected JBColor getTitleTextColor() {
-    return null;
   }
 }

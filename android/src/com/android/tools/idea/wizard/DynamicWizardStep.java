@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
@@ -67,16 +66,6 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
 
   public DynamicWizardStep() {
     myState = new ScopedStateStore(STEP, null, this);
-  }
-
-
-  /**
-   * @deprecated No longer used, not deleted to avoid compilation errors.
-   */
-  @Deprecated
-  @Nullable
-  public static JPanel createWizardStepHeader(JBColor headerColor, Icon icon, String title) {
-    return null; // TODO: Delete when no one is using it
   }
 
   /**
