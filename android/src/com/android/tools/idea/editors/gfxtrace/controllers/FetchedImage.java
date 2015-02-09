@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.rpclib.rpc.Binary;
-import com.android.tools.rpclib.rpc.ImageFormat;
-import com.android.tools.rpclib.rpc.ImageInfo;
+import com.android.tools.idea.editors.gfxtrace.rpc.Binary;
+import com.android.tools.idea.editors.gfxtrace.rpc.ImageFormat;
+import com.android.tools.idea.editors.gfxtrace.rpc.ImageInfo;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

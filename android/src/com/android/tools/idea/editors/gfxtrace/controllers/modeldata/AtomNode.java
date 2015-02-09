@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.rpclib.rpc.ParameterInfo;
-import com.android.tools.rpclib.schema.Atom;
-import com.android.tools.rpclib.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.rpc.ParameterInfo;
+import com.android.tools.idea.editors.gfxtrace.schema.Atom;
+import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;

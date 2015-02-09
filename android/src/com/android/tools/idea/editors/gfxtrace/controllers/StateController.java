@@ -20,9 +20,9 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateTreeNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.StateTreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
+import com.android.tools.idea.editors.gfxtrace.rpc.*;
+import com.android.tools.idea.editors.gfxtrace.schema.*;
 import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.rpc.*;
-import com.android.tools.rpclib.schema.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -126,8 +126,8 @@ public class StateController implements GfxController {
         break;
 
       case Class:
-        assert (value instanceof com.android.tools.rpclib.schema.Class);
-        com.android.tools.rpclib.schema.Class gfxClass = (com.android.tools.rpclib.schema.Class)value;
+        assert (value instanceof com.android.tools.idea.editors.gfxtrace.schema.Class);
+        com.android.tools.idea.editors.gfxtrace.schema.Class gfxClass = (com.android.tools.idea.editors.gfxtrace.schema.Class)value;
         thisNode = new StateTreeNode(name, null);
         for (Field field : gfxClass.fields) {
           DefaultMutableTreeNode childNode = constructStateNode(field.info.getName(), field.info.getType().getKind(), field.value);
