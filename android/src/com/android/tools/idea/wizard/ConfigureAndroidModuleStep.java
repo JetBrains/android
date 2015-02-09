@@ -614,7 +614,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       if (file.isFile()) {
         setErrorHtml("There must not already be a file at the project location");
         return false;
-      } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
+      } else if (file.isDirectory() && WizardUtils.listFiles(file).length > 0) {
         setErrorHtml("A non-empty directory already exists at the specified project location. Existing files may be overwritten. Proceed with caution.");
       }
       if (file.getParent() == null) {

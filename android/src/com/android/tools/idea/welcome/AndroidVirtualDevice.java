@@ -34,7 +34,6 @@ import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.LogWrapper;
-import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -63,8 +62,6 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
   @VisibleForTesting static final String DEVICE_DISPLAY_NAME = "Nexus 5 API 21 x86";
-  private static final ScopedStateStore.Key<Boolean> KEY_ENABLED =
-    ScopedStateStore.createKey("avd.enabled", ScopedStateStore.Scope.PATH, Boolean.class);
   private static final String ID_DEVICE_NEXUS_5 = "Nexus 5";
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = new IdDisplay("google_apis", "Google APIs");
   private static final IdDisplay ID_VENDOR_GOOGLE = new IdDisplay("google", "Google Inc.");
@@ -79,9 +76,9 @@ public class AndroidVirtualDevice extends InstallableComponent {
                                                                        AVD_INI_SKIN_DYNAMIC);
   private ProgressStep myProgressStep;
 
-  public AndroidVirtualDevice() {
-    super("Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
-          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", KEY_ENABLED);
+  public AndroidVirtualDevice(@NotNull ScopedStateStore store) {
+    super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
+          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)");
   }
 
   @NotNull
@@ -176,14 +173,8 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   @Override
-  public void init(@NotNull ScopedStateStore state, @NotNull ProgressStep progressStep) {
+  public void init(@NotNull ProgressStep progressStep) {
     myProgressStep = progressStep;
-    state.put(KEY_ENABLED, true);
-  }
-
-  @Override
-  public DynamicWizardStep[] createSteps() {
-    return new DynamicWizardStep[0];
   }
 
   @Override
