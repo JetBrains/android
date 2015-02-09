@@ -30,6 +30,7 @@ import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.*;
@@ -45,7 +46,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,10 +147,10 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected final Configuration myConfiguration;
-    protected FrameworkResources myFrameworkResources;
     protected AppResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
+    protected ResourceRepository myFrameworkResources;
 
     protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
@@ -191,23 +191,34 @@ public class AndroidJavaDocRenderer {
       }
     }
 
+    /**
+     * Returns a {@link FrameworkResources} instance that allows accessing the framework public resources of the highest available SDK.
+     */
     @Nullable
-    private static FrameworkResources getFrameworkResources(Module module) {
-      AndroidPlatform platform = AndroidPlatform.getPlatform(module);
-      if (platform != null) {
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(platform.getTarget(), module);
-        if (targetData != null) {
-          try {
-            return targetData.getFrameworkResources();
-          }
-          catch (IOException e) {
-            // Ignore docs
-          }
+    private static FrameworkResources getLatestPublicFrameworkResources(Module module) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        return null;
+      }
+
+      IAndroidTarget target = facet.getConfigurationManager().getDefaultTarget();
+      if (target == null) {
+        return null;
+      }
+
+      AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+      if (targetData != null) {
+        try {
+          return targetData.getFrameworkResources();
+        }
+        catch (IOException e) {
+          // Ignore docs
         }
       }
 
       return null;
     }
+
 
     @Nullable
     public String render(@NotNull ResourceUrl url) {
@@ -332,9 +343,9 @@ public class AndroidJavaDocRenderer {
       if (frameworkResources == null) {
         return;
       }
+
       if (frameworkResources.hasResourceItem(type, name)) {
         com.android.ide.common.resources.ResourceItem item = frameworkResources.getResourceItem(type, name);
-
         for (com.android.ide.common.resources.ResourceFile resourceFile : item.getSourceFileList()) {
           FolderConfiguration configuration = resourceFile.getConfiguration();
           ResourceValue value = resourceFile.getValue(type, name);
@@ -514,7 +525,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public ResourceRepository getFrameworkResources() {
       if (myFrameworkResources == null) {
-        myFrameworkResources = getFrameworkResources(myModule);
+        myFrameworkResources = getLatestPublicFrameworkResources(myModule);
       }
 
       return myFrameworkResources;
