@@ -13,15 +13,14 @@
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
       </component>
-      <component id="9e96e" class="com.android.tools.idea.avdmanager.SystemImagePreview" binding="mySystemImagePreview">
+      <nested-form id="4008b" form-file="com/android/tools/idea/avdmanager/SystemImagePreview.form" binding="mySystemImagePreview">
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="4" fill="2" indent="0" use-parent-layout="false">
             <preferred-size width="360" height="-1"/>
             <maximum-size width="360" height="-1"/>
           </grid>
         </constraints>
-        <properties/>
-      </component>
+      </nested-form>
     </children>
   </grid>
 </form>
