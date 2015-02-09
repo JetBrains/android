@@ -60,7 +60,7 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
     if (StringsVirtualFile.NAME.equals(name)) {
       return StringsVirtualFile.getStringsVirtualFile(m);
     } else if (ThemeEditorVirtualFile.FILENAME.equals(name)) {
-      return new ThemeEditorVirtualFile(m);
+      return ThemeEditorVirtualFile.getThemeEditorFile(m);
     }
 
     return null;

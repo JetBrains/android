@@ -19,10 +19,12 @@ import com.android.tools.idea.editors.AndroidFakeFileSystem;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,12 +36,24 @@ import javax.swing.*;
  */
 public class ThemeEditorVirtualFile extends LightVirtualFile {
   public static final String FILENAME = "Theme Editor";
+  private static final Key<ThemeEditorVirtualFile> KEY = Key.create(ThemeEditorVirtualFile.class.getName());
 
   private final @NotNull Module myModule;
 
-  public ThemeEditorVirtualFile(final @NotNull Module module) {
+  private ThemeEditorVirtualFile(final @NotNull Module module) {
     super(FILENAME);
     myModule = module;
+  }
+
+  @Nullable
+  public static ThemeEditorVirtualFile getThemeEditorFile(@NotNull Module module) {
+    ThemeEditorVirtualFile vfile = module.getUserData(KEY);
+    if (vfile == null) {
+      vfile = new ThemeEditorVirtualFile(module);
+      module.putUserData(KEY, vfile);
+    }
+
+    return vfile;
   }
 
   @Nullable

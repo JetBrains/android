@@ -86,7 +86,7 @@ public class ThemeEditorUtils {
         // show existing editor (without creating a new tab). If we haven't found any existing
         // virtual file, we're creating one here (new tab with theme editor will be opened).
         if (file == null) {
-          file = new ThemeEditorVirtualFile(module);
+          file = ThemeEditorVirtualFile.getThemeEditorFile(module);
         }
         final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
         fileEditorManager.openEditor(descriptor, true);
