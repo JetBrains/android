@@ -46,6 +46,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectTypeService;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -419,6 +420,15 @@ public class GradleProjectImporter {
       projectSettings = new GradleProjectSettings();
     }
     projectSettings.setUseAutoImport(false);
+
+    // Set the JDK to use when syncing project.
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      Sdk jdk = DefaultSdks.getDefaultJdk();
+      if (jdk != null) {
+        projectSettings.setGradleJvm(jdk.getName());
+      }
+    }
+
     setUpGradleProjectSettings(project, projectSettings);
     GradleSettings gradleSettings = GradleSettings.getInstance(project);
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
@@ -460,14 +470,6 @@ public class GradleProjectImporter {
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
-
-    // Set the JDK to use when syncing project.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      File javaHome = DefaultSdks.getDefaultJavaHome();
-      if (javaHome != null) {
-        System.setProperty("gradle.java.home", javaHome.getAbsolutePath());
-      }
-    }
 
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, listener);
     myDelegate.importProject(project, setUpTask, progressExecutionMode);
