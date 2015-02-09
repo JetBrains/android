@@ -20,9 +20,9 @@ import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCac
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.AtomTreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.rpclib.rpc.AtomGroup;
-import com.android.tools.rpclib.rpc.Hierarchy;
-import com.android.tools.rpclib.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.rpc.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.rpc.Hierarchy;
+import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;

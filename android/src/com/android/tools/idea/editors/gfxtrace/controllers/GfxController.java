@@ -17,9 +17,9 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
-import com.android.tools.rpclib.rpc.AtomStream;
-import com.android.tools.rpclib.rpc.Schema;
-import com.android.tools.rpclib.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.rpc.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.rpc.Schema;
+import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.TreeNode;
