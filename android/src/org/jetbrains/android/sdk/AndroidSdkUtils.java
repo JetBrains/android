@@ -93,9 +93,9 @@ public final class AndroidSdkUtils {
   public static final String DEFAULT_JDK_NAME = "JDK";
 
   // TODO: Update these to a stable link
-  private static final String MAC_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
-  private static final String LINUX_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
-  private static final String WINDOWS_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
+  private static final String MAC_SDK_URL = "https://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
+  private static final String LINUX_SDK_URL = "https://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
+  private static final String WINDOWS_SDK_URL = "https://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
 
   private static AndroidSdkData ourSdkData;
 
