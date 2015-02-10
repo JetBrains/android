@@ -20,19 +20,17 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -41,269 +39,125 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDescription;
 
 /**
  * Displays information about a {@link com.android.sdklib.SystemImage}, including its
  * launch graphic, platform and API level, and target CPU architecture.
  */
-public class SystemImagePreview extends JPanel {
-  private static final Logger LOG = Logger.getInstance(SystemImagePreview.class);
+public class SystemImagePreview {
+  private JBLabel myReleaseName;
+  private JBLabel myReleaseIcon;
+  private JBLabel myApiLevel;
+  private JBLabel myAndroidVersion;
+  private JBLabel myAbi;
+  private JBLabel myWarningMessage;
+  private HyperlinkLabel myErrorInstructionsLink;
+  private HyperlinkLabel myDocumentationLink;
+  private JBLabel myVendor;
+  private JPanel myRootPanel;
+  private JPanel myMainPanel;
+  private JSeparator mySeparator;
+  private AvdWizardConstants.SystemImageDescription myImageDescription;
+
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
-  private static final int FIGURE_PADDING = 3;
-  private SystemImageDescription myImageDescription;
-  private Distribution myDistribution;
-  private static final int PADDING = 20;
-  LinkListener myHaxmInstallationListener;
-
-  private abstract class LinkListener extends MouseAdapter {
-    boolean myInRegion = false;
-    int myMinY = -1000;
-    @Override
-    public void mouseClicked(MouseEvent mouseEvent) {
-      int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
-      if (mouseEvent.getY() > getMinY() - standardFontHeight && mouseEvent.getY() < getMinY()) {
-        try {
-          BrowserUtil.browse(new URI(getUrl()));
-        }
-        catch (URISyntaxException e) {
-          LOG.error("Syntax exception in url for distribution " + myDistribution.getVersion().toShortString());
-        }
-      }
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-      myInRegion = false;
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-      updateCursor(e);
-    }
-
-    private void updateCursor(MouseEvent e) {
-      int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
-      if (e.getY() > getMinY() - standardFontHeight && e.getY() < getMinY()) {
-        if (!myInRegion) {
-          e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-          myInRegion = true;
-        }
-      } else if (myInRegion) {
-        e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        myInRegion = false;
-      }
-    }
-
-    abstract String getUrl();
-
-    int getMinY() {
-      return myMinY;
-    };
-
-    void setMinY(int minY) {
-      myMinY = minY;
-    }
-  }
+  private static final String MAIN_CONTENT = "main";
+  private static final String NO_IMAGE_CONTENT = "none";
 
   public SystemImagePreview() {
-    LinkListener listener = new LinkListener() {
-      @Override
-      String getUrl() {
-        return myDistribution.getUrl();
-      }
-
-      @Override
-      int getMinY() {
-        if (myDistribution != null) {
-          return getHeight() - PADDING;
-        } else {
-          return -1000;
-        }
-      }
-    };
-    addMouseListener(listener);
-    addMouseMotionListener(listener);
-    myHaxmInstallationListener = new LinkListener() {
-      @Override
-      String getUrl() {
-        return "http://developer.android.com/tools/devices/emulator.html#acceleration";
-      }
-    };
-    addMouseListener(myHaxmInstallationListener);
-    addMouseMotionListener(myHaxmInstallationListener);
+    myRootPanel.setLayout(new CardLayout());
+    myReleaseName.setFont(AvdWizardConstants.TITLE_FONT);
+    myApiLevel.setFont(AvdWizardConstants.TITLE_FONT);
+    myAndroidVersion.setFont(AvdWizardConstants.TITLE_FONT);
+    myVendor.setFont(AvdWizardConstants.TITLE_FONT);
+    myErrorInstructionsLink.setOpaque(false);
+    myDocumentationLink.setOpaque(false);
+    myWarningMessage.setFont(AvdWizardConstants.TITLE_FONT);
+    myWarningMessage.setForeground(JBColor.RED);
+    myAbi.setFont(AvdWizardConstants.TITLE_FONT);
+    myRootPanel.add(myMainPanel, MAIN_CONTENT);
+    JPanel nonePanel = new JPanel(new BorderLayout());
+    JBLabel noneLabel = new JBLabel(NO_SYSTEM_IMAGE_SELECTED);
+    noneLabel.setHorizontalAlignment(JBLabel.CENTER);
+    nonePanel.add(noneLabel, BorderLayout.CENTER);
+    nonePanel.setBackground(JBColor.WHITE);
+    myRootPanel.add(nonePanel, NO_IMAGE_CONTENT);
+    myMainPanel.setBackground(JBColor.WHITE);
+    mySeparator.setForeground(JBColor.BLACK);
   }
 
   /**
    * Set the image to display.
    */
-  public void setImage(@Nullable SystemImageDescription image) {
+  public void setImage(@Nullable AvdWizardConstants.SystemImageDescription image) {
     if (image == null || !image.isRemote()) {
       myImageDescription = image;
+      ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
     }
     if (image != null && !image.isRemote()) {
-      myDistribution = DistributionService.getInstance().getDistributionForApiLevel(image.getVersion().getApiLevel());
-    }
-    repaint();
-  }
-
-  @Override
-  protected void paintComponent(Graphics g) {
-    GraphicsUtil.setupAntialiasing(g);
-    GraphicsUtil.setupAAPainting(g);
-    super.paintComponent(g);
-    Graphics2D g2d = (Graphics2D)g;
-    g2d.setColor(JBColor.background());
-    g2d.fillRect(0, 0, getWidth(), getHeight());
-    g2d.setColor(JBColor.foreground());
-    g2d.setFont(AvdWizardConstants.STANDARD_FONT);
-
-    if (myImageDescription == null) {
-      FontMetrics metrics = g2d.getFontMetrics();
-      g2d.drawString(NO_SYSTEM_IMAGE_SELECTED,
-                   (getWidth() - metrics.stringWidth(NO_SYSTEM_IMAGE_SELECTED)) / 2,
-                   (getHeight() - metrics.getHeight()) / 2 );
-      return;
-    }
-
-    // Paint the device name
-    g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    FontMetrics metrics = g.getFontMetrics(AvdWizardConstants.TITLE_FONT);
-    String codeName = getCodeName(myImageDescription);
-    if (codeName != null) {
-      g2d.drawString(codeName, PADDING, PADDING + metrics.getHeight() / 2);
-      g2d.drawLine(0, 50, getWidth(), 50);
-    }
-
-    // Paint our icon
-    Icon icon = getIcon(codeName);
-    if (icon != null) {
-      icon.paintIcon(this, g, FIGURE_PADDING, PADDING + 50);
-    }
-
-    // Paint the details.
-    int stringHeight = g2d.getFontMetrics(AvdWizardConstants.TITLE_FONT).getHeight();
-    int figureHeight = g2d.getFontMetrics(AvdWizardConstants.FIGURE_FONT).getHeight();
-    int infoSegmentX = FIGURE_PADDING + PADDING + 128;
-    int infoSegmentY = PADDING + 75;
-
-    // Paint the API Level
-    infoSegmentY += figureHeight;
-    g2d.setFont(AvdWizardConstants.FIGURE_FONT);
-    g2d.drawString("API Level", infoSegmentX, infoSegmentY);
-    infoSegmentY += stringHeight;
-    g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    g2d.drawString(myImageDescription.getVersion().getApiString(), infoSegmentX, infoSegmentY);
-    infoSegmentY += PADDING;
-
-    // Paint the platform version
-    infoSegmentY += figureHeight;
-    g2d.setFont(AvdWizardConstants.FIGURE_FONT);
-    g2d.drawString("Android", infoSegmentX, infoSegmentY);
-    infoSegmentY += stringHeight;
-    g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    g2d.drawString(myImageDescription.getVersionName(), infoSegmentX, infoSegmentY);
-
-    // Paint the vendor name
-    String vendorName;
-    String tag = myImageDescription.getTag().getId();
-    if (tag.equals("android-wear") || tag.equals("android-tv")) {
-      vendorName = "Android";
-    } else {
-      vendorName = myImageDescription.getVendor();
-    }
-    if (metrics.stringWidth(vendorName) > 128) {
-      // Split into two lines
-      Iterable<String> parts = Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().split(vendorName);
-      String currentLine = "";
-      for (String part : parts) {
-        if (metrics.stringWidth(currentLine) >= 128) {
-          infoSegmentY += stringHeight;
-          g2d.drawString(currentLine, infoSegmentX, infoSegmentY);
-          currentLine = "";
-        }
-        currentLine += part + " ";
+      ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, MAIN_CONTENT);
+      Distribution distribution = DistributionService.getInstance().getDistributionForApiLevel(image.getVersion().getApiLevel());
+      String codeName = getCodeName(myImageDescription);
+      if (codeName != null) {
+        myReleaseName.setText(codeName);
       }
-      if (!currentLine.isEmpty()) {
-        infoSegmentY += stringHeight;
-        g2d.drawString(currentLine, infoSegmentX, infoSegmentY);
+      Icon icon = getIcon(codeName);
+      if (icon != null) {
+        myReleaseIcon.setIcon(icon);
       }
-    } else {
-      infoSegmentY += stringHeight;
-      g2d.drawString(vendorName, infoSegmentX, infoSegmentY);
-    }
-    infoSegmentY += PADDING;
-
-    // Paint the CPU architecture
-    infoSegmentY += figureHeight;
-    g2d.setFont(AvdWizardConstants.FIGURE_FONT);
-    g2d.drawString("System Image", infoSegmentX, infoSegmentY);
-    infoSegmentY += stringHeight;
-    g2d.setFont(AvdWizardConstants.TITLE_FONT);
-    g2d.drawString(myImageDescription.getAbiType(), infoSegmentX, infoSegmentY);
-
-    // If this API level is deprecated, paint a warning
-    if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
-      infoSegmentY += stringHeight * 2;
-      g2d.setFont(AvdWizardConstants.TITLE_FONT);
-      g2d.drawString("This API Level is Deprecated", PADDING, infoSegmentY);
-    }
-
-
-    // If this system image is not x86, paint a warning
-    HaxmState haxmState = getHaxmState(false);
-    if (haxmState == HaxmState.NOT_INSTALLED) {
-      infoSegmentY += stringHeight * 3;
-      g2d.setFont(AvdWizardConstants.TITLE_FONT);
-      g2d.setColor(JBColor.RED);
-      if (!myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
-        g2d.drawString("Consider installing HAXM", PADDING, infoSegmentY);
-        infoSegmentY += stringHeight;
-        g2d.drawString("for better emulation speed", PADDING, infoSegmentY);
+      if (distribution != null) {
+        myDocumentationLink.setHtmlText("<a>? - See documentation for Android " + distribution.getVersion().toShortString() + " APIs</a>");
+        myDocumentationLink.setHyperlinkTarget(distribution.getUrl());
+      }
+      myApiLevel.setText(myImageDescription.getVersion().getApiString());
+      myAndroidVersion.setText(myImageDescription.getVersionName());
+      String vendorName;
+      String tag = myImageDescription.getTag().getId();
+      if (tag.equals("android-wear") || tag.equals("android-tv")) {
+        vendorName = "Android";
       } else {
-        g2d.drawString("HAXM is required for running", PADDING, infoSegmentY);
-        infoSegmentY += stringHeight;
-        g2d.drawString("x86 System Images", PADDING, infoSegmentY);
+        vendorName = myImageDescription.getVendor();
       }
-      infoSegmentY += stringHeight;
-      g2d.setFont(AvdWizardConstants.STANDARD_FONT);
-      g2d.setColor(JBColor.BLUE);
-      g2d.drawString("HAXM installation instructions", PADDING, infoSegmentY);
-      myHaxmInstallationListener.setMinY(infoSegmentY);
-    } else {
-      myHaxmInstallationListener.setMinY(-1000);
-      if (haxmState == HaxmState.NOT_LATEST) {
-        infoSegmentY += stringHeight * 2;
-        g2d.setColor(JBColor.RED);
-        g2d.setFont(AvdWizardConstants.TITLE_FONT);
-        g2d.drawString("Newer HAXM Version Available", PADDING, infoSegmentY);
-        infoSegmentY += stringHeight;
-        g2d.drawString("(Use SDK Manager)", PADDING, infoSegmentY);
+      myVendor.setText("<html>" + vendorName + "</html>");
+      myAbi.setText(myImageDescription.getAbiType());
+      StringBuilder myWarningText = new StringBuilder("<html>");
+      if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
+        myWarningText.append("This API Level is Deprecated<br>");
       }
-    }
-
-    if (myDistribution != null) {
-      // Paint the help link
-      g2d.setFont(AvdWizardConstants.STANDARD_FONT);
-      g2d.setColor(JBColor.BLUE);
-      g2d.drawString("? - See documentation for Android " + myDistribution.getVersion().toShortString() + " APIs", PADDING,
-                     getHeight() - PADDING);
+      HaxmState haxmState = getHaxmState(false);
+      if (haxmState == HaxmState.NOT_INSTALLED) {
+        if (!myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
+          myWarningText.append("Consider installing HAXM<br>");
+          myWarningText.append("for better emulation speed");
+        } else {
+          myWarningText.append("HAXM is required for running<br>");
+          myWarningText.append("x86 System Images<br>");
+        }
+        myErrorInstructionsLink.setHtmlText("<a>HAXM installation instructions</a>");
+        myErrorInstructionsLink.setHyperlinkTarget("http://developer.android.com/tools/devices/emulator.html#acceleration");
+        myErrorInstructionsLink.setVisible(true);
+      } else {
+        if (haxmState == HaxmState.NOT_LATEST) {
+          myWarningText.append("Newer HAXM Version Available");
+          myErrorInstructionsLink.setVisible(true);
+          myErrorInstructionsLink.setHtmlText("<a>HAXM installation instructions</a>");
+          myErrorInstructionsLink.setHyperlinkTarget("http://developer.android.com/tools/devices/emulator.html#acceleration");
+        } else {
+          myErrorInstructionsLink.setVisible(false);
+        }
+      }
+      myWarningMessage.setText(myWarningText.toString());
     }
   }
+
 
   /**
    * @return the codename for the given System Image's API level
    */
   @Nullable
-  public static String getCodeName(@NotNull SystemImageDescription description) {
+  public static String getCodeName(@NotNull AvdWizardConstants.SystemImageDescription description) {
     return SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
   }
 
@@ -352,60 +206,60 @@ public class SystemImagePreview extends JPanel {
   }
 
   private static HaxmState computeHaxmState() {
-      try {
-        if (SystemInfo.isMac) {
-          @SuppressWarnings("SpellCheckingInspection")
-          String output = ExecUtil.execAndReadLine("/usr/sbin/kextstat", "-l", "-b", "com.intel.kext.intelhaxm");
-          if (output != null && !output.isEmpty()) {
-            Pattern pattern = Pattern.compile("com\\.intel\\.kext\\.intelhaxm( \\((.+)\\))?");
-            Matcher matcher = pattern.matcher(output);
-            if (matcher.find()) {
-              if (matcher.groupCount() >= 2) {
-                String version = matcher.group(2);
-                try {
-                  FullRevision revision = FullRevision.parseRevision(version);
-                  FullRevision current = new FullRevision(1, 1, 1);
-                  if (revision.compareTo(current) < 0) {
-                    // We have the new version number, as well as the currently installed
-                    // version number here, which we could use to make a better error message.
-                    // However, these versions do not correspond to the version number we show
-                    // in the SDK manager (e.g. in the SDK version manager we show "5"
-                    // and the corresponding kernel stat version number is 1.1.1.
-                    return HaxmState.NOT_LATEST;
-                  }
-                }
-                catch (NumberFormatException e) {
-                  // Some unexpected new (or old?) format for HAXM versions; ignore since we
-                  // can't check whether it is up to date.
+    try {
+      if (SystemInfo.isMac) {
+        @SuppressWarnings("SpellCheckingInspection")
+        String output = ExecUtil.execAndReadLine("/usr/sbin/kextstat", "-l", "-b", "com.intel.kext.intelhaxm");
+        if (output != null && !output.isEmpty()) {
+          Pattern pattern = Pattern.compile("com\\.intel\\.kext\\.intelhaxm( \\((.+)\\))?");
+          Matcher matcher = pattern.matcher(output);
+          if (matcher.find()) {
+            if (matcher.groupCount() >= 2) {
+              String version = matcher.group(2);
+              try {
+                FullRevision revision = FullRevision.parseRevision(version);
+                FullRevision current = new FullRevision(1, 1, 1);
+                if (revision.compareTo(current) < 0) {
+                  // We have the new version number, as well as the currently installed
+                  // version number here, which we could use to make a better error message.
+                  // However, these versions do not correspond to the version number we show
+                  // in the SDK manager (e.g. in the SDK version manager we show "5"
+                  // and the corresponding kernel stat version number is 1.1.1.
+                  return HaxmState.NOT_LATEST;
                 }
               }
-              return HaxmState.INSTALLED;
+              catch (NumberFormatException e) {
+                // Some unexpected new (or old?) format for HAXM versions; ignore since we
+                // can't check whether it is up to date.
+              }
             }
+            return HaxmState.INSTALLED;
           }
-          return HaxmState.NOT_INSTALLED;
-        } else if (SystemInfo.isWindows) {
-          @SuppressWarnings("SpellCheckingInspection")
-          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc", "query", "intelhaxm"), null);
-          return Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-              return input == null || !input.contains("does not exist");
-            }
-          }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
-        } else if (SystemInfo.isUnix) {
-          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kvm-ok"), null);
-          return Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-              return input != null && input.contains("KVM acceleration can be used");
-            }
-          }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
-        } else {
-          assert !SystemInfo.isLinux; // should be covered by SystemInfo.isUnix
-          return HaxmState.NOT_INSTALLED;
         }
-      } catch (ExecutionException e) {
+        return HaxmState.NOT_INSTALLED;
+      } else if (SystemInfo.isWindows) {
+        @SuppressWarnings("SpellCheckingInspection") ProcessOutput
+          processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc", "query", "intelhaxm"), null);
+        return Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
+          @Override
+          public boolean apply(String input) {
+            return input == null || !input.contains("does not exist");
+          }
+        }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
+      } else if (SystemInfo.isUnix) {
+        ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kvm-ok"), null);
+        return Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
+          @Override
+          public boolean apply(String input) {
+            return input != null && input.contains("KVM acceleration can be used");
+          }
+        }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
+      } else {
+        assert !SystemInfo.isLinux; // should be covered by SystemInfo.isUnix
         return HaxmState.NOT_INSTALLED;
       }
+    } catch (ExecutionException e) {
+      return HaxmState.NOT_INSTALLED;
     }
+  }
 }
