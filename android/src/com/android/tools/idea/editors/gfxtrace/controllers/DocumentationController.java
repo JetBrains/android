@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.JBColor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ public class DocumentationController {
 
   public DocumentationController(@NotNull JTextPane textPane) {
     myView = textPane;
+    myView.setBorder(BorderFactory.createLineBorder(JBColor.border()));
   }
 
   public void setDocumentation(@Nullable final String url) {
