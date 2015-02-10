@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
-import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -51,7 +51,7 @@ public class DelegatingCellEditor implements TableCellEditor {
 
     if (column == 1 && value instanceof EditedStyleItem) {
       final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
-      stringValue = AttributesTableModel.extractRealValue(resValue, model.getCellClass(row, column));
+      stringValue = ThemeEditorUtils.extractRealValue(resValue, model.getCellClass(row, column));
     }
     else {
       stringValue = value;

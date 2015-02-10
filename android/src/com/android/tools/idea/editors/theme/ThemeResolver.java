@@ -1,6 +1,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
@@ -213,6 +214,14 @@ public class ThemeResolver {
   @NotNull
   static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
     return (style.isFramework() ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX : SdkConstants.STYLE_RESOURCE_PREFIX) + style.getName();
+  }
+
+  /**
+   * Returns the item name, including the appropriate namespace.
+   */
+  @NotNull
+  public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
+    return (item.isFrameworkAttr() ? SdkConstants.ANDROID_PREFIX : "") + item.getName();
   }
 
   /**
