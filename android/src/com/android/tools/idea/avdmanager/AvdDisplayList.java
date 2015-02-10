@@ -40,8 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -68,6 +67,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private TableView<AvdInfo> myTable;
   private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
   private Set<AvdSelectionListener> myListeners = Sets.newHashSet();
+  private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -84,6 +84,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myModel.setSortable(true);
     myTable = new TableView<AvdInfo>();
     myTable.setModelAndUpdateColumns(myModel);
+    myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
     JPanel nonemptyPanel = new JPanel(new BorderLayout());
@@ -102,8 +103,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myRefreshButton.putClientProperty("JButton.buttonType", "segmented-only");
     CreateAvdAction createAvdAction = new CreateAvdAction(this);
     JButton newButton = new JButton(createAvdAction);
-    newButton.setIcon(createAvdAction.getIcon());
-    newButton.setText(createAvdAction.getText());
     newButton.putClientProperty("JButton.buttonType", "segmented-only");
     southPanel.add(newButton, BorderLayout.WEST);
     nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
@@ -114,6 +113,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     LaunchListener launchListener = new LaunchListener();
     myTable.addMouseListener(launchListener);
     myTable.addKeyListener(launchListener);
+    ActionMap am = myTable.getActionMap();
+    am.put("selectPreviousColumnCell", new CycleAction(true));
+    am.put("selectNextColumnCell", new CycleAction(false));
     refreshAvds();
   }
 
@@ -131,6 +133,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    */
   @Override
   public void valueChanged(ListSelectionEvent e) {
+    // Required so the editor component is updated to know it's selected.
+    myTable.editCellAt(myTable.getSelectedRow(), myTable.getSelectedColumn());
     AvdInfo selected = myTable.getSelectedObject();
     for (AvdSelectionListener listener : myListeners) {
       listener.onAvdSelected(selected);
@@ -349,7 +353,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
     },
     new AvdSizeColumnInfo("Size on Disk"),
-    new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */),
+    myActionsColumnRenderer,
   };
 
   /**
@@ -407,24 +411,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    * by calling the overloaded constructor, otherwise the column will auto-scale to fill available space.
    */
   public abstract static class AvdColumnInfo extends ColumnInfo<AvdInfo, String> {
-    private final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
-
-    /**
-     * Renders a simple text field.
-     */
-    private final TableCellRenderer myRenderer = new TableCellRenderer() {
-      @Override
-      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JBLabel label = new JBLabel((String)value);
-        label.setBorder(myBorder);
-        if (table.getSelectedRow() == row) {
-          label.setBackground(table.getSelectionBackground());
-          label.setForeground(table.getSelectionForeground());
-          label.setOpaque(true);
-        }
-        return label;
-      }
-    };
 
     private final int myWidth;
 
@@ -435,12 +421,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     public AvdColumnInfo(@NotNull String name) {
       this(name, -1);
-    }
-
-    @Nullable
-    @Override
-    public TableCellRenderer getRenderer(AvdInfo o) {
-      return myRenderer;
     }
 
     @Nullable
@@ -462,52 +442,57 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
   }
 
-  private static abstract class ActionRenderer extends AbstractTableCellEditor implements TableCellRenderer {}
+  private class ActionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
+    AvdActionPanel myComponent;
+    private int myNumVisibleActions = -1;
+
+    ActionRenderer(int numVisibleActions, AvdInfo info) {
+      myNumVisibleActions = numVisibleActions;
+      myComponent = new AvdActionPanel(info, myNumVisibleActions, AvdDisplayList.this);
+    }
+
+    private Component getComponent(JTable table, int row, int column) {
+      if (table.getSelectedRow() == row) {
+        myComponent.setBackground(table.getSelectionBackground());
+        myComponent.setForeground(table.getSelectionForeground());
+      } else {
+        myComponent.setBackground(table.getBackground());
+        myComponent.setForeground(table.getForeground());
+      }
+      myComponent.setFocused(table.getSelectedRow() == row && table.getSelectedColumn() == column);
+      return myComponent;
+    }
+
+    public boolean cycleFocus(boolean backward) {
+      return myComponent.cycleFocus(backward);
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      return getComponent(table, row, column);
+    }
+
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+      return getComponent(table, row, column);
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+      return null;
+    }
+  }
   /**
    * Custom table cell renderer that renders an action panel for a given AVD entry
    */
   private class AvdActionsColumnInfo extends ColumnInfo<AvdInfo, AvdInfo> {
-    private int myNumVisibleActions = -1;
     private int myWidth;
+    private int myNumVisibleActions;
 
     /**
      * This cell renders an action panel for both the editor component and the display component
      */
-    private final ActionRenderer ourActionPanelRendererEditor = new ActionRenderer() {
-      Map<Object, Component> myInfoToComponentMap = Maps.newHashMap();
-      private Component getComponent(JTable table, Object value, boolean isSelected, int row) {
-        Component panel;
-        if (myInfoToComponentMap.containsKey(value)) {
-          panel = myInfoToComponentMap.get(value);
-        } else {
-          panel = new AvdActionPanel((AvdInfo)value, myNumVisibleActions, AvdDisplayList.this);
-          myInfoToComponentMap.put(value, panel);
-        }
-        if (table.getSelectedRow() == row || isSelected) {
-          panel.setBackground(table.getSelectionBackground());
-          panel.setForeground(table.getSelectionForeground());
-        } else {
-          panel.setBackground(table.getBackground());
-          panel.setForeground(table.getForeground());
-        }
-        return panel;
-      }
-
-      @Override
-      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        return getComponent(table, value, isSelected, row);
-      }
-
-      @Override
-      public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        return getComponent(table, value, isSelected, row);
-      }
-
-      @Override
-      public Object getCellEditorValue() {
-        return null;
-      }
-    };
+    private final Map<Object, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
 
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
@@ -541,14 +526,23 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     @Nullable
     @Override
-    public TableCellRenderer getRenderer(AvdInfo o) {
-      return ourActionPanelRendererEditor;
+    public TableCellRenderer getRenderer(AvdInfo avdInfo) {
+      return getComponent(avdInfo);
+    }
+
+    public ActionRenderer getComponent(AvdInfo avdInfo) {
+      ActionRenderer renderer = ourActionPanelRendererEditor.get(avdInfo);
+      if (renderer == null) {
+        renderer = new ActionRenderer(myNumVisibleActions, avdInfo);
+        ourActionPanelRendererEditor.put(avdInfo, renderer);
+      }
+      return renderer;
     }
 
     @Nullable
     @Override
     public TableCellEditor getEditor(AvdInfo avdInfo) {
-      return ourActionPanelRendererEditor;
+      return getComponent(avdInfo);
     }
 
     @Override
@@ -559,6 +553,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public int getWidth(JTable table) {
       return myWidth;
+    }
+
+    public boolean cycleFocus(AvdInfo info, boolean backward) {
+      return getComponent(info).cycleFocus(backward);
     }
   }
 
@@ -630,7 +628,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
 
     public void keyTyped(KeyEvent e) {
-      if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+      if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
         doAction();
       }
     }
@@ -641,4 +639,94 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public void keyReleased(KeyEvent e) {}
   }
+
+  private class CycleAction extends AbstractAction {
+    boolean myBackward;
+
+    CycleAction(boolean backward) {
+      myBackward = backward;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent evt) {
+      int selectedRow = myTable.getSelectedRow();
+      int selectedColumn = myTable.getSelectedColumn();
+      int actionsColumn = myModel.findColumn(myActionsColumnRenderer.getName());
+      if (myBackward) {
+        cycleBackward(selectedRow, selectedColumn, actionsColumn);
+      }
+      else {
+        cycleForward(selectedRow, selectedColumn, actionsColumn);
+      }
+      selectedRow = myTable.getSelectedRow();
+      if (selectedRow != -1) {
+        myTable.editCellAt(selectedRow, myTable.getSelectedColumn());
+      }
+      repaint();
+    }
+
+    private void cycleForward(int selectedRow, int selectedColumn, int actionsColumn) {
+      if (selectedColumn == actionsColumn && selectedRow == myTable.getRowCount() - 1) {
+        // We're in the last cell of the table. Check whether we can cycle action buttons
+        if (!myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), false)) {
+          // At the end of action buttons. Remove selection and leave table.
+          myActionsColumnRenderer.getEditor(getAvdInfo()).stopCellEditing();
+          myTable.removeRowSelectionInterval(selectedRow, selectedRow);
+          KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+          manager.focusNextComponent(myTable);
+        }
+      } else if (selectedColumn != actionsColumn && selectedRow != -1) {
+        // We're in the table, but not on the action column. Select the action column.
+        myTable.setColumnSelectionInterval(actionsColumn, actionsColumn);
+        myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), false);
+      } else if (selectedRow == -1 || !myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), false)) {
+        // We aren't in the table yet, or we are in the actions column and at the end of the focusable actions. Move to the next row
+        // and select the first column
+        myTable.setColumnSelectionInterval(0, 0);
+        myTable.setRowSelectionInterval(selectedRow + 1, selectedRow + 1);
+      }
+    }
+
+    private void cycleBackward(int selectedRow, int selectedColumn, int actionsColumn) {
+      if (selectedColumn == 0 && selectedRow == 0) {
+        // We're in the first cell of the table. Remove selection and leave table.
+        myTable.removeRowSelectionInterval(selectedRow, selectedRow);
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.focusPreviousComponent();
+      } else if (selectedColumn == actionsColumn && selectedRow != -1 && !myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), true)) {
+        // We're on an actions column. If we fail to cycle actions, select the first cell in the row.
+        myTable.setColumnSelectionInterval(0, 0);
+      } else if (selectedRow == -1 || selectedColumn != actionsColumn) {
+        // We aren't in the table yet, or we're not in the actions column. Move to the previous (or last) row.
+        // and select the actions column
+        if (selectedRow == -1) {
+          selectedRow = myTable.getRowCount();
+        }
+        myTable.setRowSelectionInterval(selectedRow - 1, selectedRow - 1);
+        myTable.setColumnSelectionInterval(actionsColumn, actionsColumn);
+        myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), true);
+      }
+    }
+  }
+
+
+  /**
+   * Renders a cell with borders.
+   */
+  private static class MyRenderer implements TableCellRenderer {
+    private static final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
+    TableCellRenderer myDefaultRenderer;
+
+    MyRenderer(TableCellRenderer defaultRenderer) {
+      myDefaultRenderer = defaultRenderer;
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      JComponent result = (JComponent)myDefaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+      result.setBorder(myBorder);
+      return result;
+    }
+  };
+
 }
