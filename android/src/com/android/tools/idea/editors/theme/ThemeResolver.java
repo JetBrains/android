@@ -1,7 +1,5 @@
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
@@ -17,7 +15,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +67,6 @@ public class ThemeResolver {
       return;
     }
 
-    Project project = configuration.getModule().getProject();
     ResourceResolver resolver = configuration.getResourceResolver();
     if (resolver == null) {
       LOG.error("Unable to get ResourceResolver.");
@@ -206,22 +202,6 @@ public class ThemeResolver {
       }
     }
     return themes;
-  }
-
-  /**
-   * Returns the style name, including the appropriate namespace.
-   */
-  @NotNull
-  static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
-    return (style.isFramework() ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX : SdkConstants.STYLE_RESOURCE_PREFIX) + style.getName();
-  }
-
-  /**
-   * Returns the item name, including the appropriate namespace.
-   */
-  @NotNull
-  public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
-    return (item.isFrameworkAttr() ? SdkConstants.ANDROID_PREFIX : "") + item.getName();
   }
 
   /**
