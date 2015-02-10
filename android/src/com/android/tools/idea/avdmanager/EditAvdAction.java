@@ -20,13 +20,18 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 public class EditAvdAction extends AvdUiAction {
   private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
 
   public EditAvdAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Modules.Edit);
+    this(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Modules.Edit);
+  }
+
+  protected EditAvdAction(AvdInfoProvider avdInfoProvider, String text, String description, Icon icon) {
+    super(avdInfoProvider, text, description, icon);
   }
 
   @Override

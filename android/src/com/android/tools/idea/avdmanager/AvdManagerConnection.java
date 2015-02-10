@@ -476,7 +476,8 @@ public class AvdManagerConnection {
   static boolean isAvdRepairable(AvdInfo.AvdStatus avdStatus) {
     return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
-           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING;
+           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING
+           || avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_MISSING;
   }
 
   public boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {
