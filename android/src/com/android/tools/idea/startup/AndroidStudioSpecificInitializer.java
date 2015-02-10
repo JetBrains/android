@@ -203,7 +203,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.CreateNewProject", welcomeScreenNewProject);
 
     AndroidImportProjectAction welcomeScreenImportProject = new AndroidImportProjectAction();
-    welcomeScreenImportProject.getTemplatePresentation().setText("Import Non-Android Studio project");
+    welcomeScreenImportProject.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
     replaceAction("WelcomeScreen.ImportProject", welcomeScreenImportProject);
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA", "WelcomeScreen.QuickStart",
                new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));
