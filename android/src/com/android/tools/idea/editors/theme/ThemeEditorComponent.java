@@ -32,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
