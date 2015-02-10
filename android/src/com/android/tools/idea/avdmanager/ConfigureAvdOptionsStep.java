@@ -910,6 +910,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           vmHeapSize = 128;
           break;
         case NODPI:
+        case ANYDPI:
           break;
       }
     }
@@ -931,6 +932,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           vmHeapSize = 64;
           break;
         case NODPI:
+        case ANYDPI:
           break;
       }
     }
