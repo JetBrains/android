@@ -22,7 +22,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.editors.theme.attributes.AttributesSorter;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
@@ -41,6 +40,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
@@ -67,11 +67,11 @@ public class ThemeEditorComponent extends Splitter {
   private static final Font HEADER_FONT = UIUtil.getTitledBorderFont().deriveFont(20.0f);
 
   private static final int PROPERTIES_DEFAULT_ROW_HEIGHT = 20;
-  private static final int PROPERTIES_COLOR_ROW_HEIGHT = 60;
 
   private static final Map<Class<?>, Integer> ROW_HEIGHTS = ImmutableMap.of(
-    Color.class, PROPERTIES_COLOR_ROW_HEIGHT,
-    TableLabel.class, 35
+    Color.class, 60,
+    TableLabel.class, 35,
+    DrawableDomElement.class, 64
   );
 
   private final Configuration myConfiguration;
@@ -152,7 +152,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myPropertiesTable.setDefaultRenderer(Color.class, new ColorRendererEditor(myModule, myConfiguration, myPropertiesTable));
+    myPropertiesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(myModule, myConfiguration, false, new ColorRenderer(myConfiguration, myPropertiesTable)));
     myPropertiesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myModule, myConfiguration,
                                                                                   myPropertiesTable.getDefaultRenderer(String.class)));
     myPropertiesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(myModule, myConfiguration,
@@ -161,6 +161,8 @@ public class ThemeEditorComponent extends Splitter {
                                                                                    myPropertiesTable.getDefaultRenderer(Boolean.class)));
     myPropertiesTable.setDefaultRenderer(ThemeEditorStyle.class,
                                          new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
+    myPropertiesTable.setDefaultRenderer(DrawableDomElement.class,
+                                         new DelegatingCellRenderer(myModule, myConfiguration, false, new DrawableRenderer(myConfiguration, myPropertiesTable)));
 
     myPropertiesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
@@ -171,13 +173,13 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    final ColorRendererEditor editor = new ColorRendererEditor(myModule, myConfiguration, myPropertiesTable);
-    myPropertiesTable.setDefaultEditor(Color.class, editor);
-    myPropertiesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(String.class)));
-    myPropertiesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Integer.class)));
-    myPropertiesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Boolean.class)));
+    myPropertiesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration, myPropertiesTable), module, configuration));
+    myPropertiesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(String.class), module, configuration));
+    myPropertiesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Integer.class), module, configuration));
+    myPropertiesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Boolean.class), module, configuration));
     // We allow to edit style pointers as Strings.
-    myPropertiesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor));
+    myPropertiesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
+    myPropertiesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myConfiguration, myPropertiesTable), module, configuration));
 
     myPropertiesFilter = new StylePropertiesFilter();
 

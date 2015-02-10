@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
+import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.google.common.collect.ImmutableSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import spantable.CellSpanModel;
@@ -30,12 +34,16 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Table model for Theme Editor:
+ * Table model for Theme Editor
  */
 public class AttributesTableModel extends AbstractTableModel implements CellSpanModel {
   private final static Logger LOG = Logger.getInstance(AttributesTableModel.class);
+
+  // Cells containing values with classes in WIDE_CLASSES are going to have column span 2
+  private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
 
   protected final List<EditedStyleItem> myAttributes;
   private List<TableLabel> myLabels;
@@ -244,7 +252,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public int getColumnSpan(int column) {
-      if (getCellClass(column) == Color.class) {
+      if (WIDE_CLASSES.contains(getCellClass(column))) {
         return column == 0 ? getColumnCount() : 0;
       }
       return 1;
@@ -256,7 +264,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       Class cellClass = getCellClass(column);
 
       // TODO: can we work out the type by looking at the value?
-      if (cellClass == Color.class) {
+      if (WIDE_CLASSES.contains(cellClass)) {
         return attribute;
       }
 
@@ -277,6 +285,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
       if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
         return Color.class;
+      }
+
+      final String value = item.getValue();
+      if (value != null) {
+        final ResourceUrl url = ResourceUrl.parse(value);
+        if (url != null && url.type == ResourceType.DRAWABLE) {
+          return DrawableDomElement.class;
+        }
       }
 
       if (column == 1) {
@@ -310,7 +326,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       // Color rows are editable. Also the middle column for all other attributes.
-      return getCellClass(column) == Color.class || column == 1;
+      return WIDE_CLASSES.contains(getCellClass(column)) || column == 1;
     }
 
     @Override
