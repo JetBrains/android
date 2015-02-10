@@ -40,7 +40,6 @@ public class ColorRendererEditor extends AbstractTableCellEditor implements Tabl
 
   private final Module myModule;
   private final Configuration myConfiguration;
-  private final ResourceResolver myResourceResolver;
 
   private final Border mySelectedBorder;
   private final Border myUnselectedBorder;
@@ -51,7 +50,6 @@ public class ColorRendererEditor extends AbstractTableCellEditor implements Tabl
   public ColorRendererEditor(@NotNull Module module, @NotNull Configuration configuration, @NotNull JTable table) {
     myModule = module;
     myConfiguration = configuration;
-    myResourceResolver = configuration.getResourceResolver();
 
     mySelectedBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, table.getSelectionBackground());
     myUnselectedBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, table.getBackground());
@@ -75,7 +73,7 @@ public class ColorRendererEditor extends AbstractTableCellEditor implements Tabl
     myComponent.name = resValue.getQualifiedName();
     myComponent.value = resValue.getValue();
     myComponent.setToolTipText(ThemeEditorUtils.generateToolTipText(resValue.getItemResourceValue(), myModule, myConfiguration));
-    myComponent.setColor(ResourceHelper.resolveColor(myResourceResolver, resValue.getItemResourceValue()));
+    myComponent.setColor(ResourceHelper.resolveColor(myConfiguration.getResourceResolver(), resValue.getItemResourceValue()));
 
     myComponent.setBorder(isSelected ? mySelectedBorder : myUnselectedBorder);
   }

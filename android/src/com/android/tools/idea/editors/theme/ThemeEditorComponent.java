@@ -504,11 +504,13 @@ public class ThemeEditorComponent extends Splitter {
             public void run() {
               myPreviewPanel.updateConfiguration(myConfiguration);
               myPreviewPanel.repaint();
+              myPropertiesTable.repaint();
             }
           });
         }
       }
     });
+
     myPropertiesTable.setRowSorter(null); // Clean any previous row sorters.
     myPropertiesTable.setModel(model);
 
