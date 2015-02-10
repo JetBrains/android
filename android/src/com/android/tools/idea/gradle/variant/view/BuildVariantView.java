@@ -457,6 +457,20 @@ public class BuildVariantView {
 
     BuildVariantTable() {
       super(new BuildVariantTableModel(Collections.<Object[]>emptyList()));
+      addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          int column = getSelectedColumn();
+          int row = getSelectedRow();
+          if (column == VARIANT_COLUMN_INDEX && row >= 0 && e.getKeyCode() == KeyEvent.VK_F2 && editCellAt(row, column)) {
+            Component editorComponent = getEditorComponent();
+            if (editorComponent instanceof ComboBox) {
+              editorComponent.requestFocusInWindow();
+              ((ComboBox)editorComponent).showPopup();
+            }
+          }
+        }
+      });
     }
 
     @Nullable
@@ -529,7 +543,18 @@ public class BuildVariantView {
             }
           }
         });
-        myCellEditors.add(new DefaultCellEditor(editor));
+        final DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
+
+        editor.addKeyListener(new KeyAdapter() {
+          @Override
+          public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+              defaultCellEditor.cancelCellEditing();
+            }
+          }
+        });
+
+        myCellEditors.add(defaultCellEditor);
       }
     }
 
