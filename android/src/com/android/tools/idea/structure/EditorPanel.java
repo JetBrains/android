@@ -19,7 +19,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * This is the base class for panels that can appear in the Android-Gradle modules pane of the Project Structure dialog.
+ * This is the base class for panels that can appear in the right-hand pane of the Project Structure dialog.
  */
 public abstract class EditorPanel extends JPanel {
   public EditorPanel(LayoutManager layoutManager) {

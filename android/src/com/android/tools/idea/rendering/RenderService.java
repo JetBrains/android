@@ -35,7 +35,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
