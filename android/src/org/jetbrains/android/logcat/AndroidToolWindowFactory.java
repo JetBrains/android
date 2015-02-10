@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ProjectTopics;
+import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
@@ -81,6 +82,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
+    // In order to use the runner layout ui, the runner infrastructure needs to be initialized.
+    // Otherwise it is not possible to for example drag one of the tabs out of the tool window.
+    // The object that needs to be created is the content manager of the execution manager for this project.
+    ExecutionManager.getInstance(project).getContentManager();
+
     RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create(
       "ddms", "ddms", "ddms", project);
 
@@ -95,8 +101,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     Content adbLogsContent = createAdbLogsContent(layoutUi, project);
 
-    final AndroidLogcatView logcatView = logcatContent.getUserData(
-      AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
+    final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
     final DevicePanel devicePanel = devicesContent.getUserData(DEVICES_PANEL_KEY);
 
     assert logcatView != null;
