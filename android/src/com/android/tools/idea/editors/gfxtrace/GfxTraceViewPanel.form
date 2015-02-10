@@ -110,17 +110,7 @@
             </constraints>
             <properties/>
             <border type="none"/>
-            <children>
-              <component id="8ed67" class="com.intellij.ui.treeStructure.SimpleTree" binding="myAtomTree">
-                <constraints/>
-                <properties>
-                  <rootVisible value="false"/>
-                </properties>
-                <clientProperties>
-                  <JTree.lineStyle class="java.lang.String" value="Angled"/>
-                </clientProperties>
-              </component>
-            </children>
+            <children/>
           </scrollpane>
           <scrollpane id="7c7b8" class="com.intellij.ui.components.JBScrollPane" binding="myStateScrollPane">
             <constraints>

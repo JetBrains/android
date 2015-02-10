@@ -26,6 +26,10 @@ import javax.swing.tree.TreeNode;
 import java.util.List;
 
 public interface GfxController {
+  String SELECT_CAPTURE = "Select a capture";
+
+  void startLoad();
+
   void commitData(@NotNull GfxContextChangeState state);
 
   void clear();
