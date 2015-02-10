@@ -17,25 +17,28 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.Map;
 
 /**
  * An action panel that behaves similarly to an Android overflow menu. Actions which
@@ -43,13 +46,16 @@ import java.util.Map;
  * clicking on the last icon of the menu.
  */
 public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvider {
-  private static final Logger LOG = Logger.getInstance(AvdActionPanel.class);
   @NotNull private final AvdInfo myAvdInfo;
   private final AvdRefreshProvider myRefreshProvider;
-  private Map<JComponent, AvdUiAction> myButtonActionMap = Maps.newHashMap();
   private final JBPopupMenu myOverflowMenu = new JBPopupMenu();
-  private final JBLabel myOverflowMenuButton = new JBLabel(AllIcons.ToolbarDecorator.Mac.MoveDown);
+  private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.ToolbarDecorator.Mac.MoveDown);
   private final Border myMargins = IdeBorderFactory.createEmptyBorder(5, 3, 5, 3);
+
+  public List<FocusableHyperlinkLabel> myVisibleComponents = Lists.newArrayList();
+
+  private boolean myFocused;
+  private int myFocusedComponent = -1;
 
   public interface AvdRefreshProvider {
     void refreshAvds();
@@ -65,20 +71,14 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     List<AvdUiAction> actions = getActions();
     setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 0));
     int visibleActionCount = 0;
-
-    MouseAdapter mouseAdapter = new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        myButtonActionMap.get(e.getSource()).actionPerformed(null);
-      }
-    };
     boolean errorState = false;
     if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
       if (AvdManagerConnection.isAvdRepairable(avdInfo.getStatus())) {
-        JBLabel repairAction = new JBLabel("Repair Device", AllIcons.General.BalloonWarning, SwingConstants.LEADING);
-        myButtonActionMap.put(repairAction, new EditAvdAction(this));
-        repairAction.addMouseListener(mouseAdapter);
-        add(repairAction, "Repair Device");
+        RepairAvdAction action = new RepairAvdAction(this);
+        FocusableHyperlinkLabel repairAction = new FocusableHyperlinkLabel(action.getText(), action.getIcon());
+        add(repairAction);
+        repairAction.addHyperlinkListener(action);
+        myVisibleComponents.add(repairAction);
       } else {
         add(new JBLabel("Failed to load", AllIcons.General.BalloonError, SwingConstants.LEADING));
       }
@@ -91,26 +91,35 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       // Add extra items to the overflow menu
       if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
         JBMenuItem menuItem = new JBMenuItem(action);
-        menuItem.setText(action.getText());
         myOverflowMenu.add(menuItem);
         actionLabel = menuItem;
       } else {
         // Add visible items to the panel
-        actionLabel = new JBLabel(action.getIcon());
+        actionLabel = new FocusableHyperlinkLabel("", action.getIcon());
+        ((FocusableHyperlinkLabel)actionLabel).addHyperlinkListener(action);
         add(actionLabel);
-        actionLabel.addMouseListener(mouseAdapter);
+        myVisibleComponents.add((FocusableHyperlinkLabel)actionLabel);
         visibleActionCount++;
       }
       actionLabel.setToolTipText(action.getDescription());
       actionLabel.setBorder(myMargins);
-      myButtonActionMap.put(actionLabel, action);
     }
     myOverflowMenuButton.setBorder(myMargins);
     add(myOverflowMenuButton);
-    myOverflowMenuButton.addMouseListener(new MouseAdapter() {
+    myVisibleComponents.add(myOverflowMenuButton);
+    myOverflowMenuButton.addHyperlinkListener(new HyperlinkListener() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        myOverflowMenu.show(myOverflowMenuButton, e.getX() - myOverflowMenu.getPreferredSize().width, e.getY());
+      public void hyperlinkUpdate(HyperlinkEvent e) {
+        myOverflowMenu
+          .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY());
+      }
+    });
+    addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+        if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
+          runFocusedAction();
+        }
       }
     });
   }
@@ -152,5 +161,54 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   public void showPopup(@NotNull Component c, @NotNull MouseEvent e) {
     myOverflowMenu.show(c, e.getX(), e.getY());
+  }
+
+  public void runFocusedAction() {
+    myVisibleComponents.get(myFocusedComponent).doClick();
+  }
+
+  public boolean cycleFocus(boolean backward) {
+    if (backward) {
+      if (myFocusedComponent == -1) {
+        myFocusedComponent = myVisibleComponents.size() - 1;
+        return true;
+      } else {
+        myFocusedComponent--;
+        return myFocusedComponent != -1;
+      }
+    } else {
+      if (myFocusedComponent == myVisibleComponents.size() - 1) {
+        myFocusedComponent = -1;
+        return false;
+      } else {
+        myFocusedComponent++;
+        return true;
+      }
+    }
+  }
+
+  public void setFocused(boolean focused) {
+    myFocused = focused;
+    if (!focused) {
+      myFocusedComponent = -1;
+    }
+  }
+
+  private class FocusableHyperlinkLabel extends HyperlinkLabel {
+    FocusableHyperlinkLabel(String text, Icon icon) {
+      super(text, JBColor.foreground(), JBColor.background(), JBColor.foreground());
+      setIcon(icon);
+      setOpaque(false);
+      setUseIconAsLink(true);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      if (myFocused && myFocusedComponent != -1 && myVisibleComponents.get(myFocusedComponent) == this) {
+        g.setColor(UIUtil.getTableSelectionForeground());
+        UIUtil.drawDottedRectangle(g, 0, 0, getWidth() - 2, getHeight() - 2);
+      }
+    }
   }
 }
