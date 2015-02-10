@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
@@ -44,18 +46,22 @@ public class StateController implements GfxController {
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
 
   @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final SimpleTree myStateTree;
+  @NotNull private final JBLoadingPanel myLoadingPanel;
+  @NotNull private final SimpleTree myTree;
 
   @NotNull private AtomicLong myAtomicAtomId = new AtomicLong(-1);
   @Nullable private StructInfo myStateHierarchy;
 
   public StateController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
     myEditor = editor;
-    myStateTree = new SimpleTree();
-    myStateTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
-    myStateTree.setRootVisible(false);
-    myStateTree.setCellRenderer(new StateTreeRenderer());
-    scrollPane.setViewportView(myStateTree);
+    myTree = new SimpleTree();
+    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
+    myTree.setRootVisible(false);
+    myTree.setCellRenderer(new StateTreeRenderer());
+    myTree.getEmptyText().setText(SELECT_CAPTURE);
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
+    myLoadingPanel.add(myTree);
+    scrollPane.setViewportView(myLoadingPanel);
   }
 
   @Nullable
@@ -156,8 +162,14 @@ public class StateController implements GfxController {
   }
 
   @Override
+  public void startLoad() {
+    myTree.getEmptyText().setText("");
+  }
+
+  @Override
   public void commitData(@NotNull GfxContextChangeState state) {
     myStateHierarchy = state.myCaptureChangeState.mySchema.getState();
+    myTree.getEmptyText().setText("Select an atom");
   }
 
   public void updateTreeModelFromAtomId(final long atomId) {
@@ -171,6 +183,11 @@ public class StateController implements GfxController {
     final CaptureId captureId = myEditor.getCaptureId();
     final long contextId = myEditor.getContext();
     myAtomicAtomId.set(atomId);
+
+    if (!myLoadingPanel.isLoading()) {
+      myTree.getEmptyText().setText("");
+      myLoadingPanel.startLoading();
+    }
 
     ListenableFuture<TreeNode> nodeFuture = myEditor.getService().submit(new Callable<TreeNode>() {
       @Override
@@ -195,12 +212,14 @@ public class StateController implements GfxController {
           return;
         }
 
-        myStateTree.setModel(new DefaultTreeModel(result));
-        myStateTree.updateUI();
+        myTree.setModel(new DefaultTreeModel(result));
+        myTree.updateUI();
+        myLoadingPanel.stopLoading();
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
+        myLoadingPanel.stopLoading();
         LOG.error(t);
       }
     }, EdtExecutor.INSTANCE);
@@ -215,7 +234,7 @@ public class StateController implements GfxController {
   @Override
   public void clearCache() {
     myAtomicAtomId.set(-1);
-    myStateTree.setModel(null);
-    myStateTree.updateUI();
+    myTree.setModel(null);
+    myTree.updateUI();
   }
 }

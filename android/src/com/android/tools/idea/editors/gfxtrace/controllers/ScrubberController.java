@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,6 +57,8 @@ public class ScrubberController implements ScrubberCellRenderer.DimensionChangeL
     myList.setExpandableItemsEnabled(false); // Turn this off, since the "preview" will cause all the thumbnails to be loaded.
     myList.setMinimumSize(minCellDimension);
     myList.setVisibleRowCount(1);
+
+    myList.getEmptyText().setText(SELECT_CAPTURE);
 
     resize(minCellDimension);
   }
@@ -90,6 +93,11 @@ public class ScrubberController implements ScrubberCellRenderer.DimensionChangeL
   }
 
   @Override
+  public void startLoad() {
+    myList.getEmptyText().setText("");
+  }
+
+  @Override
   public void commitData(@NotNull GfxContextChangeState state) {
     myFrameData = state.myScrubberList;
   }
@@ -111,6 +119,10 @@ public class ScrubberController implements ScrubberCellRenderer.DimensionChangeL
       model.addElement(data);
     }
     setModel(model);
+
+    if (myFrameData.size() == 0) {
+      myList.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
+    }
 
     ImageFetcher imageFetcher = new ImageFetcher(client);
     imageFetcher.prepareFetch(myEditor.getDeviceId(), myEditor.getCaptureId(), myEditor.getContext());

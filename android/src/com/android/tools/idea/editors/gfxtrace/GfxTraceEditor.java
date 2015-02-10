@@ -94,7 +94,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
       myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList(), myView.getGfxContextList());
 
-      myAtomController = new AtomController(myView.getAtomTree());
+      myAtomController = new AtomController(project, myView.getAtomScrollPane());
       myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
       myFrameBufferController =
         new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeScrollPane(),
@@ -308,6 +308,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     final int closedCaptureChangeId = myCaptureChangeId;
     clear();
 
+    for (GfxController controller : myControllers) {
+      controller.startLoad();
+    }
+
     final GfxController.GfxContextChangeState state = new GfxController.GfxContextChangeState();
     state.myCaptureChangeState.myAtomStream = myAtomStream;
     state.myCaptureChangeState.mySchema = mySchema; // Get a reference of this on the EDT so there is no need to synchronize on it.
@@ -370,7 +374,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
    * This transitively establishes scrubber->framebuffer/memory/state/etc... controls.
    */
   private void establishInterViewControls() {
-    myView.getAtomTree().addTreeSelectionListener(new TreeSelectionListener() {
+    myAtomController.getTree().addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
         if (treeSelectionEvent.isAddedPath()) {
@@ -385,7 +389,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
           myScrubberController.selectFrame(node.getRepresentativeAtomId());
         }
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myView.getAtomTree().getLastSelectedPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myAtomController.getTree().getLastSelectedPathComponent();
 
         if (node == null) { // This could happen when user collapses a node.
           myFrameBufferController.clearCache();
