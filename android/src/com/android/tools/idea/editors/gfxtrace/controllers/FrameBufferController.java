@@ -85,6 +85,11 @@ public class FrameBufferController implements GfxController {
   }
 
   @Override
+  public void startLoad() {
+
+  }
+
+  @Override
   public void commitData(@NotNull GfxContextChangeState state) {
     myImageFetcher = new ImageFetcher(myEditor.getClient());
     assert (myEditor.getCaptureId() != null);

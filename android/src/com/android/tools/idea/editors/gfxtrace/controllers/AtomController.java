@@ -24,20 +24,35 @@ import com.android.tools.rpclib.rpc.AtomGroup;
 import com.android.tools.rpclib.rpc.Hierarchy;
 import com.android.tools.rpclib.schema.AtomReader;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.SimpleTree;
+import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.*;
+import java.awt.*;
 import java.util.Enumeration;
 
 public class AtomController implements GfxController {
+  @NotNull private final JBLoadingPanel myLoadingPanel;
   @NotNull private final SimpleTree myTree;
   @NotNull private final AtomTreeRenderer myAtomTreeRenderer;
   private TreeNode myAtomTreeRoot;
   private EnumInfoCache myEnumInfoCache;
 
-  public AtomController(@NotNull SimpleTree tree) {
-    myTree = tree;
+  public AtomController(@NotNull Project project, @NotNull JBScrollPane scrollPane) {
+    scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(20);
+    myTree = new SimpleTree();
+    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
+    myTree.setRootVisible(false);
+    myTree.setLineStyleAngled();
+    myTree.getEmptyText().setText(SELECT_CAPTURE);
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
+    myLoadingPanel.add(myTree);
+    scrollPane.setViewportView(myLoadingPanel);
     myAtomTreeRenderer = new AtomTreeRenderer();
   }
 
@@ -80,6 +95,17 @@ public class AtomController implements GfxController {
     }
   }
 
+  @NotNull
+  public SimpleTree getTree() {
+    return myTree;
+  }
+
+  @Override
+  public void startLoad() {
+    myTree.getEmptyText().setText("");
+    myLoadingPanel.startLoading();
+  }
+
   @Override
   public void commitData(@NotNull GfxContextChangeState state) {
     myEnumInfoCache = state.myEnumInfoCache;
@@ -96,6 +122,13 @@ public class AtomController implements GfxController {
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
     myTree.setCellRenderer(myAtomTreeRenderer);
+
+    if (myAtomTreeRoot.getChildCount() == 0) {
+      myTree.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
+    }
+
+    myLoadingPanel.stopLoading();
+    myLoadingPanel.revalidate();
   }
 
   public void selectFrame(@NotNull AtomGroup group) {

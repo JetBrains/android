@@ -30,7 +30,6 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +46,6 @@ public class GfxTraceViewPanel implements Disposable {
   private JBPanel myDepthBuffer;
   private JPanel myMemoryPanel;
   private JPanel myImagePanel;
-  private SimpleTree myAtomTree;
   private JBList myScrubberList;
   private JBScrollPane myStateScrollPane;
   private JBScrollPane myScrubberScrollPane;
@@ -81,8 +79,8 @@ public class GfxTraceViewPanel implements Disposable {
     return myMemoryPanel;
   }
 
-  public SimpleTree getAtomTree() {
-    return myAtomTree;
+  public JBScrollPane getAtomScrollPane() {
+    return myAtomScrollPane;
   }
 
   public JBList getScrubberList() {
@@ -116,10 +114,6 @@ public class GfxTraceViewPanel implements Disposable {
 
   public JBScrollPane getScrubberScrollPane() {
     return myScrubberScrollPane;
-  }
-
-  public JBScrollPane getAtomScrollPane() {
-    return myAtomScrollPane;
   }
 
   public ComboBox getDeviceList() {
@@ -203,11 +197,10 @@ public class GfxTraceViewPanel implements Disposable {
     bufferWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     bufferWrapper.setContent(bufferTabs);
 
-    // Configure the Atom tree component.
-    JBScrollPane atomScrollPane = getAtomScrollPane();
+    // Configure the Atom tree container.
     Wrapper atomTreeWrapper = new Wrapper();
     atomTreeWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    atomTreeWrapper.setContent(atomScrollPane);
+    atomTreeWrapper.setContent(myAtomScrollPane);
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
