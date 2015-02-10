@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
