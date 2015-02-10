@@ -103,7 +103,7 @@ public class ThemeEditorUtils {
     ThemeEditorStyle currentStyle = style;
     while (currentStyle != null) {
       for (final ItemResourceValue value : currentStyle.getValues()) {
-        String itemName = ThemeResolver.getQualifiedItemName(value);
+        String itemName = StyleResolver.getQualifiedItemName(value);
         if (!namesSet.contains(itemName)) {
           allValues.add(new EditedStyleItem(value, currentStyle));
           namesSet.add(itemName);

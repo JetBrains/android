@@ -101,7 +101,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getName() {
-    return ThemeResolver.getQualifiedStyleName(myStyleData);
+    return StyleResolver.getQualifiedStyleName(myStyleData);
   }
 
   /**
@@ -130,7 +130,7 @@ public class ThemeEditorStyle {
       return null;
     }
 
-    return myThemeResolver.getStyle(ThemeResolver.getQualifiedStyleName(parent));
+    return myThemeResolver.getStyle(StyleResolver.getQualifiedStyleName(parent));
   }
 
   /**
@@ -229,6 +229,10 @@ public class ThemeEditorStyle {
   }
 
   public void setParent(@NotNull final String newParent) {
+    if (!isProjectStyle()) {
+      throw new UnsupportedOperationException("Non project styles can not be modified");
+    }
+
     final XmlTag tag = mySourceXml.get();
     if (tag == null) {
       LOG.warn("Unable to set parent, tag is null");
