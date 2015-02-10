@@ -37,18 +37,14 @@ public class AndroidThemePreviewPanel extends JComponent implements Scrollable {
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class.getName());
   private static final String THEME_PREVIEW_LAYOUT = "/themeEditor/sample_layout.xml";
 
-  private final AndroidFacet myFacet;
-  private final PsiFile myPsiFile;
   private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
   private ILayoutPullParser myParser;
   private Configuration myConfiguration;
 
-  public AndroidThemePreviewPanel(PsiFile psiFile, Configuration configuration) {
+  public AndroidThemePreviewPanel(Configuration configuration) {
     super();
 
-    myPsiFile = psiFile;
-    myFacet = AndroidFacet.getInstance(myPsiFile);
     myConfiguration = configuration;
 
     myDocument = null;

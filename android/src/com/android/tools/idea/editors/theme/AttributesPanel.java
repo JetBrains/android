@@ -23,7 +23,7 @@ import spantable.CellSpanTable;
 import javax.swing.*;
 import javax.swing.border.Border;
 
-public class ThemeEditorPanel {
+public class AttributesPanel {
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
 
   private JPanel myRightPanel;
@@ -36,7 +36,7 @@ public class ThemeEditorPanel {
   private CellSpanTable myPropertiesTable;
   private JBScrollPane myPropertiesScrollPane;
 
-  public ThemeEditorPanel() {
+  public AttributesPanel() {
     myParentThemeButton.setIcon(AllIcons.Actions.MoveUp);
     myNewThemeButton.setIcon(AllIcons.General.Add);
     myBackButton.setIcon(AllIcons.Actions.Back);
