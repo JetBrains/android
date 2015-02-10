@@ -82,8 +82,7 @@ import java.util.List;
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable,
-                                                                                     ConfigurableHost {
+public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
 
   private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
@@ -426,7 +425,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     c.repaint();
   }
 
-  @Override
   public void requestValidation() {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
