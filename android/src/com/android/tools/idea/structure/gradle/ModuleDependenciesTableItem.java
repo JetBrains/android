@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure;
+package com.android.tools.idea.structure.gradle;
 
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;

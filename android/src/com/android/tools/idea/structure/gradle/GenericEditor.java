@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure;
+package com.android.tools.idea.structure.gradle;
 
+import com.android.tools.idea.structure.EditorPanel;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
@@ -27,8 +28,9 @@ import javax.swing.*;
 import java.util.concurrent.Callable;
 
 /**
- * A project structure pane that lets you add and remove dependencies for individual modules. It is largely a wrapper for
- * {@linkplain ModuleDependenciesPanel}
+ * A class which wraps an {@link EditorPanel} while providing an implementation for
+ * {@link ModuleConfigurationEditor}. The wrapped panel shows up in the right-hand side of the
+ * Project Structure dialog and provides a way to edit some subset of a module's properties.
  */
 public class GenericEditor<E extends EditorPanel> implements ModuleConfigurationEditor {
   private static final Logger LOG = Logger.getInstance(GenericEditor.class);
