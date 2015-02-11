@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
@@ -71,6 +70,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.NonNavigatable;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
@@ -414,7 +414,7 @@ public class PostProjectSetupTasksExecutor {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
       // install any missing platforms.
       String text = "Open Android SDK Manager and install all missing platforms.";
-      Message hint = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, AbstractNavigatable.NOT_NAVIGATABLE, text);
+      Message hint = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, NonNavigatable.INSTANCE, text);
       messages.add(hint, new OpenAndroidSdkManagerHyperlink());
     }
   }

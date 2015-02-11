@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
-import com.intellij.codeInspection.ex.GlobalInspectionContextImpl;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.facet.FacetManager;
@@ -37,6 +36,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
+import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -245,7 +245,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     scope.invalidate();
 
     final InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
-    final GlobalInspectionContextImpl globalContext =
+    final GlobalInspectionContextForTests globalContext =
       CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext);

@@ -25,11 +25,11 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
@@ -46,6 +46,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -135,7 +136,7 @@ public class ProjectSyncMessages {
             msg = new Message(module.getProject(), group, severity, buildFile, -1, -1, text);
           }
           else {
-            msg = new Message(group, severity, AbstractNavigatable.NOT_NAVIGATABLE, text);
+            msg = new Message(group, severity, NonNavigatable.INSTANCE, text);
           }
           add(msg);
       }
@@ -208,7 +209,7 @@ public class ProjectSyncMessages {
       hyperlinks.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, lineNumber, column));
     }
     else {
-      msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+      msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
     }
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
