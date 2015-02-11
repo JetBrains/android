@@ -38,7 +38,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private final static Logger LOG = Logger.getInstance(AttributesTableModel.class);
 
   protected final List<EditedStyleItem> myAttributes;
-  private final List<TableLabel> myLabels;
+  private List<TableLabel> myLabels;
   private String myParentName;
   protected final ThemeEditorStyle mySelectedStyle;
   protected final AttributeDefinitions myAttributeDefinitions;
@@ -60,20 +60,24 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   /**
    * Constructor
    *
-   * @param attributes    List of attributes in the current selectedStyle
-   * @param labels        List of labels, should be in increasing order of .getRowPosition()
    * @param selectedStyle current selectedStyle
-   * @param parentName
    */
-  public AttributesTableModel(final List<EditedStyleItem> attributes,
-                              final List<TableLabel> labels,
-                              @NotNull ThemeEditorStyle selectedStyle,
-                              final @Nullable String parentName) {
-    myAttributes = attributes;
-    myLabels = labels;
-    myParentName = parentName;
+  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle) {
+    myAttributes = new ArrayList<EditedStyleItem>();
+    myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
     myAttributeDefinitions = selectedStyle.getResolver().getAttributeDefinitions();
+
+    ThemeEditorStyle parent = selectedStyle.getParent();
+    myParentName = (parent != null) ? parent.getName() : null;
+    reloadContent();
+  }
+
+  private void reloadContent() {
+    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle);
+    myAttributes.clear();
+    myLabels = AttributesSorter.generateLabels(rawAttributes, myAttributes);
+    fireTableStructureChanged();
   }
 
   public RowContents getRowContents(final int rowIndex) {
@@ -180,8 +184,10 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         throw new RuntimeException("Tried to setValue at parent attribute label");
       }
       else {
+        myParentName = (String)value;
         //Changes the value of Parent in XML
-        mySelectedStyle.setParent((String)value);
+        mySelectedStyle.setParent(myParentName);
+        reloadContent();
       }
     }
 
