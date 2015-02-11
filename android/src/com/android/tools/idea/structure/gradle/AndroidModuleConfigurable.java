@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure;
+package com.android.tools.idea.structure.gradle;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.structure.gradle.AndroidModuleEditor;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
