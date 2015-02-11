@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.rpclib.rpc.RenderSettings;
+import com.android.tools.idea.editors.gfxtrace.rpc.RenderSettings;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;

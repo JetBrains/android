@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.rpclib.rpc.*;
+import com.android.tools.idea.editors.gfxtrace.rpc.*;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.primitives.Longs;
 import com.intellij.openapi.application.ApplicationManager;

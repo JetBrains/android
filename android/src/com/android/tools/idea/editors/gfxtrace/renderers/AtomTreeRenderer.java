@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomTreeNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
-import com.android.tools.rpclib.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import org.jetbrains.annotations.NotNull;
 

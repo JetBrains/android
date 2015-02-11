@@ -13,26 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
+package com.android.tools.idea.editors.gfxtrace.schema;
 
+import com.android.tools.idea.editors.gfxtrace.rpc.EnumEntry;
 import com.android.tools.idea.editors.gfxtrace.rpc.EnumInfo;
-import com.android.tools.idea.editors.gfxtrace.rpc.Schema;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * A single enum value unpacked using a schema description.
+ */
+public class EnumValue {
+  public final EnumInfo info;
+  public final long value;
 
-public class EnumInfoCache {
-  @NotNull private Map<String, EnumInfo> myEnumLookup;
-
-  public EnumInfoCache(@NotNull Schema schema) {
-    myEnumLookup = new HashMap<String, EnumInfo>(schema.getEnums().length);
-    for (EnumInfo info : schema.getEnums()) {
-      myEnumLookup.put(info.getName(), info);
-    }
+  public EnumValue(EnumInfo info, long value) {
+    this.info = info;
+    this.value = value;
   }
 
-  public EnumInfo getInfo(@NotNull String enumName) {
-    return myEnumLookup.get(enumName);
+  @Override
+  public String toString() {
+    for (EnumEntry entry : info.getEntries()) {
+      if (entry.getValue() == value) {
+        return entry.getName();
+      }
+    }
+    return String.format("%s<%d>", info.getName(), value);
   }
 }
