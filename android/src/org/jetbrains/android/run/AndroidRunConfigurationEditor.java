@@ -81,12 +81,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox myUseLastSelectedDeviceCheckBox;
   private JRadioButton myRunTestsInGoogleCloudRadioButton;
 
-  private JPanel myCloudProjectActionsPanel;
-  private CloudProjectIdLabel myCloudProjectIdLabel;
-  private ActionButton myCloudProjectIdUpdateButton;
   private CloudMatrixConfigurationComboBox myCloudConfigurationCombo;
   private JBLabel myCloudProjectLabel;
   private JBLabel myMatrixConfigLabel;
+  private CloudProjectIdLabel myCloudProjectIdLabel;
+  private ActionButton myCloudProjectIdUpdateButton;
   @Nullable private final CloudTestConfigurationProvider myCloudConfigurationFactory;
 
   private AvdComboBox myAvdCombo;
@@ -112,13 +111,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     $$$setupUI$$$(); // Create UI components after myProject is available. Also see https://youtrack.jetbrains.com/issue/IDEA-67765
 
     myCloudConfigurationFactory = CloudTestConfigurationProvider.getCloudTestingProvider();
-    myCloudProjectIdLabel = new CloudProjectIdLabel();
-    AnAction action = new SelectCloudProjectAction();
-    myCloudProjectIdUpdateButton =
-      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", new Dimension(25, 25));
-
-    myCloudProjectActionsPanel.add(myCloudProjectIdLabel);
-    myCloudProjectActionsPanel.add(myCloudProjectIdUpdateButton);
 
     myCommandLineField.setDialogCaption("Emulator Additional Command Line Options");
 
@@ -203,6 +195,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myAvdComboComponent = new ComboboxWithBrowseButton(myAvdCombo.getComboBox());
 
+    myCloudProjectIdLabel = new CloudProjectIdLabel();
+    AnAction action = new SelectCloudProjectAction();
+    myCloudProjectIdUpdateButton =
+      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", new Dimension(25, 25));
     myCloudConfigurationCombo = new CloudMatrixConfigurationComboBox();
     Disposer.register(this, myCloudConfigurationCombo);
   }
