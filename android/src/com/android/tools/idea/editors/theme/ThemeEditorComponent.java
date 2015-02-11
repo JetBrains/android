@@ -504,12 +504,8 @@ public class ThemeEditorComponent extends Splitter {
     myBackButton.setVisible(myCurrentSubStyle != null);
     myConfiguration.setTheme(selectedTheme.getName());
 
-    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(selectedStyle);
-    final List<EditedStyleItem> attributes = new ArrayList<EditedStyleItem>();
-    final List<TableLabel> labels = AttributesSorter.generateLabels(rawAttributes, attributes);
 
-    final AttributesTableModel
-      model = new AttributesTableModel(attributes, labels, selectedStyle, parentStyle == null ? null : parentStyle.getName());
+    final AttributesTableModel model = new AttributesTableModel(selectedStyle);
 
     model.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
@@ -526,6 +522,23 @@ public class ThemeEditorComponent extends Splitter {
     model.addTableModelListener(new TableModelListener() {
       @Override
       public void tableChanged(TableModelEvent e) {
+
+        if (e.getType() == TableModelEvent.UPDATE && e.getLastRow() == TableModelEvent.HEADER_ROW) {
+          myPropertiesTable.setRowHeight(PROPERTIES_DEFAULT_ROW_HEIGHT);
+          for (int row = 0; row < model.getRowCount(); row++) {
+            final Class<?> cellClass = model.getCellClass(row, 0);
+            final Integer rowHeight = ROW_HEIGHTS.get(cellClass);
+            if (rowHeight != null) {
+              // TODO important colors should be taller then less important colors.
+              int viewRow = myPropertiesTable.convertRowIndexToView(row);
+
+              if (viewRow != -1) {
+                myPropertiesTable.setRowHeight(viewRow, rowHeight);
+              }
+            }
+          }
+        }
+
         if (myPreviewPanel != null) {
           // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
           // If we don't use invokeLater, the repaint will still see the previous cached PSI file value.
@@ -542,32 +555,14 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myPropertiesTable.setRowSorter(null); // Clean any previous row sorters.
-    myPropertiesTable.setModel(model);
-
     TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
     sorter.setRowFilter(myPropertiesFilter);
     myPropertiesTable.setRowSorter(sorter);
-
-    myPropertiesTable.setRowHeight(PROPERTIES_DEFAULT_ROW_HEIGHT);
-    for (int row = 0; row < model.getRowCount(); row++) {
-      final Class<?> cellClass = model.getCellClass(row, 0);
-      final Integer rowHeight = ROW_HEIGHTS.get(cellClass);
-      if (rowHeight != null) {
-        // TODO important colors should be taller then less important colors.
-        int viewRow = myPropertiesTable.convertRowIndexToView(row);
-
-        if (viewRow != -1) {
-          myPropertiesTable.setRowHeight(viewRow, rowHeight);
-        }
-      }
-    }
-
     myAdvancedFilterCheckBox.setSelected(myPropertiesFilter.myAdvancedMode);
 
-    if (myPreviewPanel != null) {
-      myPreviewPanel.updateConfiguration(myConfiguration);
-      myPreviewPanel.repaint();
-    }
+    myPropertiesTable.setModel(model);
+    //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
+    model.fireTableStructureChanged();
   }
 
   class StylePropertiesFilter extends RowFilter<AttributesTableModel, Integer> {
