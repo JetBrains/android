@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.rpclib.rpc.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.rpc.AtomGroup;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

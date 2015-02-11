@@ -19,7 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.controllers.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.controllers.ImageFetcher;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.RoundedLineBorder;
-import com.android.tools.rpclib.rpc.RenderSettings;
+import com.android.tools.idea.editors.gfxtrace.rpc.RenderSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.containers.HashSet;
