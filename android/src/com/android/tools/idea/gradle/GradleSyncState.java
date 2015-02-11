@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -101,7 +99,6 @@ public class GradleSyncState {
 
   public void syncStarted(boolean notifyUser) {
     cleanUpProjectPreferences();
-    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     synchronized (myLock) {
       mySyncInProgress = true;
       mySyncTransparentChangeInProgress = false;
@@ -148,7 +145,6 @@ public class GradleSyncState {
       mySyncTransparentChangeInProgress = false;
     }
     setLastGradleSyncTimestamp(System.currentTimeMillis());
-    StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     notifyUser();
   }
 
