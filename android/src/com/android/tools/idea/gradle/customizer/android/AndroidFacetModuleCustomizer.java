@@ -82,15 +82,15 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     syncSelectedVariantAndTestArtifact(facetState, ideaAndroidProject);
 
     // This code needs to be modified soon. Read the TODO in getRelativePath
-    File moduleDir = VfsUtilCore.virtualToIoFile(ideaAndroidProject.getRootDir());
+    File moduleDirPath = ideaAndroidProject.getRootDirPath();
     File manifestFile = sourceProvider.getManifestFile();
-    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDir, manifestFile);
+    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDirPath, manifestFile);
 
     Collection<File> resDirs = sourceProvider.getResDirectories();
-    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, resDirs);
+    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, resDirs);
 
     Collection<File> assetsDirs = sourceProvider.getAssetsDirectories();
-    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, assetsDirs);
+    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, assetsDirs);
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
     facet.syncSelectedVariantAndTestArtifact();
