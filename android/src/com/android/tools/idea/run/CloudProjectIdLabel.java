@@ -34,7 +34,7 @@ public class CloudProjectIdLabel extends JBLabel {
 
   // a cache of configuration selected by module, so that if the module selection changes back and forth, we retain
   // the appropriate selected project id
-  private Map<Module, String> myProjectByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  private static Map<Module, String> myProjectByModuleCache = Maps.newHashMapWithExpectedSize(5);
 
   public CloudProjectIdLabel() {
     updateCloudProjectId(CLOUD_PROJECT_PROMPT);
