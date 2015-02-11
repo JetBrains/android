@@ -55,11 +55,11 @@ import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
  */
-public class DefaultSdksConfigurable extends BaseConfigurable implements ValidationAwareConfigurable {
+public class DefaultSdksConfigurable extends BaseConfigurable {
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
 
-  @Nullable private final ConfigurableHost myHost;
+  @Nullable private final AndroidProjectStructureConfigurable myHost;
   @Nullable private final Project myProject;
 
   // These paths are system-dependent.
@@ -72,7 +72,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
 
   private DetailsComponent myDetailsComponent;
 
-  public DefaultSdksConfigurable(@Nullable ConfigurableHost host, @Nullable Project project) {
+  public DefaultSdksConfigurable(@Nullable AndroidProjectStructureConfigurable host, @Nullable Project project) {
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(new Dimension(700, 500));
@@ -309,7 +309,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
     return true;
   }
 
-  @Override
   @NotNull
   public List<ProjectConfigurationError> validateState() {
     List<ProjectConfigurationError> errors = Lists.newArrayList();
