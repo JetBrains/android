@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
-
-import com.android.SdkConstants;
-import com.android.utils.SdkUtils;
+import com.android.tools.idea.profiling.capture.CaptureType;
+import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -31,14 +29,19 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class HprofEditorProvider implements FileEditorProvider, DumbAware {
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
+public class HprofEditorProvider implements FileEditorProvider, DumbAware {
   @NonNls private static final String ID = "hprof-viewer";
+
+  public HprofEditorProvider() {
+    CaptureTypeService.getInstance().register(HprofCaptureType.class, new HprofCaptureType());
+  }
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)
-           && SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.EXT_HPROF);
+    CaptureType type = CaptureTypeService.getInstance().getType(HprofCaptureType.class);
+    return Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS) && type != null && type.isValidCapture(file);
   }
 
   @NotNull

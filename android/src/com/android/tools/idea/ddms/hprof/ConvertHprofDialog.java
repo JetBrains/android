@@ -28,18 +28,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 
-public class SaveHprofDialog extends DialogWrapper {
-  private static final String TITLE = AndroidBundle.message("android.ddms.actions.dump.hprof.savedialog.title");
+public class ConvertHprofDialog extends DialogWrapper {
+  private static final String TITLE = AndroidBundle.message("android.profiler.hprof.actions.conv.savedialog.title");
   private static String ourLastUsedPath = null;
-  private static boolean ourLastRunHprofConvSetting = true; // default to true as this is required to open the hprof in MAT or Your kit
 
   private final Project myProject;
 
   private JPanel myContentPane;
   private TextFieldWithBrowseButton myPathTextFieldWithButton;
-  private JCheckBox myHprofConvertCheckbox;
 
-  public SaveHprofDialog(@NotNull Project project) {
+  public ConvertHprofDialog(@NotNull Project project) {
     super(project);
     myProject = project;
     setTitle(TITLE);
@@ -47,8 +45,6 @@ public class SaveHprofDialog extends DialogWrapper {
     if (ourLastUsedPath != null) {
       myPathTextFieldWithButton.getTextField().setText(ourLastUsedPath);
     }
-
-    myHprofConvertCheckbox.setSelected(ourLastRunHprofConvSetting);
 
     myPathTextFieldWithButton.addActionListener(
       new SaveFileListener(myContentPane, myPathTextFieldWithButton, TITLE, SdkConstants.EXT_HPROF) {
@@ -101,16 +97,11 @@ public class SaveHprofDialog extends DialogWrapper {
   @Override
   protected void doOKAction() {
     ourLastUsedPath = myPathTextFieldWithButton.getText().trim();
-    ourLastRunHprofConvSetting = myHprofConvertCheckbox.isSelected();
     super.doOKAction();
   }
 
   @NotNull
   public File getHprofFile() {
     return new File(myPathTextFieldWithButton.getText().trim());
-  }
-
-  public boolean shouldConvertToHprof() {
-    return myHprofConvertCheckbox.isSelected();
   }
 }

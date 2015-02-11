@@ -16,6 +16,7 @@
 package com.android.tools.idea.profiling.view;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.ddms.hprof.RunHprofConvAndSaveAsAction;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.profiling.view.nodes.CaptureNode;
@@ -49,10 +50,13 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class CapturesToolWindow extends BulkFileListener.Adapter
   implements Disposable, HierarchyListener, CaptureService.CaptureListener, DataProvider, DeleteProvider {
+
+  @NotNull public static final DataKey<Capture[]> CAPTURE_ARRAY = DataKey.create("CaptureArray");
 
   @NotNull private final AbstractTreeBuilder myBuilder;
   @NotNull private final CapturesTreeStructure myStructure;
@@ -99,6 +103,8 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
     group.addSeparator();
     group.add(new RevealFileAction());
     group.add(new DeleteAction());
+    group.addSeparator();
+    group.add(new RunHprofConvAndSaveAsAction());
 
     return group;
   }
@@ -150,7 +156,8 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
           myConnection = myProject.getMessageBus().connect(myProject);
           myConnection.subscribe(VirtualFileManager.VFS_CHANGES, this);
         }
-      } else {
+      }
+      else {
         if (myConnection != null) {
           myConnection.disconnect();
           myConnection = null;
@@ -166,28 +173,46 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
     myTree.setSelectedNode(myBuilder, myStructure.getNode(capture), true);
   }
 
-  @Nullable
+  @NotNull
   private VirtualFile[] getSelectedFiles() {
-    SimpleNode[] nodes = myTree.getSelectedNodesIfUniform();
-    if (nodes.length > 0 && nodes[0] instanceof CaptureNode) {
-      VirtualFile[] files = new VirtualFile[nodes.length];
-      for (int i = 0; i < nodes.length; i++) {
-        files[i] = ((CaptureNode)nodes[i]).getCapture().getFile();
-      }
-      return files;
+    CaptureNode[] nodes = getSelectedCaptureNodes();
+    VirtualFile[] files = new VirtualFile[nodes.length];
+    for (int i = 0; i < nodes.length; ++i) {
+      files[i] = nodes[i].getCapture().getFile();
     }
-    return null;
+    return files;
+  }
+
+  @NotNull
+  private Capture[] getSelectedCaptures() {
+    CaptureNode[] nodes = getSelectedCaptureNodes();
+    Capture[] captures = new Capture[nodes.length];
+    for (int i = 0; i < nodes.length; ++i) {
+      captures[i] = nodes[i].getCapture();
+    }
+    return captures;
+  }
+
+  @NotNull
+  private CaptureNode[] getSelectedCaptureNodes() {
+    SimpleNode[] nodes = myTree.getSelectedNodesIfUniform();
+    return nodes.length > 0 && nodes[0] instanceof CaptureNode
+           ? Arrays.copyOf(nodes, nodes.length, CaptureNode[].class)
+           : new CaptureNode[0];
   }
 
   @Nullable
   @Override
   public Object getData(@NonNls String dataId) {
-    if (CommonDataKeys.VIRTUAL_FILE.getName().equals(dataId)) {
+    if (CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
       VirtualFile[] files = getSelectedFiles();
-      return files != null && files.length == 1 ? files[0] : null;
+      return files.length == 1 ? files[0] : null;
     }
-    else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName().equals(dataId)) {
+    else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
       return this;
+    }
+    else if (CAPTURE_ARRAY.is(dataId)) {
+      return getSelectedCaptures();
     }
     return null;
   }
@@ -195,7 +220,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
   @Override
   public void deleteElement(@NotNull DataContext dataContext) {
     final VirtualFile[] files = getSelectedFiles();
-    if (files != null) {
+    if (files.length > 0) {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {
         @Override
         public void run() {
@@ -214,6 +239,6 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
 
   @Override
   public boolean canDeleteElement(@NotNull DataContext dataContext) {
-    return getSelectedFiles() != null;
+    return getSelectedFiles().length > 0;
   }
 }
