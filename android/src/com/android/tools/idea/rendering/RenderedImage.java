@@ -443,7 +443,8 @@ public class RenderedImage {
               State state = myConfiguration.getDeviceState();
               if (state != null) {
                 // Scaling larger than 1
-                framePainter.paintFrame(g, device, state.getOrientation(), true, x + 1, y, scaledHeight);
+                boolean showEffects = settings.isShowEffects();
+                framePainter.paintFrame(g, device, state.getOrientation(), showEffects, x + 1, y, scaledHeight);
                 myThumbnailHasFrame = true;
                 return;
               } // else: fall through and do usual drop shadow painting
