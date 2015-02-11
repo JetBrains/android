@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -39,6 +38,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.NonNavigatable;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
@@ -102,7 +102,7 @@ final class ProjectJdkChecks {
           msg = new Message(project, groupName, Message.Type.ERROR, buildFile, lineNumber, column, text);
         }
         else {
-          msg = new Message(groupName, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+          msg = new Message(groupName, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
         }
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
