@@ -15,46 +15,13 @@
  */
 package com.android.tools.idea.editors.vmtrace;
 
-import com.android.tools.idea.profiling.capture.Capture;
-import com.android.tools.idea.profiling.capture.CaptureType;
-import com.android.utils.SdkUtils;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.android.tools.idea.profiling.capture.FileCaptureType;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import static com.android.ddmlib.DdmConstants.DOT_TRACE;
 
-public class VmTraceCaptureType extends CaptureType {
-  @NotNull
-  @Override
-  public String getName() {
-    return "Method Tracing";
-  }
-
-  @NotNull
-  @Override
-  public Icon getIcon() {
-    return AndroidIcons.Ddms.StartMethodProfiling;
-  }
-
-  @Override
-  public boolean isValidCapture(@NotNull VirtualFile file) {
-    return SdkUtils.endsWithIgnoreCase(file.getPath(), DOT_TRACE);
-  }
-
-  @NotNull
-  @Override
-  public String createCaptureFileName() {
-    return "Trace_" + (new SimpleDateFormat("yyyy.MM.dd_HH.mm.ss").format(new Date())) + DOT_TRACE;
-  }
-
-  @NotNull
-  @Override
-  protected Capture createCapture(@NotNull VirtualFile file) {
-    return new Capture(file, this);
+public class VmTraceCaptureType extends FileCaptureType {
+  protected VmTraceCaptureType() {
+    super("Method Tracing", AndroidIcons.Ddms.StartMethodProfiling, "Trace_", DOT_TRACE);
   }
 }
