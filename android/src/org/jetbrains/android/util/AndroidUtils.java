@@ -731,40 +731,7 @@ public class AndroidUtils {
 
   @NotNull
   public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
-    final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
-    collectAllAndroidDependencies(module, androidLibrariesOnly, result, new HashSet<AndroidFacet>());
-    return result;
-  }
-
-  private static void collectAllAndroidDependencies(Module module,
-                                                    boolean androidLibrariesOnly,
-                                                    List<AndroidFacet> result,
-                                                    Set<AndroidFacet> visited) {
-    final OrderEntry[] entries = ModuleRootManager.getInstance(module).getOrderEntries();
-    // loop in the inverse order to resolve dependencies on the libraries, so that if a library
-    // is required by two higher level libraries it can be inserted in the correct place
-
-    for (int i = entries.length - 1; i >= 0; i--) {
-      final OrderEntry orderEntry = entries[i];
-      if (orderEntry instanceof ModuleOrderEntry) {
-        final ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
-
-        if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
-          final Module depModule = moduleOrderEntry.getModule();
-
-          if (depModule != null) {
-            final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
-
-            if (depFacet != null &&
-                (!androidLibrariesOnly || depFacet.isLibraryProject()) &&
-                visited.add(depFacet)) {
-              collectAllAndroidDependencies(depModule, androidLibrariesOnly, result, visited);
-              result.add(0, depFacet);
-            }
-          }
-        }
-      }
-    }
+    return AndroidDependenciesCache.getInstance(module).getAllAndroidDependencies(androidLibrariesOnly);
   }
 
   @NotNull
