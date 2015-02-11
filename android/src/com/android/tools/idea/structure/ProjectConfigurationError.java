@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure;
+package com.android.tools.idea.structure;
 
 import com.intellij.openapi.roots.ui.configuration.ConfigurationError;
 import com.intellij.ui.awt.RelativePoint;
