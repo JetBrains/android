@@ -19,11 +19,12 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +34,9 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -44,17 +44,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class IdeaAndroidProject implements Serializable {
   @NotNull private final ProjectSystemId myProjectSystemId;
   @NotNull private final String myModuleName;
-  @NotNull private final VirtualFile myRootDir;
+  @NotNull private File myRootDirPath;
   @NotNull private final AndroidProject myDelegate;
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
 
+  private transient VirtualFile myRootDir;
+
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedTestArtifactName;
 
   @Nullable private Boolean myOverridesManifestPackage;
-  @Nullable private AndroidVersion myMinSdkVersion;
+  @Nullable private transient AndroidVersion myMinSdkVersion;
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
@@ -66,22 +68,19 @@ public class IdeaAndroidProject implements Serializable {
    * Creates a new {@link IdeaAndroidProject}.
    * @param projectSystemId     the external system used to build the project (e.g. Gradle).
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
-   * @param rootDir             the root directory of the imported Android-Gradle project.
+   * @param rootDirPath         the root directory of the imported Android-Gradle project.
    * @param delegate            imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
   public IdeaAndroidProject(@NotNull ProjectSystemId projectSystemId,
                             @NotNull String moduleName,
-                            @NotNull File rootDir,
+                            @NotNull File rootDirPath,
                             @NotNull AndroidProject delegate,
                             @NotNull String selectedVariantName,
                             @NotNull String selectedTestArtifactName) {
     myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
-    VirtualFile found = VfsUtil.findFileByIoFile(rootDir, true);
-    // the module's root directory can never be null.
-    assert found != null;
-    myRootDir = found;
+    myRootDirPath = rootDirPath;
     myDelegate = delegate;
 
     populateBuildTypesByName();
@@ -139,8 +138,16 @@ public class IdeaAndroidProject implements Serializable {
 
   @Nullable
   public BaseArtifact findSelectedTestArtifact(@NotNull Variant variant) {
-    Iterable<BaseArtifact> allExtraArtifacts = Iterables.concat(variant.getExtraAndroidArtifacts(), variant.getExtraJavaArtifacts());
-    for (BaseArtifact artifact : allExtraArtifacts) {
+    BaseArtifact artifact = getBaseArtifact(variant.getExtraAndroidArtifacts());
+    if (artifact != null) {
+      return artifact;
+    }
+    return getBaseArtifact(variant.getExtraJavaArtifacts());
+  }
+
+  @Nullable
+  private BaseArtifact getBaseArtifact(@NotNull Iterable<? extends BaseArtifact> artifacts) {
+    for (BaseArtifact artifact : artifacts) {
       if (getSelectedTestArtifactName().equals(artifact.getName())) {
         return artifact;
       }
@@ -156,6 +163,21 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull
   public String getModuleName() {
     return myModuleName;
+  }
+
+  /**
+   * @return the path of the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing
+   * the build.gradle file.
+   */
+  @NotNull
+  public File getRootDirPath() {
+    if (myRootDir == null) {
+      VirtualFile found = findFileByIoFile(myRootDirPath, true);
+      // the module's root directory can never be null.
+      assert found != null;
+      myRootDir = found;
+    }
+    return myRootDirPath;
   }
 
   /**
@@ -211,8 +233,7 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
-    checkArgument(selectedTestArtifactName.equals(AndroidProject.ARTIFACT_ANDROID_TEST)
-                  || selectedTestArtifactName.equals(AndroidProject.ARTIFACT_UNIT_TEST));
+    assert selectedTestArtifactName.equals(ARTIFACT_ANDROID_TEST) || selectedTestArtifactName.equals(ARTIFACT_UNIT_TEST);
     mySelectedTestArtifactName = selectedTestArtifactName;
   }
 
@@ -222,16 +243,16 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @NotNull
-  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> extraSourceProviders) {
-    ImmutableSet.Builder<SourceProvider> sourceProviders = ImmutableSet.builder();
+  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
+    Set<SourceProvider> providers = Sets.newHashSet();
 
-    for (SourceProviderContainer extraSourceProvider : extraSourceProviders) {
-      if (mySelectedTestArtifactName.equals(extraSourceProvider.getArtifactName())) {
-        sourceProviders.add(extraSourceProvider.getSourceProvider());
+    for (SourceProviderContainer container : containers) {
+      if (mySelectedTestArtifactName.equals(container.getArtifactName())) {
+        providers.add(container.getSourceProvider());
       }
     }
 
-    return sourceProviders.build();
+    return providers;
   }
 
   @NotNull
