@@ -842,7 +842,7 @@ public class RenderPreview implements Disposable {
   public boolean click(int x, int y) {
     if (y >= myTitleHeight && y < myTitleHeight + HEADER_HEIGHT) {
       int left = 0;
-      left += AllIcons.Actions.CloseNewHovered.getIconWidth();
+      left += AllIcons.Actions.CloseHovered.getIconWidth();
       if (x <= left) {
         // Delete
         myManager.deletePreview(this);
@@ -1025,8 +1025,8 @@ public class RenderPreview implements Disposable {
       y += 2;
 
       // Paint icons
-      AllIcons.Actions.CloseNewHovered.paintIcon(component, gc, left, y);
-      left += AllIcons.Actions.CloseNewHovered.getIconWidth();
+      AllIcons.Actions.CloseHovered.paintIcon(component, gc, left, y);
+      left += AllIcons.Actions.CloseHovered.getIconWidth();
 
       if (ZOOM_SUPPORT) {
         AndroidIcons.ZoomIn.paintIcon(component, gc, left, y);

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.service.notification.errors.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
@@ -26,6 +25,7 @@ import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNo
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -66,7 +66,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       handleError((ExternalSystemException)cause, notification, project);
     }
     if (notification.getNavigatable() == null) {
-      notification.setNavigatable(AbstractNavigatable.NOT_NAVIGATABLE);
+      notification.setNavigatable(NonNavigatable.INSTANCE);
     }
   }
 
