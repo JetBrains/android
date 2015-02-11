@@ -172,8 +172,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUiRegistry"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
 
-    <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
-
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler" parentId="project.propCompiler"
                          provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
