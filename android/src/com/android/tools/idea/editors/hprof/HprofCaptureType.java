@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.allocations;
+package com.android.tools.idea.editors.hprof;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
 import icons.AndroidIcons;
 
-public class AllocationCaptureType extends FileCaptureType {
-  protected AllocationCaptureType() {
-    super("Allocation Tracking", AndroidIcons.Ddms.AllocationTracker, "Allocations_", ".alloc");
+public class HprofCaptureType extends FileCaptureType {
+  protected HprofCaptureType() {
+    super("Heap snapshot", AndroidIcons.Ddms.DumpHprof, "Snapshot_", SdkConstants.DOT_HPROF);
   }
 }
