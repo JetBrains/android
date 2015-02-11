@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
-public class ImportedModule {
+import java.io.Serializable;
+
+public class ImportedModule implements Serializable {
   @NotNull private final String myName;
 
   public ImportedModule(@NotNull IdeaModule module) {

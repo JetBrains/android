@@ -215,11 +215,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
   private void selectSourceProvider(@NotNull SourceProvider sourceProvider, @NotNull IdeaAndroidProject gradleProject) {
     // Look up the resource directories inside this source set
-    VirtualFile moduleDir = gradleProject.getRootDir();
-    File ioModuleDir = VfsUtilCore.virtualToIoFile(moduleDir);
+    File moduleDirPath = gradleProject.getRootDirPath();
     File javaDir = findSrcDirectory(sourceProvider);
     if (javaDir != null) {
-      String javaPath = FileUtil.getRelativePath(ioModuleDir, javaDir);
+      String javaPath = FileUtil.getRelativePath(moduleDirPath, javaDir);
       if (javaPath != null) {
         javaPath = FileUtil.toSystemIndependentName(javaPath);
       }
@@ -228,7 +227,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     File resDir = findResDirectory(sourceProvider);
     if (resDir != null) {
-      String resPath = FileUtil.getRelativePath(ioModuleDir, resDir);
+      String resPath = FileUtil.getRelativePath(moduleDirPath, resDir);
       if (resPath != null) {
         resPath = FileUtil.toSystemIndependentName(resPath);
       }
@@ -237,13 +236,13 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     }
     File manifestDir = findManifestDirectory(sourceProvider);
     if (manifestDir != null) {
-      String manifestPath = FileUtil.getRelativePath(ioModuleDir, manifestDir);
+      String manifestPath = FileUtil.getRelativePath(moduleDirPath, manifestDir);
       myWizardState.put(ATTR_MANIFEST_DIR, manifestPath);
       myWizardState.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
     }
     File aidlDir = findAidlDir(sourceProvider);
     if (aidlDir != null) {
-      String aidlPath = FileUtil.getRelativePath(ioModuleDir, aidlDir);
+      String aidlPath = FileUtil.getRelativePath(moduleDirPath, aidlDir);
       myWizardState.put(ATTR_AIDL_DIR, aidlPath);
       myWizardState.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }

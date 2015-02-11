@@ -59,6 +59,7 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.IdeaGradleProject.newIdeaGradleProject;
 import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
@@ -95,7 +96,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+    if (androidProject != null && !isSupportedVersion(androidProject)) {
       String msg = getUnsupportedModelVersionErrorMsg(GradleModelVersionCheck.getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
