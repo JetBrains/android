@@ -16,10 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.ide.common.res2.ValueXmlHelper;
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
@@ -30,7 +27,7 @@ import java.util.List;
  * &lt; and &amp; it also escapes characters such as quotes necessary for Android
  *{@code <string>} elements.
  */
-public class FmEscapeXmlStringMethod implements TemplateMethodModel {
+public class FmEscapeXmlStringMethod implements TemplateMethodModelEx {
     @Override
     public TemplateModel exec(List args) throws TemplateModelException {
         if (args.size() != 1) {

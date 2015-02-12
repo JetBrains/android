@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
@@ -29,7 +26,7 @@ import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SU
  * Similar to {@link FmCamelCaseToUnderscoreMethod}, but strips off common class
  * suffixes such as "Activity", "Fragment", etc.
  */
-public class FmClassNameToResourceMethod implements TemplateMethodModel {
+public class FmClassNameToResourceMethod implements TemplateMethodModelEx {
     @Override
     public TemplateModel exec(List args) throws TemplateModelException {
         if (args.size() != 1) {
