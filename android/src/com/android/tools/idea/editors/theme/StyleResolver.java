@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
@@ -87,6 +88,14 @@ public class StyleResolver {
     return (style.isFramework() ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX : SdkConstants.STYLE_RESOURCE_PREFIX) + style.getName();
   }
 
+  /**
+   * Returns the item name, including the appropriate namespace.
+   */
+  @NotNull
+  public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
+    return (item.isFrameworkAttr() ? SdkConstants.ANDROID_PREFIX : "") + item.getName();
+  }
+
   @Nullable
   public AttributeDefinitions getAttributeDefinitions() {
     return myAttributeDefinition;
@@ -145,7 +154,7 @@ public class StyleResolver {
       });
     }
     catch (ExecutionException e) {
-      LOG.error("Unable to retrieve style", e);
+      LOG.warn("Unable to retrieve style", e);
     }
 
     return null;
