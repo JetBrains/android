@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.Log;
+import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.ddms.*;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.ddms.hprof.DumpHprofAction;
 import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -63,6 +63,9 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.logcat.AdbErrors;
+import org.jetbrains.android.logcat.AndroidLogcatConstants;
+import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.run.AndroidDebugRunner;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -83,7 +86,6 @@ import java.util.List;
 public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String TOOL_WINDOW_ID = AndroidBundle.message("android.logcat.title");
 
-  @NonNls private static final String DEVICE_PANEL_CONTENT = "DevicePanelContent";
   @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
@@ -94,8 +96,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     // The object that needs to be created is the content manager of the execution manager for this project.
     ExecutionManager.getInstance(project).getContentManager();
 
-    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create(
-      "ddms", "ddms", "ddms", project);
+    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create("Android", "Android", "Android", project);
 
     toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
     toolWindow.setAvailable(true, null);
@@ -112,6 +113,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     Content adbLogsContent = createAdbLogsContent(layoutUi, project);
+    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
 
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
     assert logcatView != null;
@@ -119,6 +121,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
+    layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
+
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
 
@@ -130,7 +134,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     loadingPanel.add(layoutUi.getComponent(), BorderLayout.CENTER);
 
     final ContentManager contentManager = toolWindow.getContentManager();
-    Content c = contentManager.getFactory().createContent(loadingPanel, "DDMS", true);
+    Content c = contentManager.getFactory().createContent(loadingPanel, "", true);
 
     // Store references to the logcat & device panel views, so that these views can be retrieved directly from
     // the DDMS tool window. (e.g. to clear logcat before a launch, select a particular device, etc)
@@ -183,6 +187,12 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     }, EdtExecutor.INSTANCE);
   }
 
+  private Content createMemoryContent(RunnerLayoutUi layoutUi, Project project, DeviceContext deviceContext) {
+    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext);
+    Content content = layoutUi.createContent("Memory", view.createComponent(), "Memory", AndroidIcons.MemoryMonitor, null);
+    content.setCloseable(false);
+    return content;
+  }
 
   @NotNull
   public ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
@@ -195,15 +205,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     group.add(new Separator());
 
     group.add(new TerminateVMAction(deviceContext));
-    group.add(new GcAction(deviceContext));
-    group.add(new DumpHprofAction(deviceContext));
     //group.add(new MyAllocationTrackerAction());
     //group.add(new Separator());
 
     group.add(new ToggleMethodProfilingAction(project, deviceContext));
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
-
-    group.add(new ToggleAllocationTrackingAction(deviceContext));
 
     return group;
   }

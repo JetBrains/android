@@ -27,7 +27,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
