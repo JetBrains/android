@@ -26,13 +26,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class Schema implements BinaryObject {
-  ArrayInfo[] Arrays;
-  MapInfo[] Maps;
-  EnumInfo[] Enums;
-  StructInfo[] Structs;
-  ClassInfo[] Classes;
-  AtomInfo[] Atoms;
-  StructInfo State;
+  ArrayInfo[] myArrays;
+  MapInfo[] myMaps;
+  EnumInfo[] myEnums;
+  StructInfo[] myStructs;
+  ClassInfo[] myClasses;
+  AtomInfo[] myAtoms;
+  StructInfo myState;
 
   // Constructs a default-initialized {@link Schema}.
   public Schema() {
@@ -43,62 +43,60 @@ public class Schema implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public ArrayInfo[] getArrays() {
-    return Arrays;
+    return myArrays;
   }
 
-  // Setters
   public void setArrays(ArrayInfo[] v) {
-    Arrays = v;
+    myArrays = v;
   }
 
   public MapInfo[] getMaps() {
-    return Maps;
+    return myMaps;
   }
 
   public void setMaps(MapInfo[] v) {
-    Maps = v;
+    myMaps = v;
   }
 
   public EnumInfo[] getEnums() {
-    return Enums;
+    return myEnums;
   }
 
   public void setEnums(EnumInfo[] v) {
-    Enums = v;
+    myEnums = v;
   }
 
   public StructInfo[] getStructs() {
-    return Structs;
+    return myStructs;
   }
 
   public void setStructs(StructInfo[] v) {
-    Structs = v;
+    myStructs = v;
   }
 
   public ClassInfo[] getClasses() {
-    return Classes;
+    return myClasses;
   }
 
   public void setClasses(ClassInfo[] v) {
-    Classes = v;
+    myClasses = v;
   }
 
   public AtomInfo[] getAtoms() {
-    return Atoms;
+    return myAtoms;
   }
 
   public void setAtoms(AtomInfo[] v) {
-    Atoms = v;
+    myAtoms = v;
   }
 
   public StructInfo getState() {
-    return State;
+    return myState;
   }
 
   public void setState(StructInfo v) {
-    State = v;
+    myState = v;
   }
 
   @Override

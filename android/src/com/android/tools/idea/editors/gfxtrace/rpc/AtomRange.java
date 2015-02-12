@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class AtomRange implements BinaryObject {
-  long First;
-  long Count;
+  long myFirst;
+  long myCount;
 
   // Constructs a default-initialized {@link AtomRange}.
   public AtomRange() {
@@ -38,22 +38,20 @@ public class AtomRange implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public long getFirst() {
-    return First;
+    return myFirst;
   }
 
-  // Setters
   public void setFirst(long v) {
-    First = v;
+    myFirst = v;
   }
 
   public long getCount() {
-    return Count;
+    return myCount;
   }
 
   public void setCount(long v) {
-    Count = v;
+    myCount = v;
   }
 
   @Override

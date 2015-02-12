@@ -26,13 +26,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class Device implements BinaryObject {
-  String Name;
-  String Model;
-  String OS;
-  short PointerSize;
-  short PointerAlignment;
-  long MaxMemorySize;
-  boolean RequiresShaderPatching;
+  String myName;
+  String myModel;
+  String myOS;
+  byte myPointerSize;
+  byte myPointerAlignment;
+  long myMaxMemorySize;
+  boolean myRequiresShaderPatching;
 
   // Constructs a default-initialized {@link Device}.
   public Device() {
@@ -43,62 +43,60 @@ public class Device implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public String getModel() {
-    return Model;
+    return myModel;
   }
 
   public void setModel(String v) {
-    Model = v;
+    myModel = v;
   }
 
   public String getOS() {
-    return OS;
+    return myOS;
   }
 
   public void setOS(String v) {
-    OS = v;
+    myOS = v;
   }
 
-  public short getPointerSize() {
-    return PointerSize;
+  public byte getPointerSize() {
+    return myPointerSize;
   }
 
-  public void setPointerSize(short v) {
-    PointerSize = v;
+  public void setPointerSize(byte v) {
+    myPointerSize = v;
   }
 
-  public short getPointerAlignment() {
-    return PointerAlignment;
+  public byte getPointerAlignment() {
+    return myPointerAlignment;
   }
 
-  public void setPointerAlignment(short v) {
-    PointerAlignment = v;
+  public void setPointerAlignment(byte v) {
+    myPointerAlignment = v;
   }
 
   public long getMaxMemorySize() {
-    return MaxMemorySize;
+    return myMaxMemorySize;
   }
 
   public void setMaxMemorySize(long v) {
-    MaxMemorySize = v;
+    myMaxMemorySize = v;
   }
 
   public boolean getRequiresShaderPatching() {
-    return RequiresShaderPatching;
+    return myRequiresShaderPatching;
   }
 
   public void setRequiresShaderPatching(boolean v) {
-    RequiresShaderPatching = v;
+    myRequiresShaderPatching = v;
   }
 
   @Override

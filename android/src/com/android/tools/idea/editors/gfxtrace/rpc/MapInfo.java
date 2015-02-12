@@ -25,10 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class MapInfo implements TypeInfo {
-  String Name;
-  TypeKind Kind;
-  TypeInfo KeyType;
-  TypeInfo ValueType;
+  String myName;
+  TypeKind myKind;
+  TypeInfo myKeyType;
+  TypeInfo myValueType;
 
   // Constructs a default-initialized {@link MapInfo}.
   public MapInfo() {
@@ -39,42 +39,40 @@ public class MapInfo implements TypeInfo {
     decode(d);
   }
 
-  // Getters
   @Override
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   @Override
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   @Override
   public TypeKind getKind() {
-    return Kind;
+    return myKind;
   }
 
   @Override
   public void setKind(TypeKind v) {
-    Kind = v;
+    myKind = v;
   }
 
   public TypeInfo getKeyType() {
-    return KeyType;
+    return myKeyType;
   }
 
   public void setKeyType(TypeInfo v) {
-    KeyType = v;
+    myKeyType = v;
   }
 
   public TypeInfo getValueType() {
-    return ValueType;
+    return myValueType;
   }
 
   public void setValueType(TypeInfo v) {
-    ValueType = v;
+    myValueType = v;
   }
 
   @Override

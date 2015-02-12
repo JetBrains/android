@@ -101,6 +101,8 @@ public class Unpack {
       }
       case Pointer:
         return decoder.uint64();
+      case Memory:
+        return "<Memory>";
       case Any:
         LOG.error("'Any' type not yet implemented.");
         return "";
