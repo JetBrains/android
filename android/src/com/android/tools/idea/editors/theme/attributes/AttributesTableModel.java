@@ -198,7 +198,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public boolean isCellEditable(int column) {
-      return (column == 1 && myParentName != null);
+      return (column == 1 && !mySelectedStyle.isReadOnly());
     }
   }
 
