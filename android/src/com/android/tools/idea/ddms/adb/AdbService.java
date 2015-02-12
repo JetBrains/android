@@ -25,7 +25,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.logcat.AdbErrors;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
