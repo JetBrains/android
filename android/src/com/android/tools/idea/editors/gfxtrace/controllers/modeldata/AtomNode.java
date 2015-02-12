@@ -34,7 +34,7 @@ public class AtomNode extends AtomTreeNode {
   private long myId;
 
   public AtomNode(long id) {
-    this.myId = id;
+    myId = id;
   }
 
   public long getRepresentativeAtomId() {
@@ -48,7 +48,7 @@ public class AtomNode extends AtomTreeNode {
                                        @NotNull AtomReader atomReader) {
     Atom atom;
     try {
-      atom = atomReader.read(this.myId);
+      atom = atomReader.read(myId);
     }
     catch (IOException e) {
       LOG.error(e);
@@ -56,7 +56,7 @@ public class AtomNode extends AtomTreeNode {
     }
 
     List<TextPiece> textPieces = new ArrayList<TextPiece>();
-    textPieces.add(new TextPiece(Long.toString(this.myId) + "   ", SimpleTextAttributes.REGULAR_ATTRIBUTES));
+    textPieces.add(new TextPiece(Long.toString(myId) + "   ", SimpleTextAttributes.REGULAR_ATTRIBUTES));
     textPieces.add(new TextPiece(atom.info.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
 
     for (int i = 0; i < atom.info.getParameters().length; ++i) {

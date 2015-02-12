@@ -30,13 +30,13 @@ public class ImageFetcher {
   @NotNull private Client myClient;
   private DeviceId myDeviceId;
   private CaptureId myCaptureId;
-  private Long myContextId;
+  private Integer myContextId;
 
   public ImageFetcher(@NotNull Client client) {
     myClient = client;
   }
 
-  public void prepareFetch(@NotNull DeviceId deviceId, @NotNull CaptureId captureId, @NotNull Long contextId) {
+  public void prepareFetch(@NotNull DeviceId deviceId, @NotNull CaptureId captureId, @NotNull Integer contextId) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     myDeviceId = deviceId;
     myCaptureId = captureId;

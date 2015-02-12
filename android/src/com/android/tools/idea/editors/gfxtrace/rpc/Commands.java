@@ -48,7 +48,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      CaptureId[] value;
+      CaptureId[] myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -90,7 +90,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      DeviceId[] value;
+      DeviceId[] myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -112,17 +112,17 @@ final class Commands {
 
   static final class GetState {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      CaptureId capture;
-      long contextId;
-      long after;
+      CaptureId myCapture;
+      int myContextId;
+      long myAfter;
 
       Call() {
       }
 
-      Call(CaptureId capture, long contextId, long after) {
-        this.capture = capture;
-        this.contextId = contextId;
-        this.after = after;
+      Call(CaptureId capture, int contextId, long after) {
+        myCapture = capture;
+        myContextId = contextId;
+        myAfter = after;
       }
 
       @Override
@@ -142,7 +142,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      BinaryId value;
+      BinaryId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -164,15 +164,15 @@ final class Commands {
 
   static final class GetHierarchy {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      CaptureId capture;
-      long contextId;
+      CaptureId myCapture;
+      int myContextId;
 
       Call() {
       }
 
-      Call(CaptureId capture, long contextId) {
-        this.capture = capture;
-        this.contextId = contextId;
+      Call(CaptureId capture, int contextId) {
+        myCapture = capture;
+        myContextId = contextId;
       }
 
       @Override
@@ -192,7 +192,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      HierarchyId value;
+      HierarchyId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -214,19 +214,19 @@ final class Commands {
 
   static final class GetMemoryInfo {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      CaptureId capture;
-      long contextId;
-      long after;
-      MemoryRange rng;
+      CaptureId myCapture;
+      int myContextId;
+      long myAfter;
+      MemoryRange myRng;
 
       Call() {
       }
 
-      Call(CaptureId capture, long contextId, long after, MemoryRange rng) {
-        this.capture = capture;
-        this.contextId = contextId;
-        this.after = after;
-        this.rng = rng;
+      Call(CaptureId capture, int contextId, long after, MemoryRange rng) {
+        myCapture = capture;
+        myContextId = contextId;
+        myAfter = after;
+        myRng = rng;
       }
 
       @Override
@@ -246,7 +246,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      MemoryInfoId value;
+      MemoryInfoId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -268,21 +268,21 @@ final class Commands {
 
   static final class GetFramebufferColor {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      DeviceId device;
-      CaptureId capture;
-      long contextId;
-      long after;
-      RenderSettings settings;
+      DeviceId myDevice;
+      CaptureId myCapture;
+      int myContextId;
+      long myAfter;
+      RenderSettings mySettings;
 
       Call() {
       }
 
-      Call(DeviceId device, CaptureId capture, long contextId, long after, RenderSettings settings) {
-        this.device = device;
-        this.capture = capture;
-        this.contextId = contextId;
-        this.after = after;
-        this.settings = settings;
+      Call(DeviceId device, CaptureId capture, int contextId, long after, RenderSettings settings) {
+        myDevice = device;
+        myCapture = capture;
+        myContextId = contextId;
+        myAfter = after;
+        mySettings = settings;
       }
 
       @Override
@@ -302,7 +302,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      ImageInfoId value;
+      ImageInfoId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -324,19 +324,19 @@ final class Commands {
 
   static final class GetFramebufferDepth {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      DeviceId device;
-      CaptureId capture;
-      long contextId;
-      long after;
+      DeviceId myDevice;
+      CaptureId myCapture;
+      int myContextId;
+      long myAfter;
 
       Call() {
       }
 
-      Call(DeviceId device, CaptureId capture, long contextId, long after) {
-        this.device = device;
-        this.capture = capture;
-        this.contextId = contextId;
-        this.after = after;
+      Call(DeviceId device, CaptureId capture, int contextId, long after) {
+        myDevice = device;
+        myCapture = capture;
+        myContextId = contextId;
+        myAfter = after;
       }
 
       @Override
@@ -356,7 +356,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      ImageInfoId value;
+      ImageInfoId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -378,17 +378,17 @@ final class Commands {
 
   static final class GetGlErrorCodes {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      DeviceId device;
-      CaptureId capture;
-      long contextId;
+      DeviceId myDevice;
+      CaptureId myCapture;
+      int myContextId;
 
       Call() {
       }
 
-      Call(DeviceId device, CaptureId capture, long contextId) {
-        this.device = device;
-        this.capture = capture;
-        this.contextId = contextId;
+      Call(DeviceId device, CaptureId capture, int contextId) {
+        myDevice = device;
+        myCapture = capture;
+        myContextId = contextId;
       }
 
       @Override
@@ -408,7 +408,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      BinaryId value;
+      BinaryId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -430,19 +430,19 @@ final class Commands {
 
   static final class ReplaceAtom {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      CaptureId capture;
-      long atomId;
-      int atomType;
-      Binary data;
+      CaptureId myCapture;
+      long myAtomId;
+      short myAtomType;
+      Binary myData;
 
       Call() {
       }
 
-      Call(CaptureId capture, long atomId, int atomType, Binary data) {
-        this.capture = capture;
-        this.atomId = atomId;
-        this.atomType = atomType;
-        this.data = data;
+      Call(CaptureId capture, long atomId, short atomType, Binary data) {
+        myCapture = capture;
+        myAtomId = atomId;
+        myAtomType = atomType;
+        myData = data;
       }
 
       @Override
@@ -462,7 +462,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      CaptureId value;
+      CaptureId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -484,19 +484,19 @@ final class Commands {
 
   static final class GetTimingInfo {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      DeviceId device;
-      CaptureId capture;
-      long contextId;
-      TimingMask mask;
+      DeviceId myDevice;
+      CaptureId myCapture;
+      int myContextId;
+      TimingMask myMask;
 
       Call() {
       }
 
-      Call(DeviceId device, CaptureId capture, long contextId, TimingMask mask) {
-        this.device = device;
-        this.capture = capture;
-        this.contextId = contextId;
-        this.mask = mask;
+      Call(DeviceId device, CaptureId capture, int contextId, TimingMask mask) {
+        myDevice = device;
+        myCapture = capture;
+        myContextId = contextId;
+        myMask = mask;
       }
 
       @Override
@@ -516,7 +516,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      TimingInfoId value;
+      TimingInfoId myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -538,13 +538,13 @@ final class Commands {
 
   static final class ResolveAtomStream {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      AtomStreamId id;
+      AtomStreamId myId;
 
       Call() {
       }
 
       Call(AtomStreamId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -564,7 +564,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      AtomStream value;
+      AtomStream myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -586,13 +586,13 @@ final class Commands {
 
   static final class ResolveBinary {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      BinaryId id;
+      BinaryId myId;
 
       Call() {
       }
 
       Call(BinaryId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -612,7 +612,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      Binary value;
+      Binary myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -634,13 +634,13 @@ final class Commands {
 
   static final class ResolveCapture {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      CaptureId id;
+      CaptureId myId;
 
       Call() {
       }
 
       Call(CaptureId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -660,7 +660,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      Capture value;
+      Capture myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -682,13 +682,13 @@ final class Commands {
 
   static final class ResolveDevice {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      DeviceId id;
+      DeviceId myId;
 
       Call() {
       }
 
       Call(DeviceId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -708,7 +708,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      Device value;
+      Device myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -730,13 +730,13 @@ final class Commands {
 
   static final class ResolveHierarchy {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      HierarchyId id;
+      HierarchyId myId;
 
       Call() {
       }
 
       Call(HierarchyId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -756,7 +756,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      Hierarchy value;
+      Hierarchy myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -778,13 +778,13 @@ final class Commands {
 
   static final class ResolveImageInfo {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      ImageInfoId id;
+      ImageInfoId myId;
 
       Call() {
       }
 
       Call(ImageInfoId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -804,7 +804,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      ImageInfo value;
+      ImageInfo myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -826,13 +826,13 @@ final class Commands {
 
   static final class ResolveMemoryInfo {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      MemoryInfoId id;
+      MemoryInfoId myId;
 
       Call() {
       }
 
       Call(MemoryInfoId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -852,7 +852,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      MemoryInfo value;
+      MemoryInfo myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -874,13 +874,13 @@ final class Commands {
 
   static final class ResolveSchema {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      SchemaId id;
+      SchemaId myId;
 
       Call() {
       }
 
       Call(SchemaId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -900,7 +900,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      Schema value;
+      Schema myValue;
 
       @Override
       public ObjectTypeID type() {
@@ -922,13 +922,13 @@ final class Commands {
 
   static final class ResolveTimingInfo {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      TimingInfoId id;
+      TimingInfoId myId;
 
       Call() {
       }
 
       Call(TimingInfoId id) {
-        this.id = id;
+        myId = id;
       }
 
       @Override
@@ -948,7 +948,7 @@ final class Commands {
     }
 
     static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      TimingInfo value;
+      TimingInfo myValue;
 
       @Override
       public ObjectTypeID type() {

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class Hierarchy implements BinaryObject {
-  AtomGroup Root;
+  AtomGroup myRoot;
 
   // Constructs a default-initialized {@link Hierarchy}.
   public Hierarchy() {
@@ -37,14 +37,12 @@ public class Hierarchy implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public AtomGroup getRoot() {
-    return Root;
+    return myRoot;
   }
 
-  // Setters
   public void setRoot(AtomGroup v) {
-    Root = v;
+    myRoot = v;
   }
 
   @Override

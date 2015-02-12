@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class AtomTimer implements BinaryObject {
-  long AtomId;
-  long Nanoseconds;
+  long myAtomId;
+  long myNanoseconds;
 
   // Constructs a default-initialized {@link AtomTimer}.
   public AtomTimer() {
@@ -38,22 +38,20 @@ public class AtomTimer implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public long getAtomId() {
-    return AtomId;
+    return myAtomId;
   }
 
-  // Setters
   public void setAtomId(long v) {
-    AtomId = v;
+    myAtomId = v;
   }
 
   public long getNanoseconds() {
-    return Nanoseconds;
+    return myNanoseconds;
   }
 
   public void setNanoseconds(long v) {
-    Nanoseconds = v;
+    myNanoseconds = v;
   }
 
   @Override

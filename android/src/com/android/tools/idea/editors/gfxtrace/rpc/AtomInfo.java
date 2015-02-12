@@ -26,13 +26,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class AtomInfo implements BinaryObject {
-  int Type;
-  String Name;
-  ParameterInfo[] Parameters;
-  boolean IsCommand;
-  boolean IsDrawCall;
-  boolean IsEndOfFrame;
-  String DocumentationUrl;
+  short myType;
+  String myName;
+  ParameterInfo[] myParameters;
+  boolean myIsCommand;
+  boolean myIsDrawCall;
+  boolean myIsEndOfFrame;
+  String myDocumentationUrl;
 
   // Constructs a default-initialized {@link AtomInfo}.
   public AtomInfo() {
@@ -43,62 +43,60 @@ public class AtomInfo implements BinaryObject {
     decode(d);
   }
 
-  // Getters
-  public int getType() {
-    return Type;
+  public short getType() {
+    return myType;
   }
 
-  // Setters
-  public void setType(int v) {
-    Type = v;
+  public void setType(short v) {
+    myType = v;
   }
 
   public String getName() {
-    return Name;
+    return myName;
   }
 
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public ParameterInfo[] getParameters() {
-    return Parameters;
+    return myParameters;
   }
 
   public void setParameters(ParameterInfo[] v) {
-    Parameters = v;
+    myParameters = v;
   }
 
   public boolean getIsCommand() {
-    return IsCommand;
+    return myIsCommand;
   }
 
   public void setIsCommand(boolean v) {
-    IsCommand = v;
+    myIsCommand = v;
   }
 
   public boolean getIsDrawCall() {
-    return IsDrawCall;
+    return myIsDrawCall;
   }
 
   public void setIsDrawCall(boolean v) {
-    IsDrawCall = v;
+    myIsDrawCall = v;
   }
 
   public boolean getIsEndOfFrame() {
-    return IsEndOfFrame;
+    return myIsEndOfFrame;
   }
 
   public void setIsEndOfFrame(boolean v) {
-    IsEndOfFrame = v;
+    myIsEndOfFrame = v;
   }
 
   public String getDocumentationUrl() {
-    return DocumentationUrl;
+    return myDocumentationUrl;
   }
 
   public void setDocumentationUrl(String v) {
-    DocumentationUrl = v;
+    myDocumentationUrl = v;
   }
 
   @Override
