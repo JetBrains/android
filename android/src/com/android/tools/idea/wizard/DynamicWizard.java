@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -183,7 +184,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * If the this wizard is a global one, the function returns null.
    */
   @Nullable
-  protected final Project getProject() {
+  protected Project getProject() {
     return myProject;
   }
 
@@ -616,18 +617,22 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
     @Override
     protected void run(@NotNull Result<Void> result) throws Throwable {
-      for (AndroidStudioWizardPath path : myPaths) {
-        if (path.isPathVisible()) {
-          path.performFinishingActions();
-        }
-      }
-      performFinishingActions();
+      doFinish();
     }
 
     @Override
     protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
       return DynamicWizard.this.getUndoConfirmationPolicy();
     }
+  }
+
+  protected void doFinish() throws IOException {
+    for (AndroidStudioWizardPath path : myPaths) {
+      if (path.isPathVisible()) {
+        path.performFinishingActions();
+      }
+    }
+    performFinishingActions();
   }
 
   private class WizardUpdate extends Update {
