@@ -17,11 +17,13 @@
 package org.jetbrains.android.logcat;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.Log;
-import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.*;
+import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.ddms.hprof.DumpHprofAction;
+import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -34,7 +36,10 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -50,6 +55,8 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
@@ -97,29 +104,30 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     DeviceContext deviceContext = new DeviceContext();
 
-    Content devicesContent = createDeviceContent(layoutUi, project, deviceContext);
+    ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
+    ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
+    ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
+
+    DevicePanel devicePanel = new DevicePanel(project, deviceContext);
+
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     Content adbLogsContent = createAdbLogsContent(layoutUi, project);
 
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
-    final DevicePanel devicePanel = devicesContent.getUserData(DEVICES_PANEL_KEY);
-
     assert logcatView != null;
-    assert devicePanel != null;
+    logcatContent.setSearchComponent(logcatView.createSearchComponent());
 
-    // The search component is used only from the first content in a tab, so we set it on
-    // the devicesContent instead of logcatContent
-    devicesContent.setSearchComponent(logcatView.createSearchComponent(project));
-
-    layoutUi.addContent(devicesContent, 0, PlaceInGrid.left, false);
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
 
-    layoutUi.getOptions().setLeftToolbar(devicePanel.getToolbarActions(), ActionPlaces.UNKNOWN);
-    layoutUi.getOptions().setTopToolbar(logcatView.getToolbarActions(), ActionPlaces.UNKNOWN);
+    layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    loadingPanel.add(layoutUi.getComponent());
+
+    JPanel panel = devicePanel.getComponent();
+    panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    loadingPanel.add(panel, BorderLayout.NORTH);
+    loadingPanel.add(layoutUi.getComponent(), BorderLayout.CENTER);
 
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(loadingPanel, "DDMS", true);
@@ -175,19 +183,29 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     }, EdtExecutor.INSTANCE);
   }
 
-  private static Content createDeviceContent(RunnerLayoutUi layoutUi,
-                                             Project project,
-                                             DeviceContext deviceContext) {
-    DevicePanel devicePanel = new DevicePanel(project, deviceContext);
-    Content devicesContent = layoutUi.createContent(
-      DEVICE_PANEL_CONTENT,
-      devicePanel.getContentPanel(),
-      AndroidBundle.message("android.ddms.devicepanel.title"),
-      AndroidIcons.Android,
-      null);
-    devicesContent.setCloseable(false);
-    devicesContent.putUserData(DEVICES_PANEL_KEY, devicePanel);
-    return devicesContent;
+
+  @NotNull
+  public ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    group.add(new ScreenshotAction(project, deviceContext));
+    group.add(new ScreenRecorderAction(project, deviceContext));
+    group.add(DumpSysActions.create(project, deviceContext));
+    //group.add(new MyFileExplorerAction());
+    group.add(new Separator());
+
+    group.add(new TerminateVMAction(deviceContext));
+    group.add(new GcAction(deviceContext));
+    group.add(new DumpHprofAction(deviceContext));
+    //group.add(new MyAllocationTrackerAction());
+    //group.add(new Separator());
+
+    group.add(new ToggleMethodProfilingAction(project, deviceContext));
+    //group.add(new MyThreadDumpAction()); // thread dump -> systrace
+
+    group.add(new ToggleAllocationTrackingAction(deviceContext));
+
+    return group;
   }
 
   private static Content createLogcatContent(RunnerLayoutUi layoutUi,
