@@ -28,8 +28,12 @@ import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -52,6 +56,7 @@ import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY
 public class NewProjectWizardDynamic extends DynamicWizard {
   private static final String ERROR_MSG_TITLE = "Error in New Project Wizard";
   private final List<File> myFilesToOpen = Lists.newArrayList();
+  private Project myProject;
 
   public NewProjectWizardDynamic(@Nullable Project project, @Nullable Module module) {
     super(project, module, "New Project");
@@ -62,9 +67,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   public void init() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
-      String msg =
-        "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
-        "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
+      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
+                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
     }
@@ -200,5 +204,21 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
       LOG.error(e);
     }
+  }
+
+  @Override
+  protected void doFinish() throws IOException {
+    String location = myState.get(PROJECT_LOCATION_KEY);
+    String name = myState.get(APPLICATION_NAME_KEY);
+    assert location != null && name != null;
+    VfsUtil.createDirectoryIfMissing(location);
+    myProject = ProjectManager.getInstance().createProject(name, location);
+    super.doFinish();
+  }
+
+  @Nullable
+  @Override
+  protected Project getProject() {
+    return myProject;
   }
 }

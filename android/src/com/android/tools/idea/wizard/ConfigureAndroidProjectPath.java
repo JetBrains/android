@@ -27,15 +27,13 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,27 +110,19 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
 
   @Override
   public boolean performFinishingActions() {
-    String projectLocation = myState.get(WizardConstants.PROJECT_LOCATION_KEY);
-    if (projectLocation != null) {
-      try {
-        VirtualFile vf = VfsUtil.createDirectories(projectLocation);
-        File projectRoot = VfsUtilCore.virtualToIoFile(vf);
-        Template projectTemplate = Template.createFromName(CATEGORY_PROJECTS, NewProjectWizardState.PROJECT_TEMPLATE_NAME);
-        projectTemplate.render(projectRoot, projectRoot, myState.flatten());
-        try {
-          setGradleWrapperExecutable(projectRoot);
-        }
-        catch (IOException e) {
-          LOG.error(e);
-          return false;
-        }
-        return true;
-      }
-      catch (IOException e) {
-        // TODO: Complain
-      }
+    try {
+      Project project = getProject();
+      assert project != null;
+      File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+      Template projectTemplate = Template.createFromName(CATEGORY_PROJECTS, NewProjectWizardState.PROJECT_TEMPLATE_NAME);
+      projectTemplate.render(projectRoot, projectRoot, myState.flatten(), project);
+      setGradleWrapperExecutable(projectRoot);
+      return true;
     }
-    return false;
+    catch (IOException e) {
+      LOG.error(e);
+      return false;
+    }
   }
 
   /**
