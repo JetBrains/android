@@ -18,18 +18,14 @@ package com.android.tools.idea.ddms;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
+import com.android.tools.idea.editors.vmtrace.VmTraceCaptureType;
+import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ExceptionUtil;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 
 public class OpenVmTraceHandler implements ClientData.IMethodProfilingHandler {
@@ -45,33 +41,28 @@ public class OpenVmTraceHandler implements ClientData.IMethodProfilingHandler {
   public void onSuccess(String remoteFilePath, Client client) {
     // TODO: Devices older than API 10 don't return profile results via JDWP. Instead they save the results on the sdcard.
     // We don't support this yet.
-    showError("Method profiling: Older devices (API level < 10) are not supported yet. Please manually retrieve the file "
-              + remoteFilePath + " from the device and open the file to view the results.");
+    showError("Method profiling: Older devices (API level < 10) are not supported yet. Please manually retrieve the file " +
+              remoteFilePath +
+              " from the device and open the file to view the results.");
   }
 
   @Override
-  public void onSuccess(byte[] data, Client client) {
-    File f;
-    try {
-      f = FileUtil.createTempFile("ddms", ".trace");
-      FileUtil.writeToFile(f, data);
-      LOG.info("Method Profiling: Saved VM trace to file: " + f.getAbsolutePath());
-    }
-    catch (IOException e) {
-      //noinspection ThrowableResultOfMethodCallIgnored
-      showError("Unexpected error while saving trace data to a temporary file: " + ExceptionUtil.getRootCause(e).getLocalizedMessage());
-      return;
-    }
-    final VirtualFile vf = VfsUtil.findFileByIoFile(f, true);
-    if (vf == null) {
-      return;
-    }
-
+  public void onSuccess(@NotNull final byte[] data, @NotNull Client client) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
-        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              CaptureService service = CaptureService.getInstance(myProject);
+              service.createCapture(VmTraceCaptureType.class, data);
+            }
+            catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        });
       }
     });
   }
