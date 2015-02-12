@@ -17,10 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.utils.XmlUtils;
 
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
@@ -28,7 +25,7 @@ import java.util.List;
  * Method invoked by FreeMarker to escape a string such that it can be used
  * as XML text (escaping < and &, but not ' and " etc).
  */
-public class FmEscapeXmlTextMethod implements TemplateMethodModel {
+public class FmEscapeXmlTextMethod implements TemplateMethodModelEx {
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
     if (args.size() != 1) {
