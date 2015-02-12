@@ -40,6 +40,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
@@ -66,15 +67,12 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model,
                                                                 @NotNull IdeaAndroidProject androidProject) {
-    VirtualFile rootDir = androidProject.getRootDir();
-    File rootDirPath = VfsUtilCore.virtualToIoFile(rootDir);
 
-    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(rootDir));
+    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(androidProject.getRootDir()));
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    if (!FileUtil.isAncestor(rootDirPath, buildFolderPath, false)) {
+    if (!isAncestor(androidProject.getRootDirPath(), buildFolderPath, false)) {
       contentEntries.add(model.addContentEntry(FilePaths.pathToIdeaUrl(buildFolderPath)));
     }
-
     return contentEntries;
   }
 
@@ -210,7 +208,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private static boolean isGeneratedAtCorrectLocation(@NotNull File folderPath, @NotNull AndroidProject project) {
     File generatedFolderPath = new File(project.getBuildFolder(), AndroidProject.FD_GENERATED);
-    return FileUtil.isAncestor(generatedFolderPath, folderPath, false);
+    return isAncestor(generatedFolderPath, folderPath, false);
   }
 
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {

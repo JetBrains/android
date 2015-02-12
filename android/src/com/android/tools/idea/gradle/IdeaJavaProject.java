@@ -24,11 +24,12 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class IdeaJavaProject {
+public class IdeaJavaProject implements Serializable {
   @NotNull private final String myModuleName;
   @NotNull private final Collection<? extends IdeaContentRoot> myContentRoots;
   @NotNull private final List<? extends IdeaDependency> myDependencies;

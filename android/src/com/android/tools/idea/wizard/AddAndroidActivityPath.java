@@ -214,16 +214,15 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
                                                           @NotNull String packageName) {
     Map<String, Object> paths = Maps.newHashMap();
     // Look up the resource directories inside this source set
-    VirtualFile moduleDir = gradleProject.getRootDir();
-    File ioModuleDir = VfsUtilCore.virtualToIoFile(moduleDir);
+    File moduleDirPath = gradleProject.getRootDirPath();
     File javaDir = findSrcDirectory(sourceProvider);
     File testDir = findTestDirectory(module);
-    String javaPath = getJavaPath(ioModuleDir, javaDir);
+    String javaPath = getJavaPath(moduleDirPath, javaDir);
     paths.put(ATTR_SRC_DIR, javaPath);
 
     File resDir = findResDirectory(sourceProvider);
     if (resDir != null) {
-      String resPath = FileUtil.getRelativePath(ioModuleDir, resDir);
+      String resPath = FileUtil.getRelativePath(moduleDirPath, resDir);
       if (resPath != null) {
         resPath = FileUtil.toSystemIndependentName(resPath);
       }
@@ -232,18 +231,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     File manifestDir = findManifestDirectory(sourceProvider);
     if (manifestDir != null) {
-      String manifestPath = FileUtil.getRelativePath(ioModuleDir, manifestDir);
+      String manifestPath = FileUtil.getRelativePath(moduleDirPath, manifestDir);
       paths.put(ATTR_MANIFEST_DIR, manifestPath);
       paths.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
     }
     File aidlDir = findAidlDir(sourceProvider);
     if (aidlDir != null) {
-      String aidlPath = FileUtil.getRelativePath(ioModuleDir, aidlDir);
+      String aidlPath = FileUtil.getRelativePath(moduleDirPath, aidlDir);
       paths.put(ATTR_AIDL_DIR, aidlPath);
       paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
     if (testDir == null) {
-      String absolutePath = Joiner.on('/').join(moduleDir.getPath(), TemplateWizard.TEST_SOURCE_PATH,
+      String absolutePath = Joiner.on('/').join(gradleProject.getRootDir().getPath(), TemplateWizard.TEST_SOURCE_PATH,
                                                 TemplateWizard.JAVA_SOURCE_PATH);
       testDir = new File(FileUtil.toSystemDependentName(absolutePath));
     }
