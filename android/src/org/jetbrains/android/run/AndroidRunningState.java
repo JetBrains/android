@@ -962,8 +962,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         checkDdms();
       }
 
+      final Client client;
       synchronized (myDebugLock) {
-        Client client = device.getClient(myTargetPackageName);
+        client = device.getClient(myTargetPackageName);
         if (myDebugLauncher != null) {
           if (client != null &&
               myApplicationLauncher.isReadyForDebugging(client.getClientData(), getProcessHandler())) {
@@ -989,12 +990,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                 for (int i = 0; i < count; i++) {
                   Content content = androidToolWindow.getContentManager().getContent(i);
                   DevicePanel devicePanel = content == null ? null : content.getUserData(AndroidToolWindowFactory.DEVICES_PANEL_KEY);
-                  AndroidLogcatView logcatView = content == null ? null : content.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
                   if (devicePanel != null) {
                     devicePanel.selectDevice(device);
-                    if (logcatView != null && myFilterLogcatAutomatically) {
-                      logcatView.createAndSelectFilterByPackage(myPackageName);
-                    }
+                    devicePanel.selectClient(client);
                     break;
                   }
                 }
