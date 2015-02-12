@@ -59,8 +59,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
@@ -229,6 +232,9 @@ public class ThemeEditorComponent extends Splitter {
         }
         myPropertiesTable.clearSelection();
         myPropertiesFilter.setAdvancedMode(myAdvancedFilterCheckBox.isSelected());
+
+        myPropertiesFilter.setFilterProperties(myPreviewPanel.getUsedAttrs());
+
         ((TableRowSorter)myPropertiesTable.getRowSorter()).sort();
       }
     });
@@ -572,15 +578,28 @@ public class ThemeEditorComponent extends Splitter {
     private final Set<String> SIMPLE_PROPERTIES = ImmutableSet
       .of("android:background", "android:colorAccent", "android:colorBackground", "android:colorForegroundInverse", "android:colorPrimary",
           "android:editTextColor", "spinnerStyle", "android:textColorHighlight", "android:textColorLinkInverse", "android:textColorPrimary",
-          "windowTitleStyle");
+          "windowTitleStyle", "android:windowFullscreen");
     private boolean myAdvancedMode = true;
     private boolean myLocallyDefinedMode = false;
+    private Set<String> filterProperties = SIMPLE_PROPERTIES;
 
     public void setOnlyLocallyDefinedMode(boolean local) {
       this.myLocallyDefinedMode = local;
     }
     public void setAdvancedMode(boolean advanced) {
       this.myAdvancedMode = advanced;
+    }
+
+    /**
+     * Set the property names we want to display.
+     */
+    public void setFilterProperties(@NotNull Set<String> propertyNames) {
+      if (propertyNames == null) {
+        filterProperties = SIMPLE_PROPERTIES;
+        return;
+      }
+
+      filterProperties = ImmutableSet.copyOf(propertyNames);
     }
 
     @Override
@@ -596,7 +615,7 @@ public class ThemeEditorComponent extends Splitter {
         propertyName = ((EditedStyleItem)value).getQualifiedName();
       }
       else {
-        propertyName = value.toString();
+       propertyName = value.toString();
       }
 
       ThemeEditorStyle selectedTheme = getSelectedStyle();
@@ -613,7 +632,7 @@ public class ThemeEditorComponent extends Splitter {
         return true;
       }
 
-      return SIMPLE_PROPERTIES.contains(propertyName);
+      return filterProperties.contains(propertyName);
     }
   }
 }
