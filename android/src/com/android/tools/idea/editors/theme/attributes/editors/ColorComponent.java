@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 public class ColorComponent extends JButton {
   private static final Logger LOG = Logger.getInstance(ColorComponent.class);
@@ -32,12 +34,16 @@ public class ColorComponent extends JButton {
   private static final int PADDING = 2;
   private static final int TEXT_PADDING = PADDING + 3;
 
-  public String name;
-  public String value;
+  private String myName;
+  private String myValue;
   private @Nullable Color myColor;
   private Color myDrawnColor;
 
   private final Color myBackgroundColor;
+
+  public static Border getBorder(final Color borderColor) {
+    return BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, borderColor);
+  }
 
   public ColorComponent(@NotNull final Color backgroundColor, @NotNull Font labelFont) {
     myBackgroundColor = backgroundColor;
@@ -53,9 +59,19 @@ public class ColorComponent extends JButton {
     return UIUtil.mix(color1, color2, k);
   }
 
+  public void configure(final EditedStyleItem resValue, final Color color) {
+    this.myName = resValue.getQualifiedName();
+    this.myValue = resValue.getValue();
+    setColor(color);
+  }
+
+  public String getValue() {
+    return myValue;
+  }
+
   @Override
   protected void paintComponent(Graphics g) {
-    if (name == null || value == null) {
+    if (myName == null || myValue == null) {
       LOG.error("Trying to draw ColorComponent in inconsistent state (either name or value is null)!");
       return;
     }
@@ -77,8 +93,8 @@ public class ColorComponent extends JButton {
     g.setColor(myColor != null && ColorUtil.isDark(myDrawnColor) ? Color.WHITE : Color.BLACK);
 
     FontMetrics fm = g.getFontMetrics();
-    g.drawString(name, TEXT_PADDING, fm.getHeight() + TEXT_PADDING);
-    g.drawString(value, TEXT_PADDING, getHeight() - TEXT_PADDING - fm.getDescent());
+    g.drawString(myName, TEXT_PADDING, fm.getHeight() + TEXT_PADDING);
+    g.drawString(myValue, TEXT_PADDING, getHeight() - TEXT_PADDING - fm.getDescent());
   }
 
   public void setColor(@Nullable Color color) {

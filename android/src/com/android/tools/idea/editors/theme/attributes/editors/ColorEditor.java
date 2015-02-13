@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -27,61 +26,34 @@ import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ColorRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
-  private static final Logger LOG = Logger.getInstance(ColorRendererEditor.class);
-
-  private static final int PADDING = 2;
+public class ColorEditor extends AbstractTableCellEditor {
+  private static final Logger LOG = Logger.getInstance(ColorEditor.class);
 
   private final Module myModule;
   private final Configuration myConfiguration;
 
-  private final Border mySelectedBorder;
-  private final Border myUnselectedBorder;
-
   private final ColorComponent myComponent;
   private Object myEditorValue = null;
 
-  public ColorRendererEditor(@NotNull Module module, @NotNull Configuration configuration, @NotNull JTable table) {
+  public ColorEditor(@NotNull Module module, @NotNull Configuration configuration, @NotNull JTable table) {
     myModule = module;
     myConfiguration = configuration;
 
-    mySelectedBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, table.getSelectionBackground());
-    myUnselectedBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, table.getBackground());
-
     myComponent = new ColorComponent(table.getBackground(), table.getFont().deriveFont(Font.BOLD));
     myComponent.addActionListener(new ColorEditorActionListener());
-  }
-
-  @Override
-  public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
-    if (obj instanceof EditedStyleItem) {
-      configureComponent((EditedStyleItem) obj, table, isSelected);
-    } else {
-      LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", obj.getClass().getName()));
-    }
-
-    return myComponent;
-  }
-
-  private void configureComponent(final EditedStyleItem resValue, final JTable table, final boolean isSelected) {
-    myComponent.name = resValue.getQualifiedName();
-    myComponent.value = resValue.getValue();
-    myComponent.setToolTipText(ThemeEditorUtils.generateToolTipText(resValue.getItemResourceValue(), myModule, myConfiguration));
-    myComponent.setColor(ResourceHelper.resolveColor(myConfiguration.getResourceResolver(), resValue.getItemResourceValue()));
-
-    myComponent.setBorder(isSelected ? mySelectedBorder : myUnselectedBorder);
+    myComponent.setBorder(ColorComponent.getBorder(table.getSelectionBackground()));
   }
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     if (value instanceof EditedStyleItem) {
-      configureComponent((EditedStyleItem) value, table, true);
+      final EditedStyleItem item = (EditedStyleItem) value;
+      final Color color = ResourceHelper.resolveColor(myConfiguration.getResourceResolver(), item.getItemResourceValue());
+      myComponent.configure(item, color);
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", value.getClass().getName()));
     }
@@ -99,16 +71,16 @@ public class ColorRendererEditor extends AbstractTableCellEditor implements Tabl
     @Override
     public void actionPerformed(final ActionEvent e) {
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.value, null);
+        new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null);
 
       dialog.show();
 
       if (dialog.isOK()) {
         myEditorValue = dialog.getResourceName();
-        ColorRendererEditor.this.stopCellEditing();
+        ColorEditor.this.stopCellEditing();
       } else {
         myEditorValue = null;
-        ColorRendererEditor.this.cancelCellEditing();
+        ColorEditor.this.cancelCellEditing();
       }
     }
   }
