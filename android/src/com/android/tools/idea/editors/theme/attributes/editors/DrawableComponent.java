@@ -32,6 +32,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 /**
  * This class is used to draw drawable resources in theme editor cell.
@@ -58,20 +60,12 @@ public class DrawableComponent extends JButton {
   // Amount of space between border of a cell and rectangle with solid background for showing text
   private static final int TEXT_MARGIN = 3;
 
-  private BufferedImage myImage;
+  private final List<BufferedImage> myImages = new ArrayList<BufferedImage>();
   private String myName;
   private String myValue;
 
   public static Border getBorder(final Color borderColor) {
     return BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, borderColor);
-  }
-
-  /**
-   * Getter of myImage property, used to pass loaded image from renderer component to editor component,
-   * which have to be different (otherwise they aren't rendered correctly in JTable)
-   */
-  public Image getImage() {
-    return myImage;
   }
 
   /**
@@ -81,13 +75,13 @@ public class DrawableComponent extends JButton {
     myName = item.getName();
     myValue = item.getValue();
 
-    myImage = null;
+    myImages.clear();
     if (renderResources != null) {
-      final File file = ResourceHelper.resolveDrawable(renderResources, item.getItemResourceValue());
+      final List<File> files = ResourceHelper.resolveMultipleDrawables(renderResources, item.getItemResourceValue());
 
-      if (file != null) {
+      for (final File file : files) {
         try {
-          myImage = ImageIO.read(file);
+          myImages.add(ImageIO.read(file));
         } catch (final IOException e) {
           LOG.warn("Couldn't load image from " + file, e);
         }
@@ -111,13 +105,15 @@ public class DrawableComponent extends JButton {
       }
     }
 
-    if (myImage != null) {
-      final int imageHeight = myImage.getHeight();
-      final int startY = (height - imageHeight - 2 * PADDING) / 2;
-      final int rightPadding = Math.max(IMAGE_PADDING, startY);
-      final int startX = Math.max(IMAGE_PADDING, width - myImage.getWidth() - rightPadding);
+    int offset = IMAGE_PADDING;
+    for (final BufferedImage image : myImages) {
+      final int startY = (height - image.getHeight() - 2 * PADDING) / 2;
 
-      g.drawImage(myImage, startX + PADDING, startY + PADDING, null);
+      final int imageWidth = image.getWidth();
+      final int startX = (width - offset - imageWidth);
+
+      g.drawImage(image, startX + PADDING, startY + PADDING, null);
+      offset += imageWidth + IMAGE_PADDING;
     }
 
     if (myName != null && myValue != null) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -26,6 +27,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,8 +45,7 @@ import org.w3c.dom.*;
 
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -391,6 +392,70 @@ public class ResourceHelper {
   }
 
   /**
+   * Tries to resolve colors from given resource value. When state list is encountered all
+   * possibilities are explored.
+   */
+  @NotNull
+  public static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue color) {
+    if (color != null) {
+      color = resources.resolveResValue(color);
+    }
+    if (color == null) {
+      return Collections.emptyList();
+    }
+
+    // Set is used to get only unique colors, the same colors are used in different states quite often
+    final Set<Color> result = new HashSet<Color>();
+
+    final Queue<String> queue = new LinkedList<String>();
+    queue.add(color.getValue());
+
+    // Breadth-first traversal of resources which looks for colors.
+    // See {@link #resolveMultipleDrawables} for more detailed explanation
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && !queue.isEmpty(); i++) {
+      final String value = queue.poll();
+
+      // Value is supposed to be one of:
+      // 1. Actual color, like "#00ff00"
+      // 2. @-reference
+      // 3. State list with several colors
+
+      if (value.startsWith("#")) {
+        // Actual color is just added to resulting set
+        result.add(parseColor(value));
+      } else if (value.startsWith(PREFIX_RESOURCE_REF)) {
+        // @-reference is resolved and result put to the queue to be traversed on
+        // successive iteration
+        final ResourceUrl url = ResourceUrl.parse(value);
+        if (url != null) {
+          color = resources.findResValue(value, url.framework);
+          if (color != null) {
+             queue.add(color.getValue());
+          }
+        }
+      } else {
+        // Otherwise we assume that it's an XML file with state list.
+        // We try to parse it here and follow all the references from it.
+        File file = new File(value);
+        if (file.exists() && file.getName().endsWith(DOT_XML)) {
+          try {
+            String xml = Files.toString(file, Charsets.UTF_8);
+            Document document = XmlUtils.parseDocumentSilently(xml, true);
+            if (document != null) {
+              NodeList items = document.getElementsByTagName(TAG_ITEM);
+              queue.addAll(getAllFromStateList(items, ATTR_COLOR));
+            }
+          } catch (Exception e) {
+            LOG.warn(String.format("Failed parsing color file %1$s", file.getName()), e);
+          }
+        }
+      }
+    }
+
+    return new ArrayList<Color>(result);
+  }
+
+  /**
    * Searches a color XML file for the color definition element that does not
    * have an associated state and returns its color
    */
@@ -425,12 +490,36 @@ public class ResourceHelper {
       if (item.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) item;
         if (element.hasAttributeNS(ANDROID_URI, attributeName)) {
-            return element.getAttributeNS(ANDROID_URI, attributeName);
+          return element.getAttributeNS(ANDROID_URI, attributeName);
         }
       }
     }
 
     return null;
+  }
+
+  @NotNull
+  private static List<String> getAllFromStateList(@NotNull NodeList items, final String attributeName) {
+    if (items.getLength() == 0) {
+      return Collections.emptyList();
+    }
+
+    final List<String> result = new ArrayList<String>();
+
+    for (int i = 0, n = items.getLength(); i < n; i++) {
+      final Node node = items.item(i);
+      if (node.getNodeType() != Node.ELEMENT_NODE) {
+        continue;
+      }
+
+      final Element element = (Element)node;
+      final String value = element.getAttributeNS(ANDROID_URI, attributeName);
+      if (!Strings.isNullOrEmpty(value)) {
+        result.add(value);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -532,6 +621,74 @@ public class ResourceHelper {
     }
 
     return null;
+  }
+
+  /**
+   * Resolves given resource value to a list of drawable bitmap files, which, unlike
+   * resolveDrawable, when encountering state list, follow all possibilities.
+   * To ensure termination, amount of traversed resources is bounded by MAX_RESOURCE_INDIRECTION.
+   *
+   * @return list of files with bitmaps (which is empty if no bitmap is found)
+   */
+  @NotNull
+  public static List<File> resolveMultipleDrawables(@NotNull RenderResources resources, @Nullable ResourceValue drawable) {
+    if (drawable != null) {
+      drawable = resources.resolveResValue(drawable);
+    }
+    if (drawable == null) {
+      return Collections.emptyList();
+    }
+
+    final List<File> result = new ArrayList<File>();
+
+    // Queue of items being traversed
+    final Queue<String> queue = new LinkedList<String>();
+    queue.add(drawable.getValue());
+
+    // This loops does, basically, breadth-first traversal through the resources.
+    // Amount of iterations is constrained my MAX_RESOURCE_INDIRECTION to ensure termination.
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && !queue.isEmpty(); i++) {
+      final String value = queue.poll();
+
+      // At each iteration, value could be either a path to a file with resource or @-reference.
+      if (value.startsWith(PREFIX_RESOURCE_REF)) {
+        // @-references are resolved using RenderResources parameter,
+        // on successful resolution result is put into the queue.
+        if (drawable != null) {
+          drawable = resources.findResValue(value, drawable.isFramework());
+          if (drawable != null) {
+            queue.add(drawable.getValue());
+          }
+        }
+      } else {
+        // If value isn't an @-reference, it's assumed to be a file.
+        final File file = new File(value);
+        if (!file.exists()) {
+          continue;
+        }
+
+        // It's assumed that file is either an XML with state list or an actual bitmap image
+        if (file.getName().endsWith(DOT_XML)) {
+          // If it's an XML with state list, we try to parse it, extract every possible state
+          // and put all of them in the queue to traverse on successive iterations
+          try {
+            final String xml = Files.toString(file, Charsets.UTF_8);
+            final Document document = XmlUtils.parseDocumentSilently(xml, true);
+            if (document != null) {
+              final NodeList items = document.getElementsByTagName(TAG_ITEM);
+              queue.addAll(getAllFromStateList(items, ATTR_DRAWABLE));
+            }
+          } catch (final Exception e) {
+            LOG.warn(String.format("Failed parsing file %1$s", file.getName()), e);
+          }
+        } else {
+          // If it's not an XML, it's supposed to be a bitmap image
+          result.add(file);
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
