@@ -60,7 +60,8 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     if (column == 1 && value instanceof EditedStyleItem) {
       final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
       toolTipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
-      stringValue = ThemeEditorUtils.extractRealValue(resValue, model.getCellClass(row, column));
+      stringValue = ThemeEditorUtils
+        .extractRealValue(resValue, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
     }
     else {
       stringValue = value;
