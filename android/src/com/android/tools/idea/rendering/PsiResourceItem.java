@@ -114,7 +114,7 @@ public class PsiResourceItem extends ResourceItem {
       if (myTag == null) {
         // Density based resource value?
         ResourceType type = getType();
-        Density density = type == ResourceType.DRAWABLE ? getFolderDensity() : null;
+        Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
         if (density != null) {
           mResourceValue = new DensityBasedResourceValue(type, getName(), getSource().getFile().getAbsolutePath(), density, isFrameworks);
         } else {
