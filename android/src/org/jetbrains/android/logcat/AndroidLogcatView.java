@@ -97,7 +97,7 @@ public abstract class AndroidLogcatView implements Disposable {
     });
   }
 
-  Project getProject() {
+  public Project getProject() {
     return myProject;
   }
 

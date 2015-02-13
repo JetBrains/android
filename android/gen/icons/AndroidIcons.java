@@ -58,7 +58,6 @@ public class AndroidIcons {
   public static final Icon MavenLogo = load("/icons/mavenLogo.png"); // 16x16
 
   public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
-  public static final Icon MemoryMonitorToolWindow = load("/icons/memory_monitor_tool_window.png"); // 13x13
 
   public static final Icon Variant = load("/icons/variant.png");
 
