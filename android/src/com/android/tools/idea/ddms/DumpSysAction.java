@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType;
+import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -26,13 +28,10 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -54,8 +53,7 @@ public class DumpSysAction {
   private final String myService;
   private final Client myClient;
 
-  @GuardedBy("this")
-  private VirtualFile myOutputFile;
+  @GuardedBy("this") private VirtualFile myOutputFile;
 
   public DumpSysAction(@NotNull Project p, @NotNull IDevice device, @NotNull String service, @Nullable Client client) {
     myProject = p;
@@ -80,7 +78,8 @@ public class DumpSysAction {
           public void run() {
             try {
               runShellCommand();
-            } finally {
+            }
+            finally {
               latch.countDown();
             }
           }
@@ -94,18 +93,24 @@ public class DumpSysAction {
               return;
             }
 
-            try {
-              String fileName = "dumpsys-" + pkgName;
-              File f = FileUtil.createTempFile(fileName, ".txt", true);
-              FileUtil.writeToFile(f, receiver.getOutput());
-              //noinspection ResultOfMethodCallIgnored
-              f.setReadOnly();
-              setOutputFile(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(f));
-            }
-            catch (IOException e) {
-              showError(myProject, "Unexpected error while saving system information", e);
-              return;
-            }
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                  @Override
+                  public void run() {
+                    try {
+                      CaptureService service = CaptureService.getInstance(myProject);
+                      setOutputFile(service.createCapture(SystemInfoCaptureType.class, receiver.getOutput().getBytes()).getFile());
+                    }
+                    catch (IOException e) {
+                      showError(myProject, "Unexpected error while saving system information", e);
+                      throw new RuntimeException(e);
+                    }
+                  }
+                });
+              }
+            });
           }
         });
       }
