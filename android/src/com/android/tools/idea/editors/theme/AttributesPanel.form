@@ -45,7 +45,10 @@
             <children>
               <component id="2abee" class="spantable.CellSpanTable" binding="myPropertiesTable">
                 <constraints/>
-                <properties/>
+                <properties>
+                  <showHorizontalLines value="false"/>
+                  <showVerticalLines value="false"/>
+                </properties>
               </component>
             </children>
           </scrollpane>
