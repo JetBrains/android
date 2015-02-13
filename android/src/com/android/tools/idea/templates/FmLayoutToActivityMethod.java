@@ -18,10 +18,7 @@ package com.android.tools.idea.templates;
 import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
 import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
 
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
@@ -29,7 +26,7 @@ import java.util.List;
  * Method invoked by FreeMarker to convert a layout name into an appropriate
  * Activity class.
  */
-public class FmLayoutToActivityMethod implements TemplateMethodModel {
+public class FmLayoutToActivityMethod implements TemplateMethodModelEx {
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
     if (args.size() != 1) {
