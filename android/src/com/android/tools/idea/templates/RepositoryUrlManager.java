@@ -171,7 +171,7 @@ public class RepositoryUrlManager {
     }
 
     // Read the support repository and find the latest version available
-    String sdkLocation = sdk.getPath();
+    String sdkLocation = sdk.getLocation().getAbsolutePath();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
 
     File supportMetadataFile = new File(String.format(library.basePath, sdkLocation, library.id), MAVEN_METADATA_FILE_NAME);
@@ -198,7 +198,7 @@ public class RepositoryUrlManager {
     }
 
     // Get the parameters to include in the path
-    String sdkLocation = sdk.getPath();
+    String sdkLocation = sdk.getLocation().getAbsolutePath();
     String artifactId = gradleCoordinate.getArtifactId();
     String revision = gradleCoordinate.getFullRevision();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);

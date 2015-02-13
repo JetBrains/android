@@ -281,6 +281,7 @@ public class Template {
     if (paramMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
       Object maybeDependencyList = paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
       if (maybeDependencyList instanceof List) {
+        //noinspection unchecked
         List<String> dependencyList = (List<String>)maybeDependencyList;
         if (!dependencyList.isEmpty()) {
           try {

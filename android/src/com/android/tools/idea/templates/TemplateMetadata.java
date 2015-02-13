@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.wizard.AssetStudioAssetGenerator;
 import com.google.common.base.Function;
 import com.intellij.openapi.diagnostic.Logger;
-
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.wizard.AssetStudioAssetGenerator;
-import com.android.tools.idea.wizard.TemplateWizardState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
