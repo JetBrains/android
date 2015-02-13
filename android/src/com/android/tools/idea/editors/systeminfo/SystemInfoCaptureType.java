@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof;
+package com.android.tools.idea.editors.systeminfo;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
 import icons.AndroidIcons;
 
-public class HprofCaptureType extends FileCaptureType {
-  protected HprofCaptureType() {
-    super("Heap Snapshot", AndroidIcons.Ddms.DumpHprof, "Snapshot_", SdkConstants.DOT_HPROF);
+public class SystemInfoCaptureType extends FileCaptureType {
+  protected SystemInfoCaptureType() {
+    super("System Information", AndroidIcons.Ddms.SysInfo, "SystemInfo_", SdkConstants.DOT_TXT);
   }
 }
