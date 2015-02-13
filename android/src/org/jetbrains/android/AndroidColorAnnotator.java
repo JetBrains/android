@@ -312,13 +312,13 @@ public class AndroidColorAnnotator implements Annotator {
       return null;
     }
     Density density = qualifier.getValue();
-    if (density != null && density != Density.NODPI) {
+    if (density != null && density.isValidValueForDevice()) {
       String fileName = bitmap.getName();
       Density[] densities = Density.values();
       // Iterate in reverse, since the Density enum is in descending order
       for (int i = densities.length - 1; i >= 0; i--) {
         Density d = densities[i];
-        if (d != Density.NODPI) {
+        if (d.isValidValueForDevice()) {
           String folder = parentName.replace(density.getResourceValue(), d.getResourceValue());
           bitmap = new File(resFolder, folder + File.separator + fileName);
           if (bitmap.exists()) {
