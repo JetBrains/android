@@ -321,7 +321,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
       if (mySelectedStyle.isReadOnly()) {
         for (ThemePropertyChangedListener listener : myThemePropertyChangedListeners) {
-          listener.attributeChangedOnReadOnlyTheme((EditedStyleItem)getValueAt(1), (String)value);
+          listener.attributeChangedOnReadOnlyTheme((EditedStyleItem)getValueAt(1), value.toString());
         }
         return;
       }
