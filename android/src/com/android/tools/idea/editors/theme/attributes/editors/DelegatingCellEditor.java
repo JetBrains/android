@@ -16,8 +16,10 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.intellij.openapi.module.Module;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -35,13 +37,18 @@ public class DelegatingCellEditor implements TableCellEditor {
   private final TableCellEditor myDelegate;
   private final boolean myConvertValueToString;
 
-  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate) {
+  private final Module myModule;
+  private final Configuration myConfiguration;
+
+  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate, Module module, Configuration configuration) {
     myConvertValueToString = convertValueToString;
     myDelegate = delegate;
+    myModule = module;
+    myConfiguration = configuration;
   }
 
-  public DelegatingCellEditor(final TableCellEditor delegate) {
-    this(true, delegate);
+  public DelegatingCellEditor(final TableCellEditor delegate, Module module, Configuration configuration) {
+    this(true, delegate, module, configuration);
   }
 
   @Override
@@ -49,15 +56,23 @@ public class DelegatingCellEditor implements TableCellEditor {
     final Object stringValue;
     final CellSpanModel model = (CellSpanModel)table.getModel();
 
-    if (column == 1 && value instanceof EditedStyleItem) {
+    final String tooltipText;
+    if (value instanceof EditedStyleItem) {
       final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
+      tooltipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
       stringValue = ThemeEditorUtils.extractRealValue(resValue, model.getCellClass(row, column));
     }
     else {
       stringValue = value;
+      tooltipText = null;
     }
 
-    return myDelegate.getTableCellEditorComponent(table, myConvertValueToString ? stringValue : value, isSelected, row, column);
+    final Component returnedComponent =
+      myDelegate.getTableCellEditorComponent(table, myConvertValueToString ? stringValue : value, isSelected, row, column);
+    if (returnedComponent instanceof JComponent) {
+      ((JComponent) returnedComponent).setToolTipText(tooltipText);
+    }
+    return returnedComponent;
   }
 
   @Override

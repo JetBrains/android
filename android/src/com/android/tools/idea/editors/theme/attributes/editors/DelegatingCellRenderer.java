@@ -57,7 +57,7 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     final CellSpanModel model = (CellSpanModel)table.getModel();
 
     final String toolTipText;
-    if (column == 1 && value instanceof EditedStyleItem) {
+    if (value instanceof EditedStyleItem) {
       final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
       toolTipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
       stringValue = ThemeEditorUtils
