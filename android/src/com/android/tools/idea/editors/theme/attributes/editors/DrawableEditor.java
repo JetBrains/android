@@ -35,7 +35,7 @@ public class DrawableEditor extends AbstractTableCellEditor {
   private final Configuration myConfiguration;
 
   private EditedStyleItem myEditedItem;
-  private String myLastValue;
+  private String myResultValue;
   private Module myModule;
 
   public DrawableEditor(final @NotNull Module module, final @NotNull Configuration configuration, final @NotNull JTable table) {
@@ -56,24 +56,22 @@ public class DrawableEditor extends AbstractTableCellEditor {
 
   @Override
   public Object getCellEditorValue() {
-    return myLastValue;
+    return myResultValue;
   }
 
   private class EditorClickListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      final String initialValue =
-        (myEditedItem == null) ? null : myEditedItem.getValue();
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, DRAWABLE_TYPE, initialValue, null);
+        new ChooseResourceDialog(myModule, DRAWABLE_TYPE, myEditedItem.getValue(), null);
 
       dialog.show();
 
       if (dialog.isOK()) {
-        myLastValue = dialog.getResourceName();
+        myResultValue = dialog.getResourceName();
         stopCellEditing();
       } else {
-        myEditedItem = null;
+        myResultValue = null;
         cancelCellEditing();
       }
     }
