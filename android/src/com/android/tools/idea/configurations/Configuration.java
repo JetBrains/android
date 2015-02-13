@@ -1019,7 +1019,7 @@ public class Configuration implements Disposable {
     if (qualifier != null) {
       // just a sanity check
       Density d = qualifier.getValue();
-      if (d != Density.NODPI) {
+      if (d.isValidValueForDevice()) {
         return d;
       }
     }
