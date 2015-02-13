@@ -187,14 +187,26 @@
   <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup, boolean) 0">
     <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup, boolean) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.LayoutInflater android.view.View onCreateView(android.view.View, java.lang.String, android.util.AttributeSet) 2">
     <annotation name="android.support.annotation.NonNull" />
@@ -316,8 +328,17 @@
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View android.content.res.ColorStateList getBackgroundTintList()">
     <annotation name="android.support.annotation.Nullable" />
@@ -591,6 +612,12 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL, android.view.View.LAYOUT_DIRECTION_INHERIT, android.view.View.LAYOUT_DIRECTION_LOCALE}" />
     </annotation>
+  </item>
+  <item name="android.view.View void setOnClickListener(android.view.View.OnClickListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
     <annotation name="android.support.annotation.IntDef">
