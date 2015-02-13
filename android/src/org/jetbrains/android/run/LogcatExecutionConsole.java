@@ -73,7 +73,7 @@ class LogcatExecutionConsole implements ExecutionConsoleEx, ObservableConsoleVie
     final Content logcatContent = layoutUi.createContent(AndroidDebugRunner.ANDROID_LOGCAT_CONTENT_ID, myToolWindowView.getContentPanel(), "Logcat",
                                                          AndroidIcons.Android, getPreferredFocusableComponent());
     logcatContent.setCloseable(false);
-    logcatContent.setSearchComponent(myToolWindowView.createSearchComponent(myProject));
+    logcatContent.setSearchComponent(myToolWindowView.createSearchComponent());
     layoutUi.addContent(logcatContent, 2, PlaceInGrid.bottom, false);
     final String selectedTabProperty = ANDROID_DEBUG_SELECTED_TAB_PROPERTY + myConfigurationId;
 
