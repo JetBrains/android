@@ -53,7 +53,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;

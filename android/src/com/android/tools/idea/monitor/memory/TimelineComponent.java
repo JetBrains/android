@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.memory;
+package com.android.tools.idea.monitor.memory;
 
 import com.android.annotations.VisibleForTesting;
 import com.intellij.ui.Gray;
