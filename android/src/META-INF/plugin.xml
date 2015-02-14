@@ -80,7 +80,6 @@
           icon="AndroidIcons.SdkManager"/>
       <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
-      <action id="Android.MemoryMonitor" class="com.android.tools.idea.memory.MemoryMonitorAction" icon="AndroidIcons.MemoryMonitor"/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
     <group id="Android.MainToolBarActionGroup">
@@ -517,7 +516,7 @@
                       facetIdList="android"
                       anchor="bottom"
                       icon="AndroidIcons.AndroidToolWindow"
-                      factoryClass="org.jetbrains.android.logcat.AndroidToolWindowFactory"/>
+                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android"
                       anchor="left"
@@ -530,12 +529,6 @@
                 conditionClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleCondition"
                 icon="AndroidIcons.GradleConsoleToolWindow"
                 factoryClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory"/>
-    <facet.toolWindow id="Memory Monitor"
-                      facetIdList="android"
-                      anchor="bottom"
-                      secondary="true"
-                      icon="AndroidIcons.MemoryMonitorToolWindow"
-                      factoryClass="com.android.tools.idea.memory.MemoryMonitorToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"

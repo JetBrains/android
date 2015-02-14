@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.memory;
+package com.android.tools.idea.monitor.memory;
 
 import junit.framework.TestCase;
 
-import static com.android.tools.idea.memory.TimelineComponent.formatTime;
+import static com.android.tools.idea.monitor.memory.TimelineComponent.formatTime;
 
 public class TimelineComponentTest extends TestCase {
   public void testFormatTime() {
