@@ -340,8 +340,7 @@ public class GradleSyncTest extends GuiTestCase {
     message.findHyperlink("Open Android SDK Manager");
   }
 
-  @Test @IdeGuiTest @Ignore
-  // Reason for @Ignore: now that we use embedded Gradle it is difficult to tell if we should create the wrapper or not.
+  @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=66880
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
@@ -707,7 +706,7 @@ public class GradleSyncTest extends GuiTestCase {
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
   }
 
-  @Test @IdeGuiTest @Ignore
+  @Test @IdeGuiTest
   public void testImportProjectWithoutWrapper() throws IOException {
     GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
 

@@ -19,14 +19,13 @@ import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -34,12 +33,18 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.*;
+import static com.android.sdklib.repository.FullRevision.parseRevision;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.intellij.openapi.ui.Messages.*;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 final class PreSyncChecks {
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
@@ -139,7 +144,16 @@ final class PreSyncChecks {
                    "Would you like the project to use the Gradle wrapper?\n" +
                    "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
                    "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-      int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
+      Icon icon = getQuestionIcon();
+      int answer;
+      if (SystemInfo.isMac && isGuiTestingMode()) {
+        // On Mac, IDEA does not use a regular dialog, but a "Mac sheet" which is not UI-test-friendly. Here we force IDEA to use a
+        // regular dialog.
+        answer = showIdeaMessageDialog(project, msg, GRADLE_SYNC_MSG_TITLE, new String[]{OK_BUTTON, CANCEL_BUTTON}, 0, icon, null);
+      }
+      else {
+        answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, icon);
+      }
       createWrapper = answer == Messages.OK;
 
     }
@@ -148,17 +162,19 @@ final class PreSyncChecks {
     }
 
     if (createWrapper) {
-      File projectDirPath = new File(project.getBasePath());
+      String basePath = project.getBasePath();
+      assert basePath != null;
+      File projectDirPath = new File(basePath);
 
       // attempt to delete the whole gradle wrapper folder.
       File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);
-      if (!FileUtil.delete(gradleDirPath)) {
+      if (!delete(gradleDirPath)) {
         // deletion failed. Let sync continue.
         return true;
       }
 
       try {
-        GradleUtil.createGradleWrapper(projectDirPath);
+        createGradleWrapper(projectDirPath);
         if (distributionType == null) {
           gradleSettings.setDistributionType(DEFAULT_WRAPPED);
         }
@@ -184,7 +200,7 @@ final class PreSyncChecks {
   private static PreSyncCheckResult attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
                                                                           @NotNull FullRevision modelVersion,
                                                                           @NotNull Project project) {
-    FullRevision minimumPluginVersion = FullRevision.parseRevision(GRADLE_PLUGIN_MINIMUM_VERSION);
+    FullRevision minimumPluginVersion = parseRevision(GRADLE_PLUGIN_MINIMUM_VERSION);
     if (modelVersion.compareTo(minimumPluginVersion) < 0) {
       // Do not perform this check for plug-in 0.14. It supports many versions of Gradle.
       // Let sync fail if using an unsupported Gradle versions.
@@ -193,7 +209,7 @@ final class PreSyncChecks {
 
     String gradleVersion = null;
     try {
-      gradleVersion = GradleUtil.getGradleWrapperVersion(wrapperPropertiesFile);
+      gradleVersion = getGradleWrapperVersion(wrapperPropertiesFile);
     }
     catch (IOException e) {
       LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
@@ -206,15 +222,15 @@ final class PreSyncChecks {
 
     FullRevision gradleRevision = null;
     try {
-      gradleRevision = FullRevision.parseRevision(gradleVersion);
+      gradleRevision = parseRevision(gradleVersion);
     }
     catch (NumberFormatException e) {
       // ignored;
     }
 
-    if (gradleRevision != null && !GradleUtil.isSupportedGradleVersion(gradleRevision)) {
+    if (gradleRevision != null && !isSupportedGradleVersion(gradleRevision)) {
       String cause = getMinimumGradleVersionErrorPrefix(modelVersion);
-      NotificationHyperlink hyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
+      NotificationHyperlink hyperlink = createIfProjectUsesGradleWrapper(project);
 
       ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
       syncMessages.add(new Message(PROJECT_SYNCING_ERROR_GROUP, Message.Type.ERROR, cause), hyperlink);
@@ -246,7 +262,7 @@ final class PreSyncChecks {
     }
 
     if (!askToSwitchToWrapper) {
-      askToSwitchToWrapper = !GradleUtil.isSupportedGradleVersion(gradleVersion);
+      askToSwitchToWrapper = !isSupportedGradleVersion(gradleVersion);
     }
 
     if (askToSwitchToWrapper) {
@@ -255,12 +271,14 @@ final class PreSyncChecks {
                    "Would you like your project to use the Gradle wrapper instead?\n" +
                    "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
                    "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-      int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
+      int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
 
       if (answer == Messages.OK) {
         try {
-          File projectDirPath = new File(project.getBasePath());
-          GradleUtil.createGradleWrapper(projectDirPath);
+          String basePath = project.getBasePath();
+          assert basePath != null;
+          File projectDirPath = new File(basePath);
+          createGradleWrapper(projectDirPath);
           gradleSettings.setDistributionType(DEFAULT_WRAPPED);
         }
         catch (IOException e) {
