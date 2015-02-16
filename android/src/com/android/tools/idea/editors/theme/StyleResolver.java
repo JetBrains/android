@@ -77,7 +77,7 @@ public class StyleResolver {
     }
 
     Project project = configuration.getModule().getProject();
-    myAttributeDefinition = androidTargetData.getAttrDefs(project);
+    myAttributeDefinition = androidTargetData.getAllAttrDefs(project); // all attributes, public and private
   }
 
   /**
