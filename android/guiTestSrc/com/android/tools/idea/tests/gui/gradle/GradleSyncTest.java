@@ -43,6 +43,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ExcludeFolder;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
@@ -58,7 +59,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -76,7 +76,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
@@ -92,8 +91,10 @@ import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWin
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
@@ -101,6 +102,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
+import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.junit.Assert.assertEquals;
@@ -154,7 +156,7 @@ public class GradleSyncTest extends GuiTestCase {
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    Pause.pause(new Condition("Android Support Repository is installed") {
+    pause(new Condition("Android Support Repository is installed") {
       @Override
       public boolean test() {
         return GuiActionRunner.execute(new GuiQuery<Boolean>() {
@@ -211,7 +213,7 @@ public class GradleSyncTest extends GuiTestCase {
     ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
     projectPane.expand();
 
-    Pause.pause(new Condition("Wait for 'Project View' to be customized") {
+    pause(new Condition("Wait for 'Project View' to be customized") {
       @Override
       public boolean test() {
         // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
@@ -321,7 +323,7 @@ public class GradleSyncTest extends GuiTestCase {
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Unable to load class"));
 
     message.findHyperlink("Re-download dependencies and sync project (requires network)");
-    message.findHyperlink("Stop Gradle build processes (requires restart)");
+    message.findHyperlink("Open Gradle Daemon documentation");
   }
 
   @Test @IdeGuiTest
@@ -398,8 +400,6 @@ public class GradleSyncTest extends GuiTestCase {
     final EditorFixture editor = projectFrame.getEditor();
     editor.close();
 
-    Pause.pause(10, TimeUnit.SECONDS);
-
     // Verify that at least we offer some sort of hint.
     message.findHyperlink("Open Gradle wrapper file");
   }
@@ -460,8 +460,6 @@ public class GradleSyncTest extends GuiTestCase {
                      "javaHome=c:\\Program Files\\Java\\jdk,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=7868,idleTimeout=null]\n" +
                      "javaHome=C:\\Program Files\\Java\\jdk\\jre,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=4792,idleTimeout=10800000]";
     projectFrame.requestProjectSyncAndSimulateFailure(failure);
-
-    Pause.pause(10, TimeUnit.SECONDS);
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("The newly created daemon"));
@@ -628,9 +626,9 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
     // prevent unnecessary file indexing, which decreases performance.)
-    VirtualFile[] excludeFolders = GuiActionRunner.execute(new GuiQuery<VirtualFile[]>() {
+    final File[] excludeFolderPaths = GuiActionRunner.execute(new GuiQuery<File[]>() {
       @Override
-      protected VirtualFile[] executeInEDT() throws Throwable {
+      protected File[] executeInEDT() throws Throwable {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
@@ -638,7 +636,15 @@ public class GradleSyncTest extends GuiTestCase {
           ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
           assertNotNull(parent);
 
-          return parent.getExcludeFolderFiles();
+          List<File> paths = Lists.newArrayList();
+
+          for (ExcludeFolder excluded : parent.getExcludeFolders()) {
+            String path = urlToPath(excluded.getUrl());
+            if (isNotEmpty(path)) {
+              paths.add(new File(toSystemDependentName(path)));
+            }
+          }
+          return paths.toArray(new File[paths.size()]);
         }
         finally {
           rootModel.dispose();
@@ -646,20 +652,17 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    assertThat(excludeFolders).isNotEmpty();
-
-    VirtualFile centralBuildDir = findFileByIoFile(centralBuildParentDirPath, true);
-    assertNotNull(centralBuildDir);
+    assertThat(excludeFolderPaths).isNotEmpty();
 
     boolean isExcluded = false;
-    for (VirtualFile folder : excludeFolders) {
-      if (isAncestor(centralBuildDir, folder, true)) {
+    for (File path : excludeFolderPaths) {
+      if (isAncestor(centralBuildParentDirPath, path, true)) {
         isExcluded = true;
         break;
       }
     }
 
-    assertTrue(isExcluded);
+    assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
   }
 
   @Test @IdeGuiTest
