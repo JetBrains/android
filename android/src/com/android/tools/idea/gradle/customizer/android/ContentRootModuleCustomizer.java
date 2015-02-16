@@ -25,9 +25,6 @@ import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
@@ -40,8 +37,8 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.intellij.openapi.util.io.FileUtil.*;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -213,7 +210,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    ContentEntry parentContentEntry = FilePaths.findParentContentEntry(buildFolderPath, contentEntries);
+    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
     if (parentContentEntry == null) {
       return;
     }
@@ -225,7 +222,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     }
 
     // Iterate through the build folder's children, excluding any folders that are not "generated" and haven't been already excluded.
-    File[] children = FileUtil.notNullize(buildFolderPath.listFiles());
+    File[] children = notNullize(buildFolderPath.listFiles());
     for (File child : children) {
       if (androidProject.shouldManuallyExclude(child)) {
         addExcludedFolder(parentContentEntry, child);
