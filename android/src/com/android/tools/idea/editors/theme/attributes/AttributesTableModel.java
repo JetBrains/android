@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
@@ -26,7 +26,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import spantable.CellSpanModel;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -283,35 +282,38 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       String name = item.getName();
       AttributeDefinition attrDefinition = myAttributeDefinitions.getAttrDefByName(name);
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+      ResourceValue resourceValue = mySelectedStyle.getConfiguration().getResourceResolver().resolveResValue(item.getItemResourceValue());
+      if (resourceValue == null) {
+        LOG.error("Unable to resolve " + item.getValue());
+        return null;
+      }
+
+      ResourceType urlType = resourceValue.getResourceType();
+      String value = resourceValue.getValue();
+
+      if (urlType == ResourceType.DRAWABLE) {
+        return DrawableDomElement.class;
+      }
+
+      if (urlType == ResourceType.COLOR
+              || (value != null && value.startsWith("#") && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color))) {
         return Color.class;
       }
 
-      final String value = item.getValue();
-      if (value != null) {
-        final ResourceUrl url = ResourceUrl.parse(value);
-        if (url != null && url.type == ResourceType.DRAWABLE) {
-          return DrawableDomElement.class;
-        }
-      }
-
       if (column == 1) {
-        // TODO: We temporarily don't support attr values as part of the sub-style editing.
-        // We can drill-down in styles, and theme properties to edit them.
-        if ((name.contains("Style") || name.endsWith("Theme")) &&
-            (attrDefinition == null || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) &&
-            item.isValueReference()) {
+        if (urlType == ResourceType.STYLE) {
           return ThemeEditorStyle.class;
         }
-
-        if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
+        if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
           return Integer.class;
         }
-        else if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean)) {
+        if (urlType == ResourceType.BOOL
+                || (("true".equals(value) || "false".equals(value))
+                        && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
           return Boolean.class;
         }
       }
-      
+
       return String.class;
     }
 

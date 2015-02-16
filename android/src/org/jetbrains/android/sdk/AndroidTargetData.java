@@ -74,14 +74,20 @@ public class AndroidTargetData {
     myTarget = target;
   }
 
+  /**
+   * Filters attributes through the public.xml file
+   */
   @Nullable
-  public AttributeDefinitions getAttrDefs(@NotNull Project project) {
-    final AttributeDefinitionsImpl attrDefs = getAttrDefsImpl(project);
+  public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
+    final AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
     return attrDefs != null ? new PublicAttributeDefinitions(attrDefs) : null;
   }
 
+  /**
+   * Returns all attributes
+   */
   @Nullable
-  private AttributeDefinitionsImpl getAttrDefsImpl(@NotNull final Project project) {
+  public AttributeDefinitionsImpl getAllAttrDefs(@NotNull final Project project) {
     if (myAttrDefs == null) {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
@@ -152,7 +158,7 @@ public class AndroidTargetData {
         }
       }
 
-      final AttributeDefinitionsImpl attrDefs = getAttrDefsImpl(project);
+      final AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
       if (attrDefs == null) {
         return null;
       }
