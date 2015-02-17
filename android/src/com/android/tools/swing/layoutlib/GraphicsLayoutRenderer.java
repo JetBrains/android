@@ -15,10 +15,12 @@
  */
 package com.android.tools.swing.layoutlib;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -45,6 +47,8 @@ import java.awt.geom.Area;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 /**
  * Class to render layouts to a {@link Graphics} instance. This renderer does not allow for much customization of the device and does not
@@ -61,12 +65,17 @@ public class GraphicsLayoutRenderer {
   private final SessionParams mySessionParams;
   private final FakeImageFactory myImageFactory;
   private final DynamicHardwareConfig myHardwareConfig;
-  private final Object myCredential = new Object();
+  private final Object myCredential;
   private final RenderSecurityManager mySecurityManager;
   /**
    * Invalidate the layout in the next render call
    */
   private boolean myInvalidate;
+  /**
+   * Contains the list of resource lookups required in the last render call. This is useful for clients
+   * to know which styles and resources were used to render the layout.
+   */
+  private final List<ResourceValue> myResourceLookupChain;
 
   /*
    * The render session is lazily initialized. We need to wait until we have a valid Graphics2D
@@ -78,12 +87,16 @@ public class GraphicsLayoutRenderer {
                                  @NotNull SessionParams sessionParams,
                                  @NotNull RenderSecurityManager securityManager,
                                  @NotNull DynamicHardwareConfig hardwareConfig,
-                                 @NotNull ILayoutPullParser parser) {
+                                 @NotNull ILayoutPullParser parser,
+                                 @NotNull List<ResourceValue> resourceLookupChain,
+                                 @NotNull Object credential) {
     myLayoutLibrary = layoutLib;
     mySecurityManager = securityManager;
     myHardwareConfig = hardwareConfig;
     mySessionParams = sessionParams;
     myImageFactory = new FakeImageFactory();
+    myResourceLookupChain = resourceLookupChain;
+    myCredential = credential;
 
     mySessionParams.setImageFactory(myImageFactory);
   }
@@ -116,10 +129,12 @@ public class GraphicsLayoutRenderer {
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
     RenderLogger logger = new RenderLogger("theme_editor", module);
 
+    // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
+    Object credential = new Object();
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(layoutLib, appResources, module, facet, logger, new Object(), null, null) {
+    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(layoutLib, appResources, module, facet, logger, credential, null, null) {
       @Override
       public ActionBarCallback getActionBarCallback() {
         return actionBarCallback;
@@ -129,15 +144,18 @@ public class GraphicsLayoutRenderer {
 
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(configuration.getDevice());
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
+    List<ResourceValue> resourceLookupChain = new ArrayList<ResourceValue>();
+    // Create a resource resolver that will save the lookups on the passed List<>
+    ResourceResolver resourceResolver = configuration.getResourceResolver().createRecorder(resourceLookupChain);
     final SessionParams params =
-      new SessionParams(parser, SessionParams.RenderingMode.V_SCROLL, module, hardwareConfig, configuration.getResourceResolver(),
+      new SessionParams(parser, SessionParams.RenderingMode.V_SCROLL, module, hardwareConfig, resourceResolver,
                         layoutlibCallback, moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(),
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
     params.setAssetRepository(new AssetRepositoryImpl(facet));
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
-    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, parser);
+    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, parser, resourceLookupChain, credential);
 
   }
 
@@ -200,6 +218,7 @@ public class GraphicsLayoutRenderer {
         mySecurityManager.setActive(true, myCredential);
         try {
           if (myRenderSession == null) {
+            myResourceLookupChain.clear();
             myRenderSession = initRenderSession();
             // initRenderSession will call render so we do not need to do it here.
             return;
@@ -242,13 +261,29 @@ public class GraphicsLayoutRenderer {
     // createSession will also render the layout for the first time.
     RenderSession session = myLayoutLibrary.createSession(mySessionParams);
     Result result = session.getResult();
-
     if (!result.isSuccess() && result.getStatus() == Result.Status.ERROR_TIMEOUT) {
       // This could happen if layout is accessed from different threads and render is taking a long time.
       throw new RuntimeException("createSession ERROR_TIMEOUT.");
     }
 
     return session;
+  }
+
+  /**
+   * Returns the list of attribute names used to render the
+   * @return
+   */
+  public Set<String> getUsedAttrs() {
+    HashSet<String> usedAttrs = new HashSet<String>();
+    for(ResourceValue value : myResourceLookupChain) {
+      if (value == null || value.getName() == null) {
+        continue;
+      }
+
+      usedAttrs.add((value.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + value.getName());
+    }
+
+    return Collections.unmodifiableSet(usedAttrs);
   }
 
   /**

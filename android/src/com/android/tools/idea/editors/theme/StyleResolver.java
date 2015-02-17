@@ -93,7 +93,7 @@ public class StyleResolver {
    */
   @NotNull
   public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
-    return (item.isFrameworkAttr() ? SdkConstants.ANDROID_PREFIX : "") + item.getName();
+    return (item.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + item.getName();
   }
 
   @Nullable
