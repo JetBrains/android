@@ -66,6 +66,7 @@ import com.intellij.openapi.project.DumbModeAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
@@ -536,16 +537,27 @@ class GradleTasksExecutor extends Task.Backgroundable {
     });
   }
 
-  private static void removeUnpinnedBuildMessages(@NotNull Project project, @Nullable Content toKeep) {
-    MessageView messageView = MessageView.SERVICE.getInstance(project);
-    Content[] contents = messageView.getContentManager().getContents();
-    for (Content content : contents) {
-      if (content.isPinned() || content == toKeep) {
-        continue;
+  private static void removeUnpinnedBuildMessages(@NotNull final Project project, @Nullable final Content toKeep) {
+    Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        MessageView messageView = MessageView.SERVICE.getInstance(project);
+        Content[] contents = messageView.getContentManager().getContents();
+        for (Content content : contents) {
+          if (content.isPinned() || content == toKeep) {
+            continue;
+          }
+          if (content.getUserData(CONTENT_ID_KEY) != null) { // the content was added by me
+            messageView.getContentManager().removeContent(content, true);
+          }
+        }
       }
-      if (content.getUserData(CONTENT_ID_KEY) != null) { // the content was added by me
-        messageView.getContentManager().removeContent(content, true);
-      }
+    };
+    if (project.isInitialized()) {
+      runnable.run();
+    }
+    else {
+      StartupManager.getInstance(project).registerPostStartupActivity(runnable);
     }
   }
 
