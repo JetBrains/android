@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -30,8 +31,7 @@ import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.*;
@@ -42,10 +42,12 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
-  @NotNull private final ProjectSystemId myProjectSystemId;
-  @NotNull private final String myModuleName;
+  private static final long serialVersionUID = 1L;
+
+  @NotNull private ProjectSystemId myProjectSystemId;
+  @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private final AndroidProject myDelegate;
+  @NotNull private AndroidProject myDelegate;
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -436,5 +438,33 @@ public class IdeaAndroidProject implements Serializable {
       return false;
     }
     return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.writeObject(myProjectSystemId);
+    out.writeObject(myModuleName);
+    out.writeObject(myRootDirPath);
+    out.writeObject(ProxyUtil.reproxy(AndroidProject.class, myDelegate));
+    out.writeObject(mySelectedVariantName);
+    out.writeObject(mySelectedTestArtifactName);
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    myProjectSystemId = (ProjectSystemId)in.readObject();
+    myModuleName = (String)in.readObject();
+    myRootDirPath = (File)in.readObject();
+    myDelegate = (AndroidProject)in.readObject();
+
+    myBuildTypesByName = Maps.newHashMap();
+    myProductFlavorsByName = Maps.newHashMap();
+    myVariantsByName = Maps.newHashMap();
+    myExtraGeneratedSourceFolders = Sets.newHashSet();
+
+    populateBuildTypesByName();
+    populateProductFlavorsByName();
+    populateVariantsByName();
+
+    setSelectedVariantName((String)in.readObject());
+    setSelectedTestArtifactName((String)in.readObject());
   }
 }
