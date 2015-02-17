@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
@@ -107,7 +108,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       @Override
       public void run() {
         final Collection<DataNode<ModuleData>> modules = getModulesToImport(projectInfo);
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        invokeAndWaitIfNeeded(new Runnable() {
           @Override
           public void run() {
             ApplicationManager.getApplication().runWriteAction(new Runnable() {
