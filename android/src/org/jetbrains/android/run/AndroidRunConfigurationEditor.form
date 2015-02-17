@@ -161,13 +161,22 @@
                       <text value="Cloud Project:"/>
                     </properties>
                   </component>
-                  <grid id="4fbbe" binding="myCloudProjectActionsPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
+                  <grid id="4fbbe" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
                     <constraints>
                       <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                     <border type="none"/>
-                    <children/>
+                    <children>
+                      <component id="dc95" class="com.android.tools.idea.run.CloudProjectIdLabel" binding="myCloudProjectIdLabel" custom-create="true">
+                        <constraints/>
+                        <properties/>
+                      </component>
+                      <component id="2741b" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="myCloudProjectIdUpdateButton" custom-create="true">
+                        <constraints/>
+                        <properties/>
+                      </component>
+                    </children>
                   </grid>
                 </children>
               </grid>

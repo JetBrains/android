@@ -36,8 +36,8 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectH
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.CloudTestTargetChooser;
 import com.android.tools.idea.run.CloudTestConfigurationProvider;
+import com.android.tools.idea.run.CloudTestTargetChooser;
 import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.base.Joiner;
@@ -263,8 +263,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           return null;
         }
 
-        final ExtendedDeviceChooserDialog chooser = new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices,
-                                                                                    true, myConfiguration.USE_LAST_SELECTED_DEVICE);
+        boolean showCloudTarget = getConfiguration() instanceof AndroidTestRunConfiguration && !(executor instanceof DefaultDebugExecutor);
+        final ExtendedDeviceChooserDialog chooser =
+          new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, true,
+                                          myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget);
         chooser.show();
         if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
           return null;
@@ -277,6 +279,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
           myTargetChooser = new EmulatorTargetChooser(selectedAvd);
           myAvdName = selectedAvd;
+        }
+        else if (chooser.isCloudTestOptionSelected()) {
+          return provider.execute(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId(), this, executor);
         }
         else {
           final IDevice[] selectedDevices = chooser.getSelectedDevices();
