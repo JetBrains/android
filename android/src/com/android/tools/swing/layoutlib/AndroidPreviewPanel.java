@@ -43,10 +43,15 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
 
   @Override
   public void setBounds(int x, int y, int width, int height) {
+    Dimension previousSize = getSize();
+
     super.setBounds(x, y, width, height);
 
-    if (myGraphicsLayoutRenderer != null) {
-      myGraphicsLayoutRenderer.setSize(getSize());
+    // Update the size of the layout renderer. This is done here instead of a component listener because
+    // this runs before the paintComponent saving an extra paint cycle.
+    Dimension currentSize = getSize();
+    if (myGraphicsLayoutRenderer != null && !currentSize.equals(previousSize)) {
+      myGraphicsLayoutRenderer.setSize(currentSize);
     }
   }
 

@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.ide.common.rendering.SessionParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
@@ -98,6 +99,7 @@ public class GraphicsLayoutRenderer {
     myResourceLookupChain = resourceLookupChain;
     myCredential = credential;
 
+    sessionParams.setFlag(SessionParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
     mySessionParams.setImageFactory(myImageFactory);
   }
 
@@ -226,7 +228,7 @@ public class GraphicsLayoutRenderer {
 
           // TODO: Currently passing true to invalidate in every render since layoutlib caches the passed Graphics2D otherwise.
           //       This should be addressed as part of the changes to pass the Graphics2D instance to layoutlib.
-          result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, true);
+          result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
         }
         finally {
           mySecurityManager.setActive(false, myCredential);
