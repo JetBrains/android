@@ -86,7 +86,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JBLabel myMatrixConfigLabel;
   private CloudProjectIdLabel myCloudProjectIdLabel;
   private ActionButton myCloudProjectIdUpdateButton;
-  @Nullable private final CloudTestConfigurationProvider myCloudConfigurationFactory;
+  @Nullable private final CloudTestConfigurationProvider myCloudTestConfigurationProvider;
 
   private AvdComboBox myAvdCombo;
   private String incorrectPreferredAvd;
@@ -110,7 +110,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myProject = project;
     $$$setupUI$$$(); // Create UI components after myProject is available. Also see https://youtrack.jetbrains.com/issue/IDEA-67765
 
-    myCloudConfigurationFactory = CloudTestConfigurationProvider.getCloudTestingProvider();
+    myCloudTestConfigurationProvider = CloudTestConfigurationProvider.getCloudTestingProvider();
 
     myCommandLineField.setDialogCaption("Emulator Additional Command Line Options");
 
@@ -204,7 +204,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   private void updateGoogleCloudVisible(AndroidRunConfigurationBase configuration) {
-    boolean shouldShow = configuration instanceof AndroidTestRunConfiguration && CloudTestConfigurationProvider.SHOW_CLOUD_TESTING_OPTION;
+    boolean shouldShow = configuration instanceof AndroidTestRunConfiguration && CloudTestConfigurationProvider.isEnabled();
     myRunTestsInGoogleCloudRadioButton.setVisible(shouldShow);
     myCloudConfigurationCombo.setVisible(shouldShow);
     myCloudProjectLabel.setVisible(shouldShow);
@@ -472,11 +472,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private class SelectCloudProjectAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
-      if (myCloudConfigurationFactory == null) {
+      if (myCloudTestConfigurationProvider == null) {
         return;
       }
 
-      String selectedProjectId = myCloudConfigurationFactory.openCloudProjectConfigurationDialog(myProject, myCloudProjectIdLabel.getText());
+      String selectedProjectId =
+        myCloudTestConfigurationProvider.openCloudProjectConfigurationDialog(myProject, myCloudProjectIdLabel.getText());
+
       if (selectedProjectId != null) {
         myCloudProjectIdLabel.updateCloudProjectId(selectedProjectId);
         // Simulate a change event such that it is picked up by the editor validation mechanisms.
