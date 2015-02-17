@@ -48,7 +48,7 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
 
   // a cache of configuration selected by module, so that if the module selection changes back and forth, we retain
   // the appropriate selected test configuration
-  private Map<Module, CloudTestConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  private static Map<Module, CloudTestConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
 
   public CloudMatrixConfigurationComboBox() {
     myConfigurationProvider = CloudTestConfigurationProvider.getCloudTestingProvider();
