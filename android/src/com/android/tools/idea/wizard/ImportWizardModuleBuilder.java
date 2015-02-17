@@ -35,6 +35,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.projectRoots.JavaSdkType;
@@ -224,7 +225,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         @Override
         public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
+          DumbService.getInstance(project).smartInvokeLater(new Runnable() {
             @Override
             public void run() {
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
