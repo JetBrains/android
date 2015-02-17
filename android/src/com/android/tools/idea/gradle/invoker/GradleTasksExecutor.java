@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
-import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -66,7 +66,6 @@ import com.intellij.openapi.project.DumbModeAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
@@ -93,7 +92,6 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
@@ -258,6 +256,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     final GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(project);
 
     final String projectPath = project.getBasePath();
+    assert projectPath != null;
 
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
       @Override
@@ -538,26 +537,17 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   private static void removeUnpinnedBuildMessages(@NotNull final Project project, @Nullable final Content toKeep) {
-    Runnable runnable = new Runnable() {
-      @Override
-      public void run() {
-        MessageView messageView = MessageView.SERVICE.getInstance(project);
-        Content[] contents = messageView.getContentManager().getContents();
-        for (Content content : contents) {
-          if (content.isPinned() || content == toKeep) {
-            continue;
-          }
-          if (content.getUserData(CONTENT_ID_KEY) != null) { // the content was added by me
-            messageView.getContentManager().removeContent(content, true);
-          }
+    if (project.isInitialized()) {
+      MessageView messageView = MessageView.SERVICE.getInstance(project);
+      Content[] contents = messageView.getContentManager().getContents();
+      for (Content content : contents) {
+        if (content.isPinned() || content == toKeep) {
+          continue;
+        }
+        if (content.getUserData(CONTENT_ID_KEY) != null) { // the content was added by me
+          messageView.getContentManager().removeContent(content, true);
         }
       }
-    };
-    if (project.isInitialized()) {
-      runnable.run();
-    }
-    else {
-      StartupManager.getInstance(project).registerPostStartupActivity(runnable);
     }
   }
 
