@@ -24,6 +24,8 @@ import org.w3c.dom.Document;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Generic UI component for rendering.
@@ -105,5 +107,16 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   @Override
   public boolean getScrollableTracksViewportHeight() {
     return false;
+  }
+
+  /**
+   * Returns the list of attribute names used to render the preview..
+   */
+  public Set<String> getUsedAttrs() {
+    if (myGraphicsLayoutRenderer == null) {
+      return Collections.emptySet();
+    }
+
+    return myGraphicsLayoutRenderer.getUsedAttrs();
   }
 }
