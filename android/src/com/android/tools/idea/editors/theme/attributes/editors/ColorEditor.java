@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -29,6 +28,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class ColorEditor extends AbstractTableCellEditor {
   private static final Logger LOG = Logger.getInstance(ColorEditor.class);
@@ -52,8 +52,8 @@ public class ColorEditor extends AbstractTableCellEditor {
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
-      final Color color = ResourceHelper.resolveColor(myConfiguration.getResourceResolver(), item.getItemResourceValue());
-      myComponent.configure(item, color);
+      final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
+      myComponent.configure(item, colors);
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", value.getClass().getName()));
     }
