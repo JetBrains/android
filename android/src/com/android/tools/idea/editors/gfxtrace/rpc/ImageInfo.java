@@ -26,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class ImageInfo implements BinaryObject {
-  ImageFormat Format;
-  long Width;
-  long Height;
-  BinaryId Data;
+  ImageFormat myFormat;
+  int myWidth;
+  int myHeight;
+  BinaryId myData;
 
   // Constructs a default-initialized {@link ImageInfo}.
   public ImageInfo() {
@@ -40,38 +40,36 @@ public class ImageInfo implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public ImageFormat getFormat() {
-    return Format;
+    return myFormat;
   }
 
-  // Setters
   public void setFormat(ImageFormat v) {
-    Format = v;
+    myFormat = v;
   }
 
-  public long getWidth() {
-    return Width;
+  public int getWidth() {
+    return myWidth;
   }
 
-  public void setWidth(long v) {
-    Width = v;
+  public void setWidth(int v) {
+    myWidth = v;
   }
 
-  public long getHeight() {
-    return Height;
+  public int getHeight() {
+    return myHeight;
   }
 
-  public void setHeight(long v) {
-    Height = v;
+  public void setHeight(int v) {
+    myHeight = v;
   }
 
   public BinaryId getData() {
-    return Data;
+    return myData;
   }
 
   public void setData(BinaryId v) {
-    Data = v;
+    myData = v;
   }
 
   @Override

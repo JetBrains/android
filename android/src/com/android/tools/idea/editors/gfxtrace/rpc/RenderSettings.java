@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class RenderSettings implements BinaryObject {
-  long MaxWidth;
-  long MaxHeight;
-  boolean Wireframe;
+  int myMaxWidth;
+  int myMaxHeight;
+  boolean myWireframe;
 
   // Constructs a default-initialized {@link RenderSettings}.
   public RenderSettings() {
@@ -39,30 +39,28 @@ public class RenderSettings implements BinaryObject {
     decode(d);
   }
 
-  // Getters
-  public long getMaxWidth() {
-    return MaxWidth;
+  public int getMaxWidth() {
+    return myMaxWidth;
   }
 
-  // Setters
-  public void setMaxWidth(long v) {
-    MaxWidth = v;
+  public void setMaxWidth(int v) {
+    myMaxWidth = v;
   }
 
-  public long getMaxHeight() {
-    return MaxHeight;
+  public int getMaxHeight() {
+    return myMaxHeight;
   }
 
-  public void setMaxHeight(long v) {
-    MaxHeight = v;
+  public void setMaxHeight(int v) {
+    myMaxHeight = v;
   }
 
   public boolean getWireframe() {
-    return Wireframe;
+    return myWireframe;
   }
 
   public void setWireframe(boolean v) {
-    Wireframe = v;
+    myWireframe = v;
   }
 
   @Override

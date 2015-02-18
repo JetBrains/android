@@ -25,10 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class EnumInfo implements TypeInfo {
-  String Name;
-  TypeKind Kind;
-  EnumEntry[] Entries;
-  EnumInfo[] Extends;
+  String myName;
+  TypeKind myKind;
+  EnumEntry[] myEntries;
+  EnumInfo[] myExtends;
 
   // Constructs a default-initialized {@link EnumInfo}.
   public EnumInfo() {
@@ -39,42 +39,40 @@ public class EnumInfo implements TypeInfo {
     decode(d);
   }
 
-  // Getters
   @Override
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   @Override
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   @Override
   public TypeKind getKind() {
-    return Kind;
+    return myKind;
   }
 
   @Override
   public void setKind(TypeKind v) {
-    Kind = v;
+    myKind = v;
   }
 
   public EnumEntry[] getEntries() {
-    return Entries;
+    return myEntries;
   }
 
   public void setEntries(EnumEntry[] v) {
-    Entries = v;
+    myEntries = v;
   }
 
   public EnumInfo[] getExtends() {
-    return Extends;
+    return myExtends;
   }
 
   public void setExtends(EnumInfo[] v) {
-    Extends = v;
+    myExtends = v;
   }
 
   @Override

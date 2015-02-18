@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class ArrayInfo implements TypeInfo {
-  String Name;
-  TypeKind Kind;
-  TypeInfo ElementType;
+  String myName;
+  TypeKind myKind;
+  TypeInfo myElementType;
 
   // Constructs a default-initialized {@link ArrayInfo}.
   public ArrayInfo() {
@@ -38,34 +38,32 @@ public class ArrayInfo implements TypeInfo {
     decode(d);
   }
 
-  // Getters
   @Override
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   @Override
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   @Override
   public TypeKind getKind() {
-    return Kind;
+    return myKind;
   }
 
   @Override
   public void setKind(TypeKind v) {
-    Kind = v;
+    myKind = v;
   }
 
   public TypeInfo getElementType() {
-    return ElementType;
+    return myElementType;
   }
 
   public void setElementType(TypeInfo v) {
-    ElementType = v;
+    myElementType = v;
   }
 
   @Override

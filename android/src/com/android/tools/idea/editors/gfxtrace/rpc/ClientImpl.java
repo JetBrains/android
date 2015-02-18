@@ -26,373 +26,355 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class ClientImpl implements Client {
-  private final Broadcaster broadcaster;
-  private final ExecutorService executorService;
+  private final Broadcaster myBroadcaster;
+  private final ExecutorService myExecutorService;
 
   public ClientImpl(ExecutorService executorService, InputStream in, OutputStream out, int mtu) {
-    this.executorService = executorService;
-    broadcaster = new Broadcaster(in, out, mtu);
+    myExecutorService = executorService;
+    myBroadcaster = new Broadcaster(in, out, mtu, myExecutorService);
   }
 
   @Override
   public Future<CaptureId[]> GetCaptures() {
-    return executorService.submit(new GetCapturesCallable());
+    return myExecutorService.submit(new GetCapturesCallable());
   }
 
   @Override
   public Future<DeviceId[]> GetDevices() {
-    return executorService.submit(new GetDevicesCallable());
+    return myExecutorService.submit(new GetDevicesCallable());
   }
 
   @Override
-  public Future<BinaryId> GetState(CaptureId capture, long contextId, long after) {
-    return executorService.submit(new GetStateCallable(capture, contextId, after));
+  public Future<BinaryId> GetState(CaptureId capture, int contextId, long after) {
+    return myExecutorService.submit(new GetStateCallable(capture, contextId, after));
   }
 
   @Override
-  public Future<HierarchyId> GetHierarchy(CaptureId capture, long contextId) {
-    return executorService.submit(new GetHierarchyCallable(capture, contextId));
+  public Future<HierarchyId> GetHierarchy(CaptureId capture, int contextId) {
+    return myExecutorService.submit(new GetHierarchyCallable(capture, contextId));
   }
 
   @Override
-  public Future<MemoryInfoId> GetMemoryInfo(CaptureId capture, long contextId, long after, MemoryRange rng) {
-    return executorService.submit(new GetMemoryInfoCallable(capture, contextId, after, rng));
+  public Future<MemoryInfoId> GetMemoryInfo(CaptureId capture, int contextId, long after, MemoryRange rng) {
+    return myExecutorService.submit(new GetMemoryInfoCallable(capture, contextId, after, rng));
   }
 
   @Override
-  public Future<ImageInfoId> GetFramebufferColor(DeviceId device, CaptureId capture, long contextId, long after, RenderSettings settings) {
-    return executorService.submit(new GetFramebufferColorCallable(device, capture, contextId, after, settings));
+  public Future<ImageInfoId> GetFramebufferColor(DeviceId device, CaptureId capture, int contextId, long after, RenderSettings settings) {
+    return myExecutorService.submit(new GetFramebufferColorCallable(device, capture, contextId, after, settings));
   }
 
   @Override
-  public Future<ImageInfoId> GetFramebufferDepth(DeviceId device, CaptureId capture, long contextId, long after) {
-    return executorService.submit(new GetFramebufferDepthCallable(device, capture, contextId, after));
+  public Future<ImageInfoId> GetFramebufferDepth(DeviceId device, CaptureId capture, int contextId, long after) {
+    return myExecutorService.submit(new GetFramebufferDepthCallable(device, capture, contextId, after));
   }
 
   @Override
-  public Future<BinaryId> GetGlErrorCodes(DeviceId device, CaptureId capture, long contextId) {
-    return executorService.submit(new GetGlErrorCodesCallable(device, capture, contextId));
+  public Future<BinaryId> GetGlErrorCodes(DeviceId device, CaptureId capture, int contextId) {
+    return myExecutorService.submit(new GetGlErrorCodesCallable(device, capture, contextId));
   }
 
   @Override
-  public Future<CaptureId> ReplaceAtom(CaptureId capture, long atomId, int atomType, Binary data) {
-    return executorService.submit(new ReplaceAtomCallable(capture, atomId, atomType, data));
+  public Future<CaptureId> ReplaceAtom(CaptureId capture, long atomId, short atomType, Binary data) {
+    return myExecutorService.submit(new ReplaceAtomCallable(capture, atomId, atomType, data));
   }
 
   @Override
-  public Future<TimingInfoId> GetTimingInfo(DeviceId device, CaptureId capture, long contextId, TimingMask mask) {
-    return executorService.submit(new GetTimingInfoCallable(device, capture, contextId, mask));
+  public Future<TimingInfoId> GetTimingInfo(DeviceId device, CaptureId capture, int contextId, TimingMask mask) {
+    return myExecutorService.submit(new GetTimingInfoCallable(device, capture, contextId, mask));
   }
 
   @Override
   public Future<AtomStream> ResolveAtomStream(AtomStreamId id) {
-    return executorService.submit(new ResolveAtomStreamCallable(id));
+    return myExecutorService.submit(new ResolveAtomStreamCallable(id));
   }
 
   @Override
   public Future<Binary> ResolveBinary(BinaryId id) {
-    return executorService.submit(new ResolveBinaryCallable(id));
+    return myExecutorService.submit(new ResolveBinaryCallable(id));
   }
 
   @Override
   public Future<Capture> ResolveCapture(CaptureId id) {
-    return executorService.submit(new ResolveCaptureCallable(id));
+    return myExecutorService.submit(new ResolveCaptureCallable(id));
   }
 
   @Override
   public Future<Device> ResolveDevice(DeviceId id) {
-    return executorService.submit(new ResolveDeviceCallable(id));
+    return myExecutorService.submit(new ResolveDeviceCallable(id));
   }
 
   @Override
   public Future<Hierarchy> ResolveHierarchy(HierarchyId id) {
-    return executorService.submit(new ResolveHierarchyCallable(id));
+    return myExecutorService.submit(new ResolveHierarchyCallable(id));
   }
 
   @Override
   public Future<ImageInfo> ResolveImageInfo(ImageInfoId id) {
-    return executorService.submit(new ResolveImageInfoCallable(id));
+    return myExecutorService.submit(new ResolveImageInfoCallable(id));
   }
 
   @Override
   public Future<MemoryInfo> ResolveMemoryInfo(MemoryInfoId id) {
-    return executorService.submit(new ResolveMemoryInfoCallable(id));
+    return myExecutorService.submit(new ResolveMemoryInfoCallable(id));
   }
 
   @Override
   public Future<Schema> ResolveSchema(SchemaId id) {
-    return executorService.submit(new ResolveSchemaCallable(id));
+    return myExecutorService.submit(new ResolveSchemaCallable(id));
   }
 
   @Override
   public Future<TimingInfo> ResolveTimingInfo(TimingInfoId id) {
-    return executorService.submit(new ResolveTimingInfoCallable(id));
+    return myExecutorService.submit(new ResolveTimingInfoCallable(id));
   }
 
 
   private class GetCapturesCallable implements Callable<CaptureId[]> {
-    private final Commands.GetCaptures.Call call;
+    private final Commands.GetCaptures.Call myCall;
 
     private GetCapturesCallable() {
-      this.call = new Commands.GetCaptures.Call();
+      myCall = new Commands.GetCaptures.Call();
     }
 
     @Override
     public CaptureId[] call() throws Exception {
-      Commands.GetCaptures.Result result = (Commands.GetCaptures.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetCaptures.Result result = (Commands.GetCaptures.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetDevicesCallable implements Callable<DeviceId[]> {
-    private final Commands.GetDevices.Call call;
+    private final Commands.GetDevices.Call myCall;
 
     private GetDevicesCallable() {
-      this.call = new Commands.GetDevices.Call();
+      myCall = new Commands.GetDevices.Call();
     }
 
     @Override
     public DeviceId[] call() throws Exception {
-      Commands.GetDevices.Result result = (Commands.GetDevices.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetDevices.Result result = (Commands.GetDevices.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetStateCallable implements Callable<BinaryId> {
-    private final Commands.GetState.Call call;
+    private final Commands.GetState.Call myCall;
 
-    private GetStateCallable(CaptureId capture, long contextId, long after) {
-      this.call = new Commands.GetState.Call(capture, contextId, after);
+    private GetStateCallable(CaptureId capture, int contextId, long after) {
+      myCall = new Commands.GetState.Call(capture, contextId, after);
     }
 
     @Override
     public BinaryId call() throws Exception {
-      Commands.GetState.Result result = (Commands.GetState.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetState.Result result = (Commands.GetState.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetHierarchyCallable implements Callable<HierarchyId> {
-    private final Commands.GetHierarchy.Call call;
+    private final Commands.GetHierarchy.Call myCall;
 
-    private GetHierarchyCallable(CaptureId capture, long contextId) {
-      this.call = new Commands.GetHierarchy.Call(capture, contextId);
+    private GetHierarchyCallable(CaptureId capture, int contextId) {
+      myCall = new Commands.GetHierarchy.Call(capture, contextId);
     }
 
     @Override
     public HierarchyId call() throws Exception {
-      Commands.GetHierarchy.Result result = (Commands.GetHierarchy.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetHierarchy.Result result = (Commands.GetHierarchy.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetMemoryInfoCallable implements Callable<MemoryInfoId> {
-    private final Commands.GetMemoryInfo.Call call;
+    private final Commands.GetMemoryInfo.Call myCall;
 
-    private GetMemoryInfoCallable(CaptureId capture, long contextId, long after, MemoryRange rng) {
-      this.call = new Commands.GetMemoryInfo.Call(capture, contextId, after, rng);
+    private GetMemoryInfoCallable(CaptureId capture, int contextId, long after, MemoryRange rng) {
+      myCall = new Commands.GetMemoryInfo.Call(capture, contextId, after, rng);
     }
 
     @Override
     public MemoryInfoId call() throws Exception {
-      Commands.GetMemoryInfo.Result result = (Commands.GetMemoryInfo.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetMemoryInfo.Result result = (Commands.GetMemoryInfo.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetFramebufferColorCallable implements Callable<ImageInfoId> {
-    private final Commands.GetFramebufferColor.Call call;
+    private final Commands.GetFramebufferColor.Call myCall;
 
-    private GetFramebufferColorCallable(DeviceId device, CaptureId capture, long contextId, long after, RenderSettings settings) {
-      this.call = new Commands.GetFramebufferColor.Call(device, capture, contextId, after, settings);
+    private GetFramebufferColorCallable(DeviceId device, CaptureId capture, int contextId, long after, RenderSettings settings) {
+      myCall = new Commands.GetFramebufferColor.Call(device, capture, contextId, after, settings);
     }
 
     @Override
     public ImageInfoId call() throws Exception {
-      Commands.GetFramebufferColor.Result result = (Commands.GetFramebufferColor.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetFramebufferColor.Result result = (Commands.GetFramebufferColor.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetFramebufferDepthCallable implements Callable<ImageInfoId> {
-    private final Commands.GetFramebufferDepth.Call call;
+    private final Commands.GetFramebufferDepth.Call myCall;
 
-    private GetFramebufferDepthCallable(DeviceId device, CaptureId capture, long contextId, long after) {
-      this.call = new Commands.GetFramebufferDepth.Call(device, capture, contextId, after);
+    private GetFramebufferDepthCallable(DeviceId device, CaptureId capture, int contextId, long after) {
+      myCall = new Commands.GetFramebufferDepth.Call(device, capture, contextId, after);
     }
 
     @Override
     public ImageInfoId call() throws Exception {
-      Commands.GetFramebufferDepth.Result result = (Commands.GetFramebufferDepth.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetFramebufferDepth.Result result = (Commands.GetFramebufferDepth.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetGlErrorCodesCallable implements Callable<BinaryId> {
-    private final Commands.GetGlErrorCodes.Call call;
+    private final Commands.GetGlErrorCodes.Call myCall;
 
-    private GetGlErrorCodesCallable(DeviceId device, CaptureId capture, long contextId) {
-      this.call = new Commands.GetGlErrorCodes.Call(device, capture, contextId);
+    private GetGlErrorCodesCallable(DeviceId device, CaptureId capture, int contextId) {
+      myCall = new Commands.GetGlErrorCodes.Call(device, capture, contextId);
     }
 
     @Override
     public BinaryId call() throws Exception {
-      Commands.GetGlErrorCodes.Result result = (Commands.GetGlErrorCodes.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetGlErrorCodes.Result result = (Commands.GetGlErrorCodes.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ReplaceAtomCallable implements Callable<CaptureId> {
-    private final Commands.ReplaceAtom.Call call;
+    private final Commands.ReplaceAtom.Call myCall;
 
-    private ReplaceAtomCallable(CaptureId capture, long atomId, int atomType, Binary data) {
-      this.call = new Commands.ReplaceAtom.Call(capture, atomId, atomType, data);
+    private ReplaceAtomCallable(CaptureId capture, long atomId, short atomType, Binary data) {
+      myCall = new Commands.ReplaceAtom.Call(capture, atomId, atomType, data);
     }
 
     @Override
     public CaptureId call() throws Exception {
-      Commands.ReplaceAtom.Result result = (Commands.ReplaceAtom.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ReplaceAtom.Result result = (Commands.ReplaceAtom.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class GetTimingInfoCallable implements Callable<TimingInfoId> {
-    private final Commands.GetTimingInfo.Call call;
+    private final Commands.GetTimingInfo.Call myCall;
 
-    private GetTimingInfoCallable(DeviceId device, CaptureId capture, long contextId, TimingMask mask) {
-      this.call = new Commands.GetTimingInfo.Call(device, capture, contextId, mask);
+    private GetTimingInfoCallable(DeviceId device, CaptureId capture, int contextId, TimingMask mask) {
+      myCall = new Commands.GetTimingInfo.Call(device, capture, contextId, mask);
     }
 
     @Override
     public TimingInfoId call() throws Exception {
-      Commands.GetTimingInfo.Result result = (Commands.GetTimingInfo.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.GetTimingInfo.Result result = (Commands.GetTimingInfo.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveAtomStreamCallable implements Callable<AtomStream> {
-    private final Commands.ResolveAtomStream.Call call;
+    private final Commands.ResolveAtomStream.Call myCall;
 
     private ResolveAtomStreamCallable(AtomStreamId id) {
-      this.call = new Commands.ResolveAtomStream.Call(id);
+      myCall = new Commands.ResolveAtomStream.Call(id);
     }
 
     @Override
     public AtomStream call() throws Exception {
-      Commands.ResolveAtomStream.Result result = (Commands.ResolveAtomStream.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveAtomStream.Result result = (Commands.ResolveAtomStream.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveBinaryCallable implements Callable<Binary> {
-    private final Commands.ResolveBinary.Call call;
+    private final Commands.ResolveBinary.Call myCall;
 
     private ResolveBinaryCallable(BinaryId id) {
-      this.call = new Commands.ResolveBinary.Call(id);
+      myCall = new Commands.ResolveBinary.Call(id);
     }
 
     @Override
     public Binary call() throws Exception {
-      Commands.ResolveBinary.Result result = (Commands.ResolveBinary.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveBinary.Result result = (Commands.ResolveBinary.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveCaptureCallable implements Callable<Capture> {
-    private final Commands.ResolveCapture.Call call;
+    private final Commands.ResolveCapture.Call myCall;
 
     private ResolveCaptureCallable(CaptureId id) {
-      this.call = new Commands.ResolveCapture.Call(id);
+      myCall = new Commands.ResolveCapture.Call(id);
     }
 
     @Override
     public Capture call() throws Exception {
-      Commands.ResolveCapture.Result result = (Commands.ResolveCapture.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveCapture.Result result = (Commands.ResolveCapture.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveDeviceCallable implements Callable<Device> {
-    private final Commands.ResolveDevice.Call call;
+    private final Commands.ResolveDevice.Call myCall;
 
     private ResolveDeviceCallable(DeviceId id) {
-      this.call = new Commands.ResolveDevice.Call(id);
+      myCall = new Commands.ResolveDevice.Call(id);
     }
 
     @Override
     public Device call() throws Exception {
-      Commands.ResolveDevice.Result result = (Commands.ResolveDevice.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveDevice.Result result = (Commands.ResolveDevice.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveHierarchyCallable implements Callable<Hierarchy> {
-    private final Commands.ResolveHierarchy.Call call;
+    private final Commands.ResolveHierarchy.Call myCall;
 
     private ResolveHierarchyCallable(HierarchyId id) {
-      this.call = new Commands.ResolveHierarchy.Call(id);
+      myCall = new Commands.ResolveHierarchy.Call(id);
     }
 
     @Override
     public Hierarchy call() throws Exception {
-      Commands.ResolveHierarchy.Result result = (Commands.ResolveHierarchy.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveHierarchy.Result result = (Commands.ResolveHierarchy.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveImageInfoCallable implements Callable<ImageInfo> {
-    private final Commands.ResolveImageInfo.Call call;
+    private final Commands.ResolveImageInfo.Call myCall;
 
     private ResolveImageInfoCallable(ImageInfoId id) {
-      this.call = new Commands.ResolveImageInfo.Call(id);
+      myCall = new Commands.ResolveImageInfo.Call(id);
     }
 
     @Override
     public ImageInfo call() throws Exception {
-      Commands.ResolveImageInfo.Result result = (Commands.ResolveImageInfo.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveImageInfo.Result result = (Commands.ResolveImageInfo.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveMemoryInfoCallable implements Callable<MemoryInfo> {
-    private final Commands.ResolveMemoryInfo.Call call;
+    private final Commands.ResolveMemoryInfo.Call myCall;
 
     private ResolveMemoryInfoCallable(MemoryInfoId id) {
-      this.call = new Commands.ResolveMemoryInfo.Call(id);
+      myCall = new Commands.ResolveMemoryInfo.Call(id);
     }
 
     @Override
     public MemoryInfo call() throws Exception {
-      Commands.ResolveMemoryInfo.Result result = (Commands.ResolveMemoryInfo.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveMemoryInfo.Result result = (Commands.ResolveMemoryInfo.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveSchemaCallable implements Callable<Schema> {
-    private final Commands.ResolveSchema.Call call;
+    private final Commands.ResolveSchema.Call myCall;
 
     private ResolveSchemaCallable(SchemaId id) {
-      this.call = new Commands.ResolveSchema.Call(id);
+      myCall = new Commands.ResolveSchema.Call(id);
     }
 
     @Override
     public Schema call() throws Exception {
-      Commands.ResolveSchema.Result result = (Commands.ResolveSchema.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveSchema.Result result = (Commands.ResolveSchema.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
-
   private class ResolveTimingInfoCallable implements Callable<TimingInfo> {
-    private final Commands.ResolveTimingInfo.Call call;
+    private final Commands.ResolveTimingInfo.Call myCall;
 
     private ResolveTimingInfoCallable(TimingInfoId id) {
-      this.call = new Commands.ResolveTimingInfo.Call(id);
+      myCall = new Commands.ResolveTimingInfo.Call(id);
     }
 
     @Override
     public TimingInfo call() throws Exception {
-      Commands.ResolveTimingInfo.Result result = (Commands.ResolveTimingInfo.Result)broadcaster.Send(call);
-      return result.value;
+      Commands.ResolveTimingInfo.Result result = (Commands.ResolveTimingInfo.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
     }
   }
 }

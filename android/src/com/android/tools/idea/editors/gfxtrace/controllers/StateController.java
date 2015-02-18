@@ -149,6 +149,11 @@ public class StateController implements GfxController {
         }
         break;
 
+      case Memory:
+        // Skip, since this is not supported at the moment.
+        thisNode = null;
+        break;
+
       case Any:
         // Skip, since this is not supported at the moment.
         thisNode = null;
@@ -181,7 +186,7 @@ public class StateController implements GfxController {
     final Client client = myEditor.getClient();
     final StructInfo stateHierarchy = myStateHierarchy;
     final CaptureId captureId = myEditor.getCaptureId();
-    final long contextId = myEditor.getContext();
+    final int contextId = myEditor.getContext();
     myAtomicAtomId.set(atomId);
 
     if (!myLoadingPanel.isLoading()) {
@@ -195,13 +200,7 @@ public class StateController implements GfxController {
       public TreeNode call() throws Exception {
         BinaryId binaryId = client.GetState(captureId, contextId, atomId).get();
         Binary stateBinary = client.ResolveBinary(binaryId).get();
-        // Convert from ByteArray to byte[].
-        byte[] byteArray = new byte[stateBinary.getData().length];
-        for (int i = 0; i < byteArray.length; ++i) {
-          byteArray[i] = (byte)stateBinary.getData()[i];
-        }
-
-        Struct stateStruct = (Struct)Unpack.Type(stateHierarchy, new Decoder(new ByteArrayInputStream(byteArray)));
+        Struct stateStruct = (Struct)Unpack.Type(stateHierarchy, new Decoder(new ByteArrayInputStream(stateBinary.getData())));
         return constructStateNode(stateStruct.info.getName(), TypeKind.Struct, stateStruct);
       }
     });

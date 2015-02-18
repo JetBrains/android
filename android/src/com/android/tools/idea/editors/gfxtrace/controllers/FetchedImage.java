@@ -40,7 +40,7 @@ public class FetchedImage {
 
   @NotNull
   public ImageIcon createImageIcon() {
-    Dimension imageDimensions = getImageDimesions();
+    Dimension imageDimensions = getImageDimensions();
     //noinspection UndesirableClassUsage
     BufferedImage image = new BufferedImage(imageDimensions.width, imageDimensions.height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
     WritableRaster raster = image.getRaster();
@@ -50,42 +50,42 @@ public class FetchedImage {
   }
 
   @NotNull
-  private Dimension getImageDimesions() {
+  private Dimension getImageDimensions() {
     return new Dimension((int)myImageInfo.getWidth(), (int)myImageInfo.getHeight());
   }
 
   private void setImageBytes(@NotNull byte[] destination) {
     if (myImageInfo.getFormat() == ImageFormat.RGBA8) {
-      Dimension dimension = getImageDimesions();
+      Dimension dimension = getImageDimensions();
       final int stride = dimension.width * 4;
 
       int length = stride * dimension.height;
       assert (destination.length >= length);
 
       // Covert between top-left and bottom-left formats.
-      short[] data = myBinary.getData();
+      byte[] data = myBinary.getData();
       for (int y = 0; y < dimension.height; ++y) {
         int yOffsetSource = stride * y;
         int yOffsetDestination = length - stride - yOffsetSource;
         for (int x = 0; x < stride; x += 4) {
           int destinationOffset = yOffsetDestination + x;
           int sourceOffset = yOffsetSource + x;
-          destination[destinationOffset] = -1;
-          destination[destinationOffset + 1] = (byte)data[sourceOffset + 2];
-          destination[destinationOffset + 2] = (byte)data[sourceOffset + 1];
-          destination[destinationOffset + 3] = (byte)data[sourceOffset];
+          destination[destinationOffset] = (byte)0xff;
+          destination[destinationOffset + 1] = data[sourceOffset + 2];
+          destination[destinationOffset + 2] = data[sourceOffset + 1];
+          destination[destinationOffset + 3] = data[sourceOffset];
         }
       }
     }
     else if (myImageInfo.getFormat() == ImageFormat.Float32) {
-      Dimension dimension = getImageDimesions();
+      Dimension dimension = getImageDimensions();
       final int stride = dimension.width * 4;
 
       int length = stride * dimension.height;
       assert (destination.length >= length);
 
       // Covert between top-left and bottom-left formats.
-      short[] data = myBinary.getData();
+      byte[] data = myBinary.getData();
       byte[] floatBuffer = new byte[4];
       ByteBuffer intBuffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
       for (int y = 0; y < dimension.height; ++y) {
@@ -95,10 +95,10 @@ public class FetchedImage {
           int destinationOffset = yOffsetDestination + x;
           int sourceOffset = yOffsetSource + x;
 
-          floatBuffer[0] = (byte)data[sourceOffset];
-          floatBuffer[1] = (byte)data[sourceOffset + 1];
-          floatBuffer[2] = (byte)data[sourceOffset + 2];
-          floatBuffer[3] = (byte)data[sourceOffset + 3];
+          floatBuffer[0] = data[sourceOffset];
+          floatBuffer[1] = data[sourceOffset + 1];
+          floatBuffer[2] = data[sourceOffset + 2];
+          floatBuffer[3] = data[sourceOffset + 3];
 
           float depth = ByteBuffer.wrap(floatBuffer).order(ByteOrder.LITTLE_ENDIAN).getFloat();
           assert (depth <= 1.0f);
@@ -136,7 +136,7 @@ public class FetchedImage {
               intBuffer.clear();
               byte[] colorArray = intBuffer.putInt(intDepth).array();
 
-              destination[destinationOffset] = -1;
+              destination[destinationOffset] = (byte)0xff;
               red = colorArray[2];
               green = colorArray[1];
               blue = colorArray[0];
@@ -144,7 +144,7 @@ public class FetchedImage {
             }
           }
 
-          destination[destinationOffset] = -1;
+          destination[destinationOffset] = (byte)0xff;
           destination[destinationOffset + 1] = blue;
           destination[destinationOffset + 2] = green;
           destination[destinationOffset + 3] = red;
@@ -159,7 +159,7 @@ public class FetchedImage {
   /*
    * Client side floating depth to color conversion modes.
    * DEFAULT - Converts float z-depth to linear integer depth, then casts to color.
-   * TRIGNOMETRIC - Converts float z-depth to linear integer depth, then calculates harmonic cosine values for each color component.
+   * TRIGONOMETRIC - Converts float z-depth to linear integer depth, then calculates harmonic cosine values for each color component.
    * GO_CLIENT - Uses the Go client's mode of displaying depth.
    */
   enum DepthConversionMode {

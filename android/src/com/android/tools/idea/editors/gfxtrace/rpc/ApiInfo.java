@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class ApiInfo implements BinaryObject {
-  String Name;
-  SchemaId Schema;
+  String myName;
+  SchemaId mySchema;
 
   // Constructs a default-initialized {@link ApiInfo}.
   public ApiInfo() {
@@ -38,22 +38,20 @@ public class ApiInfo implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public SchemaId getSchema() {
-    return Schema;
+    return mySchema;
   }
 
   public void setSchema(SchemaId v) {
-    Schema = v;
+    mySchema = v;
   }
 
   @Override

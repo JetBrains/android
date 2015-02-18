@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class Binary implements BinaryObject {
-  short[] Data;
+  byte[] myData;
 
   // Constructs a default-initialized {@link Binary}.
   public Binary() {
@@ -37,14 +37,12 @@ public class Binary implements BinaryObject {
     decode(d);
   }
 
-  // Getters
-  public short[] getData() {
-    return Data;
+  public byte[] getData() {
+    return myData;
   }
 
-  // Setters
-  public void setData(short[] v) {
-    Data = v;
+  public void setData(byte[] v) {
+    myData = v;
   }
 
   @Override

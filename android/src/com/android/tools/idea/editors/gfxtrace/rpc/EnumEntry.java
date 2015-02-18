@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class EnumEntry implements BinaryObject {
-  String Name;
-  long Value;
+  String myName;
+  int myValue;
 
   // Constructs a default-initialized {@link EnumEntry}.
   public EnumEntry() {
@@ -38,22 +38,20 @@ public class EnumEntry implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
-  public long getValue() {
-    return Value;
+  public int getValue() {
+    return myValue;
   }
 
-  public void setValue(long v) {
-    Value = v;
+  public void setValue(int v) {
+    myValue = v;
   }
 
   @Override

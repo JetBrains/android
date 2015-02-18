@@ -19,6 +19,7 @@ package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -41,15 +42,16 @@ public enum TypeKind {
   Array(16),
   Map(17),
   Pointer(18),
-  Any(19),;
+  Memory(19),
+  Any(20);
 
-  final int value;
+  final int myValue;
 
   TypeKind(int value) {
-    this.value = value;
+    myValue = value;
   }
 
-  public static TypeKind decode(Decoder d) throws IOException {
+  public static TypeKind decode(@NotNull Decoder d) throws IOException {
     int id = d.int32();
     switch (id) {
       case 0:
@@ -89,13 +91,15 @@ public enum TypeKind {
       case 18:
         return Pointer;
       case 19:
+        return Memory;
+      case 20:
         return Any;
       default:
         throw new RuntimeException("Unknown TypeKind " + id);
     }
   }
 
-  public void encode(Encoder e) throws IOException {
-    e.int32(value);
+  public void encode(@NotNull Encoder e) throws IOException {
+    e.int32(myValue);
   }
 }

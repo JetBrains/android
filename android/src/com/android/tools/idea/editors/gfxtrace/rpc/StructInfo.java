@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class StructInfo implements TypeInfo {
-  String Name;
-  TypeKind Kind;
-  FieldInfo[] Fields;
+  String myName;
+  TypeKind myKind;
+  FieldInfo[] myFields;
 
   // Constructs a default-initialized {@link StructInfo}.
   public StructInfo() {
@@ -38,34 +38,32 @@ public class StructInfo implements TypeInfo {
     decode(d);
   }
 
-  // Getters
   @Override
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   @Override
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   @Override
   public TypeKind getKind() {
-    return Kind;
+    return myKind;
   }
 
   @Override
   public void setKind(TypeKind v) {
-    Kind = v;
+    myKind = v;
   }
 
   public FieldInfo[] getFields() {
-    return Fields;
+    return myFields;
   }
 
   public void setFields(FieldInfo[] v) {
-    Fields = v;
+    myFields = v;
   }
 
   @Override

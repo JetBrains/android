@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.rpc.*;
 import com.android.tools.rpclib.rpccore.RpcException;
-import com.google.common.primitives.Longs;
+import com.google.common.primitives.Ints;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -53,7 +53,7 @@ public class ContextController {
   @NotNull private final ComboBox myGfxContextsView;
   @Nullable private Device myCurrentDevice;
   @Nullable private Capture myCurrentCapture;
-  @Nullable private volatile Long myCurrentContext;
+  @Nullable private volatile Integer myCurrentContext;
   @NotNull private Map<Device, DeviceId> myDevices = new HashMap<Device, DeviceId>();
   @NotNull private Map<Capture, CaptureId> myCaptures = new HashMap<Capture, CaptureId>();
   @NotNull private AtomicBoolean myShouldStopContextSwitch = new AtomicBoolean(false);
@@ -132,7 +132,7 @@ public class ContextController {
   }
 
   @Nullable
-  public Long getCurrentContext() {
+  public Integer getCurrentContext() {
     return myCurrentContext;
   }
 
@@ -229,7 +229,7 @@ public class ContextController {
     });
   }
 
-  public void populateUi(@NotNull long[] contextIds) {
+  public void populateUi(@NotNull int[] contextIds) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     updateGfxContextView(contextIds);
@@ -239,7 +239,7 @@ public class ContextController {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-          Long newContext = (Long)itemEvent.getItem();
+          Integer newContext = (Integer)itemEvent.getItem();
           assert (!newContext.equals(myCurrentContext));
           myCurrentContext = newContext;
 
@@ -281,7 +281,7 @@ public class ContextController {
     clearGfxContextView(); // Invalidate the context IDs in the ComboBox first.
   }
 
-  private void setGfxContext(@NotNull final Long contextId) {
+  private void setGfxContext(@NotNull final Integer contextId) {
     ApplicationManager.getApplication().assertIsDispatchThread(); // Must be in EDT to call this, since we're synchronized on it.
 
     if (!myShouldStopContextSwitch.get() && contextId.equals(myCurrentContext)) {
@@ -329,9 +329,9 @@ public class ContextController {
     myCapturesView.setSelectedIndex(-1);
   }
 
-  private void updateGfxContextView(@NotNull long[] contextList) {
+  private void updateGfxContextView(@NotNull int[] contextList) {
     assert (contextList.length > 0);
-    Object[] boxedContextList = Longs.asList(contextList).toArray();
+    Object[] boxedContextList = Ints.asList(contextList).toArray();
     DefaultComboBoxModel model = new DefaultComboBoxModel(boxedContextList);
     myGfxContextsView.setModel(model);
     myGfxContextsView.setSelectedIndex(0);

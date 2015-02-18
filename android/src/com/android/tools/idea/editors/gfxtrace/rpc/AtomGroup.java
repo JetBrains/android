@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class AtomGroup implements BinaryObject {
-  String Name;
-  AtomRange Range;
-  AtomGroup[] SubGroups;
+  String myName;
+  AtomRange myRange;
+  AtomGroup[] mySubGroups;
 
   // Constructs a default-initialized {@link AtomGroup}.
   public AtomGroup() {
@@ -39,30 +39,28 @@ public class AtomGroup implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public AtomRange getRange() {
-    return Range;
+    return myRange;
   }
 
   public void setRange(AtomRange v) {
-    Range = v;
+    myRange = v;
   }
 
   public AtomGroup[] getSubGroups() {
-    return SubGroups;
+    return mySubGroups;
   }
 
   public void setSubGroups(AtomGroup[] v) {
-    SubGroups = v;
+    mySubGroups = v;
   }
 
   @Override

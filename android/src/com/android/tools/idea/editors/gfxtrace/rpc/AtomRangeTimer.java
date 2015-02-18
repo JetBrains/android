@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class AtomRangeTimer implements BinaryObject {
-  long FromAtomId;
-  long ToAtomId;
-  long Nanoseconds;
+  long myFromAtomId;
+  long myToAtomId;
+  long myNanoseconds;
 
   // Constructs a default-initialized {@link AtomRangeTimer}.
   public AtomRangeTimer() {
@@ -39,30 +39,28 @@ public class AtomRangeTimer implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public long getFromAtomId() {
-    return FromAtomId;
+    return myFromAtomId;
   }
 
-  // Setters
   public void setFromAtomId(long v) {
-    FromAtomId = v;
+    myFromAtomId = v;
   }
 
   public long getToAtomId() {
-    return ToAtomId;
+    return myToAtomId;
   }
 
   public void setToAtomId(long v) {
-    ToAtomId = v;
+    myToAtomId = v;
   }
 
   public long getNanoseconds() {
-    return Nanoseconds;
+    return myNanoseconds;
   }
 
   public void setNanoseconds(long v) {
-    Nanoseconds = v;
+    myNanoseconds = v;
   }
 
   @Override

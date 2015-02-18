@@ -20,11 +20,11 @@ import com.android.tools.idea.editors.gfxtrace.rpc.AtomInfo;
 import com.android.tools.idea.editors.gfxtrace.rpc.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.rpc.ParameterInfo;
 import com.android.tools.idea.editors.gfxtrace.rpc.Schema;
+import gnu.trove.TIntIntHashMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -35,27 +35,23 @@ import java.util.List;
  * structures on {@link #read}.
  */
 public class AtomReader {
-  private final Schema schema;
-  private final byte[] data;
-  private final List<Segment> atomSegments;
-  private final java.util.Map<Integer, Integer> atomTypeToIndex;
+  private final Schema mSchema;
+  private final byte[] mData;
+  private final List<Segment> mAtomSegments;
+  private final TIntIntHashMap atomTypeToIndex;
 
   public AtomReader(AtomStream stream, Schema schema) throws IOException {
-    short[] data = stream.getData();
-    this.schema = schema;
-    this.data = new byte[data.length];
-    this.atomSegments = new ArrayList<Segment>();
+    mSchema = schema;
+    mData = stream.getData();
+    mAtomSegments = new ArrayList<Segment>();
 
-    for (int i = 0; i < data.length; i++) {
-      this.data[i] = (byte)data[i];
-    }
     calculateAtomInfos();
 
-    atomTypeToIndex = new HashMap<Integer, Integer>(schema.getAtoms().length);
+    atomTypeToIndex = new TIntIntHashMap(schema.getAtoms().length);
     AtomInfo[] atomInfos = schema.getAtoms();
     for (int i = 0; i < atomInfos.length; ++i) {
-      Integer previous = atomTypeToIndex.put(atomInfos[i].getType(), i);
-      assert (previous == null); // Make sure there are no duplicates.
+      assert !atomTypeToIndex.containsValue(i); // Make sure there are no duplicates.
+      atomTypeToIndex.put(atomInfos[i].getType(), i);
     }
   }
 
@@ -63,7 +59,7 @@ public class AtomReader {
    * @return the number of atoms in the collection.
    */
   public int count() {
-    return atomSegments.size();
+    return mAtomSegments.size();
   }
 
   /**
@@ -74,18 +70,16 @@ public class AtomReader {
    */
   public Atom read(long index) throws IOException {
     assert (index <= Integer.MAX_VALUE);
-    Segment segment = atomSegments.get((int)index);
-    ByteArrayInputStream stream = new ByteArrayInputStream(data, segment.offset, segment.size);
+    Segment segment = mAtomSegments.get((int)index);
+    ByteArrayInputStream stream = new ByteArrayInputStream(mData, segment.mOffset, segment.mSize);
     Decoder decoder = new Decoder(stream);
-    int type = decoder.uint16();
+    short type = decoder.uint16();
     int contextId = decoder.int32();
     assert (contextId >= 0); // Sanity check.
-    Integer infoIndex = atomTypeToIndex.get(type);
-    if (infoIndex == null) {
+    if (!atomTypeToIndex.containsValue(type)) {
       throw new RuntimeException("Atom type " + type + "not found in schema.");
     }
-
-    AtomInfo atomInfo = schema.getAtoms()[infoIndex];
+    AtomInfo atomInfo = mSchema.getAtoms()[atomTypeToIndex.get(type)];
 
     Parameter[] parameters = new Parameter[atomInfo.getParameters().length];
     for (int i = 0; i < parameters.length; i++) {
@@ -98,16 +92,16 @@ public class AtomReader {
   }
 
   private void calculateAtomInfos() throws IOException {
-    ByteArrayInputStream stream = new ByteArrayInputStream(data);
+    ByteArrayInputStream stream = new ByteArrayInputStream(mData);
     Decoder decoder = new Decoder(stream);
     int offset = 0;
     while (true) {
-      int size = decoder.uint16();
+      int size = decoder.uint16() & 0xffff;
       if (size > 0) {
         offset += 2; // Skip size
-        atomSegments.add(new Segment(offset, size));
+        mAtomSegments.add(new Segment(offset, size));
         size -= 2; // Skip size
-        stream.skip(size);
+        assert stream.skip(size) == size;
         offset += size;
       }
       else {
@@ -117,12 +111,12 @@ public class AtomReader {
   }
 
   private static class Segment {
-    private final int offset;
-    private final int size;
+    private final int mOffset;
+    private final int mSize;
 
     private Segment(int offset, int size) {
-      this.offset = offset;
-      this.size = size;
+      mOffset = offset;
+      mSize = size;
     }
   }
 }

@@ -19,20 +19,21 @@ package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public enum ImageFormat {
   RGBA8(0),
-  Float32(1),;
+  Float32(1);
 
-  final int value;
+  final int myValue;
 
   ImageFormat(int value) {
-    this.value = value;
+    myValue = value;
   }
 
-  public static ImageFormat decode(Decoder d) throws IOException {
+  public static ImageFormat decode(@NotNull Decoder d) throws IOException {
     int id = d.int32();
     switch (id) {
       case 0:
@@ -44,7 +45,7 @@ public enum ImageFormat {
     }
   }
 
-  public void encode(Encoder e) throws IOException {
-    e.int32(value);
+  public void encode(@NotNull Encoder e) throws IOException {
+    e.int32(myValue);
   }
 }

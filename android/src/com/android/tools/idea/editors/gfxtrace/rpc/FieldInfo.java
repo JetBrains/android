@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class FieldInfo implements BinaryObject {
-  String Name;
-  TypeInfo Type;
+  String myName;
+  TypeInfo myType;
 
   // Constructs a default-initialized {@link FieldInfo}.
   public FieldInfo() {
@@ -38,22 +38,20 @@ public class FieldInfo implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public TypeInfo getType() {
-    return Type;
+    return myType;
   }
 
   public void setType(TypeInfo v) {
-    Type = v;
+    myType = v;
   }
 
   @Override
