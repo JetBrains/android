@@ -86,10 +86,10 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
- * The {@link RenderService} provides rendering and layout information for
+ * The {@link RenderTask} provides rendering and layout information for
  * Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService implements IImageFactory {
+public class RenderTask implements IImageFactory {
   @NotNull
   private final Module myModule;
 
@@ -147,12 +147,12 @@ public class RenderService implements IImageFactory {
   private boolean myProvideCookiesForIncludedViews = false;
 
   /**
-   * Creates a new {@link RenderService} associated with the given editor.
+   * Creates a new {@link RenderTask} associated with the given editor.
    *
-   * @return a {@link RenderService} which can perform rendering services
+   * @return a {@link RenderTask} which can perform rendering services
    */
   @Nullable
-  public static RenderService create(@NotNull final AndroidFacet facet,
+  public static RenderTask create(@NotNull final AndroidFacet facet,
                                      @NotNull final Module module,
                                      @NotNull final PsiFile psiFile,
                                      @NotNull final Configuration configuration,
@@ -229,7 +229,7 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
-    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, layoutLib, device);
+    RenderTask service = new RenderTask(facet, module, psiFile, configuration, logger, layoutLib, device);
     if (renderContext != null) {
       service.setRenderContext(renderContext);
     }
@@ -331,13 +331,13 @@ public class RenderService implements IImageFactory {
   /**
    * Use the {@link #create} factory instead
    */
-  private RenderService(@NotNull AndroidFacet facet,
-                        @NotNull Module module,
-                        @NotNull PsiFile psiFile,
-                        @NotNull Configuration configuration,
-                        @NotNull RenderLogger logger,
-                        @NotNull LayoutLibrary layoutLib,
-                        @NotNull Device device) {
+  private RenderTask(@NotNull AndroidFacet facet,
+                     @NotNull Module module,
+                     @NotNull PsiFile psiFile,
+                     @NotNull Configuration configuration,
+                     @NotNull RenderLogger logger,
+                     @NotNull LayoutLibrary layoutLib,
+                     @NotNull Device device) {
     myModule = module;
     myLogger = logger;
     myLogger.setCredential(myCredential);
@@ -448,7 +448,7 @@ public class RenderService implements IImageFactory {
    * @param overrideRenderHeight the height in pixels of the layout to be rendered
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setOverrideRenderSize(int overrideRenderWidth, int overrideRenderHeight) {
+  public RenderTask setOverrideRenderSize(int overrideRenderWidth, int overrideRenderHeight) {
     myHardwareConfigHelper.setOverrideRenderSize(overrideRenderWidth, overrideRenderHeight);
     return this;
   }
@@ -465,7 +465,7 @@ public class RenderService implements IImageFactory {
    * @param maxRenderHeight the max height in pixels of the layout to be rendered
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setMaxRenderSize(int maxRenderWidth, int maxRenderHeight) {
+  public RenderTask setMaxRenderSize(int maxRenderWidth, int maxRenderHeight) {
     myHardwareConfigHelper.setMaxRenderSize(maxRenderWidth, maxRenderHeight);
     return this;
   }
@@ -477,7 +477,7 @@ public class RenderService implements IImageFactory {
    * @param renderingMode the rendering mode to be used
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setRenderingMode(@NotNull RenderingMode renderingMode) {
+  public RenderTask setRenderingMode(@NotNull RenderingMode renderingMode) {
     myRenderingMode = renderingMode;
     return this;
   }
@@ -488,7 +488,7 @@ public class RenderService implements IImageFactory {
     return myRenderingMode;
   }
 
-  public RenderService setTimeout(long timeout) {
+  public RenderTask setTimeout(long timeout) {
     myTimeout = timeout;
     return this;
   }
@@ -502,7 +502,7 @@ public class RenderService implements IImageFactory {
    * @return this (such that chains of setters can be stringed together)
    */
   @NotNull
-  public RenderService setOverrideBgColor(@Nullable Integer overrideBgColor) {
+  public RenderTask setOverrideBgColor(@Nullable Integer overrideBgColor) {
     myOverrideBgColor = overrideBgColor;
     return this;
   }
@@ -514,13 +514,13 @@ public class RenderService implements IImageFactory {
    * @param showDecorations true if the rendering should include system bars etc.
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setDecorations(boolean showDecorations) {
+  public RenderTask setDecorations(boolean showDecorations) {
     myShowDecorations = showDecorations;
     return this;
   }
 
   /**
-   * Gets the context for the usage of this {@link RenderService}, which can
+   * Gets the context for the usage of this {@link RenderTask}, which can
    * control for example how {@code <fragment/>} tags are processed when missing
    * preview data
    */
@@ -530,7 +530,7 @@ public class RenderService implements IImageFactory {
   }
 
   /**
-   * Sets the context for the usage of this {@link RenderService}, which can
+   * Sets the context for the usage of this {@link RenderTask}, which can
    * control for example how {@code <fragment/>} tags are processed when missing
    * preview data
    *
@@ -538,7 +538,7 @@ public class RenderService implements IImageFactory {
    * @return this, for constructor chaining
    */
   @Nullable
-  public RenderService setRenderContext(@Nullable RenderContext renderContext) {
+  public RenderTask setRenderContext(@Nullable RenderContext renderContext) {
     myRenderContext = renderContext;
     return this;
   }
@@ -551,7 +551,7 @@ public class RenderService implements IImageFactory {
    * @return this (such that chains of setters can be stringed together)
    */
   @NotNull
-  public RenderService setNodesToExpand(@Nullable Set<XmlTag> nodesToExpand) {
+  public RenderTask setNodesToExpand(@Nullable Set<XmlTag> nodesToExpand) {
     myExpandNodes = nodesToExpand;
     return this;
   }
@@ -567,7 +567,7 @@ public class RenderService implements IImageFactory {
    * @return this (such that chains of setters can be stringed together)
    */
   @NotNull
-  public RenderService setIncludedWithin(@Nullable IncludeReference includedWithin) {
+  public RenderTask setIncludedWithin(@Nullable IncludeReference includedWithin) {
     myIncludedWithin = includedWithin;
     return this;
   }
@@ -719,7 +719,7 @@ public class RenderService implements IImageFactory {
               retries++;
             }
 
-            return new RenderResult(RenderService.this, session, myPsiFile, myLogger);
+            return new RenderResult(RenderTask.this, session, myPsiFile, myLogger);
           }
           finally {
             securityManager.dispose(myCredential);

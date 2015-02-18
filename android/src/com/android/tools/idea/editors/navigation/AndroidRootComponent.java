@@ -262,21 +262,21 @@ public class AndroidRootComponent extends JComponent {
       public void run() {
         Module module = facet.getModule();
         RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
-        final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
-        if (service != null) {
-          service.setProvideCookiesForIncludedViews(true);
+        final RenderTask task = RenderTask.create(facet, module, myLayoutFile, configuration, logger, null);
+        if (task != null) {
+          task.setProvideCookiesForIncludedViews(true);
           if (!isMenu) {
             // Don't show menus in the layout view
-            service.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
+            task.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
           }
-          RenderResult renderedResult = service.render();
+          RenderResult renderedResult = task.render();
           if (renderedResult != null) {
             RenderSession session = renderedResult.getSession();
             if (session != null) {
               Result result = session.getResult();
               if (result.isSuccess()) {
                 setRenderResult(renderedResult);
-                service.dispose();
+                task.dispose();
                 return;
               }
             }

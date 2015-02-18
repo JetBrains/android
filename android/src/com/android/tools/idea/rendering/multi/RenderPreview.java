@@ -556,16 +556,16 @@ public class RenderPreview implements Disposable {
     }
     RenderLogger logger = new RenderLogger(psiFile.getName(), module);
     PreviewRenderContext renderContext = new PreviewRenderContext(myRenderContext, configuration, (XmlFile)psiFile);
-    final RenderService renderService = RenderService.create(facet, module, psiFile, configuration, logger, renderContext);
-    if (renderService == null) {
+    final RenderTask renderTask = RenderTask.create(facet, module, psiFile, configuration, logger, renderContext);
+    if (renderTask == null) {
       return false;
     }
 
     if (myIncludedWithin != null) {
-      renderService.setIncludedWithin(myIncludedWithin);
+      renderTask.setIncludedWithin(myIncludedWithin);
     }
 
-    RenderResult result = renderService.render();
+    RenderResult result = renderTask.render();
     RenderSession session = result != null ? result.getSession() : null;
     if (session != null) {
       Result render = session.getResult();

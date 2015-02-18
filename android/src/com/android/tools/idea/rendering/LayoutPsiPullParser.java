@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.rendering.RenderService.AttributeFilter;
+import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
 
 /**
  * {@link com.android.ide.common.rendering.api.ILayoutPullParser} implementation on top of
