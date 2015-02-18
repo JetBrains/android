@@ -32,6 +32,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -436,6 +437,15 @@ public class GradleProjectImporter {
       Sdk jdk = DefaultSdks.getDefaultJdk();
       if (jdk != null) {
         settings.setGradleJvm(jdk.getName());
+      }
+    } else {
+      // validate Gradle SDK
+      if (!ExternalSystemJdkUtil.checkForJdk(project, settings.getGradleJvm())) {
+        // Set first acceptable JDK to use when syncing project (or create one if it is not set up yet)
+        Sdk jdk = DefaultSdks.getDefaultJdk();
+        if (jdk != null) {
+          settings.setGradleJvm(jdk.getName());
+        }
       }
     }
 
