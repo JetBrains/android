@@ -67,7 +67,7 @@ public class VaryingConfigurationTest extends AndroidTestCase {
     assertEquals(UiMode.TELEVISION, parent.getUiMode());
     assertEquals(UiMode.APPLIANCE, configuration.getUiMode());
     parent.setUiMode(UiMode.APPLIANCE);
-    assertEquals(UiMode.NORMAL, configuration.getUiMode());
+    assertEquals(UiMode.WATCH, configuration.getUiMode());
 
     assertNotNull(device);
     State portrait = device.getState("Portrait");
