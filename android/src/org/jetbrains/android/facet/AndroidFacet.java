@@ -148,6 +148,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
+  private RenderService myRenderService;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     //noinspection ConstantConditions
@@ -1182,6 +1183,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public AndroidModuleInfo getAndroidModuleInfo() {
     return myAndroidModuleInfo;
+  }
+
+  @NotNull
+  public RenderService getRenderService() {
+    if (myRenderService == null) {
+      myRenderService = new RenderService(this);
+    }
+    return myRenderService;
   }
 
   // Compatibility bridge for old (non-Gradle) projects. Also used in Gradle projects before the module has been synced.

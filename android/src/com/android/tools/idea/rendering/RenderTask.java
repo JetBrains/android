@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.SessionParamsFlags;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.ide.common.rendering.SessionParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
@@ -28,32 +28,18 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.utils.HtmlBuilder;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -61,13 +47,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.uipreview.RenderingException;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -81,9 +61,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
-import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -91,7 +69,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  */
 public class RenderTask implements IImageFactory {
   @NotNull
-  private final Module myModule;
+  private final RenderService myRenderService;
 
   @NotNull
   private final XmlFile myPsiFile;
@@ -140,212 +118,33 @@ public class RenderTask implements IImageFactory {
   @NotNull
   private final Locale myLocale;
 
-  private final Object myCredential = new Object();
+  private final Object myCredential;
 
   private ResourceFolderType myFolderType;
 
   private boolean myProvideCookiesForIncludedViews = false;
 
   /**
-   * Creates a new {@link RenderTask} associated with the given editor.
-   *
-   * @return a {@link RenderTask} which can perform rendering services
+   * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
    */
-  @Nullable
-  public static RenderTask create(@NotNull final AndroidFacet facet,
-                                     @NotNull final Module module,
-                                     @NotNull final PsiFile psiFile,
-                                     @NotNull final Configuration configuration,
-                                     @NotNull final RenderLogger logger,
-                                     @Nullable final RenderContext renderContext) {
-
-    final Project project = module.getProject();
-    AndroidPlatform platform = getPlatform(module);
-    if (platform == null) {
-      if (!AndroidMavenUtil.isMavenizedModule(module)) {
-        RenderProblem.Html message = RenderProblem.create(ERROR);
-        logger.addMessage(message);
-        message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-                                         logger.getLinkManager().createRunnableLink(new Runnable() {
-          @Override
-          public void run() {
-            ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-            if (Projects.isGradleProject(project) && service instanceof AndroidProjectSettingsService) {
-              ((AndroidProjectSettingsService)service).openSdkSettings();
-              return;
-            }
-            AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-          }
-        }));
-      }
-      else {
-        String message = AndroidBundle.message("android.maven.cannot.parse.android.sdk.error", module.getName());
-        logger.addMessage(RenderProblem.createPlain(ERROR, message));
-      }
-      return null;
-    }
-
-    IAndroidTarget target = configuration.getTarget();
-    if (target == null) {
-      logger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-      return null;
-    }
-
-    warnIfObsoleteLayoutLib(module, logger, renderContext, target);
-
-    LayoutLibrary layoutLib;
-    try {
-      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
-      if (layoutLib == null) {
-        String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
-        logger.addMessage(RenderProblem.createPlain(ERROR, message));
-        return null;
-      }
-    }
-    catch (RenderingException e) {
-      String message = e.getPresentableMessage();
-      message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-      logger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), logger.getLinkManager(), e));
-      return null;
-    }
-    catch (IOException e) {
-      final String message = e.getMessage();
-      logger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e);
-      return null;
-    }
-
-    if (TAG_PREFERENCE_SCREEN.equals(getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-      // This means that user is using an outdated version of layoutlib. A warning to update has already been
-      // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
-      logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
-                                                         "Update it using the SDK Manager"));
-
-      return null;
-    }
-
-    Device device = configuration.getDevice();
-    if (device == null) {
-      logger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
-      return null;
-    }
-
-    RenderTask service = new RenderTask(facet, module, psiFile, configuration, logger, layoutLib, device);
-    if (renderContext != null) {
-      service.setRenderContext(renderContext);
-    }
-
-    return service;
-  }
-
-  protected static void warnIfObsoleteLayoutLib(final Module module,
-                                                RenderLogger logger,
-                                                final RenderContext renderContext,
-                                                IAndroidTarget target) {
-    if (!ourWarnAboutObsoleteLayoutLibVersions) {
-      return;
-    }
-
-    if (target instanceof CompatibilityRenderTarget) {
-      target = ((CompatibilityRenderTarget)target).getRenderTarget();
-    }
-    final AndroidVersion version = target.getVersion();
-    final int revision;
-    // Look up the current minimum required version for layoutlib for each API level. Note that these
-    // are minimum revisions; if a later version is available, it will be installed.
-    switch (version.getFeatureLevel()) {
-      case 21:
-        if (version.isPreview()) {
-          revision = 4;
-        } else {
-          revision = 2;
-        }
-        break;
-      case 20: revision = 2; break;
-      case 19: revision = 4; break;
-      case 18: revision = 3; break;
-      case 17: revision = 3; break;
-      case 16: revision = 5; break;
-      case 15: revision = 5; break;
-      case 14: revision = 4; break;
-      case 13: revision = 1; break;
-      case 12: revision = 3; break;
-      case 11: revision = 2; break;
-      case 10: revision = 2; break;
-      case 8: revision = 3; break;
-      default: revision = -1; break;
-    }
-
-    if (revision >= 0 && target.getRevision() < revision) {
-      RenderProblem.Html problem = RenderProblem.create(WARNING);
-      problem.tag("obsoleteLayoutlib");
-      HtmlBuilder builder = problem.getHtmlBuilder();
-      builder.add("Using an obsolete version of the " + target.getVersionName() + " layout library which contains many known bugs: ");
-      builder.addLink("Install Update", logger.getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          // Don't warn again
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourWarnAboutObsoleteLayoutLibVersions = false;
-
-          List<IPkgDesc> requested = Lists.newArrayList();
-          // The revision to install. Note that this will install a higher version than this if available;
-          // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
-          requested.add(PkgDesc.Builder.newPlatform(version, new MajorRevision(revision), FullRevision.NOT_SPECIFIED).create());
-          SdkQuickfixWizard wizard = new SdkQuickfixWizard(module.getProject(), null, requested);
-          wizard.init();
-
-          if (wizard.showAndGet()) {
-            if (renderContext != null) {
-              // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
-              Configuration configuration = renderContext.getConfiguration();
-              if (configuration != null) {
-                configuration.getConfigurationManager().setTarget(null);
-              }
-              renderContext.requestRender();
-              // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
-              // take effect.
-              Messages.showInfoMessage(module.getProject(),
-                                     "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
-                                     "Restart Recommended");
-            }
-          }
-        }
-      }));
-      builder.addLink(", ", "Ignore For Now", null, logger.getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourWarnAboutObsoleteLayoutLibVersions = false;
-          if (renderContext != null) {
-            renderContext.requestRender();
-          }
-        }
-      }));
-
-      logger.addMessage(problem);
-    }
-  }
-
-  private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
-
-  /**
-   * Use the {@link #create} factory instead
-   */
-  private RenderTask(@NotNull AndroidFacet facet,
-                     @NotNull Module module,
-                     @NotNull PsiFile psiFile,
-                     @NotNull Configuration configuration,
-                     @NotNull RenderLogger logger,
-                     @NotNull LayoutLibrary layoutLib,
-                     @NotNull Device device) {
-    myModule = module;
+  RenderTask(@NotNull RenderService renderService,
+             @NotNull PsiFile psiFile,
+             @NotNull Configuration configuration,
+             @NotNull RenderLogger logger,
+             @NotNull LayoutLibrary layoutLib,
+             @NotNull Device device,
+             @NotNull Object credential) {
+    myRenderService = renderService;
     myLogger = logger;
-    myLogger.setCredential(myCredential);
+    myCredential = credential;
     if (!(psiFile instanceof XmlFile)) {
       throw new IllegalArgumentException("Can only render XML files: " + psiFile.getClass().getName());
     }
     myPsiFile = (XmlFile)psiFile;
     myConfiguration = configuration;
+
+    AndroidFacet facet = renderService.getFacet();
+    Module module = facet.getModule();
     myAssetRepository = new AssetRepositoryImpl(facet);
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
@@ -353,7 +152,7 @@ public class RenderTask implements IImageFactory {
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, actionBarHandler, this);
+    myLayoutlibCallback = new LayoutlibCallback(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler);
     myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -370,20 +169,7 @@ public class RenderTask implements IImageFactory {
 
   @Nullable
   public AndroidPlatform getPlatform() {
-    return getPlatform(myModule);
-  }
-
-  @Nullable
-  private static AndroidPlatform getPlatform(@NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return null;
-    }
-    return data.getAndroidPlatform();
+    return myRenderService.getPlatform();
   }
 
   /**
@@ -409,7 +195,7 @@ public class RenderTask implements IImageFactory {
 
   @NotNull
   public Module getModule() {
-    return myModule;
+    return myRenderService.getModule();
   }
 
   @NotNull
@@ -619,13 +405,14 @@ public class RenderTask implements IImageFactory {
     IAndroidTarget target = myConfiguration.getTarget();
     int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
 
+    Module module = myRenderService.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
+      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
-    params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(myPsiFile));
+    params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(myPsiFile));
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -634,7 +421,7 @@ public class RenderTask implements IImageFactory {
     // same session
     params.setExtendedViewInfoMode(true);
 
-    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    ManifestInfo manifestInfo = ManifestInfo.get(module);
 
     LayoutDirectionQualifier qualifier = myConfiguration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL) {
@@ -699,7 +486,8 @@ public class RenderTask implements IImageFactory {
         @NotNull
         @Override
         public RenderResult compute() {
-          RenderSecurityManager securityManager = RenderSecurityManagerFactory.create(myModule, getPlatform());
+          Module module = myRenderService.getModule();
+          RenderSecurityManager securityManager = RenderSecurityManagerFactory.create(module, getPlatform());
           securityManager.setActive(true, myCredential);
 
           try {
@@ -742,7 +530,8 @@ public class RenderTask implements IImageFactory {
     // Code to support editing included layout
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(myPsiFile);
-      myIncludedWithin = layout != null ? IncludeReference.get(myModule, myPsiFile, resolver) : IncludeReference.NONE;
+      Module module = myRenderService.getModule();
+      myIncludedWithin = layout != null ? IncludeReference.get(module, myPsiFile, resolver) : IncludeReference.NONE;
     }
     if (myIncludedWithin != IncludeReference.NONE) {
       assert Comparing.equal(myIncludedWithin.getToFile(), myPsiFile.getVirtualFile());
@@ -763,7 +552,7 @@ public class RenderTask implements IImageFactory {
         // Attempt to read from PSI
         ILayoutPullParser topParser;
         topParser = null;
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), layoutVirtualFile);
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderService.getProject(), layoutVirtualFile);
         if (psiFile instanceof XmlFile) {
           LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
           // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
@@ -788,22 +577,6 @@ public class RenderTask implements IImageFactory {
     return null;
   }
 
-  /** Returns true if the given file can be rendered */
-  public static boolean canRender(@Nullable PsiFile file) {
-    return file != null && LayoutPullParserFactory.isSupported(file);
-  }
-
-  @Nullable
-  public static String getRootTagName(@NotNull PsiFile file) {
-    if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
-      if (file instanceof XmlFile) {
-        XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));
-        return rootTag == null ? null : rootTag.getName();
-      }
-    }
-    return null;
-  }
-
   private static final Object RENDERING_LOCK = new Object();
 
   @Nullable
@@ -820,7 +593,7 @@ public class RenderTask implements IImageFactory {
         if (message == null) {
           message = e.toString();
         }
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
         renderResult = new RenderResult(this, null, myPsiFile, myLogger);
       }
 
@@ -867,8 +640,9 @@ public class RenderTask implements IImageFactory {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
+    Module module = myRenderService.getModule();
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
+      new DrawableParams(drawableResourceValue, module, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
@@ -900,48 +674,6 @@ public class RenderTask implements IImageFactory {
 
   public boolean supportsCapability(@MagicConstant(flagsFromClass = Features.class) int capability) {
     return myLayoutLib.supports(capability);
-  }
-
-  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target,
-                                           @MagicConstant(flagsFromClass = Features.class) int capability) {
-    Project project = module.getProject();
-    AndroidPlatform platform = getPlatform(module);
-    if (platform != null) {
-      try {
-        LayoutLibrary library = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
-        if (library != null) {
-          return library.supports(capability);
-        }
-      }
-      catch (RenderingException e) {
-        // Ignore: if service can't be found, that capability isn't available
-      }
-      catch (IOException e) {
-        // Ditto
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  public static LayoutLibrary getLayoutLibrary(@Nullable final Module module, @Nullable IAndroidTarget target) {
-    if (module == null || target == null) {
-      return null;
-    }
-    Project project = module.getProject();
-    AndroidPlatform platform = getPlatform(module);
-    if (platform != null) {
-      try {
-        return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
-      }
-      catch (RenderingException e) {
-        // Ignore.
-      }
-      catch (IOException e) {
-        // Ditto
-      }
-    }
-    return null;
   }
 
   /** Returns true if this service can render a non-rectangular shape */
@@ -1103,10 +835,11 @@ public class RenderTask implements IImageFactory {
     myLayoutlibCallback.reset();
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
+    Module module = myRenderService.getModule();
     final SessionParams params = new SessionParams(
       parser,
       RenderingMode.FULL_EXPAND,
-      myModule /* projectKey */,
+      module /* projectKey */,
       hardwareConfig,
       resolver,
       myLayoutlibCallback,
@@ -1118,7 +851,7 @@ public class RenderTask implements IImageFactory {
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
-    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    ManifestInfo manifestInfo = ManifestInfo.get(module);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
     } catch (Exception e) {

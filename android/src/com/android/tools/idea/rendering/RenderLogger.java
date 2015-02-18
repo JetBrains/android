@@ -97,11 +97,19 @@ public class RenderLogger extends LayoutLog {
   private Object myCredential;
 
   /**
-   * Construct a logger for the given named layout
+   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
-  public RenderLogger(@Nullable String name, @Nullable Module module) {
+  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential) {
     myName = name;
     myModule = module;
+    myCredential = credential;
+  }
+
+  /**
+   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
+   */
+  public RenderLogger(@Nullable String name, @Nullable Module module) {
+    this(name, module, null);
   }
 
   @Nullable
@@ -655,10 +663,6 @@ public class RenderLogger extends LayoutLog {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
-  }
-
-  void setCredential(@Nullable Object credential) {
-    myCredential = credential;
   }
 
   @NotNull
