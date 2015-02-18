@@ -348,6 +348,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintPackageManagerGetSignaturesInspection extends AndroidLintInspectionBase {
+    public AndroidLintPackageManagerGetSignaturesInspection() {
+      super(AndroidBundle.message("android.lint.inspections.package.manager.get.signatures"), GetSignaturesDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBase {
     public AndroidLintParcelCreatorInspection() {
       super(AndroidBundle.message("android.lint.inspections.parcel.creator"), ParcelDetector.ISSUE);
