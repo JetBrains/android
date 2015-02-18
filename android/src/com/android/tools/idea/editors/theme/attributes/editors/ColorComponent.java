@@ -27,16 +27,18 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.util.List;
 
 public class ColorComponent extends JButton {
   private static final Logger LOG = Logger.getInstance(ColorComponent.class);
 
   private static final int PADDING = 2;
   private static final int TEXT_PADDING = PADDING + 3;
+  private static final int STATES_PADDING = 5;
 
   private String myName;
   private String myValue;
-  private @Nullable Color myColor;
+  private List<Color> myColors;
   private Color myDrawnColor;
 
   private final Color myBackgroundColor;
@@ -59,10 +61,10 @@ public class ColorComponent extends JButton {
     return UIUtil.mix(color1, color2, k);
   }
 
-  public void configure(final EditedStyleItem resValue, final Color color) {
+  public void configure(final EditedStyleItem resValue, final List<Color> color) {
     this.myName = resValue.getQualifiedName();
     this.myValue = resValue.getValue();
-    setColor(color);
+    setColors(color);
   }
 
   public String getValue() {
@@ -78,27 +80,48 @@ public class ColorComponent extends JButton {
 
     GraphicsUtil.setupAntialiasing(g);
 
-    if (myColor != null) {
-      g.setColor(myDrawnColor);
-      g.fillRect(PADDING, PADDING, getWidth() - PADDING, getHeight() - PADDING);
-    } else {
+    final int width = getWidth();
+    final int height = getHeight();
+
+    if (myColors.isEmpty()) {
+      // No colors
       g.setColor(JBColor.WHITE);
-      g.fillRect(PADDING, PADDING, getWidth() - PADDING, getHeight() - PADDING);
+      g.fillRect(PADDING, PADDING, width - PADDING, height - PADDING);
       g.setColor(JBColor.LIGHT_GRAY);
-      g.drawLine(PADDING, PADDING, getWidth() - PADDING, getHeight() - PADDING);
-      g.drawLine(getWidth() - PADDING, PADDING, PADDING, getHeight() - PADDING);
+      g.drawLine(PADDING, PADDING, width - PADDING, height - PADDING);
+      g.drawLine(width - PADDING, PADDING, PADDING, height - PADDING);
+    } else if (myColors.size() == 1) {
+      // Single color: fill the whole cell with it
+      g.setColor(myDrawnColor);
+      g.fillRect(PADDING, PADDING, width - PADDING, height - PADDING);
+    } else {
+      // Multiple colors: draw empty cell and several colored squares
+      g.setColor(myBackgroundColor);
+      g.fillRect(PADDING, PADDING, width - PADDING, height - PADDING);
+
+      final int cellSize = height - 2 * (PADDING + STATES_PADDING);
+      int offset = PADDING + STATES_PADDING;
+      for (final Color color : myColors) {
+        g.setColor(color);
+        g.fillRect(width - offset - cellSize, PADDING + STATES_PADDING, cellSize, cellSize);
+
+        g.setColor(JBColor.BLACK);
+        g.drawRect(width - offset - cellSize, PADDING + STATES_PADDING, cellSize, cellSize);
+
+        offset += cellSize + STATES_PADDING;
+      }
     }
 
     //noinspection UseJBColor
-    g.setColor(myColor != null && ColorUtil.isDark(myDrawnColor) ? Color.WHITE : Color.BLACK);
+    g.setColor(myDrawnColor != null && ColorUtil.isDark(myDrawnColor) ? Color.WHITE : Color.BLACK);
 
     FontMetrics fm = g.getFontMetrics();
     g.drawString(myName, TEXT_PADDING, fm.getHeight() + TEXT_PADDING);
-    g.drawString(myValue, TEXT_PADDING, getHeight() - TEXT_PADDING - fm.getDescent());
+    g.drawString(myValue, TEXT_PADDING, height - TEXT_PADDING - fm.getDescent());
   }
 
-  public void setColor(@Nullable Color color) {
-    myColor = color;
-    myDrawnColor = blendColors(myBackgroundColor, myColor);
+  public void setColors(@NotNull List<Color> colors) {
+    myColors = colors;
+    myDrawnColor = (colors.size() == 1) ? blendColors(myBackgroundColor, myColors.get(0)) : null;
   }
 }
