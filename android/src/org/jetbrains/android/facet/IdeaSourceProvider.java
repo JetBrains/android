@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
@@ -109,7 +110,7 @@ public abstract class IdeaSourceProvider {
       File manifestFile = myProvider.getManifestFile();
       if (myManifestFile == null || !FileUtil.filesEqual(manifestFile, myManifestIoFile)) {
         myManifestIoFile = manifestFile;
-        myManifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestFile);
+        myManifestFile = VfsUtil.findFileByIoFile(manifestFile, true);
       }
 
       return myManifestFile;
