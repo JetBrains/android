@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class AtomStream implements BinaryObject {
-  short[] Data;
-  SchemaId Schema;
+  byte[] myData;
+  SchemaId mySchema;
 
   // Constructs a default-initialized {@link AtomStream}.
   public AtomStream() {
@@ -38,22 +38,20 @@ public class AtomStream implements BinaryObject {
     decode(d);
   }
 
-  // Getters
-  public short[] getData() {
-    return Data;
+  public byte[] getData() {
+    return myData;
   }
 
-  // Setters
-  public void setData(short[] v) {
-    Data = v;
+  public void setData(byte[] v) {
+    myData = v;
   }
 
   public SchemaId getSchema() {
-    return Schema;
+    return mySchema;
   }
 
   public void setSchema(SchemaId v) {
-    Schema = v;
+    mySchema = v;
   }
 
   @Override

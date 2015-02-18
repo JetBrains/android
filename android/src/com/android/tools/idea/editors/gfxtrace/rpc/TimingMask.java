@@ -19,21 +19,22 @@ package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public enum TimingMask {
   TimingPerCommand(1),
   TimingPerDrawCall(2),
-  TimingPerFrame(4),;
+  TimingPerFrame(4);
 
-  final int value;
+  final int myValue;
 
   TimingMask(int value) {
-    this.value = value;
+    myValue = value;
   }
 
-  public static TimingMask decode(Decoder d) throws IOException {
+  public static TimingMask decode(@NotNull Decoder d) throws IOException {
     int id = d.int32();
     switch (id) {
       case 1:
@@ -47,7 +48,7 @@ public enum TimingMask {
     }
   }
 
-  public void encode(Encoder e) throws IOException {
-    e.int32(value);
+  public void encode(@NotNull Encoder e) throws IOException {
+    e.int32(myValue);
   }
 }

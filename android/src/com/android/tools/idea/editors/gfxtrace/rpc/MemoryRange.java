@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class MemoryRange implements BinaryObject {
-  long Base;
-  long Size;
+  long myBase;
+  long mySize;
 
   // Constructs a default-initialized {@link MemoryRange}.
   public MemoryRange() {
@@ -38,22 +38,20 @@ public class MemoryRange implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public long getBase() {
-    return Base;
+    return myBase;
   }
 
-  // Setters
   public void setBase(long v) {
-    Base = v;
+    myBase = v;
   }
 
   public long getSize() {
-    return Size;
+    return mySize;
   }
 
   public void setSize(long v) {
-    Size = v;
+    mySize = v;
   }
 
   @Override

@@ -25,10 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class ClassInfo implements TypeInfo {
-  String Name;
-  TypeKind Kind;
-  FieldInfo[] Fields;
-  ClassInfo[] Extends;
+  String myName;
+  TypeKind myKind;
+  FieldInfo[] myFields;
+  ClassInfo[] myExtends;
 
   // Constructs a default-initialized {@link ClassInfo}.
   public ClassInfo() {
@@ -39,42 +39,40 @@ public class ClassInfo implements TypeInfo {
     decode(d);
   }
 
-  // Getters
   @Override
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   @Override
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   @Override
   public TypeKind getKind() {
-    return Kind;
+    return myKind;
   }
 
   @Override
   public void setKind(TypeKind v) {
-    Kind = v;
+    myKind = v;
   }
 
   public FieldInfo[] getFields() {
-    return Fields;
+    return myFields;
   }
 
   public void setFields(FieldInfo[] v) {
-    Fields = v;
+    myFields = v;
   }
 
   public ClassInfo[] getExtends() {
-    return Extends;
+    return myExtends;
   }
 
   public void setExtends(ClassInfo[] v) {
-    Extends = v;
+    myExtends = v;
   }
 
   @Override

@@ -26,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class MemoryInfo implements BinaryObject {
-  short[] Data;
-  MemoryRange[] Stale;
-  MemoryRange[] Current;
-  MemoryRange[] Unknown;
+  byte[] myData;
+  MemoryRange[] myStale;
+  MemoryRange[] myCurrent;
+  MemoryRange[] myUnknown;
 
   // Constructs a default-initialized {@link MemoryInfo}.
   public MemoryInfo() {
@@ -40,38 +40,36 @@ public class MemoryInfo implements BinaryObject {
     decode(d);
   }
 
-  // Getters
-  public short[] getData() {
-    return Data;
+  public byte[] getData() {
+    return myData;
   }
 
-  // Setters
-  public void setData(short[] v) {
-    Data = v;
+  public void setData(byte[] v) {
+    myData = v;
   }
 
   public MemoryRange[] getStale() {
-    return Stale;
+    return myStale;
   }
 
   public void setStale(MemoryRange[] v) {
-    Stale = v;
+    myStale = v;
   }
 
   public MemoryRange[] getCurrent() {
-    return Current;
+    return myCurrent;
   }
 
   public void setCurrent(MemoryRange[] v) {
-    Current = v;
+    myCurrent = v;
   }
 
   public MemoryRange[] getUnknown() {
-    return Unknown;
+    return myUnknown;
   }
 
   public void setUnknown(MemoryRange[] v) {
-    Unknown = v;
+    myUnknown = v;
   }
 
   @Override

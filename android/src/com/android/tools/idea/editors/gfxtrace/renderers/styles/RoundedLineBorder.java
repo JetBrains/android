@@ -30,12 +30,12 @@ public class RoundedLineBorder extends AbstractBorder {
   @NotNull Color myColor;
   int myBorderSize;
   // Sometimes space is limited and so we want to render "over" the empty space taken up by the encapsulated component.
-  boolean noInsets;
+  boolean myNoInsets;
 
   public RoundedLineBorder(@NotNull Color color, int borderSize, boolean noInsets) {
     myColor = color;
     myBorderSize = borderSize;
-    this.noInsets = noInsets;
+    myNoInsets = noInsets;
   }
 
   @Override
@@ -46,7 +46,7 @@ public class RoundedLineBorder extends AbstractBorder {
 
   @Override
   public Insets getBorderInsets(@NotNull Component c, @NotNull Insets insets) {
-    if (noInsets) {
+    if (myNoInsets) {
       insets.set(1, 1, 1, 1);
     }
     else {

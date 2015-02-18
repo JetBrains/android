@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class ParameterInfo implements BinaryObject {
-  String Name;
-  TypeInfo Type;
-  boolean Out;
+  String myName;
+  TypeInfo myType;
+  boolean myOut;
 
   // Constructs a default-initialized {@link ParameterInfo}.
   public ParameterInfo() {
@@ -39,30 +39,28 @@ public class ParameterInfo implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public TypeInfo getType() {
-    return Type;
+    return myType;
   }
 
   public void setType(TypeInfo v) {
-    Type = v;
+    myType = v;
   }
 
   public boolean getOut() {
-    return Out;
+    return myOut;
   }
 
   public void setOut(boolean v) {
-    Out = v;
+    myOut = v;
   }
 
   @Override

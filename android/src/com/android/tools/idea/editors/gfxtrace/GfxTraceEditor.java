@@ -227,7 +227,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
   }
 
   @Nullable
-  public Long getContext() {
+  public Integer getContext() {
     return myContextController.getCurrentContext();
   }
 
@@ -319,7 +319,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
     assert (myContextController.getCurrentCapture() != null);
     final CaptureId captureId = myContextController.getCurrentCaptureId();
-    final Long contextId = myContextController.getCurrentContext();
+    final Integer contextId = myContextController.getCurrentContext();
     assert (contextId != null);
 
     ListenableFuture<GfxController.GfxContextChangeState> contextChange =

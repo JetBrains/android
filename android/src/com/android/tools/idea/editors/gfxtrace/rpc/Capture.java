@@ -26,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class Capture implements BinaryObject {
-  String Name;
-  String API;
-  AtomStreamId Atoms;
-  long[] ContextIds;
+  String myName;
+  String myAPI;
+  AtomStreamId myAtoms;
+  int[] myContextIds;
 
   // Constructs a default-initialized {@link Capture}.
   public Capture() {
@@ -40,38 +40,36 @@ public class Capture implements BinaryObject {
     decode(d);
   }
 
-  // Getters
   public String getName() {
-    return Name;
+    return myName;
   }
 
-  // Setters
   public void setName(String v) {
-    Name = v;
+    myName = v;
   }
 
   public String getAPI() {
-    return API;
+    return myAPI;
   }
 
   public void setAPI(String v) {
-    API = v;
+    myAPI = v;
   }
 
   public AtomStreamId getAtoms() {
-    return Atoms;
+    return myAtoms;
   }
 
   public void setAtoms(AtomStreamId v) {
-    Atoms = v;
+    myAtoms = v;
   }
 
-  public long[] getContextIds() {
-    return ContextIds;
+  public int[] getContextIds() {
+    return myContextIds;
   }
 
-  public void setContextIds(long[] v) {
-    ContextIds = v;
+  public void setContextIds(int[] v) {
+    myContextIds = v;
   }
 
   @Override
