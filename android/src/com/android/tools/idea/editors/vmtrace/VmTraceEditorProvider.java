@@ -16,7 +16,8 @@
 
 package com.android.tools.idea.editors.vmtrace;
 
-import com.android.utils.SdkUtils;
+import com.android.tools.idea.profiling.capture.CaptureType;
+import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -31,11 +32,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class VmTraceEditorProvider implements FileEditorProvider, DumbAware {
   @NonNls private static final String ID = "vmtrace-editor";
-  @NonNls private static final String DOT_TRACE = ".trace";
+
+  public VmTraceEditorProvider() {
+    CaptureTypeService.getInstance().register(VmTraceCaptureType.class, new VmTraceCaptureType());
+  }
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return SdkUtils.endsWithIgnoreCase(file.getPath(), DOT_TRACE);
+    CaptureType type = CaptureTypeService.getInstance().getType(VmTraceCaptureType.class);
+    return type != null && type.isValidCapture(file);
   }
 
   @NotNull
