@@ -658,7 +658,7 @@
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
-    <junitPatcher implementation="org.jetbrains.android.run.testing.AndroidJunitPatcher" />
+    <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
   </extensions>
