@@ -190,7 +190,7 @@ public class Configuration implements Disposable {
     if (file != null) {
       if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
         myPsiFile = AndroidPsiUtils.getPsiFileSafely(manager.getProject(), file);
-        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(RenderTask.getRootTagName(myPsiFile))) {
+        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile))) {
           myTarget = manager.getTarget(PREFERENCES_MIN_API);
         }
       }
@@ -440,7 +440,7 @@ public class Configuration implements Disposable {
         currentConfig.setLocaleQualifier(locale.qualifier);
 
         if (locale.hasLanguage()) {
-          LayoutLibrary layoutLib = RenderTask.getLayoutLibrary(module, target);
+          LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
           if (layoutLib != null) {
             if (layoutLib.isRtl(locale.toLocaleId())) {
               currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -928,7 +928,7 @@ public class Configuration implements Disposable {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-      LayoutLibrary layoutLib = RenderTask.getLayoutLibrary(getModule(), getTarget());
+      LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -1070,7 +1070,7 @@ public class Configuration implements Disposable {
   public boolean supports(@MagicConstant(flagsFromClass = Features.class) int capability) {
     IAndroidTarget target = getTarget();
     if (target != null) {
-      return RenderTask.supportsCapability(getModule(), target, capability);
+      return RenderService.supportsCapability(getModule(), target, capability);
     }
 
     return false;

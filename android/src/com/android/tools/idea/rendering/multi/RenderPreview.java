@@ -554,9 +554,10 @@ public class RenderPreview implements Disposable {
     if (psiFile == null) {
       return false;
     }
-    RenderLogger logger = new RenderLogger(psiFile.getName(), module);
     PreviewRenderContext renderContext = new PreviewRenderContext(myRenderContext, configuration, (XmlFile)psiFile);
-    final RenderTask renderTask = RenderTask.create(facet, module, psiFile, configuration, logger, renderContext);
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask renderTask = renderService.createTask(psiFile, configuration, logger, renderContext);
     if (renderTask == null) {
       return false;
     }
