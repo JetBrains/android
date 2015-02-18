@@ -52,7 +52,7 @@ public class FlagManagerTest extends TestCase {
     Locale.setDefault(Locale.CANADA);
     assertSame(ca, manager.getFlag("en", null));
     assertSame(manager.getFlag("NO"), manager.getFlag("nb", null));
-    assertSame(manager.getFlag("CA"), manager.getFlag("fr", null));
+    assertSame(manager.getFlag("FR"), manager.getFlag("fr", null));
     Locale.setDefault(Locale.US);
     assertSame(manager.getFlag("FR"), manager.getFlag("fr", null));
 

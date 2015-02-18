@@ -22,7 +22,7 @@ public class Class {
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setSmallIcon">setSmallIcon</error>(n.icon, n.iconLevel)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setContent">setContent</error>(n.contentView)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setTicker">setTicker</error>(n.tickerText, tickerView)
-                    .setSound(n.sound, n.audioStreamType)
+                    .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setSound">setSound</error>(n.sound, n.audioStreamType)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setVibrate">setVibrate</error>(n.vibrate)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setLights">setLights</error>(n.ledARGB, n.ledOnMS, n.ledOffMS)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setOngoing">setOngoing</error>((n.flags & Notification.FLAG_ONGOING_EVENT) != 0)
