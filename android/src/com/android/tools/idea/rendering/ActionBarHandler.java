@@ -58,12 +58,12 @@ public class ActionBarHandler extends ActionBarCallback {
 
   private final Object myCredential;
   @NotNull
-  private RenderService myRenderService;
+  private RenderTask myRenderTask;
   @Nullable
   private List<String> myMenus;
 
-  ActionBarHandler(@NotNull RenderService renderService, @Nullable Object credential) {
-    myRenderService = renderService;
+  ActionBarHandler(@NotNull RenderTask renderTask, @Nullable Object credential) {
+    myRenderTask = renderTask;
     myCredential = credential;
   }
 
@@ -98,7 +98,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public boolean isOverflowPopupNeeded() {
-    return ourShowMenu || ResourceHelper.getFolderType(myRenderService.getPsiFile()) == ResourceFolderType.MENU;
+    return ourShowMenu || ResourceHelper.getFolderType(myRenderTask.getPsiFile()) == ResourceFolderType.MENU;
   }
 
   @Override
@@ -109,13 +109,13 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      final XmlFile xmlFile = myRenderService.getPsiFile();
+      final XmlFile xmlFile = myRenderTask.getPsiFile();
       String commaSeparatedMenus = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         myMenus = new ArrayList<String>();
         Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
       } else {
-        final String fqn = AndroidPsiUtils.getDeclaredContextFqcn(myRenderService.getModule(), xmlFile);
+        final String fqn = AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getModule(), xmlFile);
         if (fqn != null) {
           ApplicationManager.getApplication().runReadAction(new Runnable() {
             @Override
@@ -176,7 +176,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public int getNavigationMode() {
-    XmlFile xmlFile = myRenderService.getPsiFile();
+    XmlFile xmlFile = myRenderTask.getPsiFile();
     String navMode = StringUtil.notNullize(AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
     if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
       return NAVIGATION_MODE_TABS;
@@ -199,8 +199,8 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributes getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      ManifestInfo manifest = ManifestInfo.get(myRenderService.getModule(), false);
-      String activity = StringUtil.notNullize(myRenderService.getConfiguration().getActivity());
+      ManifestInfo manifest = ManifestInfo.get(myRenderTask.getModule(), false);
+      String activity = StringUtil.notNullize(myRenderTask.getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);

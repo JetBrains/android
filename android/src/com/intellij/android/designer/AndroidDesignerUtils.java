@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.utils.XmlUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.RootView;
@@ -63,7 +63,7 @@ public class AndroidDesignerUtils {
   }
 
   @Nullable
-  public static RenderService getRenderService(@NotNull EditableArea area) {
+  public static RenderTask createRenderTask(@NotNull EditableArea area) {
     AndroidDesignerEditorPanel panel = getPanel(area);
     if (panel != null) {
       Configuration configuration = panel.getConfiguration();
@@ -75,9 +75,9 @@ public class AndroidDesignerUtils {
       RenderLogger logger = new RenderLogger(xmlFile.getName(), module);
       @SuppressWarnings("UnnecessaryLocalVariable")
       RenderContext renderContext = panel;
-      RenderService service = RenderService.create(facet, module, xmlFile, configuration, logger, renderContext);
-      assert service != null;
-      return service;
+      RenderTask task = RenderTask.create(facet, module, xmlFile, configuration, logger, renderContext);
+      assert task != null;
+      return task;
     }
 
     return null;
@@ -163,8 +163,8 @@ public class AndroidDesignerUtils {
 
       // TODO: If it's a layout, do something smarter. I really only have to worry about this
       // if the creation XML calls for wrap_content!
-      RenderService service = getRenderService(area);
-      if (service != null) {
+      RenderTask task = createRenderTask(area);
+      if (task != null) {
         List<ViewInfo> roots = measureComponent(area, component, targetParent);
         if (roots != null && !roots.isEmpty()) {
           ViewInfo root = roots.get(0);
@@ -263,9 +263,9 @@ public class AndroidDesignerUtils {
         sb.append('<').append('/').append(FRAME_LAYOUT).append('>');
         Document document = XmlUtils.parseDocumentSilently(sb.toString(), true);
         if (document != null && document.getDocumentElement() != null) {
-          RenderService service = getRenderService(area);
-          if (service != null) {
-            List<ViewInfo> roots = service.measure(document.getDocumentElement());
+          RenderTask task = createRenderTask(area);
+          if (task != null) {
+            List<ViewInfo> roots = task.measure(document.getDocumentElement());
             if (roots != null && !roots.isEmpty()) {
               ViewInfo root = roots.get(0);
               // Skip the outer layout we added to hold the XML

@@ -28,9 +28,9 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
-    RenderService service = getRenderService(file);
-    assertNotNull(service);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(service);
+    RenderTask task = createRenderTask(file);
+    assertNotNull(task);
+    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -402,8 +402,8 @@ public class MenuPreviewRendererTest extends RenderTestBase {
                "android:layout_width=\"match_parent\"\n" +
                "android:layout_height=\"match_parent\" />\n";
 
-    if (service.getLayoutLib().supports(Features.ACTION_BAR)) {
-      checkRendering(service, "menu/menu1.png");
+    if (task.getLayoutLib().supports(Features.ACTION_BAR)) {
+      checkRendering(task, "menu/menu1.png");
       assertEquals(newXml, layout);
     } else {
       assertEquals(oldXml, layout);
@@ -417,11 +417,11 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, "@android:style/Theme.Holo.Light");
-    RenderService service = getRenderService(file, configuration);
-    assertNotNull(service);
+    RenderTask task = createRenderTask(file, configuration);
+    assertNotNull(task);
 
-    if (service.getLayoutLib().supports(Features.ACTION_BAR)) {
-      checkRendering(service, "menu/menu1-light.png");
+    if (task.getLayoutLib().supports(Features.ACTION_BAR)) {
+      checkRendering(task, "menu/menu1-light.png");
     } else {
       System.err.println("Not running MenuPreviewRendererTest.testLightTheme: Associated layoutlib in test SDK needs " +
                          "to use API 21 or higher");

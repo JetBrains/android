@@ -67,7 +67,7 @@ public class ViewLoader {
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
   @NotNull private final LayoutLibrary myLayoutLibrary;
-  @Nullable private ProjectClassLoader myProjectClassLoader;
+  @Nullable private ModuleClassLoader myModuleClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
                     @Nullable Object credential) {
@@ -166,7 +166,7 @@ public class ViewLoader {
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
   private void checkModified(@NotNull String fqcn) {
-    if (myProjectClassLoader != null && myProjectClassLoader.isSourceModified(fqcn, myCredential)) {
+    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential)) {
       RenderProblem.Html problem = RenderProblem.create(WARNING);
       HtmlBuilder builder = problem.getHtmlBuilder();
       String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
@@ -179,7 +179,7 @@ public class ViewLoader {
   @Nullable
   private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
-      return getProjectClassLoader().loadClass(className);
+      return getModuleClassLoader().loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (!className.equals(FragmentLayoutDomFileDescription.FRAGMENT_TAG_NAME)) {
@@ -190,18 +190,18 @@ public class ViewLoader {
   }
 
   @NotNull
-  private ProjectClassLoader getProjectClassLoader() {
-    if (myProjectClassLoader == null) {
+  private ModuleClassLoader getModuleClassLoader() {
+    if (myModuleClassLoader == null) {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        myProjectClassLoader = ProjectClassLoader.get(myLayoutLibrary, myModule);
+        myModuleClassLoader = ModuleClassLoader.get(myLayoutLibrary, myModule);
       } finally {
         RenderSecurityManager.exitSafeRegion(token);
       }
     }
 
-    return myProjectClassLoader;
+    return myModuleClassLoader;
   }
 
   @Nullable
@@ -281,7 +281,7 @@ public class ViewLoader {
     IllegalAccessException,
     NoSuchFieldException {
 
-    final Class<?> mockViewClass = getProjectClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
+    final Class<?> mockViewClass = getModuleClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
     final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs);
 
     final Method setTextMethod = viewObject.getClass().getMethod("setText", CharSequence.class);
@@ -461,7 +461,7 @@ public class ViewLoader {
   public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
-      aClass = getProjectClassLoader().loadClass(className);
+      aClass = getModuleClassLoader().loadClass(className);
 
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);

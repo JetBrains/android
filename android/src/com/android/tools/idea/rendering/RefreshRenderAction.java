@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class RefreshRenderAction extends AnAction {
@@ -38,7 +38,7 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ProjectClassLoader.clearCache();
+    ModuleClassLoader.clearCache();
     Configuration configuration = myContext.getConfiguration();
 
     if (configuration != null) {
