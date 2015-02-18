@@ -89,7 +89,7 @@ public class ConfigurationTest extends AndroidTestCase {
     LocaleQualifier languageQualifier = fullConfig.getLocaleQualifier();
     String configDisplayString = fullConfig.toDisplayString();
     assertNotNull(configDisplayString, languageQualifier);
-    assertEquals("en", languageQualifier.getValue());
+    assertEquals("en", languageQualifier.getLanguage());
     String region = fullConfig.getLocaleQualifier().getRegion();
     assertNotNull(configDisplayString, region);
     assertEquals("US", region);
