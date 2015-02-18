@@ -38,7 +38,7 @@ public class StringResourceDataTest extends AndroidTestCase {
   public void testSummarizeLocales() {
     assertEquals("", StringResourceData.summarizeLocales(Collections.<Locale>emptySet()));
 
-    List<Locale> locales = Lists.newArrayList(Locale.create("en"), Locale.create("fr"));
+    List<Locale> locales = Lists.newArrayList(Locale.create("fr"), Locale.create("en"));
     assertEquals("English (en) and French (fr)", StringResourceData.summarizeLocales(locales));
 
     locales = Lists.newArrayList(Locale.create("en"), Locale.create("fr"), Locale.create("hi"));
