@@ -327,8 +327,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return false;
       }
 
+      EditedStyleItem item = myAttributes.get(myRowIndex);
       // Color rows are editable. Also the middle column for all other attributes.
-      return WIDE_CLASSES.contains(getCellClass(column)) || column == 1;
+      return (WIDE_CLASSES.contains(getCellClass(column)) || column == 1) && item.isPublicAttribute();
     }
 
     @Override
