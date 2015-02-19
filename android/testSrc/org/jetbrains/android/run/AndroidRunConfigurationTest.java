@@ -21,11 +21,13 @@ public class AndroidRunConfigurationTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
     loadProject("projects/runConfig/activity");
     assertEquals("com.example.unittest.Launcher", AndroidRunConfiguration.computeDefaultActivity(myAndroidFacet, null));
+    assertFalse(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
     loadProject("projects/runConfig/alias");
     assertEquals("LauncherAlias", AndroidRunConfiguration.computeDefaultActivity(myAndroidFacet, null));
+    assertFalse(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
@@ -33,5 +35,10 @@ public class AndroidRunConfigurationTest extends AndroidGradleTestCase {
   public void testPreferDefaultCategoryActivity() throws Exception {
     loadProject("projects/runConfig/default");
     assertEquals("com.example.unittest.LauncherAlias", AndroidRunConfiguration.computeDefaultActivity(myAndroidFacet, null));
+  }
+
+  public void testWatchFaceService() throws Exception {
+    loadProject("projects/runConfig/watchface");
+    assertTrue(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
   }
 }
