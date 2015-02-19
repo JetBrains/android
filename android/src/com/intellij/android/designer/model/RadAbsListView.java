@@ -20,7 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.LayoutMetadata;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.icons.AllIcons;
@@ -50,7 +50,7 @@ public class RadAbsListView extends RadViewComponent {
     Configuration configuration = designer.getConfiguration();
     Module module = designer.getModule();
     IAndroidTarget target = configuration.getTarget();
-    if (target != null && RenderService.supportsCapability(module, target, Features.ADAPTER_BINDING)) {
+    if (target != null && RenderTask.supportsCapability(module, target, Features.ADAPTER_BINDING)) {
       beforeGroup.add(createListTypeAction(designer));
       beforeGroup.addSeparator();
     }

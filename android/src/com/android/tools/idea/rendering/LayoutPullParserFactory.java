@@ -102,8 +102,8 @@ public class LayoutPullParserFactory {
   }
 
   @Nullable
-  public static ILayoutPullParser create(@NotNull final RenderService renderService) {
-    final ResourceFolderType folderType = renderService.getFolderType();
+  public static ILayoutPullParser create(@NotNull final RenderTask renderTask) {
+    final ResourceFolderType folderType = renderTask.getFolderType();
     if (folderType == null) {
       return null;
     }
@@ -114,32 +114,32 @@ public class LayoutPullParserFactory {
         @Nullable
         @Override
         public ILayoutPullParser compute() {
-          return create(renderService);
+          return create(renderTask);
         }
       });
     }
 
-    XmlFile file = renderService.getPsiFile();
+    XmlFile file = renderTask.getPsiFile();
 
     // IntelliJ bug: Claims that folderType can be null below. Suppressed.
     //noinspection ConstantConditions
     switch (folderType) {
       case LAYOUT: {
-        RenderLogger logger = renderService.getLogger();
-        Set<XmlTag> expandNodes = renderService.getExpandNodes();
-        HardwareConfig hardwareConfig = renderService.getHardwareConfigHelper().getConfig();
+        RenderLogger logger = renderTask.getLogger();
+        Set<XmlTag> expandNodes = renderTask.getExpandNodes();
+        HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
       }
       case DRAWABLE:
-        renderService.setDecorations(false);
+        renderTask.setDecorations(false);
         return createDrawableParser(file);
       case MENU:
-        if (renderService.supportsCapability(Features.ACTION_BAR)) {
-          return new MenuLayoutParserFactory(renderService).render();
+        if (renderTask.supportsCapability(Features.ACTION_BAR)) {
+          return new MenuLayoutParserFactory(renderTask).render();
         }
-        renderService.setRenderingMode(V_SCROLL);
-        renderService.setDecorations(false);
-        return new MenuPreviewRenderer(renderService, file).render();
+        renderTask.setRenderingMode(V_SCROLL);
+        renderTask.setDecorations(false);
+        return new MenuPreviewRenderer(renderTask, file).render();
       case XML: {
         // Switch on root type
         XmlTag rootTag = file.getRootTag();
@@ -147,12 +147,12 @@ public class LayoutPullParserFactory {
           String tag = rootTag.getName();
           if (tag.equals(TAG_APPWIDGET_PROVIDER)) {
             // Widget
-            renderService.setDecorations(false);
+            renderTask.setDecorations(false);
             return createWidgetParser(rootTag);
           } else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
-            RenderLogger logger = renderService.getLogger();
-            Set<XmlTag> expandNodes = renderService.getExpandNodes();
-            HardwareConfig hardwareConfig = renderService.getHardwareConfigHelper().getConfig();
+            RenderLogger logger = renderTask.getLogger();
+            Set<XmlTag> expandNodes = renderTask.getExpandNodes();
+            HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
           }
         }

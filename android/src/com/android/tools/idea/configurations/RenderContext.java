@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.module.Module;
@@ -188,7 +189,7 @@ public interface RenderContext {
   RenderedViewHierarchy getViewHierarchy();
 
   /**
-   * Types of uses of the {@link com.android.tools.idea.rendering.RenderService} which can drive some decisions, such as how and whether
+   * Types of uses of the {@link RenderTask} which can drive some decisions, such as how and whether
    * to report {@code <fragment/>} tags without a known preview layout, and so on.
    */
   enum UsageType {
