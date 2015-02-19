@@ -443,9 +443,9 @@ public class RenderedPanel extends JPanel implements Disposable {
     myRenderResult = renderResult;
     RenderedImage image = myRenderResult.getImage();
     if (image != null) {
-      image.setDeviceFrameEnabled(myShowDeviceFrames && myRenderResult.getRenderService() != null &&
-                                  myRenderResult.getRenderService().getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
-                                  myRenderResult.getRenderService().getShowDecorations());
+      image.setDeviceFrameEnabled(myShowDeviceFrames && myRenderResult.getRenderTask() != null &&
+                                  myRenderResult.getRenderTask().getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
+                                  myRenderResult.getRenderTask().getShowDecorations());
       if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
         Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
         if (fixedRenderSize != null) {

@@ -51,10 +51,13 @@ import static com.android.SdkConstants.*;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
- * @author Eugene.Kudelevsky
+ * Render class loader responsible for loading classes in custom views
+ * and local and library classes used by those custom views (other than
+ * the framework itself, which is loaded by a parent class loader via
+ * layout lib.)
  */
-public final class ProjectClassLoader extends RenderClassLoader {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ProjectClassLoader");
+public final class ModuleClassLoader extends RenderClassLoader {
+  private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
   public static final boolean DEBUG_CLASS_LOADING = false;
 
   /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
@@ -69,7 +72,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
   /** Map from fully qualified class name to the corresponding last modified file stamp for each class loaded by this class loader */
   private Map<String,Long> myLoadedTimestamp;
 
-  private ProjectClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
+  private ModuleClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
     super(library.getClassLoader());
     myLibrary = library;
     myModule = module;
@@ -343,8 +346,8 @@ public final class ProjectClassLoader extends RenderClassLoader {
    * Returns a project class loader to use for rendering. May cache instances across render sessions.
    */
   @NotNull
-  public static ProjectClassLoader get(@NotNull LayoutLibrary library, @NotNull Module module) {
-    ProjectClassLoader loader = ourCache.get(module);
+  public static ModuleClassLoader get(@NotNull LayoutLibrary library, @NotNull Module module) {
+    ModuleClassLoader loader = ourCache.get(module);
     if (loader != null) {
       if (library != loader.myLibrary) {
         if (DEBUG_CLASS_LOADING) {
@@ -372,7 +375,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
     }
 
     if (loader == null) {
-      loader = new ProjectClassLoader(library, module);
+      loader = new ModuleClassLoader(library, module);
       ourCache.put(module, loader);
     } else if (DEBUG_CLASS_LOADING) {
         //noinspection UseOfSystemOutOrSystemErr
@@ -389,5 +392,5 @@ public final class ProjectClassLoader extends RenderClassLoader {
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
-  private static WeakHashMap<Module,ProjectClassLoader> ourCache = new WeakHashMap<Module, ProjectClassLoader>();
+  private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<Module, ModuleClassLoader>();
 }

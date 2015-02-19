@@ -36,28 +36,28 @@ public class RenderResult {
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final RenderedImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
-  @Nullable private final RenderService myRenderService;
+  @Nullable private final RenderTask myRenderTask;
   @Nullable private final RenderSession mySession; // TEMPORARY
   @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
 
-  public RenderResult(@Nullable RenderService renderService,
+  public RenderResult(@Nullable RenderTask renderTask,
                       @Nullable RenderSession session,
                       @NotNull PsiFile file,
                       @NotNull RenderLogger logger) {
-    myRenderService = renderService;
+    myRenderTask = renderTask;
     mySession = session;
     myFile = file;
     myLogger = logger;
-    if (session != null && session.getResult().isSuccess() && renderService != null) {
+    if (session != null && session.getResult().isSuccess() && renderTask != null) {
       List<ViewInfo> systemRootViews = session.getSystemRootViews();
       myRootViews = systemRootViews != null ? systemRootViews : session.getRootViews();
-      Configuration configuration = renderService.getConfiguration();
+      Configuration configuration = renderTask.getConfiguration();
       BufferedImage image = session.getImage();
-      boolean alphaChannelImage = session.isAlphaChannelImage() || renderService.requiresTransparency();
+      boolean alphaChannelImage = session.isAlphaChannelImage() || renderTask.requiresTransparency();
       ShadowType shadowType = alphaChannelImage ? ShadowType.NONE : ShadowType.RECTANGULAR;
-      if (shadowType == ShadowType.NONE && renderService.isNonRectangular()) {
+      if (shadowType == ShadowType.NONE && renderTask.isNonRectangular()) {
         shadowType = ShadowType.ARBITRARY;
-      } else if (HardwareConfigHelper.isRound(renderService.getConfiguration().getDevice())) {
+      } else if (HardwareConfigHelper.isRound(renderTask.getConfiguration().getDevice())) {
         shadowType = ShadowType.ARBITRARY;
       }
       myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
@@ -110,8 +110,8 @@ public class RenderResult {
   }
 
   @Nullable
-  public RenderService getRenderService() {
-    return myRenderService;
+  public RenderTask getRenderTask() {
+    return myRenderTask;
   }
 
   @NotNull

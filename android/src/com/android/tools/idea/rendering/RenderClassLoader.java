@@ -20,7 +20,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.lang.UrlClassLoader;
-import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +83,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
         byte[] rewritten = convertClass(data);
         try {
-          if (ProjectClassLoader.DEBUG_CLASS_LOADING) {
+          if (ModuleClassLoader.DEBUG_CLASS_LOADING) {
             //noinspection UseOfSystemOutOrSystemErr
             System.out.println("  defining class " + name + " from .jar file");
           }
@@ -143,7 +143,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     byte[] rewritten = convertClass(data);
     try {
-      if (ProjectClassLoader.DEBUG_CLASS_LOADING) {
+      if (ModuleClassLoader.DEBUG_CLASS_LOADING) {
         //noinspection UseOfSystemOutOrSystemErr
         System.out.println("  defining class " + fqcn + " from disk file");
       }

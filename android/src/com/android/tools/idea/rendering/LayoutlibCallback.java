@@ -80,7 +80,7 @@ public class LayoutlibCallback extends LegacyCallback {
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
   @NotNull private final ActionBarHandler myActionBarHandler;
-  @Nullable private final RenderService myRenderService;
+  @Nullable private final RenderTask myRenderTask;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
@@ -103,14 +103,14 @@ public class LayoutlibCallback extends LegacyCallback {
                            @NotNull RenderLogger logger,
                            @Nullable Object credential,
                            @Nullable ActionBarHandler actionBarHandler,
-                           @Nullable RenderService renderService) {
+                           @Nullable RenderTask renderTask) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
-    myRenderService = renderService;
+    myRenderTask = renderTask;
   }
 
   /** Resets the callback state for another render */
@@ -326,7 +326,7 @@ public class LayoutlibCallback extends LegacyCallback {
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
               if (parentName.startsWith(FD_RES_LAYOUT)) {
                 // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
-                parser.setProvideViewCookies(myRenderService != null && myRenderService.getProvideCookiesForIncludedViews());
+                parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
               }
               return parser;
             }

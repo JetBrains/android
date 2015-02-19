@@ -46,11 +46,11 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
       "    android:layout_height=\"match_parent\" />\n";
 
   @NotNull
-  private final RenderService myRenderService;
+  private final RenderTask myRenderTask;
 
-  public MenuLayoutParserFactory(@NotNull RenderService renderService) {
-    assert renderService.supportsCapability(Features.ACTION_BAR) : "Action Bar not supported.";
-    myRenderService = renderService;
+  public MenuLayoutParserFactory(@NotNull RenderTask renderTask) {
+    assert renderTask.supportsCapability(Features.ACTION_BAR) : "Action Bar not supported.";
+    myRenderTask = renderTask;
   }
 
   @NotNull
@@ -59,8 +59,8 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
     if (frameLayoutDocument == null) {
       return createEmptyParser();
     }
-    String resourceName = ResourceHelper.getResourceName(myRenderService.getPsiFile());
-    myRenderService.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.singletonList(resourceName));
+    String resourceName = ResourceHelper.getResourceName(myRenderTask.getPsiFile());
+    myRenderTask.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.singletonList(resourceName));
     Map<Element, Object> viewCookies = Maps.newHashMap();
     return new DomPullParser(frameLayoutDocument.getDocumentElement()).setViewCookies(viewCookies);
   }

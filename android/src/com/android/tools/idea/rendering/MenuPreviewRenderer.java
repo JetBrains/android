@@ -84,17 +84,17 @@ public class MenuPreviewRenderer extends LayoutPullParserFactory {
   private boolean myThemeIsLight;
   private final XmlTag myRootTag;
 
-  public MenuPreviewRenderer(RenderService renderService, XmlFile file) {
+  public MenuPreviewRenderer(RenderTask renderTask, XmlFile file) {
     myRootTag = file.getRootTag();
-    myResolver = renderService.getResourceResolver();
+    myResolver = renderTask.getResourceResolver();
     assert myResolver != null;
 
     myDocument = DomPullParser.createEmptyPlainDocument();
     assert myDocument != null;
 
-    myModule = renderService.getModule();
+    myModule = renderTask.getModule();
 
-    Configuration configuration = renderService.getConfiguration();
+    Configuration configuration = renderTask.getConfiguration();
     IAndroidTarget target = configuration.getTarget();
     myApiLevel = target != null ? target.getVersion().getApiLevel() : 1;
     myThemeIsLight = isLightTheme(myResolver);
