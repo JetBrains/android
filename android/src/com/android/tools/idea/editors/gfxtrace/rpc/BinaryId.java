@@ -18,20 +18,17 @@
 package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.rpccore.ResourceId;
+import com.android.tools.rpclib.binary.Handle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class BinaryId extends ResourceId {
-  public BinaryId(String value) {
+public class BinaryId extends Handle {
+  public BinaryId(@NotNull byte[] value) {
     super(value);
   }
 
-  public BinaryId(Decoder d) throws IOException {
+  public BinaryId(@NotNull Decoder d) throws IOException {
     super(d);
-  }
-
-  public static BinaryId decode(Decoder d) throws IOException {
-    return new BinaryId(d);
   }
 }

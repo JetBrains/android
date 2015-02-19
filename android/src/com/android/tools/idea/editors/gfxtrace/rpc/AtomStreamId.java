@@ -18,20 +18,17 @@
 package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.rpccore.ResourceId;
+import com.android.tools.rpclib.binary.Handle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class AtomStreamId extends ResourceId {
-  public AtomStreamId(String value) {
+public class AtomStreamId extends Handle {
+  public AtomStreamId(@NotNull byte[] value) {
     super(value);
   }
 
-  public AtomStreamId(Decoder d) throws IOException {
+  public AtomStreamId(@NotNull Decoder d) throws IOException {
     super(d);
-  }
-
-  public static AtomStreamId decode(Decoder d) throws IOException {
-    return new AtomStreamId(d);
   }
 }

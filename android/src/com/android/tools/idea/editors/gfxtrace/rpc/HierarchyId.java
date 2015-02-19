@@ -18,20 +18,17 @@
 package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.rpccore.ResourceId;
+import com.android.tools.rpclib.binary.Handle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class HierarchyId extends ResourceId {
-  public HierarchyId(String value) {
+public class HierarchyId extends Handle {
+  public HierarchyId(@NotNull byte[] value) {
     super(value);
   }
 
-  public HierarchyId(Decoder d) throws IOException {
+  public HierarchyId(@NotNull Decoder d) throws IOException {
     super(d);
-  }
-
-  public static HierarchyId decode(Decoder d) throws IOException {
-    return new HierarchyId(d);
   }
 }
