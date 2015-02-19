@@ -91,8 +91,9 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     configurationManager.setTarget(target);
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getTarget());
-    RenderLogger logger = new RenderLogger("myLogger", myModule);
-    RenderTask task = RenderTask.create(facet, myModule, psiFile, configuration, logger, null);
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
     RenderResult render = RenderTestBase.renderOnSeparateThread(task);
     assertNotNull(render);

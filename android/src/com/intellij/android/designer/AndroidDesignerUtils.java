@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.utils.XmlUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -72,10 +73,11 @@ public class AndroidDesignerUtils {
       Module module = panel.getModule();
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
-      RenderLogger logger = new RenderLogger(xmlFile.getName(), module);
       @SuppressWarnings("UnnecessaryLocalVariable")
       RenderContext renderContext = panel;
-      RenderTask task = RenderTask.create(facet, module, xmlFile, configuration, logger, renderContext);
+      RenderService renderService = RenderService.get(facet);
+      RenderLogger logger = renderService.createLogger();
+      final RenderTask task = renderService.createTask(xmlFile, configuration, logger, renderContext);
       assert task != null;
       return task;
     }
