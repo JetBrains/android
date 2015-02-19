@@ -273,4 +273,9 @@ public class ThemeEditorStyle {
   public int hashCode() {
     return getName().hashCode();
   }
+
+  @NotNull
+  public Configuration getConfiguration() {
+    return myConfiguration;
+  }
 }
