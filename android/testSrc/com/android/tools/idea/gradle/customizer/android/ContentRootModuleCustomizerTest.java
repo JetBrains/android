@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -28,17 +26,18 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.tools.idea.gradle.TestProjects.createBasicProject;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.Collections.sort;
 
 /**
  * Tests for {@link ContentRootModuleCustomizer}.
@@ -53,14 +52,16 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    File baseDir = new File(FileUtil.toSystemDependentName(myProject.getBasePath()));
-    myAndroidProject = TestProjects.createBasicProject(baseDir, myProject.getName());
+    String basePath = myProject.getBasePath();
+    assertNotNull(basePath);
+    File baseDir = new File(basePath);
+    myAndroidProject = createBasicProject(baseDir, myProject.getName());
 
     Collection<Variant> variants = myAndroidProject.getVariants();
-    Variant selectedVariant = ContainerUtil.getFirstItem(variants);
+    Variant selectedVariant = getFirstItem(variants);
     assertNotNull(selectedVariant);
     myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
-                                                  selectedVariant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+                                                  selectedVariant.getName(), ARTIFACT_ANDROID_TEST);
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();
@@ -102,8 +103,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     for (SourceFolder folder : sourceFolders) {
       if (!folder.isTestSource()) {
         VirtualFile file = folder.getFile();
-        final String path = VfsUtilCore.urlToPath(folder.getUrl());
-        System.out.println("path: " + path + "; " + new File(path).exists());
         assertNotNull(file);
         sourcePaths.add(file.getPath());
       }
@@ -117,9 +116,9 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE_GENERATED));
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.RESOURCE));
-    Collections.sort(allExpectedPaths);
+    sort(allExpectedPaths);
 
-    Collections.sort(sourcePaths);
+    sort(sourcePaths);
 
     assertEquals(allExpectedPaths, sourcePaths);
   }
