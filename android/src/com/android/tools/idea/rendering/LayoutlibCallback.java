@@ -60,8 +60,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Loader for Android Project class in order to use them in the layout editor.
- * <p/>This implements {@link com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
- * {@link com.android.ide.common.rendering.legacy.LegacyCallback}
+ * <p/>This implements {@link IProjectCallback} for the old and new API through
+ * {@link LegacyCallback}
  */
 public class LayoutlibCallback extends LegacyCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
@@ -79,7 +79,7 @@ public class LayoutlibCallback extends LegacyCallback {
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
-  @NotNull private final ActionBarHandler myActionBarHandler;
+  @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
@@ -88,6 +88,7 @@ public class LayoutlibCallback extends LegacyCallback {
   /**
    * Creates a new {@link LayoutlibCallback} to be used with the layout lib.
    *
+   * @param renderTask The associated render task
    * @param layoutLib  The layout library this callback is going to be invoked from
    * @param projectRes the {@link LocalResourceRepository} for the project.
    * @param module     the module
@@ -96,21 +97,21 @@ public class LayoutlibCallback extends LegacyCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    */
-  public LayoutlibCallback(@NotNull LayoutLibrary layoutLib,
+  public LayoutlibCallback(@Nullable RenderTask renderTask,
+                           @NotNull LayoutLibrary layoutLib,
                            @NotNull AppResourceRepository projectRes,
                            @NotNull Module module,
                            @NotNull AndroidFacet facet,
                            @NotNull RenderLogger logger,
                            @Nullable Object credential,
-                           @Nullable ActionBarHandler actionBarHandler,
-                           @Nullable RenderTask renderTask) {
+                           @Nullable ActionBarHandler actionBarHandler) {
+    myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
-    myRenderTask = renderTask;
   }
 
   /** Resets the callback state for another render */
@@ -640,6 +641,7 @@ public class LayoutlibCallback extends LegacyCallback {
     return myActionBarHandler;
   }
 
+  @Nullable
   public ActionBarHandler getActionBarHandler() {
     return myActionBarHandler;
   }
