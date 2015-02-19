@@ -56,23 +56,39 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     final Object stringValue;
     final CellSpanModel model = (CellSpanModel)table.getModel();
 
-    final String toolTipText;
-    if (value instanceof EditedStyleItem) {
+    boolean isEditedStyle = value instanceof EditedStyleItem;
+    if (isEditedStyle) {
       final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
-      toolTipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
       stringValue = ThemeEditorUtils
         .extractRealValue(resValue, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
     }
     else {
       stringValue = value;
-      toolTipText = null;
     }
 
     final Component returnedComponent =
       myDelegate.getTableCellRendererComponent(table, myConvertValueToString ? stringValue : value, isSelected, hasFocus, row, column);
-    if (returnedComponent instanceof JComponent) {
-      ((JComponent)returnedComponent).setToolTipText(toolTipText);
+
+    if (!(returnedComponent instanceof JComponent)) {
+      // Does not support tooltips
+      return returnedComponent;
     }
+
+    // Getting the tooltip information is an moderately expensive operation so we try to avoid doing it unless
+    // it's necessary. We first check if the mouse is in the current cell being rendered and only then
+    // we get the tooltip.
+    final JComponent jComponent = (JComponent)returnedComponent;
+    Point mousePos = table.getMousePosition();
+    if (mousePos != null && isEditedStyle) {
+      if (table.getCellRect(row, column, true).contains(mousePos)) {
+        final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
+        String toolTipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
+        jComponent.setToolTipText(toolTipText);
+      }
+    } else {
+      jComponent.setToolTipText(null);
+    }
+
     return returnedComponent;
   }
 }
