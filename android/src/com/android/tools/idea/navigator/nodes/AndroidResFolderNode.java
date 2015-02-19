@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -27,7 +26,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -68,18 +66,13 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
     }
 
     // create a node for each res folder type that actually has some resources
-    AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
+    //AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
     List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(foldersByResourceType.size());
     for (ResourceFolderType type : foldersByResourceType.keySet()) {
       Set<PsiDirectory> folders = foldersByResourceType.get(type);
       final AndroidResFolderTypeNode androidResFolderTypeNode =
         new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, myProjectViewPane);
       children.add(androidResFolderTypeNode);
-
-      // Inform the tree builder of the node that this particular virtual file maps to
-      for (PsiDirectory folder : folders) {
-        treeBuilder.createMapping(folder.getVirtualFile(), androidResFolderTypeNode);
-      }
     }
     return children;
 

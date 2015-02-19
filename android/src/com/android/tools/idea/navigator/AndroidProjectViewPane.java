@@ -15,26 +15,22 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.android.tools.idea.navigator.nodes.AndroidResGroupNode;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
 import com.google.common.collect.Lists;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
-import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectTreeStructure;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
-import com.intellij.ide.projectView.impl.nodes.AbstractModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
@@ -42,7 +38,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDirectoryContainer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import icons.AndroidIcons;
@@ -109,12 +104,6 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         return new AndroidViewProjectNode(project, settings, AndroidProjectViewPane.this);
       }
     };
-  }
-
-  @NotNull
-  @Override
-  protected BaseProjectTreeBuilder createBuilder(DefaultTreeModel treeModel) {
-    return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, null, (ProjectAbstractTreeStructureBase)myTreeStructure);
   }
 
   @Override
