@@ -26,6 +26,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.Function;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -300,43 +301,53 @@ public abstract class ManifestInfo {
   @NotNull
   public abstract AndroidVersion getMinSdkVersion();
 
-  /** @return the list activities defined in the manifest. */
+  /** @return the list of activities defined in the manifest. */
   @NotNull
   public List<Activity> getActivities() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<Activity>>() {
+    return getApplicationComponents(new Function<Application, List<Activity>>() {
       @Override
-      public List<Activity> compute() {
-        List<Activity> activities = Lists.newArrayList();
-
-        for (Manifest m : getManifests()) {
-          Application application = m.getApplication();
-          if (application != null) {
-            activities.addAll(application.getActivities());
-          }
-        }
-
-        return activities;
+      public List<Activity> fun(Application application) {
+        return application.getActivities();
       }
     });
   }
 
-  /** @return the list activity aliases defined in the manifest. */
+  /** @return the list of activity aliases defined in the manifest. */
   @NotNull
   public List<ActivityAlias> getActivityAliases() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<ActivityAlias>>() {
+    return getApplicationComponents(new Function<Application, List<ActivityAlias>>() {
       @Override
-      public List<ActivityAlias> compute() {
-        List<ActivityAlias> activityAliases = Lists.newArrayList();
+      public List<ActivityAlias> fun(Application application) {
+        return application.getActivityAliass();
+      }
+    });
+  }
+
+  /** @return the list of services defined in the manifest. */
+  @NotNull
+  public List<Service> getServices() {
+    return getApplicationComponents(new Function<Application, List<Service>>() {
+      @Override
+      public List<Service> fun(Application application) {
+        return application.getServices();
+      }
+    });
+  }
+
+  private <T> List<T> getApplicationComponents(final Function<Application, List<T>> accessor) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<T>>() {
+      @Override
+      public List<T> compute() {
+        List<T> components = Lists.newArrayList();
 
         for (Manifest m : getManifests()) {
           Application application = m.getApplication();
           if (application != null) {
-            activityAliases.addAll(application.getActivityAliass());
+            components.addAll(accessor.fun(application));
           }
         }
 
-
-        return activityAliases;
+        return components;
       }
     });
   }
