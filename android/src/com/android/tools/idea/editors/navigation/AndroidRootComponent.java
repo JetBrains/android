@@ -27,7 +27,6 @@ import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -260,9 +259,8 @@ public class AndroidRootComponent extends JComponent {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        Module module = facet.getModule();
-        RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
-        final RenderTask task = RenderTask.create(facet, module, myLayoutFile, configuration, logger, null);
+        RenderService renderService = RenderService.get(facet);
+        final RenderTask task = renderService.createTask(myLayoutFile, configuration, renderService.createLogger(), null);
         if (task != null) {
           task.setProvideCookiesForIncludedViews(true);
           if (!isMenu) {

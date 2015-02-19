@@ -451,8 +451,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
             return;
           }
 
-          final Module module = getModule();
-          final RenderLogger logger = new RenderLogger(myFile.getName(), module);
+          RenderService renderService = RenderService.get(myFacet);
+          final RenderLogger logger = renderService.createLogger();
 
           if (myConfiguration.getTarget() == null) {
             logger.error(null, "No render target selected", null);
@@ -472,7 +472,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           RenderContext renderContext = AndroidDesignerEditorPanel.this;
           if (myRendererLock.tryLock()) {
             try {
-              final RenderTask task = RenderTask.create(myFacet, module, myXmlFile, myConfiguration, logger, renderContext);
+              final RenderTask task = renderService.createTask(myXmlFile, myConfiguration, logger, renderContext);
               if (task != null) {
                 if (!ToggleRenderModeAction.isRenderViewPort()) {
                   task.useDesignMode(myXmlFile);
