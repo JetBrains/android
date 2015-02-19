@@ -85,8 +85,9 @@ public abstract class RenderTestBase extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
-    RenderLogger logger = new RenderLogger("myLogger", myModule);
-    RenderTask task = RenderTask.create(facet, myModule, psiFile, configuration, logger, null);
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
     return task;
   }
