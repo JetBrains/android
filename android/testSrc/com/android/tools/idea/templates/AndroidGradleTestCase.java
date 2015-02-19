@@ -41,7 +41,6 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -50,6 +49,7 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -240,6 +240,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         break;
       }
     }
+
+    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
+    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
+    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
+    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {
