@@ -70,7 +70,7 @@ public class PropertyParser {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
     assert androidPlatform != null;
     AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
-    myDefinitions = targetData.getAttrDefs(module.getProject());
+    myDefinitions = targetData.getPublicAttrDefs(module.getProject());
 
     LayoutLibrary library = renderService.getLayoutLib();
     myClassLoader = ProjectClassLoader.get(library, module);

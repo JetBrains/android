@@ -858,7 +858,7 @@ public class RenderErrorPanel extends JPanel {
       return;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    AttributeDefinitions definitionLookup = targetData.getAttrDefs(myResult.getFile().getProject());
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(myResult.getFile().getProject());
     final String attributeName = strings[0];
     final String currentValue = strings[1];
     if (definitionLookup == null) {
