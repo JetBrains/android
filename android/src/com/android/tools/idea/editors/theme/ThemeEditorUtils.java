@@ -21,6 +21,8 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -40,10 +42,22 @@ import java.util.List;
  * Utility class for static methods which are used in different classes of theme editor
  */
 public class ThemeEditorUtils {
+  private static final Cache<String, String> ourTooltipCache = CacheBuilder.newBuilder()
+    .weakValues()
+    .maximumSize(30) // To be able to cache roughly one screen of attributes
+    .build();
+
   private ThemeEditorUtils() { }
 
   @Nullable
   public static String generateToolTipText(final ItemResourceValue resValue, final Module module, final Configuration configuration) {
+    String tooltipKey = resValue.toString() + module.toString() + configuration.toString();
+
+    String cachedTooltip = ourTooltipCache.getIfPresent(tooltipKey);
+    if (cachedTooltip != null) {
+      return cachedTooltip;
+    }
+
     String value = resValue.getValue();
     if (SdkConstants.NULL_RESOURCE.equalsIgnoreCase(value)) {
       return SdkConstants.NULL_RESOURCE;
@@ -61,7 +75,12 @@ public class ThemeEditorUtils {
       // To do that, we just reparse the resource adding the android: namespace.
       resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), SdkConstants.PREFIX_ANDROID + resUrl.type.getName()));
     }
-    return AndroidJavaDocRenderer.render(module, configuration, resUrl);
+    String tooltipContents = AndroidJavaDocRenderer.render(module, configuration, resUrl);
+    if (tooltipContents != null) {
+      ourTooltipCache.put(tooltipKey, tooltipContents);
+    }
+
+    return tooltipContents;
   }
 
   public static void openThemeEditor(final @NotNull Module module) {
