@@ -19,10 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.rendering.LayoutPullParserFactory;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
@@ -639,8 +636,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
-      final RenderLogger logger = new RenderLogger(loggerName, module);
-      final RenderTask task = RenderTask.create(facet, module, psiFile, configuration, logger, toolWindowForm);
+      RenderService renderService = RenderService.get(facet);
+      RenderLogger logger = renderService.createLogger();
+      final RenderTask task = renderService.createTask(psiFile, configuration, logger, toolWindowForm);
       if (task != null) {
         task.useDesignMode(psiFile);
         result = task.render();
@@ -702,7 +700,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   private static boolean isInResourceFolder(@Nullable PsiFile psiFile) {
     if (psiFile instanceof XmlFile && AndroidFacet.getInstance(psiFile) != null) {
-      return RenderTask.canRender(psiFile);
+      return RenderService.canRender(psiFile);
     }
     return false;
   }

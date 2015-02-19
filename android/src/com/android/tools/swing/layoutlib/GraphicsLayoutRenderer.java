@@ -129,14 +129,14 @@ public class GraphicsLayoutRenderer {
     }
 
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
-    RenderLogger logger = new RenderLogger("theme_editor", module);
 
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
     Object credential = new Object();
+    RenderLogger logger = new RenderLogger("theme_editor", module, credential);
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(layoutLib, appResources, module, facet, logger, credential, null, null) {
+    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(null, layoutLib, appResources, module, facet, logger, credential, null) {
       @Override
       public ActionBarCallback getActionBarCallback() {
         return actionBarCallback;

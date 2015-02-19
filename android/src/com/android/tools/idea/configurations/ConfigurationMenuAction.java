@@ -24,7 +24,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.OverrideResourceAction;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -205,7 +205,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
       ConfigurationManager configurationManager = configuration.getConfigurationManager();
       IAndroidTarget target = configurationManager.getTarget();
       if (target != null) {
-        LayoutLibrary library = RenderTask.getLayoutLibrary(module, target);
+        LayoutLibrary library = RenderService.getLayoutLibrary(module, target);
         enabled = library != null && library.supports(capability);
       }
     }
