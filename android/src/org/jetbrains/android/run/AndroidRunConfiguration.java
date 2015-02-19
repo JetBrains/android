@@ -373,6 +373,34 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
   }
 
+  /**
+   * Returns whether the given module corresponds to a watch face app.
+   * A module is considered to be a watch face app if there are no activities, and a single service with
+   * a specific intent filter. This definition is likely stricter than it needs to be to but we are only
+   * interested in matching the watch face template application.
+   */
+  public static boolean isWatchFaceApp(@NotNull AndroidFacet facet) {
+    ManifestInfo info = ManifestInfo.get(facet.getModule(), true);
+    if (!info.getActivities().isEmpty()) {
+      return false;
+    }
+
+    final List<Service> services = info.getServices();
+    if (services.size() != 1) {
+      return false;
+    }
+
+    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
+      public Boolean compute() {
+        List<IntentFilter> filters = services.get(0).getIntentFilters();
+        return filters.size() == 1 &&
+               AndroidDomUtil.containsAction(filters.get(0), AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
+               AndroidDomUtil.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
+      }
+    });
+  }
+
   private static boolean isActivityLaunchable(List<IntentFilter> intentFilters) {
     for (IntentFilter filter : intentFilters) {
       if (AndroidDomUtil.containsAction(filter, AndroidUtils.LAUNCH_ACTION_NAME)) {

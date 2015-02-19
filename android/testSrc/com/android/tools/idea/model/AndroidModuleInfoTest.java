@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.Service;
 
 import java.util.List;
 import java.util.Set;
@@ -103,5 +104,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
                                              mergedActivities.get(1).getActivityClass().getRawText());
     assertTrue(activities.contains(".Main"));
     assertTrue(activities.contains(".Debug"));
+
+    List<Service> services = ManifestInfo.get(myAndroidFacet.getModule(), true).getServices();
+    assertEquals(1, services.size());
   }
 }
