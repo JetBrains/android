@@ -740,9 +740,9 @@ public class HtmlLinkManager {
   private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
-    RenderService renderService = result.getRenderService();
-    if (renderService != null) {
-      RenderContext renderContext = renderService.getRenderContext();
+    RenderTask renderTask = result.getRenderTask();
+    if (renderTask != null) {
+      RenderContext renderContext = renderTask.getRenderContext();
       if (renderContext != null) {
         renderContext.requestRender();
       }
@@ -833,9 +833,9 @@ public class HtmlLinkManager {
   private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
     RenderSecurityManager.sEnabled = false;
     if (result != null) {
-      RenderService renderService = result.getRenderService();
-      if (renderService != null) {
-        RenderContext renderContext = renderService.getRenderContext();
+      RenderTask renderTask = result.getRenderTask();
+      if (renderTask != null) {
+        RenderContext renderContext = renderTask.getRenderContext();
         if (renderContext != null) {
           renderContext.requestRender();
         }

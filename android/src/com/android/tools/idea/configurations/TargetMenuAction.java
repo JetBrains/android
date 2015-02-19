@@ -18,7 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
@@ -150,7 +150,7 @@ public class TargetMenuAction extends FlatComboAction {
     PsiFile file = configuration.getPsiFile();
     return file == null ||
            target.getVersion().getFeatureLevel() >= PREFERENCES_MIN_API ||
-           !TAG_PREFERENCE_SCREEN.equals(RenderService.getRootTagName(file));
+           !TAG_PREFERENCE_SCREEN.equals(RenderTask.getRootTagName(file));
   }
 
   /**

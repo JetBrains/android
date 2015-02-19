@@ -16,7 +16,7 @@
 package com.android.tools.idea.designer;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Maps;
 import com.intellij.android.designer.AndroidDesignerUtils;
@@ -376,13 +376,13 @@ public class LinearLayoutResizeOperation extends ResizeOperation {
       }
       XmlTag parentTag = ((RadViewComponent)parent).getTag();
       if (parentTag != null) {
-        RenderService service = AndroidDesignerUtils.getRenderService(myContext.getArea());
-        if (service == null) {
+        RenderTask task = AndroidDesignerUtils.createRenderTask(myContext.getArea());
+        if (task == null) {
           return null;
         }
 
         // Measure unweighted bounds
-        Map<XmlTag, ViewInfo> map = service.measureChildren(parentTag, new RenderService.AttributeFilter() {
+        Map<XmlTag, ViewInfo> map = task.measureChildren(parentTag, new RenderTask.AttributeFilter() {
           @Override
           public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
             // Clear out layout weights; we need to measure the unweighted sizes

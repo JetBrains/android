@@ -16,7 +16,7 @@
 package com.android.tools.idea.designer;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
@@ -186,10 +186,10 @@ public class ResizeOperation implements EditOperation {
     Rectangle fillBounds = new Rectangle(bounds.x, bounds.y, fillWidth, fillHeight);
 
     // Measure actual fill bounds
-    RenderService service = AndroidDesignerUtils.getRenderService(myContext.getArea());
-    if (service != null) {
+    RenderTask task = AndroidDesignerUtils.createRenderTask(myContext.getArea());
+    if (task != null) {
       final XmlTag tag = myComponent.getTag();
-      ViewInfo viewInfo = service.measureChild(tag, new RenderService.AttributeFilter() {
+      ViewInfo viewInfo = task.measureChild(tag, new RenderTask.AttributeFilter() {
         @Override
         public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String name) {
           // Clear out layout weights; we need to measure the unweighted sizes

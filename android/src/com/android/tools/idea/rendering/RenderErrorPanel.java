@@ -258,7 +258,7 @@ public class RenderErrorPanel extends JPanel {
 
   private String generateHtml(@NotNull RenderResult result) {
     RenderLogger logger = result.getLogger();
-    RenderService renderService = result.getRenderService();
+    RenderTask renderTask = result.getRenderTask();
     assert logger.hasProblems();
 
     HtmlBuilder builder = new HtmlBuilder(new StringBuilder(300));
@@ -274,18 +274,18 @@ public class RenderErrorPanel extends JPanel {
     builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
 
     reportMissingStyles(logger, builder);
-    if (renderService != null) {
-      reportOldNinePathRenderLib(logger, builder, renderService);
-      reportRelevantCompilationErrors(logger, builder, renderService);
-      reportMissingSizeAttributes(logger, builder, renderService);
-      reportMissingClasses(logger, builder, renderService);
+    if (renderTask != null) {
+      reportOldNinePathRenderLib(logger, builder, renderTask);
+      reportRelevantCompilationErrors(logger, builder, renderTask);
+      reportMissingSizeAttributes(logger, builder, renderTask);
+      reportMissingClasses(logger, builder, renderTask);
     }
     reportBrokenClasses(logger, builder);
     reportInstantiationProblems(logger, builder);
     reportOtherProblems(logger, builder);
     reportUnknownFragments(logger, builder);
-    if (renderService != null) {
-      reportRenderingFidelityProblems(logger, builder, renderService);
+    if (renderTask != null) {
+      reportRenderingFidelityProblems(logger, builder, renderTask);
     }
 
     builder.closeHtmlBody();
@@ -293,7 +293,7 @@ public class RenderErrorPanel extends JPanel {
     return builder.getHtml();
   }
 
-  private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder, @NotNull RenderService renderService) {
+  private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder, @NotNull RenderTask renderTask) {
     Set<String> missingClasses = logger.getMissingClasses();
     if (missingClasses != null && !missingClasses.isEmpty()) {
       if (missingClasses.contains("CalendarView")) {
@@ -342,7 +342,7 @@ public class RenderErrorPanel extends JPanel {
 
         builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
-        RenderContext renderContext = renderService.getRenderContext();
+        RenderContext renderContext = renderTask.getRenderContext();
         if (renderContext != null && renderContext.getType() == LAYOUT_EDITOR) {
           builder.add(", ");
           builder.addLink("Edit XML", myLinkManager.createShowTagUrl(className));
@@ -633,7 +633,7 @@ public class RenderErrorPanel extends JPanel {
   }
 
   private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder,
-                                               @NotNull final RenderService renderService) {
+                                               @NotNull final RenderTask renderTask) {
     List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
     if (fidelityWarnings != null && !fidelityWarnings.isEmpty()) {
       builder.add("The graphics preview in the layout editor may not be accurate:").newline();
@@ -648,7 +648,7 @@ public class RenderErrorPanel extends JPanel {
             @Override
             public void run() {
               RenderLogger.ignoreFidelityWarning(clientData);
-              RenderContext renderContext = renderService.getRenderContext();
+              RenderContext renderContext = renderTask.getRenderContext();
               if (renderContext != null) {
                 renderContext.requestRender();
               }
@@ -672,7 +672,7 @@ public class RenderErrorPanel extends JPanel {
         @Override
         public void run() {
           RenderLogger.ignoreAllFidelityWarnings();
-          RenderContext renderContext = renderService.getRenderContext();
+          RenderContext renderContext = renderTask.getRenderContext();
           if (renderContext != null) {
             renderContext.requestRender();
           }
@@ -694,10 +694,10 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private static void reportOldNinePathRenderLib(RenderLogger logger, HtmlBuilder builder, @NotNull RenderService renderService) {
+  private static void reportOldNinePathRenderLib(RenderLogger logger, HtmlBuilder builder, @NotNull RenderTask renderTask) {
     for (Throwable trace : logger.getTraces()) {
       if (trace.toString().contains("java.lang.IndexOutOfBoundsException: Index: 2, Size: 2") //$NON-NLS-1$
-          && renderService.getConfiguration().getDensity() == Density.TV) {
+          && renderTask.getConfiguration().getDensity() == Density.TV) {
         builder.addBold("It looks like you are using a render target where the layout library does not support the tvdpi density.");
         builder.newline().newline();
         builder.add("Please try either updating to the latest available version (using the SDK manager), or if no updated " +
@@ -708,7 +708,7 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private static void reportRelevantCompilationErrors(RenderLogger logger, HtmlBuilder builder, RenderService renderService) {
+  private static void reportRelevantCompilationErrors(RenderLogger logger, HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
     Project project = module.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
@@ -727,7 +727,7 @@ public class RenderErrorPanel extends JPanel {
                           "which can cause rendering failures. Fix resource problems first.");
           builder.newline().newline();
         }
-      } else if (renderService.getLayoutlibCallback() != null && renderService.getLayoutlibCallback().isUsed()) {
+      } else if (renderTask.getLayoutlibCallback() != null && renderTask.getLayoutlibCallback().isUsed()) {
         boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(new Condition<VirtualFile>() {
           @Override
           public boolean value(VirtualFile virtualFile) {
@@ -744,21 +744,21 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private void reportMissingSizeAttributes(@NotNull RenderLogger logger, HtmlBuilder builder, RenderService renderService) {
+  private void reportMissingSizeAttributes(@NotNull RenderLogger logger, HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
     Project project = module.getProject();
     if (logger.isMissingSize()) {
       // Emit hyperlink about missing attributes; the action will operate on all of them
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
-      ResourceResolver resourceResolver = renderService.getResourceResolver();
-      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, renderService.getPsiFile(), resourceResolver);
+      ResourceResolver resourceResolver = renderTask.getResourceResolver();
+      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, renderTask.getPsiFile(), resourceResolver);
 
       List<XmlTag> missing = fix.findViewsMissingSizes();
 
       String fill = VALUE_FILL_PARENT;
       // See whether we should offer match_parent instead of fill_parent
-      AndroidPlatform platform = renderService.getPlatform();
+      AndroidPlatform platform = renderTask.getPlatform();
       if (platform != null && platform.getTarget().getVersion().getApiLevel() >= 8) {
         fill = VALUE_MATCH_PARENT;
       }
@@ -845,15 +845,15 @@ public class RenderErrorPanel extends JPanel {
       return;
     }
 
-    RenderService renderService = myResult.getRenderService();
-    if (renderService == null) {
+    RenderTask renderTask = myResult.getRenderTask();
+    if (renderTask == null) {
       return;
     }
-    IAndroidTarget target = renderService.getConfiguration().getTarget();
+    IAndroidTarget target = renderTask.getConfiguration().getTarget();
     if (target == null) {
       return;
     }
-    AndroidPlatform platform = renderService.getPlatform();
+    AndroidPlatform platform = renderTask.getPlatform();
     if (platform == null) {
       return;
     }
@@ -966,7 +966,7 @@ public class RenderErrorPanel extends JPanel {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderService().getConfiguration().getTarget();
+              IAndroidTarget target = myResult.getRenderTask().getConfiguration().getTarget();
               platformSource = AndroidSdkUtils.findPlatformSources(target);
               platformSourceExists = platformSource != null;
             }

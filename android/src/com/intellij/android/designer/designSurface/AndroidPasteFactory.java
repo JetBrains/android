@@ -27,7 +27,7 @@ import com.intellij.openapi.module.Module;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
@@ -56,7 +56,7 @@ public class AndroidPasteFactory implements ComponentPasteFactory {
   @NotNull
   @Override
   public List<RadComponent> create() throws Exception {
-    myClassLoader = ProjectClassLoader.create(myTarget, myModule);
+    myClassLoader = ModuleClassLoader.create(myTarget, myModule);
 
     List<RadComponent> components = new ArrayList<RadComponent>();
 

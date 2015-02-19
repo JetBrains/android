@@ -33,7 +33,7 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
   private static final String[] FILTERS = {"onClick", "actionViewClass", "actionLayout"};
 
   public MenuPsiPullParser(XmlFile file, LayoutLog logger) {
-    super(file, logger, new RenderService.AttributeFilter() {
+    super(file, logger, new RenderTask.AttributeFilter() {
       @Nullable
       @Override
       public String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName) {
