@@ -173,12 +173,6 @@ public class IdeaAndroidProject implements Serializable {
    */
   @NotNull
   public File getRootDirPath() {
-    if (myRootDir == null) {
-      VirtualFile found = findFileByIoFile(myRootDirPath, true);
-      // the module's root directory can never be null.
-      assert found != null;
-      myRootDir = found;
-    }
     return myRootDirPath;
   }
 
@@ -188,6 +182,12 @@ public class IdeaAndroidProject implements Serializable {
    */
   @NotNull
   public VirtualFile getRootDir() {
+    if (myRootDir == null) {
+      VirtualFile found = findFileByIoFile(myRootDirPath, true);
+      // the module's root directory can never be null.
+      assert found != null;
+      myRootDir = found;
+    }
     return myRootDir;
   }
 
