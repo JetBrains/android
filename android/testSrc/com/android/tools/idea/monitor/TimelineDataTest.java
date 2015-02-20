@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.memory;
+package com.android.tools.idea.monitor;
 
+import com.android.tools.idea.monitor.TimelineData;
 import junit.framework.TestCase;
 
 public class TimelineDataTest extends TestCase {

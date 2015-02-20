@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.memory;
+package com.android.tools.idea.monitor;
 
 import com.android.annotations.VisibleForTesting;
 import com.intellij.ui.Gray;
@@ -52,8 +52,7 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
   private static final float X_SCALE = 20;
 
   private final float myBufferTime;
-  @NotNull
-  private final TimelineData myData;
+  @NotNull private final TimelineData myData;
   private final float myInitialMax;
   private final float myInitialMarkerSeparation;
   private final Timer myTimer;
@@ -281,7 +280,8 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
   public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
     if (myTimer.isRunning() && !isShowing()) {
       myTimer.stop();
-    } else if (!myTimer.isRunning() && isShowing()) {
+    }
+    else if (!myTimer.isRunning() && isShowing()) {
       myTimer.start();
     }
   }
