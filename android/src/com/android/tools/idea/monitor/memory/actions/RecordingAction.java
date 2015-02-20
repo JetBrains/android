@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.memory.actions;
 
-import com.android.tools.idea.monitor.memory.MemorySampler;
+import com.android.tools.idea.monitor.DeviceSampler;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -23,39 +23,39 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 
 public class RecordingAction extends ToggleAction {
-  @NotNull
-  private final MemorySampler myMemorySampler;
+  @NotNull private final DeviceSampler myDeviceSampler;
 
-  public RecordingAction(@NotNull MemorySampler memorySampler) {
+  public RecordingAction(@NotNull DeviceSampler deviceSampler) {
     super(null, null, AllIcons.Debugger.Db_set_breakpoint);
-    myMemorySampler = memorySampler;
+    myDeviceSampler = deviceSampler;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myMemorySampler.isRunning();
+    return myDeviceSampler.isRunning();
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     Presentation presentation = e.getPresentation();
     if (isSelected(e)) {
       presentation.setText("Stop");
-      presentation.setDescription("Stops memory information recording.");
-    } else {
+      presentation.setDescription("Stops " + myDeviceSampler.getDescription() + " recording.");
+    }
+    else {
       presentation.setText("Start");
-      presentation.setDescription("Starts memory information recording.");
+      presentation.setDescription("Starts " + myDeviceSampler.getDescription() + " recording.");
     }
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
     if (state) {
-      myMemorySampler.start();
+      myDeviceSampler.start();
     }
     else {
-      myMemorySampler.stop();
+      myDeviceSampler.stop();
     }
   }
 }
