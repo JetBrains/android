@@ -106,10 +106,14 @@ public class PostProjectSetupTasksExecutor {
   private static boolean ourCheckedExpiration;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
+  private static final boolean DEFAULT_USING_CACHED_PROJECT_DATA = false;
+  private static final long DEFAULT_LAST_SYNC_TIMESTAMP = -1;
 
   @NotNull private final Project myProject;
 
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+  private volatile boolean myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
+  private volatile long myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
 
   @NotNull
   public static PostProjectSetupTasksExecutor getInstance(@NotNull Project project) {
@@ -118,26 +122,6 @@ public class PostProjectSetupTasksExecutor {
 
   public PostProjectSetupTasksExecutor(@NotNull Project project) {
     myProject = project;
-  }
-
-  /**
-   * Invoked after project state (e.g. {@code AndroidProject} instances) have been restored from disk cache (e.g. when reopening a project
-   * that was successfully synced with Gradle before being closed).
-   */
-  public void onProjectRestoreFromDisk() {
-    ensureValidSdks();
-
-    if (hasErrors(myProject)) {
-      addSdkLinkIfNecessary();
-      checkSdkToolsVersion(myProject);
-      return;
-    }
-
-    findAndShowVariantConflicts();
-    addSdkLinkIfNecessary();
-    checkSdkToolsVersion(myProject);
-
-    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
   /**
@@ -155,7 +139,7 @@ public class PostProjectSetupTasksExecutor {
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
-      GradleSyncState.getInstance(myProject).syncEnded();
+      updateGradleSyncState();
       return;
     }
 
@@ -176,19 +160,31 @@ public class PostProjectSetupTasksExecutor {
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
-    GradleSyncState.getInstance(myProject).syncEnded();
+    updateGradleSyncState();
 
     if (myGenerateSourcesAfterSync) {
       ProjectBuilder.getInstance(myProject).generateSourcesOnly();
     }
-    else {
-      // set default value back.
-      myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
-    }
+
+    // set default value back.
+    myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
     ensureValidSdks();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+  }
+
+  private void updateGradleSyncState() {
+    if (!myUsingCachedProjectData) {
+      GradleProjectSyncData.save(myProject);
+      GradleSyncState.getInstance(myProject).syncEnded();
+    } else {
+      GradleSyncState.getInstance(myProject).syncSkipped(myLastSyncTimestamp);
+    }
+
+    // set default value back.
+    myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
+    myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
   }
 
   private void ensureAllModulesHaveValidSdks() {
@@ -589,6 +585,14 @@ public class PostProjectSetupTasksExecutor {
 
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
     myGenerateSourcesAfterSync = generateSourcesAfterSync;
+  }
+
+  public void setUsingCachedProjectData(boolean usingCachedProjectData) {
+    myUsingCachedProjectData = usingCachedProjectData;
+  }
+
+  public void setLastSyncTimestamp(long lastSyncTimestamp) {
+    myLastSyncTimestamp = lastSyncTimestamp;
   }
 
   private static class InstallSdkToolsHyperlink extends NotificationHyperlink {

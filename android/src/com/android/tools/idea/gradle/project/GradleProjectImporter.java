@@ -30,11 +30,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -189,14 +193,33 @@ public class GradleProjectImporter {
   public void requestProjectSync(@NotNull Project project,
                                  boolean generateSourcesOnSuccess,
                                  @Nullable GradleSyncListener listener) {
-    Runnable syncRequest = createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
+    requestProjectSync(project, false, generateSourcesOnSuccess, listener);
+  }
+
+  /**
+   * Requests a project sync with Gradle.
+   *
+   * @param project                  the given project. This method does nothing if the project is not an Android-Gradle project.
+   * @param useCachedProjectData     indicates whether the IDE should try to use the cached data or invoke Gradle to get the project data.
+   *                                 This is just a suggestion and IDE can still invoke Gradle when the cached data is not available or
+   *                                 no longer valid.
+   * @param generateSourcesOnSuccess indicates whether the IDE should invoke Gradle to generate Java sources after a successful project
+   *                                 import. This applies only when the project data is obtained by Gradle invocation and sources are never
+   *                                 generated when the cached project data is used.
+   * @param listener                 called after the project has been imported.
+   */
+  public void requestProjectSync(@NotNull Project project,
+                                 boolean useCachedProjectData,
+                                 boolean generateSourcesOnSuccess,
+                                 @Nullable GradleSyncListener listener) {
+    Runnable syncRequest = createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, useCachedProjectData, listener);
     invokeLaterIfProjectAlive(project, syncRequest);
   }
 
   public void syncProjectSynchronously(@NotNull Project project,
                                        boolean generateSourcesOnSuccess,
                                        @Nullable GradleSyncListener listener) {
-    Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, listener);
+    Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, listener);
     invokeAndWaitIfNeeded(syncRequest);
   }
 
@@ -204,12 +227,13 @@ public class GradleProjectImporter {
   private Runnable createSyncRequest(@NotNull final Project project,
                                      @NotNull final ProgressExecutionMode executionMode,
                                      final boolean generateSourcesOnSuccess,
+                                     final boolean useCachedProjectData,
                                      @Nullable final GradleSyncListener listener) {
     return new Runnable() {
       @Override
       public void run() {
         try {
-          doRequestSync(project, executionMode, new ImportOptions(generateSourcesOnSuccess, false), listener);
+          doRequestSync(project, executionMode, new ImportOptions(generateSourcesOnSuccess, false, useCachedProjectData), listener);
         }
         catch (ConfigurationException e) {
           showErrorDialog(project, e.getMessage(), e.getTitle());
@@ -304,7 +328,7 @@ public class GradleProjectImporter {
                                         @Nullable GradleSyncListener listener,
                                         @Nullable Project project,
                                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDir, new ImportOptions(true, false), listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDir, new ImportOptions(true, false, false), listener, project, initialLanguageLevel);
   }
 
   /**
@@ -327,7 +351,7 @@ public class GradleProjectImporter {
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDir, new ImportOptions(generateSourcesOnSuccess, true), listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDir, new ImportOptions(generateSourcesOnSuccess, true, false), listener, project, initialLanguageLevel);
   }
 
   private void doImport(@NotNull String projectName,
@@ -482,14 +506,41 @@ public class GradleProjectImporter {
     project.putUserData(Projects.HAS_SYNC_ERRORS, false);
     project.putUserData(Projects.HAS_WRONG_JDK, false);
 
-    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
+    if (options.useCachedProjectData) {
+      GradleProjectSyncData gradleProjectSyncData = GradleProjectSyncData.getInstance((project));
+      if (gradleProjectSyncData != null && gradleProjectSyncData.canUseCachedProjectData()) {
+        ExternalProjectInfo externalProjectData =
+          ProjectDataManager.getInstance().getExternalProjectData(project, SYSTEM_ID, getProjectBasePath(project));
+        if (externalProjectData != null) {
+          DataNode<ProjectData> externalProjectStructure = externalProjectData.getExternalProjectStructure();
+          if (externalProjectStructure != null) {
+            PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
+            executor.setGenerateSourcesAfterSync(false);
+            executor.setUsingCachedProjectData(true);
+            executor.setLastSyncTimestamp(gradleProjectSyncData.getLastGradleSyncTimestamp());
+
+            ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
+            setUpTask.onSuccess(externalProjectStructure);
+            return;
+          }
+        }
+      }
+    }
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
 
-    ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, listener);
+    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
+    ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, false, listener);
     myDelegate.importProject(project, setUpTask, progressExecutionMode);
+  }
+
+  @NotNull
+  private static String getProjectBasePath(Project project) {
+    String projectBasePath = toCanonicalPath(project.getBasePath());
+    assert projectBasePath != null;
+    return projectBasePath;
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
@@ -498,9 +549,8 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        String externalProjectPath = toCanonicalPath(project.getBasePath());
-        assert externalProjectPath != null;
-        refreshProject(project, SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */, progressExecutionMode, true /* always report import errors */);
+        refreshProject(project, SYSTEM_ID, getProjectBasePath(project), callback, false /* resolve dependencies */, progressExecutionMode,
+                       true /* always report import errors */);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
@@ -512,10 +562,12 @@ public class GradleProjectImporter {
   private static class ImportOptions {
     public final boolean generateSourcesOnSuccess;
     public final boolean importingExistingProject;
+    public final boolean useCachedProjectData;
 
-    ImportOptions(boolean generateSourcesOnSuccess, boolean importingExistingProject) {
+    ImportOptions(boolean generateSourcesOnSuccess, boolean importingExistingProject, boolean useCachedProjectData) {
       this.generateSourcesOnSuccess = generateSourcesOnSuccess;
       this.importingExistingProject = importingExistingProject;
+      this.useCachedProjectData = useCachedProjectData;
     }
   }
 }
