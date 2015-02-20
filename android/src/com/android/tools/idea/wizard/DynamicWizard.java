@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -97,7 +98,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     myModule = module;
     myName = name;
     myHost.setTitle(name);
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
+    Application application = ApplicationManager.getApplication();
+    if (application == null || application.isUnitTestMode()) {
       myUpdateQueue = null;
     } else {
       myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, MergingUpdateQueue.ANY_COMPONENT, myHost.getDisposable(), null, true);
