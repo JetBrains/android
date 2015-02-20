@@ -751,7 +751,7 @@ public final class AndroidSdkUtils {
       AndroidDebugBridge bridge = getDebugBridge(project);
       if (bridge != null && AdbService.isDdmsCorrupted(bridge)) {
         LOG.info("DDMLIB is corrupted and will be restarted");
-        AdbService.restartDdmlib(project);
+        AdbService.getInstance().restartDdmlib(project);
       }
     }
     else {
@@ -880,7 +880,7 @@ public final class AndroidSdkUtils {
         return null;
       }
 
-      Future<AndroidDebugBridge> future = AdbService.getDebugBridge(adb);
+      Future<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
       MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
       ProgressManager.getInstance().run(task);
 
