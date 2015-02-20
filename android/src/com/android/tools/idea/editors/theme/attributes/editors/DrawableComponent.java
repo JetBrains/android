@@ -117,10 +117,10 @@ public class DrawableComponent extends JButton {
         imageHeight = maxHeight;
       }
 
-      final int startY = (height - imageHeight - 2 * PADDING) / 2;
+      final int startY = (height - imageHeight - 2 * PADDING) / 2 + PADDING;
       final int startX = (width - offset - imageWidth);
 
-      g.drawImage(image, startX + PADDING, startY + PADDING, imageWidth, imageHeight, null);
+      g.drawImage(image, startX, startY, imageWidth, imageHeight, null);
       offset += imageWidth + IMAGE_PADDING;
     }
 
