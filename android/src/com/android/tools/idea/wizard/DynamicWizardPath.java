@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -82,7 +83,10 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   @Override
   public final void attachToWizard(@NotNull DynamicWizard wizard) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    Application application = ApplicationManager.getApplication();
+    if (application != null) {
+      application.assertIsDispatchThread();
+    }
     myWizard = wizard;
     myUpdateQueue = wizard.getUpdateQueue();
     Map<String, Object> myCurrentValues = myState.flatten();
