@@ -17,9 +17,14 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.configurations.Configuration;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.resources.ResourceValue;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * serialize modifications back to the style file.
  */
 public class EditedStyleItem {
+  private final static Logger LOG = Logger.getInstance(EditedStyleItem.class);
+
   private final ThemeEditorStyle mySourceTheme;
   private ItemResourceValue myItemResourceValue;
   private String myNormalizedValue;
@@ -150,5 +157,22 @@ public class EditedStyleItem {
     return (getValue().startsWith(SdkConstants.ANDROID_THEME_PREFIX) ?
       SdkConstants.PREFIX_ANDROID :
       "") + propertyName;
+  }
+
+  public boolean isPublicAttribute() {
+    Configuration configuration = mySourceTheme.getConfiguration();
+    IAndroidTarget target = configuration.getTarget();
+    if (target == null) {
+      LOG.error("Unable to get IAndroidTarget.");
+      return false;
+    }
+
+    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
+    if (androidTargetData == null) {
+      LOG.error("Unable to get AndroidTargetData.");
+      return false;
+    }
+
+    return androidTargetData.isResourcePublic(ResourceType.ATTR.getName(), getName());
   }
 }
