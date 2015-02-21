@@ -46,6 +46,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_SHAPE = "shape";
   public static final String ATTR_PADDING = "padding";
   public static final String ATTR_TRIM = "trim";
+  public static final String ATTR_DOGEAR = "dogear";
   public static final String ATTR_FONT = "font";
   public static final String ATTR_FONT_SIZE = "fontSize";
   public static final String ATTR_SOURCE_TYPE = "sourceType";
@@ -87,6 +88,10 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     boolean isTrim();
 
     void setTrim(boolean trim);
+
+    boolean isDogear();
+
+    void setDogear(boolean dogEar);
 
     @Nullable
     String getImagePath();
@@ -281,6 +286,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     myContext.setForegroundColor(Color.BLUE);
     myContext.setBackgroundColor(Color.WHITE);
     myContext.setTrim(false);
+    myContext.setDogear(false);
     myContext.setPadding(0);
   }
 
@@ -333,6 +339,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       return;
     }
     boolean trim = myContext.isTrim();
+    boolean dogEar = myContext.isDogear();
     int padding = myContext.getPadding();
 
     SourceType sourceType = myContext.getSourceType();
@@ -401,13 +408,16 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     switch (type) {
       case LAUNCHER: {
         generator = myLauncherIconGenerator;
-          LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
+        LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
         launcherOptions.shape = myContext.getShape();
         launcherOptions.crop = Scaling.CROP.equals(myContext.getScaling());
-          launcherOptions.style = GraphicGenerator.Style.SIMPLE;
+        launcherOptions.style = GraphicGenerator.Style.SIMPLE;
         launcherOptions.backgroundColor = myContext.getBackgroundColor().getRGB();
-          launcherOptions.isWebGraphic = !previewOnly;
-          options = launcherOptions;
+        launcherOptions.isWebGraphic = !previewOnly;
+        if (dogEar) {
+          launcherOptions.isDogEar = true;
+        }
+        options = launcherOptions;
         }
         break;
       case ACTIONBAR: {
