@@ -18,20 +18,17 @@
 package com.android.tools.idea.editors.gfxtrace.rpc;
 
 import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.rpccore.ResourceId;
+import com.android.tools.rpclib.binary.Handle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class SchemaId extends ResourceId {
-  public SchemaId(String value) {
+public class SchemaId extends Handle {
+  public SchemaId(@NotNull byte[] value) {
     super(value);
   }
 
-  public SchemaId(Decoder d) throws IOException {
+  public SchemaId(@NotNull Decoder d) throws IOException {
     super(d);
-  }
-
-  public static SchemaId decode(Decoder d) throws IOException {
-    return new SchemaId(d);
   }
 }
