@@ -30,10 +30,12 @@ public class DynamicWizardPathTest extends TestCase {
   DummyDynamicWizardPath myPath;
   DummyDynamicWizardStep myStep1;
   DummyDynamicWizardStep myStep2;
+  private DynamicWizard myWizard;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    myWizard = new DummyDynamicWizard();
     myPath = new DummyDynamicWizardPath("TestPath");
     myStep1 = new DummyDynamicWizardStep("TestStep1");
     myStep2 = new DummyDynamicWizardStep("TestStep2");
@@ -55,6 +57,8 @@ public class DynamicWizardPathTest extends TestCase {
   public void testGetStepCount() throws Exception {
     myPath.addStep(myStep1);
     myPath.addStep(myStep2);
+    myWizard.addPath(myPath);
+    myPath.attachToWizard(myWizard);
     myPath.onPathStarted(true);
 
     assertEquals(2, myPath.getVisibleStepCount());
@@ -85,7 +89,7 @@ public class DynamicWizardPathTest extends TestCase {
   public void testNavigation() throws Exception {
     myPath.addStep(myStep1);
     myPath.addStep(myStep2);
-
+    myPath.attachToWizard(myWizard);
     myPath.onPathStarted(true);
 
     assertTrue(myPath.canGoNext());
@@ -181,6 +185,22 @@ public class DynamicWizardPathTest extends TestCase {
     @Override
     public boolean performFinishingActions() {
       return true;
+    }
+  }
+
+  private static class DummyDynamicWizard extends DynamicWizard {
+    public DummyDynamicWizard() {
+      super(null, null, "DummyWizard");
+    }
+
+    @Override
+    public void performFinishingActions() {
+      // Do nothing
+    }
+
+    @Override
+    protected String getWizardActionDescription() {
+      return "Dummy action";
     }
   }
 }

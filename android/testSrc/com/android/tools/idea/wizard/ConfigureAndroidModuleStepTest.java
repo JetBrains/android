@@ -229,7 +229,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     assertValidationError("Please specify a project location");
 
     assertTrue(new File(getProject().getBasePath()).exists());
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath());
+    myState.put(ATTR_PROJECT_LOCATION, System.getProperty("java.home"));
     assertValidationWarning("A non-empty directory already exists at the specified project location. " +
                             "Existing files may be overwritten. Proceed with caution.");
 

@@ -516,6 +516,7 @@ public class ResourceHelper {
    */
   @Nullable
   private static String findInStateList(@NotNull NodeList items, String attributeName) {
+    String color = null;
     for (int i = 0, n = items.getLength(); i < n; i++) {
       // Find non-state color definition
       Node item = items.item(i);
@@ -532,25 +533,16 @@ public class ResourceHelper {
             }
           }
 
+          color = element.getAttributeNS(ANDROID_URI, attributeName);
           if (!hasState) {
-            return element.getAttributeNS(ANDROID_URI, attributeName);
+            return color;
           }
         }
       }
     }
 
-    // If no match, go and look for the last mentioned item and use that one
-    for (int i = items.getLength() - 1; i >= 0; i--) {
-      Node item = items.item(i);
-      if (item.getNodeType() == Node.ELEMENT_NODE) {
-        Element element = (Element) item;
-        if (element.hasAttributeNS(ANDROID_URI, attributeName)) {
-          return element.getAttributeNS(ANDROID_URI, attributeName);
-        }
-      }
-    }
-
-    return null;
+    // If no match, return the last mentioned item
+    return color;
   }
 
   @NotNull
