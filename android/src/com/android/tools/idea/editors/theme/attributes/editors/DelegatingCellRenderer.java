@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.intellij.ui.JBColor;
 import spantable.CellSpanModel;
 import com.intellij.openapi.module.Module;
 
@@ -55,12 +56,18 @@ public class DelegatingCellRenderer implements TableCellRenderer {
   public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
     final Object stringValue;
     final CellSpanModel model = (CellSpanModel)table.getModel();
+    EditedStyleItem item = null;
 
     boolean isEditedStyle = value instanceof EditedStyleItem;
     if (isEditedStyle) {
-      final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
-      stringValue = ThemeEditorUtils
-        .extractRealValue(resValue, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
+      item = (EditedStyleItem) value;
+      if (column == 0) {
+        stringValue = item.getQualifiedName();
+      } else {
+        final ItemResourceValue resValue = item.getItemResourceValue();
+        stringValue = ThemeEditorUtils
+          .extractRealValue(resValue, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
+      }
     }
     else {
       stringValue = value;
@@ -68,6 +75,13 @@ public class DelegatingCellRenderer implements TableCellRenderer {
 
     final Component returnedComponent =
       myDelegate.getTableCellRendererComponent(table, myConvertValueToString ? stringValue : value, isSelected, hasFocus, row, column);
+
+    if (isEditedStyle && !item.isPublicAttribute()
+            && !(myDelegate instanceof ColorRenderer || myDelegate instanceof DrawableRenderer)) {
+      returnedComponent.setBackground(JBColor.LIGHT_GRAY);
+    } else {
+      returnedComponent.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+    }
 
     if (!(returnedComponent instanceof JComponent)) {
       // Does not support tooltips
