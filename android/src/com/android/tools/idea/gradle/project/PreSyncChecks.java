@@ -79,7 +79,7 @@ final class PreSyncChecks {
       // completion (see BuildClasspathModuleGradleDataService, line 119).
       gradleSettings.setDistributionType(DEFAULT_WRAPPED);
     }
-    else if (wrapperPropertiesFile == null && gradleSettings != null) {
+    else if (!ApplicationManager.getApplication().isUnitTestMode() && wrapperPropertiesFile == null && gradleSettings != null) {
       createWrapperIfNecessary(project, gradleSettings, distributionType);
     }
 
