@@ -24,6 +24,9 @@
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
       <interface-class>org.jetbrains.android.AndroidPlugin</interface-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.ddms.adb.AdbService</implementation-class>
+    </component>
   </application-components>
   <project-components>
     <component>

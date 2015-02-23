@@ -77,7 +77,7 @@ public class AndroidRunDdmsAction extends AndroidRunSdkToolAction {
             // trigger creation of new bridge
             File adb = AndroidSdkUtils.getAdb(project);
             if (adb != null) {
-              AdbService.getDebugBridge(adb);
+              AdbService.getInstance().getDebugBridge(adb);
             }
           }
         });
