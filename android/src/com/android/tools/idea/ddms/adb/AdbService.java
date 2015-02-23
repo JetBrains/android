@@ -19,6 +19,7 @@ import com.android.ddmlib.*;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -49,32 +50,51 @@ import java.util.concurrent.TimeUnit;
  * by first invoking {@link #getDebugBridge(java.io.File)} to obtain the bridge, and implementing
  * {@link com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
-public class AdbService {
-  @NotNull private static final Ddmlib ourDdmlib = new Ddmlib();
-  @Nullable private static SettableFuture<AndroidDebugBridge> ourFuture;
-  @Nullable private static BridgeConnectorTask ourMonitorTask;
+public class AdbService implements ApplicationComponent {
+  @NotNull private final Ddmlib myDdmlib = new Ddmlib();
+  @Nullable private SettableFuture<AndroidDebugBridge> myFuture;
+  @Nullable private BridgeConnectorTask myMonitorTask;
 
-  public static synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+  @Override
+  public void initComponent() {
+  }
+
+  @Override
+  public void disposeComponent() {
+    terminateDdmlib();
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return "AdbService";
+  }
+
+  public static AdbService getInstance() {
+    return ApplicationManager.getApplication().getComponent(AdbService.class);
+  }
+
+  public synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
     // Cancel previous requests if they were unsuccessful
-    if (ourFuture != null && !wasSuccessful(ourFuture)) {
+    if (myFuture != null && !wasSuccessful(myFuture)) {
       terminateDdmlib();
     }
 
-    if (ourFuture == null) {
-      ourFuture = SettableFuture.create();
-      ourMonitorTask = new BridgeConnectorTask(adb, ourDdmlib, ourFuture);
-      ApplicationManager.getApplication().executeOnPooledThread(ourMonitorTask);
+    if (myFuture == null) {
+      myFuture = SettableFuture.create();
+      myMonitorTask = new BridgeConnectorTask(adb, myDdmlib, myFuture);
+      ApplicationManager.getApplication().executeOnPooledThread(myMonitorTask);
     }
 
-    return ourFuture;
+    return myFuture;
   }
 
-  public static synchronized void terminateDdmlib() {
-    ourFuture = null;
-    if (ourMonitorTask != null) {
-      ourMonitorTask.cancel();
+  public synchronized void terminateDdmlib() {
+    myFuture = null;
+    if (myMonitorTask != null) {
+      myMonitorTask.cancel();
     }
-    ourDdmlib.terminate();
+    myDdmlib.terminate();
   }
 
   public static boolean canDdmsBeCorrupted(@NotNull AndroidDebugBridge bridge) {
@@ -107,7 +127,7 @@ public class AdbService {
     return false;
   }
 
-  public static synchronized void restartDdmlib(@NotNull Project project) {
+  public synchronized void restartDdmlib(@NotNull Project project) {
     ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
     boolean hidden = false;
     if (toolWindow != null && toolWindow.isVisible()) {
@@ -193,13 +213,13 @@ public class AdbService {
     private static final Logger LOG = Logger.getInstance(Ddmlib.class);
     private AndroidDebugBridge myBridge;
     private boolean myDdmLibInitialized = false;
-    private boolean ourDdmLibTerminated = false;
+    private boolean myDdmLibTerminated = false;
 
     public synchronized void initialize(@NotNull File adb) {
       boolean forceRestart = true;
       if (!myDdmLibInitialized) {
         myDdmLibInitialized = true;
-        ourDdmLibTerminated = false;
+        myDdmLibTerminated = false;
         DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
         DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
         AndroidDebugBridge.init(AndroidEnableAdbServiceAction.isAdbServiceEnabled());
@@ -216,7 +236,7 @@ public class AdbService {
     }
 
     public synchronized boolean isConnectionInProgress() {
-      return !(isConnected() || ourDdmLibTerminated);
+      return !(isConnected() || myDdmLibTerminated);
     }
 
     public synchronized boolean isConnected() {
@@ -224,7 +244,7 @@ public class AdbService {
     }
 
     public synchronized void terminate() {
-      ourDdmLibTerminated = true;
+      myDdmLibTerminated = true;
       AndroidDebugBridge.disconnectBridge();
       AndroidDebugBridge.terminate();
       myDdmLibInitialized = false;

@@ -50,7 +50,7 @@ public class GetAdbAction extends AnAction {
       return;
     }
 
-    ListenableFuture<AndroidDebugBridge> bridge = AdbService.getDebugBridge(adb);
+    ListenableFuture<AndroidDebugBridge> bridge = AdbService.getInstance().getDebugBridge(adb);
     Futures.addCallback(bridge, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(AndroidDebugBridge result) {

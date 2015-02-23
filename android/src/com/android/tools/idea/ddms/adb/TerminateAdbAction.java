@@ -29,7 +29,7 @@ public class TerminateAdbAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Notifications.Bus.notify(new Notification("Android", "ADB", "ADB terminated", NotificationType.INFORMATION));
-    AdbService.terminateDdmlib();
+    AdbService.getInstance().terminateDdmlib();
   }
 }
 
