@@ -73,6 +73,18 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
     myState.put(ATTR_TRIM, trim);
   }
 
+  @Override
+  public boolean isDogear() {
+    Boolean dogEar = myState.get(ATTR_DOGEAR);
+    assert dogEar != null;
+    return dogEar;
+  }
+
+  @Override
+  public void setDogear(boolean dogEar) {
+    myState.put(ATTR_DOGEAR, dogEar);
+  }
+
   @Nullable
   @Override
   public String getImagePath() {

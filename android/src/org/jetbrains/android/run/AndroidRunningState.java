@@ -1119,7 +1119,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         myConsole.printHyperlink(AndroidBundle.message("restart.adb.fix.text"), new HyperlinkInfo() {
           @Override
           public void navigate(Project project) {
-            AdbService.restartDdmlib(project);
+            AdbService.getInstance().restartDdmlib(project);
 
             final ProcessHandler processHandler = getProcessHandler();
             if (!processHandler.isProcessTerminated()) {

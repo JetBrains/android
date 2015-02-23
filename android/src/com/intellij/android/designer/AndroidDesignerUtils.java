@@ -204,7 +204,7 @@ public class AndroidDesignerUtils {
    * @param area the associated {@link EditableArea}
    * @param component the component to measure
    * @param targetParent if supplied, the target parent intended for the component
-   *                     (used to find namespace declarations and size for fill_parent sizes)
+   *                     (used to find namespace declarations and size for match_parent sizes)
    * @return the measured view info objects at the root level
    */
   @Nullable
@@ -224,7 +224,7 @@ public class AndroidDesignerUtils {
         String widthValue = VALUE_FILL_PARENT;
         String heightValue = VALUE_FILL_PARENT;
 
-        // Look up the exact size of the parent, if any, such that fill_parent settings inherit the expected size
+        // Look up the exact size of the parent, if any, such that match_parent settings inherit the expected size
         if (targetParent instanceof RadViewComponent && (xml.contains(VALUE_FILL_PARENT) || xml.contains(VALUE_MATCH_PARENT))) {
           RadViewComponent parent = (RadViewComponent)targetParent;
           Rectangle paddedBounds = parent.getPaddedBounds();

@@ -37,6 +37,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -113,7 +114,6 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   private JPanel myScalingPanel;
   private JTextField myResourceNameField;
   private JLabel myResourceNameLabel;
-  private JPanel myDpiPanel;
   private JPanel myVersionPanel;
   private ImageComponent myV9XHdpiPreview;
   private ImageComponent myV9XXHdpiPreview;
@@ -123,6 +123,12 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   private ImageComponent myV11HdpiPreview;
   private ImageComponent myV11XHdpiPreview;
   private ImageComponent myV11XXHdpiPreview;
+  private ImageComponent myXXXHdpiPreview;
+  private JRadioButton myVerticalRadioButton;
+  private JRadioButton myHorizontalRadioButton;
+  private JLabel myXXXHDPILabel;
+  private JCheckBox myDogEarEffectCheckBox;
+  private JBScrollPane myScrollPane;
 
   protected AssetType mySelectedAssetType;
   private boolean myInitialized;
@@ -142,14 +148,20 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
       }
     }
 
+    // Speed the scrolling of myScrollPane
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
     myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, this, null, false);
 
     register(ATTR_TEXT, myText);
     register(ATTR_SCALING, myCropRadioButton, Scaling.CROP);
     register(ATTR_SCALING, myCenterRadioButton, Scaling.CENTER);
     register(ATTR_SHAPE, myCircleRadioButton, GraphicGenerator.Shape.CIRCLE);
-    register(ATTR_SHAPE, mySquareRadioButton, GraphicGenerator.Shape.SQUARE);
     register(ATTR_SHAPE, myNoneRadioButton, GraphicGenerator.Shape.NONE);
+    register(ATTR_SHAPE, mySquareRadioButton, GraphicGenerator.Shape.SQUARE);
+    register(ATTR_SHAPE, myVerticalRadioButton, GraphicGenerator.Shape.VRECT);
+    register(ATTR_SHAPE, myHorizontalRadioButton, GraphicGenerator.Shape.HRECT);
+    register(ATTR_DOGEAR, myDogEarEffectCheckBox);
     register(ATTR_PADDING, myPaddingSlider);
     register(ATTR_TRIM, myTrimBlankSpace);
     register(ATTR_FONT, myFontFamily);
@@ -161,6 +173,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
     register(ATTR_ASSET_TYPE, myAssetTypeComboBox);
     register(ATTR_ASSET_THEME, myChooseThemeComboBox);
     register(ATTR_ASSET_NAME, myResourceNameField);
+
 
     myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
     myForegroundColor.setSelectedColor(Color.BLUE);
@@ -212,24 +225,31 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
       if (selectedAssetType != null) {
         switch (selectedAssetType) {
           case LAUNCHER:
-            hide(myChooseThemeComboBox, myChooseThemeLabel, myVersionPanel);
-            show(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel, myDpiPanel,
-                 myResourceNameLabel, myResourceNameField);
+            hide(myChooseThemeComboBox, myChooseThemeLabel, myVersionPanel,
+                 myDogEarEffectCheckBox);
+            show(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel,
+                 myResourceNameLabel, myResourceNameField, myXXXHdpiPreview, myXXXHDPILabel, myScrollPane);
             if (!myTemplateState.myModified.contains(ATTR_ASSET_NAME)) {
               myTemplateState.put(ATTR_ASSET_NAME, "icon");
+            }
+            //Dog-ear effect
+            if(mySquareRadioButton.isSelected() || myVerticalRadioButton .isSelected()
+               || myHorizontalRadioButton.isSelected()) {
+              show(myDogEarEffectCheckBox);
             }
             break;
           case ACTIONBAR:
             show(myResourceNameField, myResourceNameLabel);
-            show(myChooseThemeComboBox, myChooseThemeLabel, myDpiPanel);
+            show(myChooseThemeComboBox, myChooseThemeLabel, myScrollPane);
             hide(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel,
-                 myBackgroundColorLabel, myBackgroundColor, myVersionPanel);
+                 myBackgroundColorLabel, myBackgroundColor, myVersionPanel, myXXXHdpiPreview,
+                 myXXXHDPILabel, myDogEarEffectCheckBox);
             break;
           case NOTIFICATION:
             show(myResourceNameField, myResourceNameLabel, myVersionPanel);
             hide(myChooseThemeComboBox, myChooseThemeLabel, myForegroundColor, myForegroundColorLabel);
             hide(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel,
-                 myBackgroundColorLabel, myBackgroundColor, myDpiPanel);
+                 myBackgroundColorLabel, myBackgroundColor, myScrollPane, myDogEarEffectCheckBox);
             break;
         }
 
@@ -334,6 +354,12 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
       setIconOrClear(myHdpiPreview, hdpi);
       setIconOrClear(myXHdpiPreview, xhdpi);
       setIconOrClear(myXXHdpiPreview, xxhdpi);
+
+      if (mySelectedAssetType.equals(AssetType.LAUNCHER)) {
+        final BufferedImage xxxhdpi = getImage(myImageMap, Density.XXXHIGH.getResourceValue());
+
+        setIconOrClear(myXXXHdpiPreview, xxxhdpi);
+      }
     }
 
     myUpdateListener.update();
