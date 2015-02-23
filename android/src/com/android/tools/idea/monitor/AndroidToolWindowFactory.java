@@ -165,10 +165,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     loadingPanel.setLoadingText("Initializing ADB");
     loadingPanel.startLoading();
 
-    ListenableFuture<AndroidDebugBridge> future = AdbService.getDebugBridge(adb);
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
+        Logger.getInstance(AndroidToolWindowFactory.class).info("Successfully obtained debug bridge");
         loadingPanel.stopLoading();
       }
 
@@ -178,7 +179,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
         // If we cannot connect to ADB in a reasonable amount of time (10 seconds timeout in AdbService), then something is seriously
         // wrong. We need more information on when this happens and identify the root cause.
-        Logger.getInstance(DevicePanel.class).info("Unable to obtain debug bridge", t);
+        Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
         Messages.showErrorDialog("Unable to establish connection to adb.\n\n" +
                                  "If this happens, run 'adb devices -l' from the command line and see if it lists your devices.\n" +
                                  "If adb from the command line works, then please file a bug at http://b.android.com, including\n" +
