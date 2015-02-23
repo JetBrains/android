@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
@@ -70,15 +69,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   public Collection<? extends AbstractTreeNode> getChildren() {
     List<AbstractTreeNode> children = Lists.newArrayList();
     ProjectViewDirectoryHelper projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject);
-    AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
 
     for (PsiDirectory directory : getSourceDirectories()) {
       Collection<AbstractTreeNode> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
 
       children.addAll(annotateWithSourceProvider(directoryChildren));
-
-      // Inform the tree builder of the node that this particular virtual file maps to
-      treeBuilder.createMapping(directory.getVirtualFile(), this);
     }
 
     return children;
