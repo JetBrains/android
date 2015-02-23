@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -28,6 +29,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
 import static java.util.Collections.emptyList;
 
 public class IdeaJavaProject implements Serializable {
@@ -40,12 +42,15 @@ public class IdeaJavaProject implements Serializable {
   @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
   @Nullable private final File myBuildFolderPath;
 
+  private final boolean myBuildable;
+
   @NotNull
-  public static IdeaJavaProject createJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
+  public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
     ExtIdeaCompilerOutput compilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
     File buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
-    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), compilerOutput, buildFolderPath);
+    boolean buildable = isBuildable(ideaModule);
+    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), compilerOutput, buildFolderPath, buildable);
   }
 
   @NotNull
@@ -71,16 +76,27 @@ public class IdeaJavaProject implements Serializable {
     return emptyList();
   }
 
+  private static boolean isBuildable(@NotNull IdeaModule ideaModule) {
+    for (GradleTask task : ideaModule.getGradleProject().getTasks()) {
+      if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public IdeaJavaProject(@NotNull String name,
                          @NotNull Collection<? extends IdeaContentRoot> contentRoots,
                          @NotNull List<? extends IdeaDependency> dependencies,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
-                         @Nullable File buildFolderPath) {
+                         @Nullable File buildFolderPath,
+                         boolean buildable) {
     myModuleName = name;
     myContentRoots = contentRoots;
     myDependencies = dependencies;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
+    myBuildable = buildable;
   }
 
   @NotNull
@@ -106,5 +122,9 @@ public class IdeaJavaProject implements Serializable {
   @Nullable
   public File getBuildFolderPath() {
     return myBuildFolderPath;
+  }
+
+  public boolean isBuildable() {
+    return myBuildable;
   }
 }

@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle.facet;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
-import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
-import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -32,6 +30,9 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.ProjectTopics.PROJECT_ROOTS;
+import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
 
 /**
  * Java-Gradle facet.
@@ -78,7 +79,7 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   @Override
   public void initFacet() {
     MessageBusConnection connection = getModule().getMessageBus().connect(this);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    connection.subscribe(PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -98,7 +99,7 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   private void updateConfiguration() {
     JavaGradleFacetConfiguration config = getConfiguration();
     try {
-      FacetUtil.saveFacetConfiguration(config);
+      saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
       LOG.error("Unable to save contents of 'Java-Gradle' facet", e);
@@ -116,6 +117,9 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
 
   @Nullable
   public String getGradleTaskName(@NotNull BuildMode buildMode) {
+    if (!getConfiguration().BUILDABLE) {
+      return null;
+    }
     switch (buildMode) {
       case ASSEMBLE:
         return GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;

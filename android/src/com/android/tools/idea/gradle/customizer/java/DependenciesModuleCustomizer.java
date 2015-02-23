@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.base.Strings;
@@ -87,7 +88,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
       facet.setJavaModel(javaModel);
     }
-    facet.getConfiguration().BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
+    JavaGradleFacetConfiguration facetProperties = facet.getConfiguration();
+    facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
+    facetProperties.BUILDABLE = javaProject.isBuildable();
   }
 
   private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {

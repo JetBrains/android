@@ -38,7 +38,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.containers.ContainerUtil;
-import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.android.AndroidPlugin;
@@ -57,7 +56,7 @@ import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.IdeaGradleProject.newIdeaGradleProject;
-import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.android.tools.idea.gradle.IdeaJavaProject.newJavaProject;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidHomes;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
@@ -154,24 +153,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     IdeaGradleProject gradleProject = newIdeaGradleProject(gradleModule.getName(), gradleModule.getGradleProject(), buildFilePath);
     ideModule.createChild(IDE_GRADLE_PROJECT, gradleProject);
 
-    if (androidProject == null && isJavaProject(gradleModule)) {
+    if (androidProject == null) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule);
     }
   }
 
-  private static boolean isJavaProject(@NotNull IdeaModule gradleModule) {
-    for (GradleTask task : gradleModule.getGradleProject().getTasks()) {
-      if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private void createJavaProject(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    IdeaJavaProject javaProject = IdeaJavaProject.createJavaProject(gradleModule, model);
+    IdeaJavaProject javaProject = newJavaProject(gradleModule, model);
     ideModule.createChild(IDE_JAVA_PROJECT, javaProject);
   }
 
