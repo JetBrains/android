@@ -21,6 +21,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.*;
+import com.intellij.codeInsight.ExceptionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
@@ -406,42 +407,60 @@ public class IntellijApiDetector extends ApiDetector {
         PsiTypeElement typeElement = parameter.getTypeElement();
         if (typeElement != null) {
           PsiType type = typeElement.getType();
-          if (type instanceof PsiClassReferenceType) {
+          PsiClass resolved = null;
+          PsiElement reference = parameter;
+          if (type instanceof PsiDisjunctionType) {
+            type = ((PsiDisjunctionType)type).getLeastUpperBound();
+            if (type instanceof PsiClassType) {
+              resolved = ((PsiClassType)type).resolve();
+            }
+          } else if (type instanceof PsiClassReferenceType) {
             PsiClassReferenceType referenceType = (PsiClassReferenceType)type;
-            PsiClass resolved = referenceType.resolve();
-            if (resolved != null) {
-              String signature = IntellijLintUtils.getInternalName(resolved);
-              if (signature == null) {
-                continue;
-              }
+            resolved = referenceType.resolve();
+            reference = referenceType.getReference().getElement();
+          } else if (type instanceof PsiClassType) {
+            resolved = ((PsiClassType)type).resolve();
+          }
+          if (resolved != null) {
+            String signature = IntellijLintUtils.getInternalName(resolved);
+            if (signature == null) {
+              continue;
+            }
 
-              int api = mApiDatabase.getClassVersion(signature);
-              if (api == -1) {
-                continue;
-              }
-              int minSdk = getMinSdk(myContext);
-              if (api <= minSdk) {
-                continue;
-              }
-              if (mySeenTargetApi) {
-                int target = getTargetApi(statement, myFile);
-                if (target != -1) {
-                  if (api <= target) {
-                    continue;
-                  }
+            int api = mApiDatabase.getClassVersion(signature);
+            if (api == -1) {
+              continue;
+            }
+            int minSdk = getMinSdk(myContext);
+            if (api <= minSdk) {
+              continue;
+            }
+            if (mySeenTargetApi) {
+              int target = getTargetApi(statement, myFile);
+              if (target != -1) {
+                if (api <= target) {
+                  continue;
                 }
               }
-              if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
-                continue;
-              }
-
-              Location location;
-              PsiReference reference = referenceType.getReference();
-              location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
-              String fqcn = referenceType.getClassName();
-              String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-              myContext.report(UNSUPPORTED, location, message);
             }
+            if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+              continue;
+            }
+
+            Location location;
+            location = IntellijLintUtils.getLocation(myContext.file, reference);
+            String fqcn = resolved.getName();
+            String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
+
+            // Special case reflective operation exception which can be implicitly used
+            // with multi-catches: see issue 153406
+            if (api == 19 && fqcn.equals("ReflectiveOperationException")) {
+              message = String.format("Multi-catch with these reflection exceptions requires API level 19 (current min is %2$d) " +
+                                      "because they get compiled to the common but new super type `ReflectiveOperationException`. " +
+                                      "As a workaround either create individual catch statements, or catch `Exception`.",
+                                      api, minSdk);
+            }
+            myContext.report(UNSUPPORTED, location, message);
           }
         }
       }
