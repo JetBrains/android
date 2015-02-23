@@ -26,11 +26,6 @@ import java.io.IOException;
 
 class ObjectFactory {
   public enum Entries implements BinaryObjectCreator {
-    ApiInfoEnum {
-      @Override public BinaryObject create() {
-        return new ApiInfo();
-      }
-    },
     ArrayInfoEnum {
       @Override public BinaryObject create() {
         return new ArrayInfo();
@@ -348,7 +343,6 @@ class ObjectFactory {
     },
   }
 
-  public static byte[] ApiInfoIDBytes = { 44, 73, 4, 40, -36, -81, -60, -81, 104, 41, 21, -13, -46, 78, 38, 100, -8, -114, -57, 48, };
   public static byte[] ArrayInfoIDBytes = { 25, -62, -40, -125, 116, 99, 29, -65, 75, 27, 41, -51, -53, -7, -40, 5, 56, -99, -79, 13, };
   public static byte[] AtomGroupIDBytes = { -106, 33, 57, -96, 95, -50, 16, 105, 91, 51, -72, 6, -70, -57, 79, 73, -78, -86, 45, -110, };
   public static byte[] AtomInfoIDBytes = { 54, -116, -23, -55, 86, -32, 20, 40, 47, -125, -118, -69, 19, 0, -49, -18, -44, 7, 40, -34, };
@@ -413,7 +407,6 @@ class ObjectFactory {
   public static byte[] resultResolveSchemaIDBytes = { -74, 4, 43, 5, -84, 90, 103, -69, -111, 84, 29, -89, -36, -1, -97, 112, 33, 35, 114, 73, };
   public static byte[] resultResolveTimingInfoIDBytes = { 19, -56, 21, -53, 123, -22, 108, 61, -114, -27, 44, 102, -97, -92, 46, 79, 57, -28, -95, -59, };
 
-  public static ObjectTypeID ApiInfoID = new ObjectTypeID(ApiInfoIDBytes);
   public static ObjectTypeID ArrayInfoID = new ObjectTypeID(ArrayInfoIDBytes);
   public static ObjectTypeID AtomGroupID = new ObjectTypeID(AtomGroupIDBytes);
   public static ObjectTypeID AtomInfoID = new ObjectTypeID(AtomInfoIDBytes);
@@ -479,7 +472,6 @@ class ObjectFactory {
   public static ObjectTypeID resultResolveTimingInfoID = new ObjectTypeID(resultResolveTimingInfoIDBytes);
 
   static {
-    ObjectTypeID.register(ApiInfoID, Entries.ApiInfoEnum);
     ObjectTypeID.register(ArrayInfoID, Entries.ArrayInfoEnum);
     ObjectTypeID.register(AtomGroupID, Entries.AtomGroupEnum);
     ObjectTypeID.register(AtomInfoID, Entries.AtomInfoEnum);
@@ -543,16 +535,6 @@ class ObjectFactory {
     ObjectTypeID.register(resultResolveMemoryInfoID, Entries.resultResolveMemoryInfoEnum);
     ObjectTypeID.register(resultResolveSchemaID, Entries.resultResolveSchemaEnum);
     ObjectTypeID.register(resultResolveTimingInfoID, Entries.resultResolveTimingInfoEnum);
-  }
-
-  public static void encode(Encoder e, ApiInfo o) throws IOException {
-    e.string(o.myName);
-    o.mySchema.encode(e);
-  }
-
-  public static void decode(Decoder d, ApiInfo o) throws IOException {
-    o.myName = d.string();
-    o.mySchema = SchemaId.decode(d);
   }
 
   public static void encode(Encoder e, ArrayInfo o) throws IOException {
@@ -646,7 +628,7 @@ class ObjectFactory {
     for (int i = 0; i < o.myData.length; i++) {
       o.myData[i] = d.uint8();
     }
-    o.mySchema = SchemaId.decode(d);
+    o.mySchema = new SchemaId(d);
   }
 
   public static void encode(Encoder e, AtomTimer o) throws IOException {
@@ -686,7 +668,7 @@ class ObjectFactory {
   public static void decode(Decoder d, Capture o) throws IOException {
     o.myName = d.string();
     o.myAPI = d.string();
-    o.myAtoms = AtomStreamId.decode(d);
+    o.myAtoms = new AtomStreamId(d);
     o.myContextIds = new int[d.int32()];
     for (int i = 0; i < o.myContextIds.length; i++) {
       o.myContextIds[i] = d.uint32();
@@ -804,7 +786,7 @@ class ObjectFactory {
     o.myFormat = ImageFormat.decode(d);
     o.myWidth = d.uint32();
     o.myHeight = d.uint32();
-    o.myData = BinaryId.decode(d);
+    o.myData = new BinaryId(d);
   }
 
   public static void encode(Encoder e, MapInfo o) throws IOException {
@@ -1028,8 +1010,8 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetFramebufferColor.Call o) throws IOException {
-    o.myDevice = DeviceId.decode(d);
-    o.myCapture = CaptureId.decode(d);
+    o.myDevice = new DeviceId(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
     o.myAfter = d.uint64();
     o.mySettings = new RenderSettings(d);
@@ -1043,8 +1025,8 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetFramebufferDepth.Call o) throws IOException {
-    o.myDevice = DeviceId.decode(d);
-    o.myCapture = CaptureId.decode(d);
+    o.myDevice = new DeviceId(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
     o.myAfter = d.uint64();
   }
@@ -1056,8 +1038,8 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetGlErrorCodes.Call o) throws IOException {
-    o.myDevice = DeviceId.decode(d);
-    o.myCapture = CaptureId.decode(d);
+    o.myDevice = new DeviceId(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
   }
 
@@ -1067,7 +1049,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetHierarchy.Call o) throws IOException {
-    o.myCapture = CaptureId.decode(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
   }
 
@@ -1079,7 +1061,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetMemoryInfo.Call o) throws IOException {
-    o.myCapture = CaptureId.decode(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
     o.myAfter = d.uint64();
     o.myRng = new MemoryRange(d);
@@ -1092,7 +1074,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetState.Call o) throws IOException {
-    o.myCapture = CaptureId.decode(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
     o.myAfter = d.uint64();
   }
@@ -1105,8 +1087,8 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetTimingInfo.Call o) throws IOException {
-    o.myDevice = DeviceId.decode(d);
-    o.myCapture = CaptureId.decode(d);
+    o.myDevice = new DeviceId(d);
+    o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
     o.myMask = TimingMask.decode(d);
   }
@@ -1119,7 +1101,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ReplaceAtom.Call o) throws IOException {
-    o.myCapture = CaptureId.decode(d);
+    o.myCapture = new CaptureId(d);
     o.myAtomId = d.uint64();
     o.myAtomType = d.uint16();
     o.myData = new Binary(d);
@@ -1130,7 +1112,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveAtomStream.Call o) throws IOException {
-    o.myId = AtomStreamId.decode(d);
+    o.myId = new AtomStreamId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveBinary.Call o) throws IOException {
@@ -1138,7 +1120,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveBinary.Call o) throws IOException {
-    o.myId = BinaryId.decode(d);
+    o.myId = new BinaryId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveCapture.Call o) throws IOException {
@@ -1146,7 +1128,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveCapture.Call o) throws IOException {
-    o.myId = CaptureId.decode(d);
+    o.myId = new CaptureId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveDevice.Call o) throws IOException {
@@ -1154,7 +1136,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveDevice.Call o) throws IOException {
-    o.myId = DeviceId.decode(d);
+    o.myId = new DeviceId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveHierarchy.Call o) throws IOException {
@@ -1162,7 +1144,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveHierarchy.Call o) throws IOException {
-    o.myId = HierarchyId.decode(d);
+    o.myId = new HierarchyId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveImageInfo.Call o) throws IOException {
@@ -1170,7 +1152,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveImageInfo.Call o) throws IOException {
-    o.myId = ImageInfoId.decode(d);
+    o.myId = new ImageInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveMemoryInfo.Call o) throws IOException {
@@ -1178,7 +1160,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveMemoryInfo.Call o) throws IOException {
-    o.myId = MemoryInfoId.decode(d);
+    o.myId = new MemoryInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveSchema.Call o) throws IOException {
@@ -1186,7 +1168,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveSchema.Call o) throws IOException {
-    o.myId = SchemaId.decode(d);
+    o.myId = new SchemaId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveTimingInfo.Call o) throws IOException {
@@ -1194,7 +1176,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ResolveTimingInfo.Call o) throws IOException {
-    o.myId = TimingInfoId.decode(d);
+    o.myId = new TimingInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.GetCaptures.Result o) throws IOException {
@@ -1207,7 +1189,7 @@ class ObjectFactory {
   public static void decode(Decoder d, Commands.GetCaptures.Result o) throws IOException {
     o.myValue = new CaptureId[d.int32()];
     for (int i = 0; i < o.myValue.length; i++) {
-      o.myValue[i] = CaptureId.decode(d);
+      o.myValue[i] = new CaptureId(d);
     }
   }
 
@@ -1221,7 +1203,7 @@ class ObjectFactory {
   public static void decode(Decoder d, Commands.GetDevices.Result o) throws IOException {
     o.myValue = new DeviceId[d.int32()];
     for (int i = 0; i < o.myValue.length; i++) {
-      o.myValue[i] = DeviceId.decode(d);
+      o.myValue[i] = new DeviceId(d);
     }
   }
 
@@ -1230,7 +1212,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetFramebufferColor.Result o) throws IOException {
-    o.myValue = ImageInfoId.decode(d);
+    o.myValue = new ImageInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.GetFramebufferDepth.Result o) throws IOException {
@@ -1238,7 +1220,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetFramebufferDepth.Result o) throws IOException {
-    o.myValue = ImageInfoId.decode(d);
+    o.myValue = new ImageInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.GetGlErrorCodes.Result o) throws IOException {
@@ -1246,7 +1228,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetGlErrorCodes.Result o) throws IOException {
-    o.myValue = BinaryId.decode(d);
+    o.myValue = new BinaryId(d);
   }
 
   public static void encode(Encoder e, Commands.GetHierarchy.Result o) throws IOException {
@@ -1254,7 +1236,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetHierarchy.Result o) throws IOException {
-    o.myValue = HierarchyId.decode(d);
+    o.myValue = new HierarchyId(d);
   }
 
   public static void encode(Encoder e, Commands.GetMemoryInfo.Result o) throws IOException {
@@ -1262,7 +1244,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetMemoryInfo.Result o) throws IOException {
-    o.myValue = MemoryInfoId.decode(d);
+    o.myValue = new MemoryInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.GetState.Result o) throws IOException {
@@ -1270,7 +1252,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetState.Result o) throws IOException {
-    o.myValue = BinaryId.decode(d);
+    o.myValue = new BinaryId(d);
   }
 
   public static void encode(Encoder e, Commands.GetTimingInfo.Result o) throws IOException {
@@ -1278,7 +1260,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.GetTimingInfo.Result o) throws IOException {
-    o.myValue = TimingInfoId.decode(d);
+    o.myValue = new TimingInfoId(d);
   }
 
   public static void encode(Encoder e, Commands.ReplaceAtom.Result o) throws IOException {
@@ -1286,7 +1268,7 @@ class ObjectFactory {
   }
 
   public static void decode(Decoder d, Commands.ReplaceAtom.Result o) throws IOException {
-    o.myValue = CaptureId.decode(d);
+    o.myValue = new CaptureId(d);
   }
 
   public static void encode(Encoder e, Commands.ResolveAtomStream.Result o) throws IOException {
