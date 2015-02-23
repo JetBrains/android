@@ -17,15 +17,15 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.psi.PsiFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class AndroidShowThemeEditor extends AnAction {
   public AndroidShowThemeEditor() {
@@ -52,12 +52,15 @@ public class AndroidShowThemeEditor extends AnAction {
   }
 
   @Nullable
-  public Module getModuleFromAction(final AnActionEvent e) {
-    final PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
-    if (psiFile == null) {
+  private Module getModuleFromAction(final AnActionEvent e) {
+    if (e.getProject() == null) {
       return null;
     }
 
-    return ModuleUtilCore.findModuleForPsiElement(psiFile);
+    List<AndroidFacet> facets = ProjectFacetManager.getInstance(e.getProject()).getFacets(AndroidFacet.ID);
+    if (facets.isEmpty()) {
+      return null;
+    }
+    return facets.get(0).getModule();
   }
 }
