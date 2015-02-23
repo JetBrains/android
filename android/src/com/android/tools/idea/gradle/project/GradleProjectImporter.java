@@ -94,6 +94,9 @@ public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
+  // When this system property is set, the sync operation always tries to use the cached project data unless any gradle files are modified.
+  private static final boolean alwaysSyncWithCachedProjectData = Boolean.getBoolean("studio.sync.with.cached.project.data");
+
   private final ImporterDelegate myDelegate;
 
   /**
@@ -506,7 +509,7 @@ public class GradleProjectImporter {
     project.putUserData(Projects.HAS_SYNC_ERRORS, false);
     project.putUserData(Projects.HAS_WRONG_JDK, false);
 
-    if (options.useCachedProjectData) {
+    if (alwaysSyncWithCachedProjectData || options.useCachedProjectData) {
       GradleProjectSyncData gradleProjectSyncData = GradleProjectSyncData.getInstance((project));
       if (gradleProjectSyncData != null && gradleProjectSyncData.canUseCachedProjectData()) {
         ExternalProjectInfo externalProjectData =
