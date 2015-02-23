@@ -28,14 +28,11 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -50,6 +47,8 @@ import javax.swing.*;
 import java.io.File;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Utility methods for {@link Project}s.
@@ -58,7 +57,6 @@ public final class Projects {
   public static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("has.unresolved.dependencies");
   public static final Key<Boolean> HAS_WRONG_JDK = Key.create("has.wrong.jdk");
 
-  private static final Logger LOG = Logger.getInstance(Projects.class);
   private static final Module[] NO_MODULES = new Module[0];
 
   private Projects() {
@@ -235,12 +233,13 @@ public final class Projects {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
-    File moduleFilePath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath()));
+    File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
     File moduleRootDirPath = moduleFilePath.getParentFile();
     if (moduleRootDirPath == null) {
       return false;
     }
-    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && !isBuildWithGradle(module);
+    String basePath = project.getBasePath();
+    return basePath != null && filesEqual(moduleRootDirPath, new File(basePath)) && !isBuildWithGradle(module);
   }
 
   /**
@@ -306,8 +305,8 @@ public final class Projects {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null && androidFacet.isGradleProject()) {
       // If the module is an Android project, check that the module's path is the same as the project's.
-      File moduleRootDirPath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath())).getParentFile();
-      return FileUtil.pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
+      File moduleRootDirPath = new File(toSystemDependentName(module.getModuleFilePath())).getParentFile();
+      return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
     return !isBuildWithGradle(module);
@@ -329,8 +328,8 @@ public final class Projects {
         return javaFacet.getJavaModel().getBuildFolderPath();
       }
       String path = javaFacet.getConfiguration().BUILD_FOLDER_PATH;
-      if (StringUtil.isNotEmpty(path)) {
-        return new File(FileUtil.toSystemDependentName(path));
+      if (isNotEmpty(path)) {
+        return new File(toSystemDependentName(path));
       }
     }
     return null;
