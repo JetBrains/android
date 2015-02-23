@@ -26,10 +26,13 @@ import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 public class IdeaJavaProject implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myModuleName;
   @NotNull private final Collection<? extends IdeaContentRoot> myContentRoots;
   @NotNull private final List<? extends IdeaDependency> myDependencies;
@@ -37,32 +40,47 @@ public class IdeaJavaProject implements Serializable {
   @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
   @Nullable private final File myBuildFolderPath;
 
-  public IdeaJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
-    myModuleName = ideaModule.getName();
-    myContentRoots = getContentRoots(ideaModule, extendedModel);
-    myDependencies = getDependencies(ideaModule);
-    myCompilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
-    myBuildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
+  @NotNull
+  public static IdeaJavaProject createJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
+    Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
+    ExtIdeaCompilerOutput compilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
+    File buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
+    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), compilerOutput, buildFolderPath);
   }
 
   @NotNull
   private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule ideaModule,
                                                                        @Nullable ModuleExtendedModel extendedModel) {
-    Collection<? extends IdeaContentRoot> contentRoots = null;
-    if (extendedModel != null) {
-      contentRoots = extendedModel.getContentRoots();
-    }
+    Collection<? extends IdeaContentRoot> contentRoots = extendedModel != null ? extendedModel.getContentRoots() : null;
     if (contentRoots != null) {
       return contentRoots;
     }
     contentRoots = ideaModule.getContentRoots();
-    return contentRoots != null ? contentRoots : Collections.<IdeaContentRoot>emptyList();
+    if (contentRoots != null) {
+      return contentRoots;
+    }
+    return emptyList();
   }
 
   @NotNull
-  private static List<? extends IdeaDependency> getDependencies(IdeaModule ideaModule) {
+  private static List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule ideaModule) {
     List<? extends IdeaDependency> dependencies = ideaModule.getDependencies().getAll();
-    return dependencies != null ? dependencies : Collections.<IdeaDependency>emptyList();
+    if (dependencies != null) {
+      return dependencies;
+    }
+    return emptyList();
+  }
+
+  public IdeaJavaProject(@NotNull String name,
+                         @NotNull Collection<? extends IdeaContentRoot> contentRoots,
+                         @NotNull List<? extends IdeaDependency> dependencies,
+                         @Nullable ExtIdeaCompilerOutput compilerOutput,
+                         @Nullable File buildFolderPath) {
+    myModuleName = name;
+    myContentRoots = contentRoots;
+    myDependencies = dependencies;
+    myCompilerOutput = compilerOutput;
+    myBuildFolderPath = buildFolderPath;
   }
 
   @NotNull
