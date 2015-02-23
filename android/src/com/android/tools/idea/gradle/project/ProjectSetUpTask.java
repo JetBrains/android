@@ -51,15 +51,18 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @NotNull private final Project myProject;
   private final boolean myProjectIsNew;
   private final boolean mySelectModulesToImport;
+  private final boolean mySyncSkipped;
   @Nullable private final GradleSyncListener mySyncListener;
 
   ProjectSetUpTask(@NotNull Project project,
                    boolean projectIsNew,
                    boolean selectModulesToImport,
+                   boolean syncSkipped,
                    @Nullable GradleSyncListener syncListener) {
     myProject = project;
     myProjectIsNew = projectIsNew;
     mySelectModulesToImport = selectModulesToImport;
+    mySyncSkipped = syncSkipped;
     mySyncListener = syncListener;
   }
 
@@ -88,10 +91,15 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
           // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
           // listeners to be registered.
           AndroidGradleProjectComponent projectComponent = ServiceManager.getService(myProject, AndroidGradleProjectComponent.class);
-          projectComponent.configureGradleProject(false);
+          projectComponent.configureGradleProject();
         }
         if (mySyncListener != null) {
-          mySyncListener.syncSucceeded(myProject);
+          if (mySyncSkipped) {
+            mySyncListener.syncSkipped(myProject);
+          }
+          else {
+            mySyncListener.syncSucceeded(myProject);
+          }
         }
       }
     };
@@ -194,6 +202,10 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
     LOG.info(newMessage);
 
+    // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
+    // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
+    // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
+    GradleProjectSyncData.removeFrom(myProject);
     GradleSyncState.getInstance(myProject).syncFailed(newMessage);
 
     if (mySyncListener != null) {

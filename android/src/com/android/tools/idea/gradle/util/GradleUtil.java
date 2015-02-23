@@ -58,7 +58,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
@@ -93,6 +92,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
+import static com.intellij.util.SystemProperties.getUserHome;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 
@@ -487,7 +487,7 @@ public final class GradleUtil {
   private static File getGradleHome(@NotNull Project project, @NotNull WrapperConfiguration configuration) {
     File systemHomePath = StartParameter.DEFAULT_GRADLE_USER_HOME;
     if ("PROJECT".equals(configuration.getDistributionBase())) {
-      systemHomePath = new File(project.getBasePath(), SdkConstants.DOT_GRADLE);
+      systemHomePath = new File(project.getBasePath(), DOT_GRADLE);
     }
     if (!systemHomePath.isDirectory()) {
       return null;
@@ -973,7 +973,7 @@ public final class GradleUtil {
   @Nullable
   static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
     try {
-      File file = FileUtil.createTempFile("asLocalRepo", SdkConstants.DOT_GRADLE);
+      File file = FileUtil.createTempFile("asLocalRepo", DOT_GRADLE);
       file.deleteOnExit();
 
       String contents = "allprojects {\n" +
@@ -1086,7 +1086,7 @@ public final class GradleUtil {
       }
     }
     // The default location: ~/.gradle
-    File path = new File(SystemProperties.getUserHome(), DOT_GRADLE);
+    File path = new File(getUserHome(), DOT_GRADLE);
     if (path.isDirectory()) {
       paths.add(path);
     }
@@ -1161,5 +1161,14 @@ public final class GradleUtil {
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static File getGradleUserSettingsFile() {
+    String homePath = getUserHome();
+    if (homePath == null) {
+      return null;
+    }
+    return new File(homePath, FileUtil.join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
   }
 }
