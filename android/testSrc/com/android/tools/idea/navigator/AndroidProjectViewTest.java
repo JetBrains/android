@@ -41,6 +41,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -231,10 +232,15 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       @Override
       public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
         // If the sync fails, then IDE creates an empty top level module. Mimic the same behavior for this test.
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
           @Override
           public void run() {
-            NewProjectImportGradleSyncListener.createTopLevelModule(project);
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              @Override
+              public void run() {
+                NewProjectImportGradleSyncListener.createTopLevelModule(project);
+              }
+            });
           }
         });
       }
