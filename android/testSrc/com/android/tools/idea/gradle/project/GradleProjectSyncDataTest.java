@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import java.io.*;
 import java.util.Map;
 
-public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
+public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
   public void testEndToEnd() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
       System.err.println("AndroidGradleProjectDataTest.testEndToEnd temporarily disabled");
@@ -34,7 +34,23 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     long previousSyncTime = syncState.getLastGradleSyncTimestamp();
 
-    AndroidGradleProjectData data = AndroidGradleProjectData.createFrom(project);
+    GradleProjectSyncData data = GradleProjectSyncData.createFrom(project);
+    verifyGradleProjectSyncData(data, previousSyncTime);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(outputStream);
+    oos.writeObject(data);
+    oos.close();
+
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+    ObjectInputStream ois = new ObjectInputStream(inputStream);
+    GradleProjectSyncData newData = (GradleProjectSyncData)ois.readObject();
+    ois.close();
+
+    verifyGradleProjectSyncData(newData, previousSyncTime);
+  }
+
+  private void verifyGradleProjectSyncData(GradleProjectSyncData data, long previousSyncTime) {
     assertNotNull(data);
 
     Map<String, byte[]> checksums = data.getFileChecksums();
@@ -47,30 +63,6 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
       assertContainsElements(checksums.keySet(), userProperties.getPath());
     }
 
-    Map<String, AndroidGradleProjectData.ModuleData> modules = data.getModuleData();
-    assertEquals(3, modules.size());
-
-
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ObjectOutputStream oos = new ObjectOutputStream(outputStream);
-    oos.writeObject(data);
-    oos.close();
-
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-    ObjectInputStream ois = new ObjectInputStream(inputStream);
-    AndroidGradleProjectData newData = (AndroidGradleProjectData)ois.readObject();
-    ois.close();
-
-    // Clear the sync state to make sure we set it correctly.
-    syncState.resetTimestamp();
-    assertTrue(newData.applyTo(project));
-
-    assertEquals(previousSyncTime, syncState.getLastGradleSyncTimestamp());
-
-    // Test applying without a module.
-    String moduleName = myAndroidFacet.getModule().getName();
-    Map<String, AndroidGradleProjectData.ModuleData> newModules = newData.getModuleData();
-    newModules.remove(moduleName);
-    assertFalse(newData.applyTo(project));
+    assertEquals(previousSyncTime, data.getLastGradleSyncTimestamp());
   }
 }
