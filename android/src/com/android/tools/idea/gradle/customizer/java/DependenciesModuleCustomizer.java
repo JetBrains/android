@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustom
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -32,7 +31,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +41,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_DEPENDENCIES;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
 
 public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaJavaProject> {
@@ -85,16 +83,11 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module);
     File buildFolderPath = javaProject.getBuildFolderPath();
-    if (Projects.isGradleProjectModule(module)) {
-      // For project module we store the path of "build" folder in the facet itself, so the caching mechanism can obtain the path when
-      // the project is opened. This module does not need a JavaModel.
-      facet.getConfiguration().BUILD_FOLDER_PATH =
-        buildFolderPath != null ? FileUtil.toSystemIndependentName(buildFolderPath.getPath()) : "";
-    }
-    else {
+    if (!isGradleProjectModule(module)) {
       JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
       facet.setJavaModel(javaModel);
     }
+    facet.getConfiguration().BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
   }
 
   private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
