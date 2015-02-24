@@ -32,8 +32,8 @@ public class AttributesPanel {
   private JButton myNewThemeButton;
   private JButton myBackButton;
   private JBLabel mySubStyleLabel;
-  private CellSpanTable myPropertiesTable;
-  private JBScrollPane myPropertiesScrollPane;
+  private CellSpanTable myAttributesTable;
+  private JBScrollPane myAttributesScrollPane;
   private JPanel myConfigToolbar;
   private JPanel myRightPanel;
 
@@ -47,8 +47,8 @@ public class AttributesPanel {
     myBackButton.setBorder(BORDER);
   }
 
-  public CellSpanTable getPropertiesTable() {
-    return myPropertiesTable;
+  public CellSpanTable getAttributesTable() {
+    return myAttributesTable;
   }
 
   public JBLabel getSubStyleLabel() {
@@ -75,8 +75,8 @@ public class AttributesPanel {
     return myThemeCombo;
   }
 
-  public JBScrollPane getPropertiesScrollPane() {
-    return myPropertiesScrollPane;
+  public JBScrollPane getAttributesScrollPane() {
+    return myAttributesScrollPane;
   }
 
   public JPanel getRightPanel() {
