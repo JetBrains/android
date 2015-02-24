@@ -18,31 +18,20 @@ package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.internal.statistic.CollectUsagesException;
-import com.intellij.internal.statistic.UsagesCollector;
-import com.intellij.internal.statistic.beans.GroupDescriptor;
-import com.intellij.internal.statistic.beans.UsageDescriptor;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
-import com.intellij.internal.statistic.persistence.ApplicationStatisticsPersistenceComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
-import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Android Statistics Service.
@@ -113,7 +102,17 @@ public class AndroidStatisticsService implements StatisticsService {
 
     // Legacy ADT-compatible stats service.
     LegacySdkStatsService sdkstats = new LegacySdkStatsService();
-    sdkstats.ping("studio", ApplicationInfo.getInstance().getFullVersion());
+    try {
+      Method getStrictVersion = ApplicationInfo.class.getMethod("getStrictVersion");
+      Object version = getStrictVersion.invoke(ApplicationInfo.getInstance());
+      sdkstats.ping("studio", (String)version);
+    }
+    catch (Exception e) {
+      // This code should only be run on AndroidStudio, if the method getStrictVersion
+      // doesn't exist it means that we are incorrectly running this in Ij + android plugin.
+      // Once the getStrictVersion function has been upstreamed, we can remove reflection here.
+      throw new AssertionError(e);
+    }
 
     return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
   }
