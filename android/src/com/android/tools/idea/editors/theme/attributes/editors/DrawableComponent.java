@@ -63,6 +63,7 @@ public class DrawableComponent extends JButton {
   private final List<BufferedImage> myImages = new ArrayList<BufferedImage>();
   private String myName;
   private String myValue;
+  private boolean myIsPublic;
 
   public static Border getBorder(final Color borderColor) {
     return BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, borderColor);
@@ -74,6 +75,7 @@ public class DrawableComponent extends JButton {
   public void configure(final @NotNull EditedStyleItem item, final @Nullable RenderResources renderResources) {
     myName = item.getName();
     myValue = item.getValue();
+    myIsPublic = item.isPublicAttribute();
 
     myImages.clear();
     if (renderResources != null) {
@@ -139,6 +141,12 @@ public class DrawableComponent extends JButton {
       g.setColor(JBColor.WHITE);
       g.drawString(myName, rectOffset + TEXT_PADDING, rectOffset + stringHeight - TEXT_PADDING);
       g.drawString(myValue, rectOffset + TEXT_PADDING, height - rectOffset - TEXT_PADDING);
+    }
+
+    // If attribute is private, draw a cross on it
+    if (!myIsPublic) {
+      g.drawLine(PADDING, PADDING, width - PADDING, height - PADDING);
+      g.drawLine(width - PADDING, PADDING, PADDING, height - PADDING);
     }
   }
 }

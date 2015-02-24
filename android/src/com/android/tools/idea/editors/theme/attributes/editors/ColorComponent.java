@@ -40,6 +40,7 @@ public class ColorComponent extends JButton {
   private String myValue;
   private List<Color> myColors;
   private Color myDrawnColor;
+  private boolean myIsPublic;
 
   private final Color myBackgroundColor;
 
@@ -64,6 +65,7 @@ public class ColorComponent extends JButton {
   public void configure(final EditedStyleItem resValue, final List<Color> color) {
     this.myName = resValue.getQualifiedName();
     this.myValue = resValue.getValue();
+    myIsPublic = resValue.isPublicAttribute();
     setColors(color);
   }
 
@@ -114,6 +116,12 @@ public class ColorComponent extends JButton {
 
     //noinspection UseJBColor
     g.setColor(myDrawnColor != null && ColorUtil.isDark(myDrawnColor) ? Color.WHITE : Color.BLACK);
+
+    // If the attribute is private, draw a cross on it
+    if (!myIsPublic) {
+      g.drawLine(PADDING, PADDING, width - PADDING, height - PADDING);
+      g.drawLine(width - PADDING, PADDING, PADDING, height - PADDING);
+    }
 
     FontMetrics fm = g.getFontMetrics();
     g.drawString(myName, TEXT_PADDING, fm.getHeight() + TEXT_PADDING);
