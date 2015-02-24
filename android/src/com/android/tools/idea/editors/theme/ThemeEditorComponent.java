@@ -69,7 +69,7 @@ public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
   private static final Font HEADER_FONT = UIUtil.getTitledBorderFont().deriveFont(20.0f);
 
-  private static final int PROPERTIES_DEFAULT_ROW_HEIGHT = 20;
+  private static final int ATTRIBUTES_DEFAULT_ROW_HEIGHT = 20;
 
   private static final Map<Class<?>, Integer> ROW_HEIGHTS = ImmutableMap.of(
     Color.class, 60,
@@ -81,7 +81,7 @@ public class ThemeEditorComponent extends Splitter {
   private final Module myModule;
   private StyleResolver myStyleResolver;
   private AndroidThemePreviewPanel myPreviewPanel;
-  private final StylePropertiesFilter myPropertiesFilter;
+  private final StyleAttributesFilter myAttributesFilter;
   private String myPreviousSelectedTheme;
   // Points to the current selected substyle within the theme.
   private ThemeEditorStyle myCurrentSubStyle;
@@ -92,7 +92,7 @@ public class ThemeEditorComponent extends Splitter {
   private final JComboBox myThemeCombo = myPanel.getThemeCombo();
   private final JButton myParentThemeButton = myPanel.getParentThemeButton();
   private final JButton myBackButton = myPanel.getBackButton();
-  private final JTable myPropertiesTable = myPanel.getPropertiesTable();
+  private final JTable myAttributesTable = myPanel.getAttributesTable();
   private final JCheckBox myAdvancedFilterCheckBox = myPanel.getAdvancedFilterCheckBox();
   private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
@@ -109,7 +109,7 @@ public class ThemeEditorComponent extends Splitter {
 
         //reloads the theme editor preview when device is modified
         if ((flags & CFG_DEVICE) != 0) {
-          loadStyleProperties();
+          loadStyleAttributes();
           myConfiguration.save();
         }
 
@@ -121,12 +121,12 @@ public class ThemeEditorComponent extends Splitter {
 
     myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration);
 
-    myPropertiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myPropertiesTable.setTableHeader(null);
+    myAttributesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myAttributesTable.setTableHeader(null);
 
     // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the number
     // of available cells. Fix this.
-    new TableSpeedSearch(myPropertiesTable) {
+    new TableSpeedSearch(myAttributesTable) {
       @Override
       protected int getElementCount() {
         return myComponent.getRowCount() * myComponent.getColumnCount();
@@ -151,23 +151,23 @@ public class ThemeEditorComponent extends Splitter {
           myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
         }
         mySubStyleSourceAttribute = value;
-        loadStyleProperties();
+        loadStyleAttributes();
       }
     });
 
-    myPropertiesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(myModule, myConfiguration, false, new ColorRenderer(myConfiguration, myPropertiesTable)));
-    myPropertiesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myModule, myConfiguration,
-                                                                                  myPropertiesTable.getDefaultRenderer(String.class)));
-    myPropertiesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(myModule, myConfiguration,
-                                                                                   myPropertiesTable.getDefaultRenderer(Integer.class)));
-    myPropertiesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration,
-                                                                                   myPropertiesTable.getDefaultRenderer(Boolean.class)));
-    myPropertiesTable.setDefaultRenderer(ThemeEditorStyle.class,
+    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(myModule, myConfiguration, false, new ColorRenderer(myConfiguration, myAttributesTable)));
+    myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myModule, myConfiguration,
+                                                                                  myAttributesTable.getDefaultRenderer(String.class)));
+    myAttributesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(myModule, myConfiguration,
+                                                                                   myAttributesTable.getDefaultRenderer(Integer.class)));
+    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration,
+                                                                                   myAttributesTable.getDefaultRenderer(Boolean.class)));
+    myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class,
                                          new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
-    myPropertiesTable.setDefaultRenderer(DrawableDomElement.class,
-                                         new DelegatingCellRenderer(myModule, myConfiguration, false, new DrawableRenderer(myConfiguration, myPropertiesTable)));
-
-    myPropertiesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
+    myAttributesTable.setDefaultRenderer(DrawableDomElement.class,
+                                         new DelegatingCellRenderer(myModule, myConfiguration, false, new DrawableRenderer(myConfiguration,
+                                                                                                                           myAttributesTable)));
+    myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -176,15 +176,15 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myPropertiesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration, myPropertiesTable), module, configuration));
-    myPropertiesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(String.class), module, configuration));
-    myPropertiesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Integer.class), module, configuration));
-    myPropertiesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myPropertiesTable.getDefaultEditor(Boolean.class), module, configuration));
+    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration, myAttributesTable), module, configuration));
+    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(String.class), module, configuration));
+    myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), module, configuration));
+    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Boolean.class), module, configuration));
     // We allow to edit style pointers as Strings.
-    myPropertiesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
-    myPropertiesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myConfiguration, myPropertiesTable), module, configuration));
+    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
+    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myConfiguration, myAttributesTable), module, configuration));
 
-    myPropertiesFilter = new StylePropertiesFilter();
+    myAttributesFilter = new StyleAttributesFilter();
 
     // Button to go to the parent theme (if available).
     myBackButton.setToolTipText("Back to the theme");
@@ -192,7 +192,7 @@ public class ThemeEditorComponent extends Splitter {
       @Override
       public void actionPerformed(ActionEvent e) {
         myCurrentSubStyle = null;
-        loadStyleProperties();
+        loadStyleAttributes();
       }
     });
 
@@ -216,7 +216,7 @@ public class ThemeEditorComponent extends Splitter {
         // substyle or theme navigation.
         if (isSubStyleSelected()) {
           myCurrentSubStyle = parent;
-          loadStyleProperties();
+          loadStyleAttributes();
         }
         else {
           myThemeCombo.setSelectedItem(parent);
@@ -227,15 +227,15 @@ public class ThemeEditorComponent extends Splitter {
     myAdvancedFilterCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        if (myPropertiesTable.isEditing()) {
-          myPropertiesTable.getCellEditor().cancelCellEditing();
+        if (myAttributesTable.isEditing()) {
+          myAttributesTable.getCellEditor().cancelCellEditing();
         }
-        myPropertiesTable.clearSelection();
-        myPropertiesFilter.setAdvancedMode(myAdvancedFilterCheckBox.isSelected());
+        myAttributesTable.clearSelection();
+        myAttributesFilter.setAdvancedMode(myAdvancedFilterCheckBox.isSelected());
 
-        myPropertiesFilter.setFilterProperties(myPreviewPanel.getUsedAttrs());
+        myAttributesFilter.setAttributesFilter(myPreviewPanel.getUsedAttrs());
 
-        ((TableRowSorter)myPropertiesTable.getRowSorter()).sort();
+        ((TableRowSorter)myAttributesTable.getRowSorter()).sort();
       }
     });
 
@@ -260,7 +260,7 @@ public class ThemeEditorComponent extends Splitter {
         myCurrentSubStyle = null;
         mySubStyleSourceAttribute = null;
 
-        loadStyleProperties();
+        loadStyleAttributes();
       }
     });
 
@@ -274,7 +274,7 @@ public class ThemeEditorComponent extends Splitter {
     JPanel myConfigToolbar = myPanel.getConfigToolbar();
     myConfigToolbar.add(actionToolbar.getComponent());
 
-    final JScrollPane scroll = myPanel.getPropertiesScrollPane();
+    final JScrollPane scroll = myPanel.getAttributesScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
 
     mySubStyleLabel.setVisible(false);
@@ -455,7 +455,7 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   /**
-   * Reloads the properties editor.
+   * Reloads the attributes editor.
    * @param defaultThemeName The name to select from the themes list.
    */
   public void reload(@Nullable final String defaultThemeName) {
@@ -473,7 +473,7 @@ public class ThemeEditorComponent extends Splitter {
         final ThemeResolver themeResolver = new ThemeResolver(myConfiguration, myStyleResolver);
         myThemeCombo.setModel(new ThemesListModel(themeResolver, defaultThemeName));
 
-        loadStyleProperties();
+        loadStyleAttributes();
       }
     });
 
@@ -481,9 +481,9 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   /**
-   * Loads the theme properties table for the current selected theme or substyle.
+   * Loads the theme attributes table for the current selected theme or substyle.
    */
-  private void loadStyleProperties() {
+  private void loadStyleAttributes() {
     final ThemeEditorStyle selectedTheme = getSelectedTheme();
     final ThemeEditorStyle selectedStyle = getSelectedStyle();
 
@@ -506,7 +506,7 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
-    myPropertiesFilter.setAdvancedMode(true);
+    myAttributesFilter.setAdvancedMode(true);
     myParentThemeButton.setVisible(parentStyle != null);
     myParentThemeButton.setToolTipText(parentStyle != null ? parentStyle.getName() : "");
     myBackButton.setVisible(myCurrentSubStyle != null);
@@ -532,16 +532,16 @@ public class ThemeEditorComponent extends Splitter {
       public void tableChanged(TableModelEvent e) {
 
         if (e.getType() == TableModelEvent.UPDATE && e.getLastRow() == TableModelEvent.HEADER_ROW) {
-          myPropertiesTable.setRowHeight(PROPERTIES_DEFAULT_ROW_HEIGHT);
+          myAttributesTable.setRowHeight(ATTRIBUTES_DEFAULT_ROW_HEIGHT);
           for (int row = 0; row < model.getRowCount(); row++) {
             final Class<?> cellClass = model.getCellClass(row, 0);
             final Integer rowHeight = ROW_HEIGHTS.get(cellClass);
             if (rowHeight != null) {
               // TODO important colors should be taller then less important colors.
-              int viewRow = myPropertiesTable.convertRowIndexToView(row);
+              int viewRow = myAttributesTable.convertRowIndexToView(row);
 
               if (viewRow != -1) {
-                myPropertiesTable.setRowHeight(viewRow, rowHeight);
+                myAttributesTable.setRowHeight(viewRow, rowHeight);
               }
             }
           }
@@ -555,33 +555,33 @@ public class ThemeEditorComponent extends Splitter {
             public void run() {
               myPreviewPanel.updateConfiguration(myConfiguration);
               myPreviewPanel.repaint();
-              myPropertiesTable.repaint();
+              myAttributesTable.repaint();
             }
           });
         }
       }
     });
 
-    myPropertiesTable.setRowSorter(null); // Clean any previous row sorters.
+    myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
     TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
-    sorter.setRowFilter(myPropertiesFilter);
-    myPropertiesTable.setRowSorter(sorter);
-    myAdvancedFilterCheckBox.setSelected(myPropertiesFilter.myAdvancedMode);
+    sorter.setRowFilter(myAttributesFilter);
+    myAttributesTable.setRowSorter(sorter);
+    myAdvancedFilterCheckBox.setSelected(myAttributesFilter.myAdvancedMode);
 
-    myPropertiesTable.setModel(model);
+    myAttributesTable.setModel(model);
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
     model.fireTableStructureChanged();
   }
 
-  class StylePropertiesFilter extends RowFilter<AttributesTableModel, Integer> {
-    // TODO: This is just a random list of properties. Replace with a possibly dynamic list of simple properties.
-    private final Set<String> SIMPLE_PROPERTIES = ImmutableSet
+  class StyleAttributesFilter extends RowFilter<AttributesTableModel, Integer> {
+    // TODO: This is just a random list of attributes. Replace with a possibly dynamic list of simple attributes.
+    private final Set<String> SIMPLE_ATTRIBUTES = ImmutableSet
       .of("android:background", "android:colorAccent", "android:colorBackground", "android:colorForegroundInverse", "android:colorPrimary",
           "android:editTextColor", "spinnerStyle", "android:textColorHighlight", "android:textColorLinkInverse", "android:textColorPrimary",
           "windowTitleStyle", "android:windowFullscreen");
     private boolean myAdvancedMode = true;
     private boolean myLocallyDefinedMode = false;
-    private Set<String> filterProperties = SIMPLE_PROPERTIES;
+    private Set<String> filterAttributes = SIMPLE_ATTRIBUTES;
 
     public void setOnlyLocallyDefinedMode(boolean local) {
       this.myLocallyDefinedMode = local;
@@ -591,31 +591,31 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     /**
-     * Set the property names we want to display.
+     * Set the attribute names we want to display.
      */
-    public void setFilterProperties(@NotNull Set<String> propertyNames) {
-      if (propertyNames == null) {
-        filterProperties = SIMPLE_PROPERTIES;
+    public void setAttributesFilter(@NotNull Set<String> attributeNames) {
+      if (attributeNames == null) {
+        filterAttributes = SIMPLE_ATTRIBUTES;
         return;
       }
 
-      filterProperties = ImmutableSet.copyOf(propertyNames);
+      filterAttributes = ImmutableSet.copyOf(attributeNames);
     }
 
     @Override
     public boolean include(Entry<? extends AttributesTableModel, ? extends Integer> entry) {
       // We use the column 1 because it's the one that contains the ItemResourceValueWrapper.
       Object value = entry.getModel().getValueAt(entry.getIdentifier().intValue(), 1);
-      String propertyName;
+      String attributeName;
 
       if (value instanceof TableLabel) {
         return myAdvancedMode;
       }
       if (value instanceof EditedStyleItem) {
-        propertyName = ((EditedStyleItem)value).getQualifiedName();
+        attributeName = ((EditedStyleItem)value).getQualifiedName();
       }
       else {
-       propertyName = value.toString();
+       attributeName = value.toString();
       }
 
       ThemeEditorStyle selectedTheme = getSelectedStyle();
@@ -623,16 +623,16 @@ public class ThemeEditorComponent extends Splitter {
         LOG.error("No theme selected.");
         return false;
       }
-      if (myLocallyDefinedMode && !selectedTheme.isAttributeDefined(propertyName)) {
+      if (myLocallyDefinedMode && !selectedTheme.isAttributeDefined(attributeName)) {
         return false;
       }
 
       if (myAdvancedMode) {
-        // All properties shown.
+        // All Attributes shown.
         return true;
       }
 
-      return filterProperties.contains(propertyName);
+      return filterAttributes.contains(attributeName);
     }
   }
 }
