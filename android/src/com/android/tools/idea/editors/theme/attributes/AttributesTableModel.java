@@ -259,21 +259,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public Object getValueAt(int column) {
-      EditedStyleItem attribute = myAttributes.get(myRowIndex);
-      Class cellClass = getCellClass(column);
-
-      // TODO: can we work out the type by looking at the value?
-      if (WIDE_CLASSES.contains(cellClass)) {
-        return attribute;
-      }
-
-      String propertyName = attribute.getQualifiedName();
-
-      if (column == 0) {
-        return propertyName;
-      }
-
-      return attribute;
+      return myAttributes.get(myRowIndex);
     }
 
     @Override

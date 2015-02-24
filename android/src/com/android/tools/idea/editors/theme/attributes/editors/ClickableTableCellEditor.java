@@ -47,6 +47,7 @@ public class ClickableTableCellEditor extends AbstractTableCellEditor implements
     myEditButton.setText("...");
     int buttonWidth = myEditButton.getFontMetrics(myEditButton.getFont()).stringWidth("...") + 10;
     myEditButton.setPreferredSize(new Dimension(buttonWidth, myEditButton.getHeight()));
+    myLabel.setOpaque(true); // Allows for colored background
 
     if (listener != null) {
       myEditButton.addActionListener(new ActionListener() {
@@ -71,6 +72,7 @@ public class ClickableTableCellEditor extends AbstractTableCellEditor implements
 
     myLabel.setFont(table.getFont());
     myLabel.setText(((EditedStyleItem)value).getValue());
+
     return myLabel;
   }
 
