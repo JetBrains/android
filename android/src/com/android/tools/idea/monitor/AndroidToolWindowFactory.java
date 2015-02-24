@@ -19,11 +19,12 @@ package com.android.tools.idea.monitor;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.Log;
-import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.ddms.*;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
+import com.android.tools.idea.monitor.cpu.CpuMonitorView;
+import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -80,6 +81,8 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -109,25 +112,28 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
     ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
-    DevicePanel devicePanel = new DevicePanel(project, deviceContext);
-
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
-    Content adbLogsContent = createAdbLogsContent(layoutUi, project);
-    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
-
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
     assert logcatView != null;
     logcatContent.setSearchComponent(logcatView.createSearchComponent());
-
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
+
+    Content adbLogsContent = createAdbLogsContent(layoutUi, project);
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
+
+    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
     layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
 
+    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      Content cpuContent = createCpuContent(layoutUi, project, deviceContext);
+      layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
+    }
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
 
+    DevicePanel devicePanel = new DevicePanel(project, deviceContext);
     JPanel panel = devicePanel.getComponent();
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     loadingPanel.add(panel, BorderLayout.NORTH);
@@ -195,6 +201,13 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     return content;
   }
 
+  private Content createCpuContent(@NotNull RunnerLayoutUi layoutUi, @NotNull Project project, @NotNull DeviceContext deviceContext) {
+    CpuMonitorView view = new CpuMonitorView(project, deviceContext);
+    Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", null, null);
+    content.setCloseable(false);
+    return content;
+  }
+
   @NotNull
   public ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
     DefaultActionGroup group = new DefaultActionGroup();
@@ -215,9 +228,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     return group;
   }
 
-  private static Content createLogcatContent(RunnerLayoutUi layoutUi,
-                                             final Project project,
-                                             DeviceContext deviceContext) {
+  private static Content createLogcatContent(RunnerLayoutUi layoutUi, final Project project, DeviceContext deviceContext) {
     final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext) {
       @Override
       protected boolean isActive() {
@@ -225,28 +236,27 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         return window.isVisible();
       }
     };
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(
-      new ToolWindowManagerAdapter() {
-        boolean myToolWindowVisible;
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
+      boolean myToolWindowVisible;
 
-        @Override
-        public void stateChanged() {
-          ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
-          if (window != null) {
-            boolean visible = window.isVisible();
-            if (visible != myToolWindowVisible) {
-              myToolWindowVisible = visible;
-              logcatView.activate();
-              if (visible) {
-                ConsoleView console = logcatView.getLogConsole().getConsole();
-                if (console != null) {
-                  checkFacetAndSdk(project, console);
-                }
+      @Override
+      public void stateChanged() {
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
+        if (window != null) {
+          boolean visible = window.isVisible();
+          if (visible != myToolWindowVisible) {
+            myToolWindowVisible = visible;
+            logcatView.activate();
+            if (visible) {
+              ConsoleView console = logcatView.getLogConsole().getConsole();
+              if (console != null) {
+                checkFacetAndSdk(project, console);
               }
             }
           }
         }
-      });
+      }
+    });
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
@@ -254,10 +264,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     JPanel logcatContentPanel = logcatView.getContentPanel();
 
     final Content logcatContent =
-      layoutUi.createContent(AndroidDebugRunner.ANDROID_LOGCAT_CONTENT_ID,
-                             logcatContentPanel,
-                             "logcat",
-                             AndroidIcons.Ddms.Logcat, null);
+      layoutUi.createContent(AndroidDebugRunner.ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", AndroidIcons.Ddms.Logcat, null);
     logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
     logcatContent.setDisposer(logcatView);
     logcatContent.setCloseable(false);
@@ -268,10 +275,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
   private Content createAdbLogsContent(RunnerLayoutUi layoutUi, Project project) {
     final ConsoleView console = new ConsoleViewImpl(project, false);
-    Content adbLogsContent = layoutUi.createContent(ADBLOGS_CONTENT_ID, console.getComponent(),
-                                                    AndroidBundle
-                                                      .message("android.adb.logs.tab.title"), null,
-                                                    null);
+    Content adbLogsContent =
+      layoutUi.createContent(ADBLOGS_CONTENT_ID, console.getComponent(), AndroidBundle.message("android.adb.logs.tab.title"), null, null);
     adbLogsContent.setCloseable(false);
 
     //noinspection UnnecessaryFullyQualifiedName
@@ -368,7 +373,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   private static class MyAndroidPlatformListener extends ModuleRootAdapter {
     private final Project myProject;
     private final AndroidLogcatView myView;
-    
+
     private AndroidPlatform myPrevPlatform;
 
     private MyAndroidPlatformListener(@NotNull AndroidLogcatView view) {
@@ -383,7 +388,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
       if (window == null) {
         return;
       }
-      
+
       if (window.isDisposed() || !window.isVisible()) {
         return;
       }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.memory.actions;
 
-import com.android.tools.idea.monitor.memory.TimelineComponent;
+import com.android.tools.idea.monitor.TimelineComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
