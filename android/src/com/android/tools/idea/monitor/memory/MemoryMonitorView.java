@@ -103,7 +103,7 @@ public class MemoryMonitorView implements TimelineEventListener, HierarchyListen
     float initialMarker = 2.0f;
 
     myData = new TimelineData(2, SAMPLES);
-    myTimelineComponent = new TimelineComponent(myData, bufferTimeInSeconds, initialMax, initialMarker);
+    myTimelineComponent = new TimelineComponent(myData, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
   }
 
   @NotNull
