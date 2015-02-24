@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.memory;
+package com.android.tools.idea.monitor;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
@@ -25,18 +25,14 @@ import java.util.List;
  * It uses itself as the mutex object so it is possible to synchronize on it if modifications from other threads want
  * to be prevented.
  */
-class TimelineData {
+public class TimelineData {
   private final int myStreams;
-  @GuardedBy("this")
-  private final List<Sample> mySamples;
-  @GuardedBy("this")
-  private long myStart;
-  @GuardedBy("this")
-  private float myMaxTotal;
-  @GuardedBy("this")
-  private long myFrozen;
+  @GuardedBy("this") private final List<Sample> mySamples;
+  @GuardedBy("this") private long myStart;
+  @GuardedBy("this") private float myMaxTotal;
+  @GuardedBy("this") private long myFrozen;
 
-  TimelineData(int streams, int capacity) {
+  public TimelineData(int streams, int capacity) {
     myStreams = streams;
     mySamples = new CircularArrayList<Sample>(capacity);
     clear();

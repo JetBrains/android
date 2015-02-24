@@ -18,13 +18,17 @@ package com.android.tools.idea.monitor.memory;
 import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.monitor.memory.actions.MemorySnapshotAction;
-import com.android.tools.idea.monitor.memory.actions.RecordingAction;
-import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;
 import com.android.tools.idea.ddms.actions.ToggleAllocationTrackingAction;
 import com.android.tools.idea.ddms.hprof.DumpHprofAction;
+import com.android.tools.idea.monitor.TimelineComponent;
+import com.android.tools.idea.monitor.TimelineData;
+import com.android.tools.idea.monitor.TimelineEvent;
+import com.android.tools.idea.monitor.TimelineEventListener;
+import com.android.tools.idea.monitor.memory.actions.MemorySnapshotAction;
+import com.android.tools.idea.monitor.memory.actions.RecordingAction;
+import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -54,8 +58,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
-public class MemoryMonitorView implements MemorySampler.MemorySamplerListener, HierarchyListener, DeviceContext.DeviceSelectionListener {
-
+public class MemoryMonitorView implements TimelineEventListener, HierarchyListener, DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
@@ -63,19 +66,13 @@ public class MemoryMonitorView implements MemorySampler.MemorySamplerListener, H
   public static final int SAMPLES = 2048;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final int SAMPLE_FREQUENCY_MS = 500;
-  @NotNull
-  private final Project myProject;
+  @NotNull private final Project myProject;
   @NotNull private final DeviceContext myDeviceContext;
-  @NotNull
-  private JPanel myContentPane;
-  @NotNull
-  private TimelineComponent myTimelineComponent;
-  @NotNull
-  private MemorySampler myMemorySampler;
-  @NotNull
-  private TimelineData myData;
-  @NotNull
-  private MemorySamplerTask myMemorySamplerTask;
+  @NotNull private JPanel myContentPane;
+  @NotNull private TimelineComponent myTimelineComponent;
+  @NotNull private MemorySampler myMemorySampler;
+  @NotNull private TimelineData myData;
+  @NotNull private MemorySamplerTask myMemorySamplerTask;
 
   public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     myProject = project;
@@ -129,6 +126,7 @@ public class MemoryMonitorView implements MemorySampler.MemorySamplerListener, H
     return group;
   }
 
+  @NotNull
   public ComponentWithActions createComponent() {
     return new ComponentWithActions.Impl(getToolbarActions(), null, null, null, myContentPane);
   }
@@ -157,21 +155,23 @@ public class MemoryMonitorView implements MemorySampler.MemorySamplerListener, H
   }
 
   @Override
-  public void onHprofCompleted(@NotNull byte[] data, @NotNull Client client) {
-    File f;
-    try {
-      f = FileUtil.createTempFile("ddms", "." + SdkConstants.EXT_HPROF);
-      FileUtil.writeToFile(f, data);
+  public void onEvent(@NotNull TimelineEvent event) {
+    if (event instanceof MemorySampler.HprofDumpCompletedEvent && event.getData() != null) {
+      File f;
+      try {
+        f = FileUtil.createTempFile("ddms", "." + SdkConstants.EXT_HPROF);
+        FileUtil.writeToFile(f, event.getData());
+      }
+      catch (IOException e) {
+        return;
+      }
+      final VirtualFile vf = VfsUtil.findFileByIoFile(f, true);
+      if (vf == null) {
+        return;
+      }
+      OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
+      FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
     }
-    catch (IOException e) {
-      return;
-    }
-    final VirtualFile vf = VfsUtil.findFileByIoFile(f, true);
-    if (vf == null) {
-      return;
-    }
-    OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
-    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
   }
 
   @Override
