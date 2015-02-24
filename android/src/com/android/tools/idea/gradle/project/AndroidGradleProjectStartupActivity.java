@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +28,6 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
     if (isBuildWithGradle(project)) {
-      // Prevent IDEA from refreshing project. We want to do it ourselves.
-      project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
       GradleProjectImporter.getInstance().requestProjectSync(project, true, true, null);
     }
   }
