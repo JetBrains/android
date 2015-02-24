@@ -59,11 +59,11 @@ public class CpuMonitorView implements TimelineEventListener, HierarchyListener,
 
     // Buffer at one and a half times the sample frequency.
     float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
-    float initialMax = 5.0f;
-    float initialMarker = 2.0f;
+    float initialMax = 100.0f;
+    float initialMarker = 10.0f;
 
     TimelineData data = new TimelineData(2, SAMPLES);
-    TimelineComponent timelineComponent = new TimelineComponent(data, bufferTimeInSeconds, initialMax, initialMarker);
+    TimelineComponent timelineComponent = new TimelineComponent(data, bufferTimeInSeconds, initialMax, 100, initialMarker);
 
     timelineComponent.configureUnits("%");
     timelineComponent.configureStream(0, "Kernel", new JBColor(0x78abd9, 0x78abd9));
