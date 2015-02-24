@@ -32,6 +32,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
@@ -136,6 +137,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       public void dispose() {
       }
     };
+
+    // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
+    myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
 
     listenForProjectChanges(myProject, myDisposable);
 
