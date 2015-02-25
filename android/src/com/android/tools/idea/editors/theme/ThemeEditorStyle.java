@@ -290,6 +290,7 @@ public class ThemeEditorStyle {
     processor.run();
   }
 
+  @NotNull
   public StyleResolver getResolver() {
     return myThemeResolver;
   }
