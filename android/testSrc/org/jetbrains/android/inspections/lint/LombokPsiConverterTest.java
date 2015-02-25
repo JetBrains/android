@@ -496,6 +496,28 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testPrivateEnum2() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import com.android.demo.myapplication.R;\n" +
+      "\n" +
+      "public class UnusedReference2 {\n" +
+      "    public enum DocumentBulkAction {\n" +
+      "        UPDATE_ALL() {\n" +
+      "            @Override\n" +
+      "            public int getLabelId() {\n" +
+      "                return R.string.update_all;\n" +
+      "            }\n" +
+      "        };\n" +
+      "\n" +
+      "        public abstract int getLabelId();\n" +
+      "    }\n" +
+      "}\n";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/UnusedReference2.java", testClass);
+    check(file, testClass);
+  }
+
   public void testPrivateEnum() {
     String testClass =
       "package test.pkg;\n" +
