@@ -21,13 +21,11 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -37,29 +35,55 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
+import static com.intellij.util.ArrayUtil.toStringArray;
+import static java.lang.Boolean.TRUE;
 
 /**
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  public static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("has.unresolved.dependencies");
-  public static final Key<Boolean> HAS_WRONG_JDK = Key.create("has.wrong.jdk");
+  private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
+  private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
 
-  private static final Module[] NO_MODULES = new Module[0];
+  @NonNls private static final String USER_DEFINED_PROJECT_VIEW_PROPERTY_NAME = "com.android.studio.selected.modules.on.import";
 
   private Projects() {
+  }
+
+  public static void setUserDefinedProjectView(@NotNull Project project, @Nullable List<String> moduleNames) {
+    String[] values = moduleNames != null ? toStringArray(moduleNames) : null;
+    PropertiesComponent.getInstance(project).setValues(USER_DEFINED_PROJECT_VIEW_PROPERTY_NAME, values);
+  }
+
+  @Nullable
+  public static String[] getUserDefinedProjectView(@NotNull Project project) {
+    return PropertiesComponent.getInstance(project).getValues(USER_DEFINED_PROJECT_VIEW_PROPERTY_NAME);
+  }
+
+  public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
+    project.putUserData(HAS_SYNC_ERRORS, hasSyncErrors);
+  }
+
+  public static void setHasWrongJdk(@NotNull Project project, boolean hasWrongJdk) {
+    project.putUserData(HAS_WRONG_JDK, hasWrongJdk);
   }
 
   /**
@@ -124,19 +148,18 @@ public final class Projects {
    * @param project the project to open.
    */
   public static void open(@NotNull Project project) {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    ProjectUtil.updateLastProjectLocation(project.getBasePath());
+    updateLastProjectLocation(project.getBasePath());
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
       IdeFocusManager instance = IdeFocusManager.findInstance();
       IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
       if (lastFocusedFrame instanceof IdeFrameEx) {
         boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
         if (fullScreen) {
-          project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
+          project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
         }
       }
     }
-    projectManager.openProject(project);
+    ProjectManagerEx.getInstanceEx().openProject(project);
   }
 
   public static boolean isDirectGradleInvocationEnabled(@NotNull Project project) {
@@ -184,7 +207,7 @@ public final class Projects {
   public static void enforceExternalBuild(@NotNull Project project) {
     if (isGradleProject(project)) {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
-      if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      if (!isAndroidStudio()) {
         AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
       }
     }
@@ -203,17 +226,17 @@ public final class Projects {
   public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
     if (dataContext == null) {
       ProjectView projectView = ProjectView.getInstance(project);
-      final AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
+      AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
 
       if (pane != null) {
         JComponent treeComponent = pane.getComponentToFocus();
         dataContext = DataManager.getInstance().getDataContext(treeComponent);
       }
       else {
-        return NO_MODULES;
+        return Module.EMPTY_ARRAY;
       }
     }
-    Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
+    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null) {
       if (modules.length == 1 && isProjectModule(project, modules[0])) {
         return ModuleManager.getInstance(project).getModules();
@@ -221,12 +244,12 @@ public final class Projects {
       return modules;
     }
 
-    Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = MODULE.getData(dataContext);
     if (module != null) {
       return isProjectModule(project, module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
     }
 
-    return NO_MODULES;
+    return Module.EMPTY_ARRAY;
   }
 
   private static boolean isProjectModule(@NotNull Project project, @NotNull Module module) {
@@ -243,13 +266,6 @@ public final class Projects {
   }
 
   /**
-   * Indicates whether Gradle is used to build the module.
-   */
-  public static boolean isBuildWithGradle(@NotNull Module module) {
-    return AndroidGradleFacet.getInstance(module) != null;
-  }
-
-  /**
    * Indicates whether Gradle is used to build this project.
    * Note: {@link #isGradleProject(com.intellij.openapi.project.Project)} indicates whether a project has a IdeaAndroidProject model.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model was
@@ -263,6 +279,13 @@ public final class Projects {
       }
     }
     return false;
+  }
+
+  /**
+   * Indicates whether Gradle is used to build the module.
+   */
+  public static boolean isBuildWithGradle(@NotNull Module module) {
+    return AndroidGradleFacet.getInstance(module) != null;
   }
 
   /**
