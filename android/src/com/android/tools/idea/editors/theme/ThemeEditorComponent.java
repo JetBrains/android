@@ -163,8 +163,8 @@ public class ThemeEditorComponent extends Splitter {
                                                                                   myAttributesTable.getDefaultRenderer(String.class)));
     myAttributesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(myModule, myConfiguration,
                                                                                    myAttributesTable.getDefaultRenderer(Integer.class)));
-    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration,
-                                                                                   myAttributesTable.getDefaultRenderer(Boolean.class)));
+    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
+                                                                                   new BooleanRendererEditor(myModule)));
     myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
                                                                                 new EnumRendererEditor(attributeDefinitions)));
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class,
@@ -184,7 +184,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration, myAttributesTable), module, configuration));
     myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(String.class), module, configuration));
     myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), module, configuration));
-    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Boolean.class), module, configuration));
+    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myModule), module, configuration));
     myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor(attributeDefinitions), module, configuration));
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
