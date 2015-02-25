@@ -99,7 +99,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myComponentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        myComponentDescription.setText(myTableModel.getComponentDescription(e.getFirstIndex()));
+        myComponentDescription.setText(myTableModel.getComponentDescription(myComponentsTable.getSelectedRow()));
       }
     });
     TableColumn column = myComponentsTable.getColumnModel().getColumn(0);
