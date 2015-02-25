@@ -54,6 +54,7 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
   private final float myBufferTime;
   @NotNull private final TimelineData myData;
   private final float myInitialMax;
+  private final float myAbsoluteMax;
   private final float myInitialMarkerSeparation;
   private final Timer myTimer;
   private String[] myStreamNames;
@@ -119,12 +120,18 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
    * @param data                    the data to be displayed.
    * @param bufferTime              the time, in seconds, to lag behind the given {@code data}.
    * @param initialMax              the initial maximum value for the y-axis.
+   * @param absoluteMax             the absolute maximum value for the y-axis.
    * @param initialMarkerSeparation the initial separations for the markers on the y-axis.
    */
-  public TimelineComponent(@NotNull TimelineData data, float bufferTime, float initialMax, float initialMarkerSeparation) {
+  public TimelineComponent(@NotNull TimelineData data,
+                           float bufferTime,
+                           float initialMax,
+                           float absoluteMax,
+                           float initialMarkerSeparation) {
     myData = data;
     myBufferTime = bufferTime;
     myInitialMax = initialMax;
+    myAbsoluteMax = absoluteMax;
     myInitialMarkerSeparation = initialMarkerSeparation;
     int streams = myData.getStreamCount();
     myTimer = new Timer(1000 / FPS, this);
@@ -213,8 +220,9 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
       myBeginTime = myEndTime - (myRight - LEFT_MARGIN) / X_SCALE;
 
       // Animate the current maximum towards the real one.
-      if (myData.getMaxTotal() > myCurrentMax) {
-        myCurrentMax = lerp(myCurrentMax, myData.getMaxTotal(), myFirstFrame ? 1.f : .95f);
+      float cappedMax = Math.min(myData.getMaxTotal(), myAbsoluteMax);
+      if (cappedMax > myCurrentMax) {
+        myCurrentMax = lerp(myCurrentMax, cappedMax, myFirstFrame ? 1.f : .95f);
       }
       myYScale = (myBottom - TOP_MARGIN) / myCurrentMax;
 
@@ -489,7 +497,7 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
       path.reset();
     }
     if (to - from > 1) {
-      // Optimize to not render too many samples even though they get clipped.
+      // Optimize to not render too many samples since they get clipped.
       while (from < to - 1 && myData.get(from + 1).time < myBeginTime) {
         from++;
       }
@@ -502,7 +510,7 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
         float val = 0.0f;
         for (int j = 0; j < sample.values.length; j++) {
           val += sample.values[j];
-          myPaths[j].lineTo(timeToX(sample.time), valueToY(val));
+          myPaths[j].lineTo(timeToX(sample.time), valueToY(Math.min(val, myAbsoluteMax)));
         }
         // Stop rendering if we are over the end limit.
         if (sample.time > myEndTime) {
