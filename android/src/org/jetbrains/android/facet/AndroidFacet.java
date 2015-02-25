@@ -39,6 +39,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionException;
@@ -85,6 +86,7 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -1165,23 +1167,35 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
                                     @Nullable BaseArtifact testArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
+    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(getIdeSetupTasks(mainArtifact));
 
     if (testArtifact != null) {
       state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
       state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
-
-      if (testArtifact instanceof AndroidArtifact) {
-        state.TEST_SOURCE_GEN_TASK_NAME = ((AndroidArtifact) testArtifact).getSourceGenTaskName();
-      } else {
-        state.TEST_SOURCE_GEN_TASK_NAME = "";
-      }
+      state.AFTER_SYNC_TASK_NAMES.addAll(getIdeSetupTasks(testArtifact));
     }
     else {
-      state.TEST_SOURCE_GEN_TASK_NAME = "";
       state.ASSEMBLE_TEST_TASK_NAME = "";
     }
+  }
 
-    state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
+  private static @NotNull Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
+    try {
+      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
+      return artifact.getIdeSetupTaskNames();
+    }
+    catch (NoSuchMethodError e) {
+      if (artifact instanceof AndroidArtifact) {
+        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
+      }
+    }
+    catch (UnsupportedMethodException e) {
+      if (artifact instanceof AndroidArtifact) {
+        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
+      }
+    }
+
+    return Collections.emptySet();
   }
 
   /**
