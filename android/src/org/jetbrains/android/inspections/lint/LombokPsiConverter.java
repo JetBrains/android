@@ -480,7 +480,7 @@ public class LombokPsiConverter {
       }
     }
     PsiEnumConstantInitializer initializer = enumConstant.getInitializingClass();
-    if (false && initializer != null) {
+    if (initializer != null) {
       NormalTypeBody body = toTypeBody(initializer);
       constant.astBody(body);
     }
