@@ -24,11 +24,10 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
@@ -48,6 +47,8 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
 
 final class ProjectJdkChecks {
   private ProjectJdkChecks() {
@@ -108,7 +109,7 @@ final class ProjectJdkChecks {
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
         messages.add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
 
-        project.putUserData(Projects.HAS_WRONG_JDK, true);
+        setHasWrongJdk(project, true);
         return false;
       }
     }

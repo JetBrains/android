@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErr
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
@@ -54,7 +53,10 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
+import static com.android.tools.idea.gradle.util.Projects.setHasSyncErrors;
 
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
@@ -143,7 +145,7 @@ public class ProjectSyncMessages {
     }
 
     if (hasSyncErrors) {
-      myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
+      setHasSyncErrors(myProject, true);
     }
   }
 
@@ -151,14 +153,11 @@ public class ProjectSyncMessages {
     if (unresolvedDependencies.isEmpty()) {
       return;
     }
-
     VirtualFile buildFile = getBuildFile(module);
-
     for (String dep : unresolvedDependencies) {
       reportUnresolvedDependency(dep, module, buildFile);
     }
-
-    myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
+    setHasSyncErrors(myProject, true);
   }
 
   @Nullable
