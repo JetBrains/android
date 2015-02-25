@@ -29,7 +29,7 @@ import java.awt.event.ActionListener;
  * Cell editor that contains a button that can be used to edit "details".
  * <p/>We currently use it to allow editing sub-styles.
  */
-public class ClickableTableCellEditor extends AbstractTableCellEditor implements TableCellRenderer {
+public class ClickableTableCellRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
   protected JPanel myPanel = new JPanel();
   protected JLabel myLabel = new JLabel();
   protected JButton myEditButton = new JButton();
@@ -37,7 +37,7 @@ public class ClickableTableCellEditor extends AbstractTableCellEditor implements
   protected EditedStyleItem myEditValue;
   protected String myStringValue;
 
-  public ClickableTableCellEditor(@NotNull final ClickListener listener) {
+  public ClickableTableCellRendererEditor(@NotNull final ClickListener listener) {
     myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.LINE_AXIS));
     myPanel.add(myEditLabel);
     myPanel.add(Box.createHorizontalGlue());
@@ -57,7 +57,7 @@ public class ClickableTableCellEditor extends AbstractTableCellEditor implements
             return;
           }
 
-          ClickableTableCellEditor.this.cancelCellEditing();
+          ClickableTableCellRendererEditor.this.cancelCellEditing();
           listener.clicked(myEditValue);
         }
       });
