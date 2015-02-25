@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.monitor;
 
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,7 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.IClientChangeListener {
+public abstract class DeviceSampler implements Runnable {
   /**
    * Sample type when the device cannot be seen.
    */
@@ -47,30 +46,26 @@ public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.ICli
   public static final int INHERITED_TYPE_START = 3;
 
   @NotNull protected final TimelineData myData;
-  @NotNull protected final Semaphore myDataSemaphore;
-  protected final int mySampleFrequencyMs;
   @NotNull protected final List<TimelineEventListener> myListeners = Lists.newLinkedList();
+  protected int mySampleFrequencyMs;
   /**
    * The future representing the task being executed, which will return null upon successful completion.
    * If null, no current task is being executed.
    */
   @Nullable protected volatile Future<?> myExecutingTask;
   @Nullable protected volatile Client myClient;
+  @NotNull private final Semaphore myDataSemaphore;
   protected volatile boolean myRunning;
 
   public DeviceSampler(@NotNull TimelineData data, int sampleFrequencyMs) {
     myData = data;
     mySampleFrequencyMs = sampleFrequencyMs;
     myDataSemaphore = new Semaphore(0, true);
-
-    myData.freeze();
   }
 
   @SuppressWarnings("ConstantConditions")
   public void start() {
     if (myExecutingTask == null && myClient != null) {
-      myData.clear();
-      AndroidDebugBridge.addClientChangeListener(this);
       myRunning = true;
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
       myClient.setHeapInfoUpdateEnabled(true);
@@ -86,6 +81,7 @@ public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.ICli
     if (myExecutingTask != null) {
       myRunning = false;
       myDataSemaphore.release();
+
       try {
         // Wait for the task to finish.
         myExecutingTask.get();
@@ -98,8 +94,6 @@ public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.ICli
         throw new RuntimeException(e.getCause());
       }
 
-      myData.freeze();
-      AndroidDebugBridge.removeClientChangeListener(this);
       if (myClient != null) {
         myClient.setHeapInfoUpdateEnabled(false);
       }
@@ -114,6 +108,7 @@ public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.ICli
     if (client != myClient) {
       stop();
       myClient = client;
+      myData.clear();
       start();
     }
   }
@@ -126,40 +121,27 @@ public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.ICli
     return myExecutingTask != null && myRunning;
   }
 
+  protected void requestSample() {
+    myDataSemaphore.release();
+  }
+
   @Override
   public void run() {
-    boolean pending = false;
-    long wait = mySampleFrequencyMs;
+    long timeToWait = mySampleFrequencyMs;
     while (myRunning) {
       try {
-        long now = System.currentTimeMillis();
-        if (myDataSemaphore.tryAcquire(wait, TimeUnit.MILLISECONDS)) {
-          pending = false;
-          sample(TYPE_DATA, 0);
+        long start = System.currentTimeMillis();
+        boolean acquired = myDataSemaphore.tryAcquire(timeToWait, TimeUnit.MILLISECONDS);
+        if (myRunning) {
+          sample(acquired);
         }
-        else {
-          if (pending) {
-            sample(TYPE_TIMEOUT, 0);
-          }
-          sampleTimeoutHandler();
-          pending = true;
-        }
-        wait -= (System.currentTimeMillis() - now);
-        if (wait <= 0) {
-          wait = mySampleFrequencyMs;
+        timeToWait -= System.currentTimeMillis() - start;
+        if (timeToWait <= 0) {
+          timeToWait = mySampleFrequencyMs;
         }
       }
       catch (InterruptedException e) {
         myRunning = false;
-      }
-    }
-  }
-
-  @Override
-  public void clientChanged(@NotNull Client client, int changeMask) {
-    if (myClient != null && myClient == client) {
-      if ((changeMask & Client.CHANGE_HEAP_DATA) != 0) {
-        myDataSemaphore.release();
       }
     }
   }
@@ -170,7 +152,5 @@ public abstract class DeviceSampler implements Runnable, AndroidDebugBridge.ICli
   @NotNull
   public abstract String getDescription();
 
-  protected abstract void sample(int type, int id);
-
-  protected abstract void sampleTimeoutHandler();
+  protected abstract void sample(boolean requested) throws InterruptedException;
 }
