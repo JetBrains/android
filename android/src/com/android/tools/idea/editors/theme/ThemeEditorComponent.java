@@ -40,6 +40,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
@@ -155,6 +156,8 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    AttributeDefinitions attributeDefinitions = myStyleResolver.getAttributeDefinitions();
+
     myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(myModule, myConfiguration, false, new ColorRenderer(myConfiguration, myAttributesTable)));
     myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myModule, myConfiguration,
                                                                                   myAttributesTable.getDefaultRenderer(String.class)));
@@ -162,6 +165,8 @@ public class ThemeEditorComponent extends Splitter {
                                                                                    myAttributesTable.getDefaultRenderer(Integer.class)));
     myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration,
                                                                                    myAttributesTable.getDefaultRenderer(Boolean.class)));
+    myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
+                                                                                new EnumRendererEditor(attributeDefinitions)));
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class,
                                          new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
     myAttributesTable.setDefaultRenderer(DrawableDomElement.class,
@@ -180,6 +185,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(String.class), module, configuration));
     myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), module, configuration));
     myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Boolean.class), module, configuration));
+    myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor(attributeDefinitions), module, configuration));
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
     myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myConfiguration, myAttributesTable), module, configuration));

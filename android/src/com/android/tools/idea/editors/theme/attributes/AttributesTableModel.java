@@ -290,6 +290,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         if (urlType == ResourceType.STYLE) {
           return ThemeEditorStyle.class;
         }
+        if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Enum)) {
+          return Enum.class;
+        }
         if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
           return Integer.class;
         }
