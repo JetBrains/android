@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,7 +33,6 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -61,24 +57,7 @@ public class ThemeEditorUtils {
       return cachedTooltip;
     }
 
-    String value = resValue.getValue();
-    if (SdkConstants.NULL_RESOURCE.equalsIgnoreCase(value)) {
-      return SdkConstants.NULL_RESOURCE;
-    }
-    final Color color = ResourceHelper.parseColor(value);
-    if (color != null) {
-      return AndroidJavaDocRenderer.renderColor(module, color);
-    }
-    ResourceUrl resUrl = ResourceUrl.parse(value);
-    if (resUrl == null) {
-      return null;
-    }
-    if (!resUrl.framework && resValue.isFramework()) {
-      // sometimes the framework people forgot to put android: in the value, so we need to fix for this.
-      // To do that, we just reparse the resource adding the android: namespace.
-      resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), SdkConstants.PREFIX_ANDROID + resUrl.type.getName()));
-    }
-    String tooltipContents = AndroidJavaDocRenderer.render(module, configuration, resUrl);
+    String tooltipContents = AndroidJavaDocRenderer.renderItemResourceWithDoc(module, configuration, resValue);
     if (tooltipContents != null) {
       ourTooltipCache.put(tooltipKey, tooltipContents);
     }
