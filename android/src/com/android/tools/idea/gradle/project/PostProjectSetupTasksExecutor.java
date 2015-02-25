@@ -193,16 +193,14 @@ public class PostProjectSetupTasksExecutor {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-      ModifiableRootModel model = moduleRootManager.getModifiableModel();
-
-      Sdk sdk = model.getSdk();
+      Sdk sdk = moduleRootManager.getSdk();
       if (sdk != null) {
         if (isAndroidSdk(sdk)) {
           androidSdks.add(sdk);
         }
-        model.dispose();
         continue;
       }
+      ModifiableRootModel model = moduleRootManager.getModifiableModel();
       try {
         Sdk jdk = DefaultSdks.getDefaultJdk();
         model.setSdk(jdk);
