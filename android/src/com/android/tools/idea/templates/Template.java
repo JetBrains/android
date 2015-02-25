@@ -336,6 +336,7 @@ public class Template {
     paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
     paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
+    paramMap.put("truncate", new FmTruncateStringMethod());
 
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
