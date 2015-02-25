@@ -74,6 +74,8 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.setHasSyncErrors;
+import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
@@ -506,8 +508,8 @@ public class GradleProjectImporter {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
-    project.putUserData(Projects.HAS_SYNC_ERRORS, false);
-    project.putUserData(Projects.HAS_WRONG_JDK, false);
+    setHasSyncErrors(project, false);
+    setHasWrongJdk(project, false);
 
     if (alwaysSyncWithCachedProjectData || options.useCachedProjectData) {
       GradleProjectSyncData gradleProjectSyncData = GradleProjectSyncData.getInstance((project));
