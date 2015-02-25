@@ -45,6 +45,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.AndroidColorAnnotator;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -97,8 +99,77 @@ public class AndroidJavaDocRenderer {
     return render(module, null, url);
   }
 
+  @NotNull
+  private static String renderAttributeDoc(Configuration configuration, String myAttributeName) {
+
+    IAndroidTarget target = configuration.getTarget();
+    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
+    AttributeDefinitionsImpl defImpl = androidTargetData.getAllAttrDefs(configuration.getModule().getProject());
+    AttributeDefinition def = (defImpl == null) ? null : defImpl.getAttrDefByName(myAttributeName);
+    String doc = null;
+    if (def != null) {
+      doc = def.getDocValue(null);
+    }
+    HtmlBuilder builder = new HtmlBuilder();
+
+    builder.beginBold();
+    builder.add(myAttributeName);
+    builder.endBold();
+    builder.addHtml("<br/>");
+
+    if (!StringUtil.isEmpty(doc)) {
+      builder.add(doc);
+      builder.addHtml("<br/>");
+    }
+
+    return builder.getHtml();
+  }
+
+  @NotNull
+  private static String renderValue(@NotNull Module module, @Nullable Configuration configuration, ItemResourceValue resValue) {
+    String value = resValue.getValue();
+
+    final Color color = ResourceHelper.parseColor(value);
+    if (color != null) {
+      return renderColor(module, color);
+    }
+
+    ResourceUrl resUrl = ResourceUrl.parse(value);
+
+    if (resUrl == null) {
+      HtmlBuilder builder = new HtmlBuilder();
+      builder.openHtmlBody();
+      builder.add(value);
+      builder.closeHtmlBody();
+      return builder.getHtml();
+    }
+
+    if (!resUrl.framework && resValue.isFramework()) {
+      // sometimes the framework people forgot to put android: in the value, so we need to fix for this.
+      // To do that, we just reparse the resource adding the android: namespace.
+      resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), SdkConstants.PREFIX_ANDROID + resUrl.type.getName()));
+    }
+
+    return render(module, configuration, resUrl);
+  }
+
+  /** Renders the Javadoc for a resValue. If configuration is not null, it will be used to resolve the resource.
+   *  In addition, displays attribute documentation for resValue
+   **/
+  @NotNull
+  public static String renderItemResourceWithDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull ItemResourceValue resValue) {
+    String doc = renderAttributeDoc(configuration, resValue.getName());
+    String render = renderValue(module, configuration, resValue);
+
+    String bodyTag = "<body>";
+    int bodyIndex = render.indexOf(bodyTag);
+
+    // Appending doc after <body>
+    return render.substring(0, bodyIndex + bodyTag.length()) + doc + render.substring(bodyIndex + bodyTag.length());
+  }
+
   /** Renders the Javadoc for a color resource and name. */
-  public static String renderColor(Module module, @NotNull Color color) {
+  private static String renderColor(Module module, @NotNull Color color) {
     ColorValueRenderer renderer = (ColorValueRenderer) ResourceValueRenderer.create(ResourceType.COLOR, module, null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
