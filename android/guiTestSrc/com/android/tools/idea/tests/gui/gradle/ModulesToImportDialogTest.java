@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.project.ModulesToImportDialog;
+import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
