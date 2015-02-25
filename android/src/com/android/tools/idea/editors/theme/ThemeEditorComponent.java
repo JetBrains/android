@@ -96,7 +96,7 @@ public class ThemeEditorComponent extends Splitter {
   private final JCheckBox myAdvancedFilterCheckBox = myPanel.getAdvancedFilterCheckBox();
   private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
-  private final ClickableTableCellEditor myStyleEditor;
+  private final ClickableTableCellRendererEditor myStyleEditor;
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
     this.myConfiguration = configuration;
@@ -133,7 +133,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     };
 
-    myStyleEditor = new ClickableTableCellEditor(new ClickableTableCellEditor.ClickListener() {
+    myStyleEditor = new ClickableTableCellRendererEditor(new ClickableTableCellRendererEditor.ClickListener() {
       @Override
       public void clicked(EditedStyleItem value) {
         if (value.isAttr()) {
