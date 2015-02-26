@@ -70,11 +70,6 @@ public class ClientImpl implements Client {
   }
 
   @Override
-  public Future<BinaryId> GetGlErrorCodes(DeviceId device, CaptureId capture, int contextId) {
-    return myExecutorService.submit(new GetGlErrorCodesCallable(device, capture, contextId));
-  }
-
-  @Override
   public Future<CaptureId> ReplaceAtom(CaptureId capture, long atomId, short atomType, Binary data) {
     return myExecutorService.submit(new ReplaceAtomCallable(capture, atomId, atomType, data));
   }
@@ -218,19 +213,6 @@ public class ClientImpl implements Client {
     @Override
     public ImageInfoId call() throws Exception {
       Commands.GetFramebufferDepth.Result result = (Commands.GetFramebufferDepth.Result)myBroadcaster.Send(myCall);
-      return result.myValue;
-    }
-  }
-  private class GetGlErrorCodesCallable implements Callable<BinaryId> {
-    private final Commands.GetGlErrorCodes.Call myCall;
-
-    private GetGlErrorCodesCallable(DeviceId device, CaptureId capture, int contextId) {
-      myCall = new Commands.GetGlErrorCodes.Call(device, capture, contextId);
-    }
-
-    @Override
-    public BinaryId call() throws Exception {
-      Commands.GetGlErrorCodes.Result result = (Commands.GetGlErrorCodes.Result)myBroadcaster.Send(myCall);
       return result.myValue;
     }
   }
