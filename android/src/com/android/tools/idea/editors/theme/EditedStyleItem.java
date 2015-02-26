@@ -71,7 +71,7 @@ public class EditedStyleItem {
     }
 
     ResourceValue resource = ResourceValue.parse(value, true, true, true);
-    if (!resource.isValidReference()) {
+    if (resource == null || !resource.isValidReference()) {
       myNormalizedValue = value;
       return;
     }
