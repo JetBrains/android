@@ -25,9 +25,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
+import org.easymock.IArgumentMatcher;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -55,7 +58,9 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, AndroidProject.ARTIFACT_ANDROID_TEST);
+    myIdeaAndroidProject =
+      new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG,
+                             AndroidProject.ARTIFACT_ANDROID_TEST);
     //noinspection unchecked
     myCustomizer1 = createMock(ModuleCustomizer.class);
     //noinspection unchecked
@@ -84,10 +89,10 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     assertEquals(key, service.getTargetDataKey());
 
     // ModuleCustomizers should be called.
-    myCustomizer1.customizeModule(myModule, myProject, myIdeaAndroidProject);
+    myCustomizer1.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
     expectLastCall();
 
-    myCustomizer2.customizeModule(myModule, myProject, myIdeaAndroidProject);
+    myCustomizer2.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
     expectLastCall();
 
     replay(myCustomizer1, myCustomizer2);
@@ -95,5 +100,21 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     service.importData(nodes, myProject, true);
 
     verify(myCustomizer1, myCustomizer2);
+
+  }
+
+  private ModifiableRootModel rootModelOfModule(final Module module) {
+    reportMatcher(new IArgumentMatcher() {
+      @Override
+      public void appendTo(StringBuffer buffer) {
+        buffer.append("Expected RootModel of module ").append(module.getName());
+      }
+
+      @Override
+      public boolean matches(Object argument) {
+        return argument instanceof ModifiableRootModel && ((ModifiableRootModel)argument).getModule().equals(module);
+      }
+    });
+    return null;
   }
 }

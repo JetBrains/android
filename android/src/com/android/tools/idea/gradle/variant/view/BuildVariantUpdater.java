@@ -32,6 +32,8 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -57,7 +59,9 @@ class BuildVariantUpdater {
    * @return the facets affected by the build variant selection, if the module update was successful; an empty list otherwise.
    */
   @NotNull
-  List<AndroidFacet> updateSelectedVariant(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
+  List<AndroidFacet> updateSelectedVariant(@NotNull final Project project,
+                                           @NotNull final String moduleName,
+                                           @NotNull final String buildVariantName) {
     final List<AndroidFacet> affectedFacets = Lists.newArrayList();
     ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new DisposeAwareProjectChange(project) {
       @Override
@@ -181,8 +185,15 @@ class BuildVariantUpdater {
 
   @NotNull
   private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidProject) {
-    for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
-      customizer.customizeModule(module, module.getProject(), androidProject);
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
+        customizer.customizeModule(module.getProject(), rootModel, androidProject);
+      }
+    }
+    finally {
+      rootModel.commit();
     }
     return module;
   }

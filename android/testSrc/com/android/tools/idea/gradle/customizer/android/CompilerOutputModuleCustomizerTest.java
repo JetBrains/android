@@ -56,13 +56,17 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
     File rootDir = androidProject.getRootDir();
     IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
                                                                    "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
-    customizer.customizeModule(myModule, myProject, ideaAndroidProject);
-
+    String compilerOutputPath = "";
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-    ModifiableRootModel moduleSettings = moduleRootManager.getModifiableModel();
-    CompilerModuleExtension compilerSettings = moduleSettings.getModuleExtension(CompilerModuleExtension.class);
-    String compilerOutputPath = compilerSettings.getCompilerOutputUrl();
-    moduleSettings.commit();
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      customizer.customizeModule(myProject, rootModel, ideaAndroidProject);
+      CompilerModuleExtension compilerSettings = rootModel.getModuleExtension(CompilerModuleExtension.class);
+      compilerOutputPath = compilerSettings.getCompilerOutputUrl();
+    }
+    finally {
+      rootModel.commit();
+    }
 
     File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifact().getClassesFolder();
     String path = FileUtil.toSystemIndependentName(classesFolder.getPath());
