@@ -30,7 +30,6 @@ public interface Client {
   Future<MemoryInfoId> GetMemoryInfo(CaptureId capture, int contextId, long after, MemoryRange rng) throws IOException, RpcException;
   Future<ImageInfoId> GetFramebufferColor(DeviceId device, CaptureId capture, int contextId, long after, RenderSettings settings) throws IOException, RpcException;
   Future<ImageInfoId> GetFramebufferDepth(DeviceId device, CaptureId capture, int contextId, long after) throws IOException, RpcException;
-  Future<BinaryId> GetGlErrorCodes(DeviceId device, CaptureId capture, int contextId) throws IOException, RpcException;
   Future<CaptureId> ReplaceAtom(CaptureId capture, long atomId, short atomType, Binary data) throws IOException, RpcException;
   Future<TimingInfoId> GetTimingInfo(DeviceId device, CaptureId capture, int contextId, TimingMask mask) throws IOException, RpcException;
   Future<AtomStream> ResolveAtomStream(AtomStreamId id) throws IOException, RpcException;
