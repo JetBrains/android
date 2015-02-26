@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.subset;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -95,7 +95,7 @@ public class ModulesToImportDialog extends DialogWrapper {
 
   public ModulesToImportDialog(@NotNull Collection<DataNode<ModuleData>> modules, @Nullable Project project) {
     super(project, true, IdeModalityType.IDE);
-    setTitle("Select Modules to Include");
+    setTitle("Select Modules to Include in Project Subset");
     myProject = project;
 
     List<DataNode<ModuleData>> sortedModules = Lists.newArrayList(modules);
@@ -230,6 +230,21 @@ public class ModulesToImportDialog extends DialogWrapper {
   private void createUIComponents() {
     myModulesTable = new ModuleTable();
     new TableSpeedSearch(myModulesTable);
+  }
+
+  public void updateSelection(@NotNull Collection<String> selection) {
+    ModuleTable table = getModulesTable();
+    int count = table.getRowCount();
+    skipValidation = true;
+    for (int i = 0; i < count; i++) {
+      DataNode<ModuleData> module = table.getModel().getItemAt(i);
+      String name = getNameOf(module);
+      boolean selected = selection.contains(name);
+      table.setItemSelected(i, selected);
+    }
+    skipValidation = false;
+    initValidation();
+    updateSelectionStatus();
   }
 
   private class SelectAllAction extends DumbAwareAction {

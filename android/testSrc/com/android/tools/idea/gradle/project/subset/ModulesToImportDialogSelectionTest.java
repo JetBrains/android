@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.subset;
 
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -31,7 +31,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests for {@link com.android.tools.idea.gradle.project.ModulesToImportDialog.Selection}
+ * Tests for {@link com.android.tools.idea.gradle.project.subset.ModulesToImportDialog.Selection}
  */
 public class ModulesToImportDialogSelectionTest extends TestCase {
   public void testSaveAndLoad() throws Exception {
