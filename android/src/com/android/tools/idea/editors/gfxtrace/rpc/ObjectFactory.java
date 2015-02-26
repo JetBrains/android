@@ -23,7 +23,6 @@ import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import com.android.tools.rpclib.binary.ObjectTypeID;
 import java.io.IOException;
-
 class ObjectFactory {
   public enum Entries implements BinaryObjectCreator {
     ArrayInfoEnum {
@@ -171,11 +170,6 @@ class ObjectFactory {
         return new Commands.GetFramebufferDepth.Call();
       }
     },
-    callGetGlErrorCodesEnum {
-      @Override public BinaryObject create() {
-        return new Commands.GetGlErrorCodes.Call();
-      }
-    },
     callGetHierarchyEnum {
       @Override public BinaryObject create() {
         return new Commands.GetHierarchy.Call();
@@ -266,11 +260,6 @@ class ObjectFactory {
         return new Commands.GetFramebufferDepth.Result();
       }
     },
-    resultGetGlErrorCodesEnum {
-      @Override public BinaryObject create() {
-        return new Commands.GetGlErrorCodes.Result();
-      }
-    },
     resultGetHierarchyEnum {
       @Override public BinaryObject create() {
         return new Commands.GetHierarchy.Result();
@@ -343,69 +332,67 @@ class ObjectFactory {
     },
   }
 
-  public static byte[] ArrayInfoIDBytes = { 25, -62, -40, -125, 116, 99, 29, -65, 75, 27, 41, -51, -53, -7, -40, 5, 56, -99, -79, 13, };
-  public static byte[] AtomGroupIDBytes = { -106, 33, 57, -96, 95, -50, 16, 105, 91, 51, -72, 6, -70, -57, 79, 73, -78, -86, 45, -110, };
-  public static byte[] AtomInfoIDBytes = { 54, -116, -23, -55, 86, -32, 20, 40, 47, -125, -118, -69, 19, 0, -49, -18, -44, 7, 40, -34, };
-  public static byte[] AtomRangeIDBytes = { -122, 33, 32, 23, 86, -44, -114, -25, -118, -94, -98, 80, 41, -118, -110, 71, 51, 50, -108, 111, };
-  public static byte[] AtomRangeTimerIDBytes = { 117, 112, 60, 118, -82, -105, -27, 37, 41, -120, 67, 73, 72, 89, -23, 6, 44, -81, -69, 99, };
-  public static byte[] AtomStreamIDBytes = { 47, 70, -125, -24, -66, 40, 53, 40, 127, 11, -22, 13, 26, 68, -85, 59, 41, 39, 78, -11, };
-  public static byte[] AtomTimerIDBytes = { -6, -29, 41, -84, 42, 26, 42, 43, 116, 23, -88, -48, -8, 49, -41, -74, -54, 27, 37, -110, };
-  public static byte[] BinaryIDBytes = { -89, 90, -127, 10, 4, -79, -70, 51, -121, -8, -29, -77, 78, -15, -79, -128, 70, 31, 16, 25, };
-  public static byte[] CaptureIDBytes = { -28, 59, 19, 56, 112, 46, -125, -118, 35, 62, 43, -95, 85, 25, -17, 13, 102, -29, -10, 102, };
-  public static byte[] ClassInfoIDBytes = { 6, -23, -55, 67, 109, -118, 49, 1, 19, -78, 93, 122, 5, 54, 63, 55, -115, 62, -7, -126, };
-  public static byte[] DeviceIDBytes = { 74, 77, 78, 75, 5, -67, -112, -90, -25, 10, 91, -99, 66, -29, -15, -86, -2, -74, 126, -52, };
-  public static byte[] EnumEntryIDBytes = { 65, -13, 19, -56, 36, -5, -30, 124, 110, 42, -45, -115, -82, 59, 98, -20, -93, -88, -119, -116, };
-  public static byte[] EnumInfoIDBytes = { 91, 113, 56, -123, 7, -23, -51, 92, -106, 46, -19, -81, 86, -31, -37, 47, -51, -22, 23, -9, };
-  public static byte[] FieldInfoIDBytes = { 87, -105, 72, 89, -39, 7, 75, -113, 61, 48, 37, 118, 121, 46, -47, 66, 53, -15, -33, 100, };
-  public static byte[] HierarchyIDBytes = { -29, 109, -109, -96, 41, -100, 58, -50, 55, -1, 81, -110, 74, 118, -72, -126, -52, 77, 58, -108, };
-  public static byte[] ImageInfoIDBytes = { 82, -96, -100, -1, 109, 66, -83, -53, -94, -25, 126, 79, 93, -103, -1, -98, 29, -89, 37, 37, };
-  public static byte[] MapInfoIDBytes = { 10, 34, 51, -20, -96, 94, -45, 113, 109, 81, 28, -106, -72, 76, 34, -113, 22, 7, -85, -24, };
-  public static byte[] MemoryInfoIDBytes = { 121, -97, -33, -122, 63, -30, 49, 124, 119, 31, -79, -122, -102, 50, 4, 105, -89, -118, 35, -62, };
-  public static byte[] MemoryRangeIDBytes = { 9, -38, -43, -122, -123, 114, -103, 52, 10, -112, 52, -21, -55, -1, 96, 44, -85, 26, 61, 36, };
-  public static byte[] ParameterInfoIDBytes = { 37, -106, -57, 112, -119, -50, -82, 60, 61, -115, 11, -36, -68, -101, 42, -83, -115, 32, -79, -125, };
-  public static byte[] RenderSettingsIDBytes = { -69, 124, -97, -29, 51, -40, -31, 99, -75, 77, -66, -5, 79, 57, 13, -47, 0, 48, 32, 100, };
-  public static byte[] SchemaIDBytes = { -63, 99, -115, 69, 47, -5, 48, -94, -57, -70, 102, -27, -73, -14, -5, 89, 43, 117, -69, 6, };
-  public static byte[] SimpleInfoIDBytes = { -94, 83, -42, 115, 33, 62, -93, -78, 17, 66, 87, 53, 118, -71, -93, 57, 3, -43, 14, 65, };
-  public static byte[] StructInfoIDBytes = { -99, -36, 12, 102, 25, -97, -37, -12, -38, -110, 62, 61, 125, -46, -25, -55, -127, -35, 63, 6, };
-  public static byte[] TimingInfoIDBytes = { -78, 122, -72, -87, -112, -30, -89, 88, 17, 33, 70, 119, 26, 38, -22, -21, 82, 64, 82, -126, };
-  public static byte[] callGetCapturesIDBytes = { 73, 100, 91, 95, 112, -117, -52, 37, -29, 112, -79, 66, 96, 53, 28, -51, -73, 28, -10, 26, };
-  public static byte[] callGetDevicesIDBytes = { -91, -99, -110, 112, 56, 122, 3, 74, -90, 111, 60, 29, -119, -29, -127, 37, -98, -122, 41, -92, };
-  public static byte[] callGetFramebufferColorIDBytes = { 34, -100, 5, 72, -55, -97, -86, 44, 59, 123, 110, 106, -87, 110, 32, -43, 108, -35, 54, -64, };
-  public static byte[] callGetFramebufferDepthIDBytes = { -91, 91, 116, -64, 0, -80, 20, -40, -127, 19, 115, -113, 68, 31, 38, 14, 3, -81, 108, 26, };
-  public static byte[] callGetGlErrorCodesIDBytes = { -6, -34, 35, -122, 12, 52, -89, 73, 18, -17, 62, 105, 23, 43, 51, -51, -81, 68, 117, 120, };
-  public static byte[] callGetHierarchyIDBytes = { -31, 26, 48, -60, -88, -75, 87, 118, -118, -50, -23, 99, -109, -94, 20, 92, 98, -117, -106, 31, };
-  public static byte[] callGetMemoryInfoIDBytes = { 63, 52, -48, -113, -112, -108, 37, -4, 110, 8, 19, -72, -9, 8, -115, 21, -124, -23, -52, -86, };
-  public static byte[] callGetStateIDBytes = { -41, 35, -108, 89, 55, 15, -2, -71, -26, -98, 47, -68, 86, 45, 100, 118, 88, -100, -52, -9, };
-  public static byte[] callGetTimingInfoIDBytes = { 59, -49, -47, 20, 57, 82, -121, 69, -73, -118, -66, 9, 112, 2, 125, -102, 98, -54, -25, -80, };
-  public static byte[] callReplaceAtomIDBytes = { 74, 44, 34, 58, 84, 79, -64, 75, -76, -5, -21, 84, 107, 77, -102, 109, 0, -94, 14, 43, };
-  public static byte[] callResolveAtomStreamIDBytes = { -20, 19, -14, -2, -119, 51, 110, -121, -27, 18, -3, -51, 4, 96, -19, 81, 81, 28, -48, -4, };
-  public static byte[] callResolveBinaryIDBytes = { -1, -46, -89, 105, -12, 78, 63, -31, 50, -77, 59, 5, -91, 126, -48, 18, -13, -83, 80, -60, };
-  public static byte[] callResolveCaptureIDBytes = { 70, -25, 126, 117, 49, 80, 70, -85, -94, -8, 40, 78, -37, 32, -110, 95, 3, -40, 59, 107, };
-  public static byte[] callResolveDeviceIDBytes = { -113, -37, -82, 34, 113, 82, 95, 76, 39, 16, 5, 53, -116, -76, -96, -96, -45, 35, -19, 46, };
-  public static byte[] callResolveHierarchyIDBytes = { -84, 41, 95, 70, -54, -125, 106, -42, -69, 45, -121, 56, -93, 42, 114, -99, -18, -98, -20, -18, };
-  public static byte[] callResolveImageInfoIDBytes = { 79, 21, 69, 58, 30, -128, 71, -44, -3, 63, -126, -18, -90, -117, 124, -98, 65, 94, -33, 73, };
-  public static byte[] callResolveMemoryInfoIDBytes = { -20, -118, 109, -35, 51, -64, -55, 96, 117, -34, -4, -42, -35, -83, 66, -76, -11, -62, 114, -25, };
-  public static byte[] callResolveSchemaIDBytes = { 26, 80, 79, -56, -112, -127, -73, 95, -62, 90, 112, -68, 111, -36, 24, 126, -98, -122, -20, -54, };
-  public static byte[] callResolveTimingInfoIDBytes = { -32, -89, -118, -20, 83, 32, 37, 70, 98, 71, -122, -57, -20, 41, -88, -125, 77, 67, -19, 30, };
-  public static byte[] resultGetCapturesIDBytes = { 25, -107, 35, 97, 65, -41, 86, 48, 42, 95, -76, -5, 39, -6, 127, 92, -123, -128, -92, -105, };
-  public static byte[] resultGetDevicesIDBytes = { -119, 75, -126, -29, -54, 97, 51, 44, -111, 126, 3, 7, -67, -118, 13, -18, -23, -26, -124, -73, };
-  public static byte[] resultGetFramebufferColorIDBytes = { -48, 121, -7, -64, -94, -64, -69, 117, -26, -53, 89, 92, 63, 95, 23, 123, 58, 59, -85, 39, };
-  public static byte[] resultGetFramebufferDepthIDBytes = { 104, -77, -68, 102, -47, -107, -49, 65, -73, 79, 51, -125, -56, 63, 5, 82, -74, 112, 33, 74, };
-  public static byte[] resultGetGlErrorCodesIDBytes = { -122, 115, 113, 66, 46, -73, 6, -91, 101, -68, 79, 3, 38, 70, 84, -95, 117, -75, 93, -100, };
-  public static byte[] resultGetHierarchyIDBytes = { 112, -126, 2, 100, -88, -86, -73, 46, 50, 96, 20, -81, 110, -73, -17, -69, -98, -77, -11, -55, };
-  public static byte[] resultGetMemoryInfoIDBytes = { -105, 24, 20, 55, 25, -108, 127, 47, 33, -124, -7, 35, 53, 93, 93, 125, 105, 41, -63, -108, };
-  public static byte[] resultGetStateIDBytes = { -17, 105, 83, 38, -74, 39, 71, 61, 109, 67, -53, 12, 74, -18, -6, -70, -41, -80, -64, -48, };
-  public static byte[] resultGetTimingInfoIDBytes = { 40, -106, 125, -71, 3, 54, 9, 83, 53, 116, 52, -84, -21, 10, 78, 125, -126, -115, -11, -61, };
-  public static byte[] resultReplaceAtomIDBytes = { -108, 56, 78, -127, 77, -61, -95, -16, 13, -28, 8, 24, 122, -50, -22, -55, -73, 101, 22, 8, };
-  public static byte[] resultResolveAtomStreamIDBytes = { 112, 33, -91, -106, -125, 89, 59, -80, 85, 23, -100, 16, -113, 39, -123, 96, 63, 12, 112, -126, };
-  public static byte[] resultResolveBinaryIDBytes = { 68, 37, 14, 83, -69, 114, 15, -21, 7, -102, -38, 117, -27, 72, -34, 73, 85, -32, 6, -72, };
-  public static byte[] resultResolveCaptureIDBytes = { -95, -120, -81, 10, -97, -124, -118, -57, -2, -60, -105, 63, -50, -30, -8, -79, 13, 24, -76, 71, };
-  public static byte[] resultResolveDeviceIDBytes = { -113, -41, 64, 95, 54, -66, -117, 59, -9, -103, 46, 31, -94, -3, 49, -72, -64, -115, 4, 118, };
-  public static byte[] resultResolveHierarchyIDBytes = { 121, -113, -68, -24, -26, -19, 20, -81, 25, -21, 111, 58, 16, -66, -32, 107, -82, -113, 68, -8, };
-  public static byte[] resultResolveImageInfoIDBytes = { 19, -21, -121, -121, 44, 53, 3, -95, -54, -112, 90, 40, 119, -26, 54, -63, 31, -50, -125, -67, };
-  public static byte[] resultResolveMemoryInfoIDBytes = { 88, 26, -112, 117, 5, 114, -83, -17, -72, -74, 44, -37, 2, -60, -8, -20, -67, -29, 70, -10, };
-  public static byte[] resultResolveSchemaIDBytes = { -74, 4, 43, 5, -84, 90, 103, -69, -111, 84, 29, -89, -36, -1, -97, 112, 33, 35, 114, 73, };
-  public static byte[] resultResolveTimingInfoIDBytes = { 19, -56, 21, -53, 123, -22, 108, 61, -114, -27, 44, 102, -97, -92, 46, 79, 57, -28, -95, -59, };
+  public static byte[] ArrayInfoIDBytes = { -15, 11, -79, -65, 16, -7, 83, 74, -10, 90, 111, -57, -53, -87, 71, -3, -79, 35, 91, 29, };
+  public static byte[] AtomGroupIDBytes = { 49, 75, -61, -102, 14, -78, 0, -108, 104, -57, -51, -66, 11, 26, 35, -16, -13, 117, 86, 28, };
+  public static byte[] AtomInfoIDBytes = { 126, 78, -23, -88, 31, 102, 93, 121, 10, 90, -52, -47, -41, 30, 57, -119, -11, 35, -21, 105, };
+  public static byte[] AtomRangeIDBytes = { -6, -71, 29, 64, 22, -60, 38, 77, 64, 3, -79, 114, -55, 47, 47, 119, -34, -89, -106, 74, };
+  public static byte[] AtomRangeTimerIDBytes = { -27, -35, -11, -103, -14, 35, -21, 72, 6, 38, -31, 3, -97, 90, 110, 45, -81, 118, -118, -14, };
+  public static byte[] AtomStreamIDBytes = { -50, -31, -77, -62, -120, 110, 78, 117, 17, -25, -118, -24, 42, -57, 21, -6, -96, 88, 40, 32, };
+  public static byte[] AtomTimerIDBytes = { 123, 100, 12, 0, 37, -18, -104, -93, 81, 123, 27, 13, -104, 115, 32, -109, 18, -102, 125, -60, };
+  public static byte[] BinaryIDBytes = { -100, 96, -6, 124, -31, 19, -121, 61, -107, -63, 118, -72, 96, 86, -9, 53, 95, -104, 39, -117, };
+  public static byte[] CaptureIDBytes = { 85, -128, 61, -51, -72, -37, 25, -58, -102, 18, -29, 89, -8, 3, 78, 7, 120, -54, -85, 92, };
+  public static byte[] ClassInfoIDBytes = { -81, 13, 76, -126, 3, 98, 111, 67, 120, 15, 117, -66, -67, 110, -112, 11, 121, 80, -81, 79, };
+  public static byte[] DeviceIDBytes = { 127, -91, 112, -39, -109, -4, 112, 39, 50, -39, -72, 110, 42, -101, -13, -124, 85, 79, 38, 80, };
+  public static byte[] EnumEntryIDBytes = { -22, 127, -93, -17, -74, 76, 90, -123, -55, 95, -75, -95, 40, -2, -77, -89, 83, -82, -73, -48, };
+  public static byte[] EnumInfoIDBytes = { 112, 4, 113, 11, 5, 43, -7, -39, -107, 38, -29, 104, 8, -105, 50, 109, -75, -44, -6, -98, };
+  public static byte[] FieldInfoIDBytes = { 22, -37, 76, 87, 10, 31, -7, 51, 124, 31, 3, 13, 42, -50, -106, 126, -70, -88, 34, -91, };
+  public static byte[] HierarchyIDBytes = { 74, 41, 107, 111, 55, -54, 118, 37, -68, -119, 26, -22, -128, 86, -87, 102, 14, 26, 26, -105, };
+  public static byte[] ImageInfoIDBytes = { -125, 85, 119, -99, -25, 107, -19, -43, -59, 60, -122, 66, -2, -42, 26, 109, 43, -48, -5, -120, };
+  public static byte[] MapInfoIDBytes = { -13, 64, 96, 2, 71, -119, 4, 94, 12, -113, -45, -99, -87, -41, 25, -117, -48, -120, -40, -33, };
+  public static byte[] MemoryInfoIDBytes = { -6, 110, -98, -55, -28, 68, 98, 83, -96, 105, -25, 100, 59, 48, -63, -86, -3, 115, -79, -109, };
+  public static byte[] MemoryRangeIDBytes = { -6, -59, -124, 36, 108, 27, 71, 14, -27, -37, 103, 41, -40, -79, -127, 59, -2, 83, 58, -99, };
+  public static byte[] ParameterInfoIDBytes = { 70, 10, -39, 115, 23, -67, 125, 2, 20, -19, 6, -88, 9, 21, -92, -61, -48, -61, -32, -1, };
+  public static byte[] RenderSettingsIDBytes = { 24, 35, 53, -17, -48, 58, -28, 37, 23, -60, 122, 43, -85, 50, 16, -100, 34, -122, 35, 0, };
+  public static byte[] SchemaIDBytes = { 63, 37, -14, -118, -125, 104, 77, 15, 64, -111, 52, -125, -70, -79, -49, -13, 68, -112, -40, 86, };
+  public static byte[] SimpleInfoIDBytes = { -51, 115, -60, -25, 72, 63, 11, -40, -100, 109, -88, 78, 81, 107, 76, -52, -91, -108, 58, 37, };
+  public static byte[] StructInfoIDBytes = { -15, -61, 88, 95, 55, -3, -78, -124, -17, 26, -11, -126, 61, -59, 90, 52, 73, 18, -44, -88, };
+  public static byte[] TimingInfoIDBytes = { 25, -40, -25, -37, -25, -78, -36, 46, 115, 8, -62, -105, 46, 104, -71, -110, 82, 74, 10, -41, };
+  public static byte[] callGetCapturesIDBytes = { -80, 47, 61, -91, -123, -107, -12, 33, 32, 118, -88, -90, 90, 83, -97, -4, -40, 16, -37, 21, };
+  public static byte[] callGetDevicesIDBytes = { 25, 20, 100, 5, -10, -83, -115, 72, -61, -114, 123, -56, 24, 91, 47, 124, -73, -97, 92, 115, };
+  public static byte[] callGetFramebufferColorIDBytes = { 41, 50, 93, -112, 35, -72, 46, 77, 26, 5, 11, -15, 1, -10, -95, 49, 61, -86, -103, -94, };
+  public static byte[] callGetFramebufferDepthIDBytes = { 94, -86, -72, -97, -108, -87, -30, 125, 105, -35, 38, -61, -37, 80, 116, -84, -117, 65, 104, -9, };
+  public static byte[] callGetHierarchyIDBytes = { -11, 74, -109, 5, 43, 35, 18, -84, -18, 68, 5, 74, 46, -106, -8, -69, -11, 76, -85, -107, };
+  public static byte[] callGetMemoryInfoIDBytes = { 87, 94, 3, -39, -76, 16, 30, -108, 23, -44, 95, -5, -100, -40, 10, 23, 37, -100, 111, -88, };
+  public static byte[] callGetStateIDBytes = { -11, -73, -75, 116, -87, 34, 119, 56, -51, 116, -95, -116, -112, -104, -68, 56, -124, 23, 117, 68, };
+  public static byte[] callGetTimingInfoIDBytes = { -60, -46, 2, 118, 95, 61, -104, -117, 6, 1, 104, 65, 60, -55, 103, -128, -120, 59, -107, -116, };
+  public static byte[] callReplaceAtomIDBytes = { 59, 106, -102, 48, 58, 50, -64, 58, 80, 92, -19, -87, -44, 106, 5, 84, -77, -30, -107, 61, };
+  public static byte[] callResolveAtomStreamIDBytes = { 107, -17, 124, 43, 126, 60, 35, -29, -32, 56, -72, -36, -69, -46, -119, -109, -70, -103, 121, -112, };
+  public static byte[] callResolveBinaryIDBytes = { 8, 104, 27, 119, -105, 11, -75, 52, -101, -19, 20, 88, 94, 69, 9, -126, 12, 71, 87, -23, };
+  public static byte[] callResolveCaptureIDBytes = { 78, 110, 91, 73, 97, -17, -4, 60, 74, -8, -10, -82, -64, -54, -95, 103, 23, 115, -1, -8, };
+  public static byte[] callResolveDeviceIDBytes = { -122, 84, -120, -11, -113, 62, -105, 87, -30, -104, 25, 126, 103, 37, -5, -94, 117, -21, 48, 10, };
+  public static byte[] callResolveHierarchyIDBytes = { 57, 42, -97, 68, -2, 44, 15, -40, -59, 68, 88, 81, -108, 106, -107, -92, 34, -112, 52, 54, };
+  public static byte[] callResolveImageInfoIDBytes = { 78, 81, 65, 19, 104, 111, 88, 90, -19, -32, 10, 5, 13, 1, -99, 40, -100, 33, -116, -69, };
+  public static byte[] callResolveMemoryInfoIDBytes = { -33, 38, 108, 59, 6, 5, 8, -59, -63, -47, -122, 100, 33, -15, 88, 69, 15, 62, 47, 14, };
+  public static byte[] callResolveSchemaIDBytes = { 69, -54, 22, -27, 93, 36, 105, 120, -95, 35, 50, 119, -105, 19, -30, -81, 48, 59, 112, 33, };
+  public static byte[] callResolveTimingInfoIDBytes = { -7, -103, -21, 67, 39, -100, 56, 22, -90, -75, 106, 14, -96, -33, 121, -95, 38, 46, -29, -28, };
+  public static byte[] resultGetCapturesIDBytes = { -80, 62, 4, 77, 50, -3, -113, -109, 90, -6, 48, 9, -98, -74, -101, 93, 2, -109, -28, 123, };
+  public static byte[] resultGetDevicesIDBytes = { 126, -63, -128, -29, 121, 29, -22, 13, 98, 2, 88, 106, -21, -91, 36, -104, 48, -114, 70, -24, };
+  public static byte[] resultGetFramebufferColorIDBytes = { -47, -14, -100, 72, -21, -80, 78, 78, -126, -49, -84, -23, -58, 113, 39, 4, 87, 126, -28, 37, };
+  public static byte[] resultGetFramebufferDepthIDBytes = { 8, -40, 78, -46, -28, 47, -61, -74, 16, 71, -21, -82, -94, 86, -103, -111, 49, -125, -73, 39, };
+  public static byte[] resultGetHierarchyIDBytes = { -1, 40, -32, 88, -105, -87, 94, 27, 98, -31, -96, -17, 5, -22, 62, 98, 93, 23, -86, 71, };
+  public static byte[] resultGetMemoryInfoIDBytes = { 84, -36, 16, -49, 109, -106, 112, -39, 0, 125, -41, 31, 8, 74, -93, -81, 87, -38, 9, -18, };
+  public static byte[] resultGetStateIDBytes = { -96, 30, 64, 32, -47, 77, -58, 25, -12, -53, 16, -50, -127, 9, -119, -33, -83, 99, -10, -18, };
+  public static byte[] resultGetTimingInfoIDBytes = { 29, 23, 50, 84, -77, -67, -66, 87, -38, -17, -78, -80, 75, 95, -62, -123, -123, -53, -113, -13, };
+  public static byte[] resultReplaceAtomIDBytes = { 82, 98, -26, 39, 84, 78, -114, -113, 30, -97, 94, -11, -115, 100, 56, -103, -76, 87, -17, -1, };
+  public static byte[] resultResolveAtomStreamIDBytes = { 5, -71, -104, 61, 111, 95, -64, 35, -78, -31, 46, 85, -12, 55, 113, -26, -45, -104, -65, 82, };
+  public static byte[] resultResolveBinaryIDBytes = { -65, -67, 119, -10, -63, 19, -116, -2, 56, -43, 48, 60, 88, -56, 103, -65, 23, -50, 113, -23, };
+  public static byte[] resultResolveCaptureIDBytes = { -77, 71, -48, 63, 40, 99, -2, -92, 50, -58, -16, 44, -20, 109, 51, -118, -78, 56, -9, 55, };
+  public static byte[] resultResolveDeviceIDBytes = { 127, -46, -97, 103, -29, -66, 14, 70, 7, -33, -113, 110, 110, -123, 109, 38, -49, -47, -90, -93, };
+  public static byte[] resultResolveHierarchyIDBytes = { 96, -13, 33, -104, 27, -122, -104, 56, -116, 30, 51, 60, 6, -99, 103, 42, 5, 80, -17, -4, };
+  public static byte[] resultResolveImageInfoIDBytes = { -33, 69, 38, -61, -20, 54, 44, 90, 8, -29, 15, -114, 88, 82, -67, -78, -13, 38, 105, -97, };
+  public static byte[] resultResolveMemoryInfoIDBytes = { 31, -49, -102, -123, -103, -126, 95, -88, 70, -109, 96, -91, 23, -38, -98, 17, 52, -24, 61, 34, };
+  public static byte[] resultResolveSchemaIDBytes = { -31, 39, 82, 118, -126, -52, 62, 108, -72, 106, 16, -53, 81, -64, -53, -8, -93, 50, -57, -86, };
+  public static byte[] resultResolveTimingInfoIDBytes = { -55, 55, -5, -44, 45, 69, -53, 21, 86, 29, 8, -94, -52, -23, -8, 67, 104, -125, 61, -89, };
 
   public static ObjectTypeID ArrayInfoID = new ObjectTypeID(ArrayInfoIDBytes);
   public static ObjectTypeID AtomGroupID = new ObjectTypeID(AtomGroupIDBytes);
@@ -436,7 +423,6 @@ class ObjectFactory {
   public static ObjectTypeID callGetDevicesID = new ObjectTypeID(callGetDevicesIDBytes);
   public static ObjectTypeID callGetFramebufferColorID = new ObjectTypeID(callGetFramebufferColorIDBytes);
   public static ObjectTypeID callGetFramebufferDepthID = new ObjectTypeID(callGetFramebufferDepthIDBytes);
-  public static ObjectTypeID callGetGlErrorCodesID = new ObjectTypeID(callGetGlErrorCodesIDBytes);
   public static ObjectTypeID callGetHierarchyID = new ObjectTypeID(callGetHierarchyIDBytes);
   public static ObjectTypeID callGetMemoryInfoID = new ObjectTypeID(callGetMemoryInfoIDBytes);
   public static ObjectTypeID callGetStateID = new ObjectTypeID(callGetStateIDBytes);
@@ -455,7 +441,6 @@ class ObjectFactory {
   public static ObjectTypeID resultGetDevicesID = new ObjectTypeID(resultGetDevicesIDBytes);
   public static ObjectTypeID resultGetFramebufferColorID = new ObjectTypeID(resultGetFramebufferColorIDBytes);
   public static ObjectTypeID resultGetFramebufferDepthID = new ObjectTypeID(resultGetFramebufferDepthIDBytes);
-  public static ObjectTypeID resultGetGlErrorCodesID = new ObjectTypeID(resultGetGlErrorCodesIDBytes);
   public static ObjectTypeID resultGetHierarchyID = new ObjectTypeID(resultGetHierarchyIDBytes);
   public static ObjectTypeID resultGetMemoryInfoID = new ObjectTypeID(resultGetMemoryInfoIDBytes);
   public static ObjectTypeID resultGetStateID = new ObjectTypeID(resultGetStateIDBytes);
@@ -501,7 +486,6 @@ class ObjectFactory {
     ObjectTypeID.register(callGetDevicesID, Entries.callGetDevicesEnum);
     ObjectTypeID.register(callGetFramebufferColorID, Entries.callGetFramebufferColorEnum);
     ObjectTypeID.register(callGetFramebufferDepthID, Entries.callGetFramebufferDepthEnum);
-    ObjectTypeID.register(callGetGlErrorCodesID, Entries.callGetGlErrorCodesEnum);
     ObjectTypeID.register(callGetHierarchyID, Entries.callGetHierarchyEnum);
     ObjectTypeID.register(callGetMemoryInfoID, Entries.callGetMemoryInfoEnum);
     ObjectTypeID.register(callGetStateID, Entries.callGetStateEnum);
@@ -520,7 +504,6 @@ class ObjectFactory {
     ObjectTypeID.register(resultGetDevicesID, Entries.resultGetDevicesEnum);
     ObjectTypeID.register(resultGetFramebufferColorID, Entries.resultGetFramebufferColorEnum);
     ObjectTypeID.register(resultGetFramebufferDepthID, Entries.resultGetFramebufferDepthEnum);
-    ObjectTypeID.register(resultGetGlErrorCodesID, Entries.resultGetGlErrorCodesEnum);
     ObjectTypeID.register(resultGetHierarchyID, Entries.resultGetHierarchyEnum);
     ObjectTypeID.register(resultGetMemoryInfoID, Entries.resultGetMemoryInfoEnum);
     ObjectTypeID.register(resultGetStateID, Entries.resultGetStateEnum);
@@ -1031,18 +1014,6 @@ class ObjectFactory {
     o.myAfter = d.uint64();
   }
 
-  public static void encode(Encoder e, Commands.GetGlErrorCodes.Call o) throws IOException {
-    o.myDevice.encode(e);
-    o.myCapture.encode(e);
-    e.uint32(o.myContextId);
-  }
-
-  public static void decode(Decoder d, Commands.GetGlErrorCodes.Call o) throws IOException {
-    o.myDevice = new DeviceId(d);
-    o.myCapture = new CaptureId(d);
-    o.myContextId = d.uint32();
-  }
-
   public static void encode(Encoder e, Commands.GetHierarchy.Call o) throws IOException {
     o.myCapture.encode(e);
     e.uint32(o.myContextId);
@@ -1221,14 +1192,6 @@ class ObjectFactory {
 
   public static void decode(Decoder d, Commands.GetFramebufferDepth.Result o) throws IOException {
     o.myValue = new ImageInfoId(d);
-  }
-
-  public static void encode(Encoder e, Commands.GetGlErrorCodes.Result o) throws IOException {
-    o.myValue.encode(e);
-  }
-
-  public static void decode(Decoder d, Commands.GetGlErrorCodes.Result o) throws IOException {
-    o.myValue = new BinaryId(d);
   }
 
   public static void encode(Encoder e, Commands.GetHierarchy.Result o) throws IOException {

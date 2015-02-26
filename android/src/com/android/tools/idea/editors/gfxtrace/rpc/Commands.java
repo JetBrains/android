@@ -376,58 +376,6 @@ final class Commands {
 
   }
 
-  static final class GetGlErrorCodes {
-    static final class Call implements com.android.tools.rpclib.rpccore.Call {
-      DeviceId myDevice;
-      CaptureId myCapture;
-      int myContextId;
-
-      Call() {
-      }
-
-      Call(DeviceId device, CaptureId capture, int contextId) {
-        myDevice = device;
-        myCapture = capture;
-        myContextId = contextId;
-      }
-
-      @Override
-      public ObjectTypeID type() {
-        return ObjectFactory.callGetGlErrorCodesID;
-      }
-
-      @Override
-      public void encode(@NotNull Encoder e) throws IOException {
-        ObjectFactory.encode(e, this);
-      }
-
-      @Override
-      public void decode(@NotNull Decoder d) throws IOException {
-        ObjectFactory.decode(d, this);
-      }
-    }
-
-    static final class Result implements com.android.tools.rpclib.rpccore.Result {
-      BinaryId myValue;
-
-      @Override
-      public ObjectTypeID type() {
-        return ObjectFactory.resultGetGlErrorCodesID;
-      }
-
-      @Override
-      public void encode(@NotNull Encoder e) throws IOException {
-        ObjectFactory.encode(e, this);
-      }
-
-      @Override
-      public void decode(@NotNull Decoder d) throws IOException {
-        ObjectFactory.decode(d, this);
-      }
-    }
-
-  }
-
   static final class ReplaceAtom {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
       CaptureId myCapture;
