@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.google.common.base.Strings;
@@ -31,6 +32,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -133,6 +135,11 @@ public class ThemeEditorComponent extends Splitter {
         return myComponent.getRowCount() * myComponent.getColumnCount();
       }
     };
+
+    // Setup Javadoc handler.
+    ActionManager actionManager = ActionManager.getInstance();
+    ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable);
+    showJavadoc.registerCustomShortcutSet(actionManager.getAction(IdeActions.ACTION_QUICK_JAVADOC).getShortcutSet(), myAttributesTable);
 
     myStyleEditor = new ClickableTableCellRendererEditor(new ClickableTableCellRendererEditor.ClickListener() {
       @Override
@@ -274,7 +281,6 @@ public class ThemeEditorComponent extends Splitter {
     DefaultActionGroup group = new DefaultActionGroup();
     DeviceMenuAction deviceAction = new DeviceMenuAction(myPreviewPanel);
     group.add(deviceAction);
-    ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     JPanel myConfigToolbar = myPanel.getConfigToolbar();
