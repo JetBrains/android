@@ -18,31 +18,43 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
-import com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler;
-import com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.AbstractContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.CheckBoxList;
 import com.intellij.util.SystemProperties;
+import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.finder.WindowFinder;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
@@ -51,6 +63,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -65,31 +78,43 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.*;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture.findByTitle;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.util.Strings.quote;
-import static org.junit.Assert.*;
+import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
+  @After
+  public void resetExperimentalSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+  }
+
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
     File androidRepoPath = new File(DefaultSdks.getDefaultAndroidHome(), FileUtil.join("extras", "android", "m2repository"));
-    assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test")
-                               .isDirectory();
+    assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test").isDirectory();
 
     IdeFrameFixture projectFrame = openSimpleApplication();
 
@@ -98,13 +123,13 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     MessageFixture message =
-      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to find:"));
+      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     HyperlinkFixture hyperlink = message.findHyperlink("Install Repository and sync project");
     hyperlink.click(false);
 
     // TODO implement a proper "SDK Quick Fix wizard" fixture that wraps a SdkQuickfixWizard
-    DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
+    DialogFixture quickFixDialog = findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
       @Override
       protected boolean isMatching(Dialog dialog) {
         return "Install Missing Components".equals(dialog.getTitle());
@@ -140,8 +165,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.waitForGradleProjectSyncToFinish().waitForBackgroundTasksToFinish();
 
-    assertThat(androidRepoPath).as("Android Support Repository must have been reinstalled")
-                               .isDirectory();
+    assertThat(androidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
   }
 
   @Test @IdeGuiTest
@@ -220,8 +244,8 @@ public class GradleSyncTest extends GuiTestCase {
     rtJarChildren.get(1).requireDirectory("javax");
   }
 
-  @Test @IdeGuiTest @Ignore // Ignored because when testing all version of plugin, 'minifyEnabled()' is not recognized.
-  public void testUnsupportedPluginAndGradleVersion() throws IOException {
+  @Test @IdeGuiTest @Ignore // Removed minimum plugin version check. It is failing in some projects.
+  public void testUnsupportedPluginVersion() throws IOException {
     // Open the project without updating the version of the plug-in
     IdeFrameFixture projectFrame = openSimpleApplication();
 
@@ -249,11 +273,11 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture.AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    String errorPrefix = "The project is using an unsupported version of the Android Gradle";
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    String errorPrefix = "The minimum supported version of the Android Gradle plugin";
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
 
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version and re-import project");
+    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version");
     hyperlink.click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -362,9 +386,8 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
-                                                                         firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
+    AbstractContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
 
     final EditorFixture editor = projectFrame.getEditor();
     editor.close();
@@ -385,9 +408,8 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
-                                                                         firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
+    AbstractContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
 
     // Ensure the error message contains the location of the error.
     message.requireLocation(settingsFile, 1);
@@ -449,11 +471,12 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog(myRobot).clickCancel();
+    findGradleSyncMessageDialog().clickCancel();
 
-    String gradleHome = System.getProperty(GRADLE_2_2_HOME_PROPERTY);
+    String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property " + quote(GRADLE_2_2_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.2.1 distribution using the system property "
+           + quote(SUPPORTED_GRADLE_HOME_PROPERTY));
     }
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
@@ -473,7 +496,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog(myRobot).clickCancel();
+    findGradleSyncMessageDialog().clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.clickCancel();
@@ -482,7 +505,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessagesToolWindowFixture.MessageFixture msg =
-      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
+      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle version 2.2 is required."));
     msg.findHyperlink("Migrate to Gradle wrapper and sync project").click(true);
 
     projectFrame.waitForGradleProjectSyncToFinish()
@@ -498,7 +521,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(myRobot).clickOk();
+    findGradleSyncMessageDialog().clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -514,7 +537,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(myRobot).clickOk();
+    findGradleSyncMessageDialog().clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -522,37 +545,250 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testOutdatedAppEnginePlugin() throws IOException {
-    IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin", false);
+    String[] appenginePluginNames = {APPENGINE_PLUGIN_NAME, APPENGINE_PLUGIN_GROUP_ID + ":appengine-java-sdk:",
+      APPENGINE_PLUGIN_GROUP_ID + ":appengine-endpoints:", APPENGINE_PLUGIN_GROUP_ID +":appengine-endpoints-deps:"};
 
-    // Check that sync output has an 'update appengine plugin version' link.
-    MessagesToolWindowFixture.MessageMatcher matcher = firstLineStartingWith(OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT);
-    MessageFixture message = projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, matcher);
-    HyperlinkFixture hyperlink = message.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
+    IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin");
 
-    // Ensure that clicking 'appengine plugin version' link really updates *.gradle config.
-    VirtualFile vFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
-    Document document = FileDocumentManager.getInstance().getDocument(vFile);
+    VirtualFile backendBuildFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(backendBuildFile);
     assertNotNull(document);
-    String definitionString =
-      GradleUtil.getPluginDefinitionString(document.getText(), UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START);
-    assertNotNull(definitionString);
-    int compare = GradleCoordinate.COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString),
-                                                               UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE);
+
+    Project project = projectFrame.getProject();
+    Computable<String> appengineOutdatedPluginVersionTask = new Computable<String>() {
+      @Override
+      public String compute() {
+        return "1.9.4";
+      }
+    };
+    for (String pluginName : appenginePluginNames) {
+      updateGradleDependencyVersion(project, document, pluginName, appengineOutdatedPluginVersionTask);
+    }
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    // Check that sync output has an 'update AppEngine plugin version' link.
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture msg = syncMessages.findMessage(ERROR, firstLineStartingWith(MARKER_TEXT));
+    HyperlinkFixture hyperlink = msg.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
+
+    // Ensure that clicking 'AppEngine plugin version' link really updates *.gradle config.
+    GradleCoordinate definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
+    assertNotNull(definition);
+
+    int compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isLessThan(0);
+
     hyperlink.click(true);
-    definitionString = GradleUtil.getPluginDefinitionString(document.getText(),
-                                                            UpgradeAppenginePluginVersionHyperlink.APPENGINE_PLUGIN_DEFINITION_START);
-    assertNotNull(definitionString);
-    compare = GradleCoordinate.COMPARE_PLUS_HIGHER.compare(GradleCoordinate.parseCoordinateString(definitionString),
-                                                           UpgradeAppenginePluginVersionHyperlink.REFERENCE_APPENGINE_COORDINATE);
+
+    definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
+    assertNotNull(definition);
+
+    compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
     assertThat(compare).isGreaterThanOrEqualTo(0);
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74842
+  @Test @IdeGuiTest
+  public void testPrematureEndOfContentLength() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    // Simulate this Gradle error.
+    final String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
+    projectFrame.requestProjectSyncAndSimulateFailure(failure);
+
+    final String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
+    HyperlinkFixture hyperlink = message.findHyperlink("Re-download dependencies and sync project (requires network)");
+    hyperlink.click(true);
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // This is the only way we can at least know that we pass the right command-line option.
+    String[] commandLineOptions = ApplicationManager.getApplication().getUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY);
+    assertThat(commandLineOptions).contains("--refresh-dependencies");
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74259
+  @Test @IdeGuiTest
+  public void testImportProjectWithCentralBuildDirectoryInRootModule() throws IOException {
+    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
+    // outside the content root of the "app" module.
+    String projectDirName = "CentralBuildDirectory";
+    File projectPath = new File(getProjectCreationDirPath(), projectDirName);
+
+    // The bug appears only when the central build folder does not exist.
+    final File centralBuildDirPath = new File(projectPath, FileUtil.join("central", "build"));
+    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
+    delete(centralBuildParentDirPath);
+
+    IdeFrameFixture ideFrame = importProject(projectDirName);
+    final Module app = ideFrame.getModule("app");
+
+    // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
+    // prevent unnecessary file indexing, which decreases performance.)
+    VirtualFile[] excludeFolders = GuiActionRunner.execute(new GuiQuery<VirtualFile[]>() {
+      @Override
+      protected VirtualFile[] executeInEDT() throws Throwable {
+        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
+        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+        try {
+          ContentEntry[] contentEntries = rootModel.getContentEntries();
+          ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
+          assertNotNull(parent);
+
+          return parent.getExcludeFolderFiles();
+        }
+        finally {
+          rootModel.dispose();
+        }
+      }
+    });
+
+    assertThat(excludeFolders).isNotEmpty();
+
+    VirtualFile centralBuildDir = findFileByIoFile(centralBuildParentDirPath, true);
+    assertNotNull(centralBuildDir);
+
+    boolean isExcluded = false;
+    for (VirtualFile folder : excludeFolders) {
+      if (isAncestor(centralBuildDir, folder, true)) {
+        isExcluded = true;
+        break;
+      }
+    }
+
+    assertTrue(isExcluded);
+  }
+
+  @Test @IdeGuiTest
+  public void testSyncWithUnresolvedDependencies() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+    testSyncWithUnresolvedAppCompat(projectFrame);
+  }
+
+  @Test @IdeGuiTest
+  public void testSyncWithUnresolvedDependenciesWithAndroidGradlePluginOneDotZero() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    VirtualFile projectBuildFile = projectFrame.findFileByRelativePath("build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(projectBuildFile);
+    assertNotNull(document);
+
+    updateGradleDependencyVersion(projectFrame.getProject(), document, GRADLE_PLUGIN_NAME, new Computable<String>() {
+      @Override
+      public String compute() {
+        return "1.0.0";
+      }
+    });
+
+    testSyncWithUnresolvedAppCompat(projectFrame);
+  }
+
+  private static void testSyncWithUnresolvedAppCompat(@NotNull IdeFrameFixture projectFrame) {
+    VirtualFile appBuildFile = projectFrame.findFileByRelativePath("app/build.gradle", true);
+    Document document = FileDocumentManager.getInstance().getDocument(appBuildFile);
+    assertNotNull(document);
+
+    updateGradleDependencyVersion(projectFrame.getProject(), document, "com.android.support:appcompat-v7:", new Computable<String>() {
+      @Override
+      public String compute() {
+        return "100.0.0";
+      }
+    });
+
+    projectFrame.requestProjectSync();
+
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
+  }
+
+  @Test @IdeGuiTest
+  public void testImportProjectWithoutWrapper() throws IOException {
+    File projectDirPath = copyProjectBeforeOpening("AarDependency");
+
+    IdeFrameFixture.deleteWrapper(projectDirPath);
+
+    cleanUpProjectForImport(projectDirPath);
+
+    // Import project
+    findWelcomeFrame().clickImportProjectButton();
+    FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
+
+    VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
+    Assert.assertNotNull(toSelect);
+
+    importProjectDialog.select(toSelect).clickOk();
+
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    findGradleSyncMessageDialog().clickOk();
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectDirPath);
+    projectFrame.waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
+  }
+
+
+  @NotNull
+  private MessageDialogFixture findGradleSyncMessageDialog() {
+    return findByTitle(myRobot, "Gradle Sync");
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74341
+  @Test @IdeGuiTest
+  public void testEditorFindsAppCompatStyle() throws IOException {
+    IdeFrameFixture ideFrame = importProject("AarDependency");
+
+    String stringsXmlPath = "app/src/main/res/values/strings.xml";
+    ideFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
+
+    FileFixture file = ideFrame.findExistingFileByRelativePath(stringsXmlPath);
+    file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+  }
+
+  @Test @IdeGuiTest
+  public void testModuleSelectionOnImport() throws IOException {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
+    File projectPath = setUpProject("Flavoredlib", false, true, null);
+
+    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        GradleProjectImporter.getInstance().importProject(toSelect);
+      }
+    });
+
+    DialogFixture dialog = findDialog(withTitle("Select Modules to Include").andShowing()).withTimeout(SHORT_TIMEOUT.duration())
+                                                                                          .using(myRobot);
+    //noinspection unchecked
+    CheckBoxList<DataNode<ModuleData>> list = myRobot.finder().findByType(dialog.target, CheckBoxList.class, true);
+    CheckBoxListFixture moduleList = new CheckBoxListFixture<DataNode<ModuleData>>(myRobot, list);
+    moduleList.setItemChecked("lib", false);
+
+    findAndClickOkButton(dialog);
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
+    assertThat(projectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
+
+    // subsequent project syncs should respect module selection
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    assertThat(projectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
   }
 
   @NotNull
   private static String getUnsupportedGradleHome() {
-    String unsupportedGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
+    String unsupportedGradleHome = System.getProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(unsupportedGradleHome)) {
-      fail("Please specify the path of a local, Gradle 1.12 distribution using the system property " + quote(GRADLE_1_12_HOME_PROPERTY));
+      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property "
+           + quote(UNSUPPORTED_GRADLE_HOME_PROPERTY));
     }
     return unsupportedGradleHome;
   }

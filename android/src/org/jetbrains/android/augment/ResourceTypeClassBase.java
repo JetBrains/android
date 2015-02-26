@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * @author Eugene.Kudelevsky
  */
-abstract class ResourceTypeClassBase extends AndroidLightClass {
+public abstract class ResourceTypeClassBase extends AndroidLightClass {
   private CachedValue<PsiField[]> myFieldsCache;
 
   public ResourceTypeClassBase(PsiClass context, String name) {

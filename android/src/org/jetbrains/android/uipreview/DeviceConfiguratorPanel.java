@@ -46,7 +46,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -144,6 +143,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       else if (qualifier instanceof RegionQualifier) {
         myEditors.put(name, new MyRegionEditor());
       }
+      else if (qualifier instanceof LocaleQualifier) {
+        myEditors.put(name, new MyLocaleEditor());
+      }
       else if (qualifier instanceof SmallestScreenWidthQualifier) {
         myEditors.put(name, new MySmallestScreenWidthEditor());
       }
@@ -202,6 +204,28 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
           myAvailableQualifiersConfig.removeQualifier(selectedQualifier);
           myChosenQualifiersConfig.addQualifier(selectedQualifier);
+
+          if (selectedQualifier instanceof LocaleQualifier) {
+            // Have to remove language and regions; they are incompatible
+            LanguageQualifier language = myChosenQualifiersConfig.getLanguageQualifier();
+            if (language != null) {
+              myAvailableQualifiersConfig.addQualifier(language);
+              myChosenQualifiersConfig.removeQualifier(language);
+            }
+            RegionQualifier region = myChosenQualifiersConfig.getRegionQualifier();
+            if (region != null) {
+              myAvailableQualifiersConfig.addQualifier(region);
+              myChosenQualifiersConfig.removeQualifier(region);
+            }
+          } else if (selectedQualifier instanceof LanguageQualifier || selectedQualifier instanceof RegionQualifier) {
+            // Remove locale qualifier: they are incompatible
+            LocaleQualifier locale = myChosenQualifiersConfig.getLocaleQualifier();
+            if (locale != null) {
+              myAvailableQualifiersConfig.addQualifier(locale);
+              myChosenQualifiersConfig.removeQualifier(locale);
+            }
+          }
+
           updateLists();
           applyEditors();
 
@@ -257,6 +281,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     ourIcons.put(ScreenHeightQualifier.NAME, AndroidIcons.Configs.Height);
     ourIcons.put(KeyboardStateQualifier.NAME, AndroidIcons.Configs.Keyboard);
     ourIcons.put(LanguageQualifier.NAME, AndroidIcons.Configs.Language);
+    ourIcons.put(LocaleQualifier.NAME, AndroidIcons.Configs.Locale);
     ourIcons.put(CountryCodeQualifier.NAME, AndroidIcons.Configs.Mcc);
     ourIcons.put(NetworkCodeQualifier.NAME, AndroidIcons.Configs.Mnc);
     ourIcons.put(NavigationStateQualifier.NAME, AndroidIcons.Configs.Navpad);
@@ -273,8 +298,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     // TODO: Get dedicated icon for the API version
     ourIcons.put(VersionQualifier.NAME, AndroidIcons.Targets);
-
-    // TODO: Get icon for layout direction qualifier, and add it in here!
   }
 
   @Nullable
@@ -1138,7 +1161,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       header.setLabelFor(myList);
       panel.add(header, BorderLayout.NORTH);
       SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
-      model.addAll(LocaleManager.getLanguageCodes());
+      model.addAll(LocaleManager.getLanguageCodes(false));
       myList.setModel(model);
       myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       myList.setCellRenderer(FlagManager.get().getLanguageCodeCellRenderer());
@@ -1193,7 +1216,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       header.setLabelFor(myList);
       panel.add(header, BorderLayout.NORTH);
       SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
-      model.addAll(LocaleManager.getRegionCodes());
+      model.addAll(LocaleManager.getRegionCodes(false));
       myList.setModel(model);
       myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       myList.setCellRenderer(FlagManager.get().getRegionCodeCellRenderer());
@@ -1233,6 +1256,131 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         throw new InvalidOptionValueException("Select a region");
       }
       return new RegionQualifier((String) selectedValue);
+    }
+  }
+
+  private class MyLocaleEditor extends MyQualifierEditor<LocaleQualifier> {
+    private final JBList myLanguageList = new JBList();
+    private final JBList myRegionList = new JBList();
+
+    @Override
+    JComponent getComponent() {
+      GridBagConstraints gridBagConstraints;
+      JPanel pane = new JPanel(new GridBagLayout());
+
+      SortedListModel<String> languageModel = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+      languageModel.addAll(LocaleManager.getLanguageCodes(true));
+      myLanguageList.setModel(languageModel);
+      myLanguageList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      myLanguageList.setCellRenderer(FlagManager.get().getLanguageCodeCellRenderer());
+      JBScrollPane scroll = new JBScrollPane(myLanguageList);
+      JComponent languagePane = ListWithFilter.wrap(myLanguageList, scroll, FlagManager.getLanguageNameMapper());
+      JBLabel languageLabel = new JBLabel("Language:");
+      languageLabel.setLabelFor(myLanguageList);
+      JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
+      languageTip.setFont(adFont());
+
+      SortedListModel<String> regionModel = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+      regionModel.addAll(LocaleManager.getRegionCodes(true));
+      myRegionList.setModel(regionModel);
+      myRegionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      myRegionList.setCellRenderer(FlagManager.get().getRegionCodeCellRenderer());
+      JBScrollPane regionScroll = new JBScrollPane(myRegionList);
+      JComponent regionPane = ListWithFilter.wrap(myRegionList, regionScroll, FlagManager.getRegionNameMapper());
+
+      JBLabel regionLabel = new JBLabel("Region: (Optional)");
+      JBLabel regionTip = new JBLabel("Tip: Type in list to filter");
+      regionTip.setFont(adFont());
+      regionLabel.setLabelFor(myRegionList);
+
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+      gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+      pane.add(languageLabel, gridBagConstraints);
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.fill = GridBagConstraints.BOTH;
+      gridBagConstraints.weightx = 0.1;
+      gridBagConstraints.weighty = 0.1;
+      pane.add(languagePane, gridBagConstraints);
+
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.anchor = GridBagConstraints.LINE_END;
+      pane.add(languageTip, gridBagConstraints);
+
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+      pane.add(regionLabel, gridBagConstraints);
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.fill = GridBagConstraints.BOTH;
+      gridBagConstraints.weightx = 0.1;
+      gridBagConstraints.weighty = 0.1;
+      pane.add(regionPane, gridBagConstraints);
+
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.anchor = GridBagConstraints.LINE_END;
+      pane.add(regionTip, gridBagConstraints);
+
+      myLanguageList.addListSelectionListener(myUpdatingListListener);
+      myRegionList.addListSelectionListener(myUpdatingListListener);
+
+      return pane;
+    }
+
+    @Override
+    void reset(@NotNull LocaleQualifier qualifier) {
+      if (qualifier.isValid() && !qualifier.hasFakeValue()) {
+        LanguageQualifier language = qualifier.getLanguageQualifier();
+        RegionQualifier region = qualifier.getRegionQualifier();
+        ListModel languageModel = myLanguageList.getModel();
+        ListModel regionModel = myRegionList.getModel();
+
+        if (language != null) {
+          String value = language.getValue();
+          for (int i = 0, n = languageModel.getSize(); i < n; i++) {
+            if (value.equals(languageModel.getElementAt(i))) {
+              myLanguageList.setSelectedIndex(i);
+              break;
+            }
+          }
+        } else {
+          myLanguageList.setSelectedIndex(-1);
+        }
+        if (region != null) {
+          String value = region.getValue();
+          for (int i = 0, n = regionModel.getSize(); i < n; i++) {
+            if (value.equals(regionModel.getElementAt(i))) {
+              myRegionList.setSelectedIndex(i);
+              break;
+            }
+          }
+        } else {
+          myRegionList.setSelectedIndex(-1);
+        }
+      } else {
+        myLanguageList.setSelectedIndex(-1);
+        myRegionList.setSelectedIndex(-1);
+      }
+    }
+
+    @NotNull
+    @Override
+    LocaleQualifier apply() throws InvalidOptionValueException {
+      Object selectedLanguage = myLanguageList.getSelectedValue();
+      if (selectedLanguage == null) {
+        throw new InvalidOptionValueException("Select a BCP 47 language tag");
+      }
+      Object selectedRegion = myRegionList.getSelectedValue();
+      if (selectedRegion != null) {
+        return new LocaleQualifier(LocaleQualifier.PREFIX + selectedLanguage + '+' + selectedRegion);
+      }
+
+      return new LocaleQualifier(LocaleQualifier.PREFIX + selectedLanguage);
     }
   }
 

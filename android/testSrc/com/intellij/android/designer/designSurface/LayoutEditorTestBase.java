@@ -32,6 +32,8 @@ import com.intellij.designer.model.Property;
 import com.intellij.designer.palette.DefaultPaletteItem;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.XmlElementFactory;
@@ -68,9 +70,11 @@ public abstract class LayoutEditorTestBase extends AndroidTestCase {
   }
 
   protected AndroidDesignerEditorPanel createLayoutEditor(VirtualFile xmlFile) {
-    AndroidDesignerEditor editor = new AndroidDesignerEditor(getProject(), xmlFile);
+    Project project = getProject();
+    AndroidDesignerEditor editor = new AndroidDesignerEditor(project, xmlFile);
     AndroidDesignerEditorPanel panel = (AndroidDesignerEditorPanel)editor.getDesignerPanel();
     panel.requestImmediateRender();
+    Disposer.register(project, editor);
     return panel;
   }
 

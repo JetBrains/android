@@ -55,18 +55,20 @@ public class Class extends Activity {
 
         @Override
         public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
-            return super.<error descr="Call requires API level 4 (current min is 1): android.view.View#dispatchPopulateAccessibilityEvent">dispatchPopulateAccessibilityEvent</error>(event);
+            return super.dispatchPopulateAccessibilityEvent(event);
         }
 
         @Override
         public void onPopulateAccessibilityEvent(AccessibilityEvent event) {
-            super.<error descr="Call requires API level 14 (current min is 1): android.view.View#onPopulateAccessibilityEvent">onPopulateAccessibilityEvent</error>(event); // Valid lint warning
+            super.<error descr="Call requires API level 4 (current min is 1): android.view.View#dispatchPopulateAccessibilityEvent">dispatchPopulateAccessibilityEvent</error>(event); // Error
+
+            super.onPopulateAccessibilityEvent(event); // OK: just calling super on same method
             // Additional override code here:
         }
 
         @Override
         protected boolean dispatchGenericFocusedEvent(MotionEvent event) {
-            return super.<error descr="Call requires API level 14 (current min is 1): android.view.View#dispatchGenericFocusedEvent">dispatchGenericFocusedEvent</error>(event); // Should flag this
+            return super.dispatchGenericFocusedEvent(event); // OK: just calling super on same method
         }
 
         protected boolean dispatchHoverEvent(int event) {

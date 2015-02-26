@@ -111,6 +111,28 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
   }
 
+  public void testMipmaps() {
+    String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
+                                            "res/mipmap/ic_launcher.png").getPath();
+    String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
+                                            "res/mipmap-hdpi/ic_launcher.png").getPath();
+
+    String divTag = "<div style=\"background-color:gray;padding:10px\">";
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
+                                   FileUtil.toSystemDependentName(p1));
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
+                                   FileUtil.toSystemDependentName(p2));
+    checkJavadoc("/javadoc/mipmaps/Activity1.java",
+                 String.format("<html><body><table>" +
+                               "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
+                               "<tr><td %1$s>mipmap</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>\n" +
+                               "@mipmap/ic_launcher => ic_launcher.png<BR/>\n" +
+                               "</td></tr>" +
+                               "<tr><td %1$s>mipmap-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)" +
+                               "</td></tr>" +
+                               "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
+  }
+
   public void testArrays() {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/arrays/arrays.xml", "res/values/arrays.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/arrays/arrays-no.xml", "res/values-no/arrays.xml");

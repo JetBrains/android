@@ -9,9 +9,11 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.rendering.*;
-import com.android.utils.HtmlBuilder;
+import com.android.tools.idea.rendering.AarResourceClassRegistry;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.utils.SdkUtils;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -29,6 +31,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -41,12 +44,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import static com.android.SdkConstants.DOT_AAR;
-import static com.android.SdkConstants.EXT_JAR;
-import static com.android.SdkConstants.FN_RESOURCE_CLASS;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.android.SdkConstants.*;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
@@ -54,17 +55,24 @@ import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
  */
 public final class ProjectClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ProjectClassLoader");
+  public static final boolean DEBUG_CLASS_LOADING = false;
 
+  /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
+   * of this class as well to find classes */
   private final Module myModule;
-  private final RenderLogger myLogger;
-  private final Object myCredential;
 
-  public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, @NotNull Module module, @Nullable RenderLogger logger,
-                            @Nullable Object credential) {
-    super(parentClassLoader);
+  /** The layout library to use as a root class loader (e.g. the place to obtain the layoutlib Android SDK view classes from */
+  private final LayoutLibrary myLibrary;
+
+  /** Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader */
+  private Map<String,File> myClassFiles;
+  /** Map from fully qualified class name to the corresponding last modified file stamp for each class loaded by this class loader */
+  private Map<String,Long> myLoadedTimestamp;
+
+  private ProjectClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
+    super(library.getClassLoader());
+    myLibrary = library;
     myModule = module;
-    myLogger = logger;
-    myCredential = credential;
   }
 
   @Override
@@ -78,6 +86,10 @@ public final class ProjectClassLoader extends RenderClassLoader {
           byte[] data = AarResourceClassRegistry.get().findClassDefinition(name);
           if (data != null) {
             data = convertClass(data);
+            if (DEBUG_CLASS_LOADING) {
+              //noinspection UseOfSystemOutOrSystemErr
+              System.out.println("  defining class " + name + " from AAR registry");
+            }
             return defineClass(null, data, 0, data.length);
           }
         }
@@ -98,7 +110,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
       return null;
     }
 
-    return new ProjectClassLoader(library.getClassLoader(), module, null, null);
+    return get(library, module);
   }
 
   @NotNull
@@ -187,11 +199,22 @@ public final class ProjectClassLoader extends RenderClassLoader {
     return loadClassFromClassPath(name, VfsUtilCore.virtualToIoFile(vOutFolder));
   }
 
-  @Override
-  @Nullable
-  protected Class<?> loadClassFile(final String fqcn, File classFile) {
+  /**
+   * Determines whether the class specified by the given qualified name has a source file in the IDE that
+   * has been edited more recently than its corresponding class file.
+   *
+   * <b></b>Note that this method can only answer queries for classes that this class loader has previously
+   * loaded!</b>
+   *
+   * @param fqcn the fully qualified class name
+   * @param myCredential a render sandbox credential
+   * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
+   */
+  public boolean isSourceModified(@NotNull final String fqcn, @Nullable final Object myCredential) {
+    File classFile = getClassFile(fqcn);
+
     // Make sure the class file is up to date and if not, log an error
-    if (myLogger != null) {
+    if (classFile != null) {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
@@ -202,7 +225,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
             @Override
             public VirtualFile compute() {
               Project project = myModule.getProject();
-              GlobalSearchScope scope = myModule.getModuleScope();
+              GlobalSearchScope scope = myModule.getModuleWithDependenciesScope();
               PsiManager psiManager = PsiManager.getInstance(project);
               JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(psiManager.getProject());
               PsiClass source = psiFacade.findClass(fqcn, scope);
@@ -232,26 +255,31 @@ public final class ProjectClassLoader extends RenderClassLoader {
               long lastBuildTimestamp = facet != null && facet.isGradleProject()
                                         ? PostProjectBuildTasksExecutor.getInstance(myModule.getProject()).getLastBuildTimestamp()
                                         : classFileModified;
-              if (sourceFileModified > lastBuildTimestamp) {
+              if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp != -1) {
                 modified = true;
               }
             }
 
-            if (modified) {
-              RenderProblem.Html problem = RenderProblem.create(WARNING);
-              HtmlBuilder builder = problem.getHtmlBuilder();
-              String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
-              builder.addLink("The " + className + " custom view has been edited more recently than the last build: ",
-                              "Build", " the project.",
-                              myLogger.getLinkManager().createCompileModuleUrl());
-              myLogger.addMessage(problem);
-            }
+            return modified;
           }
         }
       } finally {
         RenderSecurityManager.exitSafeRegion(token);
       }
     }
+
+    return false;
+  }
+
+  @Override
+  @Nullable
+  protected Class<?> loadClassFile(final String fqcn, File classFile) {
+    if (myClassFiles == null) {
+      myClassFiles = Maps.newHashMap();
+      myLoadedTimestamp = Maps.newHashMap();
+    }
+    myClassFiles.put(fqcn, classFile);
+    myLoadedTimestamp.put(fqcn, classFile.lastModified());
 
     return super.loadClassFile(fqcn, classFile);
   }
@@ -284,4 +312,82 @@ public final class ProjectClassLoader extends RenderClassLoader {
     }
     return result.toArray(new URL[result.size()]);
   }
+
+  /** Returns the path to a class file loaded for the given class, if any */
+  @Nullable
+  public File getClassFile(@NotNull String className) {
+    return myClassFiles != null ? myClassFiles.get(className) : null;
+  }
+
+  /** Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader */
+  private boolean isUpToDate() {
+    if (myClassFiles != null) {
+      for (Map.Entry<String, File> entry : myClassFiles.entrySet()) {
+        String className = entry.getKey();
+        File classFile = entry.getValue();
+        Long timestamp = myLoadedTimestamp.get(className);
+        if (timestamp != null) {
+          long loadedModifiedTime = timestamp;
+          long classFileModified = classFile.lastModified();
+          if (classFileModified > 0L && loadedModifiedTime > 0L && loadedModifiedTime < classFileModified) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Returns a project class loader to use for rendering. May cache instances across render sessions.
+   */
+  @NotNull
+  public static ProjectClassLoader get(@NotNull LayoutLibrary library, @NotNull Module module) {
+    ProjectClassLoader loader = ourCache.get(module);
+    if (loader != null) {
+      if (library != loader.myLibrary) {
+        if (DEBUG_CLASS_LOADING) {
+          //noinspection UseOfSystemOutOrSystemErr
+          System.out.println("Discarding loader because the layout library has changed");
+        }
+        loader = null;
+      } else if (!loader.isUpToDate()) {
+        if (DEBUG_CLASS_LOADING) {
+          //noinspection UseOfSystemOutOrSystemErr
+          System.out.println("Discarding loader because some files have changed");
+        }
+        loader = null;
+      }
+
+      // To be correct we should also check that the dependencies have not changed. It's not
+      // a problem when you add a new dependency with classes that haven't yet been resolved,
+      // but if for some reason a class is defined in multiple dependencies, and we've already
+      // resolved that class, changing the order could change the particular class that should
+      // be loaded, and we would need to recreate the loader - but this won't detect that.
+      // To solve this correctly we'd need to store a key in the cache recording the project
+      // dependencies when the loader was created, and compare it to the current one. However,
+      // that's a pretty unusual scenario so we won't worry about it until the loader situation
+      // is solved more generally (e.g. separating out .jar loading from .class loading etc).
+    }
+
+    if (loader == null) {
+      loader = new ProjectClassLoader(library, module);
+      ourCache.put(module, loader);
+    } else if (DEBUG_CLASS_LOADING) {
+        //noinspection UseOfSystemOutOrSystemErr
+        System.out.println("Reused class loader for rendering");
+    }
+
+    return loader;
+  }
+
+  /** Flush any cached class loaders */
+  public static void clearCache() {
+    ourCache.clear();
+  }
+
+  /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
+   * into a proper persistent render service. */
+  private static WeakHashMap<Module,ProjectClassLoader> ourCache = new WeakHashMap<Module, ProjectClassLoader>();
 }

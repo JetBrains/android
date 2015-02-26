@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.wizard.FormFactorUtils;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -61,7 +62,17 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final double PHONE_SIZE_CUTOFF = 6.0;
   private static final double TV_SIZE_CUTOFF = 15.0;
   private static final String SEARCH_RESULTS = "Search Results";
+  private static final String PHONE_TYPE = "Phone";
+  private static final String TABLET_TYPE = "Tablet";
+  private static final String OTHER_TYPE = "Other";
+
+  private static final String DEFAULT_PHONE = "Nexus 5";
+  private static final String DEFAULT_TABLET = "Nexus 10";
+  private static final String DEFAULT_WEAR = "Android Wear Square";
+  private static final String DEFAULT_TV = "Android TV (1080p)";
+
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
+  private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
 
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
   private final ListTableModel<Device> myModel = new ListTableModel<Device>();
@@ -74,12 +85,15 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private JPanel myPanel;
   private SearchTextField mySearchTextField;
   private List<DeviceDefinitionSelectionListener> myListeners = Lists.newArrayList();
+  private List<DeviceCategorySelectionListener> myCategoryListeners = Lists.newArrayList();
   private List<Device> myDevices;
+  private Device myDefaultDevice;
 
   public DeviceDefinitionList() {
     myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
     refreshDeviceProfiles();
+    setDefaultDevices();
     myTable.setModelAndUpdateColumns(myModel);
     myTable.getRowSorter().toggleSortOrder(0);
     myTable.getRowSorter().toggleSortOrder(0);
@@ -99,7 +113,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     mySearchTextField.addDocumentListener(this);
     add(myPanel, BorderLayout.CENTER);
 
-    myCategoryList.setSelection(ImmutableSet.of(myCategoryModel.getItem(0)));
     myCreateProfileButton.setAction(new CreateDeviceAction(this));
     myCreateProfileButton.setText("New Hardware Profile");
     myImportProfileButton.setAction(new ImportDevicesAction(this));
@@ -120,6 +133,34 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         possiblyShowPopup(e);
       }
     });
+  }
+
+  private void setDefaultDevices() {
+    for (Device d : myDeviceCategoryMap.get(PHONE_TYPE)) {
+      if (d.getDisplayName().equals(DEFAULT_PHONE)) {
+        myDefaultCategoryDeviceMap.put(PHONE_TYPE, d);
+        myDefaultDevice = d;
+        break;
+      }
+    }
+    for (Device d : myDeviceCategoryMap.get(TABLET_TYPE)) {
+      if (d.getDisplayName().equals(DEFAULT_TABLET)) {
+        myDefaultCategoryDeviceMap.put(TABLET_TYPE, d);
+        break;
+      }
+    }
+    for (Device d : myDeviceCategoryMap.get(FormFactorUtils.FormFactor.WEAR.toString())) {
+      if (d.getDisplayName().equals(DEFAULT_WEAR)) {
+        myDefaultCategoryDeviceMap.put(FormFactorUtils.FormFactor.WEAR.toString(), d);
+        break;
+      }
+    }
+    for (Device d : myDeviceCategoryMap.get(FormFactorUtils.FormFactor.TV.toString())) {
+      if (d.getDisplayName().equals(DEFAULT_TV)) {
+        myDefaultCategoryDeviceMap.put(FormFactorUtils.FormFactor.TV.toString(), d);
+        break;
+      }
+    }
   }
 
   @NotNull
@@ -159,8 +200,17 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myListeners.add(listener);
   }
 
+  public void addCategoryListener(@NotNull DeviceCategorySelectionListener listener) {
+    myCategoryListeners.add(listener);
+  }
+
   public void removeSelectionListener(@NotNull DeviceDefinitionSelectionListener listener) {
     myListeners.remove(listener);
+  }
+
+  @Override
+  public void selectDefaultDevice() {
+    setSelectedDevice(myDefaultDevice);
   }
 
   /**
@@ -169,16 +219,19 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    * given device belongs.
    */
   public void setSelectedDevice(@Nullable Device device) {
+    if (Objects.equal(device, myTable.getSelectedObject())) {
+      return;
+    }
     onSelectionSet(device);
     if (device != null) {
       String category = getCategory(device);
-      myCategoryList.setSelection(ImmutableSet.of(category));
-      setCategory(category);
       for (Device listItem : myModel.getItems()) {
         if (listItem.getId().equals(device.getId())) {
           myTable.setSelection(ImmutableSet.of(listItem));
         }
       }
+      myCategoryList.setSelection(ImmutableSet.of(category));
+      setCategory(category);
     }
   }
 
@@ -186,6 +239,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    * Update our listeners
    */
   private void onSelectionSet(@Nullable Device selectedObject) {
+    if (selectedObject != null) {
+      myDefaultCategoryDeviceMap.put(getCategory(selectedObject), selectedObject);
+    }
     for (DeviceDefinitionSelectionListener listener : myListeners) {
       listener.onDeviceSelectionChanged(selectedObject);
     }
@@ -194,9 +250,20 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   /**
    * Update our list to display the given category.
    */
-  private void setCategory(@Nullable String selectedCategory) {
+  public void setCategory(@Nullable String selectedCategory) {
     if (myDeviceCategoryMap.containsKey(selectedCategory)) {
-      myModel.setItems(myDeviceCategoryMap.get(selectedCategory));
+      List<Device> newItems = myDeviceCategoryMap.get(selectedCategory);
+      if (!myModel.getItems().equals(newItems)) {
+        myModel.setItems(newItems);
+        setSelectedDevice(myDefaultCategoryDeviceMap.get(selectedCategory));
+        notifyCategoryListeners(selectedCategory, newItems);
+      }
+    }
+  }
+
+  private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
+    for (DeviceCategorySelectionListener listener : myCategoryListeners) {
+      listener.onCategorySelectionChanged(selectedCategory, items);
     }
   }
 
@@ -213,7 +280,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     Set<String> categories = myDeviceCategoryMap.keySet();
     String[] categoryArray = categories.toArray(new String[categories.size()]);
     myCategoryModel.setItems(Lists.newArrayList(categoryArray));
-    myModel.setItems(myDeviceCategoryMap.get(categoryArray[0]));
   }
 
   /**
@@ -228,11 +294,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     } else if (HardwareConfigHelper.isWear(d)) {
       return FormFactorUtils.FormFactor.WEAR.toString();
     } else if (isTablet(d)) {
-      return "Tablet";
+      return TABLET_TYPE;
     } else if (isPhone(d)) {
-      return "Phone";
+      return PHONE_TYPE;
     } else {
-      return "Other";
+      return OTHER_TYPE;
     }
   }
 
@@ -440,18 +506,25 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       myCategoryModel.addRow(SEARCH_RESULTS);
       myCategoryList.setSelection(ImmutableSet.of(SEARCH_RESULTS));
     }
-    myModel.setItems(Lists.newArrayList(Iterables.filter(myDevices, new Predicate<Device>() {
+    List<Device> items = Lists.newArrayList(Iterables.filter(myDevices, new Predicate<Device>() {
       @Override
       public boolean apply(Device input) {
         return input.getDisplayName().toLowerCase().contains(searchString.toLowerCase());
       }
-    })));
+    }));
+    myModel.setItems(items);
+    notifyCategoryListeners(null, items);
   }
 
   @Nullable
   @Override
   public Device getDevice() {
     return myTable.getSelectedObject();
+  }
+
+  @Override
+  public void setDevice(@Nullable Device device) {
+    setSelectedDevice(device);
   }
 
   @Override
@@ -522,5 +595,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   public interface DeviceDefinitionSelectionListener {
     void onDeviceSelectionChanged(@Nullable Device selectedDevice);
+  }
+
+  public interface DeviceCategorySelectionListener {
+    void onCategorySelectionChanged(@Nullable String category, @Nullable List<Device> devices);
   }
 }

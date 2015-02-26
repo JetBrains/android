@@ -100,6 +100,7 @@ public class AndroidIcons {
     public static final Icon Height = load("/icons/height.png");
     public static final Icon Keyboard = load("/icons/keyboard.png");
     public static final Icon Language = load("/icons/language.png");
+    public static final Icon Locale = load("/icons/locale.png");
     public static final Icon Mcc = load("/icons/mcc.png");
     public static final Icon Mnc = load("/icons/mnc.png");
     public static final Icon Navpad = load("/icons/navpad.png");

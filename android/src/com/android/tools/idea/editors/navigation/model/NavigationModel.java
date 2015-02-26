@@ -18,40 +18,14 @@ package com.android.tools.idea.editors.navigation.model;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.Event;
+import com.android.tools.idea.editors.navigation.EventDispatcher;
 import com.intellij.openapi.util.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class NavigationModel {
-  public static class Event {
-    public enum Operation {INSERT, UPDATE, DELETE}
-
-    public final Operation operation;
-    public final Class<?> operandType;
-
-    public Event(@NonNull Operation operation, @NonNull Class operandType) {
-      this.operation = operation;
-      this.operandType = operandType;
-    }
-
-    public static Event of(@NonNull Operation operation, @NonNull Class operandType) {
-      return new Event(operation, operandType);
-    }
-
-    public static Event insert(@NonNull Class operandType) {
-      return of(Operation.INSERT, operandType);
-    }
-
-    public static Event update(@NonNull Class operandType) {
-      return of(Operation.UPDATE, operandType);
-    }
-
-    public static Event delete(@NonNull Class operandType) {
-      return of(Operation.DELETE, operandType);
-    }
-  }
-
   private final EventDispatcher<Event> listeners = new EventDispatcher<Event>();
 
   private final ArrayList<State> states = new ArrayList<State>();
@@ -183,12 +157,12 @@ public class NavigationModel {
   }
 
   @Nullable
-  public MenuState findAssociatedMenuState(State state) {
-    final Locator locator = Locator.of(state, null);
+  public MenuState findAssociatedMenuState(ActivityState state) {
+    final String className = state.getClassName();
     Transition transition = findTransition(new Condition<Transition>() {
       @Override
       public boolean value(Transition transition) {
-        return locator.equals(transition.getSource()) && transition.getDestination().getState() instanceof MenuState;
+        return className.equals(transition.getSource().getState().getClassName()) && transition.getDestination().getState() instanceof MenuState;
       }
     });
     if (transition != null) {
@@ -221,6 +195,4 @@ public class NavigationModel {
   public EventDispatcher<Event> getListeners() {
     return listeners;
   }
-
-  // todo either bury the superclass's API or re-implement all of its destructive methods to post an update event
 }

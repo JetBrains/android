@@ -20,6 +20,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
@@ -28,10 +29,14 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
@@ -56,6 +61,12 @@ public class AvdWizardConstants {
   public static final Key<Storage> SD_CARD_STORAGE_KEY = createKey(AvdManager.AVD_INI_SDCARD_SIZE, WIZARD, Storage.class);
   public static final Key<String> EXISTING_SD_LOCATION = createKey(AvdManager.AVD_INI_SDCARD_PATH, WIZARD, String.class);
 
+  // Keys used for display properties within the wizard. The values are derived from (and used to derive) the values for
+  // SD_CARD_STORAGE_KEY and EXISTING_SD_LOCATION
+  public static final Key<Storage> DISPLAY_SD_SIZE_KEY = createKey(WIZARD_ONLY + "displaySdCardSize", WIZARD, Storage.class);
+  public static final Key<String> DISPLAY_SD_LOCATION_KEY = createKey(WIZARD_ONLY + "displaySdLocation", WIZARD, String.class);
+  public static final Key<Boolean> DISPLAY_USE_EXTERNAL_SD_KEY = createKey(WIZARD_ONLY + "displayUseExistingSd", WIZARD, Boolean.class);
+
   public static final String AVD_INI_SCALE_FACTOR = "runtime.scalefactor";
   public static final Key<AvdScaleFactor> SCALE_SELECTION_KEY = createKey(AVD_INI_SCALE_FACTOR, WIZARD, AvdScaleFactor.class);
 
@@ -70,8 +81,6 @@ public class AvdWizardConstants {
   public static final Key<String> BACK_CAMERA_KEY = createKey(AvdManager.AVD_INI_CAMERA_BACK, WIZARD, String.class);
   public static final String CHOOSE_DEVICE_DEFINITION_STEP = "Choose Device Definition Step";
   public static final String CHOOSE_SYSTEM_IMAGE_STEP = "Choose System Image Step";
-
-  public static final Key<Boolean> USE_EXISTING_SD_CARD = createKey(WIZARD_ONLY + "UseExistingSdCard", WIZARD, Boolean.class);
 
   public static final Key<Boolean> USE_HOST_GPU_KEY = createKey(AvdManager.AVD_INI_GPU_EMULATION, WIZARD, Boolean.class);
   public static final Key<Boolean> USE_SNAPSHOT_KEY = createKey(AvdManager.AVD_INI_SNAPSHOT_PRESENT, WIZARD, Boolean.class);
@@ -111,6 +120,8 @@ public class AvdWizardConstants {
   public static final Key<Hardware> WIP_HARDWARE_KEY = createKey("HardwareUnderConstruction" ,STEP, Hardware.class);
   public static final Key<Double> WIP_SCREEN_DPI_KEY = createKey("ScreenDPI", STEP, Double.class);
 
+  public static final Key<IdDisplay> TAG_ID_KEY = createKey("TagId", STEP, IdDisplay.class);
+
   // Defaults
   public static final AvdScaleFactor DEFAULT_SCALE = AvdScaleFactor.AUTO;
   public static final String DEFAULT_NETWORK_SPEED = "full";
@@ -126,6 +137,9 @@ public class AvdWizardConstants {
   // Tags
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
+
+  public static final List<IdDisplay> ALL_TAGS =
+    Collections.unmodifiableList(Lists.newArrayList(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG));
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
@@ -147,12 +161,17 @@ public class AvdWizardConstants {
 
     @Override
     public int hashCode() {
-      return super.hashCode();
+      return Objects.hashCode(target, systemImage, remotePackage);
     }
 
     @Override
     public boolean equals(Object obj) {
-      return super.equals(obj);
+      if (!(obj instanceof SystemImageDescription)) {
+        return false;
+      }
+      SystemImageDescription other = (SystemImageDescription) obj;
+      return Objects.equal(target, other.target) && Objects.equal(systemImage, other.systemImage) &&
+             Objects.equal(remotePackage, other.remotePackage);
     }
 
     @Nullable

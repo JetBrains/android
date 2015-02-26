@@ -17,18 +17,17 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.Map;
 import java.util.Set;
@@ -55,39 +54,29 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   // Reference to the parent path.
   protected DynamicWizardPath myPath;
 
+  // Panel that contains wizard step controls
+  private JPanel myRootPane;
   // Used by update() to ensure multiple update steps are not run at the same time
   private boolean myUpdateInProgress;
   // used by update() to save whether this step is valid and the wizard can progress.
   private boolean myIsValid;
   private boolean myInitialized;
+  protected WizardStepHeaderPanel myHeader;
+  // Used to postpone and coalesce update requests
+  @Nullable MergingUpdateQueue myUpdateQueue;
 
   public DynamicWizardStep() {
     myState = new ScopedStateStore(STEP, null, this);
   }
 
+
+  /**
+   * @deprecated No longer used, not deleted to avoid compilation errors.
+   */
+  @Deprecated
+  @Nullable
   public static JPanel createWizardStepHeader(JBColor headerColor, Icon icon, String title) {
-    JPanel panel = new JPanel();
-    panel.setBackground(headerColor);
-    panel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
-    panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
-    GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
-                                            GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                            GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, 60), null);
-    ImageComponent image = new ImageComponent(icon);
-    panel.add(image, c);
-    c = new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_SOUTHWEST, GridConstraints.FILL_HORIZONTAL,
-                            GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                            GridConstraints.SIZEPOLICY_FIXED, null, null, null);
-    JLabel titleLabel = new JLabel(title);
-    titleLabel.setForeground(Color.WHITE);
-    titleLabel.setFont(titleLabel.getFont().deriveFont(24f));
-    panel.add(titleLabel, c);
-    c.setRow(1);
-    c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
-    JLabel productLabel = new JLabel("Android Studio");
-    productLabel.setForeground(Color.WHITE);
-    panel.add(productLabel, c);
-    return panel;
+    return null; // TODO: Delete when no one is using it
   }
 
   /**
@@ -100,6 +89,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     for (String keyName : myCurrentValues.keySet()) {
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
+    myUpdateQueue = path.getUpdateQueue();
   }
 
   /**
@@ -209,7 +199,19 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * scope is PATH or WIZARD. Should generally not be overridden.
    */
   @Override
-  public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
+  public <T> void invokeUpdate(@Nullable final Key<T> changedKey) {
+    if (myUpdateQueue != null) {
+      myUpdateQueue.queue(new StepUpdate(changedKey));
+    }
+    else {
+      performUpdate(changedKey);
+    }
+  }
+
+  private <T> void performUpdate(@Nullable Key<T> changedKey) {
+    if (!myInitialized) {
+      return;
+    }
     super.invokeUpdate(changedKey);
     update();
     if (myPath != null) {
@@ -316,7 +318,44 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    */
   @Override
   @NotNull
-  public abstract JComponent getComponent();
+  public final JComponent getComponent() {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    if (myRootPane == null) {
+      myRootPane = new JPanel(new BorderLayout());
+      myHeader = WizardStepHeaderPanel.create(getHeaderColor(), getWizardIcon(), getStepIcon(), getStepTitle(), getStepDescription());
+      myRootPane.add(myHeader, BorderLayout.NORTH);
+      myRootPane.add(createStepBody(), BorderLayout.CENTER);
+    }
+    return myRootPane;
+  }
+
+  /**
+   * @return header color for this step
+   */
+  @NotNull
+  protected Color getHeaderColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  /**
+   * @return optional "description" icon placed on the header to the right.
+   */
+  @Nullable
+  protected Icon getStepIcon() {
+    return null;
+  }
+
+  /**
+   * @return wizard step body
+   */
+  @NotNull
+  protected abstract Component createStepBody();
+
+  @Nullable
+  protected Icon getWizardIcon() {
+    DynamicWizard wizard = getWizard();
+    return wizard == null ? null : wizard.getIcon();
+  }
 
   /**
    * Returns a label that can be used to display messages to users.
@@ -331,4 +370,30 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    */
   @NotNull
   public abstract String getStepName();
+
+  @NotNull
+  protected abstract String getStepTitle();
+
+  @Nullable
+  protected abstract String getStepDescription();
+
+  private class StepUpdate extends Update {
+    private final Key<?> myChangedKey;
+
+    public StepUpdate(@Nullable Key<?> changedKey) {
+      super(DynamicWizardStep.this);
+      myChangedKey = changedKey;
+    }
+
+    @NotNull
+    @Override
+    public Object[] getEqualityObjects() {
+      return new Object[] {DynamicWizardStep.this, myChangedKey};
+    }
+
+    @Override
+    public void run() {
+      performUpdate(myChangedKey);
+    }
+  }
 }

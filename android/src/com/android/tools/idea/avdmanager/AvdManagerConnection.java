@@ -16,12 +16,14 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.prefs.AndroidLocation;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.utils.ILogger;
@@ -260,6 +262,15 @@ public class AvdManagerConnection {
     ourAvdManager.deleteAvd(info, SDK_LOG);
   }
 
+  public boolean isAvdRunning(@NotNull AvdInfo info) {
+    return ourAvdManager.isAvdRunning(info);
+  }
+
+
+  public void stopAvd(@NotNull final AvdInfo info) {
+    ourAvdManager.stopAvd(info);
+  }
+
   /**
    * Launch the given AVD in the emulator.
    */
@@ -273,7 +284,7 @@ public class AvdManagerConnection {
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
-    if (info.isRunning()) {
+    if (ourAvdManager.isAvdRunning(info)) {
       String baseFolder;
       try {
         baseFolder = ourAvdManager.getBaseAvdFolder();
@@ -405,8 +416,7 @@ public class AvdManagerConnection {
       return null;
     }
 
-    // TODO: Fix this so that the screen appears in the proper orientation
-    Dimension resolution = device.getScreenSize(device.getDefaultState().getOrientation()); //device.getScreenSize(orientation);
+    Dimension resolution = device.getScreenSize(orientation);
     assert resolution != null;
     String skinName = null;
 
@@ -415,11 +425,14 @@ public class AvdManagerConnection {
     }
     if (FileUtil.filesEqual(skinFolder, NO_SKIN)) {
       skinFolder = null;
+      hardwareProperties.remove(AvdManager.AVD_INI_SKIN_PATH);
     }
     if (skinFolder == null) {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
-
+    if (orientation == ScreenOrientation.LANDSCAPE) {
+      hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION, ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase());
+    }
     if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
       boolean success = ourAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
@@ -463,7 +476,8 @@ public class AvdManagerConnection {
   static boolean isAvdRepairable(AvdInfo.AvdStatus avdStatus) {
     return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
-           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING;
+           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING
+           || avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_MISSING;
   }
 
   public boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {

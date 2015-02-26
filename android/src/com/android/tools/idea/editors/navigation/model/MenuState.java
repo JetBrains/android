@@ -15,15 +15,25 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.Property;
+import com.android.annotations.Transient;
 
 public class MenuState extends State {
+  @Nullable
   private final String xmlResourceName;
 
-  public MenuState(@NonNull @Property("xmlResourceName") String xmlResourceName) {
+  private MenuState(String className, @Nullable String xmlResourceName) {
+    super(className);
     this.xmlResourceName = xmlResourceName;
+  }
+
+  public MenuState(@Property("className") String className) {
+    this(className, null);
+  }
+
+  public static MenuState create(String className, String xmlResourceName) {
+       return new MenuState(className, xmlResourceName);
   }
 
   @Override
@@ -31,38 +41,9 @@ public class MenuState extends State {
     visitor.visit(this);
   }
 
+  @Transient
   @Nullable
-  @Override
-  public String getClassName() {
-    return null;
-  }
-
-  @NonNull
-  @Override
   public String getXmlResourceName() {
     return xmlResourceName;
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    MenuState menuState = (MenuState)o;
-
-    if (!xmlResourceName.equals(menuState.xmlResourceName)) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return xmlResourceName.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "MenuState{" + xmlResourceName + '}';
-  }
-
 }

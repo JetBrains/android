@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.aapt.AaptOutputParser;
-import com.android.tools.idea.gradle.output.parser.aapt.AbstractAaptOutputParser;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.aapt.AaptOutputParser;
+import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,7 +82,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
   private AaptOutputParser myAaptParser = new AaptOutputParser();
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     State state = State.BEGINNING;
     int pos = 0;
@@ -147,10 +151,10 @@ public class BuildFailureParser implements PatternAwareOutputParser {
                 matcher = Pattern.compile("\\s*> Duplicate resources: (.+):(.+), (.+):(.+)\\s*").matcher(currentLine);
                 if (matcher.matches()) {
                   file = matcher.group(1);
-                  lineNum = AbstractAaptOutputParser.findResourceLine(new File(file), matcher.group(2));
+                  lineNum = AbstractAaptOutputParser.findResourceLine(new File(file), matcher.group(2), logger);
                   messages.add(new GradleMessage(GradleMessage.Kind.ERROR, currentLine, file, lineNum, -1));
                   String other = matcher.group(3);
-                  int otherLine = AbstractAaptOutputParser.findResourceLine(new File(other), matcher.group(4));
+                  int otherLine = AbstractAaptOutputParser.findResourceLine(new File(other), matcher.group(4), logger);
                   messages.add(new GradleMessage(GradleMessage.Kind.ERROR, "Other duplicate occurrence here", other, otherLine, -1));
                   // Skip appending to the errorMessage buffer; we've already manually added this line and a line pointing to
                   // the second occurrence as separate errors
@@ -196,7 +200,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
           }
           else {
             currentLine = currentLine.trim();
-            if (!myAaptParser.parse(currentLine, reader, messages)) {
+            if (!myAaptParser.parse(currentLine, reader, messages, logger)) {
               // The AAPT parser punted on it. Just create a message with the unparsed error.
               messages.add(new GradleMessage(GradleMessage.Kind.ERROR, currentLine));
             }
@@ -241,8 +245,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
                 }
               }
               if (file != null) {
-                messages
-                  .add(new GradleMessage(GradleMessage.Kind.ERROR, text, file, lineNum, column));
+                messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text, file, lineNum, column));
               }
               else if (text.contains("Build cancelled")) {
                 // Gradle throws an exception (BuildCancelledException) when we cancel task processing

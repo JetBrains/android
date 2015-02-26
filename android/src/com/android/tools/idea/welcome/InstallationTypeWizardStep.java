@@ -31,7 +31,7 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
   private JRadioButton myCustomRadioButton;
 
   public InstallationTypeWizardStep(@NotNull ScopedStateStore.Key<Boolean> customInstall) {
-    super(null);
+    super("Install Type");
     myDataKey = customInstall;
     setComponent(myContents);
   }

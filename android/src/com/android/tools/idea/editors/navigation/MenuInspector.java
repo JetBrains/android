@@ -21,5 +21,6 @@ import javax.swing.*;
 
 public class MenuInspector {
   public JPanel container;
+  public HyperlinkLabel classNameLabel;
   public HyperlinkLabel xmlFileNameLabel;
 }

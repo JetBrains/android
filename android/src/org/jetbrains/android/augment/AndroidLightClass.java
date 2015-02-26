@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-abstract class AndroidLightClass extends AndroidLightClassBase {
+public abstract class AndroidLightClass extends AndroidLightClassBase {
   private final PsiClass myContainingClass;
   protected final String myName;
 

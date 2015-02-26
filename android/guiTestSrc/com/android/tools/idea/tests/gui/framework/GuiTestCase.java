@@ -58,7 +58,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
-import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;

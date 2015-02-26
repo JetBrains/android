@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,15 +36,23 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
+  @NotNull private final ProjectSystemId myProjectSystemId;
   @NotNull private final String myModuleName;
   @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
+
+  @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
+
+  @SuppressWarnings("NullableProblems") // Set in the constructor.
+  @NotNull private String mySelectedTestArtifactName;
+
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private AndroidVersion myMinSdkVersion;
 
@@ -55,16 +64,19 @@ public class IdeaAndroidProject implements Serializable {
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
-   *
+   * @param projectSystemId     the external system used to build the project (e.g. Gradle).
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
    * @param rootDir             the root directory of the imported Android-Gradle project.
    * @param delegate            imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
-  public IdeaAndroidProject(@NotNull String moduleName,
+  public IdeaAndroidProject(@NotNull ProjectSystemId projectSystemId,
+                            @NotNull String moduleName,
                             @NotNull File rootDir,
                             @NotNull AndroidProject delegate,
-                            @NotNull String selectedVariantName) {
+                            @NotNull String selectedVariantName,
+                            @NotNull String selectedTestArtifactName) {
+    myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
     VirtualFile found = VfsUtil.findFileByIoFile(rootDir, true);
     // the module's root directory can never be null.
@@ -77,6 +89,7 @@ public class IdeaAndroidProject implements Serializable {
     populateVariantsByName();
 
     setSelectedVariantName(selectedVariantName);
+    setSelectedTestArtifactName(selectedTestArtifactName);
   }
 
   private void populateBuildTypesByName() {
@@ -97,6 +110,11 @@ public class IdeaAndroidProject implements Serializable {
     for (Variant variant : myDelegate.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
+  }
+
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return myProjectSystemId;
   }
 
   @Nullable
@@ -120,20 +138,19 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @Nullable
-  public AndroidArtifact findInstrumentationTestArtifactInSelectedVariant() {
-    Variant variant = getSelectedVariant();
-    return findInstrumentationTestArtifact(variant);
-  }
-
-  @Nullable
-  public static AndroidArtifact findInstrumentationTestArtifact(@NotNull Variant variant) {
-    Collection<AndroidArtifact> extraAndroidArtifacts = variant.getExtraAndroidArtifacts();
-    for (AndroidArtifact extraArtifact : extraAndroidArtifacts) {
-      if (extraArtifact.getName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
-        return extraArtifact;
+  public BaseArtifact findSelectedTestArtifact(@NotNull Variant variant) {
+    Iterable<BaseArtifact> allExtraArtifacts = Iterables.concat(variant.getExtraAndroidArtifacts(), variant.getExtraJavaArtifacts());
+    for (BaseArtifact artifact : allExtraArtifacts) {
+      if (getSelectedTestArtifactName().equals(artifact.getName())) {
+        return artifact;
       }
     }
     return null;
+  }
+
+  @Nullable
+  public BaseArtifact findSelectedTestArtifactInSelectedVariant() {
+    return findSelectedTestArtifact(getSelectedVariant());
   }
 
   @NotNull
@@ -191,6 +208,30 @@ public class IdeaAndroidProject implements Serializable {
     // force lazy recompute
     myOverridesManifestPackage = null;
     myMinSdkVersion = null;
+  }
+
+  public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
+    checkArgument(selectedTestArtifactName.equals(AndroidProject.ARTIFACT_ANDROID_TEST)
+                  || selectedTestArtifactName.equals(AndroidProject.ARTIFACT_UNIT_TEST));
+    mySelectedTestArtifactName = selectedTestArtifactName;
+  }
+
+  @NotNull
+  public String getSelectedTestArtifactName() {
+    return mySelectedTestArtifactName;
+  }
+
+  @NotNull
+  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> extraSourceProviders) {
+    ImmutableSet.Builder<SourceProvider> sourceProviders = ImmutableSet.builder();
+
+    for (SourceProviderContainer extraSourceProvider : extraSourceProviders) {
+      if (mySelectedTestArtifactName.equals(extraSourceProvider.getArtifactName())) {
+        sourceProviders.add(extraSourceProvider.getSourceProvider());
+      }
+    }
+
+    return sourceProviders.build();
   }
 
   @NotNull
@@ -354,5 +395,25 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull
   public File[] getExtraGeneratedSourceFolders() {
     return myExtraGeneratedSourceFolders.toArray(new File[myExtraGeneratedSourceFolders.size()]);
+  }
+
+  @Nullable
+  public Collection<SyncIssue> getSyncIssues() {
+    if (supportsIssueReporting()) {
+      return myDelegate.getSyncIssues();
+    }
+    return null;
+  }
+
+  private boolean supportsIssueReporting() {
+    String original = myDelegate.getModelVersion();
+    FullRevision modelVersion;
+    try {
+      modelVersion = FullRevision.parseRevision(original);
+    } catch (NumberFormatException e) {
+      Logger.getInstance(IdeaAndroidProject.class).warn("Failed to parse '" + original + "'", e);
+      return false;
+    }
+    return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
   }
 }

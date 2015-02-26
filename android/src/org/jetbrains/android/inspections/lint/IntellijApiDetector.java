@@ -25,7 +25,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import lombok.ast.AstVisitor;
 import lombok.ast.CompilationUnit;
 import lombok.ast.ForwardingAstVisitor;
@@ -36,6 +38,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import static com.android.SdkConstants.CONSTRUCTOR_NAME;
 import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_LINT_FQCN;
 import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_WARNINGS_FQCN;
 
@@ -266,7 +269,7 @@ public class IntellijApiDetector extends ApiDetector {
           locationNode = method;
         }
         Location location = IntellijLintUtils.getLocation(myContext.file, locationNode);
-        myContext.report(OVERRIDE, location, message, null);
+        myContext.report(OVERRIDE, location, message);
       }
     }
 
@@ -317,7 +320,7 @@ public class IntellijApiDetector extends ApiDetector {
         }
         String fqcn = type.getClassName();
         String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-        myContext.report(UNSUPPORTED, location, message, null);
+        myContext.report(UNSUPPORTED, location, message);
       }
     }
 
@@ -378,7 +381,7 @@ public class IntellijApiDetector extends ApiDetector {
             }
           }
 
-          myContext.report(issue, location, message, null);
+          myContext.report(issue, location, message);
         }
       }
     }
@@ -397,7 +400,7 @@ public class IntellijApiDetector extends ApiDetector {
         }
         Location location = IntellijLintUtils.getLocation(myContext.file, resourceList);
         String message = String.format("Try-with-resources requires API level %1$d (current min is %2$d)", api, minSdk);
-        myContext.report(UNSUPPORTED, location, message, null);
+        myContext.report(UNSUPPORTED, location, message);
       }
 
       for (PsiParameter parameter : statement.getCatchBlockParameters()) {
@@ -438,7 +441,7 @@ public class IntellijApiDetector extends ApiDetector {
               location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
               String fqcn = referenceType.getClassName();
               String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-              myContext.report(UNSUPPORTED, location, message, null);
+              myContext.report(UNSUPPORTED, location, message);
             }
           }
         }
@@ -582,7 +585,26 @@ public class IntellijApiDetector extends ApiDetector {
           } else {
             // Unqualified call; need to search in our super hierarchy
             PsiClass cls = PsiTreeUtil.getParentOfType(expression, PsiClass.class);
+
+            //noinspection ConstantConditions
+            if (qualifier instanceof PsiThisExpression || qualifier instanceof PsiSuperExpression) {
+              PsiQualifiedExpression pte = (PsiQualifiedExpression)qualifier;
+              PsiJavaCodeReferenceElement operand = pte.getQualifier();
+              if (operand != null) {
+                PsiElement resolved = operand.resolve();
+                if (resolved instanceof PsiClass) {
+                  cls = (PsiClass)resolved;
+                }
+              }
+            }
+
             while (cls != null) {
+              if (cls instanceof PsiAnonymousClass) {
+                // If it's an unqualified call in an anonymous class, we need to rely on the
+                // resolve method to find out whether the method is picked up from the anonymous
+                // class chain or any outer classes
+                break;
+              }
               String expressionOwner = IntellijLintUtils.getInternalName(cls);
               if (expressionOwner == null) {
                 break;
@@ -606,6 +628,25 @@ public class IntellijApiDetector extends ApiDetector {
           return;
         }
 
+        // If you're simply calling super.X from method X, even if method X is in a higher API level than the minSdk, we're
+        // generally safe; that method should only be called by the framework on the right API levels. (There is a danger of
+        // somebody calling that method locally in other contexts, but this is hopefully unlikely.)
+        if (expression instanceof PsiMethodCallExpression) {
+          PsiMethodCallExpression call = (PsiMethodCallExpression)expression;
+          PsiReferenceExpression methodExpression = call.getMethodExpression();
+          if (methodExpression.getQualifierExpression() instanceof PsiSuperExpression) {
+            PsiMethod containingMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class, true);
+            if (containingMethod != null && name.equals(containingMethod.getName())
+                && MethodSignatureUtil.areSignaturesEqual(method, containingMethod)
+                // We specifically exclude constructors from this check, because we do want to flag constructors requiring the
+                // new API level; it's highly likely that the constructor is called by local code so you should specifically
+                // investigate this as a developer
+                && !method.isConstructor()) {
+              return;
+            }
+          }
+        }
+
         PsiElement locationNode = IntellijLintUtils.getCallName(expression);
         if (locationNode == null) {
           locationNode = expression;
@@ -614,7 +655,7 @@ public class IntellijApiDetector extends ApiDetector {
         String message = String.format("Call requires API level %1$d (current min is %2$d): %3$s", api, minSdk,
                                        fqcn + '#' + method.getName());
 
-        myContext.report(UNSUPPORTED, location, message, null);
+        myContext.report(UNSUPPORTED, location, message);
       }
     }
   }

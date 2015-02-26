@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.StepListener;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,13 +99,35 @@ public class WrapArchiveWizardPath implements WizardPath {
       if (modules == null) {
         modules = new Module[0];
       }
-      String gradlePath = GradleUtil.makeAbsolute(path);
+      String gradlePath = makeAbsolute(path);
       GradleSettingsFile settingsFile = GradleSettingsFile.get(myProject);
       CreateModuleFromArchiveAction action =
           new CreateModuleFromArchiveAction(myProject, settingsFile, gradlePath, archivePath, move, modules);
       action.execute();
     }
   }
+
+  /**
+   * Prefixes string with colon if there isn't one already there.
+   */
+  @VisibleForTesting
+  @Nullable
+  @Contract("null -> null;!null -> !null")
+  static String makeAbsolute(String string) {
+    if (string == null) {
+      return null;
+    }
+    else if (string.trim().length() == 0) {
+      return SdkConstants.GRADLE_PATH_SEPARATOR;
+    }
+    else if (!string.startsWith(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+      return SdkConstants.GRADLE_PATH_SEPARATOR + string.trim();
+    }
+    else {
+      return string.trim();
+    }
+  }
+
 
   @Override
   public boolean isStepVisible(ModuleWizardStep step) {

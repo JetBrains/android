@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This file was created by NSISDialogDesigner 1.3.0.0
+http://coolsoft.altervista.org/nsisdialogdesigner
+Do not edit manually!
+-->
+<Dialog Name="AndroidSdkPage" Title="Android SDK Settings" Subtitle="Configure the settings of Android Studio" Style="none" ExStyle="none">
+  <CreateFunctionCustomScript>Call fnc_AndroidSdkPage_InitializeControls</CreateFunctionCustomScript>
+  <RadioButton Name="RadioInstallLatest" Location="12, 95" Size="426, 24" Text="Install the latest Android SDK" TabIndex="0" Style="none" ExStyle="none" />
+  <RadioButton Name="RadioUseExisting" Location="13, 46" Size="425, 24" Text="Use an existing Android SDK" Checked="True" TabIndex="1" Style="none" ExStyle="none" />
+  <DirRequest Name="DirRequestUseExisting" Location="29, 70" Size="409, 20" TabIndex="2" ButtonText="Browse..." ButtonWidth="80" DialogHeader="Browse to an existing Android SDK" Style="none" ExStyle="none" />
+  <Label Name="LabelSdkRequired" Location="0, 0" Size="451, 32" Text="Android Studio requires the Android Software Development Kit (SDK).&#xD;&#xA;You have chosen not to install one, so you must specify an existing one." TabIndex="3" Style="none" ExStyle="none" />
+</Dialog>

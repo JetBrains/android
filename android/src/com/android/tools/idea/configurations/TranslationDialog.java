@@ -166,7 +166,7 @@ public class TranslationDialog extends DialogWrapper {
           }
           ResourceItem match = (ResourceItem) config.findMatchingConfigurable(items);
           if (match != null) {
-            LanguageQualifier languageQualifier = match.getConfiguration().getLanguageQualifier();
+            LanguageQualifier languageQualifier = match.getConfiguration().getEffectiveLanguage();
             if (!myLocale.language.equals(languageQualifier)) {
               // This configured value is not in the right language; that means this string
               // was not translated to this locale
@@ -367,7 +367,7 @@ public class TranslationDialog extends DialogWrapper {
         }
         ResourceItem match = (ResourceItem) config.findMatchingConfigurable(items);
         if (match != null) {
-          LanguageQualifier languageQualifier = match.getConfiguration().getLanguageQualifier();
+          LanguageQualifier languageQualifier = match.getConfiguration().getEffectiveLanguage();
           if (!myLocale.language.equals(languageQualifier)) {
             // This configured value is not in the right language; that means this string
             // was not translated to this locale

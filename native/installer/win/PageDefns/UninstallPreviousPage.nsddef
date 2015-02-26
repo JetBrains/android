@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This file was created by NSISDialogDesigner 1.3.1.0
+http://coolsoft.altervista.org/nsisdialogdesigner
+Do not edit manually!
+-->
+<Dialog Name="UninstallPreviousPage" Title="Uninstall old version" ForeColor="ControlText">
+  <HeaderCustomScript>Var var_UninstallPreviousPage_path</HeaderCustomScript>
+  <CreateFunctionCustomScript>${NSD_SetText} $hCtl_UninstallPreviousPage_TextPath $var_UninstallPreviousPage_path</CreateFunctionCustomScript>
+  <FooterCustomScript>; call this BEFORE calling fnc_UninstallPreviousPage_Show
+Function fnc_UninstallPreviousPage_SetTargetPath
+    Pop $var_UninstallPreviousPage_path
+FunctionEnd</FooterCustomScript>
+  <TextBox Name="TextPath" Location="57, 48" Size="393, 20" Text="C:\Program Files\Android\Android Studio" ReadOnly="True" TabIndex="0" />
+  <Label Name="LabelInstallationFound" Location="0, 7" Size="450, 31" Text="A version of Android Studio is already installed. It is recommended to remove older versions of Android Studio before continuing." TabIndex="1" />
+  <Label Name="LabelFoundIn" Location="-1, 51" Size="52, 15" Text="Found in:" TabIndex="2" />
+  <CheckBox Name="CheckUninstall" Location="0, 192" Size="172, 17" Text="Uninstall the previous version" Checked="True" TabIndex="3" />
+  <Label Name="LabelUninstall" Location="14, 208" Size="341, 23" Text="(Settings and configurations will not be deleted in this process)" TabIndex="4" />
+</Dialog>

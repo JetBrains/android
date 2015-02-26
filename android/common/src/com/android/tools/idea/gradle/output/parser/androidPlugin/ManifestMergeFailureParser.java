@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.regex.Pattern;
 
 /**
  * A parser for errors that happen during manifest merging
- * <p>
+ * <p/>
  * The error will be in one of these formats:
  * <pre>
  * [path:line] message
@@ -42,7 +43,7 @@ public class ManifestMergeFailureParser implements PatternAwareOutputParser {
   private static final Pattern ERROR2 = Pattern.compile("([^:].[^:]+):(\\d+):(\\d+) (.+):");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     Matcher m = ERROR1.matcher(line);
     if (m.matches()) {

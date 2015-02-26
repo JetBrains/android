@@ -17,15 +17,15 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
+import org.fest.swing.util.Platform;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
@@ -40,6 +40,19 @@ public class LocalPropertiesTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myLocalProperties = new LocalProperties(myProject);
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=82184
+  public void testGetAndroidSdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
+    if (!SystemInfo.isWindows) {
+      String path = Joiner.on('\\').join("C:", "dir", "file");
+      myLocalProperties.doSetAndroidSdkPath(path);
+      myLocalProperties.save();
+
+      File actual = myLocalProperties.getAndroidSdkPath();
+      assertNotNull(actual);
+      assertEquals(path, actual.getPath());
+    }
   }
 
   public void testCreateFileOnSave() throws Exception {

@@ -185,7 +185,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
   public void testAddModuleStringChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
-      file.addModule("asdf", GradleUtil.getDefaultSubprojectLocation(file.getFile(), ":asdf"));
+      file.addModule("asdf", GradleUtil.getModuleDefaultPath(file.getFile(), ":asdf"));
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -275,7 +275,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        file.addModule(name, GradleUtil.getDefaultSubprojectLocation(file.getFile().getParent(), name));
+        file.addModule(name, GradleUtil.getModuleDefaultPath(file.getFile().getParent(), name));
       }
     });
   }

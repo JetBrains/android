@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -104,11 +103,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           msg = e.getClass().getCanonicalName();
         }
         GradleSyncState.getInstance(project).syncFailed(msg);
-        return;
       }
     }
-
-    PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
   }
 
   private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project) throws Throwable {

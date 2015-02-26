@@ -60,7 +60,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
                                      boolean multipleSelection,
                                      boolean showReuseDevicesCheckbox,
                                      boolean selectReuseDevicesCheckbox) {
-    super(facet.getModule().getProject(), true);
+    super(facet.getModule().getProject(), true, IdeModalityType.PROJECT);
     setTitle(AndroidBundle.message("choose.device.dialog.title"));
 
     myProject = facet.getModule().getProject();
@@ -82,7 +82,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
       public void selectedDevicesChanged() {
-        updateOkButton();
+        myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
+        myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.hasDevices());
+        updateEnabled();
       }
     });
 

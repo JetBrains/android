@@ -22,11 +22,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.base.Function;
+import com.google.common.base.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -43,9 +41,9 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaCodeFragment;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -81,7 +79,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 /**
  * Wizard step for specifying template-specific parameters.
  */
-public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescription {
+public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
   public static final int COLUMN_COUNT = 3;
   private static final Key<File> KEY_TEMPLATE_ICON = createKey("page.template.icon", ScopedStateStore.Scope.STEP, File.class);
@@ -90,6 +88,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
   @NotNull private final Key<String> myPackageNameKey;
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  @NotNull private final FormFactorUtils.FormFactor myFormFactor; // TODO: Use for icon
   private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
@@ -116,7 +115,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
                                 @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
                                 SourceProvider[] sourceProviders) {
-    super("Choose options for your new file", null, formFactor.getIcon(), disposable);
+    super(disposable);
+    myFormFactor = formFactor;
     mySourceProviders = sourceProviders;
     myPresetParameters.putAll(presetParameters);
     myPackageNameKey = packageNameKey;
@@ -212,9 +212,12 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   private Map<Parameter, Object> getParameterObjectMap(Collection<Parameter> parameters,
                                                        Map<Parameter, Object> parametersWithDefaultValues,
-                                                       Map<Parameter, Object> parametersWithNonDefaultValues) {
-    Map<Parameter, Object> computedDefaultValues = ParameterDefaultValueComputer.
-      newDefaultValuesMap(parameters, parametersWithNonDefaultValues, getImplicitParameters(), new DeduplicateValuesFunction());
+                                                       Map<Parameter, Object> parametersWithNonDefaultValues)
+    throws CircularParameterDependencyException {
+    ParameterDefaultValueComputer computer =
+      new ParameterDefaultValueComputer(parameters, parametersWithNonDefaultValues, getImplicitParameters(),
+                                        new DeduplicateValuesFunction());
+    Map<Parameter, Object> computedDefaultValues = computer.getParameterValues();
     Map<Parameter, Object> parameterValues = Maps.newHashMap(parametersWithDefaultValues);
     for (Map.Entry<Parameter, Object> entry : computedDefaultValues.entrySet()) {
       if (!parametersWithNonDefaultValues.keySet().contains(entry.getKey()) && entry.getValue() != null) {
@@ -312,6 +315,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return label != null ? Arrays.asList(label, dataComponent) : Arrays.asList(dataComponent);
   }
 
+  @Nullable
   private WizardParameterFactory getExternalFactory(String uiTypeName) {
     if (Strings.isNullOrEmpty(uiTypeName)) {
       return null;
@@ -338,14 +342,14 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return myExternalWizardParameterFactoryMap.get(uiTypeName);
   }
 
-  private JComponent createClassEntry(Parameter parameter, Module module) {
-    ChooseClassAction browseAction = new ChooseClassAction(module.getProject(), parameter);
+  private JComponent createClassEntry(@NotNull Parameter parameter, @NotNull Module module) {
+    ChooseClassAction browseAction = new ChooseClassAction(parameter, module);
     String historyKey = AddAndroidActivityPath.getRecentHistoryKey(parameter.id);
     // Need to add empty entry to the history, otherwise it will select entry used last
     RecentsManager.getInstance(module.getProject()).registerRecentEntry(historyKey, "");
     ReferenceEditorComboWithBrowseButton control =
         new ReferenceEditorComboWithBrowseButton(browseAction, "", module.getProject(), true,
-                                                 new OnlyShowActivities(), historyKey);
+                                                 new OnlyShowActivities(module), historyKey);
     if (!StringUtil.isEmpty(control.getText())) {
       control.prependItem("");
       control.setText("");
@@ -544,10 +548,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     for (Parameter param : templateEntry.getParameters()) {
       if (param != null) {
         Object value = getStateParameterValue(param);
-        String error = param.validate(getProject(), getModule(),
-                                      myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER),
-                                      myState.get(myPackageNameKey),
-                                      value != null ? value : "");
+        String error = param.validate(getProject(), getModule(), myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER),
+                                      myState.get(myPackageNameKey), value != null ? value : "");
         if (error != null) {
           // Highlight?
           setErrorHtml(error);
@@ -598,10 +600,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     register(KEY_TEMPLATE_ICON, myTemplateIcon, new ComponentBinding<File, JLabel>() {
       @Override
       public void setValue(@Nullable File newValue, @NotNull JLabel component) {
-        Optional<Icon> thumbnail = newValue == null ? null : myThumbnailsCache.apply(newValue);
-        Icon icon = thumbnail != null ? thumbnail.orNull() : null;
+        Optional<Icon> thumbnail = newValue == null ? Optional.<Icon>absent() : myThumbnailsCache.getUnchecked(newValue);
+        Icon icon = thumbnail.orNull();
         component.setIcon(icon);
-        component.setVisible(thumbnail != null);
+        component.setVisible(icon != null);
       }
     });
     registerValueDeriver(KEY_TEMPLATE_ICON, new ValueDeriver<File>() {
@@ -700,7 +702,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return location.row;
   }
 
-  class CellLocation {
+  private static class CellLocation {
     public int row = 0, column = 0;
   }
 
@@ -746,10 +748,17 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
           myState.unsafePut(getParameterKey(parameter), myPresetParameters.get(parameter.id));
         }
       }
-      Map<Parameter, Object> parameterDefaults = refreshParameterDefaults(parameters, myParameterDefaultValues);
-      for (Map.Entry<Parameter, Object> entry : parameterDefaults.entrySet()) {
-        myState.unsafePut(getParameterKey(entry.getKey()), entry.getValue());
-        myParameterDefaultValues.put(entry.getKey().id, entry.getValue());
+      try {
+        Map<Parameter, Object> parameterDefaults = refreshParameterDefaults(parameters, myParameterDefaultValues);
+        for (Map.Entry<Parameter, Object> entry : parameterDefaults.entrySet()) {
+          myState.unsafePut(getParameterKey(entry.getKey()), entry.getValue());
+          myParameterDefaultValues.put(entry.getKey().id, entry.getValue());
+        }
+      }
+      catch (CircularParameterDependencyException exception) {
+        LOG.error("Circular dependency between parameters in template %1$s, participating parameters: %2$s", myCurrentTemplate.getTitle(),
+                  Joiner.on(", ").join(exception.getParameterIds()));
+        LOG.error(exception);
       }
     }
     finally {
@@ -757,7 +766,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private Map<Parameter, Object> refreshParameterDefaults(Collection<Parameter> parameters, Map<String, Object> defaultValues) {
+  private Map<Parameter, Object> refreshParameterDefaults(Collection<Parameter> parameters, Map<String, Object> defaultValues)
+    throws CircularParameterDependencyException {
     final Map<Parameter, Object> parametersAtDefault = Maps.newHashMap();
     final Map<Parameter, Object> parametersAtNonDefault = Maps.newHashMap();
 
@@ -850,6 +860,24 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return "Template parameters";
   }
 
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "Customize the Activity";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  protected Icon getStepIcon() {
+    return myFormFactor.getIcon();
+  }
+
   @Override
   public JComponent getPreferredFocusedComponent() {
     for (Component component : myTemplateParameters.getComponents()) {
@@ -884,10 +912,16 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   }
 
   private static class OnlyShowActivities implements JavaCodeFragment.VisibilityChecker {
+    private final Module myModule;
+
+    public OnlyShowActivities(Module module) {
+      myModule = module;
+    }
+
     private static boolean isActivitySubclass(@NotNull PsiClass classDecl) {
       for (PsiClass superClass : classDecl.getSupers()) {
         String typename = superClass.getQualifiedName();
-        if ("android.app.Activity".equals(typename) || isActivitySubclass(superClass)) {
+        if (SdkConstants.CLASS_ACTIVITY.equals(typename) || isActivitySubclass(superClass)) {
           return true;
         }
       }
@@ -898,28 +932,36 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     public Visibility isDeclarationVisible(PsiElement declaration, @Nullable PsiElement place) {
       if (declaration instanceof PsiClass) {
         PsiClass classDecl = (PsiClass)declaration;
-        if (PsiClassUtil.isRunnableClass(classDecl, true, true) && isActivitySubclass(classDecl)) {
+        if (PsiClassUtil.isRunnableClass(classDecl, true, true) &&
+            isActivitySubclass(classDecl) && isOnClasspath(classDecl)) {
           return Visibility.VISIBLE;
         }
       }
       return Visibility.NOT_VISIBLE;
     }
+
+    private boolean isOnClasspath(@NotNull PsiClass classDecl) {
+      GlobalSearchScope scope = myModule.getModuleWithDependenciesAndLibrariesScope(false);
+      VirtualFile file = classDecl.getContainingFile().getVirtualFile();
+      return scope.contains(file);
+    }
   }
 
   private class ChooseClassAction implements ActionListener {
-    private final Project myProject;
     private Parameter myParameter;
+    @NotNull private final Module myModule;
 
-    public ChooseClassAction(Project project, Parameter parameter) {
-      myProject = project;
+    public ChooseClassAction(@NotNull Parameter parameter, @NotNull Module module) {
       myParameter = parameter;
+      myModule = module;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      final OnlyShowActivities filter = new OnlyShowActivities();
-      TreeClassChooser chooser = TreeClassChooserFactory.getInstance(myProject)
-        .createWithInnerClassesScopeChooser("Select Activity", GlobalSearchScope.projectScope(myProject), new ClassFilter() {
+      final OnlyShowActivities filter = new OnlyShowActivities(myModule);
+      Project project = myModule.getProject();
+      TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
+        .createWithInnerClassesScopeChooser("Select Activity", GlobalSearchScope.projectScope(project), new ClassFilter() {
                                               @Override
                                               public boolean isAccepted(PsiClass aClass) {
                                                 return filter.isDeclarationVisible(aClass, null) ==
@@ -931,7 +973,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       Key<String> key = (Key<String>)getParameterKey(myParameter);
       final String targetClassName = myState.get(key);
       if (targetClassName != null) {
-        final PsiClass aClass = JavaPsiFacade.getInstance(myProject).findClass(targetClassName, GlobalSearchScope.allScope(myProject));
+        final PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(targetClassName, GlobalSearchScope.allScope(project));
         if (aClass != null) {
           chooser.selectDirectory(aClass.getContainingFile().getContainingDirectory());
         }

@@ -92,7 +92,9 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.*;
-import org.jetbrains.android.util.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,11 +209,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return Collections.emptyList();
     }
 
+    Collection<SourceProviderContainer> extraSourceProviders =
+      myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders();
+
     List<IdeaSourceProvider> providers = Lists.newArrayList();
-    for (SourceProviderContainer container : myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders()) {
-      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
-        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
-      }
+    for (SourceProvider sourceProvider : myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(extraSourceProviders)) {
+      providers.add(IdeaSourceProvider.create(sourceProvider));
     }
 
     return providers;
@@ -261,11 +264,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
     BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
     assert buildType != null;
-    for (SourceProviderContainer container : buildType.getExtraSourceProviders()) {
-      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
-        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
-      }
+
+    Collection<SourceProvider> testSourceProviders =
+      myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders());
+
+
+    for (SourceProvider sourceProvider : testSourceProviders) {
+      providers.add(IdeaSourceProvider.create(sourceProvider));
     }
+
     return providers;
   }
 
@@ -348,10 +355,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     for (String flavor : productFlavors) {
       ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
       assert productFlavor != null;
-      for (SourceProviderContainer container : productFlavor.getExtraSourceProviders()) {
-        if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
-          providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
-        }
+
+      Collection<SourceProvider> testSourceProviders =
+        myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders());
+
+      for (SourceProvider sourceProvider : testSourceProviders) {
+        providers.add(IdeaSourceProvider.create(sourceProvider));
       }
     }
 
@@ -783,7 +792,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Override
   public void disposeFacet() {
     if (myConfigurationManager != null) {
-      myConfigurationManager.dispose();
+      Disposer.dispose(myConfigurationManager);
     }
   }
 
@@ -1134,14 +1143,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myIdeaAndroidProject;
   }
 
-  public void syncSelectedVariant() {
+  public void syncSelectedVariantAndTestArtifact() {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
       state.SELECTED_BUILD_VARIANT = variant.getName();
+      state.SELECTED_TEST_ARTIFACT = myIdeaAndroidProject.getSelectedTestArtifactName();
 
       AndroidArtifact mainArtifact = variant.getMainArtifact();
-      AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
+      BaseArtifact testArtifact = myIdeaAndroidProject.findSelectedTestArtifactInSelectedVariant();
       updateGradleTaskNames(state, mainArtifact, testArtifact);
     }
   }
@@ -1149,13 +1159,17 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @VisibleForTesting
   static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
                                     @NotNull AndroidArtifact mainArtifact,
-                                    @Nullable AndroidArtifact testArtifact) {
+                                    @Nullable BaseArtifact testArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
 
     if (testArtifact != null) {
-      state.TEST_SOURCE_GEN_TASK_NAME = testArtifact.getSourceGenTaskName();
       state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
+      if (testArtifact instanceof AndroidArtifact) {
+        state.TEST_SOURCE_GEN_TASK_NAME = ((AndroidArtifact) testArtifact).getSourceGenTaskName();
+      } else {
+        state.TEST_SOURCE_GEN_TASK_NAME = "";
+      }
     }
     else {
       state.TEST_SOURCE_GEN_TASK_NAME = "";

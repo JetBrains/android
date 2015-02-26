@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.WizardConstants;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,16 +29,17 @@ import java.awt.*;
  */
 public abstract class FirstRunWizardStep extends DynamicWizardStep {
   public static final String SETUP_WIZARD = "Setup Wizard";
-  private final JPanel myPanel;
   @NotNull private final String myName;
+  @Nullable private final String myDescription;
+  private JComponent myComponent;
 
   public FirstRunWizardStep(@Nullable String name) {
-    myName = name == null ? SETUP_WIZARD : name;
-    myPanel = new JPanel(new BorderLayout());
-    String title = name != null ? SETUP_WIZARD + " - " + name : SETUP_WIZARD;
-    JPanel header = createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
-                                           AndroidIcons.Wizards.NewProjectMascotGreen, title);
-    myPanel.add(header, BorderLayout.NORTH);
+    this(name == null ? SETUP_WIZARD : name, null);
+  }
+
+  public FirstRunWizardStep(@NotNull String name, @Nullable String description) {
+    myName = name;
+    myDescription = description;
   }
 
   @NotNull
@@ -50,13 +50,27 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
 
   @NotNull
   @Override
-  public final JComponent getComponent() {
-    return myPanel;
+  protected String getStepTitle() {
+    return myName;
   }
 
+  @NotNull
+  @Override
+  protected Component createStepBody() {
+    assert myComponent != null : "setComponent was not called when constructing the wizard step";
+    return myComponent;
+  }
+
+  // This is here for legacy
   protected final void setComponent(@NotNull JComponent component) {
     int inset = WizardConstants.STUDIO_WIZARD_TOP_INSET * 2;
     component.setBorder(BorderFactory.createEmptyBorder(inset, inset, inset, inset));
-    myPanel.add(component, BorderLayout.CENTER);
+    myComponent = component;
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return myDescription;
   }
 }

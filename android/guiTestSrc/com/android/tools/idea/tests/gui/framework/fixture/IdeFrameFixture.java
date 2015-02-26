@@ -24,9 +24,10 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.intellij.codeInspection.ui.InspectionTree;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +42,10 @@ import com.intellij.openapi.options.ex.IdeConfigurablesGroup;
 import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
@@ -56,12 +61,14 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import javax.swing.*;
@@ -78,16 +85,13 @@ import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecut
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static junit.framework.Assert.assertNotNull;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
-import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
-import static org.jetbrains.android.AndroidPlugin.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.android.AndroidPlugin.*;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.*;
 
@@ -144,6 +148,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public List<String> getModuleNames() {
+    List<String> names = Lists.newArrayList();
+    for (Module module : getModuleManager().getModules()) {
+      names.add(module.getName());
+    }
+    return names;
+  }
+
+  @NotNull
   public IdeFrameFixture requireModuleCount(int expected) {
     Module[] modules = getModuleManager().getModules();
     assertThat(modules).as("Module count in project " + quote(getProject().getName())).hasSize(expected);
@@ -164,6 +177,35 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public Multimap<JpsModuleSourceRootType, String> getSourceFolderRelativePaths(@NotNull String moduleName) {
+    final Multimap<JpsModuleSourceRootType, String> sourceFoldersByType = ArrayListMultimap.create();
+
+    Module module = getModule(moduleName);
+    final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+        try {
+          for (ContentEntry contentEntry : rootModel.getContentEntries()) {
+            for (SourceFolder folder : contentEntry.getSourceFolders()) {
+              String path = urlToPath(folder.getUrl());
+              String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
+              sourceFoldersByType.put(folder.getRootType(), relativePath);
+            }
+          }
+        }
+        finally {
+          rootModel.dispose();
+        }
+      }
+    });
+
+    return sourceFoldersByType;
+  }
+
+  @NotNull
   public Module getModule(@NotNull String name) {
     for (Module module : getModuleManager().getModules()) {
       if (name.equals(module.getName())) {
@@ -176,13 +218,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   private ModuleManager getModuleManager() {
     return ModuleManager.getInstance(getProject());
-  }
-
-  @NotNull
-  public Project getProject() {
-    Project project = target.getProject();
-    assertNotNull(project);
-    return project;
   }
 
   @NotNull
@@ -402,7 +437,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     throw new AssertionError("Menu item with path " + Arrays.toString(path) + " should have been found already");
   }
 
-  private void waitForBuildToFinish(@NotNull final BuildMode buildMode) {
+  @NotNull
+  public IdeFrameFixture waitForBuildToFinish(@NotNull final BuildMode buildMode) {
     final Project project = getProject();
     pause(new Condition("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'") {
       @Override
@@ -421,6 +457,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
     waitForBackgroundTasksToFinish();
     robot.waitForIdle();
+
+    return this;
   }
 
   @NotNull
@@ -554,6 +592,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public AndroidToolWindowFixture getAndroidToolWindow() {
     return new AndroidToolWindowFixture(getProject(), robot);
+  }
+
+  @NotNull
+  public BuildVariantsToolWindowFixture getBuildVariantsWindow() {
+    return new BuildVariantsToolWindowFixture(this);
   }
 
   @NotNull
@@ -724,8 +767,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public ProjectViewFixture getProjectView() {
-    ProjectView projectView = ProjectView.getInstance(getProject());
-    return new ProjectViewFixture(projectView);
+    return new ProjectViewFixture(getProject(), robot);
+  }
+
+  @NotNull
+  public Project getProject() {
+    Project project = target.getProject();
+    assertNotNull(project);
+    return project;
   }
 
   private static class NoOpDisposable implements Disposable {

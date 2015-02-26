@@ -280,7 +280,7 @@ public class GradleInvoker {
           tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
       }
 
-      if (testCompileType == TestCompileType.ANDROID_TESTS) {
+      if (testCompileType != TestCompileType.NONE) {
         String gradleTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
         if (StringUtil.isNotEmpty(gradleTaskName)) {
           tasks.add(createBuildTask(gradlePath, gradleTaskName));

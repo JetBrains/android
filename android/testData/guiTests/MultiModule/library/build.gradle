@@ -7,7 +7,6 @@ android {
     buildToolsVersion "21.0.1"
 
     defaultConfig {
-        applicationId "com.android.mylibrary"
         minSdkVersion 19
         targetSdkVersion 21
         versionCode 1

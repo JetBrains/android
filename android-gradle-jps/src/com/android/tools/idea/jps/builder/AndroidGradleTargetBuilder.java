@@ -16,9 +16,8 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
@@ -55,7 +54,6 @@ import org.jetbrains.jps.model.java.JpsJavaModuleType;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.model.module.JpsTypedModule;
-import org.jetbrains.jps.service.JpsServiceManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -295,8 +293,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
-    Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-    Collection<GradleMessage> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(stdErr);
+    Collection<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       boolean hasError = false;
       for (GradleMessage message : compilerMessages) {

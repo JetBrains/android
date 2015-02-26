@@ -40,6 +40,8 @@ import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -379,6 +381,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         if (Template.ourMostRecentException != null) {
           fail(Template.ourMostRecentException.getMessage());
         }
+        FileDocumentManager.getInstance().saveAllDocuments();
       }
     });
 

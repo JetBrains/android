@@ -45,6 +45,7 @@ public class DeleteDeviceAction extends DeviceUiAction {
     if (result == JOptionPane.YES_OPTION) {
       DeviceManagerConnection.getDefaultDeviceManagerConnection().deleteDevice(device);
       myProvider.refreshDevices();
+      myProvider.selectDefaultDevice();
     }
   }
 }

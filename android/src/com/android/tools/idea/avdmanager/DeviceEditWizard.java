@@ -16,36 +16,23 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.DeviceManager;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.SingleStepPath;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.wizard.SingleStepDialogWrapperHost;
+import com.android.tools.idea.wizard.SingleStepWizard;
+import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard for creating or editing a {@link Device}
  */
-public class DeviceEditWizard extends DynamicWizard {
-  @Nullable private final Device myDeviceTemplate;
-  private final boolean myForceCreation;
-
+public class DeviceEditWizard extends SingleStepWizard {
   /**
    * @param deviceTemplate If not null, the given device will be cloned.
    * @param forceCreation if set to true, the given device will be edited rather than cloned
    */
   public DeviceEditWizard(@Nullable Device deviceTemplate, boolean forceCreation) {
-    super(null, null, "Create hardware profile");
-    myDeviceTemplate = deviceTemplate;
-    myForceCreation = forceCreation;
+    super(null, null, new ConfigureDeviceOptionsStep(deviceTemplate, forceCreation, null),
+          new SingleStepDialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
     setTitle("Hardware Profile Configuration");
-  }
-
-  @Override
-  public void init() {
-    addPath(new SingleStepPath(new ConfigureDeviceOptionsStep(myDeviceTemplate, myForceCreation, getDisposable())));
-    super.init();
   }
 
   @Override
@@ -54,6 +41,11 @@ public class DeviceEditWizard extends DynamicWizard {
     if (device != null) {
       DeviceManagerConnection.getDefaultDeviceManagerConnection().createOrEditDevice(device);
     }
+  }
+
+  @Nullable
+  public Device getEditedDevice() {
+    return getState().get(AvdWizardConstants.DEVICE_DEFINITION_KEY);
   }
 
   @Override

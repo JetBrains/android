@@ -16,13 +16,62 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.rendering.RenderedView;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class HierarchyUtils {
-  private static final Logger LOG = Logger.getInstance(HierarchyUtils.class.getName());
+  @Nullable
+  static String getViewId(@Nullable RenderedView leaf) {
+    if (leaf != null) {
+      XmlTag tag = leaf.tag;
+      if (tag != null) {
+        String attributeValue = tag.getAttributeValue("android:id");
+        int prefixLength = Analyser.getPrefix(attributeValue).length();
+        if (attributeValue != null && prefixLength != 0) {
+          return attributeValue.substring(prefixLength);
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  static String getViewId(@Nullable ViewInfo leaf) {
+    if (leaf != null) {
+      Object cookie = leaf.getCookie();
+      if (cookie instanceof XmlTag) {
+        XmlTag tag = (XmlTag)cookie;
+        String attributeValue = tag.getAttributeValue("android:id");
+        int prefixLength = Analyser.getPrefix(attributeValue).length();
+        if (attributeValue != null && prefixLength != 0) {
+          return attributeValue.substring(prefixLength);
+        }
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  static RenderedView getRoot(@NotNull RenderedView view) {
+    while (true) {
+      RenderedView parent = view.getParent();
+      if (parent == null) {
+        return view;
+      }
+      view = parent;
+    }
+  }
+
+  @Nullable
+  static RenderedView getNamedParent(@Nullable RenderedView view) {
+    while (view != null && getViewId(view) == null) {
+      view = view.getParent();
+    }
+    return view;
+  }
 
   private static String getTagName(@Nullable RenderedView leaf) {
     if (leaf != null) {
@@ -44,31 +93,51 @@ class HierarchyUtils {
     return "null";
   }
 
-  static void display(@Nullable RenderedView root) {
-    if (root == null) {
-      return;
+  private static String getClassName(@Nullable ViewInfo leaf) {
+    if (leaf != null) {
+      return leaf.getViewObject().getClass().getSimpleName();
     }
+    return "null";
+  }
+
+  private static String getClassName(@Nullable RenderedView leaf) {
+    if (leaf != null) {
+      return getClassName(leaf.view);
+    }
+    return "null";
+  }
+
+  static String toString(@Nullable RenderedView root) {
+    if (root == null) {
+      return "";
+    }
+    final StringBuilder buffer = new StringBuilder();
     new Object() {
       public void display(RenderedView view, String indent) {
-        LOG.info(indent + getTagName(view) + " " + NavigationView.getViewId(view));
+        //noinspection StringConcatenationInsideStringBufferAppend
+        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
         for (RenderedView c : view.getChildren()) {
           display(c, "  " + indent);
         }
       }
     }.display(root, "");
+    return buffer.toString();
   }
 
-  static void display(@Nullable ViewInfo root) {
+  static String toString(@Nullable ViewInfo root) {
     if (root == null) {
-      return;
+      return "";
     }
+    final StringBuilder buffer = new StringBuilder();
     new Object() {
       public void display(ViewInfo view, String indent) {
-        LOG.info(indent + getTagName(view) + " " + NavigationView.getViewId(view));
+        //noinspection StringConcatenationInsideStringBufferAppend
+        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
         for (ViewInfo c : view.getChildren()) {
           display(c, ".." + indent);
         }
       }
     }.display(root, "");
+    return buffer.toString();
   }
 }

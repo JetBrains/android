@@ -18,20 +18,18 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.*;
+import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.*;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +49,8 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
  * UI for configuring a Device Hardware Profile.
  */
 public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDescription {
+  private static final String DEFAULT_DEVICE_TYPE_LABEL = "Phone/Tablet";
+
   @Nullable private final Device myTemplateDevice;
   private final boolean myForceCreation;
   private DeviceDefinitionPreview myDeviceDefinitionPreview;
@@ -74,6 +74,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private JBLabel myHelpAndErrorLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private SkinChooser myCustomSkinPath;
+  private ComboBox myDeviceTypeComboBox;
 
   /**
    * This contains the Software for the device. Since it has no effect on the
@@ -100,6 +101,19 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     mySoftware = new Software();
     mySoftware.setLiveWallpaperSupport(true);
     mySoftware.setGlVersion("2.0");
+
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel(ALL_TAGS));
+    myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
+      @Override
+      public void customize(JList list, IdDisplay value, int index, boolean selected, boolean hasFocus) {
+        if (SystemImage.DEFAULT_TAG.equals(value) || value == null) {
+          setText(DEFAULT_DEVICE_TYPE_LABEL);
+        } else {
+          setText(value.getDisplay());
+        }
+      }
+    });
+
   }
 
   private static String getUniqueId(@Nullable String id) {
@@ -159,7 +173,17 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     } else {
       myState.put(DEVICE_NAME_KEY, myTemplateDevice.getDisplayName());
     }
-    myBuilder.setTagId(myTemplateDevice.getTagId());
+
+    String tagId = myTemplateDevice.getTagId();
+    if (tagId != null) {
+      for (IdDisplay tag : ALL_TAGS) {
+        if (tag.getId().equals(tagId)) {
+          myState.put(TAG_ID_KEY, tag);
+          break;
+        }
+      }
+    }
+
     for (Map.Entry<String, String> entry : myTemplateDevice.getBootProps().entrySet()) {
       myBuilder.addBootProp(entry.getKey(), entry.getValue());
     }
@@ -196,7 +220,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, defaultHardware.getSensors().contains(Sensor.GYROSCOPE));
     myState.put(HAS_GPS_KEY, defaultHardware.getSensors().contains(Sensor.GPS));
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
-    File skinFile = AvdEditWizard.getHardwareSkinPath(defaultHardware);
+    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null);
     if (skinFile != null) {
       myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
     } else {
@@ -286,6 +310,15 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       String name = myState.get(DEVICE_NAME_KEY);
       myBuilder.setName(name == null ? "" : name);
       myBuilder.setId(getUniqueId(name));
+    }
+
+    if (refreshAll || modified.contains(TAG_ID_KEY)) {
+      IdDisplay tag = myState.get(TAG_ID_KEY);
+      if (SystemImage.DEFAULT_TAG.equals(tag) || tag == null) {
+        myBuilder.setTagId(null);
+      } else {
+        myBuilder.setTagId(tag.getId());
+      }
     }
 
     if (!myState.containsKey(WIP_SCREEN_KEY)) {
@@ -711,6 +744,8 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     register(CUSTOM_SKIN_FILE_KEY, myCustomSkinPath, myCustomSkinPath.getBinding());
     myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
     setControlDescription(myCustomSkinPath, "Path to a directory containing a custom skin");
+
+    register(TAG_ID_KEY, myDeviceTypeComboBox);
   }
 
   private static final ComponentBinding<Double, JTextField> DOUBLE_BINDING = new ComponentBinding<Double, JTextField>() {
@@ -800,15 +835,15 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JBColor getTitleBackgroundColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  protected String getStepTitle() {
+    return "Configure Hardware Profile";
   }
 
   @Nullable
   @Override
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  protected String getStepDescription() {
+    return null;
   }
 }

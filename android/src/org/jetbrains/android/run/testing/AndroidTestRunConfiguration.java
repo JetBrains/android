@@ -16,7 +16,7 @@
 
 package org.jetbrains.android.run.testing;
 
-import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -100,7 +100,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    AndroidArtifact testArtifact = project.findInstrumentationTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = project.findSelectedTestArtifactInSelectedVariant();
     String testTask = testArtifact != null ? testArtifact.getAssembleTaskName() : null;
     return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
@@ -272,10 +272,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   protected AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet) {
-    String runner = INSTRUMENTATION_RUNNER_CLASS.length() > 0 ? INSTRUMENTATION_RUNNER_CLASS : getRunnerFromManifest(facet);
+    String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
+    return new MyApplicationLauncher(runner);
+  }
+
+  @Nullable
+  public static String findInstrumentationRunner(@NotNull AndroidFacet facet) {
+    String runner = getRunnerFromManifest(facet);
 
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    // if custom runner is not set in the config, then see if it is specified by gradle
     if (runner == null && ideaAndroidProject != null) {
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
       String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
@@ -283,11 +288,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         runner = testRunner;
       }
     }
-    return new MyApplicationLauncher(runner);
+
+    return runner;
   }
 
   @Nullable
-  private static String getRunnerFromManifest(AndroidFacet facet) {
+  private static String getRunnerFromManifest(@NotNull AndroidFacet facet) {
     Manifest manifest = facet.getManifest();
     if (manifest != null) {
       for (Instrumentation instrumentation : manifest.getInstrumentations()) {
@@ -401,8 +407,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   private class MyApplicationLauncher extends AndroidApplicationLauncher {
     private final String myInstrumentationTestRunner;
 
-    private MyApplicationLauncher(String instrumentationTestRunner) {
-      this.myInstrumentationTestRunner = instrumentationTestRunner;
+    private MyApplicationLauncher(@Nullable String instrumentationTestRunner) {
+      myInstrumentationTestRunner = instrumentationTestRunner;
     }
 
     @Override

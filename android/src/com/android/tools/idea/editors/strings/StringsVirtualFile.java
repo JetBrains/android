@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.editors.AndroidFakeFileSystem;
+import com.google.common.base.Joiner;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -30,11 +33,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class StringsVirtualFile extends LightVirtualFile {
+  public static final String NAME = "Translations Editor";
+
   private static final Key<StringsVirtualFile> KEY = Key.create(StringsVirtualFile.class.getName());
   @NotNull private final AndroidFacet myFacet;
 
   private StringsVirtualFile(@NotNull AndroidFacet facet) {
-    super("Translations Editor", StringsResourceFileType.INSTANCE, "");
+    super(NAME, StringsResourceFileType.INSTANCE, "");
     myFacet = facet;
   }
 
@@ -51,12 +56,20 @@ public class StringsVirtualFile extends LightVirtualFile {
     return moduleFile == null ? null : moduleFile.getParent();
   }
 
+  @NotNull
+  @Override
+  public String getPath() {
+    return AndroidFakeFileSystem.constructPathForFile(getName(), myFacet.getModule());
+  }
+
   @Nullable
   public static StringsVirtualFile getInstance(@NotNull Project project, @NotNull VirtualFile file) {
     Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module == null) {
-      return null;
-    }
+    return module == null ? null : getStringsVirtualFile(module);
+  }
+
+  @Nullable
+  public static StringsVirtualFile getStringsVirtualFile(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
@@ -69,6 +82,12 @@ public class StringsVirtualFile extends LightVirtualFile {
     }
 
     return vfile;
+  }
+
+  @NotNull
+  @Override
+  public VirtualFileSystem getFileSystem() {
+    return AndroidFakeFileSystem.INSTANCE;
   }
 
   private static class StringsResourceFileType extends FakeFileType {

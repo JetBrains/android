@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -202,6 +203,12 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
     return NO_UNRESOLVED_DEPENDENCIES;
+  }
+
+  @Override
+  @NotNull
+  public Collection<SyncIssue> getSyncIssues() {
+    return Collections.emptyList();
   }
 
   @Override

@@ -56,7 +56,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 /**
  * Step to get the sdk location from the user.
  */
-public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
+public class GetSdkStep extends DynamicWizardStepWithDescription {
   private static final Logger LOG = Logger.getInstance(GetSdkStep.class);
   private TextFieldWithBrowseButton mySdkLocationField;
   private JPanel myPanel;
@@ -65,7 +65,7 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
   private static final Key<String> SDK_PATH_KEY = createKey("sdkPath", STEP, String.class);
 
   public GetSdkStep(@NotNull Disposable parentDisposable) {
-    super("SDK Setup", "You may use an existing SDK or download a new one", null, parentDisposable);
+    super(parentDisposable);
     setBodyComponent(myPanel);
   }
 
@@ -198,6 +198,18 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
   @Override
   public String getStepName() {
     return "Find or download SDK";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "SDK Setup";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return "You may use an existing SDK or download a new one";
   }
 
   @Override

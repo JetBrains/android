@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
@@ -56,20 +55,14 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
   private JPanel myModulesPanel;
   private boolean myIsSynchronizingSelection = false;
 
-  @Nullable
+  @NotNull
   @Override
-  protected JComponent getHeader() {
+  protected WizardStepHeaderSettings getStepHeader() {
     return NewModuleWizardDynamic.buildHeader();
   }
 
-  @Override
-  @Nullable
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
-  }
-
   public ChooseModuleTypeStep(Iterable<ModuleTemplateProvider> moduleTypesProviders, @Nullable Disposable parentDisposable) {
-    super("Choose Module Type", "Select an option below to create your new module", null, parentDisposable);
+    super("Choose Module Type", "Select an option below to create your new module", parentDisposable);
     myModuleTypeList.setCellRenderer(new TemplateListCellRenderer());
     myModuleTypesProviders = moduleTypesProviders;
     myModuleTypeList.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));

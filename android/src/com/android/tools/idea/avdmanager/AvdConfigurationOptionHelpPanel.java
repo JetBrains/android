@@ -141,8 +141,8 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(RAM_STORAGE_KEY, "Device RAM").
       put(VM_HEAP_STORAGE_KEY, "Virtual Machine Heap").
       put(INTERNAL_STORAGE_KEY, "Internal Flash").
-      put(SD_CARD_STORAGE_KEY, "New SD Card Size").
-      put(EXISTING_SD_LOCATION, "Location of SD card image").
+      put(SD_CARD_STORAGE_KEY, "Built-in SD Card Size").
+      put(EXISTING_SD_LOCATION, "Location of external SD card image").
       put(SCALE_SELECTION_KEY, "Start-Up Size").
       put(DEFAULT_ORIENTATION_KEY, "Default Orientation").
       put(NETWORK_SPEED_KEY, "Network Speed").
@@ -154,6 +154,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(CUSTOM_SKIN_FILE_KEY, "Custom Hardware Skin").
       put(DISPLAY_NAME_KEY, "AVD Name").
       put(HAS_HARDWARE_KEYBOARD_KEY, "Enable keyboard input").
+      put(AVD_ID_KEY, "AVD Id").
       build();
 
   private static Map<Key<?>, String> DESCRIPTIONS = ImmutableMap.<Key<?>, String>builder().
@@ -194,6 +195,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(DISPLAY_NAME_KEY, "The name of this AVD.").
     put(HAS_HARDWARE_KEYBOARD_KEY, "Enables you to enter text input and interact with the AVD with your hardware computer keyboard " +
                                    "instead of a of the on on-screen software keyboard.\n").
+    put(AVD_ID_KEY, "Identification name used to save an AVD on disk. This AVD name can also be used with Android command line tools.\n").
     build();
 
   /**

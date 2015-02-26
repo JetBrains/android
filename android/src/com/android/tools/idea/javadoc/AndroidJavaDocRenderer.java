@@ -152,6 +152,7 @@ public class AndroidJavaDocRenderer {
           return new TextValueRenderer(module);
         case ARRAY:
           return new ArrayRenderer(module);
+        case MIPMAP:
         case DRAWABLE:
           return new DrawableValueRenderer(module);
         case COLOR:

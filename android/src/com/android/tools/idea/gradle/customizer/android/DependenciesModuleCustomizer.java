@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.Dependency;
@@ -24,13 +25,16 @@ import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,7 +44,8 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAI
 /**
  * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject>
+  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
   private static final Logger LOG = Logger.getInstance(AbstractDependenciesModuleCustomizer.class);
 
   @Override
@@ -55,9 +60,15 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       updateDependency(model, dependency, errorsFound);
     }
 
-    Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
-    messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
+    Collection<SyncIssue> syncIssues = androidProject.getSyncIssues();
+    if (syncIssues != null) {
+      messages.reportSyncIssues(syncIssues, model.getModule());
+    }
+    else {
+      Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
+      messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
+    }
   }
 
   private void updateDependency(@NotNull ModifiableRootModel model, @NotNull LibraryDependency dependency) {
@@ -104,5 +115,17 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (hasLibraryBackup) {
       updateDependency(model, backup);
     }
+  }
+
+  @Override
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return GradleConstants.SYSTEM_ID;
+  }
+
+  @Override
+  @NotNull
+  public Class<IdeaAndroidProject> getSupportedModelType() {
+    return IdeaAndroidProject.class;
   }
 }

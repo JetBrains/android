@@ -63,7 +63,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * <p/>This implements {@link com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
  * {@link com.android.ide.common.rendering.legacy.LegacyCallback}
  */
-public final class LayoutlibCallback extends LegacyCallback {
+public class LayoutlibCallback extends LegacyCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
@@ -80,6 +80,7 @@ public final class LayoutlibCallback extends LegacyCallback {
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
   @NotNull private final ActionBarHandler myActionBarHandler;
+  @Nullable private final RenderService myRenderService;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
@@ -93,6 +94,7 @@ public final class LayoutlibCallback extends LegacyCallback {
    * @param facet      the facet
    * @param logger     the render logger
    * @param credential the sandbox credential
+   * @param actionBarHandler An {@link ActionBarHandler} instance.
    */
   public LayoutlibCallback(@NotNull LayoutLibrary layoutLib,
                            @NotNull AppResourceRepository projectRes,
@@ -100,13 +102,15 @@ public final class LayoutlibCallback extends LegacyCallback {
                            @NotNull AndroidFacet facet,
                            @NotNull RenderLogger logger,
                            @Nullable Object credential,
-                           @NotNull RenderService renderService) {
+                           @Nullable ActionBarHandler actionBarHandler,
+                           @Nullable RenderService renderService) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
-    myActionBarHandler = new ActionBarHandler(renderService, credential);
+    myActionBarHandler = actionBarHandler;
+    myRenderService = renderService;
   }
 
   /** Resets the callback state for another render */
@@ -321,8 +325,8 @@ public final class LayoutlibCallback extends LegacyCallback {
               assert myLogger != null;
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
               if (parentName.startsWith(FD_RES_LAYOUT)) {
-                // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
-                parser.setProvideViewCookies(false);
+                // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
+                parser.setProvideViewCookies(myRenderService != null && myRenderService.getProvideCookiesForIncludedViews());
               }
               return parser;
             }
@@ -632,8 +636,11 @@ public final class LayoutlibCallback extends LegacyCallback {
   }
 
   @Override
-  public ActionBarHandler getActionBarCallback() {
+  public ActionBarCallback getActionBarCallback() {
     return myActionBarHandler;
   }
 
+  public ActionBarHandler getActionBarHandler() {
+    return myActionBarHandler;
+  }
 }

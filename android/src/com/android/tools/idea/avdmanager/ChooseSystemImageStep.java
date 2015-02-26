@@ -18,8 +18,8 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -36,7 +36,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.SYSTEM_IMAGE_
 /**
  * Wizard step for selecting a {@link SystemImage} from the installed images in the SDK.
  */
-public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescription
+public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
   implements SystemImageList.SystemImageSelectionListener {
   private SystemImageList mySystemImageList;
   private JPanel myPanel;
@@ -45,38 +45,42 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
   private Project myProject;
 
   public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
-    super("System Image", "Select a system image", null, parentDisposable);
+    super(parentDisposable);
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
     Predicate<AvdWizardConstants.SystemImageDescription> filter = new Predicate<AvdWizardConstants.SystemImageDescription>() {
       @Override
       public boolean apply(AvdWizardConstants.SystemImageDescription input) {
-        if (myCurrentDevice == null) {
-          return true;
-        }
-        String deviceTagId = myCurrentDevice.getTagId();
-        IdDisplay inputTag = input.getTag();
-        if (inputTag == null) {
-          return true;
-        }
-
-        // Unknown/generic device?
-        if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
-          // If so include all system images, except those we *know* not to match this type
-          // of device. Rather than just checking "inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
-          // here (which will filter out system images with a non-default tag, such as the Google API
-          // system images (see issue #78947), we instead deliberately skip the other form factor images
-
-          return inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId()) ||
-                 !inputTag.equals(AvdWizardConstants.TV_TAG) && !inputTag.equals(AvdWizardConstants.WEAR_TAG);
-        }
-
-        return deviceTagId.equals(inputTag.getId());
+        return systemImageMatchesDevice(input, myCurrentDevice);
       }
     };
     mySystemImageList.setFilter(filter);
     mySystemImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
     setBodyComponent(myPanel);
+  }
+
+  public static boolean systemImageMatchesDevice(AvdWizardConstants.SystemImageDescription image, Device device) {
+    if (device == null || image == null) {
+      return false;
+    }
+    String deviceTagId = device.getTagId();
+    IdDisplay inputTag = image.getTag();
+    if (inputTag == null) {
+      return true;
+    }
+
+    // Unknown/generic device?
+    if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
+      // If so include all system images, except those we *know* not to match this type
+      // of device. Rather than just checking "inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
+      // here (which will filter out system images with a non-default tag, such as the Google API
+      // system images (see issue #78947), we instead deliberately skip the other form factor images
+
+      return inputTag.getId().equals(SystemImage.DEFAULT_TAG.getId()) ||
+             !inputTag.equals(AvdWizardConstants.TV_TAG) && !inputTag.equals(AvdWizardConstants.WEAR_TAG);
+    }
+
+    return deviceTagId.equals(inputTag.getId());
   }
 
   @Override
@@ -86,21 +90,29 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
 
   @Override
   public boolean isStepVisible() {
-    Boolean isInEditMode = myState.get(IS_IN_EDIT_MODE_KEY);
-    if (isInEditMode != null && isInEditMode) {
-      return myState.get(SYSTEM_IMAGE_KEY) == null;
-    } else {
-      return true;
-    }
+    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false) || !myState.containsKey(SYSTEM_IMAGE_KEY);
   }
 
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    myCurrentDevice = myState.get(DEVICE_DEFINITION_KEY);
+    Device newDevice = myState.get(DEVICE_DEFINITION_KEY);
+    String newTag = newDevice == null ? null : newDevice.getTagId();
+    String oldTag = myCurrentDevice == null ? null : myCurrentDevice.getTagId();
+    // If we've changed device types, the previously selected device is invalid
+    if (!Objects.equal(newTag, oldTag)) {
+      myState.remove(SYSTEM_IMAGE_KEY);
+    }
+    myCurrentDevice = newDevice;
     AvdWizardConstants.SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
+    // synchronously get the local images in case one should already be selected
+    mySystemImageList.refreshLocalImagesSynchronously();
+    if (selectedImage != null) {
+      mySystemImageList.setSelectedImage(selectedImage);
+    } else {
+      mySystemImageList.selectDefaultImage();
+    }
     mySystemImageList.refreshImages(false);
-    mySystemImageList.setSelectedImage(selectedImage);
   }
 
   @Override
@@ -120,16 +132,16 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
     myState.put(SYSTEM_IMAGE_KEY, systemImage);
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JBColor getTitleBackgroundColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  protected String getStepTitle() {
+    return "System Image";
   }
 
   @Nullable
   @Override
-  protected JBColor getTitleTextColor() {
-    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
+  protected String getStepDescription() {
+    return "Select a system image";
   }
 
   private void createUIComponents() {

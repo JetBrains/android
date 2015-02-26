@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -25,21 +26,22 @@ import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErr
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -49,12 +51,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
@@ -110,82 +110,122 @@ public class ProjectSyncMessages {
     return myNotificationManager.getMessageCount(NotificationSource.PROJECT_SYNC, null, GradleConstants.SYSTEM_ID) == 0;
   }
 
-  public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    VirtualFile buildFile = null;
-    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-    if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
-      IdeaGradleProject gradleProject = gradleFacet.getGradleProject();
-      buildFile = gradleProject.getBuildFile();
+  public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
+    if (syncIssues.isEmpty()) {
+      return;
     }
 
-    for (String dep : unresolvedDependencies) {
-      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      File androidHome = getAndroidHome(module);
-      String group;
-      if (dep.startsWith("com.android.support")) {
-        group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.ANDROID);
-      }
-      else if (dep.startsWith("com.google.android.gms")) {
-        group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        addHyperlinkIfNeeded(hyperlinks, androidHome, SdkMavenRepository.GOOGLE);
-      }
-      else {
-        group = UNRESOLVED_DEPENDENCIES;
-      }
+    boolean hasSyncErrors = false;
+    VirtualFile buildFile = getBuildFile(module);
 
-      String text = "Failed to find: " + dep;
-      Message msg;
-      if (buildFile != null) {
-        msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, -1, -1, text);
-        hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
+    for (SyncIssue syncIssue : syncIssues) {
+      if (syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR) {
+        hasSyncErrors = true;
       }
-      else {
-        msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
+      switch (syncIssue.getType()) {
+        case SyncIssue.TYPE_UNRESOLVED_DEPENDENCY:
+          reportUnresolvedDependency(syncIssue.getData(), module, buildFile);
+          break;
+        default:
+          String group = UNHANDLED_SYNC_ISSUE_TYPE;
+          String text = syncIssue.getMessage();
+          Message.Type severity = syncIssue.getType() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+
+          Message msg;
+          if (buildFile != null) {
+            msg = new Message(module.getProject(), group, severity, buildFile, -1, -1, text);
+          }
+          else {
+            msg = new Message(group, severity, AbstractNavigatable.NOT_NAVIGATABLE, text);
+          }
+          add(msg);
       }
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dep);
-        if (coordinate != null) {
-          hyperlinks.add(new OpenDependencyInProjectStructureHyperlink(module, coordinate));
-        }
-      }
-      add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
     }
 
-    if (!unresolvedDependencies.isEmpty()) {
-      myProject.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, true);
+    if (hasSyncErrors) {
+      myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
     }
   }
 
-  private static void addHyperlinkIfNeeded(@NotNull List<NotificationHyperlink> hyperlinks,
-                                           @Nullable File androidHome, @NotNull SdkMavenRepository repo) {
-    File repository = repo.getRepositoryLocation(androidHome, true);
-    if (repository == null || !repository.isDirectory()) {
-      hyperlinks.add(new InstallRepositoryHyperlink(repo));
+  public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
+    if (unresolvedDependencies.isEmpty()) {
+      return;
     }
+
+    VirtualFile buildFile = getBuildFile(module);
+
+    for (String dep : unresolvedDependencies) {
+      reportUnresolvedDependency(dep, module, buildFile);
+    }
+
+    myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
   }
 
   @Nullable
-  private static File getAndroidHome(@NotNull Module module) {
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      return DefaultSdks.getDefaultAndroidHome();
-    }
-    else {
-      // TODO test this in IntelliJ
-      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-      if (sdk != null && sdk.getHomePath() != null) {
-        return new File(FileUtil.toSystemDependentName(sdk.getHomePath()));
-      }
+  private static VirtualFile getBuildFile(@NotNull Module module) {
+    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
+      IdeaGradleProject gradleProject = gradleFacet.getGradleProject();
+      return gradleProject.getBuildFile();
     }
     return null;
   }
 
-  private static class OpenDependencyInProjectStructureHyperlink extends NotificationHyperlink {
+  private void reportUnresolvedDependency(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
+    List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+    String group;
+    if (dependency.startsWith("com.android.support")) {
+      group = UNRESOLVED_ANDROID_DEPENDENCIES;
+      hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.ANDROID));
+    }
+    else if (dependency.startsWith("com.google.android.gms")) {
+      group = UNRESOLVED_ANDROID_DEPENDENCIES;
+      hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.GOOGLE));
+    }
+    else {
+      group = UNRESOLVED_DEPENDENCIES;
+    }
+
+    String text = "Failed to resolve: " + dependency;
+    Message msg;
+    if (buildFile != null) {
+      int lineNumber = -1;
+      int column = -1;
+
+      Document document = FileDocumentManager.getInstance().getDocument(buildFile);
+      if (document != null) {
+        TextRange textRange = GradleUtil.findDependency(dependency, document.getText());
+        if (textRange != null) {
+          lineNumber = document.getLineNumber(textRange.getStartOffset());
+          if (lineNumber > -1) {
+            int lineStartOffset = document.getLineStartOffset(lineNumber);
+            column = textRange.getStartOffset() - lineStartOffset;
+          }
+        }
+      }
+
+      msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, lineNumber, column, text);
+      String hyperlinkText = lineNumber > -1 ? "Show in File": "Open File";
+      hyperlinks.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, lineNumber, column));
+    }
+    else {
+      msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+    }
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
+      if (coordinate != null) {
+        hyperlinks.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
+      }
+    }
+    add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+  }
+
+  private static class ShowDependencyInProjectStructureHyperlink extends NotificationHyperlink {
     @NotNull private final Module myModule;
     @NotNull private final GradleCoordinate myDependency;
 
-    OpenDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull GradleCoordinate dependency) {
-      super("open.dependency.in.project.structure", "Open in Project Structure dialog");
+    ShowDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull GradleCoordinate dependency) {
+      super("open.dependency.in.project.structure", "Show in Project Structure dialog");
       myModule = module;
       myDependency = dependency;
     }

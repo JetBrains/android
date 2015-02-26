@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
 import com.android.ide.common.build.SplitOutputMatcher;
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
@@ -116,7 +118,6 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -315,6 +316,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
     else if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
+      // Ensure the local file system is up to date to enable accurate calculation of the package name.
+      LocalFileSystem.getInstance().refresh(false);
+
       File manifestCopy = null;
       final Manifest manifest;
       final String manifestLocalPath;
@@ -619,8 +623,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   void start(boolean chooseTargetDevice) {
-    LocalFileSystem.getInstance().refresh(false);
-
     myPackageName = computePackageName(myFacet);
     if (myPackageName == null) {
       getProcessHandler().destroyProcess();
@@ -900,7 +902,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       if (myDeploy) {
         if (!checkPackageNames()) return false;
         IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject == null) {
+        if (ideaAndroidProject == null || !Projects.isBuildWithGradle(myFacet.getModule())) {
           if (!uploadAndInstall(device, myPackageName, myFacet)) return false;
           if (!uploadAndInstallDependentModules(device)) return false;
         } else {
@@ -922,9 +924,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           // install test apk
           if (getConfiguration() instanceof AndroidTestRunConfiguration) {
-            AndroidArtifact testArtifactInfo = ideaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
-            if (testArtifactInfo != null) {
-              AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
+            BaseArtifact testArtifactInfo = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+            if (testArtifactInfo instanceof AndroidArtifact) {
+              AndroidArtifactOutput output = GradleUtil.getOutput((AndroidArtifact) testArtifactInfo);
               File testApk = output.getMainOutputFile().getOutputFile();
               if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
                 return false;
@@ -1017,7 +1019,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     List<String> abis = device.getAbis();
     int density = device.getDensity();
     Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
-    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
+    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, null /* lamguage */, null /* language */, abis);
     if (apkFiles.isEmpty()) {
       String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
       LOG.error(message);
@@ -1139,7 +1141,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private static String computeTestPackageName(@NotNull AndroidFacet facet, @NotNull String packageName) {
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject == null) {
+    if (ideaAndroidProject == null || !Projects.isBuildWithGradle(facet.getModule())) {
       return packageName;
     }
 
@@ -1199,7 +1201,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     try {
       InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
       if (installedApks.isInstalled(device, new File(localPath), packageName)) {
-        message("No apk changes detected. Skipping file upload.", STDOUT);
+        message("No apk changes detected. Skipping file upload, force stopping package instead.", STDOUT);
+        forceStopPackageSilently(device, packageName, true);
         return true;
       } else {
         device.pushFile(localPath, remotePath);
@@ -1264,6 +1267,18 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       message(errorMessage + '\n' + exceptionMessage, STDERR);
     }
     return false;
+  }
+
+  /** Attempts to force stop package running on given device. */
+  private void forceStopPackageSilently(@NotNull IDevice device, @NotNull String packageName, boolean ignoreErrors) {
+    try {
+      executeDeviceCommandAndWriteToConsole(device, "am force-stop " + packageName, new MyReceiver());
+    }
+    catch (Exception e) {
+      if (!ignoreErrors) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @SuppressWarnings({"DuplicateThrows"})

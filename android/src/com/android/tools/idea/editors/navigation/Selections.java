@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.editors.navigation.model.ModelDimension;
-import com.android.tools.idea.editors.navigation.model.NavigationModel.Event;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.rendering.RenderedView;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
@@ -33,18 +31,20 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
-import java.awt.Point;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Map;
 
-import static com.android.tools.idea.editors.navigation.NavigationView.Line;
+import static com.android.tools.idea.editors.navigation.Utilities.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
 import static com.android.tools.idea.editors.navigation.Utilities.sum;
 
 class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
-  private static final int SELECTION_RECTANGLE_LINE_WIDTH = 4;
+  private static final int SELECTION_RECTANGLE_LINE_WIDTH = 2;
+  public static final Event STATE_LOCATIONS_UPDATED = Event.update(Map.class); // just avoid State.class, which would trigger reload
+  public static final boolean MOVE_MENUS_WITH_ACTIVITIES = true;
+  public static final boolean SNAP_ON_MOUSE_UP = false;
 
   public static Selection NULL = new EmptySelection();
 
@@ -89,7 +89,7 @@ class Selections {
 
   private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
                                                           HyperlinkLabel link,
-                                                          final String className) {
+                                                          @Nullable final String className) {
     link.setOpaque(false);
     if (className == null) {
       return;
@@ -98,7 +98,7 @@ class Selections {
     link.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.myConfiguration.getModule(), className);
+        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.configuration.getModule(), className);
         if (psiClass != null) {
           AndroidRootComponent.launchEditor(renderingParameters, psiClass.getContainingFile(), false);
         }
@@ -108,18 +108,26 @@ class Selections {
 
   private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
                                                    HyperlinkLabel link,
+                                                   @Nullable final String linkText,
                                                    @Nullable final String xmlFileName,
                                                    final boolean isMenu) {
     link.setOpaque(false);
-    link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
+    link.setHyperlinkText(linkText == null ? "" : linkText);
     link.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
         PsiFile layoutXmlFile =
-          NavigationView.getLayoutXmlFile(isMenu, xmlFileName, renderingParameters.myConfiguration, renderingParameters.myProject);
+          NavigationView.getLayoutXmlFile(isMenu, xmlFileName, renderingParameters.configuration, renderingParameters.project);
         AndroidRootComponent.launchEditor(renderingParameters, layoutXmlFile, false);
       }
     });
+  }
+
+  private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
+                                                   HyperlinkLabel link,
+                                                   @Nullable final String xmlFileName,
+                                                   final boolean isMenu) {
+    configureHyperlinkForXMLFile(renderingParameters, link, xmlFileName, xmlFileName, isMenu);
   }
 
   static class ComponentSelection<T extends Component> extends Selection {
@@ -167,9 +175,26 @@ class Selections {
 
     @Override
     protected void configureInspector(Inspector inspector) {
-      TransitionInspector transitionInspector = new TransitionInspector();
-      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source,
-                                          myTransition.getSource().getState().getClassName());
+      final Module module = myRenderingParameters.configuration.getModule();
+      final TransitionInspector transitionInspector = new TransitionInspector();
+      final Locator source = myTransition.getSource();
+      State sourceState = source.getState();
+      final boolean isFragment = source.getFragmentClassName() != null;
+      final String hostClassName = isFragment ? source.getFragmentClassName() : sourceState.getClassName();
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, hostClassName);
+      sourceState.accept(new State.Visitor() {
+        @Override
+        public void visit(ActivityState state) {
+          String xmlFileName = Analyser.getXMLFileName(module, hostClassName, !isFragment);
+          configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, false);
+        }
+
+        @Override
+        public void visit(MenuState state) {
+          String xmlFileName = state.getXmlResourceName();
+          configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, true);
+        }
+      });
       {
         JComboBox comboBox = transitionInspector.gesture;
         comboBox.addItem(Transition.PRESS);
@@ -191,8 +216,7 @@ class Selections {
   static class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
     protected final Point myMouseDownLocation;
     protected final Point myOrigComponentLocation;
-    @NotNull
-    private final State myState;
+    @NotNull private final State myState;
     private final Transform myTransform;
 
     AndroidRootComponentSelection(NavigationModel navigationModel,
@@ -217,12 +241,15 @@ class Selections {
       Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
       Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
       stateToLocation.put(myState, myTransform.viewToModel(newLocation));
-      MenuState menuState = myNavigationModel.findAssociatedMenuState(myState);
-      if (menuState != null) {
-        Point delta = diff(newLocation, oldLocation);
-        stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
+      //noinspection ConstantConditions
+      if (MOVE_MENUS_WITH_ACTIVITIES && myState instanceof ActivityState) {
+        MenuState menuState = myNavigationModel.findAssociatedMenuState((ActivityState)myState);
+        if (menuState != null) {
+          Point delta = diff(newLocation, oldLocation);
+          stateToLocation.put(menuState, myTransform.viewToModel(sum(delta, myTransform.modelToView(stateToLocation.get(menuState)))));
+        }
       }
-      myNavigationModel.getListeners().notify(Event.update(Map.class)); // just avoid State.class, which would trigger reload
+      myNavigationModel.getListeners().notify(STATE_LOCATIONS_UPDATED);
     }
 
     @Override
@@ -232,7 +259,7 @@ class Selections {
 
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
-      moveTo(location, true);
+      moveTo(location, SNAP_ON_MOUSE_UP);
       return this;
     }
 
@@ -240,23 +267,24 @@ class Selections {
     protected void configureInspector(final Inspector inspector) {
       myState.accept(new State.Visitor() {
         @Override
-        public void visit(ActivityState state) {
-          final Module module = myRenderingParameters.myConfiguration.getModule();
+        public void visit(ActivityState activity) {
+          final Module module = myRenderingParameters.configuration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
           {
             HyperlinkLabel link = activityInspector.classNameLabel;
-            final String className = myState.getClassName();
+            final String className = activity.getClassName();
             configureHyperLinkLabelForClassName(myRenderingParameters, link, className);
           }
           {
             HyperlinkLabel link = activityInspector.xmlFileNameLabel;
-            configureHyperlinkForXMLFile(myRenderingParameters, link, Analyser.getXMLFileName(module, myState.getClassName(), true), false);
+            String xmlFileName = Analyser.getXMLFileName(module, activity.getClassName(), true);
+            configureHyperlinkForXMLFile(myRenderingParameters, link, xmlFileName, false);
           }
           {
             JPanel fragmentList = activityInspector.fragmentList;
             fragmentList.removeAll();
             fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
-            for (FragmentEntry entry : state.getFragments()) {
+            for (FragmentEntry entry : activity.getFragments()) {
               HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
               configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
               fragmentList.add(hyperlinkLabel);
@@ -266,25 +294,26 @@ class Selections {
         }
 
         @Override
-        public void visit(MenuState state) {
+        public void visit(MenuState menu) {
           MenuInspector menuInspector = new MenuInspector();
-          configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
+          configureHyperLinkLabelForClassName(myRenderingParameters, menuInspector.classNameLabel, menu.getClassName());
+          configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, menu.getXmlResourceName(), true);
           inspector.setInspectorComponent(menuInspector.container);
         }
       });
     }
   }
 
-  static class RelationSelection extends Selection {
+  static class ViewSelection extends Selection {
     private final AndroidRootComponent mySourceComponent;
     private final NavigationView myNavigationView;
     private final RenderedView myNamedLeaf;
     @NotNull private Point myMouseLocation;
 
-    RelationSelection(@NotNull AndroidRootComponent sourceComponent,
-                      @NotNull Point mouseDownLocation,
-                      @Nullable RenderedView namedLeaf,
-                      @NotNull NavigationView navigationView) {
+    ViewSelection(@NotNull AndroidRootComponent sourceComponent,
+                  @NotNull Point mouseDownLocation,
+                  @Nullable RenderedView namedLeaf,
+                  @NotNull NavigationView navigationView) {
       mySourceComponent = sourceComponent;
       myMouseLocation = mouseDownLocation;
       myNamedLeaf = namedLeaf;
@@ -303,13 +332,10 @@ class Selections {
     @Override
     protected void paintOver(Graphics g) {
       int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
-      Graphics2D lineGraphics = NavigationView.createLineGraphics(g, lineWidth);
+      Graphics2D lineGraphics = Utilities.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
-      Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
-      Rectangle sourceComponentBounds = mySourceComponent.getBounds();
-      // if the mouse hasn't left the bounds of the originating component yet, use leaf bounds instead for the midLine calculation
-      Rectangle startBounds = sourceComponentBounds.contains(myMouseLocation) ? sourceBounds : sourceComponentBounds;
-      Line midLine = NavigationView.getMidLine(startBounds, new Rectangle(myMouseLocation));
+      Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation, false);
+      Line midLine = Utilities.getMidLine(sourceBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationView.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }

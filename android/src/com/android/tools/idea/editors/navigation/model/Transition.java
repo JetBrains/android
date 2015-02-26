@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Property;
-
 public class Transition {
   public static final String PRESS = "Press";
+  @SuppressWarnings("UnusedDeclaration")
   public static final String SWIPE = "Swipe";
 
   private String type;
   private final Locator source;
   private final Locator destination;
 
-  public Transition(@Property("type")        String type,
-                    @Property("source")      Locator source,
-                    @Property("destination") Locator destination) {
+  public Transition(String type, Locator source, Locator destination) {
     this.type = type;
     this.source = source;
     this.destination = destination;
-  }
-
-  public static Transition of(String type, State source, State destination) {
-    return new Transition(type, new Locator(source), new Locator(destination));
   }
 
   public String getType() {

@@ -24,6 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,7 +102,8 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     collectTargets(myFacet, myResourceValue, elements, attrReference);
     final List<ResolveResult> result = new ArrayList<ResolveResult>();
 
-    if (elements.isEmpty() && myResourceValue.getResourceName() != null) {
+    if (elements.isEmpty() && myResourceValue.getResourceName() != null &&
+        !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getPackage())) {
       // Dynamic items do not appear in the XML scanning file index; look for
       // these in the resource repositories.
       LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);

@@ -99,6 +99,11 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     configurable.showDialogAndSelectSdksPage();
   }
 
+  public void chooseJdkLocation() {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndChooseJdkLocation();
+  }
+
   public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
     AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
     configurable.showDialogAndSelectDependency(module, dependency);

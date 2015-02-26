@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,7 +83,7 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public Collection<JavaArtifact> getExtraJavaArtifacts() {
-    throw new UnsupportedOperationException();
+    return ImmutableSet.of();
   }
 
   @Override
