@@ -25,8 +25,8 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,10 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
   private static final String SEPARATOR = "/";
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject androidProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @Nullable IdeaAndroidProject androidProject) {
+    Module module = ideaModuleModel.getModule();
     if (androidProject == null) {
       Facets.removeAllFacetsOfType(module, AndroidFacet.ID);
     }

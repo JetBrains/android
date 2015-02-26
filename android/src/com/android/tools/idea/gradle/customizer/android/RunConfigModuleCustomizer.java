@@ -22,6 +22,7 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfiguration;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
@@ -37,8 +38,11 @@ import java.util.List;
  */
 public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @Nullable IdeaAndroidProject androidProject) {
     if (androidProject != null) {
+      Module module = ideaModuleModel.getModule();
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
         RunManager runManager = RunManager.getInstance(project);

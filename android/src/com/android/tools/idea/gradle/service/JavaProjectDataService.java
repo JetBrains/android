@@ -33,6 +33,8 @@ import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataSer
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -96,8 +98,15 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
   }
 
   private void customizeModule(@NotNull Module module, @NotNull IdeaJavaProject javaProject) {
-    for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
-      customizer.customizeModule(module, module.getProject(), javaProject);
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try{
+      for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
+        customizer.customizeModule(module.getProject(), rootModel, javaProject);
+      }
+    }
+    finally {
+      rootModel.commit();
     }
   }
 

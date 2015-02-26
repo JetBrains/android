@@ -44,22 +44,14 @@ import static java.io.File.separatorChar;
 
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
-    if (model == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel) {
+    if (externalProjectModel == null) {
       return;
     }
     List<Message> errorsFound = Lists.newArrayList();
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-    try {
-      removeExistingDependencies(rootModel);
-      setUpDependencies(rootModel, model, errorsFound);
-    }
-    finally {
-      rootModel.commit();
-    }
-    notifyUser(errorsFound, module);
+    removeExistingDependencies(ideaModuleModel);
+    setUpDependencies(ideaModuleModel, externalProjectModel, errorsFound);
+    notifyUser(errorsFound, ideaModuleModel.getModule());
   }
 
   protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model, @NotNull List<Message> errorsFound);
