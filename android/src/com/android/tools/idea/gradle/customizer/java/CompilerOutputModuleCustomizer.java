@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,9 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaJavaProject javaProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @Nullable IdeaJavaProject javaProject) {
     if (javaProject == null) {
       return;
     }
@@ -56,7 +58,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     if (mainClassesFolder != null) {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
-      setOutputPaths(module, mainClassesFolder, testClassesFolder);
+      setOutputPaths(ideaModuleModel, mainClassesFolder, testClassesFolder);
     }
   }
 }

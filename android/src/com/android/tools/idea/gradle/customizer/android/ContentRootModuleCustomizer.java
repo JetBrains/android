@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +73,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Module module,
+  protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull IdeaAndroidProject androidProject,
                                      @NotNull List<RootSourceFolder> orphans) {
