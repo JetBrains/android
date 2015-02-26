@@ -156,7 +156,7 @@ public class ModulesToImportDialog extends DialogWrapper {
   @Nullable
   protected ValidationInfo doValidate() {
     if (!hasSelectedModules()) {
-      return new ValidationInfo("Please select at least on Module", myModulesTable);
+      return new ValidationInfo("Please select at least one Module", myModulesTable);
     }
     return null;
   }
