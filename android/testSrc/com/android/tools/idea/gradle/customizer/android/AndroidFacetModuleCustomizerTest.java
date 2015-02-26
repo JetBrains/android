@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -59,7 +61,14 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     String selectedVariantName = selectedVariant.getName();
     IdeaAndroidProject project = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
                                                         selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
-    myCustomizer.customizeModule(myModule, myProject, project);
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      myCustomizer.customizeModule(myProject, rootModel, project);
+    }
+    finally {
+      rootModel.commit();
+    }
 
     // Verify that AndroidFacet was added and configured.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);

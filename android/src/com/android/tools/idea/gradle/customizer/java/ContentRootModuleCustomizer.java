@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomi
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
@@ -52,11 +51,11 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Module module,
+  protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull IdeaJavaProject javaProject,
                                      @NotNull List<RootSourceFolder> orphans) {
-    boolean isTopLevelJavaModule = Projects.isGradleProjectModule(module);
+    boolean isTopLevelJavaModule = Projects.isGradleProjectModule(ideaModuleModel.getModule());
 
     File buildFolderPath = javaProject.getBuildFolderPath();
     boolean buildFolderUnexcluded = buildFolderPath == null;

@@ -44,6 +44,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
@@ -184,8 +186,15 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    for (ModuleCustomizer<IdeaAndroidProject> customizer : myCustomizers) {
-      customizer.customizeModule(module, project, ideaAndroidProject);
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      for (ModuleCustomizer<IdeaAndroidProject> customizer : myCustomizers) {
+        customizer.customizeModule(project, rootModel, ideaAndroidProject);
+      }
+    }
+    finally {
+      rootModel.commit();
     }
   }
 
