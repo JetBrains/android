@@ -76,7 +76,7 @@ public class AtomReader {
     short type = decoder.uint16();
     int contextId = decoder.int32();
     assert (contextId >= 0); // Sanity check.
-    if (!atomTypeToIndex.containsValue(type)) {
+    if (!atomTypeToIndex.containsKey(type)) {
       throw new RuntimeException("Atom type " + type + "not found in schema.");
     }
     AtomInfo atomInfo = mSchema.getAtoms()[atomTypeToIndex.get(type)];
