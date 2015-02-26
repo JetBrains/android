@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,39 +34,33 @@ import java.util.List;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
-    if (model == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel) {
+    if (externalProjectModel == null) {
       return;
     }
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
 
-    try {
-      for (ContentEntry contentEntry : rootModel.getContentEntries()) {
-        rootModel.removeContentEntry(contentEntry);
-      }
-
-      Collection<ContentEntry> contentEntries = findOrCreateContentEntries(rootModel, model);
-      List<RootSourceFolder> orphans = Lists.newArrayList();
-      setUpContentEntries(module, contentEntries, model, orphans);
-
-      for (RootSourceFolder orphan : orphans) {
-        File path = orphan.getPath();
-        ContentEntry contentEntry = rootModel.addContentEntry(FilePaths.pathToIdeaUrl(path));
-        addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
-      }
+    for (ContentEntry contentEntry : ideaModuleModel.getContentEntries()) {
+      ideaModuleModel.removeContentEntry(contentEntry);
     }
-    finally {
-      rootModel.commit();
+
+    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(ideaModuleModel, externalProjectModel);
+    List<RootSourceFolder> orphans = Lists.newArrayList();
+    setUpContentEntries(ideaModuleModel, contentEntries, externalProjectModel, orphans);
+
+    for (RootSourceFolder orphan : orphans) {
+      File path = orphan.getPath();
+      ContentEntry contentEntry = ideaModuleModel.addContentEntry(FilePaths.pathToIdeaUrl(path));
+      addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
   }
 
   @NotNull
-  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull T model);
+  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
+                                                                         @NotNull T externalProjectModel);
 
-  protected abstract void setUpContentEntries(@NotNull Module module,
+  protected abstract void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                               @NotNull Collection<ContentEntry> contentEntries,
-                                              @NotNull T model,
+                                              @NotNull T externalProjectModel,
                                               @NotNull List<RootSourceFolder> orphans);
 
   protected void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
