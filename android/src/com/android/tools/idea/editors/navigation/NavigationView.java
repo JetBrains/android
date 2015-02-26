@@ -89,7 +89,7 @@ public class NavigationView extends JComponent {
   private static final Color GESTURE_ICON_COLOR = new JBColor(new Color(0xE64BA7), new Color(0xE64BA7));
   private static final String DEVICE_DEFAULT_THEME_NAME = SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
   public static final int RESOURCE_SUFFIX_LENGTH = ".xml".length();
-  public static final String LIST_VIEW_ID = "list_view";
+  public static final String LIST_VIEW_ID = "list";
   public static final int FAKE_OVERFLOW_MENU_WIDTH = 10;
   public static final boolean SHOW_FAKE_OVERFLOW_MENUS = true;
 

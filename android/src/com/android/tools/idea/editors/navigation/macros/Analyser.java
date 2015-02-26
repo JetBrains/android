@@ -698,20 +698,29 @@ public class Analyser {
   }
 
   @Nullable
-  public static String getXMLFileName(Module module, String controllerClassName, boolean isActivity) {
-    MultiMatch.Bindings<PsiElement> exp;
-    if (isActivity) {
-      exp = match(module, controllerClassName, "void onCreate(Bundle bundle)",
-                  "void macro(Object $R, Object $id) { setContentView($R.layout.$id); }"); // Use $R because we sometimes see e.g.: com.example.simplemail.activity.R.layout.compose_activity
-    }
-    else {
-      exp = match(module, controllerClassName, "View onCreateView(LayoutInflater li, ViewGroup vg, Bundle b)",
-                  "void macro(Object $inflater, Object $R, Object $id, Object $container) { $inflater.inflate($R.layout.$id, $container, false); }");
-    }
-    if (exp == null) {
+  public static String getXMLFileName(Module module, String className, boolean isActivity) {
+    PsiClass clazz = Utilities.getPsiClass(module, className);
+    if (clazz == null) {
+      LOG.warn("Couldn't find class: " + className);
       return null;
     }
-    return exp.get("$id").getText();
+    // Use $R because we sometimes see e.g.: com.example.simplemail.activity.R.layout.compose_activity
+    String signature = isActivity ? "void onCreate(Bundle bundle)" : "View onCreateView(LayoutInflater li, ViewGroup vg, Bundle b)";
+    String body = isActivity
+                  ? "void macro(Object $R, Object $id) { setContentView($R.layout.$id); }"
+                  : "void macro(Object $inflater, Object $R, Object $id, Object $p) { $inflater.inflate($R.layout.$id, $p, false); }";
+    PsiClass stop = Utilities.getPsiClass(module, isActivity ? "android.app.Activity" : "android.app.Fragment");
+
+    for (PsiClass superClass = clazz; superClass != stop && superClass != null; superClass = superClass.getSuperClass()) {
+      MultiMatch.Bindings<PsiElement> exp = match(superClass, signature, body);
+      if (exp != null) {
+        String id = exp.get("$id").getText();
+        if (id != null) {
+          return id;
+        }
+      }
+    }
+    return null;
   }
 
   private static abstract class Processor {
