@@ -163,6 +163,8 @@ public class StringsWriteUtils {
   @Nullable
   private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
     LocalResourceRepository repository = facet.getModuleResources(true);
+    // Ensure that items *just* created are processed by the resource repository
+    repository.sync();
     List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
     if (items == null) {
       return null;
@@ -170,7 +172,7 @@ public class StringsWriteUtils {
 
     for (ResourceItem item : items) {
       FolderConfiguration config = item.getConfiguration();
-      LanguageQualifier languageQualifier = config == null ? null : config.getLanguageQualifier();
+      LanguageQualifier languageQualifier = config == null ? null : config.getEffectiveLanguage();
 
       if (languageQualifier == null) {
         if (locale == null) {
@@ -181,7 +183,7 @@ public class StringsWriteUtils {
         }
       }
 
-      Locale l = Locale.create(languageQualifier, config.getRegionQualifier());
+      Locale l = Locale.create(languageQualifier, config.getEffectiveRegion());
       if (l.equals(locale)) {
         return item;
       }

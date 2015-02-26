@@ -146,36 +146,40 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   }
 
   private void createJdkLocationTextField() {
-    final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose JDK Location", new Function<File, Void>() {
-      @Override
-      public Void fun(File file) {
-        if (!JavaSdk.checkForJdk(file)) {
-          throw new IllegalArgumentException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
-        }
-        return null;
-      }
-    });
-
     JTextField textField = new JTextField(10);
     myJdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        VirtualFile suggestedDir = null;
-        File jdkLocation = getJdkLocation();
-        if (jdkLocation.isDirectory()) {
-          suggestedDir = VfsUtil.findFileByIoFile(jdkLocation, false);
-        }
-        VirtualFile chosen = FileChooser.chooseFile(descriptor, null, suggestedDir);
-        if (chosen != null) {
-          File f = VfsUtilCore.virtualToIoFile(chosen);
-          myJdkLocationTextField.setText(f.getPath());
-        }
+        chooseJdkLocation();
       }
     });
     installValidationListener(textField);
   }
 
-  private void installValidationListener(JTextField textField) {
+  public void chooseJdkLocation() {
+    myJdkLocationTextField.getTextField().requestFocus();
+
+    VirtualFile suggestedDir = null;
+    File jdkLocation = getJdkLocation();
+    if (jdkLocation.isDirectory()) {
+      suggestedDir = VfsUtil.findFileByIoFile(jdkLocation, false);
+    }
+    VirtualFile chosen = FileChooser.chooseFile(createSingleFolderDescriptor("Choose JDK Location", new Function<File, Void>() {
+      @Override
+      public Void fun(File file) {
+        if (!validateAndUpdateJdkPath(file)) {
+          throw new IllegalArgumentException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
+        }
+        return null;
+      }
+    }), null, suggestedDir);
+    if (chosen != null) {
+      File f = VfsUtilCore.virtualToIoFile(chosen);
+      myJdkLocationTextField.setText(f.getPath());
+    }
+  }
+
+  private void installValidationListener(@NotNull JTextField textField) {
     if (myHost != null) {
       textField.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
@@ -283,12 +287,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   }
 
   @NotNull
-  private File getJdkLocation() {
-    String jdkLocation = myJdkLocationTextField.getText();
-    return new File(toSystemDependentName(jdkLocation));
-  }
-
-  @NotNull
   private File getSdkLocation() {
     String sdkLocation = mySdkLocationTextField.getText();
     return new File(toSystemDependentName(sdkLocation));
@@ -305,7 +303,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
       throw new ConfigurationException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
     }
 
-    if (!JavaSdk.checkForJdk(getJdkLocation())) {
+    if (!validateAndUpdateJdkPath(getJdkLocation())) {
       throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
     }
     return true;
@@ -322,13 +320,33 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
       errors.add(error);
     }
 
-    if (!JavaSdk.checkForJdk(getJdkLocation())) {
+    if (!validateAndUpdateJdkPath(getJdkLocation())) {
       ProjectConfigurationError error =
         new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
       errors.add(error);
     }
 
     return errors;
+  }
+
+  @NotNull
+  private File getJdkLocation() {
+    String jdkLocation = myJdkLocationTextField.getText();
+    return new File(toSystemDependentName(jdkLocation));
+  }
+
+  private boolean validateAndUpdateJdkPath(@NotNull File file) {
+    if (JavaSdk.checkForJdk(file)) {
+      return true;
+    }
+    if (SystemInfo.isMac) {
+      File potentialPath = new File(file, DefaultSdks.MAC_JDK_CONTENT_PATH);
+      if (potentialPath.isDirectory() && JavaSdk.checkForJdk(potentialPath)) {
+        myJdkLocationTextField.setText(potentialPath.getPath());
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

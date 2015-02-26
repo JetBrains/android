@@ -60,7 +60,7 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
       return createEmptyParser();
     }
     String resourceName = ResourceHelper.getResourceName(myRenderService.getPsiFile());
-    myRenderService.getLayoutlibCallback().getActionBarCallback().setMenuIdNames(Collections.singletonList(resourceName));
+    myRenderService.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.singletonList(resourceName));
     Map<Element, Object> viewCookies = Maps.newHashMap();
     return new DomPullParser(frameLayoutDocument.getDocumentElement()).setViewCookies(viewCookies);
   }

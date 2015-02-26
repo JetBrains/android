@@ -26,7 +26,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.ui.TabbedPaneWrapper;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -34,9 +34,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static javax.swing.SwingConstants.TOP;
 
 /**
  * Provides a Project Structure editor for an individual module. Can load a number of sub-editors in a tabbed pane.
@@ -50,7 +53,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   private final Project myProject;
   private final String myName;
   private final List<ModuleConfigurationEditor> myEditors = new ArrayList<ModuleConfigurationEditor>();
-  private TabbedPaneWrapper myTabbedPane;
+  private JBTabbedPane myTabbedPane;
   private JComponent myGenericSettingsPanel;
 
   public AndroidModuleEditor(@NotNull Project project, @NotNull String moduleName) {
@@ -111,7 +114,8 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           return new ModuleDependenciesPanel(myProject, myName);
         }
       }));
-      myTabbedPane = new TabbedPaneWrapper(this);
+
+      myTabbedPane = new JBTabbedPane(TOP);
       for (ModuleConfigurationEditor editor : myEditors) {
         JComponent component = editor.createComponent();
         if (component != null) {
@@ -119,7 +123,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           editor.reset();
         }
       }
-      myGenericSettingsPanel = myTabbedPane.getComponent();
+      myGenericSettingsPanel = myTabbedPane;
     }
     return myGenericSettingsPanel;
   }
@@ -154,11 +158,18 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   }
 
   public void selectDependency(@NotNull GradleCoordinate dependency) {
-    myTabbedPane.setSelectedTitle(ProjectBundle.message("modules.classpath.title"));
-    JComponent selected = myTabbedPane.getSelectedComponent();
-    if (selected instanceof ModuleDependenciesPanel) {
-      ModuleDependenciesPanel dependenciesPanel = (ModuleDependenciesPanel)selected;
-      dependenciesPanel.select(dependency);
+    int tabCount = myTabbedPane.getTabCount();
+    for (int i = 0; i < tabCount; i++) {
+      Component component = myTabbedPane.getTabComponentAt(i);
+      if (component instanceof JLabel && ProjectBundle.message("modules.classpath.title").equals(((JLabel)component).getText())) {
+        myTabbedPane.setSelectedIndex(i);
+        Component selected = myTabbedPane.getSelectedComponent();
+        if (selected instanceof ModuleDependenciesPanel) {
+          ModuleDependenciesPanel dependenciesPanel = (ModuleDependenciesPanel)selected;
+          dependenciesPanel.select(dependency);
+        }
+        break;
+      }
     }
   }
 

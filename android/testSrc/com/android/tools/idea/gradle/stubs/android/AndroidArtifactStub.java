@@ -150,6 +150,11 @@ public class AndroidArtifactStub implements AndroidArtifact {
     return null;
   }
 
+  @Override@NotNull
+  public Set<String> getIdeSetupTaskNames() {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Adds the given path to the list of generated source directories. It also creates the directory in the file system.
    *

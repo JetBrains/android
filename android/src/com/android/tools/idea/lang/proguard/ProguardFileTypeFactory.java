@@ -31,15 +31,14 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
   private static class ProguardNameMatcher extends FileNameMatcherEx {
     @Override
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
-      return StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
-             StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) && StringUtil.startsWith(fileName, "proguard-")
-        ;
+    return StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) || StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) && StringUtil.startsWith(fileName, "proguard-")
+          || StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE);
     }
 
     @NotNull
     @Override
     public String getPresentableString() {
-      return "*.pro or proguard-*.txt";
+      return "*.pro or proguard-*.txt or proguard.cfg";
     }
   }
 }

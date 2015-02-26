@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.android.builder.model.AndroidProject;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -52,10 +55,10 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   public void testSelectVariantWithSuccessfulUpdate() {
-    expect(myUpdater.updateModule(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
     replay(myUpdater);
 
-    myView.selectVariant(myModule, myBuildVariantName);
+    myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
     assertTrue(myListener.myWasCalled);
 
     verify(myUpdater);
@@ -63,20 +66,55 @@ public class BuildVariantViewTest extends AndroidTestCase {
 
   public void testSelectVariantWithFailedUpdate() {
     List<AndroidFacet> facets = Collections.emptyList();
-    expect(myUpdater.updateModule(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
     replay(myUpdater);
 
-    myView.selectVariant(myModule, myBuildVariantName);
+    myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
     assertFalse(myListener.myWasCalled);
 
     verify(myUpdater);
+  }
+
+  public void testSupportsUnitTestWithUnsupportedVersion() {
+    AndroidProject project = createMock(AndroidProject.class);
+    expect(project.getModelVersion()).andStubReturn("1.0.1");
+    replay(project);
+
+    assertFalse(BuildVariantView.supportsUnitTests(project, getModelVersionSupportingUnitTests()));
+
+    verify(project);
+  }
+
+  public void testSupportsUnitTestWithSupportedReleaseCandidateVersion() {
+    AndroidProject project = createMock(AndroidProject.class);
+    expect(project.getModelVersion()).andStubReturn("1.1.0-rc1");
+    replay(project);
+
+    assertTrue(BuildVariantView.supportsUnitTests(project, getModelVersionSupportingUnitTests()));
+
+    verify(project);
+  }
+
+  public void testSupportsUnitTestWithSupportedVersion() {
+    AndroidProject project = createMock(AndroidProject.class);
+    expect(project.getModelVersion()).andStubReturn("1.1.0");
+    replay(project);
+
+    assertTrue(BuildVariantView.supportsUnitTests(project, getModelVersionSupportingUnitTests()));
+
+    verify(project);
+  }
+
+  @NotNull
+  private static FullRevision getModelVersionSupportingUnitTests() {
+    return new PreciseRevision(1, 1, 0);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {
     boolean myWasCalled;
 
     @Override
-    public void buildVariantSelected(@NotNull List<AndroidFacet> updatedFacets) {
+    public void buildVariantsConfigChanged() {
       myWasCalled = true;
     }
   }

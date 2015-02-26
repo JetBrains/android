@@ -14,13 +14,11 @@
  * limitations under the License.
  */package com.android.tools.idea.gradle;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
@@ -36,7 +34,8 @@ public class IdeaAndroidProjectTest extends IdeaTestCase {
     super.setUp();
     File rootDirPath = new File(getProject().getBasePath());
     myDelegate = TestProjects.createFlavorsProject();
-    myAndroidProject = new IdeaAndroidProject(myDelegate.getName(), rootDirPath, myDelegate, "f1fa-debug");
+    myAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myDelegate.getName(), rootDirPath, myDelegate, "f1fa-debug",
+                                              AndroidProject.ARTIFACT_ANDROID_TEST);
   }
 
   public void testFindBuildType() throws Exception {
@@ -53,8 +52,8 @@ public class IdeaAndroidProjectTest extends IdeaTestCase {
     assertSame(myDelegate.findProductFlavor(flavorName), flavor);
   }
 
-  public void testFindInstrumentationTestArtifactInSelectedVariant() throws Exception {
-    AndroidArtifact instrumentationTestArtifact = myAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
+  public void testFindSelectedTestArtifactInSelectedVariant() throws Exception {
+    BaseArtifact instrumentationTestArtifact = myAndroidProject.findSelectedTestArtifactInSelectedVariant();
     VariantStub firstVariant = myDelegate.getFirstVariant();
     assertNotNull(firstVariant);
     assertSame(firstVariant.getInstrumentTestArtifact(), instrumentationTestArtifact);

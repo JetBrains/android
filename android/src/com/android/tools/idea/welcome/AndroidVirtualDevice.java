@@ -122,7 +122,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     assert location != null;
     SystemImageDescription systemImageDescription = getSystemImageDescription(location.getAbsolutePath());
     String cardSize = AvdEditWizard.toIniString(DEFAULT_INTERNAL_STORAGE, false);
-    File hardwareSkinPath = AvdEditWizard.getHardwareSkinPath(d.getDefaultHardware());
+    File hardwareSkinPath = AvdEditWizard.resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription);
     String internalName = AvdEditWizard.cleanAvdName(connection, DEVICE_DISPLAY_NAME, true);
     return connection
       .createOrUpdateAvd(null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath,

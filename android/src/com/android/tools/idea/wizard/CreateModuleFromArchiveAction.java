@@ -119,9 +119,9 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
 
   @Override
   protected void run(@NotNull Result<Object> result) throws Throwable {
-    File subprojectLocation = GradleUtil.getDefaultSubprojectLocation(myProject.getBaseDir(), myGradlePath);
+    File moduleLocation = GradleUtil.getModuleDefaultPath(myProject.getBaseDir(), myGradlePath);
     try {
-      VirtualFile moduleRoot = VfsUtil.createDirectoryIfMissing(subprojectLocation.getAbsolutePath());
+      VirtualFile moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.getAbsolutePath());
       VirtualFile sourceFile = VfsUtil.findFileByIoFile(myArchivePath, true);
       if (sourceFile != null && moduleRoot != null) {
         if (myMove) {

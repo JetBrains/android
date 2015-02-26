@@ -55,7 +55,7 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VAR
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  public static final Key<Boolean> HAS_UNRESOLVED_DEPENDENCIES = Key.create("has.unresolved.dependencies");
+  public static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("has.unresolved.dependencies");
   public static final Key<Boolean> HAS_WRONG_JDK = Key.create("has.wrong.jdk");
 
   private static final Logger LOG = Logger.getInstance(Projects.class);
@@ -73,7 +73,7 @@ public final class Projects {
   }
 
   public static boolean hasErrors(@NotNull Project project) {
-    if (hasUnresolvedDependencies(project) || hasWrongJdk(project)) {
+    if (hasSyncErrors(project) || hasWrongJdk(project)) {
       return true;
     }
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
@@ -86,8 +86,8 @@ public final class Projects {
     return errorCount != variantSelectionErrorCount;
   }
 
-  private static boolean hasUnresolvedDependencies(@NotNull Project project) {
-    return getBoolean(project, HAS_UNRESOLVED_DEPENDENCIES);
+  private static boolean hasSyncErrors(@NotNull Project project) {
+    return getBoolean(project, HAS_SYNC_ERRORS);
   }
 
   private static boolean hasWrongJdk(@NotNull Project project) {
@@ -170,7 +170,7 @@ public final class Projects {
   public static boolean isIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (AndroidFacet.getInstance(module) != null && AndroidGradleFacet.getInstance(module) == null) {
+      if (AndroidFacet.getInstance(module) != null && !isBuildWithGradle(module)) {
         return true;
       }
     }
@@ -240,7 +240,14 @@ public final class Projects {
     if (moduleRootDirPath == null) {
       return false;
     }
-    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && AndroidGradleFacet.getInstance(module) == null;
+    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && !isBuildWithGradle(module);
+  }
+
+  /**
+   * Indicates whether Gradle is used to build the module.
+   */
+  public static boolean isBuildWithGradle(@NotNull Module module) {
+    return AndroidGradleFacet.getInstance(module) != null;
   }
 
   /**
@@ -252,7 +259,7 @@ public final class Projects {
   public static boolean isBuildWithGradle(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (AndroidGradleFacet.getInstance(module) != null) {
+      if (isBuildWithGradle(module)) {
         return true;
       }
     }
@@ -303,7 +310,7 @@ public final class Projects {
       return FileUtil.pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
-    return AndroidGradleFacet.getInstance(module) == null;
+    return !isBuildWithGradle(module);
   }
 
   @Nullable

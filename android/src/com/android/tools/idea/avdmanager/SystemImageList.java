@@ -29,6 +29,7 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.wizard.DialogWrapperHost;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -39,18 +40,15 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.AbstractTableCellEditor;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.*;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +81,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private final LocalSdk mySdk;
   private final RemoteSdk myRemoteSdk;
   private final Project myProject;
+  private final JPanel myRefreshPanel = new JPanel(new FlowLayout());
   private TableView<AvdWizardConstants.SystemImageDescription> myTable = new TableView<AvdWizardConstants.SystemImageDescription>();
   private ListTableModel<AvdWizardConstants.SystemImageDescription> myModel = new ListTableModel<AvdWizardConstants.SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
@@ -113,27 +112,39 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myRemoteSdk = androidSdkData.getRemoteSdk();
     myModel.setColumnInfos(ourColumnInfos);
     myModel.setSortable(true);
-    refreshImages(true);
     myTable.setModelAndUpdateColumns(myModel);
-    myTable.setSelectionModel(new SingleSelectionModel() {
-      @Override
-      public void setSelectionInterval(int index0, int index1) {
-        super.setSelectionInterval(index0, index1);
-        TableCellEditor editor = myTable.getCellEditor();
-        if (editor != null) {
-          editor.cancelCellEditing();
+    ListSelectionModel selectionModel =
+      new DefaultListSelectionModel() {
+        @Override
+        public void setSelectionInterval(int index0, int index1) {
+          super.setSelectionInterval(index0, index1);
+          TableCellEditor editor = myTable.getCellEditor();
+          if (editor != null) {
+            editor.cancelCellEditing();
+          }
+          myTable.repaint();
+          possiblySwitchEditors(index0, 0);
         }
-        myTable.repaint();
-        possiblySwitchEditors(index0, 0);
-      }
-    });
+      };
+    selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myTable.setSelectionModel(selectionModel);
+
     myTable.setRowSelectionAllowed(true);
     myTable.addMouseListener(editorListener);
     myTable.addMouseMotionListener(editorListener);
     setLayout(new BorderLayout());
     add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
-    southPanel.add(myRefreshButton, BorderLayout.EAST);
+    JPanel refreshMessageAndButton = new JPanel(new FlowLayout());
+    AsyncProcessIcon refreshIcon = new AsyncProcessIcon("refresh images");
+    JLabel refreshingLabel = new JLabel("Refreshing...");
+    refreshingLabel.setForeground(JBColor.GRAY);
+    myRefreshPanel.add(refreshIcon);
+    myRefreshPanel.add(refreshingLabel);
+    myRefreshPanel.setVisible(false);
+    refreshMessageAndButton.add(myRefreshPanel);
+    refreshMessageAndButton.add(myRefreshButton);
+    southPanel.add(refreshMessageAndButton, BorderLayout.EAST);
     southPanel.add(myShowRemoteCheckbox, BorderLayout.WEST);
     myShowRemoteCheckbox.addActionListener(new ActionListener() {
       @Override
@@ -185,14 +196,17 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     public void mouseMoved(MouseEvent e) {
       possiblySwitchEditors(e);
     }
+
     @Override
     public void mouseEntered(MouseEvent e) {
       possiblySwitchEditors(e);
     }
+
     @Override
     public void mouseExited(MouseEvent e) {
       possiblySwitchEditors(e);
     }
+
     @Override
     public void mouseClicked(MouseEvent e) {
       possiblySwitchEditors(e);
@@ -219,7 +233,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Override
       public void run(@NotNull ProgressIndicator progressIndicator) {
         refreshImagesBackground(forceRefresh);
-      }});
+      }
+    });
   }
 
   static class ImageFingerprint {
@@ -245,44 +260,43 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   public void refreshImagesBackground(boolean forceRefresh) {
     // Should not be run on the AWT thread
     assert !ApplicationManager.getApplication().isDispatchThread();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myRefreshPanel.setVisible(true);
+        myRefreshButton.setEnabled(false);
+      }
+    });
     if (forceRefresh) {
       mySdk.clearLocalPkg(PkgType.PKG_ALL);
     }
 
-    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
-    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
-
-    Set<ImageFingerprint> seen = Sets.newHashSet();
-    for (IAndroidTarget target : targets) {
-      ISystemImage[] systemImages = target.getSystemImages();
-      if (systemImages != null) {
-        for (ISystemImage image : systemImages) {
-          // If we don't have a filter or this image passes the filter
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
-          if (myFilter == null || myFilter.apply(desc)) {
-            items.add(desc);
-            ImageFingerprint si = new ImageFingerprint();
-            si.tag = image.getTag();
-            si.abiType = image.getAbiType();
-            si.version = target.getVersion();
-            seen.add(si);
-          }
-        }
-      }
-    }
-
+    List<AvdWizardConstants.SystemImageDescription> items = getLocalImages();
     // Update list in the UI immediately with the locally available system images
     updateListModel(items);
 
     // Then perform the network call which may take a long time (e.g. 5 seconds or more);
     // we'll merge in the results of the remotely-available images and update the UI a second
     // time when this is done.
+    items.addAll(getRemoteImages(getLocalFingerprints(items)));
+    updateListModel(items);
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myRefreshPanel.setVisible(false);
+        myRefreshButton.setEnabled(true);
+      }
+    });
+  }
+
+  private List<AvdWizardConstants.SystemImageDescription> getRemoteImages(Set<ImageFingerprint> seen) {
+    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
     SdkSources sources = myRemoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, ILOG);
     Multimap<PkgType, RemotePkgInfo> packages = myRemoteSdk.fetch(sources, ILOG);
 
     if (packages.isEmpty()) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
+      @Override
         public void run() {
           myShowRemoteCheckbox.setEnabled(false);
           myShowRemoteCheckbox.setSelected(false);
@@ -310,8 +324,47 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
           }
         }
       }
-      updateListModel(items);
     }
+    return items;
+  }
+
+  public void refreshLocalImagesSynchronously() {
+    myModel.setItems(getLocalImages());
+  }
+
+  private Set<ImageFingerprint> getLocalFingerprints(List<AvdWizardConstants.SystemImageDescription> images) {
+    Set<ImageFingerprint> fingerprints = Sets.newHashSet();
+    for (AvdWizardConstants.SystemImageDescription image : images) {
+      // If we don't have a filter or this image passes the filter
+      if (myFilter == null || myFilter.apply(image)) {
+        ImageFingerprint si = new ImageFingerprint();
+        si.tag = image.getTag();
+        si.abiType = image.getAbiType();
+
+        si.version = image.getTarget().getVersion();
+        fingerprints.add(si);
+      }
+    }
+    return fingerprints;
+  }
+
+  private List<AvdWizardConstants.SystemImageDescription> getLocalImages() {
+    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
+    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
+
+    for (IAndroidTarget target : targets) {
+      ISystemImage[] systemImages = target.getSystemImages();
+      if (systemImages != null) {
+        for (ISystemImage image : systemImages) {
+          // If we don't have a filter or this image passes the filter
+          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          if (myFilter == null || myFilter.apply(desc)) {
+            items.add(desc);
+          }
+        }
+      }
+    }
+    return items;
   }
 
   /**
@@ -319,12 +372,20 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * that the updates are applied in the UI thread.
    */
   private void updateListModel(@NotNull final List<AvdWizardConstants.SystemImageDescription> items) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    Runnable r = new Runnable() {
       @Override
       public void run() {
+        AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
         myModel.setItems(items);
+        if (selected == null || !items.contains(selected)) {
+          selectDefaultImage();
+        }
+        else {
+          setSelectedImage(selected);
+        }
       }
-    });
+    };
+    UIUtil.invokeLaterIfNeeded(r);
   }
 
   public void setFilter(Predicate<AvdWizardConstants.SystemImageDescription> filter) {
@@ -333,6 +394,18 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   public void addSelectionListener(SystemImageSelectionListener listener) {
     myListeners.add(listener);
+  }
+
+  public void selectDefaultImage() {
+    AndroidVersion maxVersion = null;
+    AvdWizardConstants.SystemImageDescription best = null;
+    for (AvdWizardConstants.SystemImageDescription desc : myModel.getItems()) {
+      if (!desc.isRemote() && ((maxVersion == null || desc.getVersion().compareTo(maxVersion) > 0) || (desc.getVersion().equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))) {
+        best = desc;
+        maxVersion = best.getVersion();
+      }
+    }
+    setSelectedImage(best);
   }
 
   public void setSelectedImage(@Nullable AvdWizardConstants.SystemImageDescription selectedImage) {
@@ -573,7 +646,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
                                                  (MajorRevision)image.getRemotePackage().getRevision()).create();
       }
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
-      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
+      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
+                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
       sdkQuickfixWizard.init();
       sdkQuickfixWizard.show();
       refreshImages(true);

@@ -18,7 +18,9 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.utils.Pair;
 import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
@@ -109,8 +111,8 @@ public class Locale {
    * @return a locale with the given language and region
    */
   public static Locale create(FolderConfiguration folder) {
-    LanguageQualifier language = folder.getLanguageQualifier();
-    RegionQualifier region = folder.getRegionQualifier();
+    LanguageQualifier language = folder.getEffectiveLanguage();
+    RegionQualifier region = folder.getEffectiveRegion();
     if (language == null && region == null) {
       return ANY;
     } else if (region == null) {
@@ -122,18 +124,36 @@ public class Locale {
   }
 
   /**
-   * Constructs a new {@linkplain Locale} for the given locale string, e.g. "zh" or "en-rUS".
+   * Constructs a new {@linkplain Locale} for the given locale string, e.g. "zh", "en-rUS", or "b+eng+US".
    *
    * @param localeString the locale description
    * @return the corresponding locale
    */
   @NotNull
   public static Locale create(@NotNull String localeString) {
+    // Load locale. Note that this can get overwritten by the
+    // project-wide settings read below.
+
     LanguageQualifier language;
     RegionQualifier region;
 
-    // Load locale. Note that this can get overwritten by the
-    // project-wide settings read below.
+    // BCP-47?
+    if (localeString.startsWith(LocaleQualifier.PREFIX)) {
+      Pair<String, String> pair = LocaleQualifier.parseBcp47(localeString);
+      if (pair != null) {
+        language = new LanguageQualifier(pair.getFirst());
+        String regionCode = pair.getSecond();
+        if (regionCode != null) {
+          region = new RegionQualifier(regionCode);
+        } else {
+          region = ANY_REGION;
+        }
+        return new Locale(language, region);
+      } else {
+        return ANY;
+      }
+    }
+
     int index = localeString.indexOf('-');
     if (index != -1) {
       language = new LanguageQualifier(localeString.substring(0, index));

@@ -25,6 +25,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -34,20 +35,16 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.*;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,6 +52,9 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.chooseNameForNewLibrary;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 public final class DefaultSdks {
+  @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
+
+  @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
   private static final Logger LOG = Logger.getInstance(DefaultSdks.class);
 
   private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
@@ -67,6 +67,9 @@ public final class DefaultSdks {
    */
   @Nullable
   public static File getDefaultAndroidHome() {
+    // We assume that every time new android sdk path is applied, all existing ide android sdks are removed and replaced by newly
+    // created ide android sdks for the platforms downloaded for the new android sdk. So, we bring the first ide android sdk configured
+    // at the moment and deduce android sdk path from it.
     String sdkHome = null;
     Sdk sdk = getFirstAndroidSdk();
     if (sdk != null) {
@@ -74,6 +77,18 @@ public final class DefaultSdks {
     }
     if (sdkHome != null) {
       return new File(FileUtil.toSystemDependentName(sdkHome));
+    }
+
+    // There is a possible case that android sdk which path was applied previously (setDefaultAndroidHome()) didn't have any
+    // platforms downloaded. Hence, no ide android sdk was created and we can't deduce android sdk location from it.
+    // Hence, we fallback to the explicitly stored android sdk path here.
+    PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+    String sdkPath = component.getValue(ANDROID_SDK_PATH_KEY);
+    if (sdkPath != null) {
+      File candidate = new File(sdkPath);
+      if (isValidAndroidSdkPath(candidate)) {
+        return candidate;
+      }
     }
     return null;
   }
@@ -123,6 +138,8 @@ public final class DefaultSdks {
 
   public static void setDefaultJavaHome(@NotNull File path) {
     if (JavaSdk.checkForJdk(path)) {
+      ApplicationManager.getApplication().assertWriteAccessAllowed();
+
       File canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
 
@@ -141,11 +158,9 @@ public final class DefaultSdks {
           }
         }
       }
-
       if (chosenJdk == null) {
-        VirtualFile virtualPath = VfsUtil.findFileByIoFile(canonicalPath, true);
-        if (virtualPath != null) {
-          chosenJdk = createJdk(virtualPath);
+        if (canonicalPath.isDirectory()) {
+          chosenJdk = createJdk(canonicalPath);
           if (chosenJdk == null) {
             // Unlikely to happen
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
@@ -196,7 +211,21 @@ public final class DefaultSdks {
   @NotNull
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
     if (isValidAndroidSdkPath(path)) {
-      assert ApplicationManager.getApplication().isWriteAccessAllowed();
+      ApplicationManager.getApplication().assertWriteAccessAllowed();
+
+      // There is a possible case that no platform is downloaded for the android sdk which path is given as an argument
+      // to the current method. Hence, no ide android sdk is configured and our further android sdk lookup
+      // (check project jdk table for the configured ide android sdk and deduce the path from it) wouldn't work. So, we save
+      // given path as well in order to be able to fallback to it later if there is still no android sdk configured within the ide.
+      if (currentProject != null && !currentProject.isDisposed()) {
+        String sdkPath = FileUtil.toCanonicalPath(path.getAbsolutePath());
+        PropertiesComponent.getInstance(currentProject).setValue(ANDROID_SDK_PATH_KEY, sdkPath);
+        if (!currentProject.isDefault()) {
+          // Store default sdk path for default project as well in order to be able to re-use it for another ide projects if necessary.
+          PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+          component.setValue(ANDROID_SDK_PATH_KEY, sdkPath);
+        }
+      }
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdkUtils will still use the old SDK until all SDKs are properly deleted.
@@ -353,7 +382,9 @@ public final class DefaultSdks {
           // Don't sync in tests. For now.
           continue;
         }
-        projectImporter.requestProjectSync(project, null);
+        if (Projects.isBuildWithGradle(project)) {
+          projectImporter.requestProjectSync(project, null);
+        }
       }
     }
   }
@@ -409,7 +440,7 @@ public final class DefaultSdks {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
       assert data != null;
       Sdk jdk = data.getJavaSdk();
-      if (jdk != null) {
+      if (isJdkCompatible(jdk, preferredVersion)) {
         return jdk;
       }
     }
@@ -417,55 +448,62 @@ public final class DefaultSdks {
 
     List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
-      if (preferredVersion == null) {
-        return jdks.get(0);
-      }
       for (Sdk jdk : jdks) {
-        if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
+        if (isJdkCompatible(jdk, preferredVersion)) {
           return jdk;
         }
       }
     }
-    final Collection<String> jdkPaths = javaSdk.suggestHomePaths();
-    VirtualFile javaHome = null;
-
-    for (String jdkPath : jdkPaths) {
-      javaHome = jdkPath != null ? LocalFileSystem.getInstance().findFileByPath(jdkPath) : null;
-
-      if (javaHome != null) {
-        break;
-      }
-    }
-    if (javaHome == null) {
-      javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
-    }
-    if (javaHome != null) {
-      File path = VfsUtilCore.virtualToIoFile(javaHome);
-      if (JavaSdk.checkForJdk(path)) {
+    List<File> javaHomes = getPotentialJavaHomes();
+    for (File javaHome : javaHomes) {
+      if (JavaSdk.checkForJdk(javaHome)) {
         Sdk jdk = createJdk(javaHome);
-        if (jdk != null && preferredVersion != null) {
-          return javaSdk.isOfVersionOrHigher(jdk, preferredVersion) ? jdk : null;
-        }
-        return jdk;
+        return isJdkCompatible(jdk, preferredVersion) ? jdk : null;
       }
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
-      if (SystemInfo.isLinux && preferredVersion != null) {
-        Sdk jdk = null;
-        for (File child : FileUtil.notNullize(path.listFiles())) {
+      if (SystemInfo.isLinux) {
+        for (File child : FileUtil.notNullize(javaHome.listFiles())) {
           if (child.isDirectory() && JavaSdk.checkForJdk(child)) {
-            jdk = Jdks.createJdk(child.getPath());
-            if (jdk != null) {
-              if (javaSdk.isOfVersionOrHigher(jdk, preferredVersion)) {
-                // Prefer JDK 1.7+
-                return jdk;
-              }
+            Sdk jdk = Jdks.createJdk(child.getPath());
+            if (isJdkCompatible(jdk, preferredVersion)) {
+              return jdk;
             }
           }
         }
-        return jdk;
       }
     }
     return null;
+  }
+
+  /**
+   * Find all potential folders that may contain Java SDKs.
+   * Those folders are guaranteed to exist but they may not be valid Java homes.
+   */
+  @NotNull
+  private static List<File> getPotentialJavaHomes() {
+    JavaSdk javaSdk = JavaSdk.getInstance();
+    final List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
+    jdkPaths.add(SystemProperties.getJavaHome());
+    List<File> virtualFiles = Lists.newArrayListWithCapacity(jdkPaths.size());
+    for (String jdkPath : jdkPaths) {
+      if (jdkPath != null) {
+        File javaHome = new File(jdkPath);
+        if (javaHome.isDirectory()) {
+          virtualFiles.add(javaHome);
+        }
+      }
+    }
+    return virtualFiles;
+  }
+
+  private static boolean isJdkCompatible(@Nullable Sdk jdk, @Nullable JavaSdkVersion preferredVersion) {
+    if (jdk == null) {
+      return false;
+    }
+    if (preferredVersion == null) {
+      return true;
+    }
+    return JavaSdk.getInstance().isOfVersionOrHigher(jdk, preferredVersion);
   }
 
   /**
@@ -491,8 +529,7 @@ public final class DefaultSdks {
    * Creates an IntelliJ SDK for the JDK at the given location and returns it, or {@code null} if it could not be created successfully.
    */
   @Nullable
-  private static Sdk createJdk(@NotNull VirtualFile homeDirectory) {
-    File path = VfsUtilCore.virtualToIoFile(homeDirectory);
-    return Jdks.createJdk(path.getPath());
+  private static Sdk createJdk(@NotNull File homeDirectory) {
+    return Jdks.createJdk(homeDirectory.getPath());
   }
 }

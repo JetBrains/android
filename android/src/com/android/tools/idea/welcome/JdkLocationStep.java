@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -26,10 +31,13 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.JdkUtil;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import org.jetbrains.android.util.AndroidBundle;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +45,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,10 +55,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class JdkLocationStep extends FirstRunWizardStep {
   private static final String MAC_JDKS_DIR = "/Library/Java/JavaVirtualMachines/";
-  private static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   private static final String WINDOWS_JDKS_DIR = "C:\\Program Files\\Java";
   private static final String LINUX_SDK_DIR = "/usr/lib/jvm";
-  private static final String JDK_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
+
+  private final AtomicBoolean myJdkDetectionInProgress = new AtomicBoolean();
 
   private final ScopedStateStore.Key<String> myPathKey;
   @NotNull private final FirstRunWizardMode myMode;
@@ -67,7 +76,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
     myPathKey = pathKey;
     myMode = mode;
     myDownloadPageLink.setText(getLinkText());
-    WelcomeUIUtils.makeButtonAHyperlink(myDownloadPageLink, JDK_URL);
+    WelcomeUIUtils.makeButtonAHyperlink(myDownloadPageLink, Jdks.DOWNLOAD_JDK_7_URL);
     myDownloadPageLink.getParent().invalidate();
     setComponent(myContents);
     myError.setForeground(JBColor.red);
@@ -77,6 +86,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
     myDetectButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
+          myDetectButton.setEnabled(false);
           ProgressManager.getInstance().run(new DetectJdkTask());
         }
       });
@@ -125,6 +135,81 @@ public class JdkLocationStep extends FirstRunWizardStep {
 
   @NotNull
   private static Iterable<String> getCandidatePaths() {
+    return Iterables.concat(deduceFromJavaHome(), deduceFromPath(), deduceFromCurrentJvm(), getOsSpecificCandidatePaths());
+  }
+
+  @NotNull
+  private static Iterable<String> deduceFromJavaHome() {
+    String javaHome = System.getenv("JAVA_HOME");
+    return Strings.isNullOrEmpty(javaHome) ? Collections.<String>emptySet() : Collections.singleton(javaHome);
+  }
+
+  @NotNull
+  private static Iterable<String> deduceFromPath() {
+    String path = System.getenv("PATH");
+    if (Strings.isNullOrEmpty(path)) {
+      return Collections.emptyList();
+    }
+    String[] pathEntries = path.split(File.pathSeparator);
+    for (String entry : pathEntries) {
+      if (Strings.isNullOrEmpty(entry)) {
+        continue;
+      }
+
+      // Check if current PATH entry points to a directory which has a file named 'java'.
+      File javaParentDir = new File(entry);
+      File javaFile = new File(javaParentDir, "java");
+      if (!javaParentDir.isDirectory() || !javaFile.isFile()) {
+        continue;
+      }
+      try {
+        // There is a possible case that target java is a symlink like /usr/bin/java. We want to resolve it and use hard link then.
+        File canonicalJavaFile = javaFile.getCanonicalFile();
+        return forJavaBinParent(canonicalJavaFile.getParentFile());
+      }
+      catch (IOException ignore) {
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  private static Iterable<String> deduceFromCurrentJvm() {
+    String javaHome = System.getProperty("java.home");
+    return Strings.isNullOrEmpty(javaHome) ? Collections.<String>emptySet() : forJavaBinParent(new File(javaHome));
+  }
+
+  /**
+   * We assume that <code>'java'</code> executable is located inside a directory named <code>'bin'</code> (given as an argument).
+   * However, there are multiple cases about its ancestors though:
+   * <ul>
+   *   <li>JDK_HOME/bin</li>
+   *   <li>JDK_HOME/jre/bin</li>
+   *   <li>JRE_HOME/bin</li>
+   * </ul>
+   * This tries to handle them and return an iterable with one element which points to the potential java home or an empty
+   * iterable otherwise.
+   *
+   * @param javaBinParent  parent directory for a directory which contains <code>'java'</code> executable
+   * @return               iterable which is empty or contains entry(ies) which is java home candidate path
+   */
+  @NotNull
+  private static Iterable<String> forJavaBinParent(@NotNull File javaBinParent) {
+    if (!javaBinParent.isDirectory()) {
+      return Collections.emptySet();
+    }
+    if (!"jre".equals(javaBinParent.getName())) {
+      return Collections.singleton(javaBinParent.getAbsolutePath());
+    }
+    File parentFile = javaBinParent.getParentFile();
+    if (parentFile.isDirectory()) {
+      return Collections.singleton(parentFile.getAbsolutePath());
+    }
+    return Collections.emptySet();
+  }
+
+  @NotNull
+  private static Iterable<String> getOsSpecificCandidatePaths() {
     if (SystemInfo.isMac) {
       return getMacCandidateJdks();
     }
@@ -142,7 +227,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @NotNull
   private static Iterable<String> getMacCandidateJdks() {
     // See http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html
-    return getCandidatePaths(MAC_JDKS_DIR, MAC_JDK_CONTENT_PATH);
+    return getCandidatePaths(MAC_JDKS_DIR, DefaultSdks.MAC_JDK_CONTENT_PATH);
   }
 
   @NotNull
@@ -186,6 +271,36 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(myPathKey, myJdkPath);
+    autoDetectJdkPath();
+  }
+
+  private void autoDetectJdkPath() {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        if (!myJdkDetectionInProgress.compareAndSet(false, true)) {
+          return;
+        }
+        try {
+          final String path = detectJdkPath(null);
+          if (path != null) {
+            UIUtil.invokeLaterIfNeeded(new Runnable() {
+              @Override
+              public void run() {
+                String jdkPath = myState.get(myPathKey);
+                // Don't overwrite any non-zero value by an automatically detected path
+                if (!Strings.isNullOrEmpty(jdkPath)) {
+                  myState.put(myPathKey, path);
+                }
+              }
+            });
+          }
+        }
+        finally {
+          myJdkDetectionInProgress.set(false);
+        }
+      }
+    });
   }
 
   @Override
@@ -204,6 +319,25 @@ public class JdkLocationStep extends FirstRunWizardStep {
     return myError;
   }
 
+  @Nullable
+  private static String detectJdkPath(@Nullable AtomicBoolean cancellationFlag) {
+    String topVersion = null;
+    String chosenPath = null;
+    for (String path : getCandidatePaths()) {
+      if (cancellationFlag != null && cancellationFlag.get()) {
+        return null;
+      }
+      if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
+        String version = JavaSdk.getInstance().getVersionString(path);
+        if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
+          topVersion = version;
+          chosenPath = path;
+        }
+      }
+    }
+    return chosenPath;
+  }
+
   private class DetectJdkTask extends Task.Modal {
     private final AtomicBoolean myCancelled = new AtomicBoolean(false);
     private String myPath = null;
@@ -215,33 +349,41 @@ public class JdkLocationStep extends FirstRunWizardStep {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-      String topVersion = null;
-      String chosenPath = null;
-      for (String path : getCandidatePaths()) {
-        if (myCancelled.get()) {
-          return;
+      if (myJdkDetectionInProgress.compareAndSet(false, true)) {
+        try {
+          myPath = detectJdkPath(myCancelled);
         }
-        if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
-          String version = JavaSdk.getInstance().getVersionString(path);
-          if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
-            topVersion = version;
-            chosenPath = path;
-          }
+        finally {
+          myJdkDetectionInProgress.set(false);
         }
       }
-      myPath = chosenPath;
+      while (myJdkDetectionInProgress.get()) {
+        try {
+          // Just wait until previously run detection completes (progress dialog is shown then)
+          //noinspection BusyWait
+          Thread.sleep(300);
+        }
+        catch (InterruptedException ignore) {
+        }
+      }
     }
 
     @Override
     public void onSuccess() {
-      if (myPath != null) {
+      if (myPath == null) {
+        String message = AndroidBundle.message("android.wizard.jdk.autodetect.result.not.found");
+        ExternalSystemUiUtil.showBalloon(myJdkPath, MessageType.INFO, message);
+      }
+      else {
         myState.put(myPathKey, myPath);
       }
+      myDetectButton.setEnabled(true);
       super.onSuccess();
     }
 
     @Override
     public void onCancel() {
+      myDetectButton.setEnabled(true);
       myCancelled.set(true);
     }
   }

@@ -27,10 +27,12 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JButton myLink;
 
+  private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/tools/devices/emulator.html#vm-linux";
+
   public LinuxHaxmInfoStep() {
     super("Emulator Settings");
     setComponent(myRoot);
-    WelcomeUIUtils.makeButtonAHyperlink(myLink, FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
+    WelcomeUIUtils.makeButtonAHyperlink(myLink, KVM_DOCUMENTATION_URL);
   }
 
   @Override

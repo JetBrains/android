@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.java.PsiIdentifierImpl;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +26,7 @@ import java.util.Map;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Unifier {
+  private static final Logger LOG = Logger.getInstance(Unifier.class.getName());
   public static final PsiElement UNBOUND = new PsiIdentifierImpl("<Unbound>");
   public static final String STATEMENT_SENTINEL = "$";
   // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
@@ -66,6 +69,10 @@ public class Unifier {
     Map<String, PsiElement> bindings = myMatcher.getBindings();
     if (DEBUG) System.out.println("Unifier: bindings = " + bindings);
     return bindings;
+  }
+
+  private static boolean equals2(@Nullable Object a, @Nullable Object b) {
+    return a == null ? b == null : a.equals(b);
   }
 
   private class Matcher extends JavaElementVisitor {
@@ -161,6 +168,39 @@ public class Unifier {
       else {
         visitReferenceElement(expression);
       }
+    }
+
+    @Override
+    public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
+      // Ensure that e.g. View.OnClickListener and OnClickListener match
+      if (reference != null && candidate instanceof PsiJavaCodeReferenceElement) {
+        // Presuming that reference resolution is expensive, only do it when simple names match (e.g. both end in 'OnClickListener')
+        PsiJavaCodeReferenceElement other = (PsiJavaCodeReferenceElement)candidate;
+        PsiElement simpleName1 = reference.getLastChild().getPrevSibling();
+        PsiElement simpleName2 = candidate.getLastChild().getPrevSibling();
+        if (simpleName1 instanceof LeafElement && simpleName2 instanceof LeafElement) {
+          LeafElement leaf1 = (LeafElement)simpleName1;
+          LeafElement leaf2 = (LeafElement)simpleName2;
+          // Use getChars() here as, unlike getText(), this doesn't involve creating a new String.
+          if (leaf1.getChars().equals(leaf2.getChars())) {
+            PsiElement r1 = reference.resolve();
+            if (r1 == null) {
+              LOG.warn("Pattern contains unresolvable (unqualified?) class name: " + reference.getText());
+            }
+            PsiElement r2 = other.resolve();
+            // a.foo() and b.foo() will resolve to the same method, make sure we only compare classes
+            if (r1 instanceof PsiClass && r2 instanceof PsiClass) {
+              PsiClass c1 = (PsiClass)r1;
+              PsiClass c2 = (PsiClass)r2;
+              // When one psi class is compiled but the other is from source, the instances are not '=='. Compare qualified names.
+              if (equals2(c1.getQualifiedName(), c2.getQualifiedName())){
+                return;
+              }
+            }
+          }
+        }
+      }
+      super.visitReferenceElement(reference);
     }
 
     @Override

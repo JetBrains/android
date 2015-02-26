@@ -230,7 +230,23 @@ public class DeviceArtPainter {
         g2d.drawImage(shadowImage, 0, 0, null, null);
       }
 
-      g2d.drawImage(image, screenPos.x, screenPos.y, null, null);
+      // If the device art has a mask, make sure that the image is clipped by the mask
+      File maskFile = descriptor.getMask(orientation);
+      if (maskFile != null) {
+        BufferedImage mask = ImageIO.read(maskFile);
+
+        // Render the current image on top of the mask using it as the alpha composite
+        Graphics2D maskG2d = mask.createGraphics();
+        maskG2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN));
+        maskG2d.drawImage(image, screenPos.x, screenPos.y, null);
+        maskG2d.dispose();
+
+        // Render the masked image to the destination
+        g2d.drawImage(mask, 0, 0, null);
+      }
+      else {
+        g2d.drawImage(image, screenPos.x, screenPos.y, null);
+      }
 
       if (addReflection && reflection != null) { // Nexus One for example does not supply reflection image
         BufferedImage reflectionImage = ImageIO.read(reflection);

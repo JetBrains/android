@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.Nullable;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -23,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -70,6 +70,8 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   @Nullable private MergingUpdateQueue myUpdateQueue;
   // Used by update() to ensure that multiple updates are not invoked simultaneously.
   private boolean myUpdateInProgress;
+  // Set to true after #init() was invoked
+  private boolean myIsInitialized = false;
 
   public DynamicWizardPath() {
     myState = new ScopedStateStore(ScopedStateStore.Scope.PATH, null, this);
@@ -89,6 +91,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
     init();
+    myIsInitialized = true;
   }
 
   @Nullable
@@ -178,18 +181,18 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
       // If we don't have a queue (ie we're not attached to a wizard) then just update immediately
       update();
     }
-    updateButtons();
   }
 
   /**
    * Call the update steps in order, as well as any parent updates required by the scope.
    */
   private void update() {
-    if (!myUpdateInProgress) {
+    if (myIsInitialized && !myUpdateInProgress) {
       myUpdateInProgress = true;
       deriveValues(myState.getRecentUpdates());
       myIsValid = validate();
       myUpdateInProgress = false;
+      updateButtons();
     }
   }
 
@@ -431,15 +434,17 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     }
   }
 
+  /**
+   * @return update queue if there is one
+   */
+  @Nullable
+  public MergingUpdateQueue getUpdateQueue() {
+    return myUpdateQueue;
+  }
+
   private class PathUpdate extends Update {
     public PathUpdate() {
-      super("Path Update");
-    }
-
-    @NotNull
-    @Override
-    public Object[] getEqualityObjects() {
-      return new Object[] {DynamicWizardPath.this};
+      super(DynamicWizardPath.this);
     }
 
     @Override

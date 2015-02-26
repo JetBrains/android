@@ -19,16 +19,14 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
-import com.google.common.collect.ImmutableList;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -50,9 +48,6 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findCon
 class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
 
-  private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
-
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
    *
@@ -62,18 +57,18 @@ class BuildVariantUpdater {
    * @return the facets affected by the build variant selection, if the module update was successful; an empty list otherwise.
    */
   @NotNull
-  List<AndroidFacet> updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
-    final List<AndroidFacet> facets = Lists.newArrayList();
+  List<AndroidFacet> updateSelectedVariant(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
+    final List<AndroidFacet> affectedFacets = Lists.newArrayList();
     ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
-        Module updatedModule = doUpdate(project, moduleName, buildVariantName, facets);
+        Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedFacets);
         if (updatedModule != null) {
           ConflictSet conflicts = findConflicts(project);
           conflicts.showSelectionConflicts();
         }
 
-        if (!facets.isEmpty()) {
+        if (!affectedFacets.isEmpty()) {
           // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
           // be there.
           if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -82,7 +77,41 @@ class BuildVariantUpdater {
         }
       }
     });
-    return facets;
+    return affectedFacets;
+  }
+
+  /**
+   * Updates the given modules to use the new test artifact name.
+   *
+   * @param modules modules to be updated. All have to have a corresponding facet and android project.
+   * @param testArtifactName new test artifact name.
+   * @return modules that were affected by the change.
+   */
+  @NotNull
+  List<Module> updateTestArtifactsNames(@NotNull Project project,
+                                        @NotNull final Iterable<Module> modules,
+                                        @NotNull final String testArtifactName) {
+    final List<Module> affectedModules = Lists.newArrayList();
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        for (Module module : modules) {
+          AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+          assert androidFacet != null;
+          final IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
+          assert ideaAndroidProject != null;
+
+          if (!ideaAndroidProject.getSelectedTestArtifactName().equals(testArtifactName)) {
+            ideaAndroidProject.setSelectedTestArtifactName(testArtifactName);
+            androidFacet.syncSelectedVariantAndTestArtifact();
+            invokeCustomizers(androidFacet.getModule(), ideaAndroidProject);
+            affectedModules.add(module);
+          }
+        }
+      }
+    });
+
+    return affectedModules;
   }
 
   @Nullable
@@ -126,17 +155,10 @@ class BuildVariantUpdater {
       return false;
     }
     androidProject.setSelectedVariantName(variantToSelect);
-
-    androidFacet.syncSelectedVariant();
-
-    Module module = androidFacet.getModule();
-    Project project = module.getProject();
-    for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
-      customizer.customizeModule(module, project, androidProject);
-    }
+    androidFacet.syncSelectedVariantAndTestArtifact();
+    Module module = invokeCustomizers(androidFacet.getModule(), androidProject);
 
     selectedVariant = androidProject.getSelectedVariant();
-
     for (AndroidLibrary library : selectedVariant.getMainArtifact().getDependencies().getLibraries()) {
       String gradlePath = library.getProject();
       if (StringUtil.isEmpty(gradlePath)) {
@@ -144,12 +166,43 @@ class BuildVariantUpdater {
       }
       String projectVariant = library.getProjectVariant();
       if (StringUtil.isNotEmpty(projectVariant)) {
-        ensureVariantIsSelected(project, gradlePath, projectVariant, affectedFacets);
+        ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }
     }
     return true;
   }
 
+  @NotNull
+  private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidProject) {
+    for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
+      customizer.customizeModule(module, module.getProject(), androidProject);
+    }
+    return module;
+  }
+
+  @NotNull
+  private static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
+    return getCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
+                                                                               @NotNull BuildVariantModuleCustomizer... allCustomizers) {
+    List<BuildVariantModuleCustomizer<IdeaAndroidProject>> customizers = Lists.newArrayList();
+    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
+      // Supported model type must be IdeaAndroidProject or subclass.
+      if (IdeaAndroidProject.class.isAssignableFrom(customizer.getSupportedModelType())) {
+        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
+        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
+        if (projectSystemId == targetProjectSystemId || projectSystemId == ProjectSystemId.IDE) {
+          //noinspection unchecked
+          customizers.add(customizer);
+        }
+      }
+    }
+    return customizers;
+  }
 
   private void ensureVariantIsSelected(@NotNull Project project,
                                        @NotNull String moduleGradlePath,

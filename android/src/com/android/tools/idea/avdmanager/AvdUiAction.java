@@ -22,13 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 
 /**
  * Abstract base class for AVD editing actions
  */
-public abstract class AvdUiAction implements Action {
+public abstract class AvdUiAction implements Action, HyperlinkListener {
   @NotNull protected final AvdInfoProvider myAvdInfoProvider;
   @NotNull private final String myText;
   @NotNull private final String myDescription;
@@ -48,8 +50,10 @@ public abstract class AvdUiAction implements Action {
   public AvdUiAction(@NotNull AvdInfoProvider avdInfoProvider, @NotNull String text, @NotNull String description, @NotNull Icon icon) {
     myAvdInfoProvider = avdInfoProvider;
     myText = text;
-    myDescription = description;
     myIcon = icon;
+    myDescription = description;
+    putValue(Action.LARGE_ICON_KEY, icon);
+    putValue(Action.NAME, text);
   }
 
   @Override
@@ -103,5 +107,10 @@ public abstract class AvdUiAction implements Action {
 
   protected void refreshAvds() {
     myAvdInfoProvider.refreshAvds();
+  }
+
+  @Override
+  public void hyperlinkUpdate(HyperlinkEvent e) {
+    actionPerformed(null);
   }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -30,17 +28,12 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -48,38 +41,36 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
-import com.intellij.openapi.module.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
@@ -90,15 +81,12 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.Projects.hasErrors;
@@ -106,15 +94,21 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.needsAnnotationsJarInClasspath;
 
 public class PostProjectSetupTasksExecutor {
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
-  private static boolean ourSdkVersionWarningShown;
+  /** Whether a message indicating that "a new SDK Tools version is available" is already shown.  */
+  private static boolean ourNewSdkVersionToolsInfoAlreadyShown;
+
+  /** Whether we've checked for build expiration */
+  private static boolean ourCheckedExpiration;
+
+  private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
 
   @NotNull private final Project myProject;
 
-  private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
   @NotNull
@@ -126,162 +120,33 @@ public class PostProjectSetupTasksExecutor {
     myProject = project;
   }
 
+  /**
+   * Invoked after project state (e.g. {@code AndroidProject} instances) have been restored from disk cache (e.g. when reopening a project
+   * that was successfully synced with Gradle before being closed).
+   */
   public void onProjectRestoreFromDisk() {
     ensureValidSdks();
 
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
-      checkSdkVersion(myProject);
+      checkSdkToolsVersion(myProject);
       return;
     }
 
     findAndShowVariantConflicts();
     addSdkLinkIfNecessary();
-    checkSdkVersion(myProject);
+    checkSdkToolsVersion(myProject);
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
-  public void ensureValidSdks() {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
-
-    boolean checkJdkVersion = true;
-
-    Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
-        Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-        if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
-          // First try to recreate SDK; workaround for issue 78072
-          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-          AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
-          if (additionalData != null && sdkData != null) {
-            IAndroidTarget target = additionalData.getBuildTarget(sdkData);
-            if (target == null) {
-              LocalSdk localSdk = sdkData.getLocalSdk();
-              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
-              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
-            }
-            if (target != null) {
-              SdkModificator sdkModificator = sdk.getSdkModificator();
-              sdkModificator.removeAllRoots();
-              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
-                sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
-              }
-              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-              sdkModificator.commitChanges();
-            }
-          }
-
-          // If attempting to fix up the roots in the SDK fails, install the target over again
-          // (this is a truly corrupt install, as opposed to an incorrectly synced SDK which the
-          // above workaround deals with)
-          if (isMissingAndroidLibrary(sdk)) {
-            invalidAndroidSdks.add(sdk);
-          }
-        }
-
-        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        Collection<String> unresolved = androidProject.getDelegate().getUnresolvedDependencies();
-        messages.reportUnresolvedDependencies(unresolved, module);
-        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
-          // we already displayed the error, no need to check each module.
-          checkJdkVersion = false;
-        }
-        continue;
-      }
-      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
-      if (javaFacet != null && javaFacet.getJavaModel() != null) {
-        List<String> unresolved = javaFacet.getJavaModel().getUnresolvedDependencyNames();
-        messages.reportUnresolvedDependencies(unresolved, module);
-      }
-    }
-
-    if (!invalidAndroidSdks.isEmpty()) {
-      reinstallMissingPlatforms(invalidAndroidSdks);
-    }
-  }
-
-  private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
-    if (isAndroidSdk(sdk)) {
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
-        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
-        // annotations.jar and res folder.
-        if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  /*
-   * Indicates whether annotations.jar should be removed from the given SDK (if it is an Android SDK.)
-   * There are 2 issues:
-   * 1. annotations.jar is not needed for API level 16 and above. The annotations are already included in android.jar. Until recently, the
-   *    IDE added annotations.jar to the IDEA Android SDK definition unconditionally.
-   * 2. Because annotations.jar is in the classpath, the IDE locks the file on Windows making automatic updates of SDK Tools fail. The
-   *    update not only fails, it corrupts the 'tools' folder in the SDK.
-   * From now on, creating IDEA Android SDKs will not include annotations.jar if API level is 16 or above, but we still need to remove
-   * this jar from existing IDEA Android SDKs.
+  /**
+   * Invoked after a project has been synced with Gradle.
    */
-  private static boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
-    if (isAndroidSdk(sdk)) {
-      AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
-      boolean needsAnnotationJar = false;
-      if (additionalData != null && sdkData != null) {
-        IAndroidTarget target = additionalData.getBuildTarget(sdkData);
-        if (target != null) {
-          needsAnnotationJar = target.getVersion().getApiLevel() <= 15;
-        }
-      }
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
-        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
-        // annotations.jar and res folder.
-        if (library.getName().equals(FN_ANNOTATIONS_JAR) && library.exists() && !needsAnnotationJar) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
-
-    List<AndroidVersion> versionsToInstall = Lists.newArrayList();
-    List<String> missingPlatforms = Lists.newArrayList();
-
-    for (Sdk sdk : invalidAndroidSdks) {
-      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
-      if (additionalData instanceof AndroidSdkAdditionalData) {
-        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
-        if (platform != null) {
-          missingPlatforms.add("'" + platform + "'");
-          AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
-          if (version != null) {
-            versionsToInstall.add(version);
-          }
-        }
-      }
-    }
-
-    if (!versionsToInstall.isEmpty()) {
-      String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
-      String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
-      Message msg = new Message(group, Message.Type.ERROR, text);
-      messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
-    }
-  }
-
   public void onProjectSyncCompletion() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      if (!hasCorrectJdkVersion(module)) {
+      if (!ProjectJdkChecks.hasCorrectJdkVersion(module)) {
         // we already displayed the error, no need to check each module.
         break;
       }
@@ -289,25 +154,24 @@ public class PostProjectSetupTasksExecutor {
 
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
-      checkSdkVersion(myProject);
+      checkSdkToolsVersion(myProject);
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
     }
 
-    attachSourcesToLibraries();
-    ensureAllModulesHaveValidSdks();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        attachSourcesToLibraries();
+        ensureAllModulesHaveValidSdks();
+      }
+    });
     Projects.enforceExternalBuild(myProject);
 
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      // We remove modules not present in settings.gradle in Android Studio only. IDEA allows to have non-Gradle modules in Gradle projects.
-      removeModulesNotInGradleSettingsFile();
-    }
-    else {
-      AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
-    }
+    AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
     findAndShowVariantConflicts();
-    checkSdkVersion(myProject);
+    checkSdkToolsVersion(myProject);
     addSdkLinkIfNecessary();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
@@ -523,114 +387,6 @@ public class PostProjectSetupTasksExecutor {
     return new File(FileUtil.toSystemDependentName(path));
   }
 
-
-  private void removeModulesNotInGradleSettingsFile() {
-    GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(myProject);
-    final List<Module> modulesToRemove = Lists.newArrayList();
-
-    final ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    Module[] modules = moduleManager.getModules();
-
-    if (gradleSettingsFile == null) {
-      // If there is no settings.gradle file, it means that the top-level module is the only module recognized by Gradle.
-      if (modules.length == 1) {
-        return;
-      }
-      boolean topLevelModuleFound = false;
-      for (Module module : modules) {
-        if (!topLevelModuleFound && isTopLevel(module)) {
-          topLevelModuleFound = true;
-        }
-        else {
-          modulesToRemove.add(module);
-        }
-      }
-    }
-    else {
-      for (Module module : modules) {
-        if (isNonGradleModule(module) || isOrphanGradleModule(module, gradleSettingsFile)) {
-          modulesToRemove.add(module);
-        }
-      }
-    }
-
-    if (!modulesToRemove.isEmpty()) {
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
-          try {
-            for (Module module : modulesToRemove) {
-              removeDependencyLinks(module, moduleManager);
-              moduleModel.disposeModule(module);
-            }
-          }
-          finally {
-            moduleModel.commit();
-          }
-        }
-      });
-    }
-  }
-
-  private static boolean isNonGradleModule(@NotNull Module module) {
-    ModuleType moduleType = ModuleType.get(module);
-    if (moduleType instanceof JavaModuleType) {
-      String externalSystemId = module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
-      return !GradleConstants.SYSTEM_ID.getId().equals(externalSystemId);
-    }
-    return false;
-  }
-
-  private static boolean isOrphanGradleModule(@NotNull Module module, @NotNull GradleSettingsFile settingsFile) {
-    if (isTopLevel(module)) {
-      return false;
-    }
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
-    if (facet == null) {
-      return true;
-    }
-    String gradleProjectPath = facet.getConfiguration().GRADLE_PROJECT_PATH;
-    Iterable<String> allModules = settingsFile.getModules();
-    return !Iterables.contains(allModules, gradleProjectPath);
-  }
-
-  private static boolean isTopLevel(@NotNull Module module) {
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
-    if (facet == null) {
-      // if this is the top-level module, it may not have the Gradle facet but it is still valid, because it represents the project.
-      String moduleRootDirPath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath())).getParent();
-      return moduleRootDirPath.equals(module.getProject().getBasePath());
-    }
-    String gradleProjectPath = facet.getConfiguration().GRADLE_PROJECT_PATH;
-    // top-level modules have Gradle path ":"
-    return SdkConstants.GRADLE_PATH_SEPARATOR.equals(gradleProjectPath);
-  }
-
-  private static void removeDependencyLinks(@NotNull Module module, @NotNull ModuleManager moduleManager) {
-    List<Module> dependents = moduleManager.getModuleDependentModules(module);
-    for (Module dependent : dependents) {
-      if (dependent.isDisposed()) {
-        continue;
-      }
-      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(dependent);
-      ModifiableRootModel modifiableModel = moduleRootManager.getModifiableModel();
-      try {
-        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
-          if (orderEntry instanceof ModuleOrderEntry) {
-            Module orderEntryModule = ((ModuleOrderEntry)orderEntry).getModule();
-            if (module.equals(orderEntryModule)) {
-              modifiableModel.removeOrderEntry(orderEntry);
-            }
-          }
-        }
-      }
-      finally {
-        modifiableModel.commit();
-      }
-    }
-  }
-
   private void findAndShowVariantConflicts() {
     ConflictSet conflicts = findConflicts(myProject);
 
@@ -663,76 +419,176 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  private static void checkSdkVersion(@NotNull Project project) {
-    if (project.isDisposed() || ourSdkVersionWarningShown) {
+  private static void checkSdkToolsVersion(@NotNull Project project) {
+    if (project.isDisposed() || ourNewSdkVersionToolsInfoAlreadyShown) {
       return;
     }
+
+    // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
+    checkExpiredPreviewBuild(project);
+
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
       String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
       AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
-      ourSdkVersionWarningShown = true;
+      ourNewSdkVersionToolsInfoAlreadyShown = true;
     }
   }
 
-  private boolean hasCorrectJdkVersion(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.getIdeaAndroidProject() != null) {
-      return hasCorrectJdkVersion(module, facet.getIdeaAndroidProject());
+  private static void checkExpiredPreviewBuild(@NotNull Project project) {
+    if (project.isDisposed() || ourCheckedExpiration) {
+      return;
     }
-    return true;
+
+    String fullVersion = ApplicationInfo.getInstance().getFullVersion();
+    if (fullVersion.contains("Preview") || fullVersion.contains("Beta") || fullVersion.contains("RC")) {
+      // Expire preview builds two months after their build date (which is going to be roughly six weeks after release; by
+      // then will definitely have updated the build
+      Calendar expirationDate = (Calendar)ApplicationInfo.getInstance().getBuildDate().clone();
+      expirationDate.add(Calendar.MONTH, 2);
+
+      Calendar now = Calendar.getInstance();
+      if (now.after(expirationDate)) {
+        OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
+        String message = String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version",
+                                       fullVersion);
+        AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
+        // If we show an expiration message, don't also show a second balloon regarding available SDKs
+        ourNewSdkVersionToolsInfoAlreadyShown = true;
+      }
+    }
+    ourCheckedExpiration = true;
   }
 
-  private boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject model) {
-    AndroidProject androidProject = model.getDelegate();
-    String compileTarget = androidProject.getCompileTarget();
-    // TODO this is good for now, adjust this in the future to deal with 22, 23, etc.
-    if ("android-L".equals(compileTarget) || "android-21".equals(compileTarget)) {
-      Sdk jdk = DefaultSdks.getDefaultJdk();
-      if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
-        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        ProjectSettingsService service = ProjectSettingsService.getInstance(myProject);
-        if (service instanceof AndroidProjectSettingsService) {
-          hyperlinks.add(new OpenSdkSettingsHyperlink((AndroidProjectSettingsService)service));
-        }
-        Message msg;
-        String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
-        VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
-        if (buildFile != null) {
-          hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
-          msg = new Message(myProject, "Project Configuration", Message.Type.ERROR, buildFile, -1, -1, text);
-        }
-        else {
-          msg = new Message("Project Configuration", Message.Type.ERROR, NonNavigatable.INSTANCE, text);
+  private void ensureValidSdks() {
+    boolean checkJdkVersion = true;
+    Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+        Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+        if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
+          // First try to recreate SDK; workaround for issue 78072
+          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+          AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+          if (additionalData != null && sdkData != null) {
+            IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+            if (target == null) {
+              LocalSdk localSdk = sdkData.getLocalSdk();
+              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
+              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
+            }
+            if (target != null) {
+              SdkModificator sdkModificator = sdk.getSdkModificator();
+              sdkModificator.removeAllRoots();
+              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
+                sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+              }
+              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+              sdkModificator.commitChanges();
+            }
+          }
+
+          // If attempting to fix up the roots in the SDK fails, install the target over again
+          // (this is a truly corrupt install, as opposed to an incorrectly synced SDK which the
+          // above workaround deals with)
+          if (isMissingAndroidLibrary(sdk)) {
+            invalidAndroidSdks.add(sdk);
+          }
         }
 
-        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
-        messages.add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
+        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidProject)) {
+          // we already displayed the error, no need to check each module.
+          checkJdkVersion = false;
+        }
+      }
+    }
 
-        myProject.putUserData(Projects.HAS_WRONG_JDK, true);
-        return false;
+    if (!invalidAndroidSdks.isEmpty()) {
+      reinstallMissingPlatforms(invalidAndroidSdks);
+    }
+  }
+
+  private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
+    if (isAndroidSdk(sdk)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
+        // annotations.jar and res folder.
+        if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
+          return false;
+        }
       }
     }
     return true;
   }
 
-  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
-    myGenerateSourcesAfterSync = generateSourcesAfterSync;
+  /*
+   * Indicates whether annotations.jar should be removed from the given SDK (if it is an Android SDK.)
+   * There are 2 issues:
+   * 1. annotations.jar is not needed for API level 16 and above. The annotations are already included in android.jar. Until recently, the
+   *    IDE added annotations.jar to the IDEA Android SDK definition unconditionally.
+   * 2. Because annotations.jar is in the classpath, the IDE locks the file on Windows making automatic updates of SDK Tools fail. The
+   *    update not only fails, it corrupts the 'tools' folder in the SDK.
+   * From now on, creating IDEA Android SDKs will not include annotations.jar if API level is 16 or above, but we still need to remove
+   * this jar from existing IDEA Android SDKs.
+   */
+  private static boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
+    if (isAndroidSdk(sdk)) {
+      AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+      boolean needsAnnotationsJar = false;
+      if (additionalData != null && sdkData != null) {
+        IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+        if (target != null) {
+          needsAnnotationsJar = needsAnnotationsJarInClasspath(target);
+        }
+      }
+      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+        // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
+        // annotations.jar and res folder.
+        if (library.getName().equals(FN_ANNOTATIONS_JAR) && library.exists() && !needsAnnotationsJar) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
-  private static class OpenSdkSettingsHyperlink extends NotificationHyperlink {
-    @NotNull private final AndroidProjectSettingsService mySettingsService;
+  private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
-    OpenSdkSettingsHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
-      super("open.sdk.settings", "Open SDK Settings");
-      mySettingsService = settingsService;
+    List<AndroidVersion> versionsToInstall = Lists.newArrayList();
+    List<String> missingPlatforms = Lists.newArrayList();
+
+    for (Sdk sdk : invalidAndroidSdks) {
+      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
+      if (additionalData instanceof AndroidSdkAdditionalData) {
+        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
+        if (platform != null) {
+          missingPlatforms.add("'" + platform + "'");
+          AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
+          if (version != null) {
+            versionsToInstall.add(version);
+          }
+        }
+      }
     }
 
-    @Override
-    protected void execute(@NotNull Project project) {
-      mySettingsService.openSdkSettings();
+    if (!versionsToInstall.isEmpty()) {
+      String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
+      String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
+      Message msg = new Message(group, Message.Type.ERROR, text);
+      messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
     }
+  }
+
+
+  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
+    myGenerateSourcesAfterSync = generateSourcesAfterSync;
   }
 
   private static class InstallSdkToolsHyperlink extends NotificationHyperlink {

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -30,6 +31,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
@@ -107,7 +109,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() && runConfiguration instanceof AndroidRunConfigurationBase) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()
+        // Enable "Gradle-aware Make" only for android configurations...
+        && (runConfiguration instanceof AndroidRunConfigurationBase  ||
+            // ...and JUnit configurations if unit-testing support is enabled.
+            (GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT && runConfiguration instanceof JUnitConfiguration))) {
       return new MakeBeforeRunTask();
     } else {
       return null;

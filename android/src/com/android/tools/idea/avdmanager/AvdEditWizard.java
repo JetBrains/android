@@ -20,20 +20,19 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.tools.idea.wizard.*;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +54,7 @@ public class AvdEditWizard extends DynamicWizard {
   private final boolean myForceCreate;
 
   public AvdEditWizard(@Nullable Project project, @Nullable Module module, @Nullable AvdInfo avdInfo, boolean forceCreate) {
-    super(project, module, "AvdEditWizard");
+    super(project, module, "AvdEditWizard", new DialogWrapperHost(project, DialogWrapper.IdeModalityType.PROJECT));
     myAvdInfo = avdInfo;
     myForceCreate = forceCreate;
     setTitle("Virtual Device Configuration");
@@ -65,13 +64,20 @@ public class AvdEditWizard extends DynamicWizard {
   public void init() {
     if (myAvdInfo != null) {
       fillExistingInfo(myAvdInfo);
+      if (myForceCreate) {
+        String displayName = myAvdInfo.getProperties().get(AvdWizardConstants.DISPLAY_NAME_KEY.name);
+        getState().put(DISPLAY_NAME_KEY, String.format("Copy of %1$s", displayName));
+      }
     } else {
       initDefaultInfo();
     }
     addPath(new AvdConfigurationPath(getDisposable()));
-    addPath(new SingleStepPath(new ConfigureAvdOptionsStep(getDisposable())));
-
+    DynamicWizardStep configStep = new ConfigureAvdOptionsStep(getDisposable());
+    addPath(new SingleStepPath(configStep));
     super.init();
+    if (myForceCreate && myAvdInfo != null) {
+      getState().put(IS_IN_EDIT_MODE_KEY, false);
+    }
   }
 
   /**
@@ -87,7 +93,8 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
     state.put(USE_HOST_GPU_KEY, true);
-    state.put(SD_CARD_STORAGE_KEY, new Storage(100, Storage.Unit.MiB));
+    state.put(DISPLAY_SD_SIZE_KEY, new Storage(100, Storage.Unit.MiB));
+    state.put(DISPLAY_USE_EXTERNAL_SD_KEY, false);
   }
 
   /**
@@ -109,9 +116,10 @@ public class AvdEditWizard extends DynamicWizard {
     IAndroidTarget target = avdInfo.getTarget();
     if (target != null) {
       ISystemImage selectedImage = target.getSystemImage(avdInfo.getTag(), avdInfo.getAbiType());
-
-      SystemImageDescription systemImageDescription = selectedImage != null ? new SystemImageDescription(target, selectedImage) : null;
-      state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
+      if (selectedImage != null) {
+        SystemImageDescription systemImageDescription = new SystemImageDescription(target, selectedImage);
+        state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
+      }
     }
 
     Map<String, String> properties = avdInfo.getProperties();
@@ -127,9 +135,24 @@ public class AvdEditWizard extends DynamicWizard {
       sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
     }
     state.put(EXISTING_SD_LOCATION, sdCardLocation);
+    String dataFolderPath = avdInfo.getDataFolderPath();
+    File sdLocationFile = null;
     if (sdCardLocation != null) {
-      state.put(USE_EXISTING_SD_CARD, true);
+      sdLocationFile = new File(sdCardLocation);
     }
+    if (sdLocationFile != null && Objects.equal(sdLocationFile.getParent(), dataFolderPath)) {
+      // the image is in the AVD folder, consider it to be internal
+      File sdFile = new File(sdCardLocation);
+      Storage sdCardSize = new Storage(sdFile.length());
+      myState.put(DISPLAY_USE_EXTERNAL_SD_KEY, false);
+      myState.put(SD_CARD_STORAGE_KEY, sdCardSize);
+      myState.put(DISPLAY_SD_SIZE_KEY, sdCardSize);
+    } else {
+      // the image is external
+      myState.put(DISPLAY_USE_EXTERNAL_SD_KEY, true);
+      myState.put(DISPLAY_SD_LOCATION_KEY, sdCardLocation);
+    }
+
     String scale = properties.get(SCALE_SELECTION_KEY.name);
     if (scale != null) {
       state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(scale));
@@ -142,6 +165,11 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(NETWORK_SPEED_KEY, properties.get(NETWORK_SPEED_KEY.name));
     state.put(HAS_HARDWARE_KEYBOARD_KEY, fromIniString(properties.get(HAS_HARDWARE_KEYBOARD_KEY.name)));
     state.put(DISPLAY_NAME_KEY, AvdManagerConnection.getAvdDisplayName(avdInfo));
+
+    String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
+    if (orientation != null) {
+      state.put(DEFAULT_ORIENTATION_KEY, ScreenOrientation.getByShortDisplayName(orientation));
+    }
 
     String skinPath = properties.get(CUSTOM_SKIN_FILE_KEY.name);
     if (skinPath != null) {
@@ -195,28 +223,40 @@ public class AvdEditWizard extends DynamicWizard {
     SystemImageDescription systemImageDescription = state.get(SYSTEM_IMAGE_KEY);
     assert systemImageDescription != null;
     ScreenOrientation orientation = state.get(DEFAULT_ORIENTATION_KEY);
-    assert orientation != null;
+    if (orientation == null) {
+      orientation = device.getDefaultState().getOrientation();
+    }
 
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = state.flatten();
 
     // Remove the SD card setting that we're not using
     String sdCard = null;
-    Boolean useExistingSdCard = state.get(USE_EXISTING_SD_CARD);
-    boolean hasSdCard = false;
-    if (useExistingSdCard != null && useExistingSdCard) {
-      userEditedProperties.remove(SD_CARD_STORAGE_KEY.name);
-      sdCard = state.get(EXISTING_SD_LOCATION);
-      assert sdCard != null;
-      hasSdCard = true;
-      hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(true));
-    } else {
+
+    Boolean useExternalSdCard = state.get(DISPLAY_USE_EXTERNAL_SD_KEY);
+    boolean useExisting = useExternalSdCard != null && useExternalSdCard;
+    if (!useExisting) {
+      if (Objects.equal(state.get(SD_CARD_STORAGE_KEY), state.get(DISPLAY_SD_SIZE_KEY))) {
+        // unchanged, use existing card
+        useExisting = true;
+      }
+    }
+    boolean hasSdCard;
+    if (!useExisting) {
       userEditedProperties.remove(EXISTING_SD_LOCATION.name);
-      Storage storage = state.get(SD_CARD_STORAGE_KEY);
+      Storage storage = state.get(DISPLAY_SD_SIZE_KEY);
+      state.put(SD_CARD_STORAGE_KEY, storage);
       if (storage != null) {
         sdCard = toIniString(storage, false);
       }
       hasSdCard = storage != null && storage.getSize() > 0;
+    } else {
+      sdCard = state.get(DISPLAY_SD_LOCATION_KEY);
+      state.put(EXISTING_SD_LOCATION, sdCard);
+      userEditedProperties.remove(SD_CARD_STORAGE_KEY.name);
+      assert sdCard != null;
+      hasSdCard = true;
+      hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(true));
     }
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
@@ -252,7 +292,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     File skinFile = state.get(CUSTOM_SKIN_FILE_KEY);
     if (skinFile == null) {
-      skinFile = getHardwareSkinPath(device.getDefaultHardware());
+      skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription);
     }
 
     // Add defaults if they aren't already set differently
@@ -292,6 +332,10 @@ public class AvdEditWizard extends DynamicWizard {
       }
     }
 
+    if (forceCreate) {
+      avdInfo = null;
+    }
+
     return createWithProgress(avdInfo, device, systemImageDescription, orientation, hardwareProperties, sdCard, skinFile, isCircular,
                               avdName);
   }
@@ -319,18 +363,34 @@ public class AvdEditWizard extends DynamicWizard {
     return infoReference.get();
   }
 
+  /**
+   * Resolve a possibly relative path into a skin directory. If {@code image} is provided, try to match the given path
+   * against a skin path from {@code image.getSkins()}. If no match is found or no image is provided, look in the path given by
+   * {@link DeviceArtDescriptor#getBundledDescriptorsFolder()}. If no match is found, return {@code path}.
+   * @param path The path to resolve.
+   * @param image A SystemImageDescription to use as an additional source of skin directories.
+   * @return The resolved path.
+   */
   @Nullable
-  public static File getHardwareSkinPath(@NotNull Hardware hardware) {
-    File path = hardware.getSkinFile();
-    if (path != null && !path.isAbsolute()) {
-      if (path.getPath().isEmpty()) {
-        return null;
+  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image) {
+    if (path == null || path.getPath().isEmpty() || path.equals(NO_SKIN)) {
+      return path;
+    }
+    if (!path.isAbsolute()) {
+      if (image != null) {
+        File[] skins = image.getSkins();
+        for (File skin : skins) {
+          if (skin.getPath().endsWith("/" + path.getPath())) {
+            return skin;
+          }
+        }
       }
       File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
       if (resourceDir != null) {
-        path = new File(resourceDir, path.getPath());
-      } else {
-        return null;
+        File resourcePath = new File(resourceDir, path.getPath());
+        if (resourcePath.exists()) {
+          return resourcePath;
+        }
       }
     }
     return path;

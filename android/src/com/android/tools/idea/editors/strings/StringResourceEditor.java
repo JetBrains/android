@@ -25,6 +25,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,15 +38,22 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   public static final String NAME = "String Resource Editor";
 
   private final Project myProject;
-  private final StringResourceViewPanel myPanel;
+  private StringResourceViewPanel myPanel;
 
-  public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public StringResourceEditor(@NotNull Project project, @NotNull final VirtualFile file) {
     if (!(file instanceof StringsVirtualFile)) {
       throw new IllegalArgumentException();
     }
 
     myProject = project;
-    myPanel = new StringResourceViewPanel(((StringsVirtualFile)file).getFacet(), this);
+
+    // Post startup activities (such as when reopening last open editors) are run from a background thread
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        myPanel = new StringResourceViewPanel(((StringsVirtualFile)file).getFacet(), StringResourceEditor.this);
+      }
+    });
   }
 
   @NotNull

@@ -39,7 +39,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 /**
  * Gallery of Android activity templates.
  */
-public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescription {
+public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   @SuppressWarnings("unchecked")
   public static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
@@ -49,8 +49,8 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
   public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
-                             Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
-    super("Add an activity to " + formFactor.id, null, formFactor.getIcon(), disposable);
+                             @NotNull Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
+    super(disposable);
     myFormFactor = formFactor;
     myCurrentSelectionKey = currentSelectionKey;
     myShowSkipEntry = showSkipEntry;
@@ -97,7 +97,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
     myGallery.setName("Templates Gallery");
     AccessibleContext accessibleContext = myGallery.getAccessibleContext();
     if (accessibleContext != null) {
-      accessibleContext.setAccessibleDescription(getTitle());
+      accessibleContext.setAccessibleDescription(getStepTitle());
     }
     JPanel panel = new JPanel(new JBCardLayout());
     panel.add("only card", new JBScrollPane(myGallery));
@@ -220,6 +220,24 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   @Override
   public String getStepName() {
     return "Activity Gallery";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "Add an activity to " + myFormFactor.id;
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  protected Icon getStepIcon() {
+    return myFormFactor.getIcon();
   }
 
   private enum PageStatus {

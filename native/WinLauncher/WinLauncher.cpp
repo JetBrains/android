@@ -174,12 +174,16 @@ bool FindJVMInRegistryWithVersion(const char* version, bool wow64_32)
 bool FindJVMInRegistry()
 {
 #ifndef _M_X64
+    if (FindJVMInRegistryWithVersion("1.8", true))
+        return true;
     if (FindJVMInRegistryWithVersion("1.7", true))
         return true;
     if (FindJVMInRegistryWithVersion("1.6", true))
         return true;
 #endif
 
+    if (FindJVMInRegistryWithVersion("1.8", false))
+        return true;
     if (FindJVMInRegistryWithVersion("1.7", false))
         return true;
     if (FindJVMInRegistryWithVersion("1.6", false))
@@ -215,24 +219,6 @@ BOOL IsWow64()
     return bIsWow64;
 }
 
-// Returns true if the application platform (32- or 64-bit) matches that of the OS running it.
-bool IsWindowsPlatformCorrect()
-{
-    if (IsWow64())
-    {
-        // If our process is WoW64, this means we are running a 32-bit program on 64-bit Windows
-        char buf[512];
-        strcpy(buf, "We have detected that you are running a 64-bit version of the Windows® "
-            "operating system. Please run studio64.exe instead.");
-        MessageBoxA(NULL, buf,  ERROR_LAUNCHING_APP, MB_OK);
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
-
 bool LocateJVM()
 {
     bool result;
@@ -257,12 +243,21 @@ bool LocateJVM()
         return result;
     }
 
-    char buf[512];
-    sprintf(buf, "No JVM installation found. Please install a %s JDK.\n"
-        "If you already have a JDK installed, define a JAVA_HOME variable in "
-        "Computer > System Properties > System Settings > Environment Variables.",
-        BITS_STR);
-    MessageBoxA(NULL, buf,  ERROR_LAUNCHING_APP, MB_OK);
+    std::string jvmError;
+    jvmError = "No JVM installation found. Please install a " BITS_STR " JDK.\n"
+        "If you already have a JDK installed, define a JAVA_HOME variable in\n"
+        "Computer > System Properties > System Settings > Environment Variables.";
+
+    if (IsWow64()) {
+        // If WoW64, this means we are running a 32-bit program on 64-bit Windows. This may explain
+        // why we couldn't locate the JVM.
+        jvmError += "\n\nNOTE: We have detected that you are running a 64-bit version of the "
+            "Windows® operating system but are running studio.exe, which is a 32-bit process. This "
+            "can prevent you from finding a 64-bit installation of Java. Consider running "
+            "studio64.exe if this is the problem you're encountering.";
+    }
+
+    MessageBoxA(NULL, jvmError.c_str(),  ERROR_LAUNCHING_APP, MB_OK);
     return false;
 }
 
@@ -455,30 +450,33 @@ bool LoadVMOptions()
 bool LoadJVMLibrary()
 {
     std::string dllName(jvmPath);
-    std::string serverDllName = dllName + "\\bin\\server\\jvm.dll";
-    std::string clientDllName = dllName + "\\bin\\client\\jvm.dll";
+    std::string binDir = dllName + "\\bin";
+    std::string serverDllName = binDir + "\\server\\jvm.dll";
+    std::string clientDllName = binDir + "\\client\\jvm.dll";
     if ((bServerJVM && FileExists(serverDllName)) || !FileExists(clientDllName))
     {
-        hJVM = LoadLibraryA(serverDllName.c_str());
+        dllName = serverDllName;
     }
     else
     {
-        hJVM = LoadLibraryA(clientDllName.c_str());
+        dllName = clientDllName;
     }
 
+    // ensure we can find msvcr100.dll which is located in jre/bin directory; jvm.dll depends on it.
+    SetCurrentDirectoryA(binDir.c_str());
+    hJVM = LoadLibraryA(dllName.c_str());
     if (hJVM)
     {
         pCreateJavaVM = (JNI_createJavaVM) GetProcAddress(hJVM, "JNI_CreateJavaVM");
     }
     if (!pCreateJavaVM)
     {
-        char buf[_MAX_PATH + 256];
-        sprintf(buf, "Failed to load JVM DLL %s.\n"
-            "If you already have a %s JDK installed, define a JAVA_HOME variable in "
-            "Computer > System Properties > System Settings > Environment Variables.",
-            dllName.c_str(),
-            BITS_STR);
-        MessageBoxA(NULL, buf, ERROR_LAUNCHING_APP, MB_OK);
+        std::string jvmError = "Failed to load JVM DLL ";
+        jvmError += dllName.c_str();
+        jvmError += "\n"
+            "If you already have a " BITS_STR " JDK installed, define a JAVA_HOME variable in "
+            "Computer > System Properties > System Settings > Environment Variables.";
+        MessageBoxA(NULL, jvmError.c_str(), ERROR_LAUNCHING_APP, MB_OK);
         return false;
     }
     return true;
@@ -798,7 +796,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
         CreateThread(NULL, 0, SplashScreenThread, hSplashBitmap, 0, NULL);
     }
 
-    if (!IsWindowsPlatformCorrect()) return 1;
     if (!LocateJVM()) return 1;
     if (!LoadVMOptions()) return 1;
     if (!LoadJVMLibrary()) return 1;

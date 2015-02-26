@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParserUtil;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
+import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.parser.ParsingFailedException;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.ide.common.blame.parser.util.ParserUtil;
+import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -27,14 +28,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+;
+
 /**
  * A parser for errors that occur during XML validation of various resource source files. They are of the form:
- *
+ * <p/>
  * <pre>
  * [Fatal Error] :LINE:COL: MESSAGE
  * Failed to parse PATHNAME
  * </pre>
- *
+ * <p/>
  * The second line with the pathname may not appear (which means we can't tell the user what file the error occurred in. Bummer.)
  */
 public class XmlValidationErrorParser implements PatternAwareOutputParser {
@@ -42,7 +45,7 @@ public class XmlValidationErrorParser implements PatternAwareOutputParser {
   private static final Pattern FILE_REFERENCE = Pattern.compile("Failed to parse (.+)");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     Matcher m1 = FATAL_ERROR.matcher(line);
     if (!m1.matches()) {

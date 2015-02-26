@@ -93,9 +93,9 @@ public final class AndroidSdkUtils {
   public static final String DEFAULT_JDK_NAME = "JDK";
 
   // TODO: Update these to a stable link
-  private static final String MAC_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
-  private static final String LINUX_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
-  private static final String WINDOWS_SDK_URL = "http://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
+  private static final String MAC_SDK_URL = "https://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
+  private static final String LINUX_SDK_URL = "https://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
+  private static final String WINDOWS_SDK_URL = "https://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
 
   private static AndroidSdkData ourSdkData;
 
@@ -194,7 +194,7 @@ public final class AndroidSdkUtils {
     }
 
     // Explicitly add annotations.jar unless the target platform already provides it (API16+).
-    if (sdkPath != null && target.getVersion().getApiLevel() <= 15) {
+    if (sdkPath != null && needsAnnotationsJarInClasspath(target)) {
       JarFileSystem jarFileSystem = JarFileSystem.getInstance();
       String annotationsJarPath =
         FileUtil.toSystemIndependentName(sdkPath) + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH + JarFileSystem.JAR_SEPARATOR;
@@ -205,6 +205,14 @@ public final class AndroidSdkUtils {
     }
 
     return result;
+  }
+
+  /**
+   * Indicates whether annotations.jar needs to be added to the classpath of an Android SDK. annotations.jar is not needed for API 16
+   * or newer. The annotations are already included in android.jar.
+   */
+  public static boolean needsAnnotationsJarInClasspath(@NotNull IAndroidTarget target) {
+    return target.getVersion().getApiLevel() <= 15;
   }
 
   @Nullable

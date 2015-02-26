@@ -14,13 +14,13 @@
   ~ limitations under the License.
   -->
 <component>
-  <version major="1" minor="0.2" eap="false" />
-  <company name="Google Inc." url="http://developer.android.com"/>
+  <version major="1" minor="1.0" strict="1.1.0" eap="false" />
+  <company name="Google" url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.1286"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
-  <icon size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png"/>
+  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png"/>
   <package code="__PACKAGE_CODE__"/>
   <names product="Android Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 

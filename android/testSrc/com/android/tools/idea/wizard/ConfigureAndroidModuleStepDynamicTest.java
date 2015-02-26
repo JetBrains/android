@@ -49,7 +49,7 @@ public class ConfigureAndroidModuleStepDynamicTest extends AndroidGradleTestCase
     ScopedStateStore wizardState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null);
     ScopedStateStore pathState = new ScopedStateStore(ScopedStateStore.Scope.PATH, wizardState, null);
 
-    myStep = new ConfigureAndroidModuleStepDynamic(getProject(), getTestRootDisposable());
+    myStep = new ConfigureAndroidModuleStepDynamic(getTestRootDisposable());
     myStep.myState = new ScopedStateStore(ScopedStateStore.Scope.STEP, pathState, myStep);
   }
 

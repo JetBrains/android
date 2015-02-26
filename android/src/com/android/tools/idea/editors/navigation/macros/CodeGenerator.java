@@ -16,25 +16,153 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.editors.navigation.model.*;
+import com.android.tools.idea.editors.navigation.Listener;
 import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.impl.source.codeStyle.ImportHelper;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class CodeGenerator {
-  private static final String[] FRAMEWORK_IMPORTS = new String[]{
-    "android.app.Activity",
-    "android.content.Intent",
-    "android.os.Bundle"
-  };
+  private static final Logger LOG = Logger.getInstance(CodeGenerator.class.getName());
+  private static final String[] FRAMEWORK_IMPORTS = new String[]{"android.content.Intent"};
   public static final String TRANSITION_ADDED = "Transition added";
+  private static final String LIST_POSITION_EXTRA_NAME = "position";
+  private static final boolean PREPEND_PACKAGE_NAME_TO_EXTRA_NAME = false;
+
+  private static class Template {
+    public String[] imports;
+    public String signature;
+    public String body;
+    public boolean insertCodeBeforeLastStatement;
+    public Function<Transition, String> code;
+
+    private void installTransition(CodeGenerator codeGenerator, PsiClass psiClass, Transition transition) {
+      codeGenerator.createAddCodeAction(psiClass, this, transition).execute();
+    }
+  }
+
+  private static final Template SHOW_MENU = new Template() {
+    {
+      imports = new String[]{"android.view.Menu"};
+      signature = "boolean onCreateOptionsMenu(Menu menu)";
+      body = "@Override " +
+             "public boolean onCreateOptionsMenu(Menu menu) { " +
+             "    return true;" +
+             "}";
+      insertCodeBeforeLastStatement = true;
+      code = new Function<Transition, String>() {
+        @Override
+        public String fun(Transition transition) {
+          String destinationResourceName = ((MenuState)transition.getDestination().getState()).getXmlResourceName();
+          return "getMenuInflater().inflate(R.menu." + destinationResourceName + ", $0);";
+        }
+      };
+    }
+  };
+
+  private static final Template MENU_ACTION = new Template() {
+    {
+      imports = new String[]{"android.view.Menu", "android.view.MenuItem"};
+      signature = "boolean onPrepareOptionsMenu(Menu menu)";
+      body = "@Override " +
+             "public boolean onPrepareOptionsMenu(Menu menu) { " +
+             "    boolean result = super.onPrepareOptionsMenu(menu); " +
+             "    return result;" +
+             "}";
+      insertCodeBeforeLastStatement = true;
+      code = new Function<Transition, String>() {
+        @Override
+        public String fun(Transition transition) {
+          Locator source = transition.getSource();
+          String viewName = source.getViewId();
+          String sourceClassName = source.getState().getClassName();
+          String destinationClassName = transition.getDestination().getState().getClassName();
+          String activity = sourceClassName + ".this";
+
+          return "$0.findItem(R.id." + viewName + ").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
+                        "    @Override" +
+                        "    public boolean onMenuItemClick(MenuItem menuItem) {" +
+                        "        startActivity(new Intent(" + activity + ", " + destinationClassName + ".class));" +
+                        "        return true;" +
+                        "    }" +
+                        "});";
+        }
+      };
+    }
+  };
+
+  private static Template setOnClickListener(final boolean isFragment) {
+    return new Template() {
+      {
+        imports = new String[]{"android.view.View", "android.os.Bundle"};
+        signature = isFragment ? "void onViewCreated(View view, Bundle savedInstanceState)" : "void onCreate(Bundle savedInstanceState)";
+        body = "@Override\n" +
+               "public " + signature + " { " +
+               "    super.onCreate(savedInstanceState);" +
+               "}";
+        insertCodeBeforeLastStatement = false;
+        code = new Function<Transition, String>() {
+          @Override
+          public String fun(Transition transition) {
+            Locator source = transition.getSource();
+            String viewName = source.getViewId();
+            String sourceClassName = source.getState().getClassName();
+            Locator destination = transition.getDestination();
+            String destinationClassName = destination.getState().getClassName();
+            String finder = isFragment ? "view." : "";
+            String activity = isFragment ? "getActivity()" : sourceClassName + ".this";
+
+            return finder + "findViewById(R.id." + viewName + ").setOnClickListener(new View.OnClickListener() { " +
+                   "    @Override" +
+                   "    public void onClick(View v) {" +
+                   "        startActivity(new Intent(" + activity + ", " + destinationClassName + ".class));" +
+                   "    }" +
+                   "});";
+          }
+        };
+      }
+    };
+  }
+
+  private static Template overrideOnItemClickInList(final boolean isFragment) {
+    return new Template() {
+      {
+        imports = new String[]{"android.view.View", "android.widget.ListView"};
+        signature = "void onListItemClick(ListView l, View v, int position, long id)";
+        body = "@Override\n" +
+               (isFragment ? "public" : "protected") + " " + signature + " {" +
+               "    super.onListItemClick(l, v, position, id);\n" +
+               "}";
+        insertCodeBeforeLastStatement = false;
+        code = new Function<Transition, String>() {
+          @Override
+          public String fun(Transition transition) {
+            Locator source = transition.getSource();
+            String sourceClassName = source.getState().getClassName();
+            String sourcePackageName = sourceClassName.substring(0, sourceClassName.lastIndexOf('.'));
+            Locator destination = transition.getDestination();
+            String destinationClassName = destination.getState().getClassName();
+            String activity = isFragment ? "getActivity()" : sourceClassName + ".this";
+
+            //noinspection ConstantConditions
+            return "startActivity(new Intent(" + activity + ", " + destinationClassName +
+                   ".class).putExtra(\"" +
+                   (PREPEND_PACKAGE_NAME_TO_EXTRA_NAME ? sourcePackageName + "." + LIST_POSITION_EXTRA_NAME : LIST_POSITION_EXTRA_NAME) +
+                   "\", position));";
+          }
+        };
+      }
+    };
+  }
+
   public final Module module;
   public final NavigationModel navigationModel;
   public final Listener<String> listener;
@@ -45,34 +173,22 @@ public class CodeGenerator {
     this.listener = listener;
   }
 
-  private ActivityState getAssociatedActivityState(MenuState menuState) {
-    for (Transition t : navigationModel.getTransitions()) {
-      if (t.getDestination().getState() == menuState) {
-        State state = t.getSource().getState();
-        if (state instanceof ActivityState) {
-          return (ActivityState)state;
-
-        }
-      }
-    }
-    assert false;
-    return null;
-  }
-
-  private void addImports(ImportHelper importHelper, PsiJavaFile file, String[] classNames) {
+  private static void addImports(Module module, ImportHelper importHelper, PsiJavaFile file, String[] classNames) {
     for (String className : classNames) {
       PsiClass psiClass = Utilities.getPsiClass(module, className);
       if (psiClass != null) {
         importHelper.addImport(file, psiClass);
+      } else {
+        LOG.warn("Class not found: " + className);
       }
     }
   }
 
-  private void addImportsAsNecessary(PsiClass psiClass, @NonNull String... classNames) {
+  private static void addImportsAsNecessary(Module module, PsiClass psiClass, @NonNull String... classNames) {
     PsiJavaFile file = (PsiJavaFile)psiClass.getContainingFile();
     ImportHelper importHelper = new ImportHelper(CodeStyleSettingsManager.getSettings(module.getProject()));
-    addImports(importHelper, file, FRAMEWORK_IMPORTS);
-    addImports(importHelper, file, classNames);
+    addImports(module, importHelper, file, FRAMEWORK_IMPORTS);
+    addImports(module, importHelper, file, classNames);
   }
 
   @SuppressWarnings("UnusedParameters")
@@ -80,128 +196,99 @@ public class CodeGenerator {
     listener.notify(TRANSITION_ADDED);
   }
 
-  public void implementTransition(final Transition transition) {
-    Project project = module.getProject();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    final PsiElementFactory factory = facade.getElementFactory();
-    final CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
-    final Macros macros = Macros.getInstance(module.getProject());
+  private CodeStyleManager getCodeStyleManager() {
+    return CodeStyleManager.getInstance(module.getProject());
+  }
 
-    State sourceState = transition.getSource().getState();
-    State destinationState = transition.getDestination().getState();
-    if (sourceState instanceof MenuState && destinationState instanceof ActivityState) {
-      MenuState menuState = (MenuState)sourceState;
-      final ActivityState newActivity = (ActivityState)destinationState;
-      final ActivityState originatingActivity = getAssociatedActivityState(menuState);
-      final PsiClass psiClass = Utilities.getPsiClass(module, originatingActivity.getClassName());
-      if (psiClass != null) {
-        new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
-          @Override
-          protected void run(@NotNull Result<Void> result) {
-            PsiMethod signature = factory.createMethodFromText("public boolean onPrepareOptionsMenu(Menu menu){ }", psiClass);
-            PsiMethod method = psiClass.findMethodBySignature(signature, false);
-            if (method == null) {
-              method = factory.createMethodFromText(
-                "@Override public boolean onPrepareOptionsMenu(Menu menu){boolean result=super.onPrepareOptionsMenu(menu);return result;}",
-                psiClass);
-              psiClass.add(method);
-              method = psiClass.findMethodBySignature(signature, false); // the previously assigned method is not resolved somehow
-              assert method != null;
-            }
-            String parameterName = method.getParameterList().getParameters()[0].getName();
-            PsiCodeBlock body = method.getBody();
-            assert body != null;
-            PsiStatement[] statements = body.getStatements();
-            PsiStatement lastStatement = statements[statements.length - 1];
-            MultiMatch macro = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro;
-            MultiMatch.Bindings<String> bindings = new MultiMatch.Bindings<String>();
-            bindings.put("$consume", "true");
-            bindings.put("$menuItem", "$menu", parameterName);
-            bindings.put("$menuItem", "$id", "R.id." + transition.getSource().getViewName());
-            bindings.put("$f", "context", originatingActivity.getClassName() + ".this");
-            bindings.put("$f", "activityClass", newActivity.getClassName() + ".class");
-            String newCode = macro.instantiate(bindings);
-            PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
-            body.addBefore(newStatement, lastStatement);
-            addImportsAsNecessary(psiClass, "android.view.Menu", "android.view.MenuItem");
-            codeStyleManager.reformat(method);
-            notifyListeners(psiClass);
-          }
-        }.execute();
-      }
+  private static String substituteArgs(PsiMethod method, String code) {
+    if (code.contains("$0")) {
+      code = code.replace("$0", method.getParameterList().getParameters()[0].getName());
     }
-    if (sourceState instanceof ActivityState && destinationState instanceof MenuState) {
-      ActivityState activityState = (ActivityState)sourceState;
-      final MenuState menuState = (MenuState)destinationState;
-      final PsiClass psiClass = Utilities.getPsiClass(module, activityState.getClassName());
-      if (psiClass != null) {
-        new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
-          @Override
-          protected void run(@NotNull Result<Void> result) {
-            PsiMethod signature = factory.createMethodFromText("boolean onCreateOptionsMenu(Menu menu){}", psiClass);
-            PsiMethod method = psiClass.findMethodBySignature(signature, false);
-            if (method == null) {
-              method = factory.createMethodFromText("@Override public boolean onCreateOptionsMenu(Menu menu) { return true;}", psiClass);
-              psiClass.add(method);
-              method = psiClass.findMethodBySignature(signature, false); // // the previously assigned method is not resolved somehow
-              assert method != null;
-            }
-            String parameterName = method.getParameterList().getParameters()[0].getName();
-            PsiCodeBlock body = method.getBody();
-            assert body != null;
-            PsiStatement[] statements = body.getStatements();
-            PsiStatement lastStatement = statements[statements.length - 1];
-            String newStatementText = "getMenuInflater().inflate(R.menu.$XmlResourceName, $parameterName);";
-            newStatementText = newStatementText.replace("$XmlResourceName", menuState.getXmlResourceName());
-            newStatementText = newStatementText.replace("$parameterName", parameterName);
-            PsiStatement newStatement = factory.createStatementFromText(newStatementText, body);
-            body.addBefore(newStatement, lastStatement);
-            addImportsAsNecessary(psiClass, "android.view.Menu");
-            codeStyleManager.reformat(method);
-            notifyListeners(psiClass);
-          }
-        }.execute();
+    return code;
+  }
+
+
+  private WriteCommandAction<Void> createAddCodeAction(final PsiClass psiClass,
+                                                       final String signatureText,
+                                                       final String templateText,
+                                                       final String codeToInsert,
+                                                       final boolean addBeforeLastStatement,
+                                                       final String... imports) {
+    final PsiElementFactory factory = JavaPsiFacade.getInstance(module.getProject()).getElementFactory();
+    return new WriteCommandAction<Void>(module.getProject(), "Add navigation transition", psiClass.getContainingFile()) {
+      @Override
+      protected void run(@NotNull Result<Void> result) {
+        PsiMethod signature = factory.createMethodFromText(signatureText + "{}", psiClass);
+        PsiMethod method = psiClass.findMethodBySignature(signature, false);
+        if (method == null) {
+          method = factory.createMethodFromText(templateText, psiClass);
+          psiClass.add(method);
+          method = psiClass.findMethodBySignature(signature, false); // the previously assigned method is not resolved somehow
+          assert method != null;
+        }
+        PsiCodeBlock body = method.getBody();
+        assert body != null;
+        PsiStatement[] statements = body.getStatements();
+        PsiStatement lastStatement = statements[statements.length - 1];
+        PsiStatement newStatement = factory.createStatementFromText(substituteArgs(method, codeToInsert), body);
+        if (addBeforeLastStatement) {
+          body.addBefore(newStatement, lastStatement);
+        }
+        else {
+          body.addAfter(newStatement, lastStatement);
+        }
+        addImportsAsNecessary(module, psiClass, imports);
+        getCodeStyleManager().reformat(method);
+        notifyListeners(psiClass);
       }
+    };
+  }
+
+  private WriteCommandAction<Void> createAddCodeAction(PsiClass psiClass, Template template, Transition t) {
+    return createAddCodeAction(psiClass, template.signature, template.body, template.code.fun(t), template.insertCodeBeforeLastStatement,
+                               template.imports);
+  }
+
+  public void implementTransition(final Transition transition) {
+    Locator source = transition.getSource();
+    State sourceState = source.getState();
+    String fragmentClassName = source.getFragmentClassName();
+    final boolean targetIsFragment = fragmentClassName != null;
+    String targetClassName = targetIsFragment ? fragmentClassName : sourceState.getClassName();
+    final PsiClass hostClass = Utilities.getPsiClass(module, targetClassName);
+    if (hostClass == null) {
+      return;
     }
-    if (sourceState instanceof ActivityState && destinationState instanceof ActivityState) {
-      final ActivityState sourceActivityState = (ActivityState)sourceState;
-      final ActivityState newActivity = (ActivityState)destinationState;
-      final PsiClass psiClass = Utilities.getPsiClass(module, sourceActivityState.getClassName());
-      if (psiClass != null) {
-        new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
+    final State destinationState = transition.getDestination().getState();
+    sourceState.accept(new State.Visitor() {
+      @Override
+      public void visit(final ActivityState sourceState) {
+        destinationState.accept(new State.Visitor() {
           @Override
-          protected void run(@NotNull Result<Void> result) {
-            PsiMethod signature = factory.createMethodFromText("void onCreate(Bundle savedInstanceState){}", psiClass);
-            PsiMethod method = psiClass.findMethodBySignature(signature, false);
-            if (method == null) {
-              method = factory.createMethodFromText("@Override " +
-                                                    "public void onCreate(Bundle savedInstanceState) {" +
-                                                    "super.onCreate(savedInstanceState);}", psiClass);
-              psiClass.add(method);
-              method = psiClass.findMethodBySignature(signature, false); // the previously assigned method is not resolved somehow
-              assert method != null;
-            }
-            PsiCodeBlock body = method.getBody();
-            assert body != null;
-            PsiStatement[] statements = body.getStatements();
-            PsiStatement lastStatement = statements[statements.length - 1];
-            String newCode = "findViewById($id).setOnClickListener(new View.OnClickListener() { " +
-                             "  @Override" +
-                             "  public void onClick(View v) {" +
-                             "    $context.startActivity(new Intent($context, $activityClass));" +
-                             "  }" +
-                             "})";
-            newCode = newCode.replaceAll("\\$id", "R.id." + transition.getSource().getViewName()); // todo improve
-            newCode = newCode.replaceAll("\\$context", sourceActivityState.getClassName() + ".this");
-            newCode = newCode.replaceAll("\\$activityClass", newActivity.getClassName() + ".class");
-            PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
-            body.addAfter(newStatement, lastStatement);
-            addImportsAsNecessary(psiClass, "android.view.View");
-            codeStyleManager.reformat(method);
-            notifyListeners(psiClass);
+          public void visit(ActivityState destinationState) {
+            PsiClass listClass = Utilities.getPsiClass(module, targetIsFragment ? "android.app.ListFragment" : "android.app.ListActivity");
+            assert listClass != null;
+            Template t =
+              hostClass.isInheritor(listClass, true) ? overrideOnItemClickInList(targetIsFragment) : setOnClickListener(targetIsFragment);
+            t.installTransition(CodeGenerator.this, hostClass, transition);
           }
-        }.execute();
+
+          @Override
+          public void visit(MenuState destinationState) {
+            SHOW_MENU.installTransition(CodeGenerator.this, hostClass, transition);
+          }
+        });
       }
-    }
+
+      @Override
+      public void visit(final MenuState sourceState) {
+        destinationState.accept(new State.BaseVisitor() {
+          @Override
+          public void visit(ActivityState destinationState) {
+            MENU_ACTION.installTransition(CodeGenerator.this, hostClass, transition);
+          }
+        });
+      }
+    });
   }
 }

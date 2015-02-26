@@ -20,18 +20,14 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Function;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 
 /**
  * https://code.google.com/p/android/issues/detail?id=80441
@@ -41,9 +37,9 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
   private static final String DEFAULT_APPENGINE_PLUGIN_VERSION = "1.9.17";
   public static final String APPENGINE_PLUGIN_GROUP_ID = "com.google.appengine";
   public static final String APPENGINE_PLUGIN_ARTIFACT_ID = "gradle-appengine-plugin";
-  public static final String APPENGINE_PLUGIN_DEFINITION_START = APPENGINE_PLUGIN_GROUP_ID + ":" + APPENGINE_PLUGIN_ARTIFACT_ID + ":";
+  public static final String APPENGINE_PLUGIN_NAME = APPENGINE_PLUGIN_GROUP_ID + ":" + APPENGINE_PLUGIN_ARTIFACT_ID + ":";
   public static final GradleCoordinate REFERENCE_APPENGINE_COORDINATE =
-    GradleCoordinate.parseCoordinateString(APPENGINE_PLUGIN_DEFINITION_START + DEFAULT_APPENGINE_PLUGIN_VERSION);
+    GradleCoordinate.parseCoordinateString(APPENGINE_PLUGIN_NAME + DEFAULT_APPENGINE_PLUGIN_VERSION);
 
   @NotNull private final VirtualFile myConfigToCorrect;
 
@@ -59,27 +55,16 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     if (document == null) {
       return;
     }
-    final TextRange range = GradleUtil.forPluginDefinition(document.getText(),
-                                                     APPENGINE_PLUGIN_DEFINITION_START,
-                                                     new Function<Pair<String, GroovyLexer>, TextRange>() {
+    boolean updated = GradleUtil.updateGradleDependencyVersion(project, document, APPENGINE_PLUGIN_NAME, new Computable<String>() {
       @Override
-      public TextRange fun(Pair<String, GroovyLexer> pair) {
-        GroovyLexer lexer = pair.getSecond();
-        return TextRange.create(lexer.getTokenStart() + 1 + APPENGINE_PLUGIN_DEFINITION_START.length(), lexer.getTokenEnd() - 1);
-      }
-    });
-    if (range == null) {
-      return;
-    }
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
+      public String compute() {
         ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);
         FullRevision latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
-        String versionToUse = latest == null ? DEFAULT_APPENGINE_PLUGIN_VERSION : latest.toString();
-        document.replaceString(range.getStartOffset(), range.getEndOffset(), versionToUse);
+        return latest == null ? DEFAULT_APPENGINE_PLUGIN_VERSION : latest.toString();
       }
     });
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    if (updated) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
   }
 }

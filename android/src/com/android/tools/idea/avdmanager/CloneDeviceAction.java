@@ -44,6 +44,7 @@ public class CloneDeviceAction extends DeviceUiAction {
     boolean success = wizard.showAndGet();
     if (success) {
       myProvider.refreshDevices();
+      myProvider.setDevice(wizard.getEditedDevice());
     }
   }
 }

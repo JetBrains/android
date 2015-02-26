@@ -75,6 +75,9 @@ public class LocaleTest extends TestCase {
     assertFalse(Locale.create(language1, region1).equals(Locale.create(language2, region1)));
     assertEquals("Locale{nb, __}", Locale.create(language1).toString());
     assertEquals("Locale{nb, NO}", Locale.create(language1, region1).toString());
+
+    assertEquals(Locale.create(language1), Locale.create("b+nb"));
+    assertEquals(Locale.create(language1, region1), Locale.create("b+nb+NO"));
   }
 
   public void testFolderConfig() {

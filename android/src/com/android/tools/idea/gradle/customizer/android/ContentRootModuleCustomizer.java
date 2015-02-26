@@ -19,7 +19,9 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.util.FilePaths;
+import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
@@ -42,7 +45,8 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject>
+  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
   // TODO This is a temporary solution. The real fix is in the Android Gradle plug-in we need to take exploded-aar/${library}/${version}/res
   // folder somewhere else out of "exploded-aar" so the IDE can index it, but we need to exclude everything else in "exploded-aar"
   // (e.g. jar files) to avoid unnecessary indexing.
@@ -84,7 +88,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(androidProject, contentEntries, mainArtifact, false, orphans);
 
-    AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(androidProject.getSelectedVariant());
     if (testArtifact != null) {
       addSourceFolders(androidProject, contentEntries, testArtifact, true, orphans);
     }
@@ -100,6 +104,14 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     BuildTypeContainer buildTypeContainer = androidProject.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
       addSourceFolder(androidProject, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
+
+      Collection<SourceProvider> testSourceProviders =
+        androidProject.getSourceProvidersForSelectedTestArtifact(buildTypeContainer.getExtraSourceProviders());
+
+
+      for (SourceProvider testSourceProvider : testSourceProviders) {
+        addSourceFolder(androidProject, contentEntries, testSourceProvider, true, orphans);
+      }
     }
 
     ProductFlavorContainer defaultConfig = androidProject.getDelegate().getDefaultConfig();
@@ -109,20 +121,22 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
-                                @NotNull Collection<ContentEntry> contentEntry,
-                                @NotNull AndroidArtifact androidArtifact,
+                                @NotNull Collection<ContentEntry> contentEntries,
+                                @NotNull BaseArtifact androidArtifact,
                                 boolean isTest,
                                 @NotNull List<RootSourceFolder> orphans) {
-    addGeneratedSourceFolder(androidProject, contentEntry, androidArtifact, isTest, orphans);
+    if (androidArtifact instanceof AndroidArtifact) {
+      addGeneratedSourceFolder(androidProject, contentEntries, (AndroidArtifact) androidArtifact, isTest, orphans);
+    }
 
     SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
-      addSourceFolder(androidProject, contentEntry, variantSourceProvider, isTest, orphans);
+      addSourceFolder(androidProject, contentEntries, variantSourceProvider, isTest, orphans);
     }
 
     SourceProvider multiFlavorSourceProvider = androidArtifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
-      addSourceFolder(androidProject, contentEntry, multiFlavorSourceProvider, isTest, orphans);
+      addSourceFolder(androidProject, contentEntries, multiFlavorSourceProvider, isTest, orphans);
     }
   }
 
@@ -144,13 +158,11 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                @NotNull List<RootSourceFolder> orphans) {
     addSourceFolder(androidProject, contentEntries, flavor.getSourceProvider(), false, orphans);
 
-    Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
-    for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
-      String artifactName = sourceProviders.getArtifactName();
-      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName)) {
-        addSourceFolder(androidProject, contentEntries, sourceProviders.getSourceProvider(), true, orphans);
-        break;
-      }
+    Collection<SourceProvider> testSourceProviders =
+      androidProject.getSourceProvidersForSelectedTestArtifact(flavor.getExtraSourceProviders());
+
+    for (SourceProvider sourceProvider : testSourceProviders) {
+      addSourceFolder(androidProject, contentEntries, sourceProvider, true, orphans);
     }
   }
 
@@ -221,5 +233,17 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
         addExcludedFolder(parentContentEntry, child);
       }
     }
+  }
+
+  @Override
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return GradleConstants.SYSTEM_ID;
+  }
+
+  @Override
+  @NotNull
+  public Class<IdeaAndroidProject> getSupportedModelType() {
+    return IdeaAndroidProject.class;
   }
 }

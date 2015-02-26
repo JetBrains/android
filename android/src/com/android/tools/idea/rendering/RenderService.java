@@ -47,7 +47,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -127,6 +126,9 @@ public class RenderService implements IImageFactory {
   @NotNull
   private final Configuration myConfiguration;
 
+  @NotNull
+  private final AssetRepositoryImpl myAssetRepository;
+
   private long myTimeout;
 
   @Nullable
@@ -141,6 +143,8 @@ public class RenderService implements IImageFactory {
   private final Object myCredential = new Object();
 
   private ResourceFolderType myFolderType;
+
+  private boolean myProvideCookiesForIncludedViews = false;
 
   /**
    * Creates a new {@link RenderService} associated with the given editor.
@@ -241,6 +245,9 @@ public class RenderService implements IImageFactory {
       return;
     }
 
+    if (target instanceof CompatibilityRenderTarget) {
+      target = ((CompatibilityRenderTarget)target).getRenderTarget();
+    }
     final AndroidVersion version = target.getVersion();
     final int revision;
     // Look up the current minimum required version for layoutlib for each API level. Note that these
@@ -250,7 +257,7 @@ public class RenderService implements IImageFactory {
         if (version.isPreview()) {
           revision = 4;
         } else {
-          revision = 1;
+          revision = 2;
         }
         break;
       case 20: revision = 2; break;
@@ -339,12 +346,14 @@ public class RenderService implements IImageFactory {
     }
     myPsiFile = (XmlFile)psiFile;
     myConfiguration = configuration;
+    myAssetRepository = new AssetRepositoryImpl(facet);
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
-    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, this);
+    ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
+    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, actionBarHandler, this);
     myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -571,6 +580,16 @@ public class RenderService implements IImageFactory {
     return myIncludedWithin != null ? myIncludedWithin : IncludeReference.NONE;
   }
 
+  /** Returns whether this parser will provide view cookies for included views. */
+  public boolean getProvideCookiesForIncludedViews() {
+    return myProvideCookiesForIncludedViews;
+  }
+
+  /** Sets whether this parser will provide view cookies for included views. */
+  public void setProvideCookiesForIncludedViews(boolean provideCookiesForIncludedViews) {
+    myProvideCookiesForIncludedViews = provideCookiesForIncludedViews;
+  }
+
   /**
    * Renders the model and returns the result as a {@link com.android.ide.common.rendering.api.RenderSession}.
    *
@@ -604,6 +623,7 @@ public class RenderService implements IImageFactory {
     final SessionParams params =
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
+    params.setAssetRepository(myAssetRepository);
 
     params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(myPsiFile));
 
@@ -679,7 +699,7 @@ public class RenderService implements IImageFactory {
         @NotNull
         @Override
         public RenderResult compute() {
-          RenderSecurityManager securityManager = createSecurityManager();
+          RenderSecurityManager securityManager = RenderSecurityManagerFactory.create(myModule, getPlatform());
           securityManager.setActive(true, myCredential);
 
           try {
@@ -746,8 +766,8 @@ public class RenderService implements IImageFactory {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), layoutVirtualFile);
         if (psiFile instanceof XmlFile) {
           LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
-          // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
-          parser.setProvideViewCookies(false);
+          // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
+          parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
           topParser = parser;
         }
 
@@ -766,25 +786,6 @@ public class RenderService implements IImageFactory {
     }
 
     return null;
-  }
-
-  private RenderSecurityManager createSecurityManager() {
-    String projectPath = null;
-    String sdkPath = null;
-    if (RenderSecurityManager.RESTRICT_READS) {
-      projectPath = myModule.getProject().getBasePath();
-      AndroidPlatform platform = getPlatform();
-      if (platform != null) {
-        sdkPath = platform.getSdkData().getLocation().getPath();
-      }
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
-    securityManager.setLogger(new LogWrapper(RenderLogger.LOG));
-    securityManager.setAppTempDir(PathManager.getTempPath());
-
-    return securityManager;
   }
 
   /** Returns true if the given file can be rendered */
@@ -870,6 +871,7 @@ public class RenderService implements IImageFactory {
       new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
+    params.setAssetRepository(myAssetRepository);
     Result result = myLayoutLib.renderDrawable(params);
     if (result != null && result.isSuccess()) {
       Object data = result.getData();
@@ -1115,6 +1117,7 @@ public class RenderService implements IImageFactory {
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
+    params.setAssetRepository(myAssetRepository);
     ManifestInfo manifestInfo = ManifestInfo.get(myModule);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());

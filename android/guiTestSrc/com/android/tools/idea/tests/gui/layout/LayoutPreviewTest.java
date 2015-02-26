@@ -306,6 +306,14 @@ public class LayoutPreviewTest extends GuiTestCase {
     preview.waitForNextRenderToFinish();
     preview.requireThumbnailMatch(suggestName(editor));
 
+    GradleInvocationResult result = projectFrame.invokeProjectMake();
+    assertTrue(result.isBuildSuccessful());
+
+    // PorterDuff
+    editor.open("app/src/main/res/layout/porterduff.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    preview.requireThumbnailMatch(suggestName(editor));
+
     // TODO:
     // Disabling device frames
     // Multi configuration editing

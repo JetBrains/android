@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.ui.JBColor;
 import com.intellij.util.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ import java.util.List;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
+  static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 255));
 
   public static Point sum(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
@@ -90,11 +92,7 @@ public class Utilities {
   }
 
   public static Point project(Point p, Rectangle r) {
-    Point centre = centre(r);
-    Point diff = diff(p, centre);
-    boolean horizontal = Math.abs((float)diff.y / diff.x) < Math.abs((float)r.height / r.width);
-    float scale = horizontal ? (float)r.width / 2 / diff.x : (float)r.height / 2 / diff.y;
-    return sum(centre, scale(diff, Math.abs(scale)));
+    return new Point(bound(p.x, x1(r), x2(r)), bound(p.y, y1(r), y2(r)));
   }
 
   public static Point centre(@NotNull Rectangle r) {
@@ -209,16 +207,10 @@ public class Utilities {
 
   @Nullable
   public static PsiClass getPsiClass(Module module, String className) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+    Project project = module.getProject();
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = module.getModuleWithLibrariesScope();
     return facade.findClass(className, scope);
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  @Nullable
-  public static PsiMethod findMethodBySignature(Module module, String className, String signature) {
-    PsiClass psiClass = getPsiClass(module, className);
-    return psiClass == null ? null : findMethodBySignature(psiClass, signature);
   }
 
   @Nullable
@@ -233,10 +225,6 @@ public class Utilities {
 
   public static PsiMethod createMethodFromText(Project project, String text, @Nullable PsiElement context) {
     return JavaPsiFacade.getInstance(project).getElementFactory().createMethodFromText(text, context);
-  }
-
-  public static PsiMethod createMethodFromText(Project project, String text) {
-    return createMethodFromText(project, text, null);
   }
 
   @Nullable
@@ -320,6 +308,96 @@ public class Utilities {
     }
     catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public static Graphics2D createLineGraphics(Graphics g, int lineWidth) {
+    Graphics2D g2D = (Graphics2D)g.create();
+    g2D.setColor(TRANSITION_LINE_COLOR);
+    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2D.setStroke(new BasicStroke(lineWidth));
+    return g2D;
+  }
+
+  static Rectangle getCorner(Point a, int cornerDiameter) {
+    int cornerRadius = cornerDiameter / 2;
+    return new Rectangle(a.x - cornerRadius, a.y - cornerRadius, cornerDiameter, cornerDiameter);
+  }
+
+  static void drawLine(Graphics g, Point a, Point b) {
+    g.drawLine(a.x, a.y, b.x, b.y);
+  }
+
+  static void drawArrow(Graphics g, Point a, Point b, int lineWidth) {
+    drawArrow(g, a.x, a.y, b.x, b.y, lineWidth);
+  }
+
+  static void drawRectangle(Graphics g, Rectangle r) {
+    g.drawRect(r.x, r.y, r.width, r.height);
+  }
+
+  private static int x1(Rectangle src) {
+    return src.x;
+  }
+
+  private static int x2(Rectangle dst) {
+    return dst.x + dst.width;
+  }
+
+  private static int y1(Rectangle src) {
+    return src.y;
+  }
+
+  private static int y2(Rectangle dst) {
+    return dst.y + dst.height;
+  }
+
+  private static int bound(int i, int min, int max) {
+      return i < min ? min : i > max ? max : i;
+  }
+
+  private static boolean overlaps(int min1, int max1, int min2, int max2) {
+      return !(max1 < min2 || max2 < min1);
+  }
+
+  static Line getMidLine(Rectangle src, Rectangle dst) {
+    boolean xOverlap = overlaps(x1(src), x2(src), x1(dst), x2(dst));
+    boolean yOverlap = overlaps(y1(src), y2(src), y1(dst), y2(dst));
+    int dx = Math.min(Math.abs(x1(src) - x2(dst)), Math.abs(x1(dst) - x2(src)));
+    int dy = Math.min(Math.abs(y1(src) - y2(dst)), Math.abs(y1(dst) - y2(src)));
+    //noinspection SimplifiableConditionalExpression
+    boolean horizontal = xOverlap ? yOverlap ? dx >= dy : false : yOverlap ? true : dx >= dy;
+
+    int middle;
+    if (horizontal) {
+      middle = x1(src) - x2(dst) > 0 ? (x2(dst) + x1(src)) / 2 : (x2(src) + x1(dst)) / 2;
+    }
+    else {
+      middle = y1(src) - y2(dst) > 0 ? (y2(dst) + y1(src)) / 2 : (y2(src) + y1(dst)) / 2;
+    }
+
+    Point midSrc = centre(src);
+    Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
+
+    Point b = horizontal ? new Point(middle, bound(midSrc.y, y1(dst), y2(dst)))
+                         : new Point(bound(midSrc.x, x1(dst), x2(dst)), middle);
+
+    return new Line(a, b, horizontal);
+  }
+
+  static class Line {
+    public final Point a;
+    public final Point b;
+    public final boolean horizontal;
+
+    Line(Point a, Point b, boolean horizontal) {
+      this.a = a;
+      this.b = b;
+      this.horizontal = horizontal;
+    }
+
+    Point project(Point p) {
+      return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
 }

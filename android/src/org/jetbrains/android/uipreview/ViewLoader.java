@@ -25,11 +25,14 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderProblem;
 import com.android.util.Pair;
+import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.containers.HashSet;
@@ -49,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -62,12 +66,12 @@ public class ViewLoader {
   @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
-  @Nullable private final ClassLoader myParentClassLoader;
+  @NotNull private final LayoutLibrary myLayoutLibrary;
   @Nullable private ProjectClassLoader myProjectClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
                     @Nullable Object credential) {
-    myParentClassLoader = layoutLib.getClassLoader();
+    myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
@@ -91,11 +95,13 @@ public class ViewLoader {
 
     try {
       if (aClass != null) {
+        checkModified(className);
         return createNewInstance(aClass, constructorSignature, constructorArgs);
       }
       aClass = loadClass(className);
 
       if (aClass != null) {
+        checkModified(className);
         final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs);
         myLoadedClasses.put(className, aClass);
         return viewObject;
@@ -158,6 +164,18 @@ public class ViewLoader {
     }
   }
 
+  /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
+  private void checkModified(@NotNull String fqcn) {
+    if (myProjectClassLoader != null && myProjectClassLoader.isSourceModified(fqcn, myCredential)) {
+      RenderProblem.Html problem = RenderProblem.create(WARNING);
+      HtmlBuilder builder = problem.getHtmlBuilder();
+      String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
+      builder.addLink("The " + className + " custom view has been edited more recently than the last build: ", "Build", " the project.",
+                      myLogger.getLinkManager().createCompileModuleUrl());
+      myLogger.addMessage(problem);
+    }
+  }
+
   @Nullable
   private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
@@ -177,7 +195,7 @@ public class ViewLoader {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule, myLogger, myCredential);
+        myProjectClassLoader = ProjectClassLoader.get(myLayoutLibrary, myModule);
       } finally {
         RenderSecurityManager.exitSafeRegion(token);
       }
@@ -188,54 +206,70 @@ public class ViewLoader {
 
   @Nullable
   private Object createViewFromSuperclass(final String className, final Class[] constructorSignature, final Object[] constructorArgs) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Object>() {
-      @Nullable
-      @Override
-      public Object compute() {
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-        PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+    // Creating views from the superclass calls into PSI which may need
+    // I/O access (for example when it consults the Java class index
+    // and that index needs to be lazily updated.)
+    // We run most of the method as a safe region, but we exit the
+    // safe region before calling {@link #createNewInstance} (which can
+    // call user code), and enter it again upon return.
+    final Ref<Boolean> token = new Ref<Boolean>();
+    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+    try {
+      return ApplicationManager.getApplication().runReadAction(new Computable<Object>() {
+        @Nullable
+        @Override
+        public Object compute() {
+          final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
+          PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
 
-        if (psiClass == null) {
-          return null;
-        }
-        psiClass = psiClass.getSuperClass();
-        final Set<String> visited = new HashSet<String>();
-
-        while (psiClass != null) {
-          final String qName = psiClass.getQualifiedName();
-
-          if (qName == null ||
-              !visited.add(qName) ||
-              AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
-            break;
-          }
-
-          if (!AndroidUtils.isAbstract(psiClass)) {
-            try {
-              Class<?> aClass = myLoadedClasses.get(qName);
-              if (aClass == null && myParentClassLoader != null) {
-                aClass = myParentClassLoader.loadClass(qName);
-                if (aClass != null) {
-                  myLoadedClasses.put(qName, aClass);
-                }
-              }
-              if (aClass != null) {
-                final Object instance = createNewInstance(aClass, constructorSignature, constructorArgs);
-
-                if (instance != null) {
-                  return instance;
-                }
-              }
-            }
-            catch (Throwable e) {
-              LOG.debug(e);
-            }
+          if (psiClass == null) {
+            return null;
           }
           psiClass = psiClass.getSuperClass();
+          final Set<String> visited = new HashSet<String>();
+
+          while (psiClass != null) {
+            final String qName = psiClass.getQualifiedName();
+
+            if (qName == null ||
+                !visited.add(qName) ||
+                AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
+              break;
+            }
+
+            if (!AndroidUtils.isAbstract(psiClass)) {
+              try {
+                Class<?> aClass = myLoadedClasses.get(qName);
+                if (aClass == null && myLayoutLibrary.getClassLoader() != null) {
+                  aClass = myLayoutLibrary.getClassLoader().loadClass(qName);
+                  if (aClass != null) {
+                    myLoadedClasses.put(qName, aClass);
+                  }
+                }
+                if (aClass != null) {
+                  try {
+                    RenderSecurityManager.exitSafeRegion(token.get());
+                    final Object instance = createNewInstance(aClass, constructorSignature, constructorArgs);
+                    if (instance != null) {
+                      return instance;
+                    }
+                  } finally {
+                    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+                  }
+                }
+              }
+              catch (Throwable e) {
+                LOG.debug(e);
+              }
+            }
+            psiClass = psiClass.getSuperClass();
+          }
+          return null;
         }
-        return null;
-      }
-    });
+      });
+    } finally {
+      RenderSecurityManager.exitSafeRegion(token.get());
+    }
   }
 
   private Object createMockView(String className, Class[] constructorSignature, Object[] constructorArgs)

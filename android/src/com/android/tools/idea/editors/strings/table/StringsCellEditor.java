@@ -50,7 +50,8 @@ public class StringsCellEditor extends AbstractTableCellEditor {
   public boolean isCellEditable(EventObject e) {
     boolean doubleClick =
       e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
-    if (!doubleClick) {
+    boolean returnKeyPressed = e instanceof KeyEvent && ((KeyEvent)e).getKeyCode() == KeyEvent.VK_ENTER;
+    if (!doubleClick && !returnKeyPressed) {
       return false;
     }
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,15 +41,13 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
 
   private CreateModuleTemplate myModuleType;
   private FormFactorApiComboBox mySdkControls;
-  private Project myProject;
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
 
-  public ConfigureAndroidModuleStepDynamic(@Nullable Project project, @Nullable Disposable parentDisposable) {
-    super("Configure your new module", null, null, parentDisposable);
-    myProject = project;
+  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable) {
+    super("Configure your new module", null, parentDisposable);
     setBodyComponent(myPanel);
   }
 
@@ -236,10 +233,12 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     return "New Android Module Configuration";
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected JComponent getHeader() {
-    return NewModuleWizardDynamic.buildHeader();
+  protected WizardStepHeaderSettings getStepHeader() {
+    return getModuleType() == null
+           ? NewModuleWizardDynamic.buildHeader()
+           : WizardStepHeaderSettings.createTitleAndDescriptionHeader(getModuleType().getName(), "Configure your new module");
   }
 
   @Override

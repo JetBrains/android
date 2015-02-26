@@ -218,6 +218,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         gradleInvoker.addAfterGradleInvocationTask(afterTask);
         gradleInvoker.executeTasks(assembleTasks, projectProperties);
+
+        LOG.info("Export APK command: " +
+                 Joiner.on(',').join(assembleTasks) +
+                 ", destination: " +
+                 createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
       }
 
       private String createProperty(@NotNull String name, @NotNull String value) {

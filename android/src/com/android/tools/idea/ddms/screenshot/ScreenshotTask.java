@@ -18,13 +18,20 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.RawImage;
+import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class ScreenshotTask extends Task.Modal {
   private final IDevice myDevice;
@@ -33,7 +40,7 @@ public class ScreenshotTask extends Task.Modal {
   private BufferedImage myImage;
 
   public ScreenshotTask(@NotNull Project project, @NotNull IDevice device) {
-    super(project, AndroidBundle.message("android.ddms.actions.screenshot"), false);
+    super(project, AndroidBundle.message("android.ddms.actions.screenshot"), true);
     myDevice = device;
   }
 
@@ -43,12 +50,29 @@ public class ScreenshotTask extends Task.Modal {
 
     indicator.setText(AndroidBundle.message("android.ddms.screenshot.task.step.obtain"));
     RawImage rawImage;
-    try {
-      rawImage = myDevice.getScreenshot();
-    }
-    catch (Exception e) {
-      myError = AndroidBundle.message("android.ddms.screenshot.task.error1", e.getMessage());
-      return;
+
+    ScreenshotRetrieverTask retrieverTask = new ScreenshotRetrieverTask(myDevice);
+    ApplicationManager.getApplication().executeOnPooledThread(retrieverTask);
+    Future<RawImage> image = retrieverTask.getRawImage();
+
+    while (true) {
+      try {
+        rawImage = image.get(100, TimeUnit.MILLISECONDS);
+        break;
+      }
+      catch (InterruptedException e) {
+        myError = AndroidBundle.message("android.ddms.screenshot.task.error1", ExceptionUtil.getMessage(e));
+        return;
+      }
+      catch (ExecutionException e) {
+        myError = AndroidBundle.message("android.ddms.screenshot.task.error1", ExceptionUtil.getMessage(e));
+        return;
+      }
+      catch (TimeoutException e) {
+        if (indicator.isCanceled()) {
+          return;
+        }
+      }
     }
 
     if (rawImage.bpp != 16 && rawImage.bpp != 32) {
@@ -73,5 +97,30 @@ public class ScreenshotTask extends Task.Modal {
 
   public String getError() {
     return myError;
+  }
+
+  private static class ScreenshotRetrieverTask implements Runnable {
+    private final IDevice myDevice;
+    private final SettableFuture<RawImage> myFuture;
+
+    public ScreenshotRetrieverTask(@NotNull IDevice device) {
+      myDevice = device;
+      myFuture = SettableFuture.create();
+    }
+
+    @Override
+    public void run() {
+      try {
+        RawImage image = myDevice.getScreenshot(10, TimeUnit.SECONDS);
+        myFuture.set(image);
+      }
+      catch (Throwable t) {
+        myFuture.setException(t);
+      }
+    }
+
+    public Future<RawImage> getRawImage() {
+      return myFuture;
+    }
   }
 }

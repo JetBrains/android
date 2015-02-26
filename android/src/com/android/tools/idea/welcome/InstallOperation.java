@@ -123,10 +123,13 @@ public abstract class InstallOperation<Return, Argument> {
   }
 
   /**
-   * Adds a function to a sequence, wrapping it into InstallOperation.
+   * <p>Adds a function to a sequence, wrapping it into InstallOperation.</p>
+   *
+   * <p>Note that currently it is expected that the function is fast and there is no progress to report.
+   * Another option is to manage progress manually.</p>
    */
-  public final <FinalResult> InstallOperation<FinalResult, Argument> then(@NotNull Function<Return, FinalResult> next, double progressShare) {
-    return then(wrap(myContext, next, progressShare));
+  public final <FinalResult> InstallOperation<FinalResult, Argument> then(@NotNull Function<Return, FinalResult> next) {
+    return then(wrap(myContext, next, 0));
   }
 
   private static class OperationChain<FinalResult, Argument, Return> extends InstallOperation<FinalResult, Argument> {

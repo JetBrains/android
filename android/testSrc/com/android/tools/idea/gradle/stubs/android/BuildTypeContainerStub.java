@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -67,6 +68,6 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
   @NonNull
   @Override
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
-    throw new UnsupportedOperationException();
+    return ImmutableSet.of();
   }
 }

@@ -65,7 +65,7 @@ public class AndroidRootComponent extends JComponent {
 
   public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
     if (file != null) {
-      Project project = renderingParameters.myProject;
+      Project project = renderingParameters.project;
       VirtualFile virtualFile = file.getVirtualFile();
       OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
       FileEditorManager manager = FileEditorManager.getInstance(project);
@@ -96,7 +96,7 @@ public class AndroidRootComponent extends JComponent {
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
-    //repaint();
+    revalidate(); // invalidate parent (NavigationView)
     parent.repaint();
   }
 
@@ -244,9 +244,9 @@ public class AndroidRootComponent extends JComponent {
     if (myLayoutFile == null) {
       return;
     }
-    Project project = myRenderingParameters.myProject;
-    final AndroidFacet facet = myRenderingParameters.myFacet;
-    final Configuration configuration = myRenderingParameters.myConfiguration;
+    Project project = myRenderingParameters.project;
+    final AndroidFacet facet = myRenderingParameters.facet;
+    final Configuration configuration = myRenderingParameters.configuration;
 
     if (project.isDisposed()) {
       return;
@@ -264,9 +264,10 @@ public class AndroidRootComponent extends JComponent {
         RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
         final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
         if (service != null) {
+          service.setProvideCookiesForIncludedViews(true);
           if (!isMenu) {
             // Don't show menus in the layout view
-            service.getLayoutlibCallback().getActionBarCallback().setMenuIdNames(Collections.<String>emptyList());
+            service.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
           }
           RenderResult renderedResult = service.render();
           if (renderedResult != null) {

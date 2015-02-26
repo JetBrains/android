@@ -62,8 +62,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!Projects.isGradleProject(myProject)) {
+  public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+    if (!Projects.isBuildWithGradle(myProject)) {
       return null;
     }
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);

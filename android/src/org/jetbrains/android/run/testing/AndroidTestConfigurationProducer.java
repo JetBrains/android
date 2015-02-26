@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.run.testing;
 
+import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -25,14 +27,17 @@ import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -135,9 +140,11 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   protected boolean setupConfigurationFromContext(AndroidTestRunConfiguration configuration,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    if (AndroidUtils.getAndroidModule(context) == null) {
+    Module module = AndroidUtils.getAndroidModule(context);
+    if (module == null) {
       return false;
     }
+
     Location location = context.getLocation();
 
     if (location == null) {
@@ -150,6 +157,18 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     }
     final PsiElement element = location.getPsiElement();
 
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return false;
+    }
+
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+    if (ideaAndroidProject != null && !ideaAndroidProject.getSelectedTestArtifactName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
+      // Only suggest the android test run configuration if it makes sense for the selected test artifact.
+      return false;
+    }
+
+    setupInstrumentationTestRunner(configuration, facet);
     if (setupAllInPackageConfiguration(configuration, element, context, sourceElement)) {
       return true;
     }
@@ -157,6 +176,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       return true;
     }
     return setupClassConfiguration(configuration, element, context, sourceElement);
+  }
+
+  private static void setupInstrumentationTestRunner(@NotNull AndroidTestRunConfiguration configuration, @NotNull AndroidFacet facet) {
+    configuration.INSTRUMENTATION_RUNNER_CLASS = StringUtil.notNullize(AndroidTestRunConfiguration.findInstrumentationRunner(facet));
   }
 
   @Override

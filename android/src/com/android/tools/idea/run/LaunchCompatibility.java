@@ -23,12 +23,15 @@ import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 
 public class LaunchCompatibility {
+  @NonNls private static final String GOOGLE_APIS_TARGET_NAME = "Google APIs";
+
   private final ThreeState myCompatible;
   private final String myReason;
 
@@ -124,8 +127,14 @@ public class LaunchCompatibility {
     }
 
     if (avdTarget == null) {
-      // Unsure because we don't have an easy way of determining whether those libraries are on a device
-      return new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: " + projectTarget.getName());
+      String targetName = projectTarget.getName();
+      if (GOOGLE_APIS_TARGET_NAME.equals(targetName)) {
+        // We'll assume that Google APIs are available on all devices.
+        return YES;
+      } else {
+        // Unsure because we don't have an easy way of determining whether those libraries are on a device
+        return new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: " + targetName);
+      }
     } else {
       // Note: A better way to do this is to actually look at the manifest for all of its requirements, and then look at the
       // device for all of its features, very much like the hardware feature check above. Just checking the AVD to see if it was

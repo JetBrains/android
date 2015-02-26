@@ -79,7 +79,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
 
     SourceProvider sourceProvider = delegate.getDefaultConfig().getSourceProvider();
 
-    syncSelectedVariant(facetState, ideaAndroidProject);
+    syncSelectedVariantAndTestArtifact(facetState, ideaAndroidProject);
 
     // This code needs to be modified soon. Read the TODO in getRelativePath
     File moduleDir = VfsUtilCore.virtualToIoFile(ideaAndroidProject.getRootDir());
@@ -93,13 +93,19 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, assetsDirs);
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
-    facet.syncSelectedVariant();
+    facet.syncSelectedVariantAndTestArtifact();
   }
 
-  private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetState, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  private static void syncSelectedVariantAndTestArtifact(@NotNull JpsAndroidModuleProperties facetState,
+                                                         @NotNull IdeaAndroidProject ideaAndroidProject) {
     String variantStoredInFacet = facetState.SELECTED_BUILD_VARIANT;
     if (!Strings.isNullOrEmpty(variantStoredInFacet) && ideaAndroidProject.getVariantNames().contains(variantStoredInFacet)) {
       ideaAndroidProject.setSelectedVariantName(variantStoredInFacet);
+    }
+
+    String testArtifactStoredInFacet = facetState.SELECTED_TEST_ARTIFACT;
+    if (!Strings.isNullOrEmpty(testArtifactStoredInFacet)) {
+      ideaAndroidProject.setSelectedTestArtifactName(testArtifactStoredInFacet);
     }
   }
 

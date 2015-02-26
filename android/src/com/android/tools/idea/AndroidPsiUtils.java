@@ -296,4 +296,26 @@ public class AndroidPsiUtils {
     }
     return null;
   }
+
+  /**
+   * Returns the {@link com.intellij.psi.PsiClass#getQualifiedName()} and acquires a read lock
+   * if necessary
+   *
+   * @param psiClass the class to look up the qualified name for
+   * @return the qualified name, or null
+   */
+  @Nullable
+  public static String getQualifiedNameSafely(@NotNull final PsiClass psiClass) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return psiClass.getQualifiedName();
+    } else {
+      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          return psiClass.getQualifiedName();
+        }
+      });
+    }
+  }
 }

@@ -26,7 +26,9 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.FrameData;
@@ -69,6 +72,54 @@ public class DeviceArtPainterTest extends TestCase {
         }
       }
     }
+  }
+
+  public void testCroppedRendering() throws Exception {
+    File deviceArtPath = new File(AndroidTestBase.getAbsoluteTestDataPath(), FileUtil.join("..", "device-art-resources"));
+    List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
+
+    DeviceArtDescriptor wear_square = findDescriptor(descriptors, "wear_square");
+    DeviceArtDescriptor wear_round = findDescriptor(descriptors, "wear_round");
+
+    assertNotNull(wear_square);
+    assertNotNull(wear_round);
+
+    Dimension size = wear_round.getScreenSize(ScreenOrientation.LANDSCAPE);
+    BufferedImage sample = createSampleImage(size, Color.RED);
+
+    BufferedImage framed = DeviceArtPainter.createFrame(sample, wear_round, true, false);
+
+    // make sure that a location outside the round frame is empty
+    // (if the mask was not applied, this would be the same color as the source image)
+    Point loc = wear_round.getScreenPos(ScreenOrientation.LANDSCAPE);
+    int c = framed.getRGB(loc.x, loc.y);
+    assertEquals(0x0, c);
+
+    // a point at the center should be the same as the source
+    c = framed.getRGB(loc.x + size.width / 2, loc.y + size.height / 2);
+    assertEquals(Color.RED.getRGB(), c);
+  }
+
+  @NotNull
+  private static BufferedImage createSampleImage(Dimension size, Color color) {
+    @SuppressWarnings("UndesirableClassUsage") // no need to support retina
+    BufferedImage img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2d = img.createGraphics();
+    g2d.setColor(color);
+    g2d.fillRect(0, 0, size.width, size.height);
+    g2d.dispose();
+    return img;
+  }
+
+  @Nullable
+  private static DeviceArtDescriptor findDescriptor(@NotNull List<DeviceArtDescriptor> descriptors, @NotNull String id) {
+    for (DeviceArtDescriptor desc : descriptors) {
+      if (desc.getId().equals(id)) {
+        return desc;
+      }
+    }
+
+    return null;
   }
 
   public void generateCropData() throws Exception {

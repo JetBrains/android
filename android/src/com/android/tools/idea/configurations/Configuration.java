@@ -304,7 +304,7 @@ public class Configuration implements Disposable {
       destination.myStateName = source.myStateName;
       destination.myState = source.myState;
     }
-    if (editedConfig.getLanguageQualifier() == null) {
+    if (editedConfig.getEffectiveLanguage() == null) {
       destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
     }
     if (editedConfig.getUiModeQualifier() == null) {
@@ -599,7 +599,7 @@ public class Configuration implements Disposable {
    * @return if this configuration represents a locale-specific layout
    */
   public boolean isLocaleSpecificLayout() {
-    return myEditedConfig.getLanguageQualifier() != null;
+    return myEditedConfig.getEffectiveLanguage() != null;
   }
 
   /**
@@ -1023,7 +1023,7 @@ public class Configuration implements Disposable {
     if (qualifier != null) {
       // just a sanity check
       Density d = qualifier.getValue();
-      if (d != Density.NODPI) {
+      if (d.isValidValueForDevice()) {
         return d;
       }
     }

@@ -16,16 +16,15 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
-import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
-import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -93,7 +92,6 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
@@ -421,8 +419,18 @@ class GradleTasksExecutor extends Task.Backgroundable {
               SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
               selectSdkDialog.setModal(true);
               if (selectSdkDialog.showAndGet()) {
-                String jdkHome = selectSdkDialog.getJdkHome();
-                DefaultSdks.setDefaultJavaHome(new File(jdkHome));
+                final String jdkHome = selectSdkDialog.getJdkHome();
+                UIUtil.invokeLaterIfNeeded(new Runnable() {
+                  @Override
+                  public void run() {
+                    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                      @Override
+                      public void run() {
+                        DefaultSdks.setDefaultJavaHome(new File(jdkHome));
+                      }
+                    });
+                  }
+                });
               }
             }
           }
@@ -434,8 +442,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull
   private List<GradleMessage> showMessages(@NotNull String gradleOutput) {
-    Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-    List<GradleMessage> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
+    List<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(gradleOutput);
     for (GradleMessage msg : compilerMessages) {
       addMessage(msg, null);
     }

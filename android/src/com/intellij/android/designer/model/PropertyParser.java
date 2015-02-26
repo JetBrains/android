@@ -73,7 +73,7 @@ public class PropertyParser {
     myDefinitions = targetData.getAttrDefs(module.getProject());
 
     LayoutLibrary library = renderService.getLayoutLib();
-    myClassLoader = new ProjectClassLoader(library.getClassLoader(), module, null, null);
+    myClassLoader = ProjectClassLoader.get(library, module);
   }
 
   public void load(RadViewComponent component) throws Exception {

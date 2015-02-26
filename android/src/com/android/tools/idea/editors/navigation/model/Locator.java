@@ -17,24 +17,31 @@ package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.Property;
 
 public class Locator {
   @NonNull
   private final State state;
-  private String viewName;
+  @Nullable
+  private final String fragmentClassName;
+  @Nullable
+  private final String viewId;
 
-  public Locator(@NonNull @Property("state") State state) {
+  private Locator(@NonNull State state, @Nullable String fragmentClassName, @Nullable String viewId) {
     this.state = state;
+    this.fragmentClassName = fragmentClassName;
+    this.viewId = viewId;
   }
 
-  private Locator(@NonNull State state, @Nullable String viewName) {
-    this.state = state;
-    this.viewName = viewName;
+  public static Locator of(@NonNull State state) {
+    return new Locator(state, null, null);
   }
 
   public static Locator of(@NonNull State state, @Nullable String viewName) {
-    return new Locator(state, viewName);
+    return new Locator(state, null, viewName);
+  }
+
+  public static Locator of(@NonNull State state, @Nullable String fragmentClassName, @Nullable String viewName) {
+    return new Locator(state, fragmentClassName, viewName);
   }
 
   @NonNull
@@ -42,13 +49,14 @@ public class Locator {
     return state;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public String getViewName() {
-    return viewName;
+  @Nullable
+  public String getFragmentClassName() {
+    return fragmentClassName;
   }
 
-  public void setViewName(@Nullable String viewName) {
-    this.viewName = viewName;
+  @Nullable
+  public String getViewId() {
+    return viewId;
   }
 
   @Override
@@ -58,8 +66,9 @@ public class Locator {
 
     Locator locator = (Locator)o;
 
+    if (fragmentClassName != null ? !fragmentClassName.equals(locator.fragmentClassName) : locator.fragmentClassName != null) return false;
     if (!state.equals(locator.state)) return false;
-    if (viewName != null ? !viewName.equals(locator.viewName) : locator.viewName != null) return false;
+    if (viewId != null ? !viewId.equals(locator.viewId) : locator.viewId != null) return false;
 
     return true;
   }
@@ -67,7 +76,8 @@ public class Locator {
   @Override
   public int hashCode() {
     int result = state.hashCode();
-    result = 31 * result + (viewName != null ? viewName.hashCode() : 0);
+    result = 31 * result + (fragmentClassName != null ? fragmentClassName.hashCode() : 0);
+    result = 31 * result + (viewId != null ? viewId.hashCode() : 0);
     return result;
   }
 
@@ -75,7 +85,7 @@ public class Locator {
   public String toString() {
     return "Locator{" +
            "state=" + state +
-           ", viewName='" + viewName + '\'' +
+           ", viewName='" + viewId + '\'' +
            '}';
   }
 }

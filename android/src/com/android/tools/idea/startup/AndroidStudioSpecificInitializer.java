@@ -87,10 +87,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
   static {
     System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
-    // We need to disable IDEA's "enhanced Tooling API" otherwise --init-script pointing to embedded repo won't work.
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      System.setProperty("gradle.disable.enhanced.tooling.api", "true");
-    }
   }
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
   private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
@@ -260,7 +256,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.CreateNewProject", welcomeScreenNewProject);
 
     AndroidImportProjectAction welcomeScreenImportProject = new AndroidImportProjectAction();
-    welcomeScreenImportProject.getTemplatePresentation().setText("Import Non-Android Studio project");
+    welcomeScreenImportProject.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
     replaceAction("WelcomeScreen.ImportProject", welcomeScreenImportProject);
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA", "WelcomeScreen.QuickStart",
                new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));

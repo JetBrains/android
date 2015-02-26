@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.ui.VariantCheckboxTreeCellRenderer;
@@ -52,7 +53,7 @@ import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createT
 class ModuleVariantsInfoDialog extends DialogWrapper {
   @NotNull private final JPanel myPanel;
 
-  ModuleVariantsInfoDialog(@NotNull Module module) {
+  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull IdeaAndroidProject ideaAndroidProject) {
     super(module.getProject());
     setTitle(String.format("Dependency Details for Module '%1$s'", module.getName()));
     myPanel = new JPanel(new BorderLayout());
@@ -61,14 +62,15 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
     Splitter splitter = new Splitter(false, 0.5f);
     myPanel.add(splitter, BorderLayout.CENTER);
 
-    splitter.setFirstComponent(createTreePanel("Dependencies", createDependenciesTree(module)));
-    splitter.setSecondComponent(createTreePanel("Dependents", createDependentsTree(module)));
+    splitter.setFirstComponent(createTreePanel("Dependencies", createDependenciesTree(module, ideaAndroidProject)));
+    splitter.setSecondComponent(createTreePanel("Dependents", createDependentsTree(module, ideaAndroidProject)));
 
     init();
   }
 
   @NotNull
-  private static JTree createDependenciesTree(@NotNull Module module) {
+  private static JTree createDependenciesTree(@NotNull Module module,
+                                              @NotNull IdeaAndroidProject ideaAndroidProject) {
     VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -94,7 +96,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
     Multimap<String, DependencyTreeElement> dependenciesByVariant = HashMultimap.create();
 
     for (Variant variant : androidProject.getVariants()) {
-      for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant)) {
+      for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, ideaAndroidProject)) {
         String gradlePath = library.getProject();
         if (gradlePath == null) {
           continue;
@@ -161,7 +163,8 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
   }
 
   @NotNull
-  private static JTree createDependentsTree(@NotNull Module module) {
+  private static JTree createDependentsTree(@NotNull Module module,
+                                            @NotNull IdeaAndroidProject ideaAndroidProject) {
     VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -203,7 +206,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
       DependentTreeElement element = new DependentTreeElement(dependent);
 
       for (Variant variant : dependentProject.getVariants()) {
-        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant)) {
+        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, ideaAndroidProject)) {
           if (gradlePath.equals(library.getProject())) {
             element.addVariant(variant.getName());
             String projectVariant = library.getProjectVariant();

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MyPorterDuffView">
+        <attr name="colorFilterMode" format="integer">
+            <enum name="src_over" value="3" />
+            <enum name="darken" value="12" />
+            <enum name="src_in" value="5" />
+            <enum name="clear" value="0" />
+        </attr>
+        <attr name="paintMode" format="integer">
+            <enum name="src_over" value="3" />
+            <enum name="darken" value="12" />
+            <enum name="src_in" value="5" />
+            <enum name="clear" value="0" />
+        </attr>
+        <attr name="my_color" format="color" />
+        <attr name="overlay_text" format="string" />
+    </declare-styleable>
+</resources>

@@ -31,7 +31,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class StringResourceEditorProvider implements FileEditorProvider {
+public class StringResourceEditorProvider implements FileEditorProvider, DumbAware {
   public static final String ID = "string-resource-editor";
 
   public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
