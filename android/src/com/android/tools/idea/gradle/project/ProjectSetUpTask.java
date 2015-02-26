@@ -16,19 +16,17 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -37,11 +35,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.getUserDefinedProjectView;
 import static com.android.tools.idea.gradle.util.Projects.open;
-import static com.android.tools.idea.gradle.util.Projects.setUserDefinedProjectView;
+import static com.android.tools.idea.gradle.util.Projects.populate;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
@@ -113,59 +110,27 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
-        final Collection<DataNode<ModuleData>> modules = getModulesToImport(projectInfo);
-        invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-              @Override
-              public void run() {
-                if (!myProject.isDisposed()) {
-                  ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {
-                    @Override
-                    public void run() {
-                      ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                      dataManager.importData(ProjectKeys.MODULE, modules, myProject, true /* synchronous */);
-                    }
-                  });
-                }
-              }
-            });
-            // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
-            // sources for it. This happens on new projects.
-            PostProjectSetupTasksExecutor.getInstance(myProject).onProjectSyncCompletion();
-          }
-        });
+        populate(myProject, getModulesToImport(projectInfo));
       }
     });
   }
 
   @NotNull
   private Collection<DataNode<ModuleData>> getModulesToImport(DataNode<ProjectData> projectInfo) {
-    final Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
-    if (modules.size() > 1 && isModuleSelectionEnabled()) {
+    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, MODULE);
+    ProjectSubset subview = ProjectSubset.getInstance(myProject);
+    if (ProjectSubset.isSettingEnabled() && modules.size() > 1) {
       if (mySelectModulesToImport) {
         // Importing a project. Allow user to select which modules to include in the project.
-        ModulesToImportDialog dialog = new ModulesToImportDialog(modules, myProject);
-        if (dialog.showAndGet()) {
-          Collection<DataNode<ModuleData>> selectedModules = dialog.getSelectedModules();
-
-          // Store the name of the selected modules, so future 'project sync' invocations won't add unselected modules.
-          List<String> moduleNames = Lists.newArrayListWithExpectedSize(selectedModules.size());
-          for (DataNode<ModuleData> module : selectedModules) {
-            moduleNames.add(module.getData().getExternalName());
-          }
-
-          // Persist the selected modules between sessions.
-          setUserDefinedProjectView(myProject, moduleNames);
-
-          return selectedModules;
+        Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
+        if (selection != null) {
+          return selection;
         }
       }
       else {
         // We got here because a project was synced with Gradle. Make sure that we don't add any modules that were not selected during
         // project import (if applicable.)
-        String[] persistedModuleNames = getUserDefinedProjectView(myProject);
+        String[] persistedModuleNames = subview.getSelection();
         if (persistedModuleNames != null) {
           int moduleCount = persistedModuleNames.length;
           if (moduleCount > 0) {
@@ -183,12 +148,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       }
     }
     // Delete any stored module selection.
-    setUserDefinedProjectView(myProject, null);
+    subview.clearSelection();
     return modules;
-  }
-
-  private static boolean isModuleSelectionEnabled() {
-    return GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT;
   }
 
   @Override

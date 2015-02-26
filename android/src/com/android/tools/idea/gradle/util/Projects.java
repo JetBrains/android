@@ -21,39 +21,47 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
-import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.Boolean.TRUE;
 
 /**
@@ -63,19 +71,32 @@ public final class Projects {
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
 
-  @NonNls private static final String USER_DEFINED_PROJECT_VIEW_PROPERTY_NAME = "com.android.studio.selected.modules.on.import";
-
   private Projects() {
   }
 
-  public static void setUserDefinedProjectView(@NotNull Project project, @Nullable List<String> moduleNames) {
-    String[] values = moduleNames != null ? toStringArray(moduleNames) : null;
-    PropertiesComponent.getInstance(project).setValues(USER_DEFINED_PROJECT_VIEW_PROPERTY_NAME, values);
-  }
-
-  @Nullable
-  public static String[] getUserDefinedProjectView(@NotNull Project project) {
-    return PropertiesComponent.getInstance(project).getValues(USER_DEFINED_PROJECT_VIEW_PROPERTY_NAME);
+  public static void populate(@NotNull final Project project, @NotNull final Collection<DataNode<ModuleData>> modules) {
+    invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            if (!project.isDisposed()) {
+              ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(new Runnable() {
+                @Override
+                public void run() {
+                  ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+                  dataManager.importData(ProjectKeys.MODULE, modules, project, true /* synchronous */);
+                }
+              });
+            }
+          }
+        });
+        // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
+        // sources for it. This happens on new projects.
+        PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
+      }
+    });
   }
 
   public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
