@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -40,16 +41,14 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ExcludeFolder;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -94,8 +93,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.util.SystemProperties.getLineSeparator;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -766,8 +764,8 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    DialogFixture dialog = findDialog(withTitle("Select Modules to Include").andShowing()).withTimeout(SHORT_TIMEOUT.duration())
-                                                                                          .using(myRobot);
+    DialogMatcher matcher = withTitle("Select Modules to Include in Project Subset").andShowing();
+    DialogFixture dialog = findDialog(matcher).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
 
     JTableFixture table = new JTableFixture(myRobot, myRobot.finder().findByType(dialog.target, JTable.class, true));
     TableCell cell = table.cell("lib");
@@ -784,6 +782,32 @@ public class GradleSyncTest extends GuiTestCase {
     // subsequent project syncs should respect module selection
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
     assertThat(projectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
+  }
+
+  @Test @IdeGuiTest
+  public void testLocalJarsAsModules() throws IOException {
+    IdeFrameFixture projectFrame = importProject("LocalJarsAsModules");
+    Module localJarModule = projectFrame.getModule("localJarAsModule");
+
+    // Module should be a Java module, not buildable (since it doesn't have source code).
+    JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(localJarModule);
+    assertNotNull(javaFacet);
+    assertFalse(javaFacet.getConfiguration().BUILDABLE);
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(localJarModule);
+    OrderEntry[] orderEntries = moduleRootManager.getOrderEntries();
+
+    // Verify that the module depends on the jar that it contains.
+    LibraryOrderEntry libraryDependency = null;
+    for (OrderEntry orderEntry : orderEntries) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        libraryDependency = (LibraryOrderEntry)orderEntry;
+        break;
+      }
+    }
+    assertNotNull(libraryDependency);
+    assertThat(libraryDependency.getLibraryName()).isEqualTo("localJarAsModule.local");
+    assertTrue(libraryDependency.isExported());
   }
 
   @NotNull
