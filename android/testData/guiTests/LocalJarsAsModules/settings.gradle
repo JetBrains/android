@@ -1,0 +1,4 @@
+include 'app'
+include 'jar'
+include 'library'
+include 'localJarAsModule'

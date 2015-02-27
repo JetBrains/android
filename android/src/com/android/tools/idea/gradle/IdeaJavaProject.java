@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.google.common.collect.Maps;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
@@ -28,6 +29,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
 import static java.util.Collections.emptyList;
@@ -39,6 +42,7 @@ public class IdeaJavaProject implements Serializable {
   @NotNull private final Collection<? extends IdeaContentRoot> myContentRoots;
   @NotNull private final List<? extends IdeaDependency> myDependencies;
 
+  @Nullable private final Map<String, Set<File>> myArtifactsByConfiguration;
   @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
   @Nullable private final File myBuildFolderPath;
 
@@ -47,10 +51,15 @@ public class IdeaJavaProject implements Serializable {
   @NotNull
   public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
+    Map<String, Set<File>> artifactsByConfiguration = Maps.newHashMap();
+    if (extendedModel != null) {
+      artifactsByConfiguration = extendedModel.getArtifactsByConfiguration();
+    }
     ExtIdeaCompilerOutput compilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
     File buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
     boolean buildable = isBuildable(ideaModule);
-    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), compilerOutput, buildFolderPath, buildable);
+    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
+                               buildFolderPath, buildable);
   }
 
   @NotNull
@@ -88,12 +97,14 @@ public class IdeaJavaProject implements Serializable {
   public IdeaJavaProject(@NotNull String name,
                          @NotNull Collection<? extends IdeaContentRoot> contentRoots,
                          @NotNull List<? extends IdeaDependency> dependencies,
+                         @Nullable Map<String, Set<File>> artifactsByConfiguration,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
                          boolean buildable) {
     myModuleName = name;
     myContentRoots = contentRoots;
     myDependencies = dependencies;
+    myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
     myBuildable = buildable;
@@ -112,6 +123,11 @@ public class IdeaJavaProject implements Serializable {
   @NotNull
   public List<? extends IdeaDependency> getDependencies() {
     return myDependencies;
+  }
+
+  @Nullable
+  public Map<String, Set<File>> getArtifactsByConfiguration() {
+    return myArtifactsByConfiguration;
   }
 
   @Nullable
