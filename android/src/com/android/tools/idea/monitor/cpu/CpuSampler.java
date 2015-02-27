@@ -189,8 +189,10 @@ public class CpuSampler extends DeviceSampler {
     if (kernelCpuUsage != null && userCpuUsage != null && totalUptime != null) {
       if (previousKernelUsage != null && previousUserUsage != null && previousTotalUptime != null) {
         long totalTimeDiff = totalUptime - previousTotalUptime;
-        myData.add(System.currentTimeMillis(), type, id, (float)(kernelCpuUsage - previousKernelUsage) * 100.0f / (float)totalTimeDiff,
-                   (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff);
+        if (totalTimeDiff > 0) {
+          myData.add(System.currentTimeMillis(), type, id, (float)(kernelCpuUsage - previousKernelUsage) * 100.0f / (float)totalTimeDiff,
+                     (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff);
+        }
       }
       previousKernelUsage = kernelCpuUsage;
       previousUserUsage = userCpuUsage;
