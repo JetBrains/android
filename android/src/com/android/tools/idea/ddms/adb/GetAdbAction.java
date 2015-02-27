@@ -59,7 +59,7 @@ public class GetAdbAction extends AnAction {
 
       @Override
       public void onFailure(Throwable t) {
-        Notifications.Bus.notify(new Notification("Android", "ADB", "ADB error" + t.getMessage(), NotificationType.INFORMATION));
+        Notifications.Bus.notify(new Notification("Android", "ADB", "ADB error: " + t.toString(), NotificationType.INFORMATION));
       }
     });
   }
