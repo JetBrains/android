@@ -112,6 +112,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
     ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
+    DeviceSamplerView deviceSamplerView = new DeviceSamplerView(project);
+
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
     assert logcatView != null;
@@ -121,11 +123,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     Content adbLogsContent = createAdbLogsContent(layoutUi, project);
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
 
-    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
+    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext, deviceSamplerView);
     layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
 
     if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      Content cpuContent = createCpuContent(layoutUi, project, deviceContext);
+      Content cpuContent = createCpuContent(layoutUi, project, deviceContext, deviceSamplerView);
       layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
     }
 
@@ -198,15 +200,21 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     }, EdtExecutor.INSTANCE);
   }
 
-  private Content createMemoryContent(RunnerLayoutUi layoutUi, Project project, DeviceContext deviceContext) {
-    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext);
+  private static Content createMemoryContent(@NotNull RunnerLayoutUi layoutUi,
+                                             @NotNull Project project,
+                                             @NotNull DeviceContext deviceContext,
+                                             @NotNull DeviceSamplerView deviceSamplerView) {
+    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext, deviceSamplerView);
     Content content = layoutUi.createContent("Memory", view.createComponent(), "Memory", AndroidIcons.MemoryMonitor, null);
     content.setCloseable(false);
     return content;
   }
 
-  private Content createCpuContent(@NotNull RunnerLayoutUi layoutUi, @NotNull Project project, @NotNull DeviceContext deviceContext) {
-    CpuMonitorView view = new CpuMonitorView(project, deviceContext);
+  private static Content createCpuContent(@NotNull RunnerLayoutUi layoutUi,
+                                          @NotNull Project project,
+                                          @NotNull DeviceContext deviceContext,
+                                          @NotNull DeviceSamplerView deviceSamplerView) {
+    CpuMonitorView view = new CpuMonitorView(project, deviceContext, deviceSamplerView);
     Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", null, null);
     content.setCloseable(false);
     return content;

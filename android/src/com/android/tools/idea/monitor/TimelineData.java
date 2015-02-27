@@ -30,7 +30,6 @@ public class TimelineData {
   @GuardedBy("this") private final List<Sample> mySamples;
   @GuardedBy("this") private long myStart;
   @GuardedBy("this") private float myMaxTotal;
-  @GuardedBy("this") private long myFrozen;
 
   public TimelineData(int streams, int capacity) {
     myStreams = streams;
@@ -64,7 +63,6 @@ public class TimelineData {
   synchronized public void clear() {
     mySamples.clear();
     myMaxTotal = 0.0f;
-    myFrozen = -1;
     myStart = System.currentTimeMillis();
   }
 
@@ -80,13 +78,8 @@ public class TimelineData {
     return size() == 0;
   }
 
-  public float getEndTime() {
-    long now = myFrozen == -1 ? System.currentTimeMillis() : myFrozen;
-    return (now - myStart) / 1000.f;
-  }
-
-  synchronized public void freeze() {
-    myFrozen = System.currentTimeMillis();
+  synchronized public float getEndTime() {
+    return (mySamples.isEmpty() ? myStart : (System.currentTimeMillis() - myStart)) / 1000.f;
   }
 
   /**

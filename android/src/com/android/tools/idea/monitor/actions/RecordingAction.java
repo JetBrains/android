@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.memory.actions;
+package com.android.tools.idea.monitor.actions;
 
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.intellij.icons.AllIcons;
@@ -26,13 +26,13 @@ public class RecordingAction extends ToggleAction {
   @NotNull private final DeviceSampler myDeviceSampler;
 
   public RecordingAction(@NotNull DeviceSampler deviceSampler) {
-    super(null, null, AllIcons.Debugger.Db_set_breakpoint);
+    super(null, null, AllIcons.Actions.Pause);
     myDeviceSampler = deviceSampler;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myDeviceSampler.isRunning();
+    return !myDeviceSampler.isRunning();
   }
 
   @Override
@@ -40,22 +40,22 @@ public class RecordingAction extends ToggleAction {
     super.update(e);
     Presentation presentation = e.getPresentation();
     if (isSelected(e)) {
-      presentation.setText("Stop");
-      presentation.setDescription("Stops " + myDeviceSampler.getDescription() + " recording.");
+      presentation.setText("Pause");
+      presentation.setDescription("Pauses " + myDeviceSampler.getDescription() + " recording.");
     }
     else {
-      presentation.setText("Start");
-      presentation.setDescription("Starts " + myDeviceSampler.getDescription() + " recording.");
+      presentation.setText("Resume");
+      presentation.setDescription("Resumes " + myDeviceSampler.getDescription() + " recording.");
     }
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
     if (state) {
-      myDeviceSampler.start();
+      myDeviceSampler.stop();
     }
     else {
-      myDeviceSampler.stop();
+      myDeviceSampler.start();
     }
   }
 }

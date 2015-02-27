@@ -17,6 +17,7 @@ package com.android.tools.idea.monitor.cpu;
 
 import com.android.ddmlib.*;
 import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.monitor.DeviceSamplerView;
 import com.android.tools.idea.monitor.TimelineData;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,86 @@ public class CpuSampler extends DeviceSampler {
   private Long previousKernelUsage = null;
   private Long previousUserUsage = null;
   private Long previousTotalUptime = null;
+
+  public CpuSampler(@NotNull TimelineData data, int sampleFrequencyMs) {
+    super(data, sampleFrequencyMs);
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return "CPU Sampler";
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "cpu usage information";
+  }
+
+  @Override
+  protected void sample(boolean requested) throws InterruptedException {
+    if (myClient == null) {
+      return;
+    }
+
+    //noinspection ConstantConditions
+    IDevice device = myClient.getDevice();
+    //noinspection ConstantConditions
+    ClientData data = myClient.getClientData();
+
+    Long kernelCpuUsage = null;
+    Long userCpuUsage = null;
+    Long totalUptime = null;
+
+    int type = TYPE_DATA;
+
+    if (device != null) {
+      try {
+        int pid = data.getPid();
+        ProcessStatReceiver dumpsysReceiver = new ProcessStatReceiver(pid);
+        device.executeShellCommand("cat /proc/" + pid + "/stat", dumpsysReceiver, 1, TimeUnit.SECONDS);
+        kernelCpuUsage = dumpsysReceiver.getKernelCpuUsage();
+        userCpuUsage = dumpsysReceiver.getUserCpuUsage();
+
+        SystemStatReceiver systemStatReceiver = new SystemStatReceiver();
+        device.executeShellCommand("cat /proc/stat", systemStatReceiver, 1, TimeUnit.SECONDS);
+        totalUptime = systemStatReceiver.getTotalUptime();
+      }
+      catch (TimeoutException e) {
+        LOG.info(e);
+        type = TYPE_TIMEOUT;
+      }
+      catch (AdbCommandRejectedException e) {
+        LOG.warn(e);
+        type = TYPE_ERROR;
+      }
+      catch (ShellCommandUnresponsiveException e) {
+        LOG.warn(e);
+        type = TYPE_UNREACHABLE;
+      }
+      catch (IOException e) {
+        LOG.warn(e);
+        type = TYPE_UNREACHABLE;
+      }
+    }
+
+    if (kernelCpuUsage != null && userCpuUsage != null && totalUptime != null) {
+      if (previousKernelUsage != null && previousUserUsage != null && previousTotalUptime != null) {
+        long totalTimeDiff = totalUptime - previousTotalUptime;
+        if (totalTimeDiff > 0) {
+          myData.add(System.currentTimeMillis(), type, 0, (float)(kernelCpuUsage - previousKernelUsage) * 100.0f / (float)totalTimeDiff,
+                     (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff);
+        }
+      }
+      previousKernelUsage = kernelCpuUsage;
+      previousUserUsage = userCpuUsage;
+      previousTotalUptime = totalUptime;
+    }
+    else {
+      myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, 0, 0.0f, 0.0f);
+    }
+  }
 
   /**
    * Output receiver for contents in the "/proc/[pid]/stat" pseudo file.
@@ -123,88 +204,5 @@ public class CpuSampler extends DeviceSampler {
       }
       myTotalUptime = totalUptime;
     }
-  }
-
-  public CpuSampler(@NotNull TimelineData data, int sampleFrequencyMs) {
-    super(data, sampleFrequencyMs);
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return "CPU Sampler";
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "cpu usage information";
-  }
-
-  @Override
-  protected void sample(int type, int id) {
-    if (myClient == null) {
-      return;
-    }
-
-    //noinspection ConstantConditions
-    IDevice device = myClient.getDevice();
-    //noinspection ConstantConditions
-    ClientData data = myClient.getClientData();
-
-    Long kernelCpuUsage = null;
-    Long userCpuUsage = null;
-    Long totalUptime = null;
-
-    if (device != null) {
-      try {
-        int pid = data.getPid();
-        ProcessStatReceiver dumpsysReceiver = new ProcessStatReceiver(pid);
-        device.executeShellCommand("cat /proc/" + pid + "/stat", dumpsysReceiver, 1, TimeUnit.SECONDS);
-        kernelCpuUsage = dumpsysReceiver.getKernelCpuUsage();
-        userCpuUsage = dumpsysReceiver.getUserCpuUsage();
-
-        SystemStatReceiver systemStatReceiver = new SystemStatReceiver();
-        device.executeShellCommand("cat /proc/stat", systemStatReceiver, 1, TimeUnit.SECONDS);
-        totalUptime = systemStatReceiver.getTotalUptime();
-      }
-      catch (TimeoutException e) {
-        LOG.info(e);
-        type = TYPE_TIMEOUT;
-      }
-      catch (AdbCommandRejectedException e) {
-        LOG.warn(e);
-        type = TYPE_ERROR;
-      }
-      catch (ShellCommandUnresponsiveException e) {
-        LOG.warn(e);
-        type = TYPE_UNREACHABLE;
-      }
-      catch (IOException e) {
-        LOG.warn(e);
-        type = TYPE_UNREACHABLE;
-      }
-    }
-
-    if (kernelCpuUsage != null && userCpuUsage != null && totalUptime != null) {
-      if (previousKernelUsage != null && previousUserUsage != null && previousTotalUptime != null) {
-        long totalTimeDiff = totalUptime - previousTotalUptime;
-        if (totalTimeDiff > 0) {
-          myData.add(System.currentTimeMillis(), type, id, (float)(kernelCpuUsage - previousKernelUsage) * 100.0f / (float)totalTimeDiff,
-                     (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff);
-        }
-      }
-      previousKernelUsage = kernelCpuUsage;
-      previousUserUsage = userCpuUsage;
-      previousTotalUptime = totalUptime;
-    }
-    else {
-      myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, id, 0.0f, 0.0f);
-    }
-  }
-
-  @Override
-  protected void sampleTimeoutHandler() {
-
   }
 }
