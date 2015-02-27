@@ -95,6 +95,11 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     }
   }
 
+  public void openSigningConfiguration(@NotNull Module module) {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndOpenSigningConfiguration(module);
+  }
+
   public void openSdkSettings() {
     AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
     configurable.showDialogAndSelectSdksPage();
