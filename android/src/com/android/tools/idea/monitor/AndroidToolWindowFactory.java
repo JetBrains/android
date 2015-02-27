@@ -184,12 +184,16 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         loadingPanel.stopLoading();
 
         // If we cannot connect to ADB in a reasonable amount of time (10 seconds timeout in AdbService), then something is seriously
-        // wrong. We need more information on when this happens and identify the root cause.
+        // wrong. The only identified reason so far is that some machines have incompatible versions of adb that were already running.
+        // e.g. Genymotion, some HTC flashing software, Ubuntu's adb package may all conflict with the version of adb in the SDK.
         Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
-        Messages.showErrorDialog("Unable to establish connection to adb.\n\n" +
-                                 "If this happens, run 'adb devices -l' from the command line and see if it lists your devices.\n" +
-                                 "If adb from the command line works, then please file a bug at http://b.android.com, including\n" +
-                                 "the output of the 'adb devices -l' command and your idea.log file (Help | Show Log in Files)", "ADB");
+        String msg = String.format("Unable to establish a connection to adb.\n\n" +
+                                   "This usually happens if you have an incompatible version of adb running already.\n" +
+                                   "Try re-opening Studio after killing any existing adb daemons.\n\n" +
+                                   "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
+                                   "  1. Output of the command: '%1$s devices'\n" +
+                                   "  2. Your idea.log file (Help | Show Log in Explorer)\n", adb.getAbsolutePath());
+        Messages.showErrorDialog(msg, "ADB Connection Error");
       }
     }, EdtExecutor.INSTANCE);
   }
