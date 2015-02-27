@@ -136,6 +136,18 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     });
   }
 
+  public boolean showDialogAndOpenSigningConfiguration(@NotNull final Module module) {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        AndroidModuleConfigurable configurable = mySidePanel.select(module);
+        if (configurable != null) {
+          configurable.openSigningConfiguration();
+        }
+      }
+    });
+  }
+
   public boolean showDialogAndSelectDependency(@NotNull final Module module, @NotNull final GradleCoordinate dependency) {
     return doShowDialog(new Runnable() {
       @Override
