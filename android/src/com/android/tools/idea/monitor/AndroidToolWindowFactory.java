@@ -215,7 +215,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
                                           @NotNull DeviceContext deviceContext,
                                           @NotNull DeviceSamplerView deviceSamplerView) {
     CpuMonitorView view = new CpuMonitorView(project, deviceContext, deviceSamplerView);
-    Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", null, null);
+    Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", AndroidIcons.CpuMonitor, null);
     content.setCloseable(false);
     return content;
   }
