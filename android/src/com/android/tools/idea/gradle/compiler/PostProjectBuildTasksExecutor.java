@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.FilePaths;
-import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
@@ -37,7 +35,6 @@ import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -46,14 +43,11 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.util.messages.Topic;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,8 +60,15 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -160,8 +161,8 @@ public class PostProjectBuildTasksExecutor {
 
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
-    if (Projects.isGradleProject(myProject)) {
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+    if (isGradleProject(myProject)) {
+      invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -173,7 +174,7 @@ public class PostProjectBuildTasksExecutor {
         }
       });
 
-      if (Projects.isOfflineBuildModeEnabled(myProject)) {
+      if (isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
           String error = errorMessages.next();
           if (error != null && unresolvedDependenciesFound(error)) {
@@ -253,13 +254,13 @@ public class PostProjectBuildTasksExecutor {
 
     try {
       ContentEntry[] contentEntries = rootModel.getContentEntries();
-      ContentEntry parent = FilePaths.findParentContentEntry(buildFolderPath, contentEntries);
+      ContentEntry parent = findParentContentEntry(buildFolderPath, contentEntries);
       if (parent == null) {
         rootModel.dispose();
         return;
       }
 
-      File[] outputFolderPaths = FileUtil.notNullize(buildFolderPath.listFiles());
+      File[] outputFolderPaths = notNullize(buildFolderPath.listFiles());
       if (outputFolderPaths.length == 0) {
         rootModel.dispose();
         return;
@@ -271,13 +272,13 @@ public class PostProjectBuildTasksExecutor {
         }
         boolean alreadyExcluded = false;
         for (VirtualFile excluded : parent.getExcludeFolderFiles()) {
-          if (FileUtil.filesEqual(outputFolderPath, VfsUtilCore.virtualToIoFile(excluded))) {
+          if (filesEqual(outputFolderPath, virtualToIoFile(excluded))) {
             alreadyExcluded = true;
             break;
           }
         }
         if (!alreadyExcluded) {
-          parent.addExcludeFolder(FilePaths.pathToIdeaUrl(outputFolderPath));
+          parent.addExcludeFolder(pathToIdeaUrl(outputFolderPath));
         }
       }
     }
@@ -309,9 +310,11 @@ public class PostProjectBuildTasksExecutor {
    */
   private void refreshProject() {
     String projectPath = myProject.getBasePath();
-    VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(projectPath);
-    if (rootDir != null && rootDir.isDirectory()) {
-      rootDir.refresh(true, true);
+    if (projectPath != null) {
+      VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(projectPath);
+      if (rootDir != null && rootDir.isDirectory()) {
+        rootDir.refresh(true, true);
+      }
     }
   }
 
@@ -340,7 +343,7 @@ public class PostProjectBuildTasksExecutor {
 
     myProject.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, null);
 
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
       @Override
       public void execute() {
         if (myProject.isOpen()) {

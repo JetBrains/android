@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
@@ -31,15 +32,21 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_DEPENDENCIES;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 /**
  * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -54,10 +61,10 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                    @NotNull List<Message> errorsFound) {
     DependencySet dependencies = Dependency.extractFrom(androidProject);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateDependency(model, dependency);
+      updateDependency(model, dependency, androidProject.getDelegate());
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateDependency(model, dependency, errorsFound);
+      updateDependency(model, dependency, androidProject.getDelegate(), errorsFound);
     }
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
@@ -71,13 +78,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
   }
 
-  private void updateDependency(@NotNull ModifiableRootModel model, @NotNull LibraryDependency dependency) {
-    Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    setUpLibraryDependency(model, dependency.getName(), dependency.getScope(), binaryPaths);
-  }
-
   private void updateDependency(@NotNull ModifiableRootModel model,
                                 @NotNull ModuleDependency dependency,
+                                @NotNull AndroidProject androidProject,
                                 @NotNull List<Message> errorsFound) {
     ModuleManager moduleManager = ModuleManager.getInstance(model.getProject());
     Module moduleDependency = null;
@@ -113,7 +116,29 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     // fall back to library dependency, if available.
     if (hasLibraryBackup) {
-      updateDependency(model, backup);
+      updateDependency(model, backup, androidProject);
+    }
+  }
+
+  private void updateDependency(@NotNull ModifiableRootModel moduleModel,
+                                @NotNull LibraryDependency dependency,
+                                @NotNull AndroidProject androidProject) {
+    Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
+    setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths);
+
+    File buildFolder = androidProject.getBuildFolder();
+
+    // Exclude jar files that are in "jars" folder in "build" folder.
+    // see https://code.google.com/p/android/issues/detail?id=123788
+    ContentEntry[] contentEntries = moduleModel.getContentEntries();
+    for (String binaryPath : binaryPaths) {
+      File parent = new File(binaryPath).getParentFile();
+      if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
+        ContentEntry parentContentEntry = findParentContentEntry(parent, contentEntries);
+        if (parentContentEntry != null) {
+          parentContentEntry.addExcludeFolder(pathToIdeaUrl(parent));
+        }
+      }
     }
   }
 
