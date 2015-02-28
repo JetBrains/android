@@ -173,7 +173,12 @@ public class AvdEditWizard extends DynamicWizard {
 
     String skinPath = properties.get(CUSTOM_SKIN_FILE_KEY.name);
     if (skinPath != null) {
-      File skinFile = new File(skinPath);
+      File skinFile;
+      if (skinPath.equals(NO_SKIN.getPath())) {
+        skinFile = NO_SKIN;
+      } else {
+        skinFile = new File(skinPath);
+      }
       if (skinFile.isDirectory()) {
         state.put(CUSTOM_SKIN_FILE_KEY, skinFile);
       }
@@ -373,8 +378,11 @@ public class AvdEditWizard extends DynamicWizard {
    */
   @Nullable
   public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image) {
-    if (path == null || path.getPath().isEmpty() || path.equals(NO_SKIN)) {
+    if (path == null || path.getPath().isEmpty()) {
       return path;
+    }
+    if (path.equals(NO_SKIN)) {
+      return NO_SKIN;
     }
     if (!path.isAbsolute()) {
       if (image != null) {
