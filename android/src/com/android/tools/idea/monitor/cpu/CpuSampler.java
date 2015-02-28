@@ -57,7 +57,7 @@ public class CpuSampler extends DeviceSampler {
   }
 
   @Override
-  protected void sample(boolean requested) throws InterruptedException {
+  protected void sample(boolean forced) throws InterruptedException {
     if (myClient == null) {
       return;
     }

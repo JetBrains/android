@@ -121,7 +121,7 @@ public abstract class DeviceSampler implements Runnable {
     return myExecutingTask != null && myRunning;
   }
 
-  protected void requestSample() {
+  protected void forceSample() {
     myDataSemaphore.release();
   }
 
@@ -152,5 +152,5 @@ public abstract class DeviceSampler implements Runnable {
   @NotNull
   public abstract String getDescription();
 
-  protected abstract void sample(boolean requested) throws InterruptedException;
+  protected abstract void sample(boolean forced) throws InterruptedException;
 }

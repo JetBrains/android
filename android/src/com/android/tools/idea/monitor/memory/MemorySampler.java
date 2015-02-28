@@ -105,8 +105,8 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
   }
 
   @Override
-  protected void sample(boolean requested) throws InterruptedException {
-    if (requested) {
+  protected void sample(boolean forced) throws InterruptedException {
+    if (forced) {
       myRequestPending = false;
       recordSample(TYPE_DATA, 0);
     }
@@ -172,7 +172,7 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
   public void clientChanged(@NotNull Client client, int changeMask) {
     if (myClient != null && myClient == client) {
       if ((changeMask & Client.CHANGE_HEAP_DATA) != 0) {
-        requestSample();
+        forceSample();
       }
     }
   }
