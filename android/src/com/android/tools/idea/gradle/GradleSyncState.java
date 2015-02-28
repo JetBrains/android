@@ -71,6 +71,9 @@ public class GradleSyncState {
   private final Object myLock = new Object();
 
   @GuardedBy("myLock")
+  private boolean mySyncNotificationsEnabled;
+
+  @GuardedBy("myLock")
   private boolean mySyncInProgress;
 
   @GuardedBy("myLock")
@@ -84,6 +87,18 @@ public class GradleSyncState {
   public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
     myMessageBus = messageBus;
+  }
+
+  public void setSyncNotificationsEnabled(boolean enabled) {
+    synchronized (myLock) {
+      mySyncNotificationsEnabled = enabled;
+    }
+  }
+
+  public boolean areSyncNotificationsEnabled() {
+    synchronized (myLock) {
+      return mySyncNotificationsEnabled;
+    }
   }
 
   public void syncSkipped(long lastSyncTimestamp) {
