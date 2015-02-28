@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.collect.Lists;
@@ -25,11 +24,6 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.StandardFileSystems;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +32,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.FD_RES;
-import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static com.android.SdkConstants.*;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
+import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
+import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static java.io.File.separatorChar;
 
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
@@ -118,8 +117,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     for (String binaryPath : binaryPaths) {
       if (binaryPath.endsWith(FD_RES) && binaryPath.length() > FD_RES.length() &&
         binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
-        File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()),
-                                    FN_ANNOTATIONS_ZIP);
+        File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
         if (annotations.isFile()) {
           updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance());
         }
@@ -167,14 +165,12 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     File file = new File(path);
 
     String name = file.getName();
-    boolean isJarFile = FileUtilRt.extensionEquals(name, SdkConstants.EXT_JAR) ||
-                        FileUtilRt.extensionEquals(name, SdkConstants.EXT_ZIP);
+    boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
-    String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
-    String filePath = FileUtil.toSystemIndependentName(file.getPath());
-    String url = VirtualFileManager.constructUrl(protocol, filePath);
+    String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
+    String url = constructUrl(protocol, toSystemIndependentName(file.getPath()));
     if (isJarFile) {
-      url += URLUtil.JAR_SEPARATOR;
+      url += JAR_SEPARATOR;
     }
     return url;
   }

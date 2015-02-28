@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +23,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
 public final class FilePaths {
   private FilePaths() {
@@ -53,13 +57,13 @@ public final class FilePaths {
     VirtualFile rootFile = contentEntry.getFile();
     File rootFilePath;
     if (rootFile == null) {
-      String s = VfsUtilCore.urlToPath(contentEntry.getUrl());
+      String s = urlToPath(contentEntry.getUrl());
       rootFilePath = new File(s);
     }
     else {
       rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
     }
-    return FileUtil.isAncestor(rootFilePath, path, false);
+    return isAncestor(rootFilePath, path, false);
   }
 
   /**
@@ -73,6 +77,6 @@ public final class FilePaths {
    */
   @NotNull
   public static String pathToIdeaUrl(@NotNull File path) {
-    return VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(path.getPath()));
+    return pathToUrl(toSystemIndependentName(path.getPath()));
   }
 }
