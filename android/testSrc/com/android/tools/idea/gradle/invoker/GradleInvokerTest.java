@@ -128,13 +128,16 @@ public class GradleInvokerTest extends IdeaTestCase {
 
   public void testCompileJava() throws Exception {
     final String taskName = "compileJava";
+    final String testTaskName = "compileTestJava";
     myAndroidFacet.getProperties().COMPILE_JAVA_TASK_NAME = taskName;
+    myAndroidFacet.getProperties().COMPILE_JAVA_TEST_TASK_NAME = testTaskName;
 
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertEquals(1, tasks.size());
+        assertEquals(2, tasks.size());
         assertEquals(qualifiedTaskName(taskName), tasks.get(0));
+        assertEquals(qualifiedTaskName(testTaskName), tasks.get(1));
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
     });
