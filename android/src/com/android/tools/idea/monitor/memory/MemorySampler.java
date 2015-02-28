@@ -15,32 +15,19 @@
  */
 package com.android.tools.idea.monitor.memory;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.TimelineData;
-import com.android.tools.idea.monitor.TimelineEvent;
-import com.android.tools.idea.monitor.TimelineEventListener;
+import com.android.tools.idea.monitor.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemorySampler extends DeviceSampler implements ClientData.IHprofDumpHandler {
-  public class HprofDumpCompletedEvent implements TimelineEvent {
-    private byte[] myData;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
-    private HprofDumpCompletedEvent(@NotNull byte[] data) {
-      myData = data;
-    }
-
-    @Nullable
-    @Override
-    public byte[] getData() {
-      return myData;
-    }
-  }
-
+public class MemorySampler extends DeviceSampler implements ClientData.IHprofDumpHandler, AndroidDebugBridge.IClientChangeListener {
   /**
    * A sample that marks the beginning of an HPROF request.
    */
@@ -49,14 +36,35 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
    * A sample flagging that an HPROF dump has been received.
    */
   public static final int TYPE_HPROF_RESULT = INHERITED_TYPE_START + 1;
-
   private static final Logger LOG = Logger.getInstance(MemorySampler.class);
   private static int ourLastHprofRequestId = 0;
   private int myPendingHprofId;
+  private boolean myRequestPending;
 
   MemorySampler(@NotNull TimelineData data, int sampleFrequencyMs) {
     super(data, sampleFrequencyMs);
     myPendingHprofId = 0;
+  }
+
+  private static int getNextHprofId() {
+    return ++ourLastHprofRequestId;
+  }
+
+  @Override
+  public void start() {
+    if (myExecutingTask == null && myClient != null) {
+      AndroidDebugBridge.addClientChangeListener(this);
+    }
+    super.start();
+  }
+
+  @Override
+  public void stop() {
+    super.stop();
+    myRequestPending = false;
+    if (myExecutingTask != null) {
+      AndroidDebugBridge.removeClientChangeListener(this);
+    }
   }
 
   @NotNull
@@ -71,13 +79,8 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
     return "memory information";
   }
 
-  private static int getNextHprofId() {
-    return ++ourLastHprofRequestId;
-  }
-
-  @Override
   @SuppressWarnings("ConstantConditions")
-  protected void sample(int type, int id) {
+  protected void recordSample(int type, int id) {
     float freeMb = 0.0f;
     float allocMb = 0.0f;
     if (myClient != null) {
@@ -94,11 +97,25 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
     myData.add(System.currentTimeMillis(), type, id, allocMb, freeMb);
   }
 
-  @Override
-  protected void sampleTimeoutHandler() {
+  protected void requestSample() {
     Client client = myClient;
     if (client != null) {
       client.updateHeapInfo();
+    }
+  }
+
+  @Override
+  protected void sample(boolean requested) throws InterruptedException {
+    if (requested) {
+      myRequestPending = false;
+      recordSample(TYPE_DATA, 0);
+    }
+    else {
+      if (myRequestPending) {
+        recordSample(TYPE_TIMEOUT, 0);
+      }
+      requestSample();
+      myRequestPending = true;
     }
   }
 
@@ -116,7 +133,7 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
           // We are not waiting for any dumps. We ignore it.
           return;
         }
-        sample(TYPE_HPROF_RESULT, myPendingHprofId);
+        recordSample(TYPE_HPROF_RESULT, myPendingHprofId);
         myPendingHprofId = 0;
         for (TimelineEventListener listener : myListeners) {
           listener.onEvent(new HprofDumpCompletedEvent(data));
@@ -140,7 +157,7 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
       ClientData.setHprofDumpHandler(this);
       myClient.dumpHprof();
       myPendingHprofId = getNextHprofId();
-      sample(TYPE_HPROF_REQUEST, myPendingHprofId);
+      recordSample(TYPE_HPROF_REQUEST, myPendingHprofId);
     }
   }
 
@@ -148,6 +165,29 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
   public void requestGc() {
     if (myClient != null) {
       myClient.executeGarbageCollector();
+    }
+  }
+
+  @Override
+  public void clientChanged(@NotNull Client client, int changeMask) {
+    if (myClient != null && myClient == client) {
+      if ((changeMask & Client.CHANGE_HEAP_DATA) != 0) {
+        requestSample();
+      }
+    }
+  }
+
+  public static class HprofDumpCompletedEvent implements TimelineEvent {
+    private byte[] myData;
+
+    private HprofDumpCompletedEvent(@NotNull byte[] data) {
+      myData = data;
+    }
+
+    @Nullable
+    @Override
+    public byte[] getData() {
+      return myData;
     }
   }
 }
