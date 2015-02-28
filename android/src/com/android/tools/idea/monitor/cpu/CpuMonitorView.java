@@ -54,8 +54,8 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
     TimelineComponent timelineComponent = new TimelineComponent(data, bufferTimeInSeconds, initialMax, 100, initialMarker);
 
     timelineComponent.configureUnits("%");
-    timelineComponent.configureStream(0, "Kernel", new JBColor(0x78abd9, 0x78abd9));
-    timelineComponent.configureStream(1, "User", new JBColor(0xbaccdc, 0x51585c));
+    timelineComponent.configureStream(0, "Kernel", new JBColor(0xd73f3f, 0xd73f3f));
+    timelineComponent.configureStream(1, "User", new JBColor(0xeb9f9f, 0x9d4c4c));
     timelineComponent.setBackground(BACKGROUND_COLOR);
 
     setComponent(timelineComponent);
