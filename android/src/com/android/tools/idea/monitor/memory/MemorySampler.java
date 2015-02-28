@@ -18,14 +18,14 @@ package com.android.tools.idea.monitor.memory;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.tools.idea.monitor.*;
+import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.monitor.TimelineData;
+import com.android.tools.idea.monitor.TimelineEvent;
+import com.android.tools.idea.monitor.TimelineEventListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 public class MemorySampler extends DeviceSampler implements ClientData.IHprofDumpHandler, AndroidDebugBridge.IClientChangeListener {
   /**

@@ -31,6 +31,7 @@ public class DeviceMonitorStatus {
   private Project myProject;
   @Nullable private SamplerBackgroundTask myTask;
   @NotNull private Set<BaseMonitorView> myViews = new HashSet<BaseMonitorView>();
+
   public DeviceMonitorStatus(@NotNull Project project) {
     myProject = project;
   }
@@ -67,7 +68,8 @@ public class DeviceMonitorStatus {
     if (showing && myTask != null) {
       myTask.exit();
       myTask = null;
-    } else if (!showing && myTask == null) {
+    }
+    else if (!showing && myTask == null) {
       myTask = new SamplerBackgroundTask(myProject, myViews);
       ProgressManager.getInstance().run(myTask);
     }

@@ -85,19 +85,15 @@ public class CpuSampler extends DeviceSampler {
         totalUptime = systemStatReceiver.getTotalUptime();
       }
       catch (TimeoutException e) {
-        LOG.info(e);
         type = TYPE_TIMEOUT;
       }
       catch (AdbCommandRejectedException e) {
-        LOG.warn(e);
         type = TYPE_ERROR;
       }
       catch (ShellCommandUnresponsiveException e) {
-        LOG.warn(e);
         type = TYPE_UNREACHABLE;
       }
       catch (IOException e) {
-        LOG.warn(e);
         type = TYPE_UNREACHABLE;
       }
     }
