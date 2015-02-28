@@ -79,7 +79,7 @@ public class TimelineData {
   }
 
   synchronized public float getEndTime() {
-    return (mySamples.isEmpty() ? myStart : (System.currentTimeMillis() - myStart)) / 1000.f;
+    return (mySamples.isEmpty() ? 0.0f : (System.currentTimeMillis() - myStart)) / 1000.f;
   }
 
   /**
