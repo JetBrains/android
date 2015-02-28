@@ -17,21 +17,21 @@ package com.android.tools.idea.structure.gradle;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.structure.gradle.AndroidModuleEditor;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.vfs.ReadonlyStatusHandler.ensureFilesWritable;
 
 /**
  * A standard {@linkplan Configurable} instance that shows panels for editing a single Android Gradle module in Project Structure.
@@ -86,8 +86,8 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    VirtualFile file = GradleUtil.getGradleBuildFile(myModule);
-    if (!ReadonlyStatusHandler.ensureFilesWritable(myModule.getProject(), file)) {
+    VirtualFile file = getGradleBuildFile(myModule);
+    if (file != null && !ensureFilesWritable(myModule.getProject(), file)) {
       throw new ConfigurationException(String.format("Build file %1$s is not writable", file.getPath()));
     }
     myModuleEditor.apply();
@@ -110,5 +110,9 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
 
   public void selectDependency(@NotNull GradleCoordinate dependency) {
     myModuleEditor.selectDependency(dependency);
+  }
+
+  public void openSigningConfiguration() {
+    myModuleEditor.openSigningConfiguration();
   }
 }

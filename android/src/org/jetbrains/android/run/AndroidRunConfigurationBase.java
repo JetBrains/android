@@ -22,26 +22,34 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.CloudTestTargetChooser;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RuntimeConfigurationError;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
@@ -63,7 +71,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.android.tools.idea.gradle.util.Projects.isGradleProjectWithoutModel;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
@@ -109,7 +123,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     Project project = module.getProject();
-    if (Projects.isGradleProjectWithoutModel(project)) {
+    if (isGradleProjectWithoutModel(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
       throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -202,7 +216,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
-    if (Projects.isGradleProjectWithoutModel(project)) {
+    if (isGradleProjectWithoutModel(project)) {
       // This prevents user from running the app.
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -213,7 +227,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       if (!variant.getMainArtifact().isSigned()) {
         AndroidArtifactOutput output = GradleUtil.getOutput(variant.getMainArtifact());
         String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName());
-        Messages.showErrorDialog(project, message, CommonBundle.getErrorTitle());
+        String title = CommonBundle.getErrorTitle();
+        NotificationHyperlink quickfix =
+          new NotificationHyperlink("open.sign.configuration", "Open Project Structure Dialog") {
+            @Override
+            protected void execute(@NotNull Project project) {
+              ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+              if (service instanceof AndroidProjectSettingsService) {
+                ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
+              }
+              else {
+                service.openModuleSettings(module);
+              }
+            }
+          };
+        AndroidGradleNotification.getInstance(project).showBalloon(title, message, NotificationType.ERROR, quickfix);
         return null;
       }
     }

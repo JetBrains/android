@@ -50,6 +50,9 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
                      BuildFileKey.LIBRARY_REPOSITORY, BuildFileKey.IGNORE_ASSETS_PATTERN,
                      BuildFileKey.INCREMENTAL_DEX, BuildFileKey.SOURCE_COMPATIBILITY,
                      BuildFileKey.TARGET_COMPATIBILITY);
+
+  private static final String SIGNING_TAB_TITLE = "Signing";
+
   private final Project myProject;
   private final String myName;
   private final List<ModuleConfigurationEditor> myEditors = new ArrayList<ModuleConfigurationEditor>();
@@ -82,7 +85,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
             return panel;
           }
         }));
-        myEditors.add(new GenericEditor<NamedObjectPanel>("Signing", new Callable<NamedObjectPanel>() {
+        myEditors.add(new GenericEditor<NamedObjectPanel>(SIGNING_TAB_TITLE, new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
             NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config", panelGroup);
@@ -158,18 +161,10 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   }
 
   public void selectDependency(@NotNull GradleCoordinate dependency) {
-    int tabCount = myTabbedPane.getTabCount();
-    for (int i = 0; i < tabCount; i++) {
-      Component component = myTabbedPane.getTabComponentAt(i);
-      if (component instanceof JLabel && ProjectBundle.message("modules.classpath.title").equals(((JLabel)component).getText())) {
-        myTabbedPane.setSelectedIndex(i);
-        Component selected = myTabbedPane.getSelectedComponent();
-        if (selected instanceof ModuleDependenciesPanel) {
-          ModuleDependenciesPanel dependenciesPanel = (ModuleDependenciesPanel)selected;
-          dependenciesPanel.select(dependency);
-        }
-        break;
-      }
+    Component selected = selectAndGetTabComponent(ProjectBundle.message("modules.classpath.title"));
+    if (selected instanceof ModuleDependenciesPanel) {
+      ModuleDependenciesPanel dependenciesPanel = (ModuleDependenciesPanel)selected;
+      dependenciesPanel.select(dependency);
     }
   }
 
@@ -185,5 +180,22 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
   @Override
   public void setHistory(final History history) {
+  }
+
+  public void openSigningConfiguration() {
+    selectAndGetTabComponent(SIGNING_TAB_TITLE);
+  }
+
+  @Nullable
+  private Component selectAndGetTabComponent(@NotNull String tabTitle) {
+    int tabCount = myTabbedPane.getTabCount();
+    for (int i = 0; i < tabCount; i++) {
+      Component component = myTabbedPane.getTabComponentAt(i);
+      if (component instanceof JLabel && tabTitle.equals(((JLabel)component).getText())) {
+        myTabbedPane.setSelectedIndex(i);
+        return myTabbedPane.getSelectedComponent();
+      }
+    }
+    return null;
   }
 }
