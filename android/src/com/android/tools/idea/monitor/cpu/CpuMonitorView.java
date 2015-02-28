@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor.cpu;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.*;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -30,7 +31,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
+
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
 public class CpuMonitorView extends BaseMonitorView implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
   /**
@@ -41,9 +43,10 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final int SAMPLE_FREQUENCY_MS = 500;
   @NotNull private final CpuSampler myCpuSampler;
+  private final DeviceContext myDeviceContext;
 
-  public CpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceSamplerView deviceSamplerView) {
-    super(project, deviceSamplerView);
+  public CpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceMonitorStatus deviceMonitorStatus) {
+    super(project, deviceMonitorStatus);
 
     // Buffer at one and a half times the sample frequency.
     float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
@@ -63,15 +66,22 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
     myCpuSampler = new CpuSampler(data, SAMPLE_FREQUENCY_MS);
     myCpuSampler.addListener(this);
 
-    myDeviceSamplerView.registerView(this);
+    myDeviceMonitorStatus.registerView(this);
 
-    deviceContext.addListener(this, project);
+    myDeviceContext = deviceContext;
+    myDeviceContext.addListener(this, project);
   }
 
   @NotNull
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new RecordingAction(myCpuSampler));
+    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      group.add(new RecordingAction(myCpuSampler));
+    }
+
+    group.add(new ToggleMethodProfilingAction(myProject, myDeviceContext));
+    //group.add(new MyThreadDumpAction()); // thread dump -> systrace
+
     return group;
   }
 

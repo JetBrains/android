@@ -23,30 +23,16 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class DeviceSamplerView {
+public class DeviceMonitorStatus {
   private Project myProject;
   @Nullable private SamplerBackgroundTask myTask;
   @NotNull private Set<BaseMonitorView> myViews = new HashSet<BaseMonitorView>();
-  public DeviceSamplerView(@NotNull Project project) {
+  public DeviceMonitorStatus(@NotNull Project project) {
     myProject = project;
-  }
-
-  @NotNull
-  private static List<BaseMonitorView> getRunningViews(@NotNull Set<BaseMonitorView> allViews) {
-    // Find all views that are not showing and have a sampler running.
-    List<BaseMonitorView> runningViews = new ArrayList<BaseMonitorView>();
-    for (BaseMonitorView viewInstance : allViews) {
-      if (viewInstance.getSampler().isRunning()) {
-        runningViews.add(viewInstance);
-      }
-    }
-    return runningViews;
   }
 
   public void registerView(@NotNull BaseMonitorView view) {
@@ -59,29 +45,31 @@ public class DeviceSamplerView {
     view.getSampler().addListener(new TimelineEventListener() {
       @Override
       public void onStart() {
-        notifySamplerViewStateChange();
+        statusChanged();
       }
 
       @Override
       public void onStop() {
-        notifySamplerViewStateChange();
+        statusChanged();
       }
 
       @Override
       public void onEvent(@NotNull TimelineEvent event) {
       }
     });
-    notifySamplerViewStateChange();
   }
 
-  public void notifySamplerViewStateChange() {
-    List<BaseMonitorView> runningViews = getRunningViews(myViews);
-    if (runningViews.size() > 0 && (myTask == null || myTask.myLatch.getCount() == 0)) {
+  public void statusChanged() {
+    boolean showing = false;
+    for (BaseMonitorView view : myViews) {
+      showing = view.isShowing() || showing;
+    }
+    if (showing && myTask != null) {
+      myTask.exit();
+      myTask = null;
+    } else if (!showing && myTask == null) {
       myTask = new SamplerBackgroundTask(myProject, myViews);
       ProgressManager.getInstance().run(myTask);
-    }
-    else if (runningViews.size() == 0 && myTask != null) {
-      myTask.exit();
     }
   }
 
@@ -113,7 +101,7 @@ public class DeviceSamplerView {
         }
 
         if (indicator.isCanceled()) {
-          for (BaseMonitorView view : getRunningViews(myViews)) {
+          for (BaseMonitorView view : myViews) {
             view.getSampler().stop();
           }
           exit();
