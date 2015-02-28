@@ -1166,6 +1166,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     if (testArtifact != null) {
       state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
+      state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
+
       if (testArtifact instanceof AndroidArtifact) {
         state.TEST_SOURCE_GEN_TASK_NAME = ((AndroidArtifact) testArtifact).getSourceGenTaskName();
       } else {

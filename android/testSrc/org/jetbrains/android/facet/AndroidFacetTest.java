@@ -76,6 +76,7 @@ public class AndroidFacetTest extends AndroidTestCase {
     expect(mainArtifact.getSourceGenTaskName()).andStubReturn("generateSources");
 
     expect(testArtifact.getAssembleTaskName()).andStubReturn("assembleTest");
+    expect(testArtifact.getCompileTaskName()).andStubReturn("compileTestJava");
     expect(testArtifact.getSourceGenTaskName()).andStubReturn("generateTestSources");
 
     replay(mainArtifact, testArtifact);
@@ -85,6 +86,7 @@ public class AndroidFacetTest extends AndroidTestCase {
     assertEquals("compileJava", state.COMPILE_JAVA_TASK_NAME);
     assertEquals("generateSources", state.SOURCE_GEN_TASK_NAME);
     assertEquals("assembleTest", state.ASSEMBLE_TEST_TASK_NAME);
+    assertEquals("compileTestJava", state.COMPILE_JAVA_TEST_TASK_NAME);
     assertEquals("generateTestSources", state.TEST_SOURCE_GEN_TASK_NAME);
 
     verify(mainArtifact, testArtifact);
