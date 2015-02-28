@@ -275,16 +275,14 @@ public class GradleInvoker {
           break;
         case ASSEMBLE:
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
+
+          if (testCompileType != TestCompileType.NONE) {
+            addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TEST_TASK_NAME);
+          }
           break;
         default:
           tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
-      }
-
-      if (testCompileType != TestCompileType.NONE) {
-        String gradleTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
-        if (StringUtil.isNotEmpty(gradleTaskName)) {
-          tasks.add(createBuildTask(gradlePath, gradleTaskName));
-        }
+          addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
       }
     }
     else {
@@ -298,6 +296,14 @@ public class GradleInvoker {
           tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
         }
       }
+    }
+  }
+
+  private static void addTaskIfSpecified(@NotNull List<String> tasks,
+                                         @NotNull String gradlePath,
+                                         @Nullable String gradleTaskName) {
+    if (StringUtil.isNotEmpty(gradleTaskName)) {
+      tasks.add(createBuildTask(gradlePath, gradleTaskName));
     }
   }
 
