@@ -81,8 +81,6 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
-
 /**
  * @author Eugene.Kudelevsky
  */
@@ -112,7 +110,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
     ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
-    DeviceSamplerView deviceSamplerView = new DeviceSamplerView(project);
+    DeviceMonitorStatus deviceMonitorStatus = new DeviceMonitorStatus(project);
 
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
@@ -123,13 +121,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     Content adbLogsContent = createAdbLogsContent(layoutUi, project);
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
 
-    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext, deviceSamplerView);
+    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext, deviceMonitorStatus);
     layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
 
-    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      Content cpuContent = createCpuContent(layoutUi, project, deviceContext, deviceSamplerView);
-      layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
-    }
+    Content cpuContent = createCpuContent(layoutUi, project, deviceContext, deviceMonitorStatus);
+    layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
 
@@ -203,8 +199,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   private static Content createMemoryContent(@NotNull RunnerLayoutUi layoutUi,
                                              @NotNull Project project,
                                              @NotNull DeviceContext deviceContext,
-                                             @NotNull DeviceSamplerView deviceSamplerView) {
-    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext, deviceSamplerView);
+                                             @NotNull DeviceMonitorStatus deviceMonitorStatus) {
+    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext, deviceMonitorStatus);
     Content content = layoutUi.createContent("Memory", view.createComponent(), "Memory", AndroidIcons.MemoryMonitor, null);
     content.setCloseable(false);
     return content;
@@ -213,8 +209,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   private static Content createCpuContent(@NotNull RunnerLayoutUi layoutUi,
                                           @NotNull Project project,
                                           @NotNull DeviceContext deviceContext,
-                                          @NotNull DeviceSamplerView deviceSamplerView) {
-    CpuMonitorView view = new CpuMonitorView(project, deviceContext, deviceSamplerView);
+                                          @NotNull DeviceMonitorStatus deviceMonitorStatus) {
+    CpuMonitorView view = new CpuMonitorView(project, deviceContext, deviceMonitorStatus);
     Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", AndroidIcons.CpuMonitor, null);
     content.setCloseable(false);
     return content;
@@ -233,9 +229,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     group.add(new TerminateVMAction(deviceContext));
     //group.add(new MyAllocationTrackerAction());
     //group.add(new Separator());
-
-    group.add(new ToggleMethodProfilingAction(project, deviceContext));
-    //group.add(new MyThreadDumpAction()); // thread dump -> systrace
 
     return group;
   }
