@@ -50,6 +50,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
@@ -377,5 +380,17 @@ public final class Projects {
       }
     }
     return null;
+  }
+
+  private static final Key<Map<String, List<String>>> ANDROID_LIB_SOURCE_MAP_KEY =
+      new Key<Map<String, List<String>>>("ANDROID_LIB_SOURCE_MAP");
+
+  public static Map<String, List<String>> getAndroidLibSourceMap(Project project) {
+    Map<String, List<String>> store = project.getUserData(ANDROID_LIB_SOURCE_MAP_KEY);
+    if (store == null) {
+      store = new HashMap<String, List<String>>();
+      project.putUserData(ANDROID_LIB_SOURCE_MAP_KEY, store);
+    }
+    return store;
   }
 }
