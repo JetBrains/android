@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.io.File;
 import java.io.IOException;
@@ -62,8 +61,8 @@ public class MemoryMonitorView extends BaseMonitorView
   @NotNull private TimelineComponent myTimelineComponent;
   @NotNull private MemorySampler myMemorySampler;
 
-  public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceSamplerView deviceSamplerView) {
-    super(project, deviceSamplerView);
+  public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceMonitorStatus deviceMonitorStatus) {
+    super(project, deviceMonitorStatus);
     myDeviceContext = deviceContext;
 
     // Buffer at one and a half times the sample frequency.
@@ -89,7 +88,7 @@ public class MemoryMonitorView extends BaseMonitorView
 
     myContentPane.addHierarchyListener(this);
 
-    myDeviceSamplerView.registerView(this);
+    myDeviceMonitorStatus.registerView(this);
 
     myDeviceContext.addListener(this, project);
   }

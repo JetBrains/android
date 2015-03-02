@@ -17,7 +17,6 @@ package com.android.tools.idea.monitor.cpu;
 
 import com.android.ddmlib.*;
 import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.DeviceSamplerView;
 import com.android.tools.idea.monitor.TimelineData;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
