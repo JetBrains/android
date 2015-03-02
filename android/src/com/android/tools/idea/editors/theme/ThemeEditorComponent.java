@@ -26,6 +26,9 @@ import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -37,11 +40,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -74,7 +81,7 @@ public class ThemeEditorComponent extends Splitter {
 
   private static final int ATTRIBUTES_DEFAULT_ROW_HEIGHT = 20;
 
-  private static final Map<Class<?>, Integer> ROW_HEIGHTS = ImmutableMap.of(
+  public static final Map<Class<?>, Integer> ROW_HEIGHTS = ImmutableMap.of(
     Color.class, 60,
     TableLabel.class, 35,
     DrawableDomElement.class, 64
@@ -163,6 +170,19 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    RenderTask renderTask = null;
+    if (facet != null) {
+      final RenderService service = RenderService.get(facet);
+      final VirtualFile virtualFile = AndroidColorAnnotator.pickLayoutFile(module, facet);
+      if (virtualFile != null) {
+        final PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(virtualFile);
+        if (psiFile != null) {
+          renderTask = service.createTask(psiFile, configuration, new RenderLogger("ThemeEditorLogger", module), null);
+        }
+      }
+    }
+
     AttributeDefinitions attributeDefinitions = myStyleResolver.getAttributeDefinitions();
 
     myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(myModule, myConfiguration, false, new ColorRenderer(myConfiguration, myAttributesTable)));
@@ -177,8 +197,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class,
                                          new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
     myAttributesTable.setDefaultRenderer(DrawableDomElement.class,
-                                         new DelegatingCellRenderer(myModule, myConfiguration, false, new DrawableRenderer(myConfiguration,
-                                                                                                                           myAttributesTable)));
+                                         new DelegatingCellRenderer(myModule, myConfiguration, false, new DrawableRenderer(myAttributesTable, renderTask)));
     myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -195,7 +214,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor(attributeDefinitions), module, configuration));
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
-    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myConfiguration, myAttributesTable), module, configuration));
+    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myAttributesTable, renderTask), module, configuration));
 
     myAttributesFilter = new StyleAttributesFilter();
 
