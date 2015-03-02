@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.RenderResources;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -25,13 +24,10 @@ import com.intellij.util.ui.GraphicsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -72,22 +68,14 @@ public class DrawableComponent extends JButton {
   /**
    * Populate text fields shown in a cell from EditedStyleItem value
    */
-  public void configure(final @NotNull EditedStyleItem item, final @Nullable RenderResources renderResources) {
+  public void configure(final @NotNull EditedStyleItem item, final @Nullable RenderTask renderTask) {
     myName = item.getName();
     myValue = item.getValue();
     myIsPublic = item.isPublicAttribute();
 
     myImages.clear();
-    if (renderResources != null) {
-      final List<File> files = ResourceHelper.resolveMultipleDrawables(renderResources, item.getItemResourceValue());
-
-      for (final File file : files) {
-        try {
-          myImages.add(ImageIO.read(file));
-        } catch (final IOException e) {
-          LOG.warn("Couldn't load image from " + file, e);
-        }
-      }
+    if (renderTask != null) {
+      myImages.addAll(renderTask.renderDrawableAllStates(item.getItemResourceValue()));
     }
   }
 
