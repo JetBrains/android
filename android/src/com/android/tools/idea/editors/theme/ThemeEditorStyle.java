@@ -27,7 +27,11 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.refactoring.rename.RenameProcessor;
+import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -228,6 +232,11 @@ public class ThemeEditorStyle {
     return true;
   }
 
+  /**
+   * Changes the name of the themes in all the xml files
+   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
+   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getParent()
+   */
   public void setParent(@NotNull final String newParent) {
     if (!isProjectStyle()) {
       throw new UnsupportedOperationException("Non project styles can not be modified");
@@ -245,6 +254,36 @@ public class ThemeEditorStyle {
         tag.setAttribute(SdkConstants.ATTR_PARENT, newParent);
       }
     }.execute();
+  }
+
+  /**
+   * Uses refactor to change the name of the themes in all the xml files
+   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
+   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getName()
+   */
+  public void setName(@NotNull final String newName) {
+    if (!isProjectStyle()) {
+      throw new UnsupportedOperationException("Non project styles can not be modified");
+    }
+
+    final XmlTag tag = mySourceXml.get();
+    if (tag == null) {
+      LOG.warn("Unable to set name, tag is null");
+      return;
+    }
+
+    final XmlAttribute nameAttribute = tag.getAttribute("name");
+    if (nameAttribute == null) {
+      return;
+    }
+
+    final XmlAttributeValue attributeValue = nameAttribute.getValueElement();
+    if (attributeValue == null) {
+      return;
+    }
+
+    RenameProcessor processor = new RenameProcessor(myProject, new ValueResourceElementWrapper(attributeValue), newName, false, false);
+    processor.run();
   }
 
   public StyleResolver getResolver() {
