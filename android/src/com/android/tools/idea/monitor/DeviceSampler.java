@@ -81,6 +81,7 @@ public abstract class DeviceSampler implements Runnable {
     if (myExecutingTask != null) {
       myRunning = false;
       myDataSemaphore.release();
+      myData.clear();
 
       try {
         // Wait for the task to finish.
