@@ -102,8 +102,11 @@ public class CpuSampler extends DeviceSampler {
       if (previousKernelUsage != null && previousUserUsage != null && previousTotalUptime != null) {
         long totalTimeDiff = totalUptime - previousTotalUptime;
         if (totalTimeDiff > 0) {
-          myData.add(System.currentTimeMillis(), type, 0, (float)(kernelCpuUsage - previousKernelUsage) * 100.0f / (float)totalTimeDiff,
-                     (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff);
+          float kernelPercentUsage = (float)(kernelCpuUsage - previousKernelUsage) * 100.0f / (float)totalTimeDiff;
+          kernelPercentUsage = Math.max(Math.min(kernelPercentUsage, 100.0f), 0.0f);
+          float userPercentUsage = (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff;
+          userPercentUsage = Math.max(Math.min(userPercentUsage, 100.0f), 0.0f);
+          myData.add(System.currentTimeMillis(), type, 0, kernelPercentUsage, userPercentUsage);
         }
       }
       previousKernelUsage = kernelCpuUsage;
@@ -111,7 +114,12 @@ public class CpuSampler extends DeviceSampler {
       previousTotalUptime = totalUptime;
     }
     else {
-      myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, 0, 0.0f, 0.0f);
+      synchronized (myData) {
+        if (myData.size() > 0) {
+          TimelineData.Sample lastSample = myData.get(myData.size() - 1);
+          myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, 0, lastSample.values[0], lastSample.values[1]);
+        }
+      }
     }
   }
 
