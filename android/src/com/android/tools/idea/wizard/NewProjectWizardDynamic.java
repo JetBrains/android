@@ -69,8 +69,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       String title = "SDK problem";
       String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
                    "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      super.init();
       Messages.showErrorDialog(msg, title);
+      return;
     }
     addPaths();
     initState();
@@ -92,6 +92,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    */
   protected void initState() {
     ScopedStateStore state = getState();
+    // TODO(jbakermalone): move the setting of this state closer to where it is used, so it's clear what's needed.
     state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
     state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
