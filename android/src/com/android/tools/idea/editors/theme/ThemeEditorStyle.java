@@ -82,7 +82,7 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Returns whether this a project style and therefore editable. If the style it's not part of the project, it can be part or the framework
+   * Returns whether this is a project style and therefore editable. If the style is not part of the project, it can be part or the framework
    * or a library.
    */
   public boolean isProjectStyle() {
