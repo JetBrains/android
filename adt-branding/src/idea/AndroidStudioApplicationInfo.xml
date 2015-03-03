@@ -42,7 +42,10 @@
   <keymap win="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
           mac="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
 
+  <!--
+  Temporarily disabled: There is a bug in IDEA which prevents having a single plugins page extension.
   <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
+  -->
 
   <statistics settings="http://dl-sdk.appspot.com/diamond/stats/stat-assistant.xml"
               service="http://dl-sdk.appspot.com/diamond/stats/index.jsp"
