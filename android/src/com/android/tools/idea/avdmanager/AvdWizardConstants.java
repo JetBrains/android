@@ -222,6 +222,12 @@ public class AvdWizardConstants {
       if (target != null) {
         return target.getVendor();
       }
+      if (remotePackage != null) {
+        IdDisplay vendor = remotePackage.getPkgDesc().getVendor();
+        if (vendor != null) {
+          return vendor.getDisplay();
+        }
+      }
       return "";
     }
 

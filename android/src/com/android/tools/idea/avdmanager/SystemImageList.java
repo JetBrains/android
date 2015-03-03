@@ -444,9 +444,6 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   @Override
   public void valueChanged(ListSelectionEvent e) {
     AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
-    if (selected != null && selected.isRemote()) {
-      selected = null;
-    }
     for (SystemImageSelectionListener listener : myListeners) {
       listener.onSystemImageSelected(selected);
     }

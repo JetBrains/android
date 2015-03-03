@@ -20,14 +20,18 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
+import com.android.tools.idea.wizard.ChooseApiLevelDialog;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -38,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.regex.Matcher;
@@ -61,12 +66,15 @@ public class SystemImagePreview {
   private JPanel myMainPanel;
   private JSeparator mySeparator;
   private AvdWizardConstants.SystemImageDescription myImageDescription;
+  private Disposable myDisposable;
+  ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
 
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
   private static final String MAIN_CONTENT = "main";
   private static final String NO_IMAGE_CONTENT = "none";
 
-  public SystemImagePreview() {
+  public SystemImagePreview(@Nullable Disposable disposable) {
+    myDisposable = disposable;
     myRootPanel.setLayout(new CardLayout());
     myReleaseName.setFont(AvdWizardConstants.TITLE_FONT);
     myApiLevel.setFont(AvdWizardConstants.TITLE_FONT);
@@ -86,19 +94,23 @@ public class SystemImagePreview {
     myRootPanel.add(nonePanel, NO_IMAGE_CONTENT);
     myMainPanel.setBackground(JBColor.WHITE);
     mySeparator.setForeground(JBColor.BLACK);
+
+    myDocumentationLink.addHyperlinkListener(myApiLevelListener);
+    myDocumentationLink.setHtmlText("See the <a>API level distribution chart</a>");
   }
 
   /**
    * Set the image to display.
    */
   public void setImage(@Nullable AvdWizardConstants.SystemImageDescription image) {
-    if (image == null || !image.isRemote()) {
-      myImageDescription = image;
-      ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
-    }
-    if (image != null && !image.isRemote()) {
+    myImageDescription = image;
+    ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
+
+    if (image != null) {
       ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, MAIN_CONTENT);
-      Distribution distribution = DistributionService.getInstance().getDistributionForApiLevel(image.getVersion().getApiLevel());
+      int apiLevel = image.getVersion().getApiLevel();
+      myApiLevelListener.setApiLevel(apiLevel);
+      Distribution distribution = DistributionService.getInstance().getDistributionForApiLevel(apiLevel);
       String codeName = getCodeName(myImageDescription);
       if (codeName != null) {
         myReleaseName.setText(codeName);
@@ -107,12 +119,8 @@ public class SystemImagePreview {
       if (icon != null) {
         myReleaseIcon.setIcon(icon);
       }
-      if (distribution != null) {
-        myDocumentationLink.setHtmlText("<a>? - See documentation for Android " + distribution.getVersion().toShortString() + " APIs</a>");
-        myDocumentationLink.setHyperlinkTarget(distribution.getUrl());
-      }
-      myApiLevel.setText(myImageDescription.getVersion().getApiString());
-      myAndroidVersion.setText(myImageDescription.getVersionName());
+      myApiLevel.setText(Integer.toString(apiLevel));
+      myAndroidVersion.setText(SdkVersionInfo.getVersionString(apiLevel));
       String vendorName;
       String tag = myImageDescription.getTag().getId();
       if (tag.equals("android-wear") || tag.equals("android-tv")) {
@@ -262,4 +270,28 @@ public class SystemImagePreview {
       return HaxmState.NOT_INSTALLED;
     }
   }
+
+  private class ApiLevelHyperlinkListener extends HyperlinkAdapter {
+    private int myApiLevel = -1;
+
+    @Override
+    protected void hyperlinkActivated(HyperlinkEvent e) {
+      ChooseApiLevelDialog dialog = new ChooseApiLevelDialog(null, myApiLevel) {
+        @NotNull
+        @Override
+        protected Action[] createActions() {
+          Action close = getCancelAction();
+          close.putValue(Action.NAME, "Close");
+          return new Action[] {close};
+        }
+      };
+      Disposer.register(myDisposable, dialog.getDisposable());
+      dialog.show();
+    }
+
+    public void setApiLevel(int apiLevel) {
+      myApiLevel = apiLevel;
+    }
+  }
+
 }
