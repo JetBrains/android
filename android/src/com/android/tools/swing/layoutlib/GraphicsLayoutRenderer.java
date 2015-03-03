@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
-import com.android.ide.common.rendering.SessionParamsFlags;
+import com.android.ide.common.rendering.RenderParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
@@ -99,7 +99,7 @@ public class GraphicsLayoutRenderer {
     myResourceLookupChain = resourceLookupChain;
     myCredential = credential;
 
-    sessionParams.setFlag(SessionParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
+    sessionParams.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
     mySessionParams.setImageFactory(myImageFactory);
   }
 
