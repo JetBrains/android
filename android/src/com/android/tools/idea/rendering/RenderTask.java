@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
-import com.android.ide.common.rendering.SessionParamsFlags;
+import com.android.ide.common.rendering.RenderParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
@@ -412,7 +412,7 @@ public class RenderTask implements IImageFactory {
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
-    params.setFlag(SessionParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(myPsiFile));
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(myPsiFile));
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
