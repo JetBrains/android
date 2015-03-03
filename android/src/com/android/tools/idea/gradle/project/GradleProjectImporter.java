@@ -25,6 +25,7 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -51,6 +52,7 @@ import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -69,6 +71,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
@@ -291,7 +295,18 @@ public class GradleProjectImporter {
         LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
         LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
         try {
+          Map<String, List<String>> libSourceMap = Projects.getAndroidLibSourceMap(project);
           for (Library library : model.getLibraries()) {
+            String name = library.getName();
+            if (name != null) {
+              List<String> urls = Lists.newArrayList();
+              for (VirtualFile file : library.getFiles(OrderRootType.SOURCES)) {
+                urls.add(file.getUrl());
+              }
+              if (!urls.isEmpty()) {
+                libSourceMap.put(library.getName(), urls);
+              }
+            }
             model.removeLibrary(library);
           }
         }
