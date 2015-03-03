@@ -236,27 +236,41 @@ public class PostProjectSetupTasksExecutor {
 
   private void attachSourcesToLibraries() {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+    Map<String, List<String>> libSourceMap = Projects.getAndroidLibSourceMap(myProject);
+
     for (Library library : libraryTable.getLibraries()) {
-      if (library.getFiles(OrderRootType.SOURCES).length > 0) {
-        // has sources already.
-        continue;
+      Set<String> sourcePaths = new HashSet<String>();
+
+      for (VirtualFile file : library.getFiles(OrderRootType.SOURCES)) {
+        sourcePaths.add(file.getUrl());
       }
+
+      Library.ModifiableModel libraryModel = library.getModifiableModel();
 
       for (VirtualFile classFile : library.getFiles(OrderRootType.CLASSES)) {
         VirtualFile sourceJar = findSourceJarForJar(classFile);
         if (sourceJar != null) {
-          Library.ModifiableModel model = library.getModifiableModel();
-          try {
-            String url = AbstractDependenciesModuleCustomizer.pathToUrl(sourceJar.getPath());
-            model.addRoot(url, OrderRootType.SOURCES);
-            break;
-          }
-          finally {
-            model.commit();
+          String url = AbstractDependenciesModuleCustomizer.pathToUrl(sourceJar.getPath());
+          if (!sourcePaths.contains(url)) {
+            libraryModel.addRoot(url, OrderRootType.SOURCES);
+            sourcePaths.add(url);
           }
         }
       }
+
+      // If the default path does not exist and we have a user-defined one that exists, we take the user-defined one.
+      List<String> urls = libSourceMap.get(library.getName());
+      if (urls != null) {
+        for (String url : urls) {
+          if (!sourcePaths.contains(url)) {
+            libraryModel.addRoot(url, OrderRootType.SOURCES);
+            sourcePaths.add(url);
+          }
+        }
+      }
+      libraryModel.commit();
     }
+    libSourceMap.clear();
   }
 
   @Nullable
