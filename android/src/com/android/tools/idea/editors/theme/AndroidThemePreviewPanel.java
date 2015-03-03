@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.rendering.DomPullParser;
-import com.android.tools.idea.rendering.LayoutPullParserFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
@@ -30,11 +28,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 /**
  * Subclass of AndroidPreviewPanel dedicated to Theme rendering.
@@ -43,19 +40,16 @@ import java.io.IOException;
 public class AndroidThemePreviewPanel extends AndroidPreviewPanel implements RenderContext {
 
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class.getName());
-  private static final String THEME_PREVIEW_LAYOUT = "/themeEditor/sample_layout.xml";
 
-  public AndroidThemePreviewPanel(Configuration configuration) {
+  public AndroidThemePreviewPanel(@NotNull Configuration configuration) {
     super(configuration);
+
     try {
-      myDocument =
-        DomPullParser.createNewDocumentBuilder().parse(LayoutPullParserFactory.class.getResourceAsStream(THEME_PREVIEW_LAYOUT));
+      int minApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
+      myDocument = new ThemePreviewBuilder().setApiLevel(minApiLevel).build();
     }
-    catch (SAXException e) {
-      LOG.error(e);
-    }
-    catch (IOException e) {
-      LOG.error(e);
+    catch (ParserConfigurationException e) {
+      LOG.error("Unable to generate dynamic theme preview", e);
     }
   }
 
@@ -128,7 +122,7 @@ public class AndroidThemePreviewPanel extends AndroidPreviewPanel implements Ren
   @NotNull
   @Override
   public Rectangle getClientArea() {
-    return null;
+    return new Rectangle();
   }
 
   @Override

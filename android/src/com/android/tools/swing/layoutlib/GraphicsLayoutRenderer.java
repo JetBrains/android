@@ -66,6 +66,7 @@ public class GraphicsLayoutRenderer {
   private final SessionParams mySessionParams;
   private final FakeImageFactory myImageFactory;
   private final DynamicHardwareConfig myHardwareConfig;
+  private SessionParams.RenderingMode myRenderingMode = SessionParams.RenderingMode.NORMAL;
   private final Object myCredential;
   private final RenderSecurityManager mySecurityManager;
   /**
@@ -90,7 +91,8 @@ public class GraphicsLayoutRenderer {
                                  @NotNull DynamicHardwareConfig hardwareConfig,
                                  @NotNull ILayoutPullParser parser,
                                  @NotNull List<ResourceValue> resourceLookupChain,
-                                 @NotNull Object credential) {
+                                 @NotNull Object credential,
+                                 @NotNull SessionParams.RenderingMode renderingMode) {
     myLayoutLibrary = layoutLib;
     mySecurityManager = securityManager;
     myHardwareConfig = hardwareConfig;
@@ -98,6 +100,7 @@ public class GraphicsLayoutRenderer {
     myImageFactory = new FakeImageFactory();
     myResourceLookupChain = resourceLookupChain;
     myCredential = credential;
+    myRenderingMode = renderingMode;
 
     sessionParams.setFlag(SessionParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
     mySessionParams.setImageFactory(myImageFactory);
@@ -109,7 +112,8 @@ public class GraphicsLayoutRenderer {
                                                  @NotNull IAndroidTarget target,
                                                  @NotNull Project project,
                                                  @NotNull Configuration configuration,
-                                                 @NotNull ILayoutPullParser parser) throws InitializationException {
+                                                 @NotNull ILayoutPullParser parser,
+                                                 @NotNull SessionParams.RenderingMode renderingMode) throws InitializationException {
     Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
 
@@ -150,14 +154,14 @@ public class GraphicsLayoutRenderer {
     // Create a resource resolver that will save the lookups on the passed List<>
     ResourceResolver resourceResolver = configuration.getResourceResolver().createRecorder(resourceLookupChain);
     final SessionParams params =
-      new SessionParams(parser, SessionParams.RenderingMode.V_SCROLL, module, hardwareConfig, resourceResolver,
+      new SessionParams(parser, renderingMode, module, hardwareConfig, resourceResolver,
                         layoutlibCallback, moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(),
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
     params.setAssetRepository(new AssetRepositoryImpl(facet));
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
-    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, parser, resourceLookupChain, credential);
+    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, parser, resourceLookupChain, credential, renderingMode);
 
   }
 
@@ -169,7 +173,9 @@ public class GraphicsLayoutRenderer {
    */
   @NotNull
   public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
-                                              @NotNull ILayoutPullParser parser) throws InitializationException {
+                                              @NotNull ILayoutPullParser parser,
+                                              boolean hasHorizontalScroll,
+                                              boolean hasVerticalScroll) throws InitializationException {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       throw new InitializationException("Unable to get AndroidFacet");
@@ -196,11 +202,28 @@ public class GraphicsLayoutRenderer {
       throw new InitializationException("Unable to get AndroidPlatform");
     }
 
-    return create(facet, platform, target, module.getProject(), configuration, parser);
+    SessionParams.RenderingMode renderingMode;
+    if (hasVerticalScroll && hasHorizontalScroll) {
+      renderingMode = SessionParams.RenderingMode.FULL_EXPAND;
+    } else if (hasVerticalScroll) {
+      renderingMode = SessionParams.RenderingMode.V_SCROLL;
+    } else if (hasHorizontalScroll) {
+      renderingMode = SessionParams.RenderingMode.H_SCROLL;
+    } else {
+      renderingMode = SessionParams.RenderingMode.NORMAL;
+    }
+
+    return create(facet, platform, target, module.getProject(), configuration, parser, renderingMode);
   }
 
   public void setSize(Dimension dimen) {
-    myHardwareConfig.setScreenSize(dimen.width, dimen.height);
+    int width =
+      myRenderingMode == SessionParams.RenderingMode.FULL_EXPAND || myRenderingMode == SessionParams.RenderingMode.H_SCROLL ?
+      0 : dimen.width;
+    int height =
+      myRenderingMode == SessionParams.RenderingMode.FULL_EXPAND || myRenderingMode == SessionParams.RenderingMode.V_SCROLL ?
+      0 : dimen.height;
+    myHardwareConfig.setScreenSize(width, height);
     myInvalidate = true;
   }
 
@@ -288,6 +311,10 @@ public class GraphicsLayoutRenderer {
     return Collections.unmodifiableSet(usedAttrs);
   }
 
+  public Dimension getPreferredSize() {
+    return new Dimension(myImageFactory.getRequestedWidth(), myImageFactory.getRequestedHeight());
+  }
+
   /**
    * {@link IImageFactory} that allows changing the image on the fly.
    * <p/>
@@ -296,9 +323,19 @@ public class GraphicsLayoutRenderer {
    */
   static class FakeImageFactory implements IImageFactory {
     private Graphics myGraphics;
+    private int myRequestedHeight;
+    private int myRequestedWidth;
 
     public void setGraphics(@NotNull Graphics graphics) {
       myGraphics = graphics;
+    }
+
+    public int getRequestedHeight() {
+      return myRequestedHeight;
+    }
+
+    public int getRequestedWidth() {
+      return myRequestedWidth;
     }
 
     @Override
@@ -308,6 +345,9 @@ public class GraphicsLayoutRenderer {
       return new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB) {
         @Override
         public Graphics2D createGraphics() {
+          myRequestedHeight = h;
+          myRequestedWidth = w;
+
           // TODO: Check if we can stop layoutlib from reseting the transforms.
           final Shape originalClip = myGraphics.getClip();
           final AffineTransform originalTx = ((Graphics2D)myGraphics).getTransform();
