@@ -289,10 +289,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
     }
 
     File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinPath != null && skinPath != NO_SKIN && !skinPath.isAbsolute()) {
+    if (skinPath != null && !skinPath.equals(NO_SKIN) && !skinPath.isAbsolute()) {
       skinPath = new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), skinPath.getPath());
     }
-    if (skinPath != null && skinPath != NO_SKIN) {
+    if (skinPath != null && !skinPath.equals(NO_SKIN)) {
       File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorHtml("The skin directory does not point to a valid skin.");

@@ -392,7 +392,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
 
     File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinFile != null && skinFile != NO_SKIN) {
+    if (skinFile != null && !skinFile.equals(NO_SKIN)) {
       File layoutFile = new File(skinFile, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorState("The skin directory does not point to a valid skin.", mySkinDefinitionLabel, mySkinComboBox);
