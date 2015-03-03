@@ -17,8 +17,12 @@ package com.android.tools.idea.wizard;
 
 import com.google.common.collect.Maps;
 import com.intellij.ide.IdeBundle;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -34,6 +38,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Uses {@link com.intellij.openapi.ui.DialogWrapper} to display a wizard in a dialog
@@ -46,6 +51,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
 
   private DynamicWizard myWizard;
   private TallImageComponent myIcon = new TallImageComponent(null);
+  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<ProgressIndicator>();
 
   private JPanel myCenterPanel;
 
@@ -137,9 +143,32 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
   }
 
   @Override
-  public void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator, boolean cancellable, @NotNull Runnable operation) {
-    // TODO: Implement when needed
-    throw new UnsupportedOperationException("Not implemented yet");
+  public void runSensitiveOperation(@NotNull final ProgressIndicator progressIndicator,
+                                    boolean cancellable, @NotNull final Runnable operation) {
+    final Application application = ApplicationManager.getApplication();
+    application.assertIsDispatchThread();
+    if (!myCurrentProgressIndicator.compareAndSet(null, progressIndicator)) {
+      throw new IllegalStateException("Submitting an operation while another is in progress.");
+    }
+    final JRootPane rootPane = getRootPane();
+    rootPane.setDefaultButton(null);
+    updateButtons(false, false, true, false);
+
+    Task.Backgroundable task = new Task.Backgroundable(null, myWizard.getWizardActionDescription(), cancellable) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        operation.run();
+        // this can't be done in onSuccess because the ModalityState needs to be set
+        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+          @Override
+          public void run() {
+            updateButtons(false, false, false, true);
+            myCurrentProgressIndicator.set(null);
+          }
+        }, ModalityState.stateForComponent(myWizard.getContentPane()));
+      }
+    };
+    ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, progressIndicator);
   }
 
   @Override
@@ -171,7 +200,12 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
 
   @Override
   public final void doCancelAction() {
-    myWizard.doCancelAction();
+    ProgressIndicator indicator = myCurrentProgressIndicator.get();
+    if (indicator != null) {
+      indicator.cancel();
+    } else {
+      myWizard.doCancelAction();
+    }
   }
 
   /**
@@ -193,6 +227,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
     }
 
     getFinishButton().setEnabled(canFinish);
+    getCancelButton().setEnabled(canCancel);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       getRootPane().setDefaultButton(canFinish ? getFinishButton() : getNextButton());
     }
@@ -223,6 +258,11 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
   @NotNull
   protected JButton getFinishButton() {
     return myActionToButtonMap.get(myFinishAction);
+  }
+
+  @NotNull
+  protected JButton getCancelButton() {
+    return myActionToButtonMap.get(myCancelAction);
   }
 
   @Override

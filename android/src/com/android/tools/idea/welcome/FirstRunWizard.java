@@ -138,7 +138,7 @@ public class FirstRunWizard extends DynamicWizard {
     return "Android Studio Setup Wizard";
   }
 
-  private class SetupProgressStep extends ProgressStep {
+  public class SetupProgressStep extends ProgressStep {
     private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
 
     public SetupProgressStep() {
