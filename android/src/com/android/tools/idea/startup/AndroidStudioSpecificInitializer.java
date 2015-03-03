@@ -178,6 +178,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   private static void replaceIdeaNewProjectActions() {
     // Unregister IntelliJ's version of the project actions and manually register our own.
+    replaceAction("OpenFile", new AndroidOpenFileAction());
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
@@ -198,17 +199,20 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     // Update the Welcome Screen actions
     ActionManager am = ActionManager.getInstance();
 
-    AndroidNewProjectAction welcomeScreenNewProject = new AndroidNewProjectAction();
-    welcomeScreenNewProject.getTemplatePresentation().setText("Start a new Android Studio project");
-    replaceAction("WelcomeScreen.CreateNewProject", welcomeScreenNewProject);
+    AndroidOpenFileAction openFileAction = new AndroidOpenFileAction();
+    openFileAction.getTemplatePresentation().setText("Open an existing Android Studio project");
+    replaceAction("WelcomeScreen.OpenProject", openFileAction);
 
-    AndroidImportProjectAction welcomeScreenImportProject = new AndroidImportProjectAction();
-    welcomeScreenImportProject.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
-    replaceAction("WelcomeScreen.ImportProject", welcomeScreenImportProject);
+    AndroidNewProjectAction newProjectAction = new AndroidNewProjectAction();
+    newProjectAction.getTemplatePresentation().setText("Start a new Android Studio project");
+    replaceAction("WelcomeScreen.CreateNewProject", newProjectAction);
+
+    AndroidImportProjectAction importProjectAction = new AndroidImportProjectAction();
+    importProjectAction.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
+    replaceAction("WelcomeScreen.ImportProject", importProjectAction);
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA", "WelcomeScreen.QuickStart",
                new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));
 
-    am.getAction("WelcomeScreen.OpenProject").getTemplatePresentation().setText("Open an existing Android Studio project");
     am.getAction("WelcomeScreen.GetFromVcs").getTemplatePresentation().setText("Check out project from Version Control");
   }
 

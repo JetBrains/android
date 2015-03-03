@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -75,9 +74,11 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidHomes;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
@@ -85,8 +86,7 @@ import static com.intellij.openapi.externalSystem.service.execution.ProgressExec
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
-import static com.intellij.openapi.util.io.FileUtil.ensureExists;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -130,15 +130,15 @@ public class GradleProjectImporter {
    */
   public void importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
-    File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+    File projectDirPath = new File(toSystemDependentName(projectDir.getPath()));
 
     // Sync Android SDKs paths *before* importing project. Studio will freeze if the project has a local.properties file pointing to a SDK
     // path that does not exist. The cause is that having 2 dialogs: one modal (the "Project Import" one) and another from
     // Messages.showErrorDialog (indicating the Android SDK path does not exist) produce a deadlock.
     try {
       LocalProperties localProperties = new LocalProperties(projectDirPath);
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        SdkSync.syncIdeAndProjectAndroidHomes(localProperties);
+      if (isAndroidStudio()) {
+        syncIdeAndProjectAndroidHomes(localProperties);
       }
     }
     catch (IOException e) {
@@ -399,7 +399,7 @@ public class GradleProjectImporter {
     createIfNotExists(projectFile);
     String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
                       SystemProperties.getLineSeparator();
-    FileUtil.writeToFile(projectFile, contents);
+    writeToFile(projectFile, contents);
   }
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
@@ -475,7 +475,7 @@ public class GradleProjectImporter {
     settings.setUseAutoImport(false);
 
     // Set the JDK to use when syncing project.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (isAndroidStudio()) {
       Sdk jdk = DefaultSdks.getDefaultJdk();
       if (jdk != null) {
         settings.setGradleJvm(jdk.getName());
@@ -512,7 +512,7 @@ public class GradleProjectImporter {
       return;
     }
 
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isDirectGradleInvocationEnabled(project)) {
+    if (isAndroidStudio() && Projects.isDirectGradleInvocationEnabled(project)) {
       // We cannot do the same when using JPS. We don't have access to the contents of the Message view used by JPS.
       // For now, we can only improve the user experience in Android Studio.
       GradleInvoker.getInstance(project).clearConsoleAndBuildMessages();
