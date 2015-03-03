@@ -401,7 +401,7 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   /**
-   * Sets a new value to the passed attribute. It will also trigger the reload if a change it's done.
+   * Sets a new value to the passed attribute. It will also trigger the reload if a change happened.
    * @param rv The attribute to set, including the current value.
    * @param strValue The new value.
    */

@@ -25,7 +25,7 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 
 /**
- * Class that provides method to resolve themes for a given configuration.
+ * Class that provides methods to resolve themes for a given configuration.
  */
 public class ThemeResolver {
   private static final Logger LOG = Logger.getInstance(ThemeResolver.class);
@@ -205,7 +205,7 @@ public class ThemeResolver {
   }
 
   /**
-   * Returns if the passed style is a theme.
+   * Returns whether the passed style is a theme.
    */
   public boolean isTheme(@NotNull ThemeEditorStyle style) {
     return myThemeNames.contains(style.getName());
@@ -229,7 +229,7 @@ public class ThemeResolver {
   }
 
   /**
-   * Returns the list of themes declared by the project and it's dependencies.
+   * Returns the list of themes declared by the project and its dependencies.
    */
   @NotNull
   public Collection<ThemeEditorStyle> getProjectThemes() {
@@ -237,7 +237,7 @@ public class ThemeResolver {
   }
 
   /**
-   * Returns the list of themes declared by the project and it's dependencies.
+   * Returns the list of themes declared by the project and its dependencies.
    */
   @NotNull
   public Collection<ThemeEditorStyle> getFrameworkThemes() {
