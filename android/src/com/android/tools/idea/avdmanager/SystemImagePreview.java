@@ -16,21 +16,12 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.wizard.ChooseApiLevelDialog;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.process.ProcessOutput;
-import com.intellij.execution.util.ExecUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -45,8 +36,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Displays information about a {@link com.android.sdklib.SystemImage}, including its
@@ -58,13 +47,12 @@ public class SystemImagePreview {
   private JBLabel myApiLevel;
   private JBLabel myAndroidVersion;
   private JBLabel myAbi;
-  private JBLabel myWarningMessage;
-  private HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkLabel myDocumentationLink;
   private JBLabel myVendor;
   private JPanel myRootPanel;
   private JPanel myMainPanel;
   private JSeparator mySeparator;
+  private HaxmAlert myHaxmAlert;
   private AvdWizardConstants.SystemImageDescription myImageDescription;
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
@@ -80,10 +68,7 @@ public class SystemImagePreview {
     myApiLevel.setFont(AvdWizardConstants.TITLE_FONT);
     myAndroidVersion.setFont(AvdWizardConstants.TITLE_FONT);
     myVendor.setFont(AvdWizardConstants.TITLE_FONT);
-    myErrorInstructionsLink.setOpaque(false);
     myDocumentationLink.setOpaque(false);
-    myWarningMessage.setFont(AvdWizardConstants.TITLE_FONT);
-    myWarningMessage.setForeground(JBColor.RED);
     myAbi.setFont(AvdWizardConstants.TITLE_FONT);
     myRootPanel.add(myMainPanel, MAIN_CONTENT);
     JPanel nonePanel = new JPanel(new BorderLayout());
@@ -104,6 +89,7 @@ public class SystemImagePreview {
    */
   public void setImage(@Nullable AvdWizardConstants.SystemImageDescription image) {
     myImageDescription = image;
+    myHaxmAlert.setSystemImageDescription(image);
     ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
 
     if (image != null) {
@@ -130,36 +116,8 @@ public class SystemImagePreview {
       }
       myVendor.setText("<html>" + vendorName + "</html>");
       myAbi.setText(myImageDescription.getAbiType());
-      StringBuilder myWarningText = new StringBuilder("<html>");
-      if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
-        myWarningText.append("This API Level is Deprecated<br>");
-      }
-      HaxmState haxmState = getHaxmState(false);
-      if (haxmState == HaxmState.NOT_INSTALLED) {
-        if (!myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
-          myWarningText.append("Consider installing HAXM<br>");
-          myWarningText.append("for better emulation speed");
-        } else {
-          myWarningText.append("HAXM is required for running<br>");
-          myWarningText.append("x86 System Images<br>");
-        }
-        myErrorInstructionsLink.setHtmlText("<a>HAXM installation instructions</a>");
-        myErrorInstructionsLink.setHyperlinkTarget("http://developer.android.com/tools/devices/emulator.html#acceleration");
-        myErrorInstructionsLink.setVisible(true);
-      } else {
-        if (haxmState == HaxmState.NOT_LATEST) {
-          myWarningText.append("Newer HAXM Version Available");
-          myErrorInstructionsLink.setVisible(true);
-          myErrorInstructionsLink.setHtmlText("<a>HAXM installation instructions</a>");
-          myErrorInstructionsLink.setHyperlinkTarget("http://developer.android.com/tools/devices/emulator.html#acceleration");
-        } else {
-          myErrorInstructionsLink.setVisible(false);
-        }
-      }
-      myWarningMessage.setText(myWarningText.toString());
     }
   }
-
 
   /**
    * @return the codename for the given System Image's API level
@@ -203,72 +161,9 @@ public class SystemImagePreview {
     return new ImageIcon(image);
   }
 
-  enum HaxmState { NOT_INITIALIZED, INSTALLED, NOT_INSTALLED, NOT_LATEST }
-  private static HaxmState ourHaxmState = HaxmState.NOT_INITIALIZED;
-
-  private static HaxmState getHaxmState(boolean forceRefresh) {
-    if (ourHaxmState == HaxmState.NOT_INITIALIZED || forceRefresh) {
-      ourHaxmState = computeHaxmState();
-    }
-    return ourHaxmState;
-  }
-
-  private static HaxmState computeHaxmState() {
-    try {
-      if (SystemInfo.isMac) {
-        @SuppressWarnings("SpellCheckingInspection")
-        String output = ExecUtil.execAndReadLine("/usr/sbin/kextstat", "-l", "-b", "com.intel.kext.intelhaxm");
-        if (output != null && !output.isEmpty()) {
-          Pattern pattern = Pattern.compile("com\\.intel\\.kext\\.intelhaxm( \\((.+)\\))?");
-          Matcher matcher = pattern.matcher(output);
-          if (matcher.find()) {
-            if (matcher.groupCount() >= 2) {
-              String version = matcher.group(2);
-              try {
-                FullRevision revision = FullRevision.parseRevision(version);
-                FullRevision current = new FullRevision(1, 1, 1);
-                if (revision.compareTo(current) < 0) {
-                  // We have the new version number, as well as the currently installed
-                  // version number here, which we could use to make a better error message.
-                  // However, these versions do not correspond to the version number we show
-                  // in the SDK manager (e.g. in the SDK version manager we show "5"
-                  // and the corresponding kernel stat version number is 1.1.1.
-                  return HaxmState.NOT_LATEST;
-                }
-              }
-              catch (NumberFormatException e) {
-                // Some unexpected new (or old?) format for HAXM versions; ignore since we
-                // can't check whether it is up to date.
-              }
-            }
-            return HaxmState.INSTALLED;
-          }
-        }
-        return HaxmState.NOT_INSTALLED;
-      } else if (SystemInfo.isWindows) {
-        @SuppressWarnings("SpellCheckingInspection") ProcessOutput
-          processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc", "query", "intelhaxm"), null);
-        return Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
-          @Override
-          public boolean apply(String input) {
-            return input == null || !input.contains("does not exist");
-          }
-        }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
-      } else if (SystemInfo.isUnix) {
-        ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kvm-ok"), null);
-        return Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
-          @Override
-          public boolean apply(String input) {
-            return input != null && input.contains("KVM acceleration can be used");
-          }
-        }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
-      } else {
-        assert !SystemInfo.isLinux; // should be covered by SystemInfo.isUnix
-        return HaxmState.NOT_INSTALLED;
-      }
-    } catch (ExecutionException e) {
-      return HaxmState.NOT_INSTALLED;
-    }
+  private void createUIComponents() {
+    myHaxmAlert = new HaxmAlert();
+    myHaxmAlert.setSystemImageDescription(myImageDescription);
   }
 
   private class ApiLevelHyperlinkListener extends HyperlinkAdapter {
@@ -293,5 +188,4 @@ public class SystemImagePreview {
       myApiLevel = apiLevel;
     }
   }
-
 }
