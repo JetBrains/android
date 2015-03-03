@@ -129,7 +129,11 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
   @Override
   public void onSystemImageSelected(@Nullable AvdWizardConstants.SystemImageDescription systemImage) {
     mySystemImagePreview.setImage(systemImage);
-    myState.put(SYSTEM_IMAGE_KEY, systemImage);
+    if (systemImage != null && !systemImage.isRemote()) {
+      myState.put(SYSTEM_IMAGE_KEY, systemImage);
+    } else {
+      myState.remove(SYSTEM_IMAGE_KEY);
+    }
   }
 
   @NotNull
@@ -146,5 +150,6 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
   private void createUIComponents() {
     mySystemImageList = new SystemImageList(myProject);
+    mySystemImagePreview = new SystemImagePreview(getDisposable());
   }
 }
