@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.notNull;
@@ -66,7 +67,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   }
 
   public static boolean isGradleProject(VirtualFile importSource) {
-    VirtualFile target = ProjectImportUtil.findImportTarget(importSource);
+    VirtualFile target = findImportTarget(importSource);
     return target != null && GradleConstants.EXTENSION.equals(target.getExtension());
   }
 
