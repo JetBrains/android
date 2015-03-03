@@ -47,8 +47,8 @@
   <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
   -->
 
-  <statistics settings="http://dl-sdk.appspot.com/diamond/stats/stat-assistant.xml"
-              service="http://dl-sdk.appspot.com/diamond/stats/index.jsp"
+  <statistics settings="https://dl.google.com/android/studio/stats/stat-assistant.xml"
+              service="https://dl.google.com/android/studio/stats/upload"
               service-key="android-studio" />
 
 </component>
