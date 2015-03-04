@@ -266,6 +266,10 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
+    if (newName.equals(getSimpleName())) {
+      return;
+    }
+
     final XmlTag tag = mySourceXml.get();
     if (tag == null) {
       LOG.warn("Unable to set name, tag is null");
