@@ -58,6 +58,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -293,7 +294,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   private static ExternalSystemTaskExecutionSettings createExternalSystemTaskExecutionSettings(@NotNull Module[] modules,
                                                                                                @Nullable String goal,
                                                                                                @NotNull TestCompileType testCompileType) {
-    final List<String> gradleProjectRootPaths = ContainerUtil.mapNotNull(modules, new Function<Module, String>() {
+    final Set<String> gradleProjectRootPaths = ContainerUtil.map2SetNotNull(ContainerUtil.newArrayList(modules), new Function<Module, String>() {
       @Override
       public String fun(Module module) {
         return ExternalSystemApiUtil.getExternalRootProjectPath(module);
