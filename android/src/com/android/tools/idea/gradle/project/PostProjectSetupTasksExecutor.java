@@ -43,7 +43,6 @@ import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -51,7 +50,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -78,7 +76,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,13 +85,14 @@ import java.util.*;
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
-import static com.android.tools.idea.gradle.util.Projects.hasErrors;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.needsAnnotationsJarInClasspath;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
@@ -130,7 +128,7 @@ public class PostProjectSetupTasksExecutor {
   public void onProjectSyncCompletion() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      if (!ProjectJdkChecks.hasCorrectJdkVersion(module)) {
+      if (!hasCorrectJdkVersion(module)) {
         // we already displayed the error, no need to check each module.
         break;
       }
@@ -143,14 +141,15 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    executeProjectChanges(myProject, new Runnable() {
       @Override
       public void run() {
         attachSourcesToLibraries();
         ensureAllModulesHaveValidSdks();
+        ensureValidSdks();
       }
     });
-    Projects.enforceExternalBuild(myProject);
+    enforceExternalBuild(myProject);
 
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
@@ -168,8 +167,6 @@ public class PostProjectSetupTasksExecutor {
 
     // set default value back.
     myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
-
-    ensureValidSdks();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
@@ -492,10 +489,10 @@ public class PostProjectSetupTasksExecutor {
             if (target != null) {
               SdkModificator sdkModificator = sdk.getSdkModificator();
               sdkModificator.removeAllRoots();
-              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
+              for (OrderRoot orderRoot : getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
                 sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
               }
-              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+              attachJdkAnnotations(sdkModificator);
               sdkModificator.commitChanges();
             }
           }
@@ -509,7 +506,7 @@ public class PostProjectSetupTasksExecutor {
         }
 
         IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidProject)) {
+        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;
         }

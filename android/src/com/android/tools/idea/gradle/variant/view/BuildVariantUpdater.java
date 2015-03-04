@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,8 +26,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -42,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
 /**
@@ -63,9 +62,9 @@ class BuildVariantUpdater {
                                            @NotNull final String moduleName,
                                            @NotNull final String buildVariantName) {
     final List<AndroidFacet> affectedFacets = Lists.newArrayList();
-    ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new DisposeAwareProjectChange(project) {
+    executeProjectChanges(project, new Runnable() {
       @Override
-      public void execute() {
+      public void run() {
         Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedFacets);
         if (updatedModule != null) {
           ConflictSet conflicts = findConflicts(project);
@@ -81,18 +80,18 @@ class BuildVariantUpdater {
   /**
    * Updates the given modules to use the new test artifact name.
    *
-   * @param modules modules to be updated. All have to have a corresponding facet and android project.
+   * @param modules          modules to be updated. All have to have a corresponding facet and android project.
    * @param testArtifactName new test artifact name.
    * @return modules that were affected by the change.
    */
   @NotNull
   List<AndroidFacet> updateTestArtifactsNames(@NotNull Project project,
-                                        @NotNull final Iterable<Module> modules,
-                                        @NotNull final String testArtifactName) {
+                                              @NotNull final Iterable<Module> modules,
+                                              @NotNull final String testArtifactName) {
     final List<AndroidFacet> affectedFacets = Lists.newArrayList();
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+    executeProjectChanges(project, new Runnable() {
       @Override
-      public void execute() {
+      public void run() {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
           assert androidFacet != null;
@@ -110,7 +109,6 @@ class BuildVariantUpdater {
         generateSourcesIfNeeded(affectedFacets);
       }
     });
-
     return affectedFacets;
   }
 
@@ -177,8 +175,8 @@ class BuildVariantUpdater {
       // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
       // be there.
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        Project project1 = affectedFacets.get(0).getModule().getProject();
-        ProjectBuilder.getInstance(project1).generateSourcesOnly();
+        Project project = affectedFacets.get(0).getModule().getProject();
+        ProjectBuilder.getInstance(project).generateSourcesOnly();
       }
     }
   }
@@ -226,7 +224,7 @@ class BuildVariantUpdater {
                                        @NotNull String moduleGradlePath,
                                        @NotNull String variant,
                                        @NotNull List<AndroidFacet> affectedFacets) {
-    Module module = GradleUtil.findModuleByGradlePath(project, moduleGradlePath);
+    Module module = findModuleByGradlePath(project, moduleGradlePath);
     if (module == null) {
       logAndShowUpdateFailure(variant, String.format("Cannot find module with Gradle path '%1$s'.", moduleGradlePath));
       return;

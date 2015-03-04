@@ -39,7 +39,6 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -83,7 +82,6 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -289,9 +287,9 @@ public class GradleProjectImporter {
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
   private static void resetProject(@NotNull final Project project) {
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+    executeProjectChanges(project, new Runnable() {
       @Override
-      public void execute() {
+      public void run() {
         LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
         LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
         try {
@@ -314,8 +312,8 @@ public class GradleProjectImporter {
           model.commit();
         }
 
-        // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of
-        // the failure.
+        // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper
+        // notification of the failure.
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
