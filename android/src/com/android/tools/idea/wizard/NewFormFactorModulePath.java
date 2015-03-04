@@ -37,14 +37,12 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
-import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PACKAGE_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 import static com.android.tools.idea.wizard.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * Module creation for a given form factor
