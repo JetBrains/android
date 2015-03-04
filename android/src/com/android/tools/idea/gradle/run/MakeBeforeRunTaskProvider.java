@@ -24,28 +24,37 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.externalSystem.task.TaskCallback;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
+import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.util.List;
@@ -108,10 +117,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Nullable
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
-    // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()
-        // Enable "Gradle-aware Make" only for android configurations...
-        && (runConfiguration instanceof AndroidRunConfigurationBase  ||
+    if (// Enable "Gradle-aware Make" only for android configurations...
+        (runConfiguration instanceof AndroidRunConfigurationBase  ||
             // ...and JUnit configurations if unit-testing support is enabled.
             (GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT && runConfiguration instanceof JUnitConfiguration))) {
       return new MakeBeforeRunTask();
@@ -167,9 +174,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                              final RunConfiguration configuration,
                              ExecutionEnvironment env,
                              final MakeBeforeRunTask task) {
-    if (!Projects.isGradleProject(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
-      CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
-      return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
+    if (!Projects.isGradleProject(myProject)) {
+      return regularMake(context, configuration, env);
     }
 
     final AtomicBoolean success = new AtomicBoolean();
@@ -199,44 +205,69 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         return false;
       }
 
-      final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
-
-      final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
-        @Override
-        public void execute(@NotNull GradleInvocationResult result) {
-          success.set(result.isBuildSuccessful());
-          gradleInvoker.removeAfterGradleInvocationTask(this);
-          done.up();
-        }
-      };
-
       if (myProject.isDisposed()) {
         done.up();
       }
       else {
-        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
-        // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
-        SwingUtilities.invokeAndWait(new Runnable() {
-          @Override
-          public void run() {
-            Module[] modules;
-            if (configuration instanceof ModuleBasedConfiguration) {
-              // ModuleBasedConfiguration includes Android and JUnit run configurations.
-              modules = ((ModuleBasedConfiguration)configuration).getModules();
+        final Module[] modules;
+        if (configuration instanceof ModuleBasedConfiguration) {
+          // ModuleBasedConfiguration includes Android and JUnit run configurations.
+          modules = ((ModuleBasedConfiguration)configuration).getModules();
+        }
+        else {
+          modules = Projects.getModulesToBuildFromSelection(myProject, context);
+        }
+        final TestCompileType testCompileType = getTestCompileType(configuration);
+        final String goal = task.getGoal();
+
+        if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+          final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
+          final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
+            @Override
+            public void execute(@NotNull GradleInvocationResult result) {
+              success.set(result.isBuildSuccessful());
+              gradleInvoker.removeAfterGradleInvocationTask(this);
+              done.up();
             }
-            else {
-              modules = Projects.getModulesToBuildFromSelection(myProject, context);
+          };
+          // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
+          // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
+          SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+              gradleInvoker.addAfterGradleInvocationTask(afterTask);
+              if (StringUtil.isEmpty(goal)) {
+                gradleInvoker.assemble(modules, testCompileType);
+              }
+              else {
+                gradleInvoker.executeTasks(Lists.newArrayList(goal));
+              }
             }
-            TestCompileType testCompileType = getTestCompileType(configuration);
-            gradleInvoker.addAfterGradleInvocationTask(afterTask);
-            String goal = task.getGoal();
-            if (StringUtil.isEmpty(goal)) {
-              gradleInvoker.assemble(modules, testCompileType);
-            } else {
-              gradleInvoker.executeTasks(Lists.newArrayList(goal));
-            }
+          });
+        }
+        else {
+          ExternalSystemTaskExecutionSettings executionSettings = createExternalSystemTaskExecutionSettings(modules, goal, testCompileType);
+          if (executionSettings == null) {
+            done.up();
+            return regularMake(context, configuration, env);
           }
-        });
+
+          ExternalSystemUtil.runTask(
+            executionSettings, DefaultRunExecutor.EXECUTOR_ID, myProject, GradleConstants.SYSTEM_ID, new TaskCallback() {
+              @Override
+              public void onSuccess() {
+                success.set(true);
+                done.up();
+              }
+
+              @Override
+              public void onFailure() {
+                success.set(false);
+                done.up();
+              }
+            }, ProgressExecutionMode.IN_BACKGROUND_ASYNC
+          );
+        }
         done.waitFor();
       }
     }
@@ -247,9 +278,45 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return success.get();
   }
 
+  private boolean regularMake(DataContext context, RunConfiguration configuration, ExecutionEnvironment env) {
+    CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
+    return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
+  }
+
   @NotNull
   private static TestCompileType getTestCompileType(@Nullable RunConfiguration runConfiguration) {
     String id = runConfiguration != null ? runConfiguration.getType().getId() : null;
     return GradleInvoker.getTestCompileType(id);
+  }
+
+  @Nullable
+  private static ExternalSystemTaskExecutionSettings createExternalSystemTaskExecutionSettings(@NotNull Module[] modules,
+                                                                                               @Nullable String goal,
+                                                                                               @NotNull TestCompileType testCompileType) {
+    final List<String> gradleProjectRootPaths = ContainerUtil.mapNotNull(modules, new Function<Module, String>() {
+      @Override
+      public String fun(Module module) {
+        return ExternalSystemApiUtil.getExternalRootProjectPath(module);
+      }
+    });
+
+    if (gradleProjectRootPaths.isEmpty()) return null;
+    if (gradleProjectRootPaths.size() > 1) {
+      LOG.warn("Modules from different linked gradle projects found");
+      return null;
+    }
+
+    final String rootProjectPath = ContainerUtil.getFirstItem(gradleProjectRootPaths);
+    ExternalSystemTaskExecutionSettings executionSettings = new ExternalSystemTaskExecutionSettings();
+    executionSettings.setExternalProjectPath(rootProjectPath);
+    executionSettings.setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
+    if (StringUtil.isEmpty(goal)) {
+      List<String> tasks = GradleInvoker.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType);
+      executionSettings.getTaskNames().addAll(tasks);
+    }
+    else {
+      executionSettings.getTaskNames().add(goal);
+    }
+    return executionSettings;
   }
 }
