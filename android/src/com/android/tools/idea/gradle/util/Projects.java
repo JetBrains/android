@@ -59,9 +59,7 @@ import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.is
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -100,6 +98,23 @@ public final class Projects {
         PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
       }
     });
+  }
+
+  public static void executeProjectChanges(@NotNull final Project project, @NotNull final Runnable changes) {
+    Runnable task = new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            if (!project.isDisposed()) {
+              ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
+            }
+          }
+        });
+      }
+    };
+    invokeAndWaitIfNeeded(task);
   }
 
   public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
