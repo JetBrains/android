@@ -57,7 +57,6 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    myFixture.enableInspections(AndroidDomInspection.class);
 
     final JavaModuleFixtureBuilder appModuleBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
     String appModuleDir = myFixture.getTempDirPath() + "/app";
@@ -78,6 +77,8 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     libGenModuleBuilder.addSourceContentRoot(libGenModule);
 
     myFixture.setUp();
+    myFixture.enableInspections(AndroidDomInspection.class);
+
     myFixture.setTestDataPath(AndroidTestCase.getAbsoluteTestDataPath());
 
     myAppModule = appModuleBuilder.getFixture().getModule();
