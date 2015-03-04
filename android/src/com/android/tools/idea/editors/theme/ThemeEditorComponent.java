@@ -543,17 +543,25 @@ public class ThemeEditorComponent extends Splitter {
       @Override
       public void tableChanged(TableModelEvent e) {
 
-        if (e.getType() == TableModelEvent.UPDATE && e.getLastRow() == TableModelEvent.HEADER_ROW) {
-          myAttributesTable.setRowHeight(ATTRIBUTES_DEFAULT_ROW_HEIGHT);
-          for (int row = 0; row < model.getRowCount(); row++) {
-            final Class<?> cellClass = model.getCellClass(row, 0);
-            final Integer rowHeight = ROW_HEIGHTS.get(cellClass);
-            if (rowHeight != null) {
-              // TODO important colors should be taller then less important colors.
-              int viewRow = myAttributesTable.convertRowIndexToView(row);
+        if (e.getType() == TableModelEvent.UPDATE) {
+          if (e.getLastRow() == 0) { // Indicates a change in the theme name
+            AndroidFacet facet = AndroidFacet.getInstance(myModule);
+            if (facet != null) {
+              facet.refreshResources();
+            }
+            reload(model.getThemeNameInXml());
+          } else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
+            myAttributesTable.setRowHeight(ATTRIBUTES_DEFAULT_ROW_HEIGHT);
+            for (int row = 0; row < model.getRowCount(); row++) {
+              final Class<?> cellClass = model.getCellClass(row, 0);
+              final Integer rowHeight = ROW_HEIGHTS.get(cellClass);
+              if (rowHeight != null) {
+                // TODO important colors should be taller then less important colors.
+                int viewRow = myAttributesTable.convertRowIndexToView(row);
 
-              if (viewRow != -1) {
-                myAttributesTable.setRowHeight(viewRow, rowHeight);
+                if (viewRow != -1) {
+                  myAttributesTable.setRowHeight(viewRow, rowHeight);
+                }
               }
             }
           }
