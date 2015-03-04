@@ -39,7 +39,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.*;
+import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.ScopedStateStore.Scope;
 
 /**
  * A data binding class that links Swing UI elements to a {@link ScopedStateStore}.
