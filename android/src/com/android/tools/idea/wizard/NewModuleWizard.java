@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 

@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,12 +32,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
+import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
-import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
+import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 
 /**
  * Utility methods for dealing with Form Factors in Wizards.

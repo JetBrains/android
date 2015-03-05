@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -31,7 +30,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.JBColor;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

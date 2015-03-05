@@ -16,12 +16,9 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.NewProjectWizard;
 import com.android.tools.idea.wizard.NewProjectWizardDynamic;
-import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 

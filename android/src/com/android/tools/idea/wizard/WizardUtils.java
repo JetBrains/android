@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
