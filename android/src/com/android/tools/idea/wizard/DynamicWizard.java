@@ -456,7 +456,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     return myState;
   }
 
-  public final void show() {
+  private void prepareForShow() {
     // All steps must be included so the window can be sized correctly
     for (AndroidStudioWizardPath path : myPaths) {
       for (DynamicWizardStep step : ((DynamicWizardPath)path).mySteps) {
@@ -471,6 +471,10 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
 
     SwingUtilities.getWindowAncestor(myContentPanel).pack();
+  }
+
+  public final void show() {
+    prepareForShow();
     myHost.show();
   }
 
@@ -480,6 +484,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   public boolean showAndGet() {
+    prepareForShow();
     return myHost.showAndGet();
   }
 
