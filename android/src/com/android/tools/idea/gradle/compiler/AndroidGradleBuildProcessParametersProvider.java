@@ -182,4 +182,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     }
   }
 
+  @Override
+  public boolean isProcessPreloadingEnabled() {
+    return !Projects.isBuildWithGradle(myProject);
+  }
 }
