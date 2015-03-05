@@ -22,8 +22,10 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -33,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -62,7 +65,20 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
-  private JBLabel myHelpMeChooseLabel = new JBLabel("Help Me Choose");
+  private JBLabel myHelpMeChooseLabel = new JBLabel(getApiHelpText(0)) {
+    @Override
+    public Dimension getPreferredSize() {
+      // Since this contains auto-wrapped text, the preferred height will not be set until repaint(). The below will set it as soon
+      // as the actual width is known. This allows the wizard dialog to be set to the correct size even before this step is shown.
+      final View view = (View)myHelpMeChooseLabel.getClientProperty("html");
+      if (getWidth() > 0) {
+        view.setSize(getWidth(), 0);
+        setPreferredSize(new Dimension((int)view.getPreferredSpan(View.X_AXIS), (int)view.getPreferredSpan(View.Y_AXIS)));
+      }
+      return super.getPreferredSize();
+    }
+  };
+  private List<Pair<Key<Boolean>, JCheckBox>> myCheckboxKeys = Lists.newArrayList();
 
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
@@ -74,6 +90,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myDisposable = disposable;
     Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
     setBodyComponent(myPanel);
+    populateAdditionalFormFactors();
   }
 
   @Override
@@ -91,7 +108,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
       }
     });
-    myHelpMeChooseLabel.setMaximumSize(new Dimension(250, 200));
     register(API_FEEDBACK_KEY, myHelpMeChooseLabel, new ComponentBinding<String, JBLabel>() {
       @Override
       public void setValue(@Nullable String newValue, @NotNull JBLabel label) {
@@ -116,37 +132,43 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       @Override
       public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
         AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
-        if (selectedItem == null) {
-          return currentValue;
-        }
-        Integer selectedApi = selectedItem.apiLevel;
-        float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
-        return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                                                  "By targeting API %1$d and later, your app will run on " +
-                                                  // escape the %'s such that the outer String.format does not attempt to format them
-                                                  (percentage < 1
-                                                   ? "&lt; 1%%"
-                                                   : String.format(Locale.getDefault(), "approximately <b>%.1f%%%%</b>", percentage)) +
-                                                  " of the devices that are active on the Google Play Store. " +
-                                                  "<span color=\"#%2$s\">Help me choose.</span></html>", selectedApi,
-                             Integer.toHexString(JBColor.blue.getRGB()).substring(2));
+        return getApiHelpText(selectedItem == null ? 0 : selectedItem.apiLevel);
       }
     });
 
-    populateAdditionalFormFactors();
+    Set<Key> keys = Sets.newHashSet();
+    for (Pair<Key<Boolean>, JCheckBox> item : myCheckboxKeys) {
+      keys.add(item.getFirst());
+      register(item.getFirst(), item.getSecond());
+    }
+    myState.put(myCheckboxKeys.get(0).getFirst(), true);
+    // Since the controls are created before the state is completely set up (before the step is
+    // attached to the wizard) we have to explicitly load the saved state here.
+    for (FormFactorSdkControls control : myFormFactorApiSelectors.values()) {
+      control.getMinSdkCombo().loadSavedApi();
+    }
+  }
+
+  private static String getApiHelpText(int selectedApi) {
+    float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
+    return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
+                                              "By targeting API %1$d and later, your app will run on %2$s of the devices that are " +
+                                              "active on the Google Play Store. " +
+                                              "<span color=\"#%3$s\">Help me choose.</span>" +
+                                              //"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam justo vitae faucibus rhoncus. Integer eget tincidunt dolor. Quisque cursus tempus ipsum. Nunc non felis id ante facilisis mollis. Nulla nunc quam, iaculis ut gravida vitae, ultrices quis nunc. Aenean id turpis condimentum urna finibus dignissim. Maecenas vel tempor elit, vel cursus sem. Integer non magna blandit, auctor nisl vel, venenatis tortor. Vestibulum sagittis porttitor ante at lobortis. Vivamus quis sagittis nunc. Aenean sed risus in ligula blandit placerat" +
+                                              ".</html>",
+                         selectedApi,
+                         percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage),
+                         Integer.toHexString(JBColor.blue.getRGB()).substring(2));
   }
 
   private void populateAdditionalFormFactors() {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
-    GridLayoutManager gridLayoutManager = new GridLayoutManager(applicationTemplates.size() * 2 + 1, 2);
-    gridLayoutManager.setVGap(5);
-    gridLayoutManager.setHGap(10);
-    myFormFactorPanel.setLayout(gridLayoutManager);
+    myFormFactors.clear();
 
-    GridConstraints c = new GridConstraints();
-    c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     int row = 0;
+    Map<FormFactor, Integer> minSdks = Maps.newHashMap();
     for (File templateFile : applicationTemplates) {
       TemplateMetadata metadata = manager.getTemplate(templateFile);
       if (metadata == null || metadata.getFormFactor() == null) {
@@ -157,14 +179,25 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         continue;
       }
       myFormFactors.add(formFactor);
+      minSdks.put(formFactor, metadata.getMinSdk());
+    }
+
+    GridLayoutManager gridLayoutManager = new GridLayoutManager(myFormFactors.size() * 2 + 1, 2);
+    gridLayoutManager.setVGap(5);
+    gridLayoutManager.setHGap(10);
+    myFormFactorPanel.setLayout(gridLayoutManager);
+    for (FormFactor formFactor : myFormFactors) {
+      GridConstraints c = new GridConstraints();
       c.setRow(row);
       c.setColumn(0);
       c.setFill(GridConstraints.FILL_NONE);
       c.setAnchor(GridConstraints.ANCHOR_WEST);
       JCheckBox inclusionCheckBox = new JCheckBox(formFactor.toString());
       myFormFactorPanel.add(inclusionCheckBox, c);
-      register(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox);
-      FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, metadata.getMinSdk());
+      // Since we aren't connected to the wizard yet, we can't save this (wizard-scoped) state.
+      // Save away the key and component so they can be registered later.
+      myCheckboxKeys.add(Pair.create(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox));
+      FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, minSdks.get(formFactor));
       FormFactorApiComboBox minSdkComboBox = controls.getMinSdkCombo();
       minSdkComboBox.setName(formFactor.id + ".minSdk");
       controls.layout(myFormFactorPanel, ++row, inclusionCheckBox.getIconTextGap());
@@ -176,15 +209,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         inclusionCheckBox.setSelected(false);
         inclusionCheckBox.setEnabled(false);
         inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
-      } else if (row == 1) {
-        myState.put(FormFactorUtils.getInclusionKey(formFactor), true);
       }
 
       if (formFactor.equals(MOBILE)) {
         c.setRow(++row);
         c.setColumn(1);
         c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
-        c.setFill(GridConstraints.FILL_NONE);
+        c.setFill(GridConstraints.FILL_HORIZONTAL);
         myFormFactorPanel.add(myHelpMeChooseLabel, c);
       }
       row++;
