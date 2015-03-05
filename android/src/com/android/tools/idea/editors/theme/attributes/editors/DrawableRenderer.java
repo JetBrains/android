@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.rendering.RenderTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -25,14 +26,14 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
 public class DrawableRenderer implements TableCellRenderer {
-  private final Configuration myConfiguration;
   private final DrawableComponent myComponent;
+  private final RenderTask myRenderTask;
 
   private final Border mySelectedBorder;
   private final Border myUnselectedBorder;
 
-  public DrawableRenderer(final @NotNull Configuration configuration, final @NotNull JTable table) {
-    myConfiguration = configuration;
+  public DrawableRenderer(final @NotNull JTable table, final @Nullable RenderTask renderTask) {
+    myRenderTask = renderTask;
 
     myComponent = new DrawableComponent();
     mySelectedBorder = ColorComponent.getBorder(table.getSelectionBackground());
@@ -41,7 +42,7 @@ public class DrawableRenderer implements TableCellRenderer {
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    myComponent.configure((EditedStyleItem) value, myConfiguration.getResourceResolver());
+    myComponent.configure((EditedStyleItem) value, myRenderTask);
     myComponent.setBorder(isSelected ? mySelectedBorder : myUnselectedBorder);
     return myComponent;
   }
