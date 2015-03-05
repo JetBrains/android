@@ -16,12 +16,13 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,15 +33,15 @@ public class DrawableEditor extends AbstractTableCellEditor {
   private static final ResourceType[] DRAWABLE_TYPE = new ResourceType[] { ResourceType.DRAWABLE };
 
   private final DrawableComponent myComponent;
-  private final Configuration myConfiguration;
+  private final RenderTask myRenderTask;
 
   private EditedStyleItem myEditedItem;
   private String myResultValue;
   private Module myModule;
 
-  public DrawableEditor(final @NotNull Module module, final @NotNull Configuration configuration, final @NotNull JTable table) {
+  public DrawableEditor(final @NotNull Module module, final @NotNull JTable table, final @Nullable RenderTask renderTask) {
     myModule = module;
-    myConfiguration = configuration;
+    myRenderTask = renderTask;
 
     myComponent = new DrawableComponent();
     myComponent.setBorder(DrawableComponent.getBorder(table.getSelectionBackground()));
@@ -50,7 +51,7 @@ public class DrawableEditor extends AbstractTableCellEditor {
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     myEditedItem = (EditedStyleItem) value;
-    myComponent.configure(myEditedItem, myConfiguration.getResourceResolver());
+    myComponent.configure(myEditedItem, myRenderTask);
     return myComponent;
   }
 

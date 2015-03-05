@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.RenderParamsFlags;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
@@ -55,6 +55,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -655,6 +656,46 @@ public class RenderTask implements IImageFactory {
     }
 
     return null;
+  }
+
+  /**
+   * Renders the given resource value (which should refer to a drawable) and returns it
+   * as an image
+   *
+   * @param drawableResourceValue the drawable resource value to be rendered, or null
+   * @return the image, or null if something went wrong
+   */
+  @NotNull
+  @SuppressWarnings("unchecked")
+  public List<BufferedImage> renderDrawableAllStates(ResourceValue drawableResourceValue) {
+    if (drawableResourceValue == null) {
+      return Collections.emptyList();
+    }
+
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
+
+    Module module = myRenderService.getModule();
+    DrawableParams params =
+      new DrawableParams(drawableResourceValue, module, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
+                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
+    params.setForceNoDecor();
+    params.setAssetRepository(myAssetRepository);
+    final boolean supportsMultipleStates = myLayoutLib.supports(Features.RENDER_ALL_DRAWABLE_STATES);
+    if (supportsMultipleStates) {
+      params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
+    }
+
+    final Result result = myLayoutLib.renderDrawable(params);
+    if (result != null && result.isSuccess()) {
+      Object data = result.getData();
+      if (supportsMultipleStates && data instanceof List) {
+        return (List<BufferedImage>)data;
+      } else if (!supportsMultipleStates && data instanceof BufferedImage) {
+        return Collections.singletonList((BufferedImage) data);
+      }
+    }
+
+    return Collections.emptyList();
   }
 
   @NotNull
