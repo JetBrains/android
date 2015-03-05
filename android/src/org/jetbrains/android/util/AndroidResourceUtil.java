@@ -141,7 +141,6 @@ public class AndroidResourceUtil {
                                               @NotNull String resourceName,
                                               boolean onlyInOwnPackages) {
     resourceName = getRJavaFieldName(resourceName);
-
     final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
     final List<PsiField> result = new ArrayList<PsiField>();
 
@@ -150,19 +149,13 @@ public class AndroidResourceUtil {
         continue;
       }
       final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
-
-      if (rClass != null) {
-        final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
-
-        if (resourceTypeClass != null) {
-          final PsiField field = resourceTypeClass.findFieldByName(resourceName, false);
-
-          if (field != null) {
-            result.add(field);
-          }
-        }
-      }
+      findResourceFieldsFromClass(rClass, resClassName, Collections.singleton(resourceName), result);
     }
+    PsiClass inMemoryRClass = facet.getLightRClass();
+    if (inMemoryRClass != null) {
+      findResourceFieldsFromClass(inMemoryRClass, resClassName, Collections.singleton(resourceName), result);
+    }
+
     return result.toArray(new PsiField[result.size()]);
   }
 
@@ -182,24 +175,35 @@ public class AndroidResourceUtil {
       if (rClassFile == null) {
         continue;
       }
-      final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
+      findResourceFieldsFromClass(findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME),
+          resClassName, resourceNames, result);
+    }
+    PsiClass inMemoryRClass = facet.getLightRClass();
+    if (inMemoryRClass != null) {
+      findResourceFieldsFromClass(inMemoryRClass, resClassName, resourceNames, result);
+    }
 
-      if (rClass != null) {
-        final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+    return result.toArray(new PsiField[result.size()]);
+  }
 
-        if (resourceTypeClass != null) {
-          for (String resourceName : resourceNames) {
-            String fieldName = getRJavaFieldName(resourceName);
-            final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
+  private static void findResourceFieldsFromClass(@Nullable PsiClass rClass,
+      @NotNull String resClassName, @NotNull Collection<String> resourceNames,
+      @NotNull List<PsiField> result) {
 
-            if (field != null) {
-              result.add(field);
-            }
+    if (rClass != null) {
+      final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+
+      if (resourceTypeClass != null) {
+        for (String resourceName : resourceNames) {
+          String fieldName = getRJavaFieldName(resourceName);
+          final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
+
+          if (field != null) {
+            result.add(field);
           }
         }
       }
     }
-    return result.toArray(new PsiField[result.size()]);
   }
 
   @NotNull
