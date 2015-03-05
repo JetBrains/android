@@ -58,9 +58,9 @@ public class DelegatingCellEditor implements TableCellEditor {
 
     final String tooltipText;
     if (value instanceof EditedStyleItem) {
-      final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
-      tooltipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
-      stringValue = ThemeEditorUtils.extractRealValue(resValue, model.getCellClass(row, column));
+      final EditedStyleItem item = (EditedStyleItem) value;
+      tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, myConfiguration);
+      stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
     }
     else {
       stringValue = value;
