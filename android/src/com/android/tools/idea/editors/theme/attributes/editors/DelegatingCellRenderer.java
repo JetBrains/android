@@ -64,9 +64,8 @@ public class DelegatingCellRenderer implements TableCellRenderer {
       if (column == 0) {
         stringValue = item.getQualifiedName();
       } else {
-        final ItemResourceValue resValue = item.getItemResourceValue();
         stringValue = ThemeEditorUtils
-          .extractRealValue(resValue, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
+          .extractRealValue(item, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
       }
     }
     else {
