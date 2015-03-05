@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.NewModuleWizard;
 import com.android.tools.idea.wizard.NewModuleWizardDynamic;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

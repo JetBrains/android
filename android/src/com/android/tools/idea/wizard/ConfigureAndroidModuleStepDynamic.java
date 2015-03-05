@@ -27,11 +27,9 @@ import javax.swing.*;
 import javax.swing.text.Document;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * Configuration for a new Android module
