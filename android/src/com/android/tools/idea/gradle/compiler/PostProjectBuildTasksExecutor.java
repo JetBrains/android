@@ -29,7 +29,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -68,7 +67,6 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -162,15 +160,10 @@ public class PostProjectBuildTasksExecutor {
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (isGradleProject(myProject)) {
-      invokeAndWaitIfNeeded(new Runnable() {
+      executeProjectChanges(myProject, new Runnable() {
         @Override
         public void run() {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              excludeOutputFolders();
-            }
-          });
+          excludeOutputFolders();
         }
       });
 
