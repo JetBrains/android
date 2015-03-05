@@ -135,16 +135,19 @@ public class ThemeEditorUtils {
     return allValues;
   }
 
-  public static Object extractRealValue(final ItemResourceValue value, final Class<?> desiredClass) {
-    if (desiredClass == Boolean.class) {
-      return Boolean.valueOf(value.getValue());
+  public static Object extractRealValue(final EditedStyleItem item, final Class<?> desiredClass) {
+    String value = item.getValue();
+    if (desiredClass == Boolean.class && ("true".equals(value) || "false".equals(value))) {
+      return Boolean.valueOf(value);
     }
-    else if (desiredClass == Integer.class) {
-      return Integer.parseInt(value.getValue());
+    if (desiredClass == Integer.class && value != null) {
+      try {
+        return Integer.parseInt(value);
+      } catch (NumberFormatException e) {
+        return value;
+      }
     }
-    else {
-      return value.getRawXmlValue();
-    }
+    return value;
   }
 
   public static boolean acceptsFormat(@Nullable AttributeDefinition attrDefByName, @NotNull AttributeFormat want) {
