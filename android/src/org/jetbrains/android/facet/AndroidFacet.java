@@ -129,6 +129,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps =
     new HashMap<String, Map<String, SmartPsiElementPointer<PsiClass>>>();
 
+  private PsiClass myLightRClass;
+
   private Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = new HashMap<String, CachedValue<Map<String, PsiClass>>>();
 
   private final Object myClassMapLock = new Object();
@@ -1178,6 +1180,21 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
+  }
+
+  /**
+   * @return The generated in-memory R class for this facet, if one exists.
+   */
+  @Nullable
+  public PsiClass getLightRClass() {
+    return myLightRClass;
+  }
+
+  /**
+   * Sets the generated in-memory R class for this facet.
+   */
+  public void setLightRClass(@NotNull PsiClass rClass) {
+    myLightRClass = rClass;
   }
 
   @NotNull
