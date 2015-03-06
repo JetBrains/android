@@ -32,8 +32,8 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
  * @author yole
  */
 public class ResourceValue {
-  /** The resource type portion in a resource URL ({@code @+id/}) but without the leading @ */
   private static final String PLUS_ID = "+id";
+  /** The resource type portion in a resource URL ({@code @+id/}) but without the leading @ */
   private String myValue;
   private char myPrefix = 0;
   private String myPackage;
