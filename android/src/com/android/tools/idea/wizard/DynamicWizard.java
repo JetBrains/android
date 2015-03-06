@@ -459,7 +459,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   private void prepareForShow() {
     // All steps must be included so the window can be sized correctly
     for (AndroidStudioWizardPath path : myPaths) {
-      for (DynamicWizardStep step : ((DynamicWizardPath)path).mySteps) {
+      for (Step step : path.getAllSteps()) {
         addStepIfNecessary(step);
       }
     }
