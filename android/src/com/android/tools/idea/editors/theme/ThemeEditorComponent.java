@@ -107,13 +107,14 @@ public class ThemeEditorComponent extends Splitter {
   private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
   private final ClickableTableCellRendererEditor myStyleEditor;
+  private final ConfigurationListener myConfigListener;
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
     this.myConfiguration = configuration;
     this.myModule = module;
     this.myStyleResolver = new StyleResolver(myConfiguration);
 
-    ConfigurationListener myConfigListener = new ConfigurationListener() {
+    myConfigListener = new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
 
@@ -611,6 +612,12 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setModel(model);
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
     model.fireTableStructureChanged();
+  }
+
+  @Override
+  public void dispose() {
+    myConfiguration.removeListener(myConfigListener);
+    super.dispose();
   }
 
   class StyleAttributesFilter extends RowFilter<AttributesTableModel, Integer> {
