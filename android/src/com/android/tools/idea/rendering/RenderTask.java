@@ -413,6 +413,7 @@ public class RenderTask implements IImageFactory {
     params.setAssetRepository(myAssetRepository);
 
     params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(myPsiFile));
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -851,6 +852,7 @@ public class RenderTask implements IImageFactory {
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
     ManifestInfo manifestInfo = ManifestInfo.get(module);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
