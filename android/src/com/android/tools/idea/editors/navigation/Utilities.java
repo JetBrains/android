@@ -264,6 +264,29 @@ public class Utilities {
     return navFile;
   }
 
+  @Nullable
+  public static VirtualFile findLayoutFile(List<VirtualFile> resourceDirectories, String navigationDirectoryName) {
+    String qualifier = removePrefixIfPresent(NavigationEditor.DEFAULT_RESOURCE_FOLDER, navigationDirectoryName);
+    String layoutDirName = NavigationEditor.LAYOUT_DIR_NAME + qualifier;
+    for (VirtualFile root : resourceDirectories) {
+      for (VirtualFile dir : root.getChildren()) {
+        if (dir.isDirectory() && dir.getName().equals(layoutDirName)) {
+          for (VirtualFile file : dir.getChildren()) {
+            String fileName = file.getName();
+            if (!fileName.startsWith(".") && fileName.endsWith(".xml")) { // Ignore files like .DS_store on mac
+              return file;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private static String removePrefixIfPresent(String prefix, String s) {
+    return s.startsWith(prefix) ? s.substring(prefix.length()) : s;
+  }
+
   @NotNull
   public static Module[] getAndroidModules(Project project) {
     if (project == null) {
@@ -274,7 +297,11 @@ public class Utilities {
     for (Module module : modules) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        result.add(module);
+        List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
+        VirtualFile layoutFile = findLayoutFile(resourceDirectories, NavigationEditor.DEFAULT_RESOURCE_FOLDER);
+        if (layoutFile != null) {
+          result.add(module);
+        }
       }
     }
     return result.toArray(new Module[result.size()]);

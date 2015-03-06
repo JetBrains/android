@@ -99,32 +99,13 @@ public class NavigationEditor implements FileEditor {
   private static final String[] EXCLUDED_PATH_SEGMENTS = new String[]{"/.idea/", "/idea/config/options/"};
 
   @Nullable
-  private static VirtualFile findLayoutFile(List<VirtualFile> resourceDirectories, String navigationDirectoryName) {
-    String qualifier = removePrefixIfPresent(DEFAULT_RESOURCE_FOLDER, navigationDirectoryName);
-    String layoutDirName = LAYOUT_DIR_NAME + qualifier;
-    for (VirtualFile root : resourceDirectories) {
-      for (VirtualFile dir : root.getChildren()) {
-        if (dir.isDirectory() && dir.getName().equals(layoutDirName)) {
-          for (VirtualFile file : dir.getChildren()) {
-            String fileName = file.getName();
-            if (!fileName.startsWith(".") && fileName.endsWith(".xml")) { // Ignore files like .DS_store on mac
-              return file;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public static RenderingParameters getRenderingParams(@NotNull VirtualFile file, @NotNull Module module) {
+  public static RenderingParameters getRenderingParams(@NotNull Module module, String navigationDirectoryName) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
     }
     List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
-    VirtualFile layoutFile = findLayoutFile(resourceDirectories, file.getParent().getName());
+    VirtualFile layoutFile = Utilities.findLayoutFile(resourceDirectories, navigationDirectoryName);
     if (layoutFile == null) {
       return null;
     }
@@ -138,13 +119,13 @@ public class NavigationEditor implements FileEditor {
     String moduleName = file.getParent().getParent().getName();
     Module module = Utilities.findModule(androidModules, moduleName);
     if (module == null) {
-      String errorMessage = NAVIGATION_DIRECTORY.equals(moduleName)
-                            ? "Legacy navigation editor file: please remove the file and/or close this editor"
-                            : "Android module \"" + moduleName + "\" not found";
+      String errorMessage = (NAVIGATION_DIRECTORY.equals(moduleName)
+                            ? "Legacy navigation editor file" : "Android module \"" + moduleName + "\" not found") +
+                                                                ": please close this editor and/or remove the file";
       myComponent = createErrorComponent("", errorMessage);
       return;
     }
-    RenderingParameters renderingParams = getRenderingParams(file, module);
+    RenderingParameters renderingParams = getRenderingParams(module, file.getParent().getName());
     if (renderingParams == null) {
       myComponent = createErrorComponent("", "Invalid file name: please remove the file and/or close this editor");
       return;
@@ -327,10 +308,6 @@ public class NavigationEditor implements FileEditor {
       result[i] = modules[i].getName();
     }
     return result;
-  }
-
-  private static String removePrefixIfPresent(String prefix, String s) {
-    return s.startsWith(prefix) ? s.substring(prefix.length()) : s;
   }
 
   private static String[] resourceDirectoryNames(AndroidFacet facet, String type) {
