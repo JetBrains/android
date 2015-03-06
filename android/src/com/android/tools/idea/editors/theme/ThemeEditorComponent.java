@@ -574,6 +574,7 @@ public class ThemeEditorComponent extends Splitter {
             @Override
             public void run() {
               myPreviewPanel.updateConfiguration(myConfiguration);
+              myPreviewPanel.invalidate();
               myPreviewPanel.repaint();
               myAttributesTable.repaint();
             }
