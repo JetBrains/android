@@ -41,6 +41,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.RecyclerViewConstants;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +69,10 @@ public class LayoutlibCallback extends LegacyCallback {
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
+  /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
+  private static final Set<String> NOT_VIEW = Collections.unmodifiableSet(Sets.newHashSet(RecyclerViewConstants.CN_RV_ADAPTER,
+                                                                                          RecyclerViewConstants.CN_RV_LAYOUT_MANAGER,
+                                                                                          "android.support.v7.internal.app.WindowDecorActionBar"));
 
   @NotNull private final Module myModule;
   @NotNull private final AppResourceRepository myProjectRes;
@@ -133,7 +138,7 @@ public class LayoutlibCallback extends LegacyCallback {
   }
 
   /**
-   * Returns the {@link com.android.ide.common.rendering.api.LayoutLog} logger used for error messages, or null
+   * Returns the {@link LayoutLog} logger used for error messages, or null
    *
    * @return the logger being used, or null if no logger is in use
    */
@@ -145,7 +150,7 @@ public class LayoutlibCallback extends LegacyCallback {
   /**
    * {@inheritDoc}
    * <p/>
-   * This implementation goes through the output directory of the Eclipse project and loads the
+   * This implementation goes through the output directory of the project and loads the
    * <code>.class</code> file directly.
    */
   @Nullable
@@ -174,6 +179,9 @@ public class LayoutlibCallback extends LegacyCallback {
 
     myUsed = true;
 
+    if (NOT_VIEW.contains(className)) {
+      return myClassLoader.loadClass(className, constructorSignature, constructorParameters);
+    }
     return myClassLoader.loadView(className, constructorSignature, constructorParameters);
   }
 
@@ -512,13 +520,8 @@ public class LayoutlibCallback extends LegacyCallback {
   @Nullable
   public static String getListAdapterViewFqcn(@NotNull Class<?> clz) {
     String fqcn = clz.getName();
-    if (fqcn.endsWith(LIST_VIEW)) { // including EXPANDABLE_LIST_VIEW
-      return fqcn;
-    }
-    else if (fqcn.equals(FQCN_GRID_VIEW)) {
-      return fqcn;
-    }
-    else if (fqcn.equals(FQCN_SPINNER)) {
+    if (fqcn.endsWith(LIST_VIEW)  // including EXPANDABLE_LIST_VIEW
+        || fqcn.equals(FQCN_GRID_VIEW) || fqcn.equals(FQCN_SPINNER)) {
       return fqcn;
     }
     else if (fqcn.startsWith(ANDROID_PKG_PREFIX)) {

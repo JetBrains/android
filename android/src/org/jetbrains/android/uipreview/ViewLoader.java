@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
@@ -66,6 +67,7 @@ public class ViewLoader {
   @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
+  @Nullable private RenderLogger myDummyLogger;
   @NotNull private final LayoutLibrary myLayoutLibrary;
   @Nullable private ModuleClassLoader myModuleClassLoader;
 
@@ -89,6 +91,35 @@ public class ViewLoader {
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Nullable
   public Object loadView(String className, Class[] constructorSignature, Object[] constructorArgs)
+    throws ClassNotFoundException {
+    return loadView(className, constructorSignature, constructorArgs, true);
+  }
+
+  /**
+   * Like loadView, but doesn't log  exceptions if failed and doesn't try to create a mock view.
+   */
+  @Nullable
+  public Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
+    RenderLogger logger = myLogger;
+    if (myDummyLogger == null) {
+      myDummyLogger = new RenderLogger(null, null);
+    }
+    myLogger = myDummyLogger;
+    try {
+      if (RecyclerViewConstants.CN_RV_ADAPTER.equals(className)) {
+        className = RecyclerViewConstants.CN_CUSTOM_ADAPTER;
+        constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+        constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+      }
+      return loadView(className, constructorSignature, constructorArgs, false);
+    } finally {
+      myLogger = logger;
+    }
+  }
+
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  @Nullable
+  private Object loadView(String className, Class[] constructorSignature, Object[] constructorArgs, boolean createMockView)
     throws ClassNotFoundException {
 
     Class<?> aClass = myLoadedClasses.get(className);
@@ -139,7 +170,7 @@ public class ViewLoader {
     try {
       final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
 
-      if (o != null) {
+      if (o != null || !createMockView) {
         return o;
       }
       return createMockView(className, constructorSignature, constructorArgs);
