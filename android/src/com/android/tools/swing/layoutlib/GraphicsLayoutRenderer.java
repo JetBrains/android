@@ -18,8 +18,8 @@ package com.android.tools.swing.layoutlib;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.RenderParamsFlags;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
@@ -33,6 +33,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.ui.Graphics2DDelegate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -217,13 +218,7 @@ public class GraphicsLayoutRenderer {
   }
 
   public void setSize(Dimension dimen) {
-    int width =
-      myRenderingMode == SessionParams.RenderingMode.FULL_EXPAND || myRenderingMode == SessionParams.RenderingMode.H_SCROLL ?
-      0 : dimen.width;
-    int height =
-      myRenderingMode == SessionParams.RenderingMode.FULL_EXPAND || myRenderingMode == SessionParams.RenderingMode.V_SCROLL ?
-      0 : dimen.height;
-    myHardwareConfig.setScreenSize(width, height);
+    myHardwareConfig.setScreenSize(dimen.width, dimen.height);
     myInvalidate = true;
   }
 
@@ -236,44 +231,40 @@ public class GraphicsLayoutRenderer {
   public void render(@NotNull final Graphics2D graphics) {
     myImageFactory.setGraphics(graphics);
 
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        Result result = null;
-        mySecurityManager.setActive(true, myCredential);
-        try {
-          if (myRenderSession == null) {
-            myResourceLookupChain.clear();
-            myRenderSession = initRenderSession();
-            // initRenderSession will call render so we do not need to do it here.
-            return;
-          }
-
-          // TODO: Currently passing true to invalidate in every render since layoutlib caches the passed Graphics2D otherwise.
-          //       This should be addressed as part of the changes to pass the Graphics2D instance to layoutlib.
-          result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
-        }
-        finally {
-          mySecurityManager.setActive(false, myCredential);
+    Result result = null;
+    mySecurityManager.setActive(true, myCredential);
+    try {
+      if (myRenderSession == null) {
+        myResourceLookupChain.clear();
+        myRenderSession = initRenderSession();
+        result = myRenderSession != null ? myRenderSession.getResult() : null;
+        if (result != null && result.getException() != null) {
+          LOG.error(result.getException());
         }
 
-        // We need to log the errors after disabling the security manager since the logger will cause a security exception when trying to
-        // access the system properties.
-        if (result != null && result.getStatus() != Result.Status.SUCCESS) {
-          if (result.getException() != null) {
-            if (result.getException() instanceof IllegalArgumentException &&
-                result.getException().getMessage().startsWith("Raster Integer")) {
-              // Suppress incompatible Raster exception since we don't use the bitmap.
-              return;
-            }
-            LOG.error(result.getException());
-          }
-          else {
-            LOG.error("Render error (no exception). Status=" + result.getStatus().name());
-          }
-        }
+        // initRenderSession will call render so we do not need to do it here.
+        return;
       }
-    });
+
+      // TODO: Currently passing true to invalidate in every render since layoutlib caches the passed Graphics2D otherwise.
+      //       This should be addressed as part of the changes to pass the Graphics2D instance to layoutlib.
+      result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
+    }
+    finally {
+      mySecurityManager.setActive(false, myCredential);
+    }
+
+    // We need to log the errors after disabling the security manager since the logger will cause a security exception when trying to
+    // access the system properties.
+    if (result != null && result.getStatus() != Result.Status.SUCCESS) {
+      if (result.getException() != null) {
+        LOG.error(result.getException());
+      }
+      else {
+        LOG.error("Render error (no exception). Status=" + result.getStatus().name());
+      }
+    }
+
     myInvalidate = false;
   }
 
@@ -283,15 +274,14 @@ public class GraphicsLayoutRenderer {
   private
   @Nullable
   RenderSession initRenderSession() {
-    // createSession will also render the layout for the first time.
-    RenderSession session = myLayoutLibrary.createSession(mySessionParams);
-    Result result = session.getResult();
-    if (!result.isSuccess() && result.getStatus() == Result.Status.ERROR_TIMEOUT) {
-      // This could happen if layout is accessed from different threads and render is taking a long time.
-      throw new RuntimeException("createSession ERROR_TIMEOUT.");
-    }
-
-    return session;
+    // createSession() might access the PSI tree so we need to run it inside as a read action.
+    return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
+      @Override
+      public RenderSession compute() {
+        // createSession will also render the layout for the first time.
+        return myLayoutLibrary.createSession(mySessionParams);
+      }
+    });
   }
 
   /**
@@ -313,6 +303,12 @@ public class GraphicsLayoutRenderer {
 
   public Dimension getPreferredSize() {
     return new Dimension(myImageFactory.getRequestedWidth(), myImageFactory.getRequestedHeight());
+  }
+
+  public void dispose() {
+    myRenderSession.dispose();
+
+    myRenderSession = null;
   }
 
   /**

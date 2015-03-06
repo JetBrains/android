@@ -33,11 +33,11 @@ import java.util.Set;
 public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class.getName());
 
-  protected Document myDocument;
+  private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
   protected Configuration myConfiguration;
 
-  public AndroidPreviewPanel(Configuration configuration) {
+  public AndroidPreviewPanel(@NotNull Configuration configuration) {
     myConfiguration = configuration;
   }
 
@@ -52,7 +52,18 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     Dimension currentSize = getSize();
     if (myGraphicsLayoutRenderer != null && !currentSize.equals(previousSize)) {
       myGraphicsLayoutRenderer.setSize(currentSize);
+    } else {
+      setPreferredSize(currentSize);
     }
+  }
+
+  private void invalidateGraphicsRenderer() {
+    if (myGraphicsLayoutRenderer == null) {
+      return;
+    }
+
+    myGraphicsLayoutRenderer.dispose();
+    myGraphicsLayoutRenderer = null;
   }
 
   /**
@@ -64,8 +75,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
    */
   public void updateConfiguration(@NotNull Configuration configuration) {
     myConfiguration = configuration;
-    // Invalidate current configuration if any.
-    myGraphicsLayoutRenderer = null;
+    invalidateGraphicsRenderer();
+  }
+
+  public void setDocument(@NotNull Document document) {
+    myDocument = document;
+    invalidateGraphicsRenderer();
   }
 
   @Override
@@ -73,10 +88,10 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     super.paintComponent(graphics);
 
     if (myGraphicsLayoutRenderer == null && myDocument != null) {
+      ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
       try {
-        ILayoutPullParser myParser = new DomPullParser(myDocument.getDocumentElement());
         myGraphicsLayoutRenderer =
-          GraphicsLayoutRenderer.create(myConfiguration, myParser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+          GraphicsLayoutRenderer.create(myConfiguration, parser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
         myGraphicsLayoutRenderer.setSize(getSize());
       }
       catch (InitializationException e) {
@@ -86,16 +101,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
 
     if (myGraphicsLayoutRenderer != null) {
       myGraphicsLayoutRenderer.render((Graphics2D)graphics);
+      // We only know the size of the layout after the render call.
+      setPreferredSize(myGraphicsLayoutRenderer.getPreferredSize());
     }
-  }
-
-  @Override
-  public Dimension getPreferredSize() {
-    if (myGraphicsLayoutRenderer != null) {
-      return myGraphicsLayoutRenderer.getPreferredSize();
-    }
-
-    return super.getPreferredSize();
   }
 
   @Override

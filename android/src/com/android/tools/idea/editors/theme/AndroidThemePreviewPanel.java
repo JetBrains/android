@@ -24,8 +24,16 @@ import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.Processor;
+import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,16 +49,73 @@ public class AndroidThemePreviewPanel extends AndroidPreviewPanel implements Ren
 
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class.getName());
 
+  protected DumbService myDumbService;
+
   public AndroidThemePreviewPanel(@NotNull Configuration configuration) {
     super(configuration);
 
+    myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
+
+    final int minApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
     try {
-      int minApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
-      myDocument = new ThemePreviewBuilder().setApiLevel(minApiLevel).build();
+      setDocument(new ThemePreviewBuilder().setApiLevel(minApiLevel).build());
     }
     catch (ParserConfigurationException e) {
       LOG.error("Unable to generate dynamic theme preview", e);
     }
+
+    // Find custom controls
+    final Project project = configuration.getModule().getProject();
+    myDumbService.runWhenSmart(new Runnable() {
+      @Override
+      public void run() {
+        if (!project.isOpen()) {
+          return;
+        }
+        PsiClass viewClass = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
+
+        if (viewClass == null) {
+          LOG.error("Unable to find 'com.android.View'");
+          return;
+        }
+        Query<PsiClass> viewClasses = ClassInheritorsSearch.search(viewClass, GlobalSearchScope.projectScope(project), true);
+        final ThemePreviewBuilder builder = new ThemePreviewBuilder().setApiLevel(minApiLevel);
+        viewClasses.forEach(new Processor<PsiClass>() {
+          @Override
+          public boolean process(PsiClass psiClass) {
+            builder.addComponent(new ThemePreviewBuilder.ComponentDefinition(psiClass.getName(), ThemePreviewBuilder.ComponentGroup.CUSTOM,
+                                                                             psiClass.getQualifiedName()));
+            return true;
+          }
+        });
+
+        try {
+          setDocument(builder.build());
+          repaint();
+        }
+        catch (ParserConfigurationException e) {
+          LOG.error("Unable to generate dynamic theme preview", e);
+        }
+      }
+    });
+  }
+
+  @Override
+  public void paintComponent(Graphics graphics) {
+    // The AndroidPreviewPanel paint it's not DumbAware and it might require layoutlib to resolve some classes using the PSI.
+    // We need to postpone the GraphicsLayoutRendererInitialization until the index has been loaded.
+    // TODO: Display "loading" text.
+    if (myDumbService.isDumb()) {
+      myDumbService.runWhenSmart(new Runnable() {
+        @Override
+        public void run() {
+          repaint();
+        }
+      });
+      return;
+    }
+
+    super.paintComponent(graphics);
   }
 
   // Implements RenderContext
