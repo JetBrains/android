@@ -161,7 +161,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
-    // TODO what should go here?
+    myComponent.dispose();
   }
 
   public ThemeEditorVirtualFile getVirtualFile() {
