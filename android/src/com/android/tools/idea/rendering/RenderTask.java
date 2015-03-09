@@ -72,8 +72,8 @@ public class RenderTask implements IImageFactory {
   @NotNull
   private final RenderService myRenderService;
 
-  @NotNull
-  private final XmlFile myPsiFile;
+  @Nullable
+  private XmlFile myPsiFile;
 
   @NotNull
   private final RenderLogger myLogger;
@@ -129,7 +129,6 @@ public class RenderTask implements IImageFactory {
    * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
    */
   RenderTask(@NotNull RenderService renderService,
-             @NotNull PsiFile psiFile,
              @NotNull Configuration configuration,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
@@ -138,10 +137,6 @@ public class RenderTask implements IImageFactory {
     myRenderService = renderService;
     myLogger = logger;
     myCredential = credential;
-    if (!(psiFile instanceof XmlFile)) {
-      throw new IllegalArgumentException("Can only render XML files: " + psiFile.getClass().getName());
-    }
-    myPsiFile = (XmlFile)psiFile;
     myConfiguration = configuration;
 
     AndroidFacet facet = renderService.getFacet();
@@ -159,6 +154,13 @@ public class RenderTask implements IImageFactory {
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
     myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
     myLocale = configuration.getLocale();
+  }
+
+  public void setPsiFile(final @NotNull PsiFile psiFile) {
+    if (!(psiFile instanceof XmlFile)) {
+      throw new IllegalArgumentException("Can only render XML files: " + psiFile.getClass().getName());
+    }
+    myPsiFile = (XmlFile)psiFile;
 
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
@@ -384,6 +386,10 @@ public class RenderTask implements IImageFactory {
    */
   @Nullable
   private RenderResult createRenderSession() {
+    if (myPsiFile == null) {
+      throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
+    }
+
     ResourceResolver resolver = getResourceResolver();
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
@@ -528,6 +534,10 @@ public class RenderTask implements IImageFactory {
 
   @Nullable
   private ILayoutPullParser getIncludingLayoutParser(ResourceResolver resolver, ILayoutPullParser modelParser) {
+    if (myPsiFile == null) {
+      throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
+    }
+
     // Code to support editing included layout
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(myPsiFile);
@@ -584,6 +594,10 @@ public class RenderTask implements IImageFactory {
   public RenderResult render() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
+
+    if (myPsiFile == null) {
+      throw new IllegalStateException("render shouldn't be called on RenderTask without PsiFile");
+    }
 
     synchronized (RENDERING_LOCK) {
       RenderResult renderResult;
@@ -708,7 +722,7 @@ public class RenderTask implements IImageFactory {
     return myLayoutlibCallback;
   }
 
-  @NotNull
+  @Nullable
   public XmlFile getPsiFile() {
     return myPsiFile;
   }

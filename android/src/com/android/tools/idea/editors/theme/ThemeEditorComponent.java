@@ -174,13 +174,7 @@ public class ThemeEditorComponent extends Splitter {
     RenderTask renderTask = null;
     if (facet != null) {
       final RenderService service = RenderService.get(facet);
-      final VirtualFile virtualFile = AndroidColorAnnotator.pickLayoutFile(module, facet);
-      if (virtualFile != null) {
-        final PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(virtualFile);
-        if (psiFile != null) {
-          renderTask = service.createTask(psiFile, configuration, new RenderLogger("ThemeEditorLogger", module), null);
-        }
-      }
+      renderTask = service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
     }
 
     AttributeDefinitions attributeDefinitions = myStyleResolver.getAttributeDefinitions();

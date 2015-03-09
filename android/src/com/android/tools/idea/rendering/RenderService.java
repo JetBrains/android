@@ -140,7 +140,7 @@ public class RenderService {
    * @return a {@link RenderService} which can perform rendering services
    */
   @Nullable
-  public RenderTask createTask(@NotNull final PsiFile psiFile,
+  public RenderTask createTask(@Nullable final PsiFile psiFile,
                                @NotNull final Configuration configuration,
                                @NotNull final RenderLogger logger,
                                @Nullable final RenderContext renderContext) {
@@ -180,7 +180,7 @@ public class RenderService {
       return null;
     }
 
-    if (TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+    if (psiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
       // This means that user is using an outdated version of layoutlib. A warning to update has already been
       // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
       logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
@@ -195,7 +195,10 @@ public class RenderService {
       return null;
     }
 
-    RenderTask task = new RenderTask(this, psiFile, configuration, logger, layoutLib, device, myCredential);
+    RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential);
+    if (psiFile != null) {
+      task.setPsiFile(psiFile);
+    }
     task.setRenderContext(renderContext);
 
     return task;
