@@ -147,6 +147,11 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     return myCurrentStep;
   }
 
+  @Override
+  public List<DynamicWizardStep> getAllSteps() {
+    return mySteps;
+  }
+
   /**
    * Initialize the path, including setting the iterator to the correct location (just before the beginning, or just after the end).
    * Any additional state setup should be done here.
