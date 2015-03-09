@@ -86,6 +86,11 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   }
 
   @Override
+  public List<ModuleWizardStep> getAllSteps() {
+    return mySteps;
+  }
+
+  @Override
   public boolean hasNext() {
     return findNext(myCurrentStep, 1) >= 0;
   }
