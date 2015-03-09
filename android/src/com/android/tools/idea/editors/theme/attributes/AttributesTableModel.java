@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -63,6 +64,10 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final AttributeDefinitions myAttributeDefinitions;
 
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
+  private final List<RowContents> mySpecialRows = ImmutableList.of(
+    new ThemeNameAttribute(),
+    new ParentAttribute()
+  );
 
   public interface ThemePropertyChangedListener {
     void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue);
@@ -101,14 +106,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   public RowContents getRowContents(final int rowIndex) {
-    if (rowIndex == 0) {
-      return new ThemeNameAttribute();
-    }
-    if (rowIndex == 1) {
-      return new ParentAttribute();
+    if (rowIndex < mySpecialRows.size()) {
+      return mySpecialRows.get(rowIndex);
     }
 
-    int offset = 2;
+    int offset = mySpecialRows.size();
     for (final TableLabel label : myLabels) {
       final int labelRowIndex = label.getRowPosition() + offset;
 
