@@ -83,8 +83,17 @@ public class AndroidThemePreviewPanel extends AndroidPreviewPanel implements Ren
         viewClasses.forEach(new Processor<PsiClass>() {
           @Override
           public boolean process(PsiClass psiClass) {
-            builder.addComponent(new ThemePreviewBuilder.ComponentDefinition(psiClass.getName(), ThemePreviewBuilder.ComponentGroup.CUSTOM,
-                                                                             psiClass.getQualifiedName()));
+            String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+            String className = psiClass.getQualifiedName();
+
+            if (description == null || className == null) {
+              // Currently we ignore anonymous views
+              // TODO: Decide how we want to display anonymous classes
+              return false;
+            }
+
+            builder.addComponent(new ThemePreviewBuilder.ComponentDefinition(description, ThemePreviewBuilder.ComponentGroup.CUSTOM,
+                                                                             className));
             return true;
           }
         });
