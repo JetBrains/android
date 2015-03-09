@@ -111,12 +111,12 @@ public class ActionBarHandler extends ActionBarCallback {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       final XmlFile xmlFile = myRenderTask.getPsiFile();
-      String commaSeparatedMenus = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         myMenus = new ArrayList<String>();
         Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
       } else {
-        final String fqn = AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getModule(), xmlFile);
+        final String fqn = xmlFile == null ? null : AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getModule(), xmlFile);
         if (fqn != null) {
           final Project project = xmlFile.getProject();
           DumbService.getInstance(project).smartInvokeLater(new Runnable() {
@@ -178,7 +178,7 @@ public class ActionBarHandler extends ActionBarCallback {
   @Override
   public int getNavigationMode() {
     XmlFile xmlFile = myRenderTask.getPsiFile();
-    String navMode = StringUtil.notNullize(AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
+    String navMode = StringUtil.notNullize(xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
     if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
       return NAVIGATION_MODE_TABS;
     }
