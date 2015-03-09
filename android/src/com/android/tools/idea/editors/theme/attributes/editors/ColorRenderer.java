@@ -40,7 +40,7 @@ public class ColorRenderer implements TableCellRenderer {
   public ColorRenderer(@NotNull Configuration configuration, @NotNull JTable table) {
     myConfiguration = configuration;
 
-    myComponent = new ColorComponent(table.getBackground(), table.getFont().deriveFont(Font.BOLD));
+    myComponent = new ColorComponent(table.getBackground(), table.getFont());
     mySelectedBorder = ColorComponent.getBorder(table.getSelectionBackground());
     myUnselectedBorder = ColorComponent.getBorder(table.getBackground());
   }
