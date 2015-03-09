@@ -23,11 +23,15 @@ import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSSerializer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +47,7 @@ public class ThemePreviewBuilder {
     BUTTONS("Buttons", VALUE_HORIZONTAL),
     TOOLBAR("Toolbar", VALUE_VERTICAL),
     OTHER("Misc", VALUE_VERTICAL),
-    CUSTOM("Custom", VALUE_HORIZONTAL);
+    CUSTOM("Custom", VALUE_VERTICAL);
 
     final String name;
     final String orientation;
@@ -105,7 +109,7 @@ public class ThemePreviewBuilder {
      * Return an Android id string that can be used when serializing the component to XML.
      */
     String getId() {
-      return NEW_ID_PREFIX + name + id;
+      return NEW_ID_PREFIX + "widget" + id;
     }
   }
 
@@ -162,6 +166,7 @@ public class ThemePreviewBuilder {
   private int myApiLevel = Integer.MAX_VALUE;
   private double myScale = 1;
   private String myGroupHeaderColor = "@android:color/darker_gray";
+  private PrintStream myDebugPrintStream;
 
   @NotNull
   private static Element buildMainLayoutElement(@NotNull Document document) {
@@ -217,11 +222,31 @@ public class ThemePreviewBuilder {
     return elementGroup;
   }
 
+  private static void printDebug(@NotNull PrintStream out, @NotNull Document document) {
+    try {
+      DOMImplementationRegistry reg = DOMImplementationRegistry.newInstance();
+
+      DOMImplementationLS impl = (DOMImplementationLS)reg.getDOMImplementation("LS");
+      LSSerializer serializer = impl.createLSSerializer();
+
+      out.println(serializer.writeToString(document));
+    }
+    catch (ClassNotFoundException e) {
+      e.printStackTrace(out);
+    }
+    catch (InstantiationException e) {
+      e.printStackTrace(out);
+    }
+    catch (IllegalAccessException e) {
+      e.printStackTrace(out);
+    }
+  }
+
   @NotNull
   private List<ComponentDefinition> getComponentsByGroup(@NotNull final ComponentGroup group) {
-    Iterable<ComponentDefinition> components = Iterables.concat(
-      AVAILABLE_BASE_COMPONENTS,
-      myAdditionalComponents != null ? myAdditionalComponents : Collections.<ComponentDefinition>emptyList());
+    Iterable<ComponentDefinition> components = Iterables.concat(AVAILABLE_BASE_COMPONENTS, myAdditionalComponents != null
+                                                                                           ? myAdditionalComponents
+                                                                                           : Collections.<ComponentDefinition>emptyList());
     return ImmutableList.copyOf(Iterables.filter(components, new Predicate<ComponentDefinition>() {
       @Override
       public boolean apply(ComponentDefinition input) {
@@ -287,6 +312,12 @@ public class ThemePreviewBuilder {
     return this;
   }
 
+  public ThemePreviewBuilder setDebug(@NotNull PrintStream printStream) {
+    myDebugPrintStream = printStream;
+
+    return this;
+  }
+
   @NotNull
   public Document build() throws ParserConfigurationException {
     DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -344,6 +375,10 @@ public class ThemePreviewBuilder {
           layout.appendChild(elementGroup);
         }
       }
+    }
+
+    if (myDebugPrintStream != null) {
+      printDebug(myDebugPrintStream, document);
     }
 
     return document;
