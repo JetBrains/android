@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.intellij.ui.JBColor;
 import spantable.CellSpanModel;
 import com.intellij.openapi.module.Module;
@@ -75,11 +76,19 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     final Component returnedComponent =
       myDelegate.getTableCellRendererComponent(table, myConvertValueToString ? stringValue : value, isSelected, hasFocus, row, column);
 
+    // Displays private attributes (that should not be modified) with a cross or on a gray background
     if (isEditedStyle && !item.isPublicAttribute()
             && !(myDelegate instanceof ColorRenderer || myDelegate instanceof DrawableRenderer)) {
       returnedComponent.setBackground(JBColor.LIGHT_GRAY);
     } else {
       returnedComponent.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+    }
+
+    // Displays in bold attributes that are overriding their inherited value
+    if (item != null && item.getSourceStyle().equals(((AttributesTableModel) table.getModel()).getSelectedStyle())) {
+      returnedComponent.setFont(table.getFont().deriveFont(Font.BOLD));
+    } else {
+      returnedComponent.setFont(table.getFont());
     }
 
     if (!(returnedComponent instanceof JComponent)) {

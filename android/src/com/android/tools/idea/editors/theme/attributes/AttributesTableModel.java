@@ -170,6 +170,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return false;
   }
 
+  @NotNull
+  public ThemeEditorStyle getSelectedStyle() {
+    return mySelectedStyle;
+  }
+
   /**
    * Basically a union type, RowContents = LabelContents | AttributeContents | ParentAttribute | ThemeNameAttribute
    */
