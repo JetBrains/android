@@ -34,6 +34,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,6 +64,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
   private DataNode<ModuleData> myProjectModule;
   private DataNode<ModuleData> myAppModule;
   private DataNode<ModuleData> myLibModule;
+  private DialogAndWrapper<ModulesToImportDialog> myDialogAndWrapper;
 
   @Before
   public void setUpModules() {
@@ -75,6 +77,13 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     myModules.add(myAppModule);
     myLibModule = createModule("lib", true);
     myModules.add(myLibModule);
+  }
+
+  @After
+  public void closeDialog() {
+    if (myDialogAndWrapper != null) {
+      myRobot.close(myDialogAndWrapper.dialog);
+    }
   }
 
   @NotNull
@@ -91,20 +100,19 @@ public class ModulesToImportDialogTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testModuleSelection() throws IOException {
-    DialogAndWrapper<ModulesToImportDialog> dialogAndWrapper = launchDialog();
+    myDialogAndWrapper = launchDialog();
 
-    ModulesToImportDialog wrapper = dialogAndWrapper.wrapper;
+    ModulesToImportDialog wrapper = myDialogAndWrapper.wrapper;
     // Verify that only modules that are Gradle projects are in the list.
     assertThat(wrapper.getDisplayedModules()).containsOnly("app", "lib");
 
     // Verify that all elements are checked.
-    Collection<DataNode<ModuleData>> selectedModules = dialogAndWrapper.wrapper.getSelectedModules();
+    Collection<DataNode<ModuleData>> selectedModules = myDialogAndWrapper.wrapper.getSelectedModules();
     assertThat(selectedModules).containsOnly(myProjectModule, myAppModule, myLibModule);
 
-    JDialog dialog = dialogAndWrapper.dialog;
-    JTableFixture table = new JTableFixture(myRobot, myRobot.finder().findByType(dialog, JTable.class, true));
+    JTableFixture table = getModuleList();
     table.enterValue(row(1).column(0), "false");
-    selectedModules = dialogAndWrapper.wrapper.getSelectedModules();
+    selectedModules = myDialogAndWrapper.wrapper.getSelectedModules();
     assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
 
     // Save selection to disk
@@ -112,6 +120,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     VirtualFile targetFile = findFileByIoFile(tempFile, true);
     assertNotNull(targetFile);
 
+    JDialog dialog = myDialogAndWrapper.dialog;
     findByText("Save Selection As", myRobot, dialog).click();
     FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
@@ -138,6 +147,22 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
   }
 
+  @Test @IdeGuiTest
+  public void testQuickSearch() {
+    myDialogAndWrapper = launchDialog();
+
+    JTableFixture table = getModuleList();
+    table.focus();
+    myRobot.enterText("lib");
+
+    table.requireSelectedRows(1);
+  }
+
+  @NotNull
+  private JTableFixture getModuleList() {
+    return new JTableFixture(myRobot, myRobot.finder().findByType(myDialogAndWrapper.dialog, JTable.class, true));
+  }
+
   public DialogAndWrapper<ModulesToImportDialog> launchDialog() {
     final ModulesToImportDialog dialog = GuiActionRunner.execute(new GuiQuery<ModulesToImportDialog>() {
       @Override
@@ -157,7 +182,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     return IdeaDialogFixture.find(myRobot, ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
-        return "Select Modules to Include".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Select Modules to Include in Project Subset".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
   }
