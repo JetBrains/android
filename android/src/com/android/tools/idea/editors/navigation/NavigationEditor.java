@@ -19,6 +19,7 @@ package com.android.tools.idea.editors.navigation;
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.navigation.Event.Operation;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
@@ -33,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
@@ -209,12 +211,7 @@ public class NavigationEditor implements FileEditor {
     mySaveListener = new FileDocumentManagerAdapter() {
       @Override
       public void beforeAllDocumentsSaving() {
-        try {
-          saveFile();
-        }
-        catch (IOException e) {
-          LOG.error("Unexpected exception while saving navigation file", e);
-        }
+        saveNavigationFile();
       }
     };
 
@@ -304,10 +301,10 @@ public class NavigationEditor implements FileEditor {
 
   private void postDelayedRefresh() {
     if (DEBUG) System.out.println("NavigationEditor: postDelayedRefresh");
-    // Post to the event queue to coalesce events and effect re-parse when they're all in
+    // Post to the event queue to coalesce events and effect re-parse when they're all in and we have finished indexing
     if (!myPendingFileSystemChanges) {
       myPendingFileSystemChanges = true;
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
+      DumbService.getInstance(myRenderingParams.project).smartInvokeLater(new Runnable() {
         @Override
         public void run() {
           myPendingFileSystemChanges = false;
@@ -602,17 +599,17 @@ public class NavigationEditor implements FileEditor {
     return unattached;
   }
 
-  private static void conditionallyExecuteOnBackgroundThread(Runnable action) {
+  private static void conditionallyExecuteOnBackgroundThread(Project project, Runnable action) {
     if (RUN_ANALYSIS_ON_BACKGROUND_THREAD) {
       ApplicationManager.getApplication().executeOnPooledThread(action);
     } else {
-      action.run();
+      DumbService.getInstance(project).smartInvokeLater(action);
     }
   }
 
   private void updateNavigationModelFromProject() {
     final Application app = ApplicationManager.getApplication();
-    conditionallyExecuteOnBackgroundThread(new Runnable() {
+    conditionallyExecuteOnBackgroundThread(myRenderingParams.project, new Runnable() {
       @Override
       public void run() {
         app.runReadAction(new Runnable() {
@@ -688,12 +685,22 @@ public class NavigationEditor implements FileEditor {
     return null;
   }
 
-  private void saveFile() throws IOException {
+  private void saveNavigationFile() {
     if (myModified && myFile.isWritable()) {
-      ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
-      new XMLWriter(stream).write(myNavigationModel);
-      myFile.setBinaryContent(stream.toByteArray());
-      myModified = false;
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            final ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
+            new XMLWriter(stream).write(myNavigationModel);
+            myFile.setBinaryContent(stream.toByteArray());
+            myModified = false;
+          }
+          catch (IOException e) {
+            LOG.error("Unexpected exception while saving navigation file", e);
+          }
+        }
+      });
     }
   }
 
@@ -702,12 +709,7 @@ public class NavigationEditor implements FileEditor {
    */
   @Override
   public void dispose() {
-    try {
-      saveFile();
-    }
-    catch (IOException e) {
-      LOG.error("Unexpected exception while saving navigation file", e);
-    }
+    saveNavigationFile();
   }
 
   @Nullable
