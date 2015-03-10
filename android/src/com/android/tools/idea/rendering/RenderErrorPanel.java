@@ -34,6 +34,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -60,6 +61,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.containers.HashSet;
@@ -118,6 +120,7 @@ public class RenderErrorPanel extends JPanel {
   private static final int ERROR_PANEL_OPACITY = UIUtil.isUnderDarcula() ? 224 : 208; // out of 255
   /** Class of the render session implementation class; for render errors, we cut off stack dumps at this frame */
   private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
+  private static final Logger LOG = Logger.getInstance(RenderErrorPanel.class);
 
   private JEditorPane myHTMLViewer;
   private final HyperlinkListener myHyperLinkListener;
@@ -752,7 +755,12 @@ public class RenderErrorPanel extends JPanel {
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
       ResourceResolver resourceResolver = renderTask.getResourceResolver();
-      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, renderTask.getPsiFile(), resourceResolver);
+      XmlFile psiFile = renderTask.getPsiFile();
+      if (psiFile == null) {
+        LOG.error("PsiFile is missing in RenderTask used in RenderErrorPanel!");
+        return;
+      }
+      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, psiFile, resourceResolver);
 
       List<XmlTag> missing = fix.findViewsMissingSizes();
 
