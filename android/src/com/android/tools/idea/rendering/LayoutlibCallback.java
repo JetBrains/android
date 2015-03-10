@@ -41,7 +41,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.RecyclerViewConstants;
+import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,8 +70,8 @@ public class LayoutlibCallback extends LegacyCallback {
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
-  private static final Set<String> NOT_VIEW = Collections.unmodifiableSet(Sets.newHashSet(RecyclerViewConstants.CN_RV_ADAPTER,
-                                                                                          RecyclerViewConstants.CN_RV_LAYOUT_MANAGER,
+  private static final Set<String> NOT_VIEW = Collections.unmodifiableSet(Sets.newHashSet(RecyclerViewHelper.CN_RV_ADAPTER,
+                                                                                          RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
                                                                                           "android.support.v7.internal.app.WindowDecorActionBar"));
 
   @NotNull private final Module myModule;
