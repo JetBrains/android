@@ -27,6 +27,7 @@ import java.io.IOException;
 
 public class Schema implements BinaryObject {
   ArrayInfo[] myArrays;
+  StaticArrayInfo[] myStaticArrays;
   MapInfo[] myMaps;
   EnumInfo[] myEnums;
   StructInfo[] myStructs;
@@ -49,6 +50,14 @@ public class Schema implements BinaryObject {
 
   public void setArrays(ArrayInfo[] v) {
     myArrays = v;
+  }
+
+  public StaticArrayInfo[] getStaticArrays() {
+    return myStaticArrays;
+  }
+
+  public void setStaticArrays(StaticArrayInfo[] v) {
+    myStaticArrays = v;
   }
 
   public MapInfo[] getMaps() {
