@@ -142,9 +142,6 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
-    <action id="Android.Debugger.ViewBitmapAction" text="View Bitmap" class="com.android.tools.idea.run.ViewBitmapAction">
-      <add-to-group group-id="Debugger.FramePanelPopup" anchor="last"/>
-    </action>
     <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
@@ -667,6 +664,8 @@
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapDrawableRenderer" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
   </extensions>
