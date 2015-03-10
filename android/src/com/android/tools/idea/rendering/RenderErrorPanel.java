@@ -908,6 +908,10 @@ public class RenderErrorPanel extends JPanel {
     if (end == -1 || !haveInterestingFrame) {
       // Not a recognized stack trace range: just skip it
       if (hideIfIrrelevant) {
+        if (RenderLogger.isLoggingAllErrors()) {
+          ShowExceptionFix detailsFix = new ShowExceptionFix(myResult.getModule().getProject(), throwable);
+          builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
+        }
         return;
       } else {
         // List just the top frames
