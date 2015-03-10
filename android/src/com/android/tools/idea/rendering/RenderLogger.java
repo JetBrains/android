@@ -724,4 +724,8 @@ public class RenderLogger extends LayoutLog {
     }));
     return problem;
   }
+
+  static boolean isLoggingAllErrors() {
+    return LOG_ALL;
+  }
 }
