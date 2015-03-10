@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -106,7 +107,7 @@ public class ThemeEditorComponent extends Splitter {
   private final JCheckBox myAdvancedFilterCheckBox = myPanel.getAdvancedFilterCheckBox();
   private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
-  private final ClickableTableCellRendererEditor myStyleEditor;
+  private final AttributeReferenceRendererEditor myStyleEditor;
   private final ConfigurationListener myConfigListener;
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
@@ -143,33 +144,36 @@ public class ThemeEditorComponent extends Splitter {
         return myComponent.getRowCount() * myComponent.getColumnCount();
       }
     };
-
+    
     // Setup Javadoc handler.
     ActionManager actionManager = ActionManager.getInstance();
     ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable);
     showJavadoc.registerCustomShortcutSet(actionManager.getAction(IdeActions.ACTION_QUICK_JAVADOC).getShortcutSet(), myAttributesTable);
 
-    myStyleEditor = new ClickableTableCellRendererEditor(new ClickableTableCellRendererEditor.ClickListener() {
+    Project project = myModule.getProject();
+    ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myConfiguration.getResourceResolver());
+    myStyleEditor = new AttributeReferenceRendererEditor(new AttributeReferenceRendererEditor.ClickListener() {
       @Override
-      public void clicked(EditedStyleItem value) {
+      public void clicked(@NotNull EditedStyleItem value) {
         if (value.isAttr()) {
           // We need to resolve the theme attribute.
           // TODO: Do we need a full resolution or can we just try to get it from the StyleWrapper?
-          ItemResourceValue resourceValue = (ItemResourceValue) myConfiguration.getResourceResolver().findResValue(value.getValue(), false);
-          if (resourceValue == null ) {
+          ItemResourceValue resourceValue = (ItemResourceValue)myConfiguration.getResourceResolver().findResValue(value.getValue(), false);
+          if (resourceValue == null) {
             LOG.error("Unable to resolve " + value.getValue());
             return;
           }
 
           EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
           myCurrentSubStyle = myStyleResolver.getStyle(editedStyleItem.getValue());
-        } else {
+        }
+        else {
           myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
         }
         mySubStyleSourceAttribute = value;
         loadStyleAttributes();
       }
-    });
+    }, project, completionProvider);
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     RenderTask renderTask = null;
@@ -209,10 +213,11 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration, myAttributesTable), module, configuration));
-    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(String.class), module, configuration));
+    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider), module, configuration));
     myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), module, configuration));
     myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myModule), module, configuration));
     myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor(attributeDefinitions), module, configuration));
+
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
     myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myAttributesTable, renderTask), module, configuration));
@@ -531,10 +536,10 @@ public class ThemeEditorComponent extends Splitter {
       mySubStyleLabel.setVisible(true);
 
       // Editing substyle of a substyle is disabled, because it's not clear how to do it properly
-      myStyleEditor.setDetailsActive(false);
+      myStyleEditor.setAreDetailsActive(false);
     } else {
       mySubStyleLabel.setVisible(false);
-      myStyleEditor.setDetailsActive(true);
+      myStyleEditor.setAreDetailsActive(true);
     }
 
     // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
