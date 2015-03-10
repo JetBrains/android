@@ -65,6 +65,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -465,7 +466,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     @Override
     public Dimension getPreferredSize() {
-      return new Dimension(1024, 768);
+      return JBUI.size(800, 600);
     }
   }
 
