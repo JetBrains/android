@@ -21,10 +21,7 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -56,11 +53,12 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.text.Collator;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -84,6 +82,9 @@ import static java.util.Collections.emptyList;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class ModulesToImportDialog extends DialogWrapper {
+  private static final int SELECTED_MODULE_COLUMN = 0;
+  private static final int MODULE_NAME_COLUMN = 1;
+
   @NotNull private final List<DataNode<ModuleData>> alwaysIncludedModules = Lists.newArrayList();
 
   @Nullable private final Project myProject;
@@ -94,23 +95,16 @@ public class ModulesToImportDialog extends DialogWrapper {
   private JPanel myContentsPanel;
   private JBLabel mySelectionStatusLabel;
 
-  private volatile boolean skipValidation;
+  private volatile boolean mySkipValidation;
 
   public ModulesToImportDialog(@NotNull Collection<DataNode<ModuleData>> modules, @Nullable Project project) {
     super(project, true, IdeModalityType.IDE);
     setTitle("Select Modules to Include in Project Subset");
     myProject = project;
 
-    List<DataNode<ModuleData>> sortedModules = Lists.newArrayList(modules);
-    Collections.sort(sortedModules, new Comparator<DataNode<ModuleData>>() {
-      @Override
-      public int compare(@NotNull DataNode<ModuleData> m1, @NotNull DataNode<ModuleData> m2) {
-        return getNameOf(m1).compareTo(getNameOf(m2));
-      }
-    });
-
     init();
-    for (DataNode<ModuleData> module : sortedModules) {
+    ModuleTableModel model = getModulesTable().getModel();
+    for (DataNode<ModuleData> module : modules) {
       Collection<DataNode<IdeaGradleProject>> gradleProjects = getChildren(module, IDE_GRADLE_PROJECT);
       if (gradleProjects.isEmpty()) {
         alwaysIncludedModules.add(module);
@@ -119,14 +113,18 @@ public class ModulesToImportDialog extends DialogWrapper {
         // We only show modules that are recognized in Gradle.
         // For example, in a multi-module project the top-level module is just a folder that contains the rest of
         // modules, which is not defined in settings.gradle.
-        getModulesTable().add(module);
+        model.add(module);
       }
     }
+
+    getModulesTable().sort();
 
     myDescriptionLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
     DefaultActionGroup group = new DefaultActionGroup();
     group.addAll(new SelectAllAction(true), new SelectAllAction(false));
+    group.addSeparator();
+    group.add(new ShowSelectedModulesAction(getModulesTable()));
     group.addSeparator();
     group.addAll(new LoadFromFileAction(), new SaveToFileAction());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("android.gradle.module.selection.dialog.toolbar", group, true);
@@ -144,10 +142,12 @@ public class ModulesToImportDialog extends DialogWrapper {
 
   private void updateSelectionStatus() {
     ModuleTable table = getModulesTable();
-    int rowCount = table.getRowCount();
-    int selectedRowCount = table.getModel().selectedRowCount;
+    ModuleTableModel model = table.getModel();
+    int rowCount = model.getRowCount();
+    int selectedRowCount = model.selectedRowCount;
     String msg = String.format("%1$d Modules. %2$d selected", rowCount, selectedRowCount);
     mySelectionStatusLabel.setText(msg);
+    table.updateFilter();
   }
 
   @NotNull
@@ -169,13 +169,13 @@ public class ModulesToImportDialog extends DialogWrapper {
   }
 
   private void setAllSelected(boolean selected) {
-    ModuleTable table = getModulesTable();
-    int count = table.getRowCount();
-    skipValidation = true;
+    ModuleTableModel model = getModulesTable().getModel();
+    int count = model.getRowCount();
+    mySkipValidation = true;
     for (int i = 0; i < count; i++) {
-      table.setItemSelected(i, selected);
+      model.setItemSelected(i, selected);
     }
-    skipValidation = false;
+    mySkipValidation = false;
     if (!selected) {
       initValidation();
     }
@@ -199,22 +199,23 @@ public class ModulesToImportDialog extends DialogWrapper {
   private Collection<DataNode<ModuleData>> getUserSelectedModules() {
     List<DataNode<ModuleData>> modules = Lists.newArrayList();
     ModuleTable table = getModulesTable();
-    int count = table.getRowCount();
+    ModuleTableModel model = table.getModel();
+    int count = model.getRowCount();
     for (int i = 0; i < count; i++) {
-      if (table.isItemSelected(i)) {
-        modules.add(table.getItemAt(i));
+      if (model.isItemSelected(i)) {
+        modules.add(model.getItemAt(i));
       }
     }
     return modules;
   }
 
   private void select(@NotNull List<String> moduleNames) {
-    ModuleTable table = getModulesTable();
-    int count = table.getRowCount();
+    ModuleTableModel model = getModulesTable().getModel();
+    int count = model.getRowCount();
     for (int i = 0; i < count; i++) {
-      DataNode<ModuleData> module = table.getItemAt(i);
+      DataNode<ModuleData> module = model.getItemAt(i);
       String name = getNameOf(module);
-      table.setItemSelected(i, moduleNames.contains(name));
+      model.setItemSelected(i, moduleNames.contains(name));
     }
   }
 
@@ -245,18 +246,37 @@ public class ModulesToImportDialog extends DialogWrapper {
   }
 
   public void updateSelection(@NotNull Collection<String> selection) {
-    ModuleTable table = getModulesTable();
-    int count = table.getRowCount();
-    skipValidation = true;
+    ModuleTableModel model = getModulesTable().getModel();
+    int count = model.getRowCount();
+    mySkipValidation = true;
     for (int i = 0; i < count; i++) {
-      DataNode<ModuleData> module = table.getModel().getItemAt(i);
+      DataNode<ModuleData> module = model.getItemAt(i);
       String name = getNameOf(module);
       boolean selected = selection.contains(name);
-      table.setItemSelected(i, selected);
+      model.setItemSelected(i, selected);
     }
-    skipValidation = false;
+    mySkipValidation = false;
     initValidation();
     updateSelectionStatus();
+  }
+
+  private static class ShowSelectedModulesAction extends ToggleAction {
+    private ModuleTable myTable;
+
+    ShowSelectedModulesAction(@NotNull ModuleTable table) {
+      super("Show Selected Modules Only", null, AllIcons.Actions.ShowHiddens);
+      myTable = table;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myTable.myShowSelectedRowsOnly;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myTable.setShowSelectedRowsOnly(state);
+    }
   }
 
   private class SelectAllAction extends DumbAwareAction {
@@ -271,7 +291,8 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      e.getPresentation().setEnabled(myModulesTable.getRowCount() > 0);
+      int rowCount = getModulesTable().getModel().getRowCount();
+      e.getPresentation().setEnabled(rowCount > 0);
     }
 
     @Override
@@ -399,6 +420,9 @@ public class ModulesToImportDialog extends DialogWrapper {
   }
 
   private class ModuleTable extends JBTable {
+    private ModuleTableRowSorter myRowSorter;
+    private boolean myShowSelectedRowsOnly;
+
     ModuleTable() {
       super(new ModuleTableModel());
       setCheckBoxColumnWidth();
@@ -413,7 +437,7 @@ public class ModulesToImportDialog extends DialogWrapper {
     }
 
     private void setCheckBoxColumnWidth() {
-      TableColumn column = getColumnModel().getColumn(ModuleTableModel.SELECTED_MODULE_COLUMN);
+      TableColumn column = getColumnModel().getColumn(SELECTED_MODULE_COLUMN);
       int width = 30;
       column.setMaxWidth(width);
       column.setPreferredWidth(width);
@@ -421,7 +445,7 @@ public class ModulesToImportDialog extends DialogWrapper {
     }
 
     private void setModuleNameCellRenderer() {
-      TableColumn column = getColumnModel().getColumn(ModuleTableModel.MODULE_NAME_COLUMN);
+      TableColumn column = getColumnModel().getColumn(MODULE_NAME_COLUMN);
       column.setCellRenderer(new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
@@ -442,34 +466,61 @@ public class ModulesToImportDialog extends DialogWrapper {
       });
     }
 
+    void updateFilter() {
+      setShowSelectedRowsOnly(myShowSelectedRowsOnly);
+    }
+
+    void setShowSelectedRowsOnly(boolean showSelectedRowsOnly) {
+      myShowSelectedRowsOnly = showSelectedRowsOnly;
+      if (myRowSorter == null) {
+        sort();
+      }
+      if (showSelectedRowsOnly) {
+        myRowSorter.setRowFilter(new RowFilter<ModuleTableModel, Integer>() {
+          @Override
+          public boolean include(Entry<? extends ModuleTableModel, ? extends Integer> entry) {
+            Object value = entry.getValue(MODULE_NAME_COLUMN);
+            if (value instanceof ModuleRow) {
+              ModuleRow row = (ModuleRow)value;
+              return row.selected;
+            }
+            return false;
+          }
+        });
+      }
+      else {
+        myRowSorter.setRowFilter(null);
+      }
+    }
+
+    void sort() {
+      myRowSorter = new ModuleTableRowSorter(getModel());
+      setRowSorter(myRowSorter);
+    }
+
     @Override
     @NotNull
     public ModuleTableModel getModel() {
       return (ModuleTableModel)super.getModel();
     }
+  }
 
-    void add(@NotNull DataNode<ModuleData> module) {
-      getModel().add(module);
-    }
-
-    boolean isItemSelected(int rowIndex) {
-      return getModel().isItemSelected(rowIndex);
-    }
-
-    @NotNull
-    public DataNode<ModuleData> getItemAt(int rowIndex) {
-      return getModel().getItemAt(rowIndex);
-    }
-
-    void setItemSelected(int rowIndex, boolean selected) {
-      getModel().setItemSelected(rowIndex, selected);
+  private static class ModuleTableRowSorter extends TableRowSorter<ModuleTableModel> {
+    ModuleTableRowSorter(@NotNull ModuleTableModel model) {
+      super(model);
+      setComparator(MODULE_NAME_COLUMN, new Comparator<ModuleRow>() {
+        @Override
+        public int compare(ModuleRow row1, ModuleRow row2) {
+          return Collator.getInstance().compare(row1.toString(), row2.toString());
+        }
+      });
+      List<RowSorter.SortKey> sortKeys = Lists.newArrayList();
+      sortKeys.add(new RowSorter.SortKey(MODULE_NAME_COLUMN, SortOrder.ASCENDING));
+      setSortKeys(sortKeys);
     }
   }
 
   private class ModuleTableModel extends AbstractTableModel {
-    private static final int SELECTED_MODULE_COLUMN = 0;
-    private static final int MODULE_NAME_COLUMN = 1;
-
     public int selectedRowCount;
 
     @NotNull private final List<ModuleRow> rows = Lists.newArrayList();
@@ -516,6 +567,8 @@ public class ModulesToImportDialog extends DialogWrapper {
       switch (columnIndex) {
         case SELECTED_MODULE_COLUMN:
           return Boolean.class;
+        case MODULE_NAME_COLUMN:
+          return ModuleRow.class;
         default:
           return Object.class;
       }
@@ -530,7 +583,7 @@ public class ModulesToImportDialog extends DialogWrapper {
     public void setValueAt(@Nullable Object aValue, int rowIndex, int columnIndex) {
       if (rowIndex < rows.size() && columnIndex == SELECTED_MODULE_COLUMN && aValue instanceof Boolean) {
         boolean selected = (Boolean)aValue;
-        if (setItemSelected(rowIndex, selected) && !skipValidation) {
+        if (setItemSelected(rowIndex, selected) && !mySkipValidation) {
           initValidation();
           updateSelectionStatus();
         }
@@ -590,6 +643,11 @@ public class ModulesToImportDialog extends DialogWrapper {
         }
       }
       return PpJdk;
+    }
+
+    @Override
+    public String toString() {
+      return getNameOf(module);
     }
   }
 }
