@@ -40,10 +40,11 @@ public enum TypeKind {
   Struct(14),
   Class(15),
   Array(16),
-  Map(17),
-  Pointer(18),
-  Memory(19),
-  Any(20);
+  StaticArray(17),
+  Map(18),
+  Pointer(19),
+  Memory(20),
+  Any(21);
 
   final int myValue;
 
@@ -87,12 +88,14 @@ public enum TypeKind {
       case 16:
         return Array;
       case 17:
-        return Map;
+        return StaticArray;
       case 18:
-        return Pointer;
+        return Map;
       case 19:
-        return Memory;
+        return Pointer;
       case 20:
+        return Memory;
+      case 21:
         return Any;
       default:
         throw new RuntimeException("Unknown TypeKind " + id);

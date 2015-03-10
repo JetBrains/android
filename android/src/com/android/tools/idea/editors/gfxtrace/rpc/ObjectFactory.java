@@ -23,6 +23,7 @@ import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import com.android.tools.rpclib.binary.ObjectTypeID;
 import java.io.IOException;
+
 class ObjectFactory {
   public enum Entries implements BinaryObjectCreator {
     ArrayInfoEnum {
@@ -140,6 +141,11 @@ class ObjectFactory {
         return new SimpleInfo();
       }
     },
+    StaticArrayInfoEnum {
+      @Override public BinaryObject create() {
+        return new StaticArrayInfo();
+      }
+    },
     StructInfoEnum {
       @Override public BinaryObject create() {
         return new StructInfo();
@@ -188,6 +194,11 @@ class ObjectFactory {
     callGetTimingInfoEnum {
       @Override public BinaryObject create() {
         return new Commands.GetTimingInfo.Call();
+      }
+    },
+    callPrerenderFramebuffersEnum {
+      @Override public BinaryObject create() {
+        return new Commands.PrerenderFramebuffers.Call();
       }
     },
     callReplaceAtomEnum {
@@ -280,6 +291,11 @@ class ObjectFactory {
         return new Commands.GetTimingInfo.Result();
       }
     },
+    resultPrerenderFramebuffersEnum {
+      @Override public BinaryObject create() {
+        return new Commands.PrerenderFramebuffers.Result();
+      }
+    },
     resultReplaceAtomEnum {
       @Override public BinaryObject create() {
         return new Commands.ReplaceAtom.Result();
@@ -353,8 +369,9 @@ class ObjectFactory {
   public static byte[] MemoryRangeIDBytes = { -6, -59, -124, 36, 108, 27, 71, 14, -27, -37, 103, 41, -40, -79, -127, 59, -2, 83, 58, -99, };
   public static byte[] ParameterInfoIDBytes = { 70, 10, -39, 115, 23, -67, 125, 2, 20, -19, 6, -88, 9, 21, -92, -61, -48, -61, -32, -1, };
   public static byte[] RenderSettingsIDBytes = { 24, 35, 53, -17, -48, 58, -28, 37, 23, -60, 122, 43, -85, 50, 16, -100, 34, -122, 35, 0, };
-  public static byte[] SchemaIDBytes = { 63, 37, -14, -118, -125, 104, 77, 15, 64, -111, 52, -125, -70, -79, -49, -13, 68, -112, -40, 86, };
+  public static byte[] SchemaIDBytes = { 55, 76, -40, -84, 31, -56, 77, 16, -76, -25, -88, 60, 114, 73, 122, 98, 97, 120, -32, -51, };
   public static byte[] SimpleInfoIDBytes = { -51, 115, -60, -25, 72, 63, 11, -40, -100, 109, -88, 78, 81, 107, 76, -52, -91, -108, 58, 37, };
+  public static byte[] StaticArrayInfoIDBytes = { 91, -96, 39, 64, 102, 65, 53, 111, 74, -35, 59, -96, -28, 38, 74, -110, 114, 104, -61, 59, };
   public static byte[] StructInfoIDBytes = { -15, -61, 88, 95, 55, -3, -78, -124, -17, 26, -11, -126, 61, -59, 90, 52, 73, 18, -44, -88, };
   public static byte[] TimingInfoIDBytes = { 25, -40, -25, -37, -25, -78, -36, 46, 115, 8, -62, -105, 46, 104, -71, -110, 82, 74, 10, -41, };
   public static byte[] callGetCapturesIDBytes = { -80, 47, 61, -91, -123, -107, -12, 33, 32, 118, -88, -90, 90, 83, -97, -4, -40, 16, -37, 21, };
@@ -365,6 +382,7 @@ class ObjectFactory {
   public static byte[] callGetMemoryInfoIDBytes = { 87, 94, 3, -39, -76, 16, 30, -108, 23, -44, 95, -5, -100, -40, 10, 23, 37, -100, 111, -88, };
   public static byte[] callGetStateIDBytes = { -11, -73, -75, 116, -87, 34, 119, 56, -51, 116, -95, -116, -112, -104, -68, 56, -124, 23, 117, 68, };
   public static byte[] callGetTimingInfoIDBytes = { -60, -46, 2, 118, 95, 61, -104, -117, 6, 1, 104, 65, 60, -55, 103, -128, -120, 59, -107, -116, };
+  public static byte[] callPrerenderFramebuffersIDBytes = { 21, 52, -111, -115, -18, -107, 62, 82, -118, -80, 66, -21, -118, -49, -38, -15, -64, 37, -78, -21, };
   public static byte[] callReplaceAtomIDBytes = { 59, 106, -102, 48, 58, 50, -64, 58, 80, 92, -19, -87, -44, 106, 5, 84, -77, -30, -107, 61, };
   public static byte[] callResolveAtomStreamIDBytes = { 107, -17, 124, 43, 126, 60, 35, -29, -32, 56, -72, -36, -69, -46, -119, -109, -70, -103, 121, -112, };
   public static byte[] callResolveBinaryIDBytes = { 8, 104, 27, 119, -105, 11, -75, 52, -101, -19, 20, 88, 94, 69, 9, -126, 12, 71, 87, -23, };
@@ -383,6 +401,7 @@ class ObjectFactory {
   public static byte[] resultGetMemoryInfoIDBytes = { 84, -36, 16, -49, 109, -106, 112, -39, 0, 125, -41, 31, 8, 74, -93, -81, 87, -38, 9, -18, };
   public static byte[] resultGetStateIDBytes = { -96, 30, 64, 32, -47, 77, -58, 25, -12, -53, 16, -50, -127, 9, -119, -33, -83, 99, -10, -18, };
   public static byte[] resultGetTimingInfoIDBytes = { 29, 23, 50, 84, -77, -67, -66, 87, -38, -17, -78, -80, 75, 95, -62, -123, -123, -53, -113, -13, };
+  public static byte[] resultPrerenderFramebuffersIDBytes = { -62, -98, 17, 97, 34, -53, -40, -4, 108, 92, -71, 15, 7, -127, 103, -55, 46, 31, 47, -8, };
   public static byte[] resultReplaceAtomIDBytes = { 82, 98, -26, 39, 84, 78, -114, -113, 30, -97, 94, -11, -115, 100, 56, -103, -76, 87, -17, -1, };
   public static byte[] resultResolveAtomStreamIDBytes = { 5, -71, -104, 61, 111, 95, -64, 35, -78, -31, 46, 85, -12, 55, 113, -26, -45, -104, -65, 82, };
   public static byte[] resultResolveBinaryIDBytes = { -65, -67, 119, -10, -63, 19, -116, -2, 56, -43, 48, 60, 88, -56, 103, -65, 23, -50, 113, -23, };
@@ -417,6 +436,7 @@ class ObjectFactory {
   public static ObjectTypeID RenderSettingsID = new ObjectTypeID(RenderSettingsIDBytes);
   public static ObjectTypeID SchemaID = new ObjectTypeID(SchemaIDBytes);
   public static ObjectTypeID SimpleInfoID = new ObjectTypeID(SimpleInfoIDBytes);
+  public static ObjectTypeID StaticArrayInfoID = new ObjectTypeID(StaticArrayInfoIDBytes);
   public static ObjectTypeID StructInfoID = new ObjectTypeID(StructInfoIDBytes);
   public static ObjectTypeID TimingInfoID = new ObjectTypeID(TimingInfoIDBytes);
   public static ObjectTypeID callGetCapturesID = new ObjectTypeID(callGetCapturesIDBytes);
@@ -427,6 +447,7 @@ class ObjectFactory {
   public static ObjectTypeID callGetMemoryInfoID = new ObjectTypeID(callGetMemoryInfoIDBytes);
   public static ObjectTypeID callGetStateID = new ObjectTypeID(callGetStateIDBytes);
   public static ObjectTypeID callGetTimingInfoID = new ObjectTypeID(callGetTimingInfoIDBytes);
+  public static ObjectTypeID callPrerenderFramebuffersID = new ObjectTypeID(callPrerenderFramebuffersIDBytes);
   public static ObjectTypeID callReplaceAtomID = new ObjectTypeID(callReplaceAtomIDBytes);
   public static ObjectTypeID callResolveAtomStreamID = new ObjectTypeID(callResolveAtomStreamIDBytes);
   public static ObjectTypeID callResolveBinaryID = new ObjectTypeID(callResolveBinaryIDBytes);
@@ -445,6 +466,7 @@ class ObjectFactory {
   public static ObjectTypeID resultGetMemoryInfoID = new ObjectTypeID(resultGetMemoryInfoIDBytes);
   public static ObjectTypeID resultGetStateID = new ObjectTypeID(resultGetStateIDBytes);
   public static ObjectTypeID resultGetTimingInfoID = new ObjectTypeID(resultGetTimingInfoIDBytes);
+  public static ObjectTypeID resultPrerenderFramebuffersID = new ObjectTypeID(resultPrerenderFramebuffersIDBytes);
   public static ObjectTypeID resultReplaceAtomID = new ObjectTypeID(resultReplaceAtomIDBytes);
   public static ObjectTypeID resultResolveAtomStreamID = new ObjectTypeID(resultResolveAtomStreamIDBytes);
   public static ObjectTypeID resultResolveBinaryID = new ObjectTypeID(resultResolveBinaryIDBytes);
@@ -480,6 +502,7 @@ class ObjectFactory {
     ObjectTypeID.register(RenderSettingsID, Entries.RenderSettingsEnum);
     ObjectTypeID.register(SchemaID, Entries.SchemaEnum);
     ObjectTypeID.register(SimpleInfoID, Entries.SimpleInfoEnum);
+    ObjectTypeID.register(StaticArrayInfoID, Entries.StaticArrayInfoEnum);
     ObjectTypeID.register(StructInfoID, Entries.StructInfoEnum);
     ObjectTypeID.register(TimingInfoID, Entries.TimingInfoEnum);
     ObjectTypeID.register(callGetCapturesID, Entries.callGetCapturesEnum);
@@ -490,6 +513,7 @@ class ObjectFactory {
     ObjectTypeID.register(callGetMemoryInfoID, Entries.callGetMemoryInfoEnum);
     ObjectTypeID.register(callGetStateID, Entries.callGetStateEnum);
     ObjectTypeID.register(callGetTimingInfoID, Entries.callGetTimingInfoEnum);
+    ObjectTypeID.register(callPrerenderFramebuffersID, Entries.callPrerenderFramebuffersEnum);
     ObjectTypeID.register(callReplaceAtomID, Entries.callReplaceAtomEnum);
     ObjectTypeID.register(callResolveAtomStreamID, Entries.callResolveAtomStreamEnum);
     ObjectTypeID.register(callResolveBinaryID, Entries.callResolveBinaryEnum);
@@ -508,6 +532,7 @@ class ObjectFactory {
     ObjectTypeID.register(resultGetMemoryInfoID, Entries.resultGetMemoryInfoEnum);
     ObjectTypeID.register(resultGetStateID, Entries.resultGetStateEnum);
     ObjectTypeID.register(resultGetTimingInfoID, Entries.resultGetTimingInfoEnum);
+    ObjectTypeID.register(resultPrerenderFramebuffersID, Entries.resultPrerenderFramebuffersEnum);
     ObjectTypeID.register(resultReplaceAtomID, Entries.resultReplaceAtomEnum);
     ObjectTypeID.register(resultResolveAtomStreamID, Entries.resultResolveAtomStreamEnum);
     ObjectTypeID.register(resultResolveBinaryID, Entries.resultResolveBinaryEnum);
@@ -863,6 +888,10 @@ class ObjectFactory {
     for (int i = 0; i < o.myArrays.length; i++) {
       e.object(o.myArrays[i]);
     }
+    e.int32(o.myStaticArrays.length);
+    for (int i = 0; i < o.myStaticArrays.length; i++) {
+      e.object(o.myStaticArrays[i]);
+    }
     e.int32(o.myMaps.length);
     for (int i = 0; i < o.myMaps.length; i++) {
       e.object(o.myMaps[i]);
@@ -890,6 +919,10 @@ class ObjectFactory {
     o.myArrays = new ArrayInfo[d.int32()];
     for (int i = 0; i < o.myArrays.length; i++) {
       o.myArrays[i] = (ArrayInfo)d.object();
+    }
+    o.myStaticArrays = new StaticArrayInfo[d.int32()];
+    for (int i = 0; i < o.myStaticArrays.length; i++) {
+      o.myStaticArrays[i] = (StaticArrayInfo)d.object();
     }
     o.myMaps = new MapInfo[d.int32()];
     for (int i = 0; i < o.myMaps.length; i++) {
@@ -922,6 +955,26 @@ class ObjectFactory {
   public static void decode(Decoder d, SimpleInfo o) throws IOException {
     o.myName = d.string();
     o.myKind = TypeKind.decode(d);
+  }
+
+  public static void encode(Encoder e, StaticArrayInfo o) throws IOException {
+    e.string(o.myName);
+    o.myKind.encode(e);
+    e.object(o.myElementType);
+    e.int32(o.myDimensions.length);
+    for (int i = 0; i < o.myDimensions.length; i++) {
+      e.uint32(o.myDimensions[i]);
+    }
+  }
+
+  public static void decode(Decoder d, StaticArrayInfo o) throws IOException {
+    o.myName = d.string();
+    o.myKind = TypeKind.decode(d);
+    o.myElementType = (TypeInfo)d.object();
+    o.myDimensions = new int[d.int32()];
+    for (int i = 0; i < o.myDimensions.length; i++) {
+      o.myDimensions[i] = d.uint32();
+    }
   }
 
   public static void encode(Encoder e, StructInfo o) throws IOException {
@@ -1062,6 +1115,28 @@ class ObjectFactory {
     o.myCapture = new CaptureId(d);
     o.myContextId = d.uint32();
     o.myMask = TimingMask.decode(d);
+  }
+
+  public static void encode(Encoder e, Commands.PrerenderFramebuffers.Call o) throws IOException {
+    o.myDevice.encode(e);
+    o.myCapture.encode(e);
+    e.uint32(o.myWidth);
+    e.uint32(o.myHeight);
+    e.int32(o.myAtomIds.length);
+    for (int i = 0; i < o.myAtomIds.length; i++) {
+      e.uint64(o.myAtomIds[i]);
+    }
+  }
+
+  public static void decode(Decoder d, Commands.PrerenderFramebuffers.Call o) throws IOException {
+    o.myDevice = new DeviceId(d);
+    o.myCapture = new CaptureId(d);
+    o.myWidth = d.uint32();
+    o.myHeight = d.uint32();
+    o.myAtomIds = new long[d.int32()];
+    for (int i = 0; i < o.myAtomIds.length; i++) {
+      o.myAtomIds[i] = d.uint64();
+    }
   }
 
   public static void encode(Encoder e, Commands.ReplaceAtom.Call o) throws IOException {
@@ -1224,6 +1299,14 @@ class ObjectFactory {
 
   public static void decode(Decoder d, Commands.GetTimingInfo.Result o) throws IOException {
     o.myValue = new TimingInfoId(d);
+  }
+
+  public static void encode(Encoder e, Commands.PrerenderFramebuffers.Result o) throws IOException {
+    o.myValue.encode(e);
+  }
+
+  public static void decode(Decoder d, Commands.PrerenderFramebuffers.Result o) throws IOException {
+    o.myValue = new BinaryId(d);
   }
 
   public static void encode(Encoder e, Commands.ReplaceAtom.Result o) throws IOException {
