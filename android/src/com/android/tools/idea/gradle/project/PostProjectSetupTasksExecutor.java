@@ -176,7 +176,11 @@ public class PostProjectSetupTasksExecutor {
       GradleProjectSyncData.save(myProject);
       GradleSyncState.getInstance(myProject).syncEnded();
     } else {
-      GradleSyncState.getInstance(myProject).syncSkipped(myLastSyncTimestamp);
+      long lastSyncTimestamp = myLastSyncTimestamp;
+      if (lastSyncTimestamp == DEFAULT_LAST_SYNC_TIMESTAMP) {
+        lastSyncTimestamp = System.currentTimeMillis();
+      }
+      GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
     }
 
     // set default value back.
