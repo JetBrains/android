@@ -98,11 +98,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
         }
       }
       byte[] clazz = null;
-      if (RecyclerViewConstants.CN_CUSTOM_ADAPTER.equals(name)) {
-        clazz = RecyclerViewConstants.getAdapterClass();
+      if (RecyclerViewHelper.CN_CUSTOM_ADAPTER.equals(name)) {
+        clazz = RecyclerViewHelper.getAdapterClass();
       }
-      if (RecyclerViewConstants.CN_CUSTOM_VIEW_HOLDER.equals(name)) {
-        clazz = RecyclerViewConstants.getViewHolder();
+      if (RecyclerViewHelper.CN_CUSTOM_VIEW_HOLDER.equals(name)) {
+        clazz = RecyclerViewHelper.getViewHolder();
       }
       if (clazz != null) {
         return defineClass(name, clazz, 0, clazz.length);
