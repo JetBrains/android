@@ -44,7 +44,8 @@ public enum TypeKind {
   Map(18),
   Pointer(19),
   Memory(20),
-  Any(21);
+  Any(21),
+  ID(22);
 
   final int myValue;
 
@@ -97,6 +98,8 @@ public enum TypeKind {
         return Memory;
       case 21:
         return Any;
+      case 22:
+        return ID;
       default:
         throw new RuntimeException("Unknown TypeKind " + id);
     }
