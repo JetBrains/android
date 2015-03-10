@@ -484,6 +484,62 @@ final class Commands {
 
   }
 
+  static final class PrerenderFramebuffers {
+    static final class Call implements com.android.tools.rpclib.rpccore.Call {
+      DeviceId myDevice;
+      CaptureId myCapture;
+      int myWidth;
+      int myHeight;
+      long[] myAtomIds;
+
+      Call() {
+      }
+
+      Call(DeviceId device, CaptureId capture, int width, int height, long[] atomIds) {
+        myDevice = device;
+        myCapture = capture;
+        myWidth = width;
+        myHeight = height;
+        myAtomIds = atomIds;
+      }
+
+      @Override
+      public ObjectTypeID type() {
+        return ObjectFactory.callPrerenderFramebuffersID;
+      }
+
+      @Override
+      public void encode(@NotNull Encoder e) throws IOException {
+        ObjectFactory.encode(e, this);
+      }
+
+      @Override
+      public void decode(@NotNull Decoder d) throws IOException {
+        ObjectFactory.decode(d, this);
+      }
+    }
+
+    static final class Result implements com.android.tools.rpclib.rpccore.Result {
+      BinaryId myValue;
+
+      @Override
+      public ObjectTypeID type() {
+        return ObjectFactory.resultPrerenderFramebuffersID;
+      }
+
+      @Override
+      public void encode(@NotNull Encoder e) throws IOException {
+        ObjectFactory.encode(e, this);
+      }
+
+      @Override
+      public void decode(@NotNull Decoder d) throws IOException {
+        ObjectFactory.decode(d, this);
+      }
+    }
+
+  }
+
   static final class ResolveAtomStream {
     static final class Call implements com.android.tools.rpclib.rpccore.Call {
       AtomStreamId myId;

@@ -80,6 +80,11 @@ public class ClientImpl implements Client {
   }
 
   @Override
+  public Future<BinaryId> PrerenderFramebuffers(DeviceId device, CaptureId capture, int width, int height, long[] atomIds) {
+    return myExecutorService.submit(new PrerenderFramebuffersCallable(device, capture, width, height, atomIds));
+  }
+
+  @Override
   public Future<AtomStream> ResolveAtomStream(AtomStreamId id) {
     return myExecutorService.submit(new ResolveAtomStreamCallable(id));
   }
@@ -239,6 +244,19 @@ public class ClientImpl implements Client {
     @Override
     public TimingInfoId call() throws Exception {
       Commands.GetTimingInfo.Result result = (Commands.GetTimingInfo.Result)myBroadcaster.Send(myCall);
+      return result.myValue;
+    }
+  }
+  private class PrerenderFramebuffersCallable implements Callable<BinaryId> {
+    private final Commands.PrerenderFramebuffers.Call myCall;
+
+    private PrerenderFramebuffersCallable(DeviceId device, CaptureId capture, int width, int height, long[] atomIds) {
+      myCall = new Commands.PrerenderFramebuffers.Call(device, capture, width, height, atomIds);
+    }
+
+    @Override
+    public BinaryId call() throws Exception {
+      Commands.PrerenderFramebuffers.Result result = (Commands.PrerenderFramebuffers.Result)myBroadcaster.Send(myCall);
       return result.myValue;
     }
   }

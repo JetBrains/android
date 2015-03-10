@@ -32,6 +32,7 @@ public interface Client {
   Future<ImageInfoId> GetFramebufferDepth(DeviceId device, CaptureId capture, int contextId, long after) throws IOException, RpcException;
   Future<CaptureId> ReplaceAtom(CaptureId capture, long atomId, short atomType, Binary data) throws IOException, RpcException;
   Future<TimingInfoId> GetTimingInfo(DeviceId device, CaptureId capture, int contextId, TimingMask mask) throws IOException, RpcException;
+  Future<BinaryId> PrerenderFramebuffers(DeviceId device, CaptureId capture, int width, int height, long[] atomIds) throws IOException, RpcException;
   Future<AtomStream> ResolveAtomStream(AtomStreamId id) throws IOException, RpcException;
   Future<Binary> ResolveBinary(BinaryId id) throws IOException, RpcException;
   Future<Capture> ResolveCapture(CaptureId id) throws IOException, RpcException;
