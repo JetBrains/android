@@ -34,15 +34,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.ui.Cell;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.PairFunction;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.SystemProperties;
 import org.jdesktop.swingx.JXLabel;
@@ -69,6 +68,10 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJE
 import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
+import static com.intellij.openapi.util.JDOMUtil.loadDocument;
+import static com.intellij.openapi.util.JDOMUtil.writeDocument;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static icons.AndroidIcons.AppModule;
 import static icons.AndroidIcons.LibraryModule;
@@ -229,7 +232,16 @@ public class ModulesToImportDialog extends DialogWrapper {
 
   private void createUIComponents() {
     myModulesTable = new ModuleTable();
-    new TableSpeedSearch(myModulesTable);
+    new TableSpeedSearch(myModulesTable, new PairFunction<Object, Cell, String>() {
+      @Override
+      public String fun(Object o, Cell v) {
+        if (o instanceof ModuleRow) {
+          ModuleRow row = (ModuleRow)o;
+          return getNameOf(row.module);
+        }
+        return o == null || o instanceof Boolean ? "" : o.toString();
+      }
+    });
   }
 
   public void updateSelection(@NotNull Collection<String> selection) {
@@ -291,7 +303,7 @@ public class ModulesToImportDialog extends DialogWrapper {
       FileChooserDialog dialog = FileChooserFactory.getInstance().createFileChooser(descriptor, myProject, getWindow());
       VirtualFile[] allSelected = dialog.choose(myProject);
       if (allSelected.length > 0) {
-        File file = VfsUtilCore.virtualToIoFile(allSelected[0]);
+        File file = virtualToIoFile(allSelected[0]);
         try {
           List<String> loadedModuleNames = Selection.load(file);
           select(loadedModuleNames);
@@ -300,7 +312,7 @@ public class ModulesToImportDialog extends DialogWrapper {
           String msg = String.format("Failed to load Module selection from file '%1$s'", file.getPath());
           Messages.showErrorDialog(getWindow(), msg, title);
           String cause = error.getMessage();
-          if (StringUtil.isNotEmpty(cause)) {
+          if (isNotEmpty(cause)) {
             msg = msg + ":\n" + cause;
           }
           Logger.getInstance(ModulesToImportDialog.class).info(msg, error);
@@ -322,7 +334,7 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      final String title = "Save Module Selection";
+      String title = "Save Module Selection";
       FileSaverDescriptor descriptor = new FileSaverDescriptor(title, "Save the list of selected Modules to a file",
                                                                SdkConstants.EXT_XML);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, getWindow());
@@ -337,7 +349,7 @@ public class ModulesToImportDialog extends DialogWrapper {
           String msg = String.format("Failed to save Module selection to file '%1$s'", file.getPath());
           Messages.showErrorDialog(getWindow(), msg, title);
           String cause = error.getMessage();
-          if (StringUtil.isNotEmpty(cause)) {
+          if (isNotEmpty(cause)) {
             msg = msg + ":\n" + cause;
           }
           Logger.getInstance(ModulesToImportDialog.class).info(msg, error);
@@ -361,13 +373,13 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @NotNull
     static List<String> load(@NotNull File file) throws JDOMException, IOException {
-      Document document = JDOMUtil.loadDocument(file);
+      Document document = loadDocument(file);
       List<String> modules = Lists.newArrayList();
       Element rootElement = document.getRootElement();
       if (rootElement != null && ROOT_ELEMENT_NAME.equals(rootElement.getName())) {
         for (Element child : rootElement.getChildren(MODULE_ELEMENT_NAME)) {
           String moduleName = child.getAttributeValue(MODULE_NAME_ATTRIBUTE_NAME);
-          if (StringUtil.isNotEmpty(moduleName)) {
+          if (isNotEmpty(moduleName)) {
             modules.add(moduleName);
           }
         }
@@ -382,7 +394,7 @@ public class ModulesToImportDialog extends DialogWrapper {
         child.setAttribute(MODULE_NAME_ATTRIBUTE_NAME, getNameOf(module));
         document.getRootElement().addContent(child);
       }
-      JDOMUtil.writeDocument(document, file, SystemProperties.getLineSeparator());
+      writeDocument(document, file, SystemProperties.getLineSeparator());
     }
   }
 
