@@ -20,108 +20,59 @@ import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.DebuggerUtils;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
-import com.intellij.debugger.engine.events.SuspendContextCommandImpl;
-import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
-import com.intellij.openapi.progress.util.ProgressWindowWithNotification;
+import com.intellij.openapi.diagnostic.Logger;
 import com.sun.jdi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DownloadBitmapCommand extends SuspendContextCommandImpl {
-  private static final String BITMAP_FQCN = "android.graphics.Bitmap";
-  private static final String BITMAP_DRAWABLE_FQCN = "android.graphics.drawable.BitmapDrawable";
+public class BitmapEvaluator {
+  private static final Logger LOG = Logger.getInstance(BitmapEvaluator.class);
 
   /** Maximum height or width of image beyond which we scale it on the device before retrieving. */
   private static final int MAX_DIMENSION = 1024;
 
-  private final Value myBitmapValue;
-  private final DebuggerContextImpl myDebuggerContext;
-  private final ProgressWindowWithNotification myProgressWindow;
-  private final CompletionCallback myCallback;
-
-  public static boolean isSupportedBitmap(Value value) {
-    String fqcn = value.type().name();
-    return BITMAP_FQCN.equals(fqcn) || BITMAP_DRAWABLE_FQCN.equals(fqcn);
-  }
-
-  public interface CompletionCallback {
-    void bitmapDownloaded(@NotNull BufferedImage image);
-    void error(@NotNull String message);
-  }
-
-  public DownloadBitmapCommand(@NotNull Value bitmapValue,
-                               @NotNull DebuggerContextImpl debuggerContext,
-                               @NotNull CompletionCallback callback,
-                               @NotNull ProgressWindowWithNotification progressWindow) {
-    super(debuggerContext.getSuspendContext());
-    myBitmapValue = bitmapValue;
-    myDebuggerContext = debuggerContext;
-    myCallback = callback;
-    myProgressWindow = progressWindow;
-  }
-
-  @Override
-  public Priority getPriority() {
-    return Priority.HIGH;
-  }
-
-  @Override
-  public void contextAction() throws Exception {
-    myProgressWindow.setText("Examining bitmap");
-    Value bitmap = myBitmapValue;
-    EvaluationContextImpl evaluationContext = myDebuggerContext.createEvaluationContext();
-
+  @Nullable
+  public static BufferedImage getBitmap(EvaluationContextImpl evaluationContext, Value bitmap) throws EvaluateException {
     // retrieve the bitmap from bitmap drawables
     String fqcn = bitmap.type().name();
-    if (BITMAP_DRAWABLE_FQCN.equals(fqcn)) {
+    if (BitmapDrawableRenderer.BITMAP_DRAWABLE_FQCN.equals(fqcn)) {
       bitmap = getBitmapFromDrawable(evaluationContext, (ObjectReference)bitmap);
       if (bitmap == null) {
-        myCallback.error("Unable to obtain bitmap from drawable");
-        return;
+        throw new RuntimeException("Unable to obtain bitmap from drawable");
       }
     }
 
     String config = getBitmapConfigName((ObjectReference)bitmap, evaluationContext);
     if (!"\"ARGB_8888\"".equals(config)) {
-      myCallback.error("Unsupported bitmap configuration: " + config);
-      return;
+      throw new RuntimeException("Unsupported bitmap configuration: " + config);
     }
 
     Dimension size = getDimension(evaluationContext, bitmap);
     if (size == null) {
-      myCallback.error("Unable to determine image dimensions.");
-      return;
+      throw new RuntimeException("Unable to determine image dimensions.");
     }
 
     // if the image is rather large, then scale it down
     if (size.width > MAX_DIMENSION || size.height > MAX_DIMENSION) {
-      myProgressWindow.setText("Scaling down bitmap");
+      LOG.debug("Scaling down bitmap");
       bitmap = createScaledBitmap(evaluationContext, (ObjectReference)bitmap, size);
       if (bitmap == null) {
-        myCallback.error("Unable to create scaled bitmap");
-        return;
+        throw new RuntimeException("Unable to create scaled bitmap");
       }
 
       size = getDimension(evaluationContext, bitmap);
       if (size == null) {
-        myCallback.error("Unable to obtained scaled bitmap's dimensions");
-        return;
+        throw new RuntimeException("Unable to obtained scaled bitmap's dimensions");
       }
     }
-
-    if (myProgressWindow.isCanceled()) {
-      return;
-    }
-    myProgressWindow.setText("Retrieving pixel data");
 
     List<Value> pixelValues;
 
@@ -130,7 +81,7 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
       // if the buffer field is available, we can directly copy over the values
       Value bufferValue = ((ObjectReference)bitmap).getValue(bufferField);
       if (!(bufferValue instanceof ArrayReference)) {
-        return;
+        throw new RuntimeException("Image Buffer is not an array");
       }
       pixelValues =((ArrayReference)bufferValue).getValues();
     } else {
@@ -138,8 +89,7 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
       // and invoking copyPixelsToBuffer to copy the pixel data into the newly created buffer
       pixelValues = copyToBuffer(evaluationContext, (ObjectReference)bitmap, size);
       if (pixelValues == null) {
-        myCallback.error("Unable to extract image data: Bitmap has no buffer field.");
-        return;
+        throw new RuntimeException("Unable to extract image data: Bitmap has no buffer field.");
       }
     }
 
@@ -151,11 +101,7 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
       }
     }
 
-    if (myProgressWindow.isCanceled()) {
-      return;
-    }
-
-    myCallback.bitmapDownloaded(createBufferedImage(size.width, size.height, argb));
+    return createBufferedImage(size.width, size.height, argb);
   }
 
   @Nullable
@@ -275,7 +221,7 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
     return null;
   }
 
-  private static BufferedImage createBufferedImage(int width, int height, byte[] rgba) throws IOException {
+  private static BufferedImage createBufferedImage(int width, int height, byte[] rgba) {
     @SuppressWarnings("UndesirableClassUsage")
     BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
