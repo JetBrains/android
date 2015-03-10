@@ -131,8 +131,8 @@ public class ViewLoader {
   public Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
     // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
     // its instance, we define a new class which extends the Adapter class.
-    if (RecyclerViewConstants.CN_RV_ADAPTER.equals(className)) {
-      className = RecyclerViewConstants.CN_CUSTOM_ADAPTER;
+    if (RecyclerViewHelper.CN_RV_ADAPTER.equals(className)) {
+      className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
       constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
       constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
     }

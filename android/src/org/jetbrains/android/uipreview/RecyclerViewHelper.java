@@ -23,7 +23,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * Some constants that are needed to render the RecyclerView correctly.
  */
 @SuppressWarnings("SpellCheckingInspection")
-public class RecyclerViewConstants {
+public class RecyclerViewHelper {
 
   public static final String PACKAGE_NAME = "com.android.layoutlib.bridge.android.support";
   public static final String CN_CUSTOM_ADAPTER = PACKAGE_NAME + ".Adapter";
