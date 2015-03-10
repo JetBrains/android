@@ -364,6 +364,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
                         && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
           return Boolean.class;
         }
+
+        return EditedStyleItem.class;
       }
 
       return String.class;
