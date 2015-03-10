@@ -22,33 +22,27 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.Nullable;
-import spantable.CellSpanTable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.*;
 
 public class AttributesPanel {
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
 
   private JComboBox myThemeCombo;
   private JCheckBox myAdvancedFilterCheckBox;
-  private JButton myParentThemeButton;
   private JButton myNewThemeButton;
   private JButton myBackButton;
   private JBLabel mySubStyleLabel;
-  private CellSpanTable myAttributesTable;
+  private ThemeEditorTable myAttributesTable;
   private JBScrollPane myAttributesScrollPane;
   private JPanel myConfigToolbar;
   private JPanel myRightPanel;
 
   public AttributesPanel() {
-    myParentThemeButton.setIcon(AllIcons.Actions.MoveUp);
     myNewThemeButton.setIcon(AllIcons.General.Add);
     myBackButton.setIcon(AllIcons.Actions.Back);
 
-    myParentThemeButton.setBorder(BORDER);
     myNewThemeButton.setBorder(BORDER);
     myBackButton.setBorder(BORDER);
 
@@ -83,11 +77,6 @@ public class AttributesPanel {
     return (ThemeEditorStyle) myThemeCombo.getSelectedItem();
   }
 
-  public void setParent(final @Nullable ThemeEditorStyle parent) {
-    myParentThemeButton.setVisible(parent != null);
-    myParentThemeButton.setToolTipText(parent != null ? parent.getName() : "");
-  }
-
   public void setAdvancedMode(final boolean isAdvanced) {
     myAdvancedFilterCheckBox.setSelected(isAdvanced);
   }
@@ -111,7 +100,7 @@ public class AttributesPanel {
     return myThemeCombo;
   }
 
-  public CellSpanTable getAttributesTable() {
+  public ThemeEditorTable getAttributesTable() {
     return myAttributesTable;
   }
 
@@ -121,10 +110,6 @@ public class AttributesPanel {
 
   public JButton getNewThemeButton() {
     return myNewThemeButton;
-  }
-
-  public JButton getParentThemeButton() {
-    return myParentThemeButton;
   }
 
   public JCheckBox getAdvancedFilterCheckBox() {
@@ -142,5 +127,4 @@ public class AttributesPanel {
   public JPanel getConfigToolbar() {
     return myConfigToolbar;
   }
-
 }
