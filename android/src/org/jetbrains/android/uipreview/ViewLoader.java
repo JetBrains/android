@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
@@ -86,23 +87,72 @@ public class ViewLoader {
     myLogger = logger;
   }
 
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Nullable
   public Object loadView(String className, Class[] constructorSignature, Object[] constructorArgs)
     throws ClassNotFoundException {
 
+    Object aClass = loadClass(className, constructorSignature, constructorArgs, true);
+    if (aClass != null) {
+      return aClass;
+    }
+
+    try {
+      final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
+
+      if (o != null) {
+        return o;
+      }
+      return createMockView(className, constructorSignature, constructorArgs);
+    }
+    catch (ClassNotFoundException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (InvocationTargetException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (NoSuchMethodException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (IllegalAccessException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (InstantiationException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (NoSuchFieldException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+  }
+
+  /**
+   * Like loadView, but doesn't log  exceptions if failed and doesn't try to create a mock view.
+   */
+  @Nullable
+  public Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
+    // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
+    // its instance, we define a new class which extends the Adapter class.
+    if (RecyclerViewConstants.CN_RV_ADAPTER.equals(className)) {
+      className = RecyclerViewConstants.CN_CUSTOM_ADAPTER;
+      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+    return loadClass(className, constructorSignature, constructorArgs, false);
+  }
+
+  @Nullable
+  private Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs, boolean isView) {
     Class<?> aClass = myLoadedClasses.get(className);
 
     try {
       if (aClass != null) {
         checkModified(className);
-        return createNewInstance(aClass, constructorSignature, constructorArgs);
+        return createNewInstance(aClass, constructorSignature, constructorArgs, isView);
       }
       aClass = loadClass(className);
 
       if (aClass != null) {
         checkModified(className);
-        final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs);
+        final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs, isView);
         myLoadedClasses.put(className, aClass);
         return viewObject;
       }
@@ -135,33 +185,7 @@ public class ViewLoader {
     catch (NoSuchMethodException e) {
       myLogger.addBrokenClass(className, e);
     }
-
-    try {
-      final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
-
-      if (o != null) {
-        return o;
-      }
-      return createMockView(className, constructorSignature, constructorArgs);
-    }
-    catch (ClassNotFoundException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (InvocationTargetException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (NoSuchMethodException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (IllegalAccessException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (InstantiationException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (NoSuchFieldException e) {
-      throw new ClassNotFoundException(className, e);
-    }
+    return null;
   }
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
@@ -249,10 +273,7 @@ public class ViewLoader {
                 if (aClass != null) {
                   try {
                     RenderSecurityManager.exitSafeRegion(token.get());
-                    final Object instance = createNewInstance(aClass, constructorSignature, constructorArgs);
-                    if (instance != null) {
-                      return instance;
-                    }
+                    return createNewInstance(aClass, constructorSignature, constructorArgs, true);
                   } finally {
                     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
                   }
@@ -282,7 +303,7 @@ public class ViewLoader {
     NoSuchFieldException {
 
     final Class<?> mockViewClass = getModuleClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
-    final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs);
+    final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs, true);
 
     final Method setTextMethod = viewObject.getClass().getMethod("setText", CharSequence.class);
     String label = getShortClassName(className);
@@ -340,7 +361,7 @@ public class ViewLoader {
   }
 
   @SuppressWarnings("ConstantConditions")
-  private Object createNewInstance(Class<?> clazz, Class[] constructorSignature, Object[] constructorParameters)
+  private Object createNewInstance(Class<?> clazz, Class[] constructorSignature, Object[] constructorParameters, boolean isView)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
     Constructor<?> constructor = null;
 
@@ -348,6 +369,10 @@ public class ViewLoader {
       constructor = clazz.getConstructor(constructorSignature);
     }
     catch (NoSuchMethodException e) {
+      if (!isView) {
+        throw e;
+      }
+
       // View class has 1-parameter, 2-parameter and 3-parameter constructors
 
       final int paramsCount = constructorSignature.length;

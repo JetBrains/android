@@ -97,6 +97,16 @@ public final class ModuleClassLoader extends RenderClassLoader {
           }
         }
       }
+      byte[] clazz = null;
+      if (RecyclerViewConstants.CN_CUSTOM_ADAPTER.equals(name)) {
+        clazz = RecyclerViewConstants.getAdapterClass();
+      }
+      if (RecyclerViewConstants.CN_CUSTOM_VIEW_HOLDER.equals(name)) {
+        clazz = RecyclerViewConstants.getViewHolder();
+      }
+      if (clazz != null) {
+        return defineClass(name, clazz, 0, clazz.length);
+      }
       throw e;
     }
   }
