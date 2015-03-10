@@ -97,9 +97,10 @@ public class ThemeEditorComponent extends Splitter {
   private final AndroidThemePreviewPanel myPreviewPanel;
   private final StyleAttributesFilter myAttributesFilter;
   private final AttributesPanel myPanel = new AttributesPanel();
-  private final JTable myAttributesTable = myPanel.getAttributesTable();
+  private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
 
   private final AttributeReferenceRendererEditor myStyleEditor;
+  private final AttributeReferenceRendererEditor.ClickListener myClickListener;
   private final ConfigurationListener myConfigListener = new ConfigurationListener() {
     @Override
     public boolean changed(int flags) {
@@ -130,7 +131,7 @@ public class ThemeEditorComponent extends Splitter {
 
     Project project = myModule.getProject();
     ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myConfiguration.getResourceResolver());
-    myStyleEditor = new AttributeReferenceRendererEditor(new AttributeReferenceRendererEditor.ClickListener() {
+    myClickListener = new AttributeReferenceRendererEditor.ClickListener() {
       @Override
       public void clicked(@NotNull EditedStyleItem value) {
         if (value.isAttr()) {
@@ -148,8 +149,11 @@ public class ThemeEditorComponent extends Splitter {
         else {
           myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
         }
+        mySubStyleSourceAttribute = value;
+        loadStyleAttributes();
       }
-    }, project, completionProvider);
+    };
+    myStyleEditor = new AttributeReferenceRendererEditor(myClickListener, project, completionProvider);
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     RenderTask renderTask = null;
@@ -201,30 +205,6 @@ public class ThemeEditorComponent extends Splitter {
       public void actionPerformed(ActionEvent e) {
         myCurrentSubStyle = null;
         loadStyleAttributes();
-      }
-    });
-
-    myPanel.getParentThemeButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ThemeEditorStyle selectedStyle = getSelectedStyle();
-        if (selectedStyle == null) {
-          LOG.error("No style selected.");
-          return;
-        }
-
-        ThemeEditorStyle parent = getSelectedStyle().getParent();
-        assert parent != null;
-
-        // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
-        // substyle or theme navigation.
-        if (isSubStyleSelected()) {
-          myCurrentSubStyle = parent;
-          loadStyleAttributes();
-        }
-        else {
-          myPanel.setSelectedTheme(parent);
-        }
       }
     });
 
@@ -295,6 +275,27 @@ public class ThemeEditorComponent extends Splitter {
     setFirstComponent(scrollPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
+  }
+
+  public void goToParent() {
+    ThemeEditorStyle selectedStyle = getSelectedStyle();
+    if (selectedStyle == null) {
+      LOG.error("No style selected.");
+      return;
+    }
+
+    ThemeEditorStyle parent = getSelectedStyle().getParent();
+    assert parent != null;
+
+    // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
+    // substyle or theme navigation.
+    if (isSubStyleSelected()) {
+      myCurrentSubStyle = parent;
+      loadStyleAttributes();
+    }
+    else {
+      myPanel.setSelectedTheme(parent);
+    }
   }
 
   /**
@@ -520,12 +521,11 @@ public class ThemeEditorComponent extends Splitter {
 
     // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
     myAttributesFilter.setAdvancedMode(true);
-    myPanel.setParent(parentStyle);
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
     myConfiguration.setTheme(selectedTheme.getName());
 
-
-    final AttributesTableModel model = new AttributesTableModel(selectedStyle);
+    final AttributesTableModel model = new AttributesTableModel(selectedStyle, myConfiguration.getResourceResolver(), myModule.getProject());
+    model.setGoToDefinitionListener(myClickListener);
 
     model.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
@@ -589,7 +589,15 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setRowSorter(sorter);
     myPanel.setAdvancedMode(myAttributesFilter.myAdvancedMode);
 
+    ActionListener listener = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        goToParent();
+      }
+    };
+
     myAttributesTable.setModel(model);
+    model.parentAttribute.setGotoDefinitionCallback(listener);
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
     model.fireTableStructureChanged();
   }
