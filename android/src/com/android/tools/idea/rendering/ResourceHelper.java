@@ -641,32 +641,6 @@ public class ResourceHelper {
   }
 
   /**
-   * Resolves given resource value to a list of drawable bitmap files, which, unlike
-   * resolveDrawable, when encountering state list, follow all possibilities.
-   * To ensure termination, amount of traversed resources is bounded by MAX_RESOURCE_INDIRECTION.
-   *
-   * @return list of files with bitmaps (which is empty if no bitmap is found)
-   */
-  @NotNull
-  public static List<File> resolveMultipleDrawables(@NotNull RenderResources resources, @Nullable ResourceValue drawable) {
-    if (drawable != null) {
-      drawable = resources.resolveResValue(drawable);
-    }
-    if (drawable == null) {
-      return Collections.emptyList();
-    }
-
-    final List<File> result = new ArrayList<File>();
-    for (final String maybeDrawable : new StateListIterable(resources, drawable, MAX_RESOURCE_INDIRECTION, ATTR_DRAWABLE, true)) {
-      final File file = new File(maybeDrawable);
-      if (file.exists()) {
-        result.add(file);
-      }
-    }
-    return result;
-  }
-
-  /**
    * Tries to resolve the given resource value to an actual layout file.
    *
    * @param resources the resource resolver to use to follow layout references
