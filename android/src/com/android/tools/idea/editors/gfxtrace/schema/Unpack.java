@@ -106,6 +106,10 @@ public class Unpack {
       case Any:
         LOG.error("'Any' type not yet implemented.");
         return "";
+      case ID:
+        byte[] b = new byte[20];
+        decoder.read(b, 20);
+        return b;
       default:
         throw new RuntimeException("Unknown kind " + type.getKind());
     }
