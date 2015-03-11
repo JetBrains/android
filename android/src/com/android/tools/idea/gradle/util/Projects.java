@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -50,9 +51,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
@@ -71,6 +69,9 @@ import static java.lang.Boolean.TRUE;
 public final class Projects {
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
+
+  // Key: library name, Values: URLs of files containing the library sources.
+  private static final Key<Multimap<String, String>> LIBRARY_SOURCES = Key.create("project.library.sources");
 
   private Projects() {
   }
@@ -397,15 +398,12 @@ public final class Projects {
     return null;
   }
 
-  private static final Key<Map<String, List<String>>> ANDROID_LIB_SOURCE_MAP_KEY =
-      new Key<Map<String, List<String>>>("ANDROID_LIB_SOURCE_MAP");
+  @Nullable
+  public static Multimap<String, String> getLibrarySources(@NotNull Project project) {
+    return project.getUserData(LIBRARY_SOURCES);
+  }
 
-  public static Map<String, List<String>> getAndroidLibSourceMap(Project project) {
-    Map<String, List<String>> store = project.getUserData(ANDROID_LIB_SOURCE_MAP_KEY);
-    if (store == null) {
-      store = new HashMap<String, List<String>>();
-      project.putUserData(ANDROID_LIB_SOURCE_MAP_KEY, store);
-    }
-    return store;
+  public static void setLibrarySources(@NotNull Project project, @Nullable Multimap<String, String> librarySources) {
+    project.putUserData(LIBRARY_SOURCES, librarySources);
   }
 }

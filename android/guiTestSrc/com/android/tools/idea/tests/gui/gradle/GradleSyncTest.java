@@ -42,6 +42,9 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -115,6 +118,45 @@ public class GradleSyncTest extends GuiTestCase {
   @After
   public void resetExperimentalSettings() {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+  }
+
+  @Test
+  public void testUserDefinedLibrarySources() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+    Project project = projectFrame.getProject();
+
+    String libraryName = "guava-18.0";
+
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    Library library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+
+    String url = "jar://$USER_HOME$/fake-dir/fake-sources.jar!/";
+
+    // add an extra source path.
+    final Library.ModifiableModel libraryModel = library.getModifiableModel();
+    libraryModel.addRoot(url, OrderRootType.SOURCES);
+
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            libraryModel.commit();
+          }
+        });
+      }
+    });
+
+    projectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
+
+    libraryTable = ProjectLibraryTable.getInstance(project);
+    library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+
+    String[] urls = library.getUrls(OrderRootType.SOURCES);
+    assertThat(urls).contains(url);
   }
 
   @Test @IdeGuiTest
