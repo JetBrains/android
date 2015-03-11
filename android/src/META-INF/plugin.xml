@@ -153,6 +153,7 @@
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectResolver"/>
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
+    <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
