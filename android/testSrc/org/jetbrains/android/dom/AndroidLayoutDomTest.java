@@ -687,6 +687,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testOnClickHighlighting() throws Throwable {
+    myFixture.allowTreeAccessForAllFiles();
     copyOnClickClasses();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
     doTestHighlighting();

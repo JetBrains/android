@@ -45,6 +45,7 @@ public class AndroidMenuTest extends AndroidDomTest {
   }
 
   public void testOnClickHighlighting2() throws Throwable {
+    myFixture.allowTreeAccessForAllFiles();
     copyOnClickClasses();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
     doTestHighlighting();
