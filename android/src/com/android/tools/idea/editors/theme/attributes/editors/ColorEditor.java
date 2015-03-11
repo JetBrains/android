@@ -43,7 +43,7 @@ public class ColorEditor extends AbstractTableCellEditor {
     myModule = module;
     myConfiguration = configuration;
 
-    myComponent = new ColorComponent(table.getBackground(), table.getFont().deriveFont(Font.BOLD));
+    myComponent = new ColorComponent(table.getBackground(), table.getFont());
     myComponent.addActionListener(new ColorEditorActionListener());
     myComponent.setBorder(ColorComponent.getBorder(table.getSelectionBackground()));
   }
