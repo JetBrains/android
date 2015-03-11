@@ -45,14 +45,14 @@ public class AtomReader {
     mData = stream.getData();
     mAtomSegments = new ArrayList<Segment>();
 
-    calculateAtomInfos();
-
     atomTypeToIndex = new TIntIntHashMap(schema.getAtoms().length);
     AtomInfo[] atomInfos = schema.getAtoms();
     for (int i = 0; i < atomInfos.length; ++i) {
       assert !atomTypeToIndex.containsValue(i); // Make sure there are no duplicates.
       atomTypeToIndex.put(atomInfos[i].getType(), i);
     }
+
+    calculateAtomInfos();
   }
 
   /**
@@ -62,22 +62,12 @@ public class AtomReader {
     return mAtomSegments.size();
   }
 
-  /**
-   * Unpack and return a single atom with the specified index.
-   *
-   * @param index the index of the atom.
-   * @return the unpacked atom structure.
-   */
-  public Atom read(long index) throws IOException {
-    assert (index <= Integer.MAX_VALUE);
-    Segment segment = mAtomSegments.get((int)index);
-    ByteArrayInputStream stream = new ByteArrayInputStream(mData, segment.mOffset, segment.mSize);
-    Decoder decoder = new Decoder(stream);
+  private Atom unpack(Decoder decoder) throws IOException {
     short type = decoder.uint16();
     int contextId = decoder.int32();
     assert (contextId >= 0); // Sanity check.
     if (!atomTypeToIndex.containsKey(type)) {
-      throw new RuntimeException("Atom type " + type + "not found in schema.");
+      throw new RuntimeException("Atom type " + type + " not found in schema.");
     }
     AtomInfo atomInfo = mSchema.getAtoms()[atomTypeToIndex.get(type)];
 
@@ -91,22 +81,31 @@ public class AtomReader {
     return new Atom(contextId, atomInfo, parameters);
   }
 
+  /**
+   * Unpack and return a single atom with the specified index.
+   *
+   * @param index the index of the atom.
+   * @return the unpacked atom structure.
+   */
+  public Atom read(long index) throws IOException {
+    assert (index <= Integer.MAX_VALUE);
+    Segment segment = mAtomSegments.get((int)index);
+    ByteArrayInputStream stream = new ByteArrayInputStream(mData, segment.mOffset, segment.mSize);
+    Decoder decoder = new Decoder(stream);
+    return unpack(decoder);
+  }
+
   private void calculateAtomInfos() throws IOException {
     ByteArrayInputStream stream = new ByteArrayInputStream(mData);
     Decoder decoder = new Decoder(stream);
-    int offset = 0;
-    while (true) {
-      int size = decoder.uint16() & 0xffff;
-      if (size > 0) {
-        offset += 2; // Skip size
-        mAtomSegments.add(new Segment(offset, size));
-        size -= 2; // Skip size
-        assert stream.skip(size) == size;
-        offset += size;
-      }
-      else {
-        return;
-      }
+    int total = stream.available();
+    long count = decoder.uint32();
+    for (int i = 0; i < count; i++) {
+      int remains = stream.available();
+      int offset = total - remains;
+      unpack(decoder);
+      int size = remains - stream.available();
+      mAtomSegments.add(new Segment(offset, size));
     }
   }
 
