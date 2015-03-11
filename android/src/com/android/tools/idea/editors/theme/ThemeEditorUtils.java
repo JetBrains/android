@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -51,7 +53,8 @@ public class ThemeEditorUtils {
 
   @Nullable
   public static String generateToolTipText(final ItemResourceValue resValue, final Module module, final Configuration configuration) {
-    String tooltipKey = resValue.toString() + module.toString() + configuration.toString();
+    final LocalResourceRepository repository = AppResourceRepository.getAppResources(module, true);
+    String tooltipKey = resValue.toString() + module.toString() + configuration.toString() + repository.getModificationCount();
 
     String cachedTooltip = ourTooltipCache.getIfPresent(tooltipKey);
     if (cachedTooltip != null) {
