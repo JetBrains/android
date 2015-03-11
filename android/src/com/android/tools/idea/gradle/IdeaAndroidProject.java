@@ -48,6 +48,7 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myDelegate;
+  @NotNull private AndroidProject myProxyDelegate;
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -84,6 +85,9 @@ public class IdeaAndroidProject implements Serializable {
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myDelegate = delegate;
+
+    // Compute the proxy object to avoid reproxying the model during every serialization operation
+    myProxyDelegate = ProxyUtil.reproxy(AndroidProject.class, myDelegate);
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
@@ -444,7 +448,7 @@ public class IdeaAndroidProject implements Serializable {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-    out.writeObject(ProxyUtil.reproxy(AndroidProject.class, myDelegate));
+    out.writeObject(myProxyDelegate);
     out.writeObject(mySelectedVariantName);
     out.writeObject(mySelectedTestArtifactName);
   }
@@ -454,6 +458,7 @@ public class IdeaAndroidProject implements Serializable {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myDelegate = (AndroidProject)in.readObject();
+    myProxyDelegate = myDelegate;
 
     myBuildTypesByName = Maps.newHashMap();
     myProductFlavorsByName = Maps.newHashMap();
