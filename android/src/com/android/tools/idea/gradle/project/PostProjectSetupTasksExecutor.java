@@ -176,8 +176,10 @@ public class PostProjectSetupTasksExecutor {
 
   private void updateGradleSyncState() {
     if (!myUsingCachedProjectData) {
-      GradleProjectSyncData.save(myProject);
+      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+      // previous sync, and not the one from the sync that just ended.
       GradleSyncState.getInstance(myProject).syncEnded();
+      GradleProjectSyncData.save(myProject);
     } else {
       long lastSyncTimestamp = myLastSyncTimestamp;
       if (lastSyncTimestamp == DEFAULT_LAST_SYNC_TIMESTAMP) {
