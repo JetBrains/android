@@ -144,10 +144,10 @@ public class ThemeEditorComponent extends Splitter {
         return myComponent.getRowCount() * myComponent.getColumnCount();
       }
     };
-    
+
     // Setup Javadoc handler.
     ActionManager actionManager = ActionManager.getInstance();
-    ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable);
+    ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable, myModule, myConfiguration);
     showJavadoc.registerCustomShortcutSet(actionManager.getAction(IdeActions.ACTION_QUICK_JAVADOC).getShortcutSet(), myAttributesTable);
 
     Project project = myModule.getProject();
