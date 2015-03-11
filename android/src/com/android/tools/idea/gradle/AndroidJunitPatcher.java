@@ -84,7 +84,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     // classes needed by the testing code (e.g. XML/JSON related).
     String mockableJarPath = null;
     for (String path : classPath.getPathList()) {
-      if (new File(FileUtil.toSystemDependentName(path)).getName().startsWith("mockable-android")) {
+      if (new File(FileUtil.toSystemDependentName(path)).getName().startsWith("mockable-")) {
         // PathsList stores strings - use the one that's actually stored there.
         mockableJarPath = path;
         break;
