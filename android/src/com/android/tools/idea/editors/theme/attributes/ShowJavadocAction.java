@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.codeInsight.documentation.DocumentationComponent;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.Language;
@@ -23,6 +25,7 @@ import com.intellij.lang.LanguageDocumentation;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -41,9 +44,13 @@ public class ShowJavadocAction extends AnAction {
   private static final Point ORIGIN = new Point(0, 0);
 
   protected final JTable myAttributesTable;
+  protected final Module myModule;
+  protected final Configuration myConfiguration;
 
-  public ShowJavadocAction(@NotNull JTable attributesTable) {
+  public ShowJavadocAction(@NotNull JTable attributesTable, @NotNull Module module, @NotNull Configuration configuration) {
     myAttributesTable = attributesTable;
+    myModule = module;
+    myConfiguration = configuration;
   }
 
   @Override
@@ -57,23 +64,16 @@ public class ShowJavadocAction extends AnAction {
       return;
     }
 
-    Object value = myAttributesTable.getValueAt(selectedRow, selectedColumn);
-    if (value == null || !(value instanceof EditedStyleItem)) {
-      return;
-    }
-    Component cellComponent = myAttributesTable.getCellRenderer(selectedRow, selectedColumn)
-      .getTableCellRendererComponent(myAttributesTable, selectedItem, false, false, selectedRow, selectedColumn);
-    if (!(cellComponent instanceof JComponent)) {
-      // Doesn't have a tooltip.
-      return;
-    }
-
-    EditedStyleItem item = (EditedStyleItem)value;
+    EditedStyleItem item = (EditedStyleItem)selectedItem;
 
     Project project = e.getProject();
     DocumentationManager documentationManager = DocumentationManager.getInstance(project);
     final DocumentationComponent docComponent = new DocumentationComponent(documentationManager);
-    docComponent.setText(((JComponent)cellComponent).getToolTipText(), e.getData(CommonDataKeys.PSI_FILE), true);
+    String tooltip = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, myConfiguration);
+    if (tooltip == null) {
+      return;
+    }
+    docComponent.setText(tooltip, e.getData(CommonDataKeys.PSI_FILE), true);
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)
       .setDimensionServiceKey(project, DocumentationManager.JAVADOC_LOCATION_AND_SIZE, false).setResizable(true).setMovable(true)
