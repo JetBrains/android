@@ -23,8 +23,9 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -69,8 +70,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidHomes;
@@ -293,20 +292,19 @@ public class GradleProjectImporter {
         LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
         LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
         try {
-          Map<String, List<String>> libSourceMap = Projects.getAndroidLibSourceMap(project);
+          Multimap<String, String> librarySources = ArrayListMultimap.create();
+          // Map<String, List<String>> libSourceMap = Projects.getAndroidLibSourceMap(project);
           for (Library library : model.getLibraries()) {
             String name = library.getName();
             if (name != null) {
-              List<String> urls = Lists.newArrayList();
-              for (VirtualFile file : library.getFiles(OrderRootType.SOURCES)) {
-                urls.add(file.getUrl());
-              }
-              if (!urls.isEmpty()) {
-                libSourceMap.put(library.getName(), urls);
+              String[] urls = library.getUrls(OrderRootType.SOURCES);
+              for (String url : urls) {
+                librarySources.put(name, url);
               }
             }
             model.removeLibrary(library);
           }
+          setLibrarySources(project, librarySources);
         }
         finally {
           model.commit();

@@ -26,7 +26,6 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -35,7 +34,6 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
@@ -47,6 +45,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -84,6 +83,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
@@ -239,7 +239,7 @@ public class PostProjectSetupTasksExecutor {
 
   private void attachSourcesToLibraries() {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
-    Map<String, List<String>> libSourceMap = Projects.getAndroidLibSourceMap(myProject);
+    Multimap<String, String> librarySources = getLibrarySources(myProject);
 
     for (Library library : libraryTable.getLibraries()) {
       Set<String> sourcePaths = new HashSet<String>();
@@ -253,7 +253,7 @@ public class PostProjectSetupTasksExecutor {
       for (VirtualFile classFile : library.getFiles(OrderRootType.CLASSES)) {
         VirtualFile sourceJar = findSourceJarForJar(classFile);
         if (sourceJar != null) {
-          String url = AbstractDependenciesModuleCustomizer.pathToUrl(sourceJar.getPath());
+          String url = pathToUrl(sourceJar.getPath());
           if (!sourcePaths.contains(url)) {
             libraryModel.addRoot(url, OrderRootType.SOURCES);
             sourcePaths.add(url);
@@ -262,18 +262,20 @@ public class PostProjectSetupTasksExecutor {
       }
 
       // If the default path does not exist and we have a user-defined one that exists, we take the user-defined one.
-      List<String> urls = libSourceMap.get(library.getName());
-      if (urls != null) {
-        for (String url : urls) {
-          if (!sourcePaths.contains(url)) {
-            libraryModel.addRoot(url, OrderRootType.SOURCES);
-            sourcePaths.add(url);
+      if (librarySources != null) {
+        Collection<String> urls = librarySources.get(library.getName());
+        if (urls != null) {
+          for (String url : urls) {
+            if (!sourcePaths.contains(url)) {
+              libraryModel.addRoot(url, OrderRootType.SOURCES);
+              sourcePaths.add(url);
+            }
           }
         }
       }
       libraryModel.commit();
     }
-    libSourceMap.clear();
+    setLibrarySources(myProject, null);
   }
 
   @Nullable
