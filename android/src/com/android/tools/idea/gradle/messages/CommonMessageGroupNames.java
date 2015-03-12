@@ -20,10 +20,11 @@ package com.android.tools.idea.gradle.messages;
  * displayed in the tool window.
  */
 public final class CommonMessageGroupNames {
+  public static final String MISSING_DEPENDENCIES_BETWEEN_MODULES = "Missing dependencies between modules";
   public static final String FAILED_TO_SET_UP_DEPENDENCIES = "Failed to set up dependencies";
-  public static final String FAILED_TO_SET_UP_SDK = "Failed to set up SDK";
   public static final String UNRESOLVED_ANDROID_DEPENDENCIES = "Unresolved Android dependencies";
   public static final String UNRESOLVED_DEPENDENCIES = "Unresolved dependencies";
+  public static final String FAILED_TO_SET_UP_SDK = "Failed to set up SDK";
   public static final String VARIANT_SELECTION_CONFLICTS = "Variant selection conflicts";
   public static final String EXTRA_GENERATED_SOURCES = "Source folders generated at incorrect location";
   public static final String UNHANDLED_SYNC_ISSUE_TYPE = "Gradle Sync Issue";

@@ -293,7 +293,6 @@ public class GradleProjectImporter {
         LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
         try {
           Multimap<String, String> librarySources = ArrayListMultimap.create();
-          // Map<String, List<String>> libSourceMap = Projects.getAndroidLibSourceMap(project);
           for (Library library : model.getLibraries()) {
             String name = library.getName();
             if (name != null) {
