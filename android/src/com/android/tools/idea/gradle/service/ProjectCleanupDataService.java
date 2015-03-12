@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ImportedModule;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,6 +48,12 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
 
   @Override
   public void importData(@NotNull Collection<DataNode<ImportedModule>> toImport, @NotNull Project project, boolean synchronous) {
+    // IntelliJ supports several gradle projects linked to one IDEA project
+    // it will be separate processes for these gradle projects importing
+    // also IntelliJ does not prevent to mix gradle projects with non-gradle
+    // see original issue at https://youtrack.jetbrains.com/issue/IDEA-137433
+    if(!AndroidStudioSpecificInitializer.isAndroidStudio()) return;
+
     final ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
     if (modules.length != toImport.size()) {
