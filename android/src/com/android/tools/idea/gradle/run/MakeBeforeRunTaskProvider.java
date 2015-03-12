@@ -108,13 +108,18 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()
-        // Enable "Gradle-aware Make" only for Android and JUnit configurations...
-        && (runConfiguration instanceof AndroidRunConfigurationBase || runConfiguration instanceof JUnitConfiguration)) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && configurationTypeIsSupported(runConfiguration)) {
       return new MakeBeforeRunTask();
     } else {
       return null;
     }
+  }
+
+  private static boolean configurationTypeIsSupported(RunConfiguration runConfiguration) {
+    return runConfiguration instanceof AndroidRunConfigurationBase ||
+           runConfiguration instanceof JUnitConfiguration ||
+           // Avoid direct dependency on the TestNG plugin:
+           runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
   }
 
   @Override
