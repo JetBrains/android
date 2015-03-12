@@ -268,9 +268,8 @@ public class GradleInvoker {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
       switch (buildMode) {
         case SOURCE_GEN:
-          tasks.add(createBuildTask(gradlePath, properties.SOURCE_GEN_TASK_NAME));
-          if (StringUtil.isNotEmpty(properties.TEST_SOURCE_GEN_TASK_NAME)) {
-            tasks.add(createBuildTask(gradlePath, properties.TEST_SOURCE_GEN_TASK_NAME));
+          for (String taskName : properties.AFTER_SYNC_TASK_NAMES) {
+            addTaskIfSpecified(tasks, gradlePath, taskName);
           }
           break;
         case ASSEMBLE:
