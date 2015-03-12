@@ -121,7 +121,7 @@ public class AndroidJavaDocRenderer {
       builder.add(doc);
       builder.addHtml("<br/>");
     }
-
+    builder.addHtml("<hr/>");
     return builder.getHtml();
   }
 
@@ -136,12 +136,9 @@ public class AndroidJavaDocRenderer {
 
     ResourceUrl resUrl = ResourceUrl.parse(value);
 
+    // Render value as a string
     if (resUrl == null) {
-      HtmlBuilder builder = new HtmlBuilder();
-      builder.openHtmlBody();
-      builder.add(value);
-      builder.closeHtmlBody();
-      return builder.getHtml();
+      return renderText(value);
     }
 
     if (!resUrl.framework && resValue.isFramework()) {
@@ -150,7 +147,14 @@ public class AndroidJavaDocRenderer {
       resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), SdkConstants.PREFIX_ANDROID + resUrl.type.getName()));
     }
 
-    return render(module, configuration, resUrl);
+    String render = render(module, configuration, resUrl);
+
+    // Render value as a string
+    if (render == null) {
+      return renderText(value);
+    }
+
+    return render;
   }
 
   /** Renders the Javadoc for a resValue. If configuration is not null, it will be used to resolve the resource.
@@ -174,6 +178,14 @@ public class AndroidJavaDocRenderer {
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
     renderer.renderColorToHtml(builder, color);
+    builder.closeHtmlBody();
+    return builder.getHtml();
+  }
+
+  private static String renderText(String text) {
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.openHtmlBody();
+    builder.add(text);
     builder.closeHtmlBody();
     return builder.getHtml();
   }
