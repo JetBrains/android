@@ -91,11 +91,7 @@ public class DistributionChartComponent extends JPanel {
           ++i;
         }
         if (i < myCurrentBottoms.length) {
-          mySelectedDistribution = ourDistributions.get(i);
-          if (myListener != null) {
-            myListener.onDistributionSelected(mySelectedDistribution);
-          }
-          repaint();
+          selectDistribution(ourDistributions.get(i));
         }
       }
     });
@@ -103,6 +99,14 @@ public class DistributionChartComponent extends JPanel {
       ourDistributions = DistributionService.getInstance().getDistributions();
     }
     loadFonts();
+  }
+
+  public void selectDistribution(Distribution d) {
+    mySelectedDistribution = d;
+    if (myListener != null) {
+      myListener.onDistributionSelected(mySelectedDistribution);
+    }
+    repaint();
   }
 
   private static void loadFonts() {
