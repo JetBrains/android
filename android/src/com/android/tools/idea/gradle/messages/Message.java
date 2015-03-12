@@ -29,7 +29,9 @@ public class Message {
   @NotNull private final Type myType;
   @NotNull private final String[] myText;
   @NotNull private final Navigatable myNavigatable;
+
   @Nullable private final VirtualFile myFile;
+
   private final int myLine;
   private final int myColumn;
 

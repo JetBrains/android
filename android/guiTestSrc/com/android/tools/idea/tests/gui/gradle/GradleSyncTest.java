@@ -50,13 +50,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,9 +91,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
@@ -116,7 +111,34 @@ public class GradleSyncTest extends GuiTestCase {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
   }
 
-  @Test
+  @Test @IdeGuiTest
+  public void testMissingInterModuleDependencies() throws IOException {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
+    File projectPath = setUpProject("ModuleDependencies", false, true, null);
+
+    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        GradleProjectImporter.getInstance().importProject(toSelect);
+      }
+    });
+
+    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
+    projectSubsetDialog.selectModule("javalib1", false)
+                       .clickOk();
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    AbstractContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    String expectedError = "Unable to find module with Gradle path ':javalib1' (needed by modules: 'androidlib1', 'app'.)";
+    messages.findMessageContainingText(ERROR, expectedError);
+  }
+
+  @Test @IdeGuiTest
   public void testUserDefinedLibrarySources() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
     Project project = projectFrame.getProject();
@@ -767,14 +789,9 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    DialogMatcher matcher = withTitle("Select Modules to Include in Project Subset").andShowing();
-    DialogFixture dialog = findDialog(matcher).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
-
-    JTableFixture table = new JTableFixture(myRobot, myRobot.finder().findByType(dialog.target, JTable.class, true));
-    TableCell cell = table.cell("lib");
-    table.enterValue(row(cell.row).column(0), "false");
-
-    findAndClickOkButton(dialog);
+    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
+    projectSubsetDialog.selectModule("lib", false)
+                       .clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
