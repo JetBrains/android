@@ -39,6 +39,10 @@ import static com.android.SdkConstants.TAG_STYLE;
 public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   public final static boolean THEME_EDITOR_ENABLE = SystemProperties.getBooleanProperty("enable.theme.editor", false);
 
+  private final static String THEME_NAME = "theme-name";
+  private final static String STYLE_NAME = "style-name";
+  private final static String PROPORTION = "proportion";
+
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     if (!THEME_EDITOR_ENABLE) {
@@ -62,12 +66,40 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
-    return FileEditorState.INSTANCE;
+    String themeName = sourceElement.getAttributeValue(THEME_NAME);
+    String styleName = sourceElement.getAttributeValue(STYLE_NAME);
+
+    Float proportion = null;
+    try {
+      String proportionString = sourceElement.getAttributeValue(PROPORTION);
+      if (proportionString != null) {
+        proportion = Float.parseFloat(proportionString);
+      }
+    } catch (NumberFormatException e) {
+      // ignore
+    }
+
+    return new ThemeEditorState(themeName, styleName, proportion);
   }
 
   @Override
   public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
+    if (!(state instanceof ThemeEditorState)) {
+      return;
+    }
 
+    ThemeEditorState editorState = (ThemeEditorState) state;
+    if (editorState.getThemeName() != null) {
+      targetElement.setAttribute(THEME_NAME, editorState.getThemeName());
+    }
+
+    if (editorState.getSubStyleName() != null) {
+      targetElement.setAttribute(STYLE_NAME, editorState.getSubStyleName());
+    }
+
+    if (editorState.getProportion() != null) {
+      targetElement.setAttribute(PROPORTION, editorState.getProportion().toString());
+    }
   }
 
   @NotNull
