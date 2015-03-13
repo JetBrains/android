@@ -81,7 +81,7 @@ public class BuildOutputParserTest extends TestCase {
   }
 
   public void testParseParsedBuildIssue() throws IOException {
-    String output = "Android Gradle Plugin - Build Issue: {\"kind\":\"ERROR\",\"text\":\"" +
+    String output = "AGPBI: {\"kind\":\"ERROR\",\"text\":\"" +
                     "No resource identifier found for attribute \\u0027a\\u0027 in package" +
                     " \\u0027android\\u0027\",\"sourcePath\":\"/usr/local/google/home/cmw/" +
                     "udacity/Sunshine/app/src/main/res/menu/detail.xml\",\"position\":" +
