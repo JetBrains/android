@@ -15,34 +15,52 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.sdklib.internal.repository.packages.Package;
+import com.android.sdklib.internal.repository.sources.SdkSource;
+import com.android.sdklib.internal.repository.sources.SdkSources;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.utils.StdLogger;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import com.android.utils.ILogger;
+import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.AsyncProcessIcon;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.View;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
@@ -78,12 +96,16 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       return super.getPreferredSize();
     }
   };
+  private HyperlinkLabel myHelpMeChooseLink = new HyperlinkLabel("Help me choose");
   private List<Pair<Key<Boolean>, JCheckBox>> myCheckboxKeys = Lists.newArrayList();
 
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
   private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
+
+  private static final String DOWNLOAD_LINK_CARD = "link";
+  private static final String DOWNLOAD_PROGRESS_CARD = "progress";
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms require separate SDKs", disposable);
@@ -97,14 +119,15 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   public void init() {
     super.init();
 
-    myHelpMeChooseLabel.addMouseListener(new MouseInputAdapter() {
+    myHelpMeChooseLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(MOBILE)));
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        Integer minApiLevel = myState.get(getMinApiLevelKey(MOBILE));
+        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel == null ? 0 : minApiLevel);
         Disposer.register(myDisposable, myChooseApiLevelDialog.getDisposable());
         if (myChooseApiLevelDialog.showAndGet()) {
-          int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
-          myFormFactorApiSelectors.get(MOBILE).setSelectedItem(Integer.toString(minApiLevel));
+          int selectedApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
+          myFormFactorApiSelectors.get(MOBILE).setSelectedItem(Integer.toString(selectedApiLevel));
         }
       }
     });
@@ -113,7 +136,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       public void setValue(@Nullable String newValue, @NotNull JBLabel label) {
         final JBLabel referenceLabel = label;
         final String referenceString = newValue;
-        SwingUtilities.invokeLater(new Runnable() {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
             referenceLabel.setText(referenceString);
@@ -130,7 +153,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
       @Nullable
       @Override
-      public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
+      public String deriveValue(@NotNull ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
         AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
         return getApiHelpText(selectedItem == null ? 0 : selectedItem.apiLevel);
       }
@@ -153,19 +176,16 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
     return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
                                               "By targeting API %1$d and later, your app will run on %2$s of the devices that are " +
-                                              "active on the Google Play Store. " +
-                                              "<span color=\"#%3$s\">Help me choose.</span>" +
-                                              //"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam justo vitae faucibus rhoncus. Integer eget tincidunt dolor. Quisque cursus tempus ipsum. Nunc non felis id ante facilisis mollis. Nulla nunc quam, iaculis ut gravida vitae, ultrices quis nunc. Aenean id turpis condimentum urna finibus dignissim. Maecenas vel tempor elit, vel cursus sem. Integer non magna blandit, auctor nisl vel, venenatis tortor. Vestibulum sagittis porttitor ante at lobortis. Vivamus quis sagittis nunc. Aenean sed risus in ligula blandit placerat" +
-                                              ".</html>",
+                                              "active on the Google Play Store.</html>",
                          selectedApi,
-                         percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage),
-                         Integer.toHexString(JBColor.blue.getRGB()).substring(2));
+                         percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage));
   }
 
   private void populateAdditionalFormFactors() {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
     myFormFactors.clear();
+    myFormFactorPanel.removeAll();
 
     int row = 0;
     Map<FormFactor, Integer> minSdks = Maps.newHashMap();
@@ -182,7 +202,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       minSdks.put(formFactor, metadata.getMinSdk());
     }
 
-    GridLayoutManager gridLayoutManager = new GridLayoutManager(myFormFactors.size() * 2 + 1, 2);
+    // Number of rows is two for each active form factor (one for checkbox and one for popup) + one for each of the
+    // message about % of devices covered and the "help me choose" link.
+    GridLayoutManager gridLayoutManager = new GridLayoutManager(myFormFactors.size() * 2 + 2, 2);
     gridLayoutManager.setVGap(5);
     gridLayoutManager.setHGap(10);
     myFormFactorPanel.setLayout(gridLayoutManager);
@@ -201,14 +223,24 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       FormFactorApiComboBox minSdkComboBox = controls.getMinSdkCombo();
       minSdkComboBox.setName(formFactor.id + ".minSdk");
       controls.layout(myFormFactorPanel, ++row, inclusionCheckBox.getIconTextGap());
-      minSdkComboBox.register(this);
       myFormFactorApiSelectors.put(formFactor, controls);
+      minSdkComboBox.register(this);
 
       // If we don't have any valid targets for the given form factor, disable that form factor
       if (minSdkComboBox.getItemCount() == 0) {
         inclusionCheckBox.setSelected(false);
         inclusionCheckBox.setEnabled(false);
         inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
+
+        JBCardLayout layout = new JBCardLayout();
+        JPanel downloadCardPanel = new JPanel(layout);
+        downloadCardPanel.add(DOWNLOAD_PROGRESS_CARD, createDownloadingMessage());
+        final HyperlinkLabel link = new HyperlinkLabel("Download");
+        downloadCardPanel.add(DOWNLOAD_LINK_CARD, link);
+        layout.show(downloadCardPanel, DOWNLOAD_PROGRESS_CARD);
+        c.setColumn(1);
+        myFormFactorPanel.add(downloadCardPanel, c);
+        findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
       }
 
       if (formFactor.equals(MOBILE)) {
@@ -217,9 +249,95 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
         c.setFill(GridConstraints.FILL_HORIZONTAL);
         myFormFactorPanel.add(myHelpMeChooseLabel, c);
+        c.setRow(++row);
+        myFormFactorPanel.add(myHelpMeChooseLink, c);
       }
       row++;
     }
+  }
+
+  private static JComponent createDownloadingMessage() {
+    JPanel downloadPanel = new JPanel(new FlowLayout());
+    AsyncProcessIcon refreshIcon = new AsyncProcessIcon("loading");
+    JLabel refreshingLabel = new JLabel("Looking for SDK...");
+    refreshingLabel.setForeground(JBColor.GRAY);
+    downloadPanel.add(refreshIcon);
+    downloadPanel.add(refreshingLabel);
+    return downloadPanel;
+  }
+
+  private void findCompatibleSdk(final FormFactor formFactor, final int minSdkLevel, final HyperlinkLabel link, final JPanel cardPanel) {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        final Package remote = findLatestRemotePackage(formFactor, minSdkLevel);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            if (remote != null) {
+              showDownloadLink(link, remote, cardPanel);
+            }
+            else {
+              cardPanel.setVisible(false);
+            }
+          }
+        }, ModalityState.stateForComponent(myFormFactorPanel));
+      }
+    });
+  }
+
+  private void showDownloadLink(final HyperlinkLabel link, final Package remote, final JPanel cardPanel) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        link.addHyperlinkListener(new HyperlinkAdapter() {
+          @Override
+          protected void hyperlinkActivated(HyperlinkEvent e) {
+            showDownloadWizard(remote);
+            populateAdditionalFormFactors();
+            myFormFactorPanel.validate();
+          }
+        });
+        ((JBCardLayout)cardPanel.getLayout()).show(cardPanel, DOWNLOAD_LINK_CARD);
+      }
+    });
+  }
+
+  private static void showDownloadWizard(Package pack) {
+    List<IPkgDesc> requestedPackages = Lists.newArrayList(pack.getPkgDesc());
+    SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
+                                                                new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
+    sdkQuickfixWizard.init();
+    sdkQuickfixWizard.show();
+  }
+
+  @Nullable
+  public Package findLatestRemotePackage(FormFactor formFactor, int minSdkLevel) {
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null) {
+      return null;
+    }
+    RemoteSdk remote = sdkData.getRemoteSdk();
+    ILogger logger = new StdLogger(StdLogger.Level.WARNING);
+    SdkSources sources = remote.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
+    Multimap<PkgType, RemotePkgInfo> packages = remote.fetch(sources, logger);
+
+    if (packages.isEmpty()) {
+      return null;
+    }
+
+    List<Package> packageList = Lists.newArrayList();
+    for (SdkSource source : sources.getAllSources()) {
+      Package[] sourcePackages = source.getPackages();
+      if (sourcePackages == null) {
+        continue;
+      }
+      packageList.addAll(Arrays.asList(sourcePackages));
+    }
+    Collections.sort(packageList);
+    Iterable<Package> result =
+      Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel));
+    return Iterables.getFirst(result, null);
   }
 
   @Override
