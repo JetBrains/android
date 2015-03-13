@@ -16,12 +16,8 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.ide.common.blame.output.GradleMessage;
-import com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.ToolOutputParser;
-import com.android.ide.common.blame.parser.aapt.AaptOutputParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.*;
-import com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 
 import java.util.List;
@@ -30,15 +26,11 @@ import java.util.List;
  * Parses Gradle's build output and creates the messages to be displayed in the "Messages" tool window.
  */
 public class BuildOutputParser{
-  private static final PatternAwareOutputParser[] PARSERS =
-    {new JsonEncodedGradleMessageParser(), new AndroidPluginOutputParser(), new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(),
-      new BuildFailureParser(), new ManifestMergeFailureParser(), new DexExceptionParser(), new JavacOutputParser(),
-      new MergingExceptionParser()};
-
+  private Iterable<? extends PatternAwareOutputParser> myParsers;
   private final ToolOutputParser parser;
 
-  public BuildOutputParser() {
-    parser = new ToolOutputParser(PARSERS, new MessageBuildingSdkLog());
+  public BuildOutputParser(Iterable<PatternAwareOutputParser> parsers) {
+    parser = new ToolOutputParser(parsers, new MessageBuildingSdkLog());
   }
 
   public List<GradleMessage> parseGradleOutput(String output) {
