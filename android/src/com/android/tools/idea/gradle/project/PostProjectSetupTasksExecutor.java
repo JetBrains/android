@@ -126,6 +126,9 @@ public class PostProjectSetupTasksExecutor {
    * Invoked after a project has been synced with Gradle.
    */
   public void onProjectSyncCompletion() {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    messages.reportDependencySetupErrors();
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       if (!hasCorrectJdkVersion(module)) {
@@ -242,7 +245,7 @@ public class PostProjectSetupTasksExecutor {
     Multimap<String, String> librarySources = getLibrarySources(myProject);
 
     for (Library library : libraryTable.getLibraries()) {
-      Set<String> sourcePaths = new HashSet<String>();
+      Set<String> sourcePaths = Sets.newHashSet();
 
       for (VirtualFile file : library.getFiles(OrderRootType.SOURCES)) {
         sourcePaths.add(file.getUrl());

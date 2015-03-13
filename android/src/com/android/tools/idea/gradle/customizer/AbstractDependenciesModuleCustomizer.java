@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -30,9 +28,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.Projects.getDependencySetupErrors;
+import static com.android.tools.idea.gradle.util.Projects.setDependencySetupErrors;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
@@ -47,21 +46,21 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     if (externalProjectModel == null) {
       return;
     }
-    List<Message> errorsFound = Lists.newArrayList();
+
     removeExistingDependencies(ideaModuleModel);
-    setUpDependencies(ideaModuleModel, externalProjectModel, errorsFound);
-    notifyUser(errorsFound, ideaModuleModel.getModule());
+    setUpDependencies(ideaModuleModel, externalProjectModel);
   }
 
-  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model, @NotNull List<Message> errorsFound);
+  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model);
 
-  private static void notifyUser(@NotNull List<Message> errorsFound, @NotNull Module module) {
-    if (!errorsFound.isEmpty()) {
-      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
-      for (Message error : errorsFound) {
-        messages.add(error);
-      }
+  @NotNull
+  protected DependencySetupErrors getSetupErrors(@NotNull Project project) {
+    DependencySetupErrors setupErrors = getDependencySetupErrors(project);
+    if (setupErrors == null) {
+      setupErrors = new DependencySetupErrors();
+      setDependencySetupErrors(project, setupErrors);
     }
+    return setupErrors;
   }
 
   private static void removeExistingDependencies(@NotNull ModifiableRootModel model) {
