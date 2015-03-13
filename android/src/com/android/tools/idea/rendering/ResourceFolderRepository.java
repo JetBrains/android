@@ -394,7 +394,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
   }
 
-  private void rescan(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
+  @VisibleForTesting
+  void rescan(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
     synchronized(SCAN_LOCK) {
       if (isScanPending(psiFile)) {
         return;
@@ -772,6 +773,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   PsiResourceFile resourceFile = myResourceFiles.get(psiFile);
                   if (resourceFile != null) {
                     resourceFile.addItems(ids);
+                    myGeneration++;
                   }
                 }
                 return;
