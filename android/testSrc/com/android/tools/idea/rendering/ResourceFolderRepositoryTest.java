@@ -2117,19 +2117,34 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
             String string = "    <string name=\"hello_world\">Hello world!</string>";
             final int offset = document.getText().indexOf(string);
             assertTrue(offset != -1);
+
+            // Simulate an edit event that triggers the incremental updater to
+            // give up and schedule a subsequent update instead. (This used to be
+            // the case here, but as of IntelliJ 14.1 it's now delivering more
+            // accurate events for the below edits, which made the sync-test
+            // fail because it would already have correct results *before* the
+            // sync. Therefore, we simply trigger a pending scan (which stops
+            // subequent incremental events from being processed).
+            resources.rescan(psiFile1, ResourceFolderType.VALUES);
+
             document.deleteString(offset, offset + string.length());
             documentManager.commitDocument(document);
           }
         });
 
-        assertTrue(generation < resources.getModificationCount());
-
+        // The strings file contains definitions for app_name, action_settings and hello_world.
+        // We've manually deleted the hello_world string. We now check that app_name remains
+        // in the resource set, and that hello_world is removed. (We check that hello_world
+        // is there before the sync, and gone after.)
         assertTrue(resources.isScanPending(psiFile1));
-        assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
 
         assertTrue(ApplicationManager.getApplication().isDispatchThread());
         resources.sync();
+        assertTrue(generation < resources.getModificationCount());
         assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
         assertFalse(resources.isScanPending(psiFile1));
       }
     });
