@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -56,8 +55,8 @@ import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Condition;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.junit.After;
@@ -75,10 +74,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
-import static com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler.MARKER_TEXT;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.*;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
@@ -290,7 +286,7 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=75060
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest @Ignore // Works only when executed individually
   public void testHandlingOfOutOfMemoryErrors() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
@@ -537,51 +533,6 @@ public class GradleSyncTest extends GuiTestCase {
                 .requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest @Ignore // Started to fail in 1.2
-  public void testOutdatedAppEnginePlugin() throws IOException {
-    String[] appenginePluginNames = {APPENGINE_PLUGIN_NAME, APPENGINE_PLUGIN_GROUP_ID + ":appengine-java-sdk:",
-      APPENGINE_PLUGIN_GROUP_ID + ":appengine-endpoints:", APPENGINE_PLUGIN_GROUP_ID +":appengine-endpoints-deps:"};
-
-    IdeFrameFixture projectFrame = openProject("OutdatedAppEnginePlugin");
-
-    VirtualFile backendBuildFile = projectFrame.findFileByRelativePath("backend/build.gradle", true);
-    Document document = FileDocumentManager.getInstance().getDocument(backendBuildFile);
-    assertNotNull(document);
-
-    Project project = projectFrame.getProject();
-    Computable<String> appengineOutdatedPluginVersionTask = new Computable<String>() {
-      @Override
-      public String compute() {
-        return "1.9.4";
-      }
-    };
-    for (String pluginName : appenginePluginNames) {
-      updateGradleDependencyVersion(project, document, pluginName, appengineOutdatedPluginVersionTask);
-    }
-
-    projectFrame.requestProjectSyncAndExpectFailure();
-
-    // Check that sync output has an 'update AppEngine plugin version' link.
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture msg = syncMessages.findMessage(ERROR, firstLineStartingWith(MARKER_TEXT));
-    HyperlinkFixture hyperlink = msg.findHyperlink(AndroidBundle.message("android.gradle.link.appengine.outdated"));
-
-    // Ensure that clicking 'AppEngine plugin version' link really updates *.gradle config.
-    GradleCoordinate definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
-    assertNotNull(definition);
-
-    int compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
-    assertThat(compare).isLessThan(0);
-
-    hyperlink.click(true);
-
-    definition = getPluginDefinition(document.getText(), APPENGINE_PLUGIN_NAME);
-    assertNotNull(definition);
-
-    compare = COMPARE_PLUS_HIGHER.compare(definition, REFERENCE_APPENGINE_COORDINATE);
-    assertThat(compare).isGreaterThanOrEqualTo(0);
-  }
-
   // See https://code.google.com/p/android/issues/detail?id=74842
   @Test @IdeGuiTest
   public void testPrematureEndOfContentLength() throws IOException {
@@ -673,7 +624,7 @@ public class GradleSyncTest extends GuiTestCase {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
     VirtualFile projectBuildFile = projectFrame.findFileByRelativePath("build.gradle", true);
-    Document document = FileDocumentManager.getInstance().getDocument(projectBuildFile);
+    Document document = getDocument(projectBuildFile);
     assertNotNull(document);
 
     updateGradleDependencyVersion(projectFrame.getProject(), document, GRADLE_PLUGIN_NAME, new Computable<String>() {
@@ -688,7 +639,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   private static void testSyncWithUnresolvedAppCompat(@NotNull IdeFrameFixture projectFrame) {
     VirtualFile appBuildFile = projectFrame.findFileByRelativePath("app/build.gradle", true);
-    Document document = FileDocumentManager.getInstance().getDocument(appBuildFile);
+    Document document = getDocument(appBuildFile);
     assertNotNull(document);
 
     updateGradleDependencyVersion(projectFrame.getProject(), document, "com.android.support:appcompat-v7:", new Computable<String>() {
@@ -702,6 +653,16 @@ public class GradleSyncTest extends GuiTestCase {
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
+  }
+
+  @Nullable
+  private static Document getDocument(@NotNull final VirtualFile file) {
+    return execute(new GuiQuery<Document>() {
+      @Override
+      protected Document executeInEDT() throws Throwable {
+        return FileDocumentManager.getInstance().getDocument(file);
+      }
+    });
   }
 
   @Test @IdeGuiTest
@@ -816,6 +777,10 @@ public class GradleSyncTest extends GuiTestCase {
     if (isEmpty(unsupportedGradleHome)) {
       fail("Please specify the path of a local, Gradle 2.1 distribution using the system property "
            + quote(UNSUPPORTED_GRADLE_HOME_PROPERTY));
+    }
+    File path = new File(unsupportedGradleHome);
+    if (!path.isDirectory()) {
+      fail(String.format("The path '%1$s' does not belong to a directory", unsupportedGradleHome));
     }
     return unsupportedGradleHome;
   }
