@@ -66,9 +66,6 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
         }
       }
     });
-
-    // a theme can contain theme attributes (listed in attrs.xml) and also global defaults (all of attrs.xml)
-    myComponent.reload(null/*defaultThemeName*/);
   }
 
   /**
@@ -103,11 +100,26 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public FileEditorState getState(@NotNull FileEditorStateLevel fileEditorStateLevel) {
-    return FileEditorState.INSTANCE;
+    ThemeEditorStyle theme = myComponent.getSelectedTheme();
+    ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
+    return new ThemeEditorState(theme == null ? null : theme.getName(),
+                                subStyle == null ? null : subStyle.getName(),
+                                myComponent.getProportion());
   }
 
   @Override
   public void setState(@NotNull FileEditorState fileEditorState) {
+    if (!(fileEditorState instanceof ThemeEditorState)) {
+      return;
+    }
+
+    ThemeEditorState state = (ThemeEditorState)fileEditorState;
+    myComponent.reload(state.getThemeName(), state.getSubStyleName());
+
+    Float proportion = state.getProportion();
+    if (proportion != null) {
+      myComponent.setProportion(proportion);
+    }
   }
 
   @Override

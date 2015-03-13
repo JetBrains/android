@@ -41,15 +41,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -144,7 +140,7 @@ public class ThemeEditorComponent extends Splitter {
         return myComponent.getRowCount() * myComponent.getColumnCount();
       }
     };
-    
+
     // Setup Javadoc handler.
     ActionManager actionManager = ActionManager.getInstance();
     ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable);
@@ -404,7 +400,7 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   @Nullable
-  private ThemeEditorStyle getSelectedTheme() {
+  ThemeEditorStyle getSelectedTheme() {
     return (ThemeEditorStyle)myThemeCombo.getSelectedItem();
   }
 
@@ -415,6 +411,11 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     return getSelectedTheme();
+  }
+
+  @Nullable
+  ThemeEditorStyle getCurrentSubStyle() {
+    return myCurrentSubStyle;
   }
 
   private boolean isSubStyleSelected() {
@@ -492,11 +493,15 @@ public class ThemeEditorComponent extends Splitter {
    * @param defaultThemeName The name to select from the themes list.
    */
   public void reload(@Nullable final String defaultThemeName) {
+    reload(defaultThemeName, null);
+  }
+
+  public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName) {
     // This is required since the configuration could have a link to a non existent theme (if it was removed).
     // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
     // fails to find the local themes.
     myConfiguration.setTheme(null);
-    myCurrentSubStyle = null;
+    myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
     mySubStyleSourceAttribute = null;
 
     ApplicationManager.getApplication().runReadAction(new Runnable() {
@@ -511,6 +516,11 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     saveCurrentSelectedTheme();
+  }
+
+  public void setSubstyle(@Nullable final String substyle) {
+    myCurrentSubStyle = substyle == null ? null : myStyleResolver.getStyle(substyle);
+    loadStyleAttributes();
   }
 
   /**
