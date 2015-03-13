@@ -95,7 +95,12 @@ public class FileFixture {
 
   @NotNull
   public FileFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
-    final Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
+    final Document document = GuiActionRunner.execute(new GuiQuery<Document>() {
+      @Override
+      protected Document executeInEDT() throws Throwable {
+        return FileDocumentManager.getInstance().getDocument(myVirtualFile);
+      }
+    });
     assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
 
     Collection<HighlightInfo> highlightInfos = GuiActionRunner.execute(new GuiQuery<Collection<HighlightInfo>>() {
