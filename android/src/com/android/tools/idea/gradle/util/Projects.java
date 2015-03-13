@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -72,6 +73,8 @@ public final class Projects {
 
   // Key: library name, Values: URLs of files containing the library sources.
   private static final Key<Multimap<String, String>> LIBRARY_SOURCES = Key.create("project.library.sources");
+
+  private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
 
   private Projects() {
   }
@@ -405,5 +408,14 @@ public final class Projects {
 
   public static void setLibrarySources(@NotNull Project project, @Nullable Multimap<String, String> librarySources) {
     project.putUserData(LIBRARY_SOURCES, librarySources);
+  }
+
+  @Nullable
+  public static DependencySetupErrors getDependencySetupErrors(@NotNull Project project) {
+    return project.getUserData(DEPENDENCY_SETUP_ERRORS);
+  }
+
+  public static void setDependencySetupErrors(@NotNull Project project, @Nullable DependencySetupErrors errors) {
+    project.putUserData(DEPENDENCY_SETUP_ERRORS, errors);
   }
 }
