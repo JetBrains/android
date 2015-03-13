@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -37,7 +36,7 @@ public class StyleResolverTest extends AndroidTestCase {
 
   public void testFrameworkStyleRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = ConfigurationManager.create(myModule).getConfiguration(myLayout);
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
     StyleResolver styleResolver = new StyleResolver(configuration);
 
     assertNull(styleResolver.getStyle("@style/TextAppearance")); // It's a system style. Not using the namespace so this should fail.
