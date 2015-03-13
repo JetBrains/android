@@ -35,7 +35,7 @@ public class ThemeNameChangeTest extends AndroidTestCase {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
     myFixture.copyFileToProject("themeEditor/themeNameChangeStyles.xml", "res/values/styles.xml");
 
-    ConfigurationManager configurationManager = ConfigurationManager.create(myModule);
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(myLayout);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/TestTheme");
@@ -81,7 +81,7 @@ public class ThemeNameChangeTest extends AndroidTestCase {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
     myFixture.copyFileToProject("themeEditor/themeNameChangeStyles.xml", "res/values/styles.xml");
 
-    ConfigurationManager configurationManager = ConfigurationManager.create(myModule);
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(myLayout);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/TestTheme");

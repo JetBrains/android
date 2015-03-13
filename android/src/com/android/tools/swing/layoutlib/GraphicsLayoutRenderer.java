@@ -228,7 +228,7 @@ public class GraphicsLayoutRenderer {
    * <p/>Please note that this method is not thread safe so, if used from multiple threads, it's the caller's responsibility to synchronize
    * the access to it.
    */
-  public void render(@NotNull final Graphics2D graphics) {
+  public boolean render(@NotNull final Graphics2D graphics) {
     myImageFactory.setGraphics(graphics);
 
     Result result = null;
@@ -238,17 +238,10 @@ public class GraphicsLayoutRenderer {
         myResourceLookupChain.clear();
         myRenderSession = initRenderSession();
         result = myRenderSession != null ? myRenderSession.getResult() : null;
-        if (result != null && result.getException() != null) {
-          LOG.error(result.getException());
-        }
-
         // initRenderSession will call render so we do not need to do it here.
-        return;
+      } else {
+        result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
       }
-
-      // TODO: Currently passing true to invalidate in every render since layoutlib caches the passed Graphics2D otherwise.
-      //       This should be addressed as part of the changes to pass the Graphics2D instance to layoutlib.
-      result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
     }
     finally {
       mySecurityManager.setActive(false, myCredential);
@@ -263,9 +256,11 @@ public class GraphicsLayoutRenderer {
       else {
         LOG.error("Render error (no exception). Status=" + result.getStatus().name());
       }
+      return false;
     }
 
     myInvalidate = false;
+    return true;
   }
 
   /**

@@ -111,6 +111,15 @@ public class ThemePreviewBuilder {
     String getId() {
       return NEW_ID_PREFIX + "widget" + id;
     }
+
+    /**
+     * Sets the component text attribute.
+     */
+    @NotNull
+    public ComponentDefinition setText(@NotNull String text) {
+      set(ATTR_TEXT, text);
+      return this;
+    }
   }
 
   public static final List<ComponentDefinition> AVAILABLE_BASE_COMPONENTS = ImmutableList.of(
@@ -125,10 +134,10 @@ public class ThemePreviewBuilder {
     // Buttons
     new ComponentDefinition("Button",         ComponentGroup.BUTTONS, BUTTON),
     new ComponentDefinition("Small button",   ComponentGroup.BUTTONS, BUTTON).set(ATTR_STYLE, "?android:attr/buttonStyleSmall"),
-    new ComponentDefinition("Toggle button",  ComponentGroup.BUTTONS, TOGGLE_BUTTON),
-    new ComponentDefinition("Radio button",   ComponentGroup.BUTTONS, RADIO_BUTTON),
-    new ComponentDefinition("Checkbox",       ComponentGroup.BUTTONS, CHECK_BOX),
-    //new ComponentDefinition("Switch",  ComponentGroup.BUTTONS, SWITCH),
+    new ComponentDefinition("Toggle button",  ComponentGroup.BUTTONS, TOGGLE_BUTTON).setText(""),
+    new ComponentDefinition("Radio button",   ComponentGroup.BUTTONS, RADIO_BUTTON).setText(""),
+    new ComponentDefinition("Checkbox",       ComponentGroup.BUTTONS, CHECK_BOX).setText(""),
+    //new ComponentDefinition("Switch", ComponentGroup.BUTTONS, SWITCH).setText(""),
 
     // Text
     new ComponentDefinition("New text",       ComponentGroup.TEXT, TEXT_VIEW),
@@ -139,9 +148,9 @@ public class ThemePreviewBuilder {
     // Edit
     new ComponentDefinition("Input text",     ComponentGroup.EDIT, EDIT_TEXT),
     new ComponentDefinition("Long text",      ComponentGroup.EDIT, EDIT_TEXT)
-      .set(ATTR_INPUT_TYPE, "textLongMessage").set(ATTR_TEXT, ourLoremGenerator.generate(50, true)),
+      .set(ATTR_INPUT_TYPE, "textLongMessage").setText(ourLoremGenerator.generate(50, true)),
     new ComponentDefinition("Long text",      ComponentGroup.EDIT, EDIT_TEXT)
-      .set(ATTR_INPUT_TYPE, "textMultiLine").set(ATTR_TEXT, ourLoremGenerator.generate(50, true)),
+      .set(ATTR_INPUT_TYPE, "textMultiLine").setText(ourLoremGenerator.generate(50, true)),
 
     // Misc
     new ComponentDefinition("ProgressBar",    ComponentGroup.OTHER, PROGRESS_BAR),
