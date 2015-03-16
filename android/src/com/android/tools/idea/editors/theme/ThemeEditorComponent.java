@@ -41,8 +41,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.ComboboxSpeedSearch;
-import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
@@ -84,62 +82,45 @@ public class ThemeEditorComponent extends Splitter {
     DrawableDomElement.class, 64
   );
 
-  private final Configuration myConfiguration;
-  private final Module myModule;
   private StyleResolver myStyleResolver;
-  private AndroidThemePreviewPanel myPreviewPanel;
-  private final StyleAttributesFilter myAttributesFilter;
   private String myPreviousSelectedTheme;
+
   // Points to the current selected substyle within the theme.
   private ThemeEditorStyle myCurrentSubStyle;
+
   // Points to the attribute that original pointed to the substyle.
   private EditedStyleItem mySubStyleSourceAttribute;
-  private AttributesPanel myPanel = new AttributesPanel();
 
-  private final JComboBox myThemeCombo = myPanel.getThemeCombo();
-  private final JButton myParentThemeButton = myPanel.getParentThemeButton();
-  private final JButton myBackButton = myPanel.getBackButton();
+  // Subcomponents
+  private final Configuration myConfiguration;
+  private final Module myModule;
+  private final AndroidThemePreviewPanel myPreviewPanel;
+  private final StyleAttributesFilter myAttributesFilter;
+  private final AttributesPanel myPanel = new AttributesPanel();
   private final JTable myAttributesTable = myPanel.getAttributesTable();
-  private final JCheckBox myAdvancedFilterCheckBox = myPanel.getAdvancedFilterCheckBox();
-  private final JLabel mySubStyleLabel = myPanel.getSubStyleLabel();
 
   private final AttributeReferenceRendererEditor myStyleEditor;
-  private final ConfigurationListener myConfigListener;
+  private final ConfigurationListener myConfigListener = new ConfigurationListener() {
+    @Override
+    public boolean changed(int flags) {
+
+      //reloads the theme editor preview when device is modified
+      if ((flags & CFG_DEVICE) != 0) {
+        loadStyleAttributes();
+        myConfiguration.save();
+      }
+
+      return true;
+    }
+  };
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
     this.myConfiguration = configuration;
     this.myModule = module;
-    this.myStyleResolver = new StyleResolver(myConfiguration);
-
-    myConfigListener = new ConfigurationListener() {
-      @Override
-      public boolean changed(int flags) {
-
-        //reloads the theme editor preview when device is modified
-        if ((flags & CFG_DEVICE) != 0) {
-          loadStyleAttributes();
-          myConfiguration.save();
-        }
-
-        return true;
-      }
-    };
 
     myConfiguration.addListener(myConfigListener);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration);
-
-    myAttributesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myAttributesTable.setTableHeader(null);
-
-    // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the number
-    // of available cells. Fix this.
-    new TableSpeedSearch(myAttributesTable) {
-      @Override
-      protected int getElementCount() {
-        return myComponent.getRowCount() * myComponent.getColumnCount();
-      }
-    };
 
     // Setup Javadoc handler.
     ActionManager actionManager = ActionManager.getInstance();
@@ -166,8 +147,6 @@ public class ThemeEditorComponent extends Splitter {
         else {
           myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
         }
-        mySubStyleSourceAttribute = value;
-        loadStyleAttributes();
       }
     }, project, completionProvider);
 
@@ -216,9 +195,7 @@ public class ThemeEditorComponent extends Splitter {
 
     myAttributesFilter = new StyleAttributesFilter();
 
-    // Button to go to the parent theme (if available).
-    myBackButton.setToolTipText("Back to the theme");
-    myBackButton.addActionListener(new ActionListener() {
+    myPanel.getBackButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         myCurrentSubStyle = null;
@@ -226,11 +203,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    // We have our own custom renderer that it's not based on the default one.
-    //noinspection GtkPreferredJComboBoxRenderer
-    myThemeCombo.setRenderer(new StyleListCellRenderer(myThemeCombo));
-    new ComboboxSpeedSearch(myThemeCombo);
-    myParentThemeButton.addActionListener(new ActionListener() {
+    myPanel.getParentThemeButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         ThemeEditorStyle selectedStyle = getSelectedStyle();
@@ -249,19 +222,19 @@ public class ThemeEditorComponent extends Splitter {
           loadStyleAttributes();
         }
         else {
-          myThemeCombo.setSelectedItem(parent);
+          myPanel.setSelectedTheme(parent);
         }
       }
     });
 
-    myAdvancedFilterCheckBox.addItemListener(new ItemListener() {
+    myPanel.getAdvancedFilterCheckBox().addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
         if (myAttributesTable.isEditing()) {
           myAttributesTable.getCellEditor().cancelCellEditing();
         }
         myAttributesTable.clearSelection();
-        myAttributesFilter.setAdvancedMode(myAdvancedFilterCheckBox.isSelected());
+        myAttributesFilter.setAdvancedMode(myPanel.isAdvancedMode());
 
         myAttributesFilter.setAttributesFilter(myPreviewPanel.getUsedAttrs());
 
@@ -283,7 +256,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myThemeCombo.addActionListener(new ActionListener() {
+    myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         saveCurrentSelectedTheme();
@@ -305,9 +278,6 @@ public class ThemeEditorComponent extends Splitter {
 
     final JScrollPane scroll = myPanel.getAttributesScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
-
-    mySubStyleLabel.setVisible(false);
-    mySubStyleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     JBScrollPane scrollPanel = new JBScrollPane(myPreviewPanel,
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
@@ -401,7 +371,7 @@ public class ThemeEditorComponent extends Splitter {
 
   @Nullable
   ThemeEditorStyle getSelectedTheme() {
-    return (ThemeEditorStyle)myThemeCombo.getSelectedItem();
+    return myPanel.getSelectedTheme();
   }
 
   @Nullable
@@ -509,7 +479,7 @@ public class ThemeEditorComponent extends Splitter {
       public void run() {
         myStyleResolver = new StyleResolver(myConfiguration);
         final ThemeResolver themeResolver = new ThemeResolver(myConfiguration, myStyleResolver);
-        myThemeCombo.setModel(new ThemesListModel(themeResolver, defaultThemeName));
+        myPanel.getThemeCombo().setModel(new ThemesListModel(themeResolver, defaultThemeName));
 
         loadStyleAttributes();
       }
@@ -538,21 +508,19 @@ public class ThemeEditorComponent extends Splitter {
     final ThemeEditorStyle parentStyle = selectedStyle.getParent();
 
     if (myCurrentSubStyle != null) {
-      mySubStyleLabel.setText("\u27A5 " + myCurrentSubStyle.getSimpleName());
-      mySubStyleLabel.setVisible(true);
+      myPanel.setSubstyleName(myCurrentSubStyle.getName());
 
       // Editing substyle of a substyle is disabled, because it's not clear how to do it properly
       myStyleEditor.setAreDetailsActive(false);
     } else {
-      mySubStyleLabel.setVisible(false);
+      myPanel.setSubstyleName(null);
       myStyleEditor.setAreDetailsActive(true);
     }
 
     // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
     myAttributesFilter.setAdvancedMode(true);
-    myParentThemeButton.setVisible(parentStyle != null);
-    myParentThemeButton.setToolTipText(parentStyle != null ? parentStyle.getName() : "");
-    myBackButton.setVisible(myCurrentSubStyle != null);
+    myPanel.setParent(parentStyle);
+    myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
     myConfiguration.setTheme(selectedTheme.getName());
 
 
@@ -618,7 +586,7 @@ public class ThemeEditorComponent extends Splitter {
     TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
     sorter.setRowFilter(myAttributesFilter);
     myAttributesTable.setRowSorter(sorter);
-    myAdvancedFilterCheckBox.setSelected(myAttributesFilter.myAdvancedMode);
+    myPanel.setAdvancedMode(myAttributesFilter.myAdvancedMode);
 
     myAttributesTable.setModel(model);
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
