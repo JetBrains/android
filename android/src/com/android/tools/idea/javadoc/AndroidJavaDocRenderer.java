@@ -32,6 +32,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
@@ -46,6 +47,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -100,20 +102,25 @@ public class AndroidJavaDocRenderer {
   }
 
   @NotNull
-  private static String renderAttributeDoc(Configuration configuration, String myAttributeName) {
-
-    IAndroidTarget target = configuration.getTarget();
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
-    AttributeDefinitionsImpl defImpl = androidTargetData.getAllAttrDefs(configuration.getModule().getProject());
-    AttributeDefinition def = (defImpl == null) ? null : defImpl.getAttrDefByName(myAttributeName);
+  private static String renderAttributeDoc(Configuration configuration, ItemResourceValue resValue) {
+    AttributeDefinitions defs;
+    if (resValue.isFrameworkAttr()) {
+      IAndroidTarget target = configuration.getTarget();
+      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
+      defs = androidTargetData.getAllAttrDefs(configuration.getModule().getProject());
+    } else {
+      AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
+      defs = facet.getLocalResourceManager().getAttributeDefinitions();
+    }
     String doc = null;
+    AttributeDefinition def = (defs == null) ? null : defs.getAttrDefByName(resValue.getName());
     if (def != null) {
       doc = def.getDocValue(null);
     }
-    HtmlBuilder builder = new HtmlBuilder();
 
+    HtmlBuilder builder = new HtmlBuilder();
     builder.beginBold();
-    builder.add(myAttributeName);
+    builder.add(StyleResolver.getQualifiedItemName(resValue));
     builder.endBold();
     builder.addHtml("<br/>");
 
@@ -162,7 +169,7 @@ public class AndroidJavaDocRenderer {
    **/
   @NotNull
   public static String renderItemResourceWithDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull ItemResourceValue resValue) {
-    String doc = renderAttributeDoc(configuration, resValue.getName());
+    String doc = renderAttributeDoc(configuration, resValue);
     String render = renderValue(module, configuration, resValue);
 
     String bodyTag = "<body>";
