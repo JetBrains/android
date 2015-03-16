@@ -287,6 +287,9 @@ public final class GradleModuleImporter extends ModuleImporter {
           if (target == null) {
             throw new IOException(String.format("Unable to create directory %1$s", targetFile));
           }
+          if (target.exists()) {
+            target.delete(requestor);
+          }
           moduleSource.copy(requestor, target.getParent(), target.getName());
         }
         else {
