@@ -210,7 +210,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public List<IdeaSourceProvider> getMainIdeaTestSourceProviders() {
-    if (!isGradleProject()) {
+    if (!isGradleProject() || myIdeaAndroidProject == null) {
       return Collections.emptyList();
     }
 
