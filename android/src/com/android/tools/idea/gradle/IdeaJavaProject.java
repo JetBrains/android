@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.emptyList;
 
 public class IdeaJavaProject implements Serializable {
@@ -123,6 +124,18 @@ public class IdeaJavaProject implements Serializable {
   @NotNull
   public List<? extends IdeaDependency> getDependencies() {
     return myDependencies;
+  }
+
+  @Nullable
+  public File getJarFilePath() {
+    Map<String, Set<File>> artifactsByConfiguration = getArtifactsByConfiguration();
+    if (artifactsByConfiguration != null) {
+      Set<File> defaultArtifacts = artifactsByConfiguration.get("default");
+      if (!defaultArtifacts.isEmpty()) {
+        return getFirstItem(defaultArtifacts);
+      }
+    }
+    return null;
   }
 
   @Nullable
