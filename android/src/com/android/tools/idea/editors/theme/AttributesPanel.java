@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.ComboboxSpeedSearch;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import org.jetbrains.annotations.Nullable;
 import spantable.CellSpanTable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
 
 public class AttributesPanel {
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
@@ -45,14 +51,68 @@ public class AttributesPanel {
     myParentThemeButton.setBorder(BORDER);
     myNewThemeButton.setBorder(BORDER);
     myBackButton.setBorder(BORDER);
+
+    // We have our own custom renderer that it's not based on the default one.
+    //noinspection GtkPreferredJComboBoxRenderer
+    myThemeCombo.setRenderer(new StyleListCellRenderer(myThemeCombo));
+    new ComboboxSpeedSearch(myThemeCombo);
+
+    myBackButton.setToolTipText("Back to the theme");
+
+    myAttributesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myAttributesTable.setTableHeader(null);
+
+    // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the number
+    // of available cells. Fix this.
+    new TableSpeedSearch(myAttributesTable) {
+      @Override
+      protected int getElementCount() {
+        return myComponent.getRowCount() * myComponent.getColumnCount();
+      }
+    };
+
+    mySubStyleLabel.setVisible(false);
+    mySubStyleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+  }
+
+  public void setSelectedTheme(final ThemeEditorStyle style) {
+    myThemeCombo.setSelectedItem(style);
+  }
+
+  public ThemeEditorStyle getSelectedTheme() {
+    return (ThemeEditorStyle) myThemeCombo.getSelectedItem();
+  }
+
+  public void setParent(final @Nullable ThemeEditorStyle parent) {
+    myParentThemeButton.setVisible(parent != null);
+    myParentThemeButton.setToolTipText(parent != null ? parent.getName() : "");
+  }
+
+  public void setAdvancedMode(final boolean isAdvanced) {
+    myAdvancedFilterCheckBox.setSelected(isAdvanced);
+  }
+
+  public boolean isAdvancedMode() {
+    return myAdvancedFilterCheckBox.isSelected();
+  }
+
+  public void setSubstyleName(final @Nullable String substyleName) {
+    if (substyleName == null) {
+      mySubStyleLabel.setVisible(false);
+    } else {
+      mySubStyleLabel.setVisible(true);
+      mySubStyleLabel.setText("\u27A5 " + substyleName);
+    }
+  }
+
+  // Raw getters ahead
+
+  public JComboBox getThemeCombo() {
+    return myThemeCombo;
   }
 
   public CellSpanTable getAttributesTable() {
     return myAttributesTable;
-  }
-
-  public JBLabel getSubStyleLabel() {
-    return mySubStyleLabel;
   }
 
   public JButton getBackButton() {
@@ -69,10 +129,6 @@ public class AttributesPanel {
 
   public JCheckBox getAdvancedFilterCheckBox() {
     return myAdvancedFilterCheckBox;
-  }
-
-  public JComboBox getThemeCombo() {
-    return myThemeCombo;
   }
 
   public JBScrollPane getAttributesScrollPane() {
