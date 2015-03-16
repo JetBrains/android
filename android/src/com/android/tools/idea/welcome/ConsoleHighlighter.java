@@ -24,6 +24,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -51,6 +52,7 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
   private boolean myIsUpdatePending = false;
   private StringBuilder myPendingStrings = new StringBuilder(4096);
   private HighlighterClient myEditor;
+  private ModalityState myModalityState = ModalityState.defaultModalityState();
 
   public synchronized void print(String string, @Nullable TextAttributes attributes) {
     Application application = ApplicationManager.getApplication();
@@ -62,13 +64,17 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
         public void run() {
           appendToDocument();
         }
-      });
+      }, myModalityState);
     }
 
     HighlightRange lastRange = Iterables.getLast(myRanges, HighlightRange.EMPTY);
     assert lastRange != null;
     int start = lastRange.end;
     myRanges.add(new HighlightRange(start, start + string.length(), attributes));
+  }
+
+  public void setModalityState(ModalityState state) {
+    myModalityState = state;
   }
 
   /**
