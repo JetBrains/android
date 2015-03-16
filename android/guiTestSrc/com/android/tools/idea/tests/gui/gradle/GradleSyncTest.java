@@ -17,6 +17,9 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.BuildFileStatement;
+import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -34,6 +37,7 @@ import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
@@ -145,6 +149,39 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.waitForBackgroundTasksToFinish();
     projectFrame.getModule("javalib1"); // Fails if the module is not found.
+  }
+
+  @Test @IdeGuiTest
+  public void testNonExistingInterModuleDependencies() throws IOException {
+    final IdeFrameFixture projectFrame = importProject("ModuleDependencies");
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    Module appModule = projectFrame.getModule("app");
+    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    assertNotNull(buildFile);
+
+    // Set a dependency on a module that does not exist.
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        new WriteCommandAction<Void>(projectFrame.getProject(), "Adding dependencies", buildFile.getPsiFile()) {
+          @Override
+          protected void run(@NotNull Result<Void> result) throws Throwable {
+            final Dependency nonExisting = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, ":fakeLibrary");
+            List<BuildFileStatement> dependencies = Lists.newArrayList();
+            dependencies.add(nonExisting);
+            buildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+          }
+        }.execute();
+      }
+    });
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    AbstractContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    String expectedError = "Project with path ':fakeLibrary' could not be found";
+    MessageFixture msg = messages.findMessageContainingText(ERROR, expectedError);
+    msg.findHyperlink("Open File"); // Now it is possible to open the build.gradle where the missing dependency is declared.
   }
 
   @Test @IdeGuiTest
