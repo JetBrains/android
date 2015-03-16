@@ -119,6 +119,7 @@ public class ThemeEditorComponent extends Splitter {
     this.myModule = module;
 
     myConfiguration.addListener(myConfigListener);
+    myStyleResolver = new StyleResolver(myConfiguration);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration);
 
