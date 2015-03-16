@@ -24,12 +24,14 @@ import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
@@ -50,6 +52,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
@@ -225,24 +228,36 @@ public class ProjectSyncMessages {
   }
 
   private void reportModulesNotFoundIssues(@NotNull String groupName, @NotNull List<MissingModule> missingModules) {
-    for (MissingModule missingModule : missingModules) {
-      List<String> messageLines = Lists.newArrayList();
-
-      StringBuilder text = new StringBuilder();
-      text.append(String.format("Unable to find module with Gradle path '%1$s' (needed by module", missingModule.dependencyPath));
-
-      addDependentsToText(text, missingModule.dependentNames);
-      text.append(".)");
-      messageLines.add(text.toString());
-
-      String backupLibraryName = missingModule.backupLibraryName;
+    if (!missingModules.isEmpty()) {
       Message.Type severity = Message.Type.ERROR;
-      if (isNotEmpty(backupLibraryName)) {
-        severity = Message.Type.WARNING;
-        String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
-        messageLines.add(msg);
+
+      for (MissingModule missingModule : missingModules) {
+        List<String> messageLines = Lists.newArrayList();
+
+        StringBuilder text = new StringBuilder();
+        text.append(String.format("Unable to find module with Gradle path '%1$s' (needed by module", missingModule.dependencyPath));
+
+        addDependentsToText(text, missingModule.dependentNames);
+        text.append(".)");
+        messageLines.add(text.toString());
+
+        String backupLibraryName = missingModule.backupLibraryName;
+        if (isNotEmpty(backupLibraryName)) {
+          severity = Message.Type.WARNING;
+          String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
+          messageLines.add(msg);
+        }
+        add(new Message(groupName, severity, toStringArray(messageLines)));
       }
-      add(new Message(groupName, severity, toStringArray(messageLines)));
+
+      // If the project is really a subset of the project, attempt to find and include missing modules.
+      ProjectSubset projectSubset = ProjectSubset.getInstance(myProject);
+      String[] selection = projectSubset.getSelection();
+      boolean hasSelection = selection != null && selection.length > 0;
+      if (severity == Message.Type.ERROR && hasSelection && projectSubset.hasCachedModules()) {
+        String msg = "The missing modules may have been excluded from the project subset.";
+        add(new Message(groupName, Message.Type.INFO, msg), new IncludeMissingModulesHyperlink(missingModules));
+      }
     }
   }
 
@@ -327,6 +342,26 @@ public class ProjectSyncMessages {
       if (wizard.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }
+    }
+  }
+
+  /**
+   * "Quick Fix" link that attempts to find and include any modules that were not previously included in the project subset.
+   */
+  private static class IncludeMissingModulesHyperlink extends NotificationHyperlink {
+    @NotNull private final Set<String> myModuleGradlePaths;
+
+    IncludeMissingModulesHyperlink(@NotNull List<MissingModule> missingModules) {
+      super("include.missing.modules", "Find and include missing modules");
+      myModuleGradlePaths = Sets.newHashSetWithExpectedSize(missingModules.size());
+      for (MissingModule module : missingModules) {
+        myModuleGradlePaths.add(module.dependencyPath);
+      }
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      ProjectSubset.getInstance(project).findAndIncludeModules(myModuleGradlePaths);
     }
   }
 }

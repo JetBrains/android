@@ -82,6 +82,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture.findByTitle;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.INFO;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -136,6 +137,14 @@ public class GradleSyncTest extends GuiTestCase {
     AbstractContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     String expectedError = "Unable to find module with Gradle path ':javalib1' (needed by modules: 'androidlib1', 'app'.)";
     messages.findMessageContainingText(ERROR, expectedError);
+
+    // Click "quick fix" to find and include any missing modules.
+    MessageFixture quickFixMsg = messages.findMessageContainingText(INFO, "The missing modules may have been excluded");
+    HyperlinkFixture quickFix = quickFixMsg.findHyperlink("Find and include missing modules");
+    quickFix.click(true);
+
+    projectFrame.waitForBackgroundTasksToFinish();
+    projectFrame.getModule("javalib1"); // Fails if the module is not found.
   }
 
   @Test @IdeGuiTest
