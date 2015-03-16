@@ -160,6 +160,9 @@ public class EditedStyleItem {
   }
 
   public boolean isPublicAttribute() {
+    if (!myItemResourceValue.isFrameworkAttr()) {
+      return true;
+    }
     Configuration configuration = mySourceTheme.getConfiguration();
     IAndroidTarget target = configuration.getTarget();
     if (target == null) {
