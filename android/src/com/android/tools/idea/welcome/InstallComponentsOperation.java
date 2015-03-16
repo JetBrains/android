@@ -40,10 +40,10 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
   @Nullable private Multimap<PkgType, RemotePkgInfo> myRemotePackages;
   @NotNull private Collection<? extends InstallableComponent> myComponents;
 
-  protected InstallComponentsOperation(@NotNull InstallContext context,
-                                       @NotNull Collection<? extends InstallableComponent> components,
-                                       @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
-                                       double progressRatio) {
+  public InstallComponentsOperation(@NotNull InstallContext context,
+                                    @NotNull Collection<? extends InstallableComponent> components,
+                                    @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                                    double progressRatio) {
     super(context, progressRatio);
     myRemotePackages = remotePackages;
     myComponents = components;

@@ -85,7 +85,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JComboBox mySpeedCombo;
   private JComboBox myLatencyCombo;
   private JButton myShowAdvancedSettingsButton;
-  private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
   private StorageField myRamStorage;
   private StorageField myVmHeapStorage;
   private StorageField myInternalStorage;
@@ -120,6 +119,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel myKeyboardLabel;
   private JSeparator myKeyboardSeparator;
   private JSeparator myNetworkSeparator;
+  private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
 
   private PropertyChangeListener myFocusListener;
 
@@ -166,7 +166,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
 
   public ConfigureAvdOptionsStep(@Nullable final Disposable parentDisposable) {
     super(parentDisposable);
-    myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
+//    myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
     setBodyComponent(myRoot);
     registerAdvancedOptionsVisibility();
     toggleAdvancedSettings(false);
@@ -256,7 +256,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       avdName = uniquifyDisplayName(avdName);
       myState.put(DISPLAY_NAME_KEY, avdName);
     }
-
+    myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
     Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
     editMode = editMode == null ? Boolean.FALSE : editMode;
     myOriginalName = editMode ? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
@@ -776,12 +776,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     };
 
-  private static final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_DESCRIPTION_BINDING =
+  private final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_DESCRIPTION_BINDING =
     new ComponentBinding<SystemImageDescription, JBLabel>() {
       @Override
       public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
         if (newValue != null) {
           component.setText(newValue.getName() + " " + newValue.getAbiType());
+          myAvdConfigurationOptionHelpPanel.setSystemImageDescription(newValue);
         }
       }
     };

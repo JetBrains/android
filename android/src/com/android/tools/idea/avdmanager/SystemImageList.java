@@ -76,7 +76,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
-  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", true);
+  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", false);
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final LocalSdk mySdk;
   private final RemoteSdk myRemoteSdk;
@@ -274,6 +274,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     List<AvdWizardConstants.SystemImageDescription> items = getLocalImages();
     // Update list in the UI immediately with the locally available system images
     updateListModel(items);
+    if (items.isEmpty()) {
+      myShowRemoteCheckbox.setSelected(true);
+    }
 
     // Then perform the network call which may take a long time (e.g. 5 seconds or more);
     // we'll merge in the results of the remotely-available images and update the UI a second
