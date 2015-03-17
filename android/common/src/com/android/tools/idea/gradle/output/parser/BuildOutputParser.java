@@ -26,7 +26,6 @@ import java.util.List;
  * Parses Gradle's build output and creates the messages to be displayed in the "Messages" tool window.
  */
 public class BuildOutputParser{
-  private Iterable<? extends PatternAwareOutputParser> myParsers;
   private final ToolOutputParser parser;
 
   public BuildOutputParser(Iterable<PatternAwareOutputParser> parsers) {
