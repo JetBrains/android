@@ -276,11 +276,11 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
     myState.put(CUSTOM_SKIN_FILE_KEY, skinPath != null ? skinPath : NO_SKIN);
 
-    if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
+    if (device != null && device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
       myEnableComputerKeyboard.setEnabled(false);
     }
 
-    if (myState.get(DEFAULT_ORIENTATION_KEY) == null) {
+    if (device != null && myState.get(DEFAULT_ORIENTATION_KEY) == null) {
       myState.put(DEFAULT_ORIENTATION_KEY, device.getDefaultState().getOrientation());
     }
     myAvdId.addMouseListener(new MouseAdapter() {
