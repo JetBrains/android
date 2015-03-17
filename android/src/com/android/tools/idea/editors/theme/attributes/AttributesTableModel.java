@@ -17,12 +17,20 @@ package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -34,6 +42,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -63,11 +74,62 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final ThemeEditorStyle mySelectedStyle;
   protected final AttributeDefinitions myAttributeDefinitions;
 
+  private final ResourceResolver myResourceResolver;
+  private final Project myProject;
+
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
+  public final ParentAttribute parentAttribute = new ParentAttribute();
   private final List<RowContents> mySpecialRows = ImmutableList.of(
     new ThemeNameAttribute(),
-    new ParentAttribute()
+    parentAttribute
   );
+
+  private AttributeReferenceRendererEditor.ClickListener myGoToDefinitionListener;
+
+  public void setGoToDefinitionListener(AttributeReferenceRendererEditor.ClickListener goToDefinitionListener) {
+    myGoToDefinitionListener = goToDefinitionListener;
+  }
+
+  private class GoToDefinitionActionListener implements ActionListener {
+    private EditedStyleItem myItem = null;
+
+    public void setItem(EditedStyleItem item) {
+      this.myItem = item;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (myGoToDefinitionListener != null && myItem != null) {
+        myGoToDefinitionListener.clicked(myItem);
+      }
+    }
+  }
+
+  private class OpenFileActionListener implements ActionListener {
+    private VirtualFile myFile = null;
+
+    public void setFile(VirtualFile file) {
+      myFile = file;
+    }
+
+    private final Runnable myOpenFileRunnable = new Runnable() {
+      @Override
+      public void run() {
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, myFile);
+        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+      }
+    };
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (myFile != null) {
+        ApplicationManager.getApplication().invokeLater(myOpenFileRunnable);
+      }
+    }
+  }
+
+  private final GoToDefinitionActionListener myGoToDefinitionActionListener = new GoToDefinitionActionListener();
+  private final OpenFileActionListener myOpenFileActionListener = new OpenFileActionListener();
 
   public interface ThemePropertyChangedListener {
     void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue);
@@ -81,17 +143,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return myThemeNameInXml;
   }
 
-  /**
-   * Constructor
-   *
-   * @param selectedStyle current selectedStyle
-   */
-  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle) {
+  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle, @NotNull ResourceResolver resourceResolver, Project project) {
+    myProject = project;
     myAttributes = new ArrayList<EditedStyleItem>();
     myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
     myThemeNameInXml = mySelectedStyle.getName();
     myAttributeDefinitions = selectedStyle.getResolver().getAttributeDefinitions();
+    myResourceResolver = resourceResolver;
 
     ThemeEditorStyle parent = selectedStyle.getParent();
     myParentNameInXml = (parent != null) ? parent.getName() : null;
@@ -180,7 +239,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   /**
    * Basically a union type, RowContents = LabelContents | AttributeContents | ParentAttribute | ThemeNameAttribute
    */
-  private interface RowContents {
+  public interface RowContents {
     int getColumnSpan(int column);
 
     Object getValueAt(int column);
@@ -190,6 +249,17 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     Class<?> getCellClass(int column);
 
     boolean isCellEditable(int column);
+
+    /**
+     * Attributes table has a pop-up menu which contains item "Go to definition",
+     * which should work differently for different rows. This method should return
+     * ActionListener which would implement "Go to definition" functionality.
+     * Listener would be set as JMenuItem action listener before returning menu from
+     * {@link com.android.tools.idea.editors.theme.ThemeEditorTable#getComponentPopupMenu}.
+     *
+     * @return null when no "Go to definition" action for current row is available
+     */
+    ActionListener getGoToDefinitionCallback();
   }
 
   /**
@@ -234,9 +304,16 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public boolean isCellEditable(int column) {
       return (column == 1 && !mySelectedStyle.isReadOnly());
     }
+
+    @Override
+    public ActionListener getGoToDefinitionCallback() {
+      return null;
+    }
   }
 
-  private class ParentAttribute implements RowContents {
+  public class ParentAttribute implements RowContents {
+    private ActionListener myGotoDefinitionCallback;
+
     @Override
     public int getColumnSpan(int column) {
       return 1;
@@ -275,6 +352,15 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public boolean isCellEditable(int column) {
       return (column == 1 && !mySelectedStyle.isReadOnly());
     }
+
+    public void setGotoDefinitionCallback(ActionListener gotoDefinitionCallback) {
+      myGotoDefinitionCallback = gotoDefinitionCallback;
+    }
+
+    @Override
+    public ActionListener getGoToDefinitionCallback() {
+      return myParentNameInXml == null ? null : myGotoDefinitionCallback;
+    }
   }
 
   private class LabelContents implements RowContents {
@@ -307,6 +393,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     @Override
     public void setValueAt(int column, Object value) {
       throw new RuntimeException(String.format("Tried to setValue at immutable label row of LabelledModel, column = %1$d" + column));
+    }
+
+    @Override
+    public ActionListener getGoToDefinitionCallback() {
+      return null;
     }
   }
 
@@ -413,6 +504,27 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       rv.setValue(strValue);
       mySelectedStyle.setValue(propertyName, strValue);
       fireTableCellUpdated(myRowIndex, column);
+    }
+
+    @Override
+    public ActionListener getGoToDefinitionCallback() {
+      EditedStyleItem item = (EditedStyleItem)getValueAt(1);
+      if (getCellClass(1) == ThemeEditorStyle.class) {
+        myGoToDefinitionActionListener.setItem(item);
+        return myGoToDefinitionActionListener;
+      }
+
+      VirtualFileManager manager = VirtualFileManager.getInstance();
+      ResourceValue resourceValue = myResourceResolver.resolveResValue(item.getItemResourceValue());
+      final File file = new File(resourceValue.getValue());
+
+      final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
+      if (virtualFile != null) {
+        myOpenFileActionListener.setFile(virtualFile);
+        return myOpenFileActionListener;
+      }
+
+      return null;
     }
   }
 }
