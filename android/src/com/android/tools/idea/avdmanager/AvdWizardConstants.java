@@ -29,6 +29,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +88,10 @@ public class AvdWizardConstants {
 
   public static final Key<Boolean> IS_IN_EDIT_MODE_KEY = createKey(WIZARD_ONLY + "isInEditMode", WIZARD, Boolean.class);
 
+  public static final Key<File> DISPLAY_SKIN_FILE_KEY = createKey("displaySkinPath", STEP, File.class);
   public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_SKIN_PATH, WIZARD, File.class);
+  public static final Key<File> BACKUP_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_BACKUP_SKIN_PATH, WIZARD, File.class);
+  public static final Key<Boolean> DEVICE_FRAME_KEY = createKey("showDeviceFrame", STEP, Boolean.class);
 
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
   public static final String AVD_INI_AVD_ID = "AvdId";

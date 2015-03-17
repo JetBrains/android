@@ -36,6 +36,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
@@ -105,6 +106,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JCheckBox myEnableComputerKeyboard;
   private JRadioButton myBuiltInRadioButton;
   private JRadioButton myExternalRadioButton;
+  private JCheckBox myDeviceFrameCheckbox;
+  private JBLabel myDeviceFrameLabel;
   private Iterable<JComponent> myAdvancedOptionsComponents;
   private String myOriginalName;
   private JSeparator myStorageSeparator;
@@ -115,7 +118,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel myNetworkLabel;
   private JBLabel mySpeedLabel;
   private JBLabel myLatencyLabel;
-  private JSeparator mySkinSeparator;
   private JBLabel myKeyboardLabel;
   private JSeparator myKeyboardSeparator;
   private JSeparator myNetworkSeparator;
@@ -257,24 +259,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       myState.put(DISPLAY_NAME_KEY, avdName);
     }
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
+
     Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
     editMode = editMode == null ? Boolean.FALSE : editMode;
     myOriginalName = editMode ? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
-
-    File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinPath == null && !editMode && device != null) {
-      skinPath = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage);
-
-      if (HardwareConfigHelper.isRound(device)) {
-        // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
-        // Therefore, turn it off by default; if a developer is deliberately trying
-        // to emulate a round device, that's probably more important than acceleration.
-        // (And with the small screen resolution of the wear devices, lack of Host GPU
-        // is less severe than say for a tablet AVD.)
-        myState.put(USE_HOST_GPU_KEY, false);
-      }
-    }
-    myState.put(CUSTOM_SKIN_FILE_KEY, skinPath != null ? skinPath : NO_SKIN);
 
     if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
       myEnableComputerKeyboard.setEnabled(false);
@@ -289,6 +277,23 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         myAvdId.requestFocusInWindow();
       }
     });
+
+    File customSkin = myState.get(CUSTOM_SKIN_FILE_KEY);
+    File backupSkin = myState.get(BACKUP_SKIN_FILE_KEY);
+    // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
+    myState.put(DEVICE_FRAME_KEY, backupSkin == null || customSkin != null);
+    myState.put(DISPLAY_SKIN_FILE_KEY, AvdEditWizard.resolveSkinPath(myState.get(DEVICE_DEFINITION_KEY).getDefaultHardware().getSkinFile(),
+                                                                     myState.get(SYSTEM_IMAGE_KEY)));
+    // If customSkin is null but backupSkin is defined, we want to show it (with the checkbox unchecked).
+    if (customSkin == null) {
+      customSkin = backupSkin;
+    }
+    File hardwareSkin = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage);
+    // If the skin is set and different from what would be provided by the hardware, set the value of the
+    // control directly, so it is marked as user edited and not changed when the device is changed.
+    if (customSkin != null && !FileUtil.filesEqual(customSkin, hardwareSkin)) {
+      mySkinComboBox.getComboBox().setSelectedItem(customSkin);
+    }
   }
 
   @Override
@@ -306,6 +311,11 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         }
       }
     }
+    File displayFile = myState.get(DISPLAY_SKIN_FILE_KEY);
+    boolean hasFrame = myState.getNotNull(DEVICE_FRAME_KEY, false);
+    myState.put(CUSTOM_SKIN_FILE_KEY,  hasFrame ? displayFile : NO_SKIN);
+    myState.put(BACKUP_SKIN_FILE_KEY, hasFrame ? null : displayFile);
+
     return super.commitStep();
   }
 
@@ -395,7 +405,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     if (skinFile != null && !skinFile.equals(NO_SKIN)) {
       File layoutFile = new File(skinFile, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
-        setErrorState("The skin directory does not point to a valid skin.", mySkinDefinitionLabel, mySkinComboBox);
+        setErrorState("The skin directory does not point to a valid skin.", myDeviceFrameLabel, mySkinComboBox);
         valid = false;
       }
     }
@@ -506,8 +516,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
         String displayName = state.get(DISPLAY_NAME_KEY);
         if (displayName != null) {
-          return AvdEditWizard.cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), displayName,
-                                            !displayName.equals(myOriginalName));
+          return AvdEditWizard
+            .cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), displayName, !displayName.equals(myOriginalName));
         }
         return "";
       }
@@ -567,24 +577,75 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           Device device = state.get(DEVICE_DEFINITION_KEY);
           SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
           if (device != null && systemImage != null) { // Should always be the case
-            return String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
+            return uniquifyDisplayName(
+              String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel()));
           }
           return null; // Should never occur
         }
       });
     }
 
-    registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
+    registerValueDeriver(DISPLAY_SKIN_FILE_KEY, new ValueDeriver<File>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(DISPLAY_NAME_KEY);
+        return makeSetOf(DEVICE_DEFINITION_KEY, SYSTEM_IMAGE_KEY);
       }
 
       @Nullable
       @Override
-      public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
-        return state.get(DISPLAY_NAME_KEY);
+      public File deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable File currentValue) {
+        // If there was a skin specified coming in, this field will be marked as user-edited, and so that needn't be
+        // taken into account here. The only case we care about is if the device is changed.
+        return AvdEditWizard.resolveSkinPath(myState.get(DEVICE_DEFINITION_KEY).getDefaultHardware().getSkinFile(),
+                                             myState.get(SYSTEM_IMAGE_KEY));
+      }
+    });
+
+    registerValueDeriver(USE_HOST_GPU_KEY, new ValueDeriver<Boolean>() {
+      @Nullable
+      @Override
+      public Set<Key<?>> getTriggerKeys() {
+        return makeSetOf(DEVICE_DEFINITION_KEY);
+      }
+
+      @Nullable
+      @Override
+      public Boolean deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Boolean currentValue) {
+        Device device = myState.get(DEVICE_DEFINITION_KEY);
+        if (HardwareConfigHelper.isRound(device)) {
+          // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
+          // Therefore, turn it off by default; if a developer is deliberately trying
+          // to emulate a round device, that's probably more important than acceleration.
+          // (And with the small screen resolution of the wear devices, lack of Host GPU
+          // is less severe than say for a tablet AVD.)
+          return false;
+        }
+        return myState.get(USE_HOST_GPU_KEY);
+      }
+    });
+
+    registerValueDeriver(DEVICE_FRAME_KEY, new ValueDeriver<Boolean>() {
+      @Nullable
+      @Override
+      public Set<Key<?>> getTriggerKeys() {
+        return makeSetOf(DISPLAY_SKIN_FILE_KEY);
+      }
+
+      @Override
+      public boolean respectUserEdits() {
+        // if "No skin" is selected, we always want to uncheck and disable the checkbox,
+        // regardless of whether it was modified by the user.
+        return false;
+      }
+
+      @Nullable
+      @Override
+      public Boolean deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Boolean currentValue) {
+        File displaySkinPath = myState.get(DISPLAY_SKIN_FILE_KEY);
+        boolean hasSkin = displaySkinPath != null && !FileUtil.filesEqual(NO_SKIN, displaySkinPath);
+        myDeviceFrameCheckbox.setEnabled(hasSkin);
+        return hasSkin && myState.getNotNull(DEVICE_FRAME_KEY, false);
       }
     });
 
@@ -649,10 +710,11 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     });
 
-    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
-    register(CUSTOM_SKIN_FILE_KEY, mySkinComboBox, mySkinComboBox.getBinding());
-    myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
+    register(DISPLAY_SKIN_FILE_KEY, mySkinComboBox, mySkinComboBox.getBinding());
     setControlDescription(mySkinComboBox, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
+
+    register(DEVICE_FRAME_KEY, myDeviceFrameCheckbox);
+    setControlDescription(myDeviceFrameCheckbox, myAvdConfigurationOptionHelpPanel.getDescription(DEVICE_FRAME_KEY));
 
     if (!myState.containsKey(HAS_HARDWARE_KEYBOARD_KEY)) {
       myState.put(HAS_HARDWARE_KEYBOARD_KEY, true);
@@ -847,7 +909,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   }
 
   private List<JComponent> getSkinComponents() {
-    return ImmutableList.of(mySkinComboBox, mySkinDefinitionLabel, mySkinSeparator, myHardwareSkinHelpLabel);
+    return ImmutableList.of(mySkinComboBox, mySkinDefinitionLabel, myHardwareSkinHelpLabel);
   }
 
   private List<JComponent> getMemoryAndStorageComponents() {
