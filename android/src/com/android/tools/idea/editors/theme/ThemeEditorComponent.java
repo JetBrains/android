@@ -564,6 +564,8 @@ public class ThemeEditorComponent extends Splitter {
                 }
               }
             }
+          } else {
+            reload(myPreviousSelectedTheme);
           }
         }
 
