@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.subset;
 
+import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
@@ -25,19 +27,20 @@ import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ArrayUtil.toStringArray;
@@ -93,6 +96,47 @@ public final class ProjectSubset {
     }
   }
 
+  public void findAndIncludeModules(@NotNull final Collection<String> moduleGradlePaths) {
+    DataNode<ProjectData> projectData = getCachedProjectData();
+
+    if (projectData != null) {
+      final Project project = myProject;
+      final Collection<DataNode<ModuleData>> modules = findAll(projectData, MODULE);
+
+      new Task.Modal(project, "Finding Missing Modules", false) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+
+          String[] storedSelection = getSelection();
+          Set<String> currentSelection = storedSelection != null ? Sets.newHashSet(storedSelection) : Sets.<String>newHashSet();
+
+          List<DataNode<ModuleData>> selectedModules = Lists.newArrayList();
+
+          int doneCount = 0;
+          for (DataNode<ModuleData> module : modules) {
+            indicator.setFraction(++doneCount / modules.size());
+
+            String name = module.getData().getExternalName();
+            if (currentSelection.contains(name)) {
+              selectedModules.add(module);
+              continue;
+            }
+            DataNode<IdeaGradleProject> gradleProjectNode = find(module, IDE_GRADLE_PROJECT);
+            if (gradleProjectNode != null) {
+              IdeaGradleProject gradleProject = gradleProjectNode.getData();
+              if (moduleGradlePaths.contains(gradleProject.getGradlePath())) {
+                selectedModules.add(module);
+              }
+            }
+          }
+          if (!selectedModules.isEmpty()) {
+            Projects.populate(project, selectedModules);
+          }
+        }
+      }.queue();
+    }
+  }
+
   @Nullable
   private DataNode<ProjectData> getCachedProjectData() {
     ProjectDataManager dataManager = ProjectDataManager.getInstance();
@@ -108,7 +152,8 @@ public final class ProjectSubset {
 
   @Nullable
   public Collection<DataNode<ModuleData>> showModuleSelectionDialog(@NotNull Collection<DataNode<ModuleData>> modules) {
-    return showModuleSelectionDialog(modules, Collections.<String>emptySet());
+    Set<String> noSelection = Collections.emptySet();
+    return showModuleSelectionDialog(modules, noSelection);
   }
 
   @Nullable
