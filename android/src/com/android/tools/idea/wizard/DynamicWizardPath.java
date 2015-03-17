@@ -84,7 +84,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   @Override
   public final void attachToWizard(@NotNull DynamicWizard wizard) {
     Application application = ApplicationManager.getApplication();
-    if (application != null) {
+    if (application != null && !application.isUnitTestMode()) {
       application.assertIsDispatchThread();
     }
     myWizard = wizard;
