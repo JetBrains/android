@@ -702,12 +702,17 @@ public class NavigationEditor implements FileEditor {
    */
   @Override
   public void dispose() {
-    try {
-      saveFile();
-    }
-    catch (IOException e) {
-      LOG.error("Unexpected exception while saving navigation file", e);
-    }
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          saveFile();
+        }
+        catch (IOException e) {
+          LOG.error("Unexpected exception while saving navigation file", e);
+        }
+      }
+    });
   }
 
   @Nullable
