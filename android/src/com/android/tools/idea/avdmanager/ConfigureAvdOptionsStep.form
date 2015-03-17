@@ -19,7 +19,7 @@
         </properties>
         <border type="none"/>
         <children>
-          <grid id="27dc6" layout-manager="GridLayoutManager" row-count="32" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="5">
+          <grid id="27dc6" layout-manager="GridLayoutManager" row-count="33" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="5">
             <margin top="3" left="3" bottom="3" right="10"/>
             <constraints/>
             <properties/>
@@ -408,33 +408,23 @@
                   <visible value="true"/>
                 </properties>
               </component>
-              <component id="14ec1" class="com.intellij.ui.components.JBLabel" binding="mySkinDefinitionLabel">
-                <constraints>
-                  <grid row="26" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false">
-                    <preferred-size width="100" height="-1"/>
-                  </grid>
-                </constraints>
-                <properties>
-                  <text value="&lt;html&gt;Custom&lt;br&gt;skin definition&lt;/html&gt;"/>
-                </properties>
-              </component>
-              <component id="50051" class="javax.swing.JSeparator" binding="mySkinSeparator">
+              <component id="50051" class="javax.swing.JSeparator">
                 <constraints>
                   <grid row="25" column="0" row-span="1" col-span="4" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
-              <component id="23213" class="com.android.tools.idea.avdmanager.SkinChooser" binding="mySkinComboBox" custom-create="true">
+              <component id="fb4d3" class="com.intellij.ui.components.JBLabel" binding="myDeviceFrameLabel">
                 <constraints>
-                  <grid row="26" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="26" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <visible value="true"/>
+                  <text value="Device Frame"/>
                 </properties>
               </component>
               <component id="3bf7b" class="com.intellij.ui.components.JBLabel" binding="myKeyboardLabel">
                 <constraints>
-                  <grid row="29" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="30" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Keyboard"/>
@@ -442,7 +432,7 @@
               </component>
               <component id="29def" class="javax.swing.JCheckBox" binding="myEnableComputerKeyboard">
                 <constraints>
-                  <grid row="29" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="30" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Enable keyboard input"/>
@@ -450,7 +440,7 @@
               </component>
               <component id="6abc5" class="javax.swing.JSeparator" binding="myKeyboardSeparator">
                 <constraints>
-                  <grid row="28" column="0" row-span="1" col-span="4" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="29" column="0" row-span="1" col-span="4" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
@@ -512,10 +502,36 @@
               </component>
               <component id="61e9" class="com.intellij.ui.HyperlinkLabel" binding="myHardwareSkinHelpLabel" custom-create="true">
                 <constraints>
-                  <grid row="27" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="28" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <visible value="true"/>
+                </properties>
+              </component>
+              <component id="4ecc6" class="javax.swing.JCheckBox" binding="myDeviceFrameCheckbox">
+                <constraints>
+                  <grid row="26" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Enable Device Frame"/>
+                </properties>
+              </component>
+              <component id="23213" class="com.android.tools.idea.avdmanager.SkinChooser" binding="mySkinComboBox" custom-create="true">
+                <constraints>
+                  <grid row="27" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <visible value="true"/>
+                </properties>
+              </component>
+              <component id="14ec1" class="com.intellij.ui.components.JBLabel" binding="mySkinDefinitionLabel">
+                <constraints>
+                  <grid row="27" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="100" height="-1"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="&lt;html&gt;Custom&lt;br&gt;skin definition&lt;/html&gt;"/>
                 </properties>
               </component>
             </children>
