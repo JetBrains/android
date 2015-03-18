@@ -81,7 +81,7 @@ public class Unpack {
       }
       case Array: {
         ArrayInfo info = (ArrayInfo)type;
-        int count = (int)decoder.uint32();
+        int count = decoder.int32();
         Object[] elements = new Object[count];
         for (int i = 0; i < count; i++) {
           elements[i] = Type(info.getElementType(), decoder);
@@ -90,7 +90,7 @@ public class Unpack {
       }
       case Map: {
         MapInfo info = (MapInfo)type;
-        int count = (int)decoder.uint32();
+        int count = decoder.int32();
         MapEntry[] elements = new MapEntry[count];
         for (int i = 0; i < count; i++) {
           Object key = Type(info.getKeyType(), decoder);
