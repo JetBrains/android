@@ -552,14 +552,12 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     @Override
     public ActionListener getResetCallback() {
       final EditedStyleItem item = (EditedStyleItem) getValueAt(0);
-      if (!mySelectedStyle.isReadOnly() && item.isPublicAttribute()
-              && mySelectedStyle.equals(item.getSourceStyle())) {
+      if (!mySelectedStyle.isReadOnly() && mySelectedStyle.equals(item.getSourceStyle())) {
         return new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
             mySelectedStyle.removeAttribute(item.getQualifiedName());
             fireTableCellUpdated(myRowIndex, 0);
-            //fireTableChanged(new TableModelEvent(AttributesTableModel.this));
           }
         };
       }
