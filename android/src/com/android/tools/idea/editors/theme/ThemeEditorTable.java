@@ -26,12 +26,17 @@ import java.awt.event.ActionListener;
 
 public class ThemeEditorTable extends CellSpanTable {
   private final JBPopupMenu myPopupMenu;
-  private ActionListener myLastActionListener = null;
+  private ActionListener myLastDefinitionActionListener = null;
+  private ActionListener myLastResetActionListener;
   private final JMenuItem myGoToDefinitionItem;
+  private final JMenuItem myResetItem;
 
   public ThemeEditorTable() {
     myPopupMenu = new JBPopupMenu();
     myGoToDefinitionItem = myPopupMenu.add(new JMenuItem("Go to definition"));
+    myGoToDefinitionItem.setVisible(false);
+    myResetItem = myPopupMenu.add(new JMenuItem("Reset value"));
+    myResetItem.setVisible(false);
   }
 
   @Override
@@ -41,6 +46,8 @@ public class ThemeEditorTable extends CellSpanTable {
   }
 
   private JPopupMenu getPopupMenuAtCell(final int row, final int column) {
+    myGoToDefinitionItem.setVisible(false);
+    myResetItem.setVisible(false);
     TableModel model = getModel();
     if (!(model instanceof AttributesTableModel)) {
       return null;
@@ -51,21 +58,40 @@ public class ThemeEditorTable extends CellSpanTable {
       return null;
     }
 
-    ActionListener callback = contents.getGoToDefinitionCallback();
-    if (callback == null) {
+    ActionListener definitionCallback = contents.getGoToDefinitionCallback();
+    ActionListener resetCallback = contents.getResetCallback();
+    if (definitionCallback == null && resetCallback == null) {
       return null;
     }
 
-    setActionListener(callback);
+    if (definitionCallback != null) {
+      myGoToDefinitionItem.setVisible(true);
+      setDefinitionActionListener(definitionCallback);
+    }
+
+    if (resetCallback != null) {
+      myResetItem.setVisible(true);
+      setResetActionListener(resetCallback);
+    }
+
     return myPopupMenu;
   }
 
-  private void setActionListener(ActionListener callback) {
-    if (myLastActionListener != null) {
-      myGoToDefinitionItem.removeActionListener(myLastActionListener);
+  private void setDefinitionActionListener(ActionListener callback) {
+    if (myLastDefinitionActionListener != null) {
+      myGoToDefinitionItem.removeActionListener(myLastDefinitionActionListener);
     }
 
     myGoToDefinitionItem.addActionListener(callback);
-    myLastActionListener = callback;
+    myLastDefinitionActionListener = callback;
+  }
+
+  private void setResetActionListener(ActionListener callback) {
+    if (myLastResetActionListener != null) {
+      myResetItem.removeActionListener(myLastResetActionListener);
+    }
+
+    myResetItem.addActionListener(callback);
+    myLastResetActionListener = callback;
   }
 }

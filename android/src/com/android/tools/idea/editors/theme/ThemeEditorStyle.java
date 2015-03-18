@@ -322,4 +322,23 @@ public class ThemeEditorStyle {
   public Configuration getConfiguration() {
     return myConfiguration;
   }
+
+  /**
+   * Deletes an attribute of that particular style from the xml file
+   */
+  public void removeAttribute(@NotNull final String attribute) {
+    if (!isProjectStyle()) {
+      throw new UnsupportedOperationException("Non project styles can not be modified");
+    }
+
+    final XmlTag tag = getValueTag(attribute);
+    if (tag != null) {
+      new WriteCommandAction.Simple(myProject, "Removing " + tag.getName(), tag.getContainingFile()) {
+        @Override
+        public void run() {
+          tag.delete();
+        }
+      }.execute();
+    }
+  }
 }

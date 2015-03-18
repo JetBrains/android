@@ -260,6 +260,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
      * @return null when no "Go to definition" action for current row is available
      */
     ActionListener getGoToDefinitionCallback();
+
+    ActionListener getResetCallback();
   }
 
   /**
@@ -307,6 +309,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public ActionListener getGoToDefinitionCallback() {
+      return null;
+    }
+
+    @Override
+    public ActionListener getResetCallback() {
       return null;
     }
   }
@@ -361,6 +368,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public ActionListener getGoToDefinitionCallback() {
       return myParentNameInXml == null ? null : myGotoDefinitionCallback;
     }
+
+    @Override
+    public ActionListener getResetCallback() {
+      return null;
+    }
   }
 
   private class LabelContents implements RowContents {
@@ -397,6 +409,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public ActionListener getGoToDefinitionCallback() {
+      return null;
+    }
+
+    @Override
+    public ActionListener getResetCallback() {
       return null;
     }
   }
@@ -524,6 +541,28 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return myOpenFileActionListener;
       }
 
+      return null;
+    }
+
+    /**
+     * Creates and returns an ActionListener that suppresses an attribute defined in the current theme
+     * from that theme, hence returning to inheriting it from the parent theme.
+     * Returns null if the attribute in question is not defined in the current theme, or is read-only
+     */
+    @Override
+    public ActionListener getResetCallback() {
+      final EditedStyleItem item = (EditedStyleItem) getValueAt(0);
+      if (!mySelectedStyle.isReadOnly() && item.isPublicAttribute()
+              && mySelectedStyle.equals(item.getSourceStyle())) {
+        return new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            mySelectedStyle.removeAttribute(item.getQualifiedName());
+            fireTableCellUpdated(myRowIndex, 0);
+            //fireTableChanged(new TableModelEvent(AttributesTableModel.this));
+          }
+        };
+      }
       return null;
     }
   }
