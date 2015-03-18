@@ -119,7 +119,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private Collection<DataNode<ModuleData>> getModulesToImport(DataNode<ProjectData> projectInfo) {
     Collection<DataNode<ModuleData>> modules = findAll(projectInfo, MODULE);
     ProjectSubset subview = ProjectSubset.getInstance(myProject);
-    if (ProjectSubset.isSettingEnabled() && modules.size() > 1) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.isSettingEnabled() && modules.size() > 1) {
       if (mySelectModulesToImport) {
         // Importing a project. Allow user to select which modules to include in the project.
         Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
