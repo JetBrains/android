@@ -361,50 +361,6 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   }
 
   /**
-   * Make sure modules that are already in the project are added to settings.gradle
-   */
-  public void testImportModuleAlreadyInProject() throws IOException, ConfigurationException {
-    final VirtualFile baseDir = getProject().getBaseDir();
-    VirtualFile module = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
-      @Override
-      public VirtualFile compute() throws IOException {
-        final VirtualFile root = VfsUtil.createDirectoryIfMissing(baseDir, "toimport");
-        File rootPath = VfsUtilCore.virtualToIoFile(root);
-        createGradleProjectToImport(rootPath, module(1));
-        VirtualFile moduleWithDependency = createGradleProjectToImport(rootPath, module(2), module(1));
-        configureTopLevelProject(rootPath, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
-        // Mark files readonly to make sure we don't overwrite them
-        for (VirtualFile file : VfsUtil.collectChildrenRecursively(root)) {
-          if (!file.isDirectory()) {
-            file.setWritable(false);
-          }
-        }
-        return moduleWithDependency;
-      }
-    });
-    Map<String, VirtualFile> importInput = moduleListToMap(GradleModuleImporter.getRelatedProjects(module, getProject()));
-    assertEquals(2, importInput.size());
-    assertEquals(module, importInput.get(pathToGradleName(module(2))));
-
-    GradleModuleImporter.importModules(this, importInput, getProject(), null);
-
-    GradleSettingsFile settingsFile = GradleSettingsFile.get(getProject());
-    assertNotNull(settingsFile);
-    Map<String, File> modulesWithLocation = settingsFile.getModulesWithLocation();
-    if (modulesWithLocation.size() != 2) {
-      fail("Modules are " + Joiner.on(", ").join(modulesWithLocation.keySet()));
-    }
-    File file = modulesWithLocation.get(pathToGradleName(module(2)));
-    assertNotNull(modulesWithLocation.toString(), file);
-    assertEquals(module, baseDir.findFileByRelativePath(FileUtil.toSystemIndependentName(file.getPath())));
-
-    VirtualFile[] files = baseDir.getChildren();
-    if (files.length != 3) {
-      fail(Joiner.on(", ").join(files));
-    }
-  }
-
-  /**
    * {@link ProjectManagerEx}
    */
   @Override
