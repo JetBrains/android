@@ -41,6 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.IconUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -740,7 +741,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
                                        new Function<ScreenOrientation, Image>() {
                                          @Override
                                          public Image apply(ScreenOrientation input) {
-                                           return ChooseModuleTypeStep.iconToImage(ORIENTATIONS.get(input).myIcon);
+                                           return IconUtil.toImage(ORIENTATIONS.get(input).myIcon);
                                          }
                                        }, new Function<ScreenOrientation, String>() {
         @Override
