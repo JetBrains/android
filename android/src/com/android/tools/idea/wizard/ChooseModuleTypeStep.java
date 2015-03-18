@@ -23,11 +23,10 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +37,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.basic.BasicHTML;
 import javax.swing.text.View;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Set;
 
@@ -68,23 +66,6 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
     myModuleTypeList.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
     myFormFactorGallery.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
     setBodyComponent(myPanel);
-  }
-
-  @Nullable
-  @Contract("null->null")
-  public static Image iconToImage(@Nullable Icon icon) {
-    if (icon == null) {
-      return null;
-    }
-    else {
-      BufferedImage image = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-
-      Graphics2D graphics = image.createGraphics();
-      graphics.setBackground(JBColor.background());
-      graphics.setColor(JBColor.background());
-      icon.paintIcon(null, graphics, 0, 0);
-      return image;
-    }
   }
 
   @Override
@@ -163,7 +144,7 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
     myFormFactorGallery = new ASGallery<ModuleTemplate>(JBList.createDefaultListModel(), new Function<ModuleTemplate, Image>() {
       @Override
       public Image apply(ModuleTemplate input) {
-        return iconToImage(input.getIcon());
+        return IconUtil.toImage(input.getIcon());
       }
     }, Functions.toStringFunction(), new Dimension(128, 128));
     myFormFactorGallery.setCellMargin(new Insets(0, 25, 0, 25)); // Margins so the text is not clipped
