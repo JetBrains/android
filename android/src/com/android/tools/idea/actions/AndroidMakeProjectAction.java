@@ -37,6 +37,6 @@ public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
       statusBar.setInfo(" ");
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    GradleInvoker.getInstance(project).compileJava(moduleManager.getModules());
+    GradleInvoker.getInstance(project).compileJava(moduleManager.getModules(), GradleInvoker.TestCompileType.NONE);
   }
 }
