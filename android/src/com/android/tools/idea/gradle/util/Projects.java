@@ -284,7 +284,7 @@ public final class Projects {
     }
     Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null) {
-      if (modules.length == 1 && isProjectModule(project, modules[0])) {
+      if (modules.length == 1 && isProjectModule(modules[0])) {
         return ModuleManager.getInstance(project).getModules();
       }
       return modules;
@@ -292,13 +292,13 @@ public final class Projects {
 
     Module module = MODULE.getData(dataContext);
     if (module != null) {
-      return isProjectModule(project, module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
+      return isProjectModule(module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
     }
 
     return Module.EMPTY_ARRAY;
   }
 
-  private static boolean isProjectModule(@NotNull Project project, @NotNull Module module) {
+  public static boolean isProjectModule(@NotNull Module module) {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
@@ -307,7 +307,7 @@ public final class Projects {
     if (moduleRootDirPath == null) {
       return false;
     }
-    String basePath = project.getBasePath();
+    String basePath = module.getProject().getBasePath();
     return basePath != null && filesEqual(moduleRootDirPath, new File(basePath)) && !isBuildWithGradle(module);
   }
 
