@@ -30,6 +30,7 @@ public class AttributeDefinition {
   private final List<String> myValues = new ArrayList<String>();
   private final Map<String, String> myStyleable2DocValue = new HashMap<String, String>();
   private String myGlobalDocValue;
+  private String myAttrGroup;
 
   public AttributeDefinition(@NotNull String name) {
     myName = name;
@@ -52,6 +53,15 @@ public class AttributeDefinition {
   @NotNull
   public Set<AttributeFormat> getFormats() {
     return Collections.unmodifiableSet(myFormats);
+  }
+
+  @Nullable
+  public String getAttrGroup() {
+    return myAttrGroup;
+  }
+
+  public void setAttrGroup(@Nullable String attrGroup) {
+    myAttrGroup = attrGroup;
   }
 
   public void addFormats(@NotNull Collection<AttributeFormat> format) {

@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +43,16 @@ public class EditedStyleItem {
   // True if the value is a reference and not an actual value.
   private boolean isValueReference;
   private boolean isAttr;
+  private final String myAttrGroup;
 
   public EditedStyleItem(@NotNull ItemResourceValue itemResourceValue, @NotNull ThemeEditorStyle sourceTheme) {
     myItemResourceValue = itemResourceValue;
     mySourceTheme = sourceTheme;
+
+    AttributeDefinitions attrDef = sourceTheme.getResolver().getAttributeDefinitions();
+    String attrGroup = attrDef.getAttrGroupByName(itemResourceValue.getName());
+    myAttrGroup = (attrGroup == null) ? "Other non-theme attributes." : attrGroup;
+
     parseValue(myItemResourceValue.getRawXmlValue(), myItemResourceValue.isFramework());
   }
 
@@ -58,6 +65,10 @@ public class EditedStyleItem {
     myModified = true;
   }
 
+  @NotNull
+  public String getAttrGroup() {
+    return myAttrGroup;
+  }
 
   /**
    * Parses the passed value and sets the normalized value string.
