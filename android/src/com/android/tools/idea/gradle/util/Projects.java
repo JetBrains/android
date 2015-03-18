@@ -114,8 +114,7 @@ public final class Projects {
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
-           hasErrors(project);
+    return !GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project);
   }
 
   public static boolean hasErrors(@NotNull Project project) {
