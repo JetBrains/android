@@ -1,0 +1,13 @@
+<html><body><B>myStyle</B><br/> My Style Documentation <br/><hr/><BR/>
+?android:attr/buttonStyle => @style/Widget.Button<BR/>
+<BR/>
+<hr><B>Widget.Button</B>:<BR/>
+&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = @color/primary_text_light<BR/>
+<table style="background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;" border="0"><tr height="33"><td align="center" valign="middle" height="33" style="color:white">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>focusable</B> = true<BR/>
+&nbsp;&nbsp;&nbsp;&nbsp;android:<B>background</B> = @drawable/btn_default<BR/>
+&nbsp;&nbsp;&nbsp;&nbsp;android:<B>gravity</B> = center_vertical|center_horizontal<BR/>
+&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textAppearance</B> = ?attr/textAppearanceSmallInverse => @style/TextAppearance.Small.Inverse<BR/>
+&nbsp;&nbsp;&nbsp;&nbsp;android:<B>clickable</B> = true<BR/>
+<BR/>
+Inherits from: @android:style/Widget:<BR/>
+</body></html>
