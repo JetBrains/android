@@ -39,6 +39,7 @@ public class AttributesPanel {
   private JPanel myConfigToolbar;
   private JPanel myRightPanel;
   private JComboBox myAttrGroupCombo;
+  private ColorPalette myPalette;
 
   public AttributesPanel() {
     myNewThemeButton.setIcon(AllIcons.General.Add);
@@ -57,7 +58,7 @@ public class AttributesPanel {
     myAttributesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myAttributesTable.setTableHeader(null);
 
-    // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the number
+    // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the numberbu
     // of available cells. Fix this.
     new TableSpeedSearch(myAttributesTable) {
       @Override
@@ -68,6 +69,8 @@ public class AttributesPanel {
 
     mySubStyleLabel.setVisible(false);
     mySubStyleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+    myPalette.setShowCheckeredBackground(true);
   }
 
   public void setSelectedTheme(final ThemeEditorStyle style) {
@@ -131,5 +134,9 @@ public class AttributesPanel {
 
   public JPanel getConfigToolbar() {
     return myConfigToolbar;
+  }
+
+  public ColorPalette getPalette() {
+    return myPalette;
   }
 }
