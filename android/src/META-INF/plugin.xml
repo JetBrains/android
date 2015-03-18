@@ -53,6 +53,7 @@
     <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
       <separator/>
       <action id="ConfigureSubView" class="com.android.tools.idea.gradle.project.subset.ConfigureProjectSubsetAction"/>
+      <action id="IncludeModuleForFile" class="com.android.tools.idea.gradle.project.subset.IncludeModuleForFileAction"/>
       <separator/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="AddToFavorites"/>
     </group>
