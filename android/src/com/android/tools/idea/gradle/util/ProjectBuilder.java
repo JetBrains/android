@@ -63,7 +63,7 @@ public class ProjectBuilder {
     if (isGradleProject(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        GradleInvoker.getInstance(myProject).compileJava(modules);
+        GradleInvoker.getInstance(myProject).compileJava(modules, GradleInvoker.TestCompileType.NONE);
         return;
       }
       buildProjectWithJps(COMPILE_JAVA);

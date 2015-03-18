@@ -84,7 +84,7 @@ public class BuildVariantsTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void switchingTestArtifacts() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplicationWithUnitTests");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
     buildVariants.activate();
 
