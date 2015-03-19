@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
@@ -24,6 +25,8 @@ import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.Lists;
+import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,6 +43,8 @@ import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.ATTR_VALUE;
 
 public class LombokPsiParser extends JavaParser {
   private final LintClient myClient;
@@ -332,6 +337,16 @@ public class LombokPsiParser extends JavaParser {
           return result;
         }
       }
+
+      ExternalAnnotationsManager annotationsManager = ExternalAnnotationsManager.getInstance(owner.getProject());
+      PsiAnnotation[] annotations = annotationsManager.findExternalAnnotations(owner);
+      if (annotations != null) {
+        List<ResolvedAnnotation> result = Lists.newArrayListWithExpectedSize(annotations.length);
+        for (PsiAnnotation method : annotations) {
+          result.add(new ResolvedPsiAnnotation(method));
+        }
+        return result;
+      }
     }
 
     return Collections.emptyList();
@@ -431,6 +446,44 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.getAnnotations(myMethod);
     }
 
+    @NonNull
+    @Override
+    public Iterable<ResolvedAnnotation> getParameterAnnotations(int index) {
+      PsiParameter[] parameters = myMethod.getParameterList().getParameters();
+      if (index >= 0 && index < parameters.length) {
+        return LombokPsiParser.getAnnotations(parameters[index]);
+      }
+
+      return Collections.emptyList();
+    }
+
+
+    @Nullable
+    @Override
+    public ResolvedAnnotation getParameterAnnotation(@NonNull String type, int parameterIndex) {
+      PsiParameter[] parameters = myMethod.getParameterList().getParameters();
+      if (parameterIndex >= 0 && parameterIndex < parameters.length) {
+        PsiParameter parameter = parameters[parameterIndex];
+        PsiAnnotation annotation = AnnotationUtil.findAnnotation(parameter, type);
+        if (annotation != null) {
+          return new ResolvedPsiAnnotation(annotation);
+        }
+      }
+
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public ResolvedAnnotation getAnnotation(@NonNull String type) {
+      PsiAnnotation annotation = AnnotationUtil.findAnnotation(myMethod, type);
+      if (annotation != null) {
+        return new ResolvedPsiAnnotation(annotation);
+      }
+
+      return null;
+    }
+
     @Override
     public int getModifiers() {
       // TODO: Find out if there is a PSI utility method somewhere to handle this
@@ -503,6 +556,12 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public int getModifiers() {
       return computeModifiers(myVariable);
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedAnnotation> getAnnotations() {
+      return LombokPsiParser.getAnnotations(myVariable);
     }
 
     @Override
@@ -926,6 +985,20 @@ public class LombokPsiParser extends JavaParser {
       return typeDescriptor;
     }
 
+    @Nullable
+    @Override
+    public ResolvedClass getClassType() {
+      PsiJavaCodeReferenceElement reference = myAnnotation.getNameReferenceElement();
+      if (reference != null) {
+        PsiElement element = reference.resolve();
+        if (element instanceof PsiClass) {
+          return new ResolvedPsiClass((PsiClass)element);
+        }
+      }
+
+      return null;
+    }
+
     @NonNull
     @Override
     public List<Value> getValues() {
@@ -950,7 +1023,8 @@ public class LombokPsiParser extends JavaParser {
       PsiNameValuePair[] attributes = myAnnotation.getParameterList().getAttributes();
       if (attributes.length > 0) {
         for (PsiNameValuePair pair : attributes) {
-          if (name.equals(pair.getName())) {
+          String pairName = pair.getName();
+          if (name.equals(pairName) || pairName == null && name.equals(ATTR_VALUE)) {
             return getAnnotationPairValue(pair);
           }
         }
@@ -989,7 +1063,7 @@ public class LombokPsiParser extends JavaParser {
 
     @Override
     public String getSignature() {
-      return myAnnotation.toString();
+      return myAnnotation.getQualifiedName();
     }
 
     @Override
