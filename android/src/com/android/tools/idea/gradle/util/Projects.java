@@ -53,7 +53,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
@@ -83,6 +83,10 @@ public final class Projects {
     invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
+        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+        messages.removeMessages(MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES, VARIANT_SELECTION_CONFLICTS,
+                                EXTRA_GENERATED_SOURCES);
+
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {

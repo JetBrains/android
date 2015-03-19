@@ -205,7 +205,6 @@ public class ProjectSyncMessages {
   public void reportDependencySetupErrors() {
     DependencySetupErrors setupErrors = getDependencySetupErrors(myProject);
     if (setupErrors != null) {
-      removeMessages(MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES);
       reportModulesNotFoundErrors(setupErrors);
       setDependencySetupErrors(myProject, null);
     }
