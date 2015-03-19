@@ -36,7 +36,7 @@ class ReflectiveHandler extends DefaultHandler {
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
   private final MyErrorHandler errorHandler;
-  private final Stack<ElementInfo> stack = new Stack<ElementInfo>();
+  private final Deque<ElementInfo> stack = new ArrayDeque<ElementInfo>();
   private final Map<String, Object> idToValue = new HashMap<String, Object>();
   private final Map<Class, Constructor> classToConstructor = new IdentityHashMap<Class, Constructor>();
   private final Map<Constructor, String[]> constructorToParameterNames = new IdentityHashMap<Constructor, String[]>();
@@ -386,7 +386,7 @@ class ReflectiveHandler extends DefaultHandler {
           if (stack.isEmpty()) {
             throw new SAXException("Empty body at root");
           }
-          final ElementInfo last = stack.getLast();
+          final ElementInfo last = stack.peekFirst();
           final Method getter = getGetter(last.type, qName);
           elementInfo.myValueAlreadySetInOuter = true;
           elementInfo.type = getter.getReturnType();
@@ -410,7 +410,7 @@ class ReflectiveHandler extends DefaultHandler {
       if (id != null) {
         idToValue.put(id, elementInfo.getValue());
       }
-      stack.push(elementInfo);
+      stack.addFirst(elementInfo);
     }
     catch (ClassNotFoundException e) {
       errorHandler.handleError(e);
@@ -447,7 +447,7 @@ class ReflectiveHandler extends DefaultHandler {
         if (stack.isEmpty()) {
           return null;
         }
-        Class outerType = stack.getLast().type;
+        Class outerType = stack.peekFirst().type;
         try {
           return getSetter(outerType, qName).getParameterTypes()[0];
         }
@@ -464,12 +464,12 @@ class ReflectiveHandler extends DefaultHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    ElementInfo elementInfo = stack.pop();
+    ElementInfo elementInfo = stack.removeFirst();
     result = elementInfo.getValue();
     elementInfo.installAttributes(errorHandler, getConstructorParameterNames(elementInfo.type));
     elementInfo.installSubElements(errorHandler);
     if (stack.size() != 0) {
-      stack.getLast().elements.add(elementInfo);
+      stack.peekFirst().elements.add(elementInfo);
     }
   }
 }
