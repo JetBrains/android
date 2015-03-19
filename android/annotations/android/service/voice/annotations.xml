@@ -12,5 +12,14 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.service.voice.AlwaysOnHotwordDetector.Callback void onDetected(android.service.voice.AlwaysOnHotwordDetector.EventPayload) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.voice.AlwaysOnHotwordDetector.EventPayload android.media.AudioFormat getCaptureAudioFormat()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.AlwaysOnHotwordDetector.EventPayload byte[] getTriggerAudio()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
 </root>
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.media.projection.MediaProjection android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, int, android.view.Surface, android.hardware.display.VirtualDisplay.Callback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.projection.MediaProjection android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, int, android.view.Surface, android.hardware.display.VirtualDisplay.Callback, android.os.Handler) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.projection.MediaProjection android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, int, android.view.Surface, android.hardware.display.VirtualDisplay.Callback, android.os.Handler) 6">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.projection.MediaProjection android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, int, android.view.Surface, android.hardware.display.VirtualDisplay.Callback, android.os.Handler) 7">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.projection.MediaProjectionManager android.media.projection.MediaProjection getMediaProjection(int, android.content.Intent) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+
