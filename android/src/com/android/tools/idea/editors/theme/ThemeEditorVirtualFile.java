@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
     myModule = module;
   }
 
-  @Nullable
+  @NotNull
   public static ThemeEditorVirtualFile getThemeEditorFile(@NotNull Module module) {
     ThemeEditorVirtualFile vfile = module.getUserData(KEY);
     if (vfile == null) {
@@ -91,7 +90,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
     public static final ThemeEditorFileType INSTANCE = new ThemeEditorFileType();
 
     @Override
-    public boolean isMyFileType(final VirtualFile file) {
+    public boolean isMyFileType(@NotNull final VirtualFile file) {
       return file.getFileType() instanceof ThemeEditorFileType;
     }
 

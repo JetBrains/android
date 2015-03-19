@@ -54,7 +54,7 @@ import java.util.Set;
  * Table model for Theme Editor
  */
 public class AttributesTableModel extends AbstractTableModel implements CellSpanModel {
-  private final static Logger LOG = Logger.getInstance(AttributesTableModel.class);
+  private static final Logger LOG = Logger.getInstance(AttributesTableModel.class);
 
   /** Cells containing values with classes in WIDE_CLASSES are going to have column span 2 */
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);

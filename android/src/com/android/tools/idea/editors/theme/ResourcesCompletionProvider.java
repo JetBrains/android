@@ -25,13 +25,18 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.CompletionProvider {
   private final ArrayList<ResourceValue> myAllResources = new ArrayList<ResourceValue>();
 
-  ResourcesCompletionProvider(@NotNull ResourceResolver resourceResolver) {
+  ResourcesCompletionProvider(@Nullable ResourceResolver resourceResolver) {
+    if (resourceResolver == null) {
+      return;
+    }
+
     for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getFrameworkResources().values()) {
       myAllResources.addAll(resourceTypeResource.values());
     }

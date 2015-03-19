@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -43,7 +44,7 @@ import java.util.concurrent.ExecutionException;
  * Utility methods for style resolution.
  */
 public class StyleResolver {
-  private static final Logger LOG = Logger.getInstance(StyleResolver.class);
+  @SuppressWarnings("ConstantNamingConvention") private static final Logger LOG = Logger.getInstance(StyleResolver.class);
 
   private final Cache<String, ThemeEditorStyle> myStylesCache = CacheBuilder.newBuilder().build();
   private final AttributeDefinitions myAttributeDefinition;
@@ -103,11 +104,16 @@ public class StyleResolver {
 
   @Nullable
   private StyleResourceValue resolveFrameworkStyle(String styleName) {
+    ResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
+    if (frameworkResources == null) {
+      return null;
+    }
+
     ResourceValue value =
-      myConfiguration.getFrameworkResources().getConfiguredResources(myConfiguration.getFullConfig()).get(ResourceType.STYLE)
+      frameworkResources.getConfiguredResources(myConfiguration.getFullConfig()).get(ResourceType.STYLE)
         .get(styleName);
 
-    if (value != null && value instanceof StyleResourceValue) {
+    if (value instanceof StyleResourceValue) {
       return (StyleResourceValue)value;
     }
 

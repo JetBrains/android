@@ -140,7 +140,7 @@ public class ThemeEditorStyle {
   /**
    * Returns the XmlTag that contains the value for a given attribute in the current style.
    * @param attribute The style attribute name.
-   * @return The {@link com.intellij.psi.xml.XmlTag} or null if the attribute does not exist in this theme.
+   * @return The {@link XmlTag} or null if the attribute does not exist in this theme.
    */
   @Nullable
   protected XmlTag getValueTag(@NotNull final String attribute) {
