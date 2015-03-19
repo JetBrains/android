@@ -17,11 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.run.CloudMatrixConfigurationComboBox;
-import com.android.tools.idea.run.CloudProjectIdLabel;
-import com.android.tools.idea.run.CloudTestConfiguration;
-import com.android.tools.idea.run.CloudTestConfigurationProvider;
+import com.android.tools.idea.run.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -29,13 +25,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -57,22 +50,18 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   private JPanel myPanel;
   private JRadioButton myChooserRunningDeviceRadioButton;
   private JPanel myDeviceChooserWrapper;
-  private JRadioButton myLaunchEmulatorRadioButton;
-  private JPanel myComboBoxWrapper;
-  private JLabel myAvdLabel;
   private JCheckBox myReuseSelectionCheckbox;
   private JRadioButton myRunTestsInGoogleCloudRadioButton;
   private JLabel myCloudConfigurationLabel;
   private JLabel myCloudProjectLabel;
-  private final AvdComboBox myAvdCombo;
   private CloudMatrixConfigurationComboBox myCloudConfigurationCombo;
   private CloudProjectIdLabel myCloudProjectIdLabel;
   private ActionButton myCloudProjectIdUpdateButton;
+  private JButton myLaunchEmulatorButton;
   private final CloudTestConfigurationProvider myCloudTestConfigurationProvider;
 
 
   @NonNls private static final String SELECTED_SERIALS_PROPERTY = "ANDROID_EXTENDED_DEVICE_CHOOSER_SERIALS";
-  @NonNls private static final String SELECTED_AVD_PROPERTY = "ANDROID_EXTENDED_DEVICE_CHOOSER_AVD";
 
 
   public ExtendedDeviceChooserDialog(@NotNull final AndroidFacet facet,
@@ -80,7 +69,8 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
                                      boolean multipleSelection,
                                      boolean showReuseDevicesCheckbox,
                                      boolean selectReuseDevicesCheckbox,
-                                     boolean showCloudTarget) {
+                                     boolean showCloudTarget,
+                                     @NotNull final String emulatorOptions) {
     super(facet.getModule().getProject(), true, IdeModalityType.PROJECT);
 
     myCloudTestConfigurationProvider = CloudTestConfigurationProvider.getCloudTestingProvider();
@@ -123,36 +113,10 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
       public void selectedDevicesChanged() {
-        myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
-        myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.hasDevices());
         updateEnabled();
       }
     });
 
-    myAvdCombo = new AvdComboBox(myProject, false, true) {
-      @Override
-      public Module getModule() {
-        return facet.getModule();
-      }
-    };
-    Disposer.register(myDisposable, myAvdCombo);
-
-    myAvdCombo.getComboBox().setRenderer(new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value == null) {
-          append(AndroidBundle.message("android.ddms.nodevices"),
-                 myAvdCombo.getComboBox().isEnabled()
-                 ? SimpleTextAttributes.ERROR_ATTRIBUTES
-                 : SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        }
-        else {
-          append(((IdDisplay)value).getDisplay());
-        }
-      }
-    });
-    myComboBoxWrapper.add(myAvdCombo);
-    myAvdLabel.setLabelFor(myAvdCombo);
     myDeviceChooserWrapper.add(myDeviceChooser.getPanel());
 
     final ActionListener listener = new ActionListener() {
@@ -161,37 +125,34 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
         updateEnabled();
       }
     };
-    myLaunchEmulatorRadioButton.addActionListener(listener);
     myChooserRunningDeviceRadioButton.addActionListener(listener);
-    myAvdCombo.getComboBox().addActionListener(listener);
     myRunTestsInGoogleCloudRadioButton.addActionListener(listener);
 
     init();
 
     myDeviceChooser.init(selectedSerials);
-    myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
-    myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.hasDevices());
 
-    myAvdCombo.startUpdatingAvds(ModalityState.stateForComponent(myPanel));
-    final String savedAvd = properties.getValue(SELECTED_AVD_PROPERTY);
-    String avdToSelect = null;
-    if (savedAvd != null) {
-      final ComboBoxModel model = myAvdCombo.getComboBox().getModel();
-      for (int i = 0, n = model.getSize(); i < n; i++) {
-        final IdDisplay item = (IdDisplay)model.getElementAt(i);
-        final String id = item == null? null : item.getId();
-        if (savedAvd.equals(id)) {
-          avdToSelect = id;
-          break;
+    // Always select the first radio button (if present) since it handles both choosing and launching new devices.
+    myChooserRunningDeviceRadioButton.setSelected(true);
+
+    myLaunchEmulatorButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        LaunchEmulatorDialog dialog = new LaunchEmulatorDialog(facet);
+        dialog.show();
+        if (dialog.isOK()) {
+          final String avdName = dialog.getSelectedAvd();
+          if (avdName != null) {
+            ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+              @Override
+              public void run() {
+                facet.launchEmulator(avdName, emulatorOptions);
+              }
+            });
+          }
         }
       }
-    }
-    if (avdToSelect != null) {
-      myAvdCombo.getComboBox().setSelectedItem(new IdDisplay(avdToSelect, ""));
-    }
-    else if (myAvdCombo.getComboBox().getModel().getSize() > 0) {
-      myAvdCombo.getComboBox().setSelectedIndex(0);
-    }
+    });
 
     myReuseSelectionCheckbox.setVisible(showReuseDevicesCheckbox);
     myReuseSelectionCheckbox.setSelected(selectReuseDevicesCheckbox);
@@ -202,23 +163,24 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       myCloudConfigurationCombo.setFacet(facet);
     }
 
-    updateGoogleCloudVisible(isGoogleCloudRadioButtonShown);
+    updateDialogComponentsVisibility(isGoogleCloudRadioButtonShown);
     updateEnabled();
   }
 
-  private void updateGoogleCloudVisible(boolean shouldShow) {
-    myRunTestsInGoogleCloudRadioButton.setVisible(shouldShow);
-    myCloudConfigurationCombo.setVisible(shouldShow);
-    myCloudConfigurationLabel.setVisible(shouldShow);
-    myCloudProjectLabel.setVisible(shouldShow);
-    myCloudProjectIdLabel.setVisible(shouldShow);
-    myCloudProjectIdUpdateButton.setVisible(shouldShow);
+  private void updateDialogComponentsVisibility(boolean isGoogleCloudRadioButtonShown) {
+    // It is visible only if there is an alternative option, which is to run tests in the cloud.
+    myChooserRunningDeviceRadioButton.setVisible(isGoogleCloudRadioButtonShown);
+
+    myRunTestsInGoogleCloudRadioButton.setVisible(isGoogleCloudRadioButtonShown);
+    myCloudConfigurationCombo.setVisible(isGoogleCloudRadioButtonShown);
+    myCloudConfigurationLabel.setVisible(isGoogleCloudRadioButtonShown);
+    myCloudProjectLabel.setVisible(isGoogleCloudRadioButtonShown);
+    myCloudProjectIdLabel.setVisible(isGoogleCloudRadioButtonShown);
+    myCloudProjectIdUpdateButton.setVisible(isGoogleCloudRadioButtonShown);
   }
 
   private void updateOkButton() {
-    if (myLaunchEmulatorRadioButton.isSelected()) {
-      getOKAction().setEnabled(getSelectedAvd() != null);
-    } else if (myRunTestsInGoogleCloudRadioButton.isSelected()) {
+    if (myRunTestsInGoogleCloudRadioButton.isSelected()) {
       getOKAction().setEnabled(isValidGoogleCloudSelection());
     } else {
       getOKAction().setEnabled(getSelectedDevices().length > 0);
@@ -237,9 +199,8 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myCloudProjectIdLabel.setEnabled(myRunTestsInGoogleCloudRadioButton.isSelected());
     myCloudProjectIdUpdateButton.setEnabled(myRunTestsInGoogleCloudRadioButton.isSelected());
 
-    myAvdCombo.setEnabled(myLaunchEmulatorRadioButton.isSelected());
-    myAvdLabel.setEnabled(myLaunchEmulatorRadioButton.isSelected());
     myDeviceChooser.setEnabled(myChooserRunningDeviceRadioButton.isSelected());
+    myLaunchEmulatorButton.setEnabled(myChooserRunningDeviceRadioButton.isSelected() || !myChooserRunningDeviceRadioButton.isVisible());
     updateOkButton();
   }
 
@@ -261,14 +222,6 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
     properties.setValue(SELECTED_SERIALS_PROPERTY, AndroidRunningState.toString(myDeviceChooser.getSelectedDevices()));
 
-    final IdDisplay selectedAvd = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
-    if (selectedAvd != null) {
-      properties.setValue(SELECTED_AVD_PROPERTY, selectedAvd.getId());
-    }
-    else {
-      properties.unsetValue(SELECTED_AVD_PROPERTY);
-    }
-
     super.doOKAction();
   }
 
@@ -285,16 +238,6 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   @NotNull
   public IDevice[] getSelectedDevices() {
     return myDeviceChooser.getSelectedDevices();
-  }
-
-  @Nullable
-  public String getSelectedAvd() {
-    IdDisplay value = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
-    return value == null ? null : value.getId();
-  }
-
-  public boolean isToLaunchEmulator() {
-    return myLaunchEmulatorRadioButton.isSelected();
   }
 
   public boolean isCloudTestOptionSelected() {
