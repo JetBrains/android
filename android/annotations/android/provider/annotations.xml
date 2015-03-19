@@ -195,6 +195,12 @@
   <item name="android.provider.ContactsContract.RawContacts android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.provider.DocumentsProvider android.net.Uri canonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.provider.DocumentsProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.provider.MediaStore java.lang.String getVersion(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

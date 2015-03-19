@@ -64,6 +64,9 @@
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setContentDescription(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setContentDescription(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
+  </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setContentDescription(java.lang.CharSequence)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -73,11 +76,17 @@
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setCustomView(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setCustomView(int) 0">
+    <annotation name="android.support.annotation.LayoutRes" />
+  </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setIcon(android.graphics.drawable.Drawable)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setIcon(int)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setTabListener(android.app.ActionBar.TabListener)">
     <annotation name="android.support.annotation.NonNull" />
@@ -87,6 +96,9 @@
   </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setText(int)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setText(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setText(java.lang.CharSequence)">
     <annotation name="android.support.annotation.NonNull" />
@@ -225,11 +237,20 @@
   <item name="android.app.Activity void finishActivityFromChild(android.app.Activity, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void onActionModeFinished(android.view.ActionMode)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Activity void onActionModeStarted(android.view.ActionMode)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.app.Activity void onApplyThemeResource(android.content.res.Resources.Theme, int, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity void onApplyThemeResource(android.content.res.Resources.Theme, int, boolean) 1">
     <annotation name="android.support.annotation.StyleRes" />
+  </item>
+  <item name="android.app.Activity void onCreate(android.os.Bundle)">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.app.Activity void onCreate(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -243,6 +264,15 @@
   <item name="android.app.Activity void onCreateNavigateUpTaskStack(android.app.TaskStackBuilder) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void onDestroy()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Activity void onPause()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Activity void onPostCreate(android.os.Bundle)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.app.Activity void onPostCreate(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -252,17 +282,35 @@
   <item name="android.app.Activity void onPostCreate(android.os.Bundle, android.os.PersistableBundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.Activity void onPostResume()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.app.Activity void onPrepareDialog(int, android.app.Dialog) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity void onPrepareDialog(int, android.app.Dialog, android.os.Bundle) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void onRestart()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.app.Activity void onRestoreInstanceState(android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void onResume()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.app.Activity void onSaveInstanceState(android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Activity void onStart()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Activity void onStop()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Activity void onVisibleBehindCanceled()">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.app.Activity void openContextMenu(android.view.View) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -481,8 +529,14 @@
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setIcon(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setIconAttribute(int)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setIconAttribute(int) 0">
+    <annotation name="android.support.annotation.AttrRes" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setInverseBackgroundForced(boolean)">
     <annotation name="android.support.annotation.NonNull" />
@@ -490,11 +544,17 @@
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setItems(int, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setItems(int, android.content.DialogInterface.OnClickListener) 0">
+    <annotation name="android.support.annotation.ArrayRes" />
+  </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setItems(java.lang.CharSequence[], android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setMessage(int)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setMessage(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setMessage(java.lang.CharSequence)">
     <annotation name="android.support.annotation.NonNull" />
@@ -505,17 +565,26 @@
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setMultiChoiceItems(int, boolean[], android.content.DialogInterface.OnMultiChoiceClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setMultiChoiceItems(int, boolean[], android.content.DialogInterface.OnMultiChoiceClickListener) 0">
+    <annotation name="android.support.annotation.ArrayRes" />
+  </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setMultiChoiceItems(java.lang.CharSequence[], boolean[], android.content.DialogInterface.OnMultiChoiceClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setNegativeButton(int, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setNegativeButton(int, android.content.DialogInterface.OnClickListener) 0">
+    <annotation name="android.support.annotation.StringRes" />
+  </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setNegativeButton(java.lang.CharSequence, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setNeutralButton(int, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setNeutralButton(int, android.content.DialogInterface.OnClickListener) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setNeutralButton(java.lang.CharSequence, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
@@ -535,6 +604,9 @@
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setPositiveButton(int, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setPositiveButton(int, android.content.DialogInterface.OnClickListener) 0">
+    <annotation name="android.support.annotation.StringRes" />
+  </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setPositiveButton(java.lang.CharSequence, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -547,11 +619,17 @@
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setSingleChoiceItems(int, int, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setSingleChoiceItems(int, int, android.content.DialogInterface.OnClickListener) 0">
+    <annotation name="android.support.annotation.ArrayRes" />
+  </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setSingleChoiceItems(java.lang.CharSequence[], int, android.content.DialogInterface.OnClickListener)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setTitle(int)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setTitle(java.lang.CharSequence)">
     <annotation name="android.support.annotation.NonNull" />
@@ -651,6 +729,12 @@
   </item>
   <item name="android.app.Dialog boolean onKeyUp(int, android.view.KeyEvent) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Dialog void onActionModeFinished(android.view.ActionMode)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Dialog void onActionModeStarted(android.view.ActionMode)">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.app.Dialog void onRestoreInstanceState(android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -783,6 +867,12 @@
   </item>
   <item name="android.app.Fragment void dump(java.lang.String, java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 2">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Fragment void onActivityCreated(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Fragment void onCreate(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Fragment void onViewCreated(android.view.View, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
@@ -1039,14 +1129,23 @@
   <item name="android.app.NativeActivity void surfaceRedrawNeeded(android.view.SurfaceHolder) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification COLOR_DEFAULT">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.app.Notification Notification(android.os.Parcel) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Notification android.app.Notification clone()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification color">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.app.Notification icon">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.app.Notification ledARGB">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.app.Notification priority">
     <annotation name="android.support.annotation.IntDef">
@@ -1098,6 +1197,9 @@
   <item name="android.app.Notification.Builder android.app.Notification.Builder setAutoCancel(boolean)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification.Builder android.app.Notification.Builder setColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.app.Notification.Builder android.app.Notification.Builder setContent(android.widget.RemoteViews)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1131,6 +1233,9 @@
   <item name="android.app.Notification.Builder android.app.Notification.Builder setLights(int, int, int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification.Builder android.app.Notification.Builder setLights(int, int, int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.app.Notification.Builder android.app.Notification.Builder setNumber(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1143,6 +1248,11 @@
   <item name="android.app.Notification.Builder android.app.Notification.Builder setPriority(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification.Builder android.app.Notification.Builder setPriority(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.Notification.PRIORITY_DEFAULT, android.app.Notification.PRIORITY_LOW, android.app.Notification.PRIORITY_MIN, android.app.Notification.PRIORITY_HIGH, android.app.Notification.PRIORITY_MAX}" />
+    </annotation>
+  </item>
   <item name="android.app.Notification.Builder android.app.Notification.Builder setProgress(int, int, boolean)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1152,8 +1262,14 @@
   <item name="android.app.Notification.Builder android.app.Notification.Builder setSmallIcon(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification.Builder android.app.Notification.Builder setSmallIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
   <item name="android.app.Notification.Builder android.app.Notification.Builder setSmallIcon(int, int)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Notification.Builder android.app.Notification.Builder setSmallIcon(int, int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.app.Notification.Builder android.app.Notification.Builder setSound(android.net.Uri)">
     <annotation name="android.support.annotation.NonNull" />
@@ -1355,6 +1471,9 @@
   </item>
   <item name="android.app.SearchableInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Service android.os.IBinder onBind(android.content.Intent)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Service void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 1">
     <annotation name="android.support.annotation.NonNull" />

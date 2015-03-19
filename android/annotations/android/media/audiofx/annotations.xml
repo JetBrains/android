@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.media.audiofx.Virtualizer boolean canVirtualize(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_BINAURAL, android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_TRANSAURAL}" />
+    </annotation>
+  </item>
+  <item name="android.media.audiofx.Virtualizer boolean forceVirtualizationMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_AUTO, android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_BINAURAL, android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_TRANSAURAL}" />
+    </annotation>
+  </item>
+  <item name="android.media.audiofx.Virtualizer boolean getSpeakerAngles(int, int, int[]) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_BINAURAL, android.media.audiofx.Virtualizer.VIRTUALIZATION_MODE_TRANSAURAL}" />
+    </annotation>
+  </item>
+</root>
+

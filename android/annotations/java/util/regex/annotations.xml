@@ -8,7 +8,7 @@
   </item>
   <item name="java.util.regex.Pattern int flags()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.regex.Pattern.UNIX_LINES, java.util.regex.Pattern.CASE_INSENSITIVE, java.util.regex.Pattern.COMMENTS, java.util.regex.Pattern.MULTILINE, java.util.regex.Pattern.LITERAL, java.util.regex.Pattern.DOTALL, java.util.regex.Pattern.UNICODE_CASE, java.util.regex.Pattern.CANON_EQ, java.util.regex.Pattern.UNICODE_CHARACTER_CLASS}" />
+      <val name="value" val="{java.util.regex.Pattern.UNIX_LINES, java.util.regex.Pattern.CASE_INSENSITIVE, java.util.regex.Pattern.COMMENTS, java.util.regex.Pattern.MULTILINE, java.util.regex.Pattern.LITERAL, java.util.regex.Pattern.DOTALL, java.util.regex.Pattern.UNICODE_CASE, java.util.regex.Pattern.CANON_EQ}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -26,7 +26,7 @@
   </item>
   <item name="java.util.regex.Pattern java.util.regex.Pattern compile(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.regex.Pattern.UNIX_LINES, java.util.regex.Pattern.CASE_INSENSITIVE, java.util.regex.Pattern.COMMENTS, java.util.regex.Pattern.MULTILINE, java.util.regex.Pattern.LITERAL, java.util.regex.Pattern.DOTALL, java.util.regex.Pattern.UNICODE_CASE, java.util.regex.Pattern.CANON_EQ, java.util.regex.Pattern.UNICODE_CHARACTER_CLASS}" />
+      <val name="value" val="{java.util.regex.Pattern.UNIX_LINES, java.util.regex.Pattern.CASE_INSENSITIVE, java.util.regex.Pattern.COMMENTS, java.util.regex.Pattern.MULTILINE, java.util.regex.Pattern.LITERAL, java.util.regex.Pattern.DOTALL, java.util.regex.Pattern.UNICODE_CASE, java.util.regex.Pattern.CANON_EQ}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
