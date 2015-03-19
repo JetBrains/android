@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.sdk.CheckAndroidSdkUpdates;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
@@ -106,8 +105,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (isGradleProject) {
       configureGradleProject();
     }
-
-    CheckAndroidSdkUpdates.checkNow(myProject);
   }
 
   private boolean shouldShowMigrateToGradleNotification() {
