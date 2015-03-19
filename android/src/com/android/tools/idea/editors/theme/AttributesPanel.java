@@ -38,6 +38,7 @@ public class AttributesPanel {
   private JBScrollPane myAttributesScrollPane;
   private JPanel myConfigToolbar;
   private JPanel myRightPanel;
+  private JComboBox myAttrGroupCombo;
 
   public AttributesPanel() {
     myNewThemeButton.setIcon(AllIcons.General.Add);
@@ -98,6 +99,10 @@ public class AttributesPanel {
 
   public JComboBox getThemeCombo() {
     return myThemeCombo;
+  }
+
+  public JComboBox getAttrGroupCombo() {
+    return myAttrGroupCombo;
   }
 
   public ThemeEditorTable getAttributesTable() {

@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
@@ -248,6 +249,14 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    myPanel.getAttrGroupCombo().setModel(new DefaultComboBoxModel(AttributesGrouper.GroupBy.values()));
+    myPanel.getAttrGroupCombo().addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        loadStyleAttributes();
+      }
+    });
+
     // Adds the Device selection button
     DefaultActionGroup group = new DefaultActionGroup();
     DeviceMenuAction deviceAction = new DeviceMenuAction(myPreviewPanel);
@@ -374,6 +383,12 @@ public class ThemeEditorComponent extends Splitter {
   @Nullable
   ThemeEditorStyle getSelectedTheme() {
     return myPanel.getSelectedTheme();
+  }
+
+  //Never null, because DefaultComboBoxModel and fixed list of items rendered
+  @NotNull
+  private AttributesGrouper.GroupBy getSelectedAttrGroup() {
+    return (AttributesGrouper.GroupBy)myPanel.getAttrGroupCombo().getSelectedItem();
   }
 
   @Nullable
@@ -524,7 +539,7 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
     myConfiguration.setTheme(selectedTheme.getName());
 
-    final AttributesTableModel model = new AttributesTableModel(selectedStyle, myConfiguration.getResourceResolver(), myModule.getProject());
+    final AttributesTableModel model = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration.getResourceResolver(), myModule.getProject());
     model.setGoToDefinitionListener(myClickListener);
 
     model.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
