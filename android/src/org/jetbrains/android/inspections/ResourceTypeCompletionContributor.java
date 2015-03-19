@@ -86,7 +86,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       return;
     }
 
-    ResourceTypeInspection.AllowedValues allowedValues = null;
+    ResourceTypeInspection.Constraints allowedValues = null;
     if (IN_METHOD_CALL_ARGUMENT.accepts(pos)) {
       PsiCall call = PsiTreeUtil.getParentOfType(pos, PsiCall.class);
       if (!(call instanceof PsiExpression)) return;
@@ -111,7 +111,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         PsiParameter[] params = method.getParameterList().getParameters();
         if (i >= params.length) continue;
         PsiParameter parameter = params[i];
-        ResourceTypeInspection.AllowedValues values =
+        ResourceTypeInspection.Constraints values =
           parameter == null ? null : ResourceTypeInspection.getAllowedValues(parameter, parameter.getType(), null);
         if (values == null) continue;
         if (allowedValues == null) {
@@ -176,8 +176,8 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     });
 
     // Suggest resource types
-    if (allowedValues.types != null) {
-      for (ResourceType resourceType : allowedValues.types) {
+    if (allowedValues instanceof ResourceTypeInspection.ResourceTypeAllowedValues) {
+      for (ResourceType resourceType : ((ResourceTypeInspection.ResourceTypeAllowedValues)allowedValues).types) {
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
@@ -193,8 +193,9 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
           allowed.add(type);
         }
       }
-    } else {
-      if (allowedValues.canBeOred) {
+    } else if (allowedValues instanceof ResourceTypeInspection.AllowedValues) {
+       ResourceTypeInspection.AllowedValues a = (ResourceTypeInspection.AllowedValues)allowedValues;
+      if (a.canBeOred) {
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         PsiExpression zero = factory.createExpressionFromText("0", pos);
         result.addElement(PrioritizedLookupElement.withPriority(LookupElementBuilder.create(zero, "0"), PRIORITY - 1));
@@ -204,7 +205,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         allowed.add(minusOne);
       }
       List<ExpectedTypeInfo> types = Arrays.asList(JavaSmartCompletionContributor.getExpectedTypes(parameters));
-      for (PsiAnnotationMemberValue value : allowedValues.values) {
+      for (PsiAnnotationMemberValue value : a.values) {
         if (value instanceof PsiReference) {
           PsiElement resolved = ((PsiReference)value).resolve();
           if (resolved instanceof PsiNamedElement) {

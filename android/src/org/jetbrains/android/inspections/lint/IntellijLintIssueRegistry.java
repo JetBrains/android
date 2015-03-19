@@ -17,10 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.*;
-import com.android.tools.lint.detector.api.Detector;
-import com.android.tools.lint.detector.api.Implementation;
-import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.lint.detector.api.*;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -59,6 +56,9 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
           issue.setImplementation(IntellijGradleDetector.IMPLEMENTATION);
         } else if (detectorClass == ViewTypeDetector.class) {
           issue.setImplementation(IntellijViewTypeDetector.IMPLEMENTATION);
+        } else if (detectorClass == SupportAnnotationDetector.class) {
+          // Handled by the ResourceTypeInspection
+          continue;
         } else if (scope.contains(Scope.CLASS_FILE) ||
             scope.contains(Scope.ALL_CLASS_FILES) ||
             scope.contains(Scope.JAVA_LIBRARIES)) {
