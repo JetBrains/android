@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.xml.sax.Attributes;
 
 import java.lang.reflect.Method;
@@ -38,7 +39,7 @@ public class Utilities {
 
 
   public static String getGetterMethodName(String propertyName) {
-    return "get" + capitalize(propertyName);
+    return "get" + StringUtil.capitalize(propertyName);
   }
 
   public static String getPropertyName(Method getter) {
@@ -51,11 +52,7 @@ public class Utilities {
   }
 
   public static String getSetterMethodName(String propertyName) {
-    return "set" + capitalize(propertyName);
-  }
-
-  public static String capitalize(String propertyName) {
-    return Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+    return "set" + StringUtil.capitalize(propertyName);
   }
 
   public static String decapitalize(String propertyName) {
@@ -91,14 +88,5 @@ public class Utilities {
       return Character.class;
     }
     throw new RuntimeException("Internal error");
-  }
-
-  static boolean contains(Object[] a, Object o) {
-    for (Object e : a) {
-      if (o.equals(e)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
