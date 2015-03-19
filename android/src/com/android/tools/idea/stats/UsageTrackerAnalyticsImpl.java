@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.StatisticsUploadAssistant;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
@@ -52,8 +53,11 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   @NonNls private static final String ANALYTICS_APP = "Android Studio";
 
   private static final List<? extends NameValuePair> analyticsBaseData = ImmutableList
-    .of(new BasicNameValuePair("v", "1"), new BasicNameValuePair("tid", ANAYLTICS_ID), new BasicNameValuePair("t", "event"),
+    .of(new BasicNameValuePair("v", "1"),
+        new BasicNameValuePair("tid", ANAYLTICS_ID),
+        new BasicNameValuePair("t", "event"),
         new BasicNameValuePair("an", ANALYTICS_APP),
+        new BasicNameValuePair("av", ApplicationInfo.getInstance().getFullVersion()),
         new BasicNameValuePair("cid", UpdateChecker.getInstallationUID(PropertiesComponent.getInstance())));
 
   /**
