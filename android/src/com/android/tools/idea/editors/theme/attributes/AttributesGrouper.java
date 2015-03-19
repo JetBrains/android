@@ -18,12 +18,26 @@ package com.android.tools.idea.editors.theme.attributes;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.intellij.openapi.util.text.StringUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-public class AttributesSorter {
-  private AttributesSorter() { }
+public class AttributesGrouper {
+  private AttributesGrouper() { }
+
+  public enum GroupBy {
+    GROUP("By Group"),
+    TYPE("By Type");
+
+    final private String myText;
+    
+    GroupBy(String text) {
+      myText = text;
+    }
+
+    @Override
+    public String toString() {
+      return myText;
+    }
+  }
 
   /**
    * Helper data structure to hold information for (temporary) algorithm for splitting attributes
@@ -58,7 +72,8 @@ public class AttributesSorter {
   );
 
   @SuppressWarnings("unchecked")
-  public static List<TableLabel> generateLabels(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+  public static List<TableLabel> generateLabelsForType(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+
     final List<EditedStyleItem>[] classes = new List[GROUPS.size() + 1];
     final int otherGroupIndex = GROUPS.size();
 
@@ -111,5 +126,39 @@ public class AttributesSorter {
     }
 
     return labels;
+  }
+
+  private static List<TableLabel> generateLabelsForGroup(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+    Map<String, List<EditedStyleItem>> classes = new TreeMap<String, List<EditedStyleItem>>();
+    for (EditedStyleItem item : source){
+      String group = item.getAttrGroup();
+      if (!classes.containsKey(group)) {
+        classes.put(group, new ArrayList<EditedStyleItem>());
+      }
+      classes.get(group).add(item);
+    }
+
+    final List<TableLabel> labels = new ArrayList<TableLabel>();
+    int offset = 0;
+    sink.clear();
+    for (String group : classes.keySet()) {
+      final int size = classes.get(group).size();
+      sink.addAll(classes.get(group));
+      if (size != 0) {
+        labels.add(new TableLabel(group, offset));
+      }
+      offset += size;
+    }
+    return labels;
+  }
+
+  public static List<TableLabel> generateLabels(GroupBy group, final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+    if (group == GroupBy.TYPE) {
+      return generateLabelsForType(source, sink);
+    }
+    else if (group == GroupBy.GROUP) {
+      return generateLabelsForGroup(source, sink);
+    }
+    return null;
   }
 }
