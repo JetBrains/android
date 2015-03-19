@@ -27,7 +27,7 @@ public abstract class UsageTracker {
   public static final String CATEGORY_DEPLOYMENT = "deployment";
 
   public static final String ACTION_SYNC_STARTED = "syncStarted";
-  public static final String ACTION_SYNC_ENDED = "syncStarted";
+  public static final String ACTION_SYNC_ENDED = "syncEnded";
   public static final String ACTION_SYNC_SKIPPED = "syncSkipped";
   public static final String ACTION_SYNC_FAILED = "syncFailed";
 
