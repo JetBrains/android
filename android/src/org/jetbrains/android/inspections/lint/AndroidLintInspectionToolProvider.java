@@ -414,6 +414,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSQLiteStringInspection extends AndroidLintInspectionBase {
+    public AndroidLintSQLiteStringInspection() {
+      super(AndroidBundle.message("android.lint.inspections.sqlite.string"), SQLiteDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintScrollViewCountInspection extends AndroidLintInspectionBase {
     public AndroidLintScrollViewCountInspection() {
       super(AndroidBundle.message("android.lint.inspections.scroll.view.count"), ChildCountDetector.SCROLLVIEW_ISSUE);
