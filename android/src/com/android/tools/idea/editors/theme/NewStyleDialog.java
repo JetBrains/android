@@ -111,6 +111,8 @@ public class NewStyleDialog extends DialogWrapper {
     }
 
     if (!myResourceNameValidator.checkInput(newStyleName)) {
+      // If checkInput is false, getErrorText will be not null.
+      //noinspection ConstantConditions
       return new ValidationInfo(myResourceNameValidator.getErrorText(newStyleName), myStyleNameTextField);
     }
 

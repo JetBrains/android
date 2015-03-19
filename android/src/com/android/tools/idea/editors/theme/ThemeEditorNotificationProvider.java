@@ -19,6 +19,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,13 +48,14 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
 
   @Nullable
   @Override
-  public InfoPanel createNotificationPanel(final VirtualFile file, final FileEditor fileEditor) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor) {
     if (myDismissed) {
       return null;
     }
 
     final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myProject, file);
-    if (!ThemeEditorProvider.isAndroidTheme(psiFile)) {
+    final Module module = AndroidPsiUtils.getModuleSafely(myProject, file);
+    if (!ThemeEditorProvider.isAndroidTheme(psiFile) || module == null) {
       return null;
     }
 
@@ -62,7 +64,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
       public void run() {
-        ThemeEditorUtils.openThemeEditor(AndroidPsiUtils.getModuleSafely(myProject, file));
+        ThemeEditorUtils.openThemeEditor(module);
       }
     });
     panel.createActionLabel("Hide notification", new Runnable() {

@@ -47,7 +47,7 @@ import java.awt.image.BufferedImage;
  */
 public class AndroidThemePreviewPanel extends AndroidPreviewPanel implements RenderContext {
 
-  private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class.getName());
+  private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
 
   protected DumbService myDumbService;
 

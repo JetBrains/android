@@ -28,6 +28,7 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
  * Class that provides methods to resolve themes for a given configuration.
  */
 public class ThemeResolver {
+  @SuppressWarnings("ConstantNamingConvention")
   private static final Logger LOG = Logger.getInstance(ThemeResolver.class);
 
   // Order is important, we want project themes first.

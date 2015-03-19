@@ -47,9 +47,15 @@ public class ThemeEditorUtils {
 
   private ThemeEditorUtils() { }
 
-  @Nullable
-  public static String generateToolTipText(final ItemResourceValue resValue, final Module module, final Configuration configuration) {
+  @NotNull
+  public static String generateToolTipText(@NotNull final ItemResourceValue resValue,
+                                           @NotNull final Module module,
+                                           @NotNull final Configuration configuration) {
     final LocalResourceRepository repository = AppResourceRepository.getAppResources(module, true);
+    if (repository == null) {
+      return "";
+    }
+
     String tooltipKey = resValue.toString() + module.toString() + configuration.toString() + repository.getModificationCount();
 
     String cachedTooltip = ourTooltipCache.getIfPresent(tooltipKey);
@@ -58,14 +64,12 @@ public class ThemeEditorUtils {
     }
 
     String tooltipContents = AndroidJavaDocRenderer.renderItemResourceWithDoc(module, configuration, resValue);
-    if (tooltipContents != null) {
-      ourTooltipCache.put(tooltipKey, tooltipContents);
-    }
+    ourTooltipCache.put(tooltipKey, tooltipContents);
 
     return tooltipContents;
   }
 
-  public static void openThemeEditor(final @NotNull Module module) {
+  public static void openThemeEditor(@NotNull final Module module) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -117,7 +121,8 @@ public class ThemeEditorUtils {
     return allValues;
   }
 
-  public static Object extractRealValue(final EditedStyleItem item, final Class<?> desiredClass) {
+  @Nullable
+  public static Object extractRealValue(@NotNull final EditedStyleItem item, @NotNull final Class<?> desiredClass) {
     String value = item.getValue();
     if (desiredClass == Boolean.class && ("true".equals(value) || "false".equals(value))) {
       return Boolean.valueOf(value);

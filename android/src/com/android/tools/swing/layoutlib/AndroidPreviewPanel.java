@@ -31,7 +31,7 @@ import java.util.Set;
  * Generic UI component for rendering.
  */
 public class AndroidPreviewPanel extends JComponent implements Scrollable {
-  private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class.getName());
+  private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class);
 
   private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
