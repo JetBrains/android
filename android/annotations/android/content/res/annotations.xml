@@ -42,6 +42,9 @@
   <item name="android.content.res.ColorStateList ColorStateList(int[][], int[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.res.ColorStateList ColorStateList(int[][], int[]) 1">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.content.res.ColorStateList android.content.res.ColorStateList createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -54,11 +57,17 @@
   <item name="android.content.res.ColorStateList android.content.res.ColorStateList valueOf(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.res.ColorStateList android.content.res.ColorStateList valueOf(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.content.res.ColorStateList android.content.res.ColorStateList withAlpha(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ColorStateList int getColorForState(int[], int) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.res.ColorStateList int getDefaultColor()">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.content.res.ColorStateList void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -162,6 +171,9 @@
   <item name="android.content.res.Resources float getFraction(int, int, int) 0">
     <annotation name="android.support.annotation.FractionRes" />
   </item>
+  <item name="android.content.res.Resources int getColor(int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.content.res.Resources int getColor(int) 0">
     <annotation name="android.support.annotation.ColorRes" />
   </item>
@@ -255,6 +267,9 @@
   <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(int[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.res.Resources.Theme android.graphics.drawable.Drawable getDrawable(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
   <item name="android.content.res.Resources.Theme boolean resolveAttribute(int, android.util.TypedValue, boolean) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -269,6 +284,12 @@
   </item>
   <item name="android.content.res.TypedArray boolean getValue(int, android.util.TypedValue) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.TypedArray int getColor(int, int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.content.res.TypedArray int getColor(int, int) 1">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.content.res.TypedArray int getResourceId(int, int)">
     <annotation name="android.support.annotation.AnyRes" />
