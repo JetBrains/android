@@ -128,6 +128,57 @@
   <item name="android.content.pm.PackageInstaller void updateSessionAppLabel(int, java.lang.CharSequence) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.pm.PackageInstaller.Session java.io.InputStream openRead(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.Session java.io.InputStream openRead(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.Session java.io.OutputStream openWrite(java.lang.String, long, long)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.Session java.io.OutputStream openWrite(java.lang.String, long, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.Session java.lang.String[] getNames()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.Session void commit(android.content.IntentSender) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.Session void fsync(java.io.OutputStream) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionInfo android.content.Intent createDetailsIntent()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionInfo android.graphics.Bitmap getAppIcon()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionInfo java.lang.CharSequence getAppLabel()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionInfo java.lang.String getAppPackageName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionInfo java.lang.String getInstallerPackageName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionParams void setAppIcon(android.graphics.Bitmap) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionParams void setAppLabel(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionParams void setAppPackageName(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionParams void setOriginatingUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageInstaller.SessionParams void setReferrerUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.pm.PackageItemInfo PackageItemInfo(android.content.pm.PackageItemInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -166,6 +217,21 @@
   </item>
   <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.content.pm.PackageManager int checkPermission(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.content.pm.PackageManager int checkSignatures(int, int)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.content.pm.PackageManager int checkSignatures(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.content.pm.PackageManager int getPreferredActivities(java.util.List&lt;android.content.IntentFilter&gt;, java.util.List&lt;android.content.ComponentName&gt;, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager int getPreferredActivities(java.util.List&lt;android.content.IntentFilter&gt;, java.util.List&lt;android.content.ComponentName&gt;, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager java.lang.CharSequence getText(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
     <annotation name="android.support.annotation.StringRes" />

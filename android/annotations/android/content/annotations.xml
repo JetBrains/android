@@ -123,6 +123,12 @@
   <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 4">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -212,6 +218,12 @@
   </item>
   <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -376,12 +388,20 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context int checkCallingOrSelfPermission(java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingOrSelfPermission(String,String)&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingOrSelfPermission(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context int checkCallingOrSelfUriPermission(android.net.Uri, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingOrSelfUriPermission(Uri,int,String)&quot;" />
+    </annotation>
   </item>
   <item name="android.content.Context int checkCallingOrSelfUriPermission(android.net.Uri, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -390,12 +410,20 @@
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingPermission(java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingPermission(String,String)&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingPermission(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingUriPermission(Uri,int,String)&quot;" />
+    </annotation>
   </item>
   <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -404,6 +432,9 @@
     </annotation>
   </item>
   <item name="android.content.Context int checkPermission(java.lang.String, int, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforcePermission(String,int,int,String)&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
@@ -411,10 +442,20 @@
   <item name="android.content.Context int checkPermission(java.lang.String, int, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Context int checkUriPermission(android.net.Uri, int, int, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceUriPermission(Uri,int,int,String)&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, int, int, int) 3">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceUriPermission(Uri,String,String,int,int,int,String)&quot;" />
     </annotation>
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 0">
@@ -741,6 +782,9 @@
   <item name="android.content.Intent android.content.Intent putIntegerArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.Integer&gt;)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Intent android.content.Intent putParcelableArrayListExtra(java.lang.String, java.util.ArrayList&lt;? extends android.os.Parcelable&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.Intent android.content.Intent putStringArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -851,6 +895,9 @@
   </item>
   <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.Intent.ShortcutIconResource void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -988,6 +1035,12 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.SharedPreferences java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.SharedPreferences.Editor android.content.SharedPreferences.Editor putString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.SharedPreferences.Editor android.content.SharedPreferences.Editor putStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.SyncAdapterType SyncAdapterType(android.os.Parcel) 0">

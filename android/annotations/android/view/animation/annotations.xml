@@ -12,6 +12,15 @@
   <item name="android.view.animation.Animation Animation(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.animation.Animation int getBackgroundColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.animation.Animation void setBackgroundColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.animation.Animation void setInterpolator(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.InterpolatorRes" />
+  </item>
   <item name="android.view.animation.AnimationSet AnimationSet(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -84,8 +93,14 @@
   <item name="android.view.animation.LayoutAnimationController void setAnimation(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.animation.LayoutAnimationController void setAnimation(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.AnimRes" />
+  </item>
   <item name="android.view.animation.LayoutAnimationController void setInterpolator(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.animation.LayoutAnimationController void setInterpolator(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.InterpolatorRes" />
   </item>
   <item name="android.view.animation.OvershootInterpolator OvershootInterpolator(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -110,6 +125,12 @@
   </item>
   <item name="android.view.animation.Transformation void set(android.view.animation.Transformation) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.animation.Transformation void setAlpha(float) 0">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
   </item>
   <item name="android.view.animation.TranslateAnimation TranslateAnimation(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
