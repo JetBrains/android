@@ -309,11 +309,6 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace with com.android.library", "build.gradle", "gradle");
   }
 
-  public void testCheckPermission() throws Exception {
-    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUseCheckPermissionInspection(),
-                  "Change check to enforce", "/src/test/pkg/CheckPermissionTest.java", "java");
-  }
-
   public void testMissingAppIcon() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingApplicationIconInspection(),

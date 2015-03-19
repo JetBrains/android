@@ -288,12 +288,6 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  public static class AndroidLintResourceAsColorInspection extends AndroidLintInspectionBase {
-    public AndroidLintResourceAsColorInspection() {
-      super(AndroidBundle.message("android.lint.inspections.resource.as.color"), ColorUsageDetector.ISSUE);
-    }
-  }
-
   public static class AndroidLintExtraTextInspection extends AndroidLintInspectionBase {
     public AndroidLintExtraTextInspection() {
       super(AndroidBundle.message("android.lint.inspections.extra.text"), ExtraTextDetector.ISSUE);
@@ -976,37 +970,6 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintUseAlpha2Inspection extends AndroidLintInspectionBase {
     public AndroidLintUseAlpha2Inspection() {
       super(AndroidBundle.message("android.lint.inspections.use.alpha2"), LocaleFolderDetector.USE_ALPHA_2);
-    }
-  }
-
-  public static class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
-    public AndroidLintUseCheckPermissionInspection() {
-      super(AndroidBundle.message("android.lint.inspections.use.check.permission"), CheckPermissionDetector.ISSUE);
-    }
-
-    @NotNull
-    @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return new AndroidLintQuickFix[] {
-        new ReplaceStringQuickFix("Change check to enforce", "(check).*\\(", "enforce") {
-          @Override
-          public void apply(@NotNull PsiElement startElement,
-                            @NotNull PsiElement endElement,
-                            @NotNull AndroidQuickfixContexts.Context context) {
-            // Also need to insert a message parameter
-            PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(startElement, PsiMethodCallExpression.class);
-            if (call != null) {
-              Document document = FileDocumentManager.getInstance().getDocument(startElement.getContainingFile().getVirtualFile());
-              if (document != null) {
-                PsiExpressionList argumentList = call.getArgumentList();
-                int offset = argumentList.getTextOffset() + argumentList.getTextLength() - 1;
-                document.insertString(offset, ", \"TODO: message if thrown\"");
-              }
-            }
-            super.apply(startElement, endElement, context);
-          }
-        }
-      };
     }
   }
 

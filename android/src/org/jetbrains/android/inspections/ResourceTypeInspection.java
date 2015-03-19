@@ -21,12 +21,15 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
-import com.intellij.codeInspection.LocalInspectionToolSession;
-import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.codeInsight.FileModificationService;
+import com.intellij.codeInspection.*;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -41,7 +44,9 @@ import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +54,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
+import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 
 /**
  * A custom version of the IntelliJ
@@ -104,14 +111,13 @@ import static com.android.SdkConstants.*;
  *     {@link #getAllowedValuesFromTypedef} and {@link #getResourceTypeFromAnnotation(String)}
  *   </li>
  *   <li>
- *     {@link AllowedValues}: Added ResourceType field which if non-null means
- *     we should look for a ResourceType instead of a set of integer/string constants
+ *     Created a new class, Constraint, which AllowedValues extends. AllowedValues now represents a value object
+ *     for typedef constants. There are additional new subclasses which represent other constraints, such as
+ *     ResourceTypeAllowedValues, IntRangeAllowedValues, etc.
  *   </li>
  *   <li>
- *     {@link #isAllowed}: Added check for allowedValues.types and if non-null,
- *     check that if the call can be resolved to R.type.name, that the type is one
- *     of the expected types (this is done by a method similar to getGoodExpression
- *     but which analyzes resource types instead)
+ *     {@link #isAllowed}: Added checking for other types of allowed values, and if applicable,
+ *     call new methods to check these, similar to the existing constant checks.
  *   </li>
  *   <li>
  *     Removed {@code checkAnnotationsJarAttached()}, since we will always provide SDK annotations
@@ -173,7 +179,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       public void visitReturnStatement(PsiReturnStatement statement) {
         PsiExpression value = statement.getReturnValue();
         if (value == null) return;
-        PsiMethod method = PsiTreeUtil.getParentOfType(statement, PsiMethod.class);
+        @SuppressWarnings("unchecked")
+        PsiElement element = PsiTreeUtil.getParentOfType(statement, PsiMethod.class, PsiLambdaExpression.class);
+        PsiMethod method = element instanceof PsiMethod ? (PsiMethod)element : LambdaUtil.getFunctionalInterfaceMethod(element);
         if (method == null) return;
         checkExpression(value, method, value.getType(), holder);
       }
@@ -221,7 +229,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                       PsiModifierListOwner owner,
                                       @Nullable PsiType type,
                                       ProblemsHolder holder) {
-    AllowedValues allowed = getAllowedValues(owner, type, null);
+    Constraints allowed = getAllowedValues(owner, type, null);
     if (allowed == null) return;
     //noinspection ConstantConditions
     PsiElement scope = PsiUtil.getTopLevelEnclosingCodeBlock(expression, null);
@@ -240,7 +248,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     PsiExpression[] arguments = argumentList.getExpressions();
     for (int i = 0; i < parameters.length; i++) {
       PsiParameter parameter = parameters[i];
-      AllowedValues values = getAllowedValues(parameter, parameter.getType(), null);
+      Constraints values = getAllowedValues(parameter, parameter.getType(), null);
       if (values == null) continue;
       if (i >= arguments.length) break;
       PsiExpression argument = arguments[i];
@@ -249,21 +257,129 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
       checkMagicParameterArgument(parameter, argument, values, holder);
     }
+
+    checkUseReturnValue(methodCall, holder, method);
   }
 
-  static class AllowedValues {
+  private static void checkUseReturnValue(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
+    if (methodCall.getParent() instanceof PsiExpressionStatement) {
+      PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, CHECK_RESULT_ANNOTATION);
+      if (annotation != null) {
+        String message = String.format("The result '%1$s' is not used", method.getName());
+        PsiAnnotationMemberValue value = annotation.findAttributeValue(ATTR_SUGGEST);
+        if (value instanceof PsiLiteral) {
+          PsiLiteral literal = (PsiLiteral)value;
+          Object literalValue = literal.getValue();
+          if (literalValue instanceof String) {
+            String suggest = (String)literalValue;
+            // TODO: Resolve suggest attribute (e.g. prefix annotation class if it starts
+            // with "#" etc)?
+            if (!suggest.isEmpty()) {
+              String name = suggest;
+              if (name.startsWith("#")) {
+                name = name.substring(1);
+              }
+              message = String.format("The result of '%1$s' is not used; did you mean to call '%2$s'?", method.getName(), name);
+              if (suggest.startsWith("#") && methodCall instanceof PsiMethodCallExpression) {
+                holder.registerProblem(methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
+                return;
+              }
+            }
+          }
+        }
+        holder.registerProblem(methodCall, message);
+      }
+    }
+  }
+
+  private static class ReplaceCallFix implements LocalQuickFix {
+
+    private final PsiMethodCallExpression myMethodCall;
+    private final String mySuggest;
+
+    public ReplaceCallFix(PsiMethodCallExpression methodCall, String suggest) {
+      myMethodCall = methodCall;
+      mySuggest = suggest;
+    }
+
+    @Nls
+    @NotNull
+    @Override
+    public String getName() {
+      return String.format("Call %1$s instead", getMethodName());
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return "Replace Calls";
+    }
+
+    private String getMethodName() {
+      assert mySuggest.startsWith("#");
+      int start = 1;
+      int parameters = mySuggest.indexOf('(', start);
+      if (parameters == -1) {
+        parameters = mySuggest.length();
+      }
+      return mySuggest.substring(start, parameters).trim();
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      if (!myMethodCall.isValid()) {
+        return;
+      }
+      String name = getMethodName();
+      final PsiFile file = myMethodCall.getContainingFile();
+      if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
+        return;
+      }
+
+      Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
+      if (document != null) {
+        PsiReferenceExpression methodExpression = myMethodCall.getMethodExpression();
+        PsiElement referenceNameElement = methodExpression.getReferenceNameElement();
+        if (referenceNameElement != null) {
+          TextRange range = referenceNameElement.getTextRange();
+          if (range != null) {
+            // Also need to insert a message parameter
+            // Currently hardcoded for the check*Permission to enforce*Permission code path. It's
+            // tricky to figure out in general how to map existing parameters to new
+            // parameters. Consider using MethodSignatureInsertHandler.
+            if (name.startsWith("enforce") && methodExpression.getReferenceName() != null
+                && methodExpression.getReferenceName().startsWith("check")) {
+              PsiExpressionList argumentList = myMethodCall.getArgumentList();
+              int offset = argumentList.getTextOffset() + argumentList.getTextLength() - 1;
+              document.insertString(offset, ", \"TODO: message if thrown\"");
+            }
+
+            // Replace method call
+            document.replaceString(range.getStartOffset(), range.getEndOffset(), name);
+          }
+        }
+      }
+    }
+  }
+
+  static class Constraints {
+    public boolean isSubsetOf(@NotNull Constraints other, @NotNull PsiManager manager) {
+      return false;
+    }
+  }
+
+  /**
+   * A typedef constraint. Then name is kept as "AllowedValues" to keep all the surrounding code
+   * which references this class unchanged (since it's based on MagicConstantInspection, so we
+   * can more easily diff and incorporate recent MagicConstantInspection changes.)
+   */
+  static class AllowedValues extends Constraints {
     final PsiAnnotationMemberValue[] values;
     final boolean canBeOred;
-    /** Type of Android resource that we must be passing. If non null, this is the only value to be
-     * checked, not the member values. This is done to minimize the set of changes to this inspection
-     * from the {@link com.intellij.codeInspection.magicConstant.MagicConstantInspection} it was based on. */
-    final List<ResourceType> types;
 
-    private AllowedValues(@NotNull PsiAnnotationMemberValue[] values, boolean canBeOred,
-                          @Nullable List<ResourceType> types) {
+    private AllowedValues(@NotNull PsiAnnotationMemberValue[] values, boolean canBeOred) {
       this.values = values;
       this.canBeOred = canBeOred;
-      this.types = types;
     }
 
     @Override
@@ -290,6 +406,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
       return v2.isEmpty();
     }
+
     @Override
     public int hashCode() {
       int result = Arrays.hashCode(values);
@@ -297,10 +414,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return result;
     }
 
-    public boolean isSubsetOf(@NotNull AllowedValues other, @NotNull PsiManager manager) {
+    @Override
+    public boolean isSubsetOf(@NotNull Constraints other, @NotNull PsiManager manager) {
+      if (!(other instanceof AllowedValues)) {
+        return false;
+      }
+      AllowedValues o = (AllowedValues)other;
       for (PsiAnnotationMemberValue value : values) {
         boolean found = false;
-        for (PsiAnnotationMemberValue otherValue : other.values) {
+        for (PsiAnnotationMemberValue otherValue : o.values) {
           if (same(value, otherValue, manager)) {
             found = true;
             break;
@@ -312,8 +434,378 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
+  static class ResourceTypeAllowedValues extends Constraints {
+    /**
+     * Type of Android resource that we must be passing. An empty list means no
+     * resource type is allowed; this is currently used for {@code @ColorInt},
+     * stating that not only is it <b>not</b> supposed to be a {@code R.color.name},
+     * but it should correspond to an ARGB integer.
+     */
+    @NotNull
+    final List<ResourceType>  types;
+
+    public ResourceTypeAllowedValues(@NotNull List<ResourceType> types) {
+      this.types = types;
+    }
+
+    /** Returns true if this resource type constraint allows a type of the given name */
+    public boolean isTypeAllowed(@NotNull String typeName) {
+      for (ResourceType type : types) {
+        if (type.getName().equals(typeName) ||
+            type == ResourceType.DRAWABLE &&
+            (ResourceType.COLOR.getName().equals(typeName) || ResourceType.MIPMAP.getName().equals(typeName))) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Returns true if the resource type constraint is compatible with the other resource type
+     * constraint
+     *
+     * @param other the resource type constraint to compare it to
+     * @return true if the two resource constraints are compatible
+     */
+    public boolean isCompatibleWith(@NotNull ResourceTypeAllowedValues other) {
+      // Happy if *any* of the resource types on the annotation matches any of the
+      // annotations allowed for this API
+      if (other.types.isEmpty() && types.isEmpty()) {
+        // Passing in a method call whose return value is @ColorInt
+        // to a parameter which is @ColorInt: OK
+        return true;
+      }
+      for (ResourceType t1 : other.types) {
+        for (ResourceType t2 : types) {
+          if (t1 == t2) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+  }
+
+  static class RangeAllowedValues extends Constraints {
+    @NotNull
+    public String describe(@NotNull PsiExpression argument) {
+      assert false;
+      return "";
+    }
+
+    @MagicConstant(intValues={VALID,INVALID,UNCERTAIN})
+    public int isValid(@NotNull PsiExpression argument) {
+      return UNCERTAIN;
+    }
+
+    @Nullable
+    protected Number guessSize(@NotNull PsiExpression argument) {
+      if (argument instanceof PsiLiteral) {
+        PsiLiteral literal = (PsiLiteral)argument;
+        Object v = literal.getValue();
+        if (v instanceof Number) {
+          return (Number)v;
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Checks whether the given range is compatible with this one.
+     * We err on the side of caution. E.g. if we have
+     * <pre>
+     *    method(x)
+     * </pre>
+     * and the parameter declaration says that x is between 0 and 10,
+     * and then we have a parameter which is known to be in the range 5 to 15,
+     * here we consider this a compatible range; we don't flag this as
+     * an error. If however, the ranges don't overlap, *then* we complain.
+     */
+    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+      return UNCERTAIN;
+    }
+  }
+
+  static class IntRangeConstraint extends RangeAllowedValues {
+    final long from;
+    final long to;
+
+    public IntRangeConstraint(@NotNull PsiAnnotation annotation) {
+      PsiAnnotationMemberValue fromValue = annotation.findDeclaredAttributeValue(ATTR_FROM);
+      PsiAnnotationMemberValue toValue = annotation.findDeclaredAttributeValue(ATTR_TO);
+      from = getLongValue(fromValue, Long.MIN_VALUE);
+      to = getLongValue(toValue, Long.MAX_VALUE);
+    }
+
+    @Override
+    @MagicConstant(intValues = {VALID, INVALID, UNCERTAIN})
+    public int isValid(@NotNull PsiExpression argument) {
+      if (argument instanceof PsiLiteral) {
+        PsiLiteral literal = (PsiLiteral)argument;
+        Object literalValue = literal.getValue();
+        if (literalValue instanceof Number) {
+          long value = ((Number)literalValue).longValue();
+          return value >= from && value <= to ? VALID : INVALID;
+        }
+      }
+      return UNCERTAIN;
+    }
+
+    @NotNull
+    @Override
+    public String describe(@NotNull PsiExpression argument) {
+      StringBuilder sb = new StringBuilder(20);
+      if (to == Long.MAX_VALUE) {
+        sb.append("Value must be \u2265 ");
+        sb.append(Long.toString(from));
+      }
+      else if (from == Long.MIN_VALUE) {
+        sb.append("Value must be \u2264 ");
+        sb.append(Long.toString(to));
+      }
+      else {
+        sb.append("Value must be \u2265 ");
+        sb.append(Long.toString(from));
+        sb.append(" and \u2264 ");
+        sb.append(Long.toString(to));
+      }
+      Number actual = guessSize(argument);
+      if (actual != null) {
+        sb.append(" (was ").append(Integer.toString(actual.intValue())).append(')');
+      }
+      return sb.toString();
+    }
+
+    @Override
+    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+      if (other instanceof IntRangeConstraint) {
+        IntRangeConstraint otherRange = (IntRangeConstraint)other;
+        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+      } else if (other instanceof FloatRangeConstraint) {
+        FloatRangeConstraint otherRange = (FloatRangeConstraint)other;
+        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+      }
+      return UNCERTAIN;
+    }
+  }
+
+  static class FloatRangeConstraint extends RangeAllowedValues {
+    final double from;
+    final double to;
+    final boolean fromInclusive;
+    final boolean toInclusive;
+
+    public FloatRangeConstraint(@NotNull PsiAnnotation annotation) {
+      PsiAnnotationMemberValue fromValue = annotation.findDeclaredAttributeValue(ATTR_FROM);
+      PsiAnnotationMemberValue toValue = annotation.findDeclaredAttributeValue(ATTR_TO);
+      PsiAnnotationMemberValue fromInclusiveValue = annotation.findDeclaredAttributeValue(ATTR_FROM_INCLUSIVE);
+      PsiAnnotationMemberValue toInclusiveValue = annotation.findDeclaredAttributeValue(ATTR_TO_INCLUSIVE);
+      from = getDoubleValue(fromValue, Double.NEGATIVE_INFINITY);
+      to = getDoubleValue(toValue, Double.POSITIVE_INFINITY);
+      fromInclusive = getBooleanValue(fromInclusiveValue, true);
+      toInclusive = getBooleanValue(toInclusiveValue, true);
+    }
+
+    @Override
+    @MagicConstant(intValues={VALID,INVALID,UNCERTAIN})
+    public int isValid(@NotNull PsiExpression argument) {
+      Number number = guessSize(argument);
+      if (number != null) {
+        double value = number.doubleValue();
+        if (!((fromInclusive && value >= from || !fromInclusive && value > from) &&
+              (toInclusive && value <= to || !toInclusive && value < to))) {
+          return INVALID;
+        }
+        return VALID;
+      }
+      return UNCERTAIN;
+    }
+
+    @NotNull
+    @Override
+    public String describe(@NotNull PsiExpression argument) {
+      StringBuilder sb = new StringBuilder(20);
+      if (from != Double.NEGATIVE_INFINITY) {
+        if (to != Double.POSITIVE_INFINITY) {
+          sb.append("Value must be ");
+          if (fromInclusive) {
+            sb.append('\u2265'); // >= sign
+          } else {
+            sb.append('>');
+          }
+          sb.append(' ');
+          sb.append(Double.toString(from));
+          sb.append(" and ");
+          if (toInclusive) {
+            sb.append('\u2264'); // <= sign
+          } else {
+            sb.append('<');
+          }
+          sb.append(' ');
+          sb.append(Double.toString(to));
+        } else {
+          sb.append("Value must be ");
+          if (fromInclusive) {
+            sb.append('\u2265'); // >= sign
+          } else {
+            sb.append('>');
+          }
+          sb.append(' ');
+          sb.append(Double.toString(from));
+        }
+      } else if (to != Double.POSITIVE_INFINITY) {
+        sb.append("Value must be ");
+        if (toInclusive) {
+          sb.append('\u2264'); // <= sign
+        } else {
+          sb.append('<');
+        }
+        sb.append(' ');
+        sb.append(Double.toString(to));
+      }
+      Number actual = guessSize(argument);
+      if (actual != null) {
+        sb.append(" (was ");
+        // Try to avoid going through an actual double which introduces
+        // potential rounding ugliness (e.g. source can say "2.49f" and this is printed as "2.490000009536743")
+        if (argument instanceof PsiLiteral) {
+          PsiLiteral literal = (PsiLiteral)argument;
+          sb.append(literal.getText());
+        } else {
+          sb.append(Double.toString(actual.doubleValue()));
+        }
+        sb.append(')');
+      }
+      return sb.toString();
+    }
+
+    @Override
+    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+      if (other instanceof FloatRangeConstraint) {
+        FloatRangeConstraint otherRange = (FloatRangeConstraint)other;
+        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+      } else if (other instanceof IntRangeConstraint) {
+        IntRangeConstraint otherRange = (IntRangeConstraint)other;
+        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+      }
+      return UNCERTAIN;
+    }
+  }
+
+  static class SizeConstraint extends RangeAllowedValues {
+    final long exact;
+    final long min;
+    final long max;
+    final long multiple;
+
+    public SizeConstraint(@NotNull PsiAnnotation annotation) {
+      PsiAnnotationMemberValue exactValue = annotation.findAttributeValue(ATTR_VALUE);
+      PsiAnnotationMemberValue fromValue = annotation.findDeclaredAttributeValue(ATTR_MIN);
+      PsiAnnotationMemberValue toValue = annotation.findDeclaredAttributeValue(ATTR_MAX);
+      PsiAnnotationMemberValue multipleValue = annotation.findDeclaredAttributeValue(ATTR_MULTIPLE);
+      exact = getLongValue(exactValue, -1);
+      min = getLongValue(fromValue, Long.MIN_VALUE);
+      max = getLongValue(toValue, Long.MAX_VALUE);
+      multiple = getLongValue(multipleValue, 1);
+    }
+
+    @Override
+    @MagicConstant(intValues={VALID,INVALID,UNCERTAIN})
+    public int isValid(@NotNull PsiExpression argument) {
+      Number size = guessSize(argument);
+      if (size == null) {
+        return UNCERTAIN;
+      }
+      int actual = size.intValue();
+      if (exact != -1) {
+        if (exact != actual) {
+          return INVALID;
+        }
+      } else if (actual < min || actual > max || actual % multiple != 0) {
+        return INVALID;
+      }
+
+      return VALID;
+    }
+
+    @Override
+    protected Number guessSize(@NotNull PsiExpression argument) {
+      if (argument instanceof PsiNewExpression) {
+        PsiNewExpression pne = (PsiNewExpression)argument;
+        PsiArrayInitializerExpression initializer = pne.getArrayInitializer();
+        if (initializer != null) {
+          return initializer.getInitializers().length;
+        }
+      } else if (argument instanceof PsiLiteral) {
+        PsiLiteral literal = (PsiLiteral)argument;
+        Object o = literal.getValue();
+        if (o instanceof String) {
+          return ((String)o).length();
+        }
+      }
+      return -1;
+    }
+
+    @NotNull
+    @Override
+    public String describe(@NotNull PsiExpression argument) {
+      StringBuilder sb = new StringBuilder(20);
+      if (argument.getType() != null && argument.getType().getCanonicalText().equals(JAVA_LANG_STRING)) {
+        sb.append("Length");
+      } else {
+        sb.append("Size");
+      }
+      sb.append(" must be");
+      if (exact != -1) {
+        sb.append(" exactly ");
+        sb.append(Long.toString(exact));
+        return sb.toString();
+      }
+      boolean continued = true;
+      if (min != Long.MIN_VALUE && max != Long.MAX_VALUE) {
+        sb.append(" at least ");
+        sb.append(Long.toString(min));
+        sb.append(" and at most ");
+        sb.append(Long.toString(max));
+      } else if (min != Long.MIN_VALUE) {
+        sb.append(" at least ");
+        sb.append(Long.toString(min));
+      } else  if (max != Long.MAX_VALUE) {
+        sb.append(" at most ");
+        sb.append(Long.toString(max));
+      } else {
+        continued = false;
+      }
+      if (multiple != 1) {
+        if (continued) {
+          sb.append(" and");
+        }
+        sb.append(" a multiple of ");
+        sb.append(Long.toString(multiple));
+      }
+      Number actual = guessSize(argument);
+      if (actual != null) {
+        sb.append(" (was ").append(Integer.toString(actual.intValue())).append(')');
+      }
+      return sb.toString();
+    }
+
+    @Override
+    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+      if (other instanceof SizeConstraint) {
+        SizeConstraint otherRange = (SizeConstraint)other;
+        if ((exact != -1 || otherRange.exact != -1) && exact != otherRange.exact) {
+          return INVALID;
+        }
+        return otherRange.min > max || otherRange.max < min ? INVALID : VALID;
+      }
+      return UNCERTAIN;
+    }
+  }
+
   @Nullable
-  private static AllowedValues getAllowedValuesFromTypedef(@NotNull PsiType type,
+  private static Constraints getAllowedValuesFromTypedef(@NotNull PsiType type,
                                                            @NotNull PsiAnnotation magic,
                                                            @NotNull PsiManager manager) {
     PsiAnnotationMemberValue[] allowedValues;
@@ -335,7 +827,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     if (allowedValues.length != 0) {
-      return new AllowedValues(allowedValues, canBeOred, null);
+      return new AllowedValues(allowedValues, canBeOred);
     }
 
     return null;
@@ -350,13 +842,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   @Nullable
-  static AllowedValues getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
-    //noinspection ConstantConditions
-    PsiAnnotation[] annotations = AnnotationUtil.getAllAnnotations(element, true, null);
+  static Constraints getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
+    PsiAnnotation[] annotations = getAllAnnotations(element);
     PsiManager manager = element.getManager();
     List<ResourceType> resourceTypes = null;
     for (PsiAnnotation annotation : annotations) {
-      AllowedValues values;
+      Constraints values;
       if (type != null) {
         String qualifiedName = annotation.getQualifiedName();
         if (qualifiedName == null) {
@@ -366,6 +857,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
           values = getAllowedValuesFromTypedef(type, annotation, manager);
           if (values != null) return values;
+        } else if (INT_RANGE_ANNOTATION.equals(qualifiedName)) {
+          return new IntRangeConstraint(annotation);
+        } else if (FLOAT_RANGE_ANNOTATION.equals(qualifiedName)) {
+          return new FloatRangeConstraint(annotation);
+        } else if (SIZE_ANNOTATION.equals(qualifiedName)) {
+          return new SizeConstraint(annotation);
+        } else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
+          return new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList());
         } else if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(RESOURCE_TYPE_ANNOTATIONS_SUFFIX)) {
           ResourceType resourceType = getResourceTypeFromAnnotation(qualifiedName);
           if (resourceType != null) {
@@ -388,10 +887,21 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     if (resourceTypes != null) {
-      return new AllowedValues(PsiAnnotationMemberValue.EMPTY_ARRAY, false, resourceTypes);
+      return new ResourceTypeAllowedValues(resourceTypes);
     }
 
     return null;
+  }
+
+  private static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
+    return CachedValuesManager.getCachedValue(element, new CachedValueProvider<PsiAnnotation[]>() {
+      @Nullable
+      @Override
+      public Result<PsiAnnotation[]> compute() {
+        return Result.create(AnnotationUtil.getAllAnnotations(element, true, null),
+                             PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
   }
 
   @Nullable
@@ -401,7 +911,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
   private static void checkMagicParameterArgument(@NotNull PsiParameter parameter,
                                                   @NotNull PsiExpression argument,
-                                                  @NotNull AllowedValues allowedValues,
+                                                  @NotNull Constraints allowedValues,
                                                   @NotNull ProblemsHolder holder) {
     final PsiManager manager = PsiManager.getInstance(holder.getProject());
 
@@ -410,16 +920,32 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  private static void registerProblem(@NotNull PsiExpression argument, @NotNull AllowedValues allowedValues, @NotNull ProblemsHolder holder) {
-    if (allowedValues.types != null) {
-      if (allowedValues.types.size() == 1) {
-        holder.registerProblem(argument, "Expected resource of type " + allowedValues.types.get(0));
+  private static void registerProblem(@NotNull PsiExpression argument, @NotNull Constraints allowedValues, @NotNull ProblemsHolder holder) {
+    if (allowedValues instanceof ResourceTypeAllowedValues) {
+      List<ResourceType> types = ((ResourceTypeAllowedValues)allowedValues).types;
+      String message;
+      if (types.isEmpty()) {
+        message = String.format(
+          "Should pass resolved color instead of resource id here: " +
+          "`getResources().getColor(%1$s)`", argument.getText());
+      } else if (types.size() == 1) {
+        message = "Expected resource of type " + types.get(0);
       } else {
-        holder.registerProblem(argument, "Expected resource type to be one of " + Joiner.on(", ").join(allowedValues.types));
+        message = "Expected resource type to be one of " + Joiner.on(", ").join(types);
       }
+      holder.registerProblem(argument, message);
       return;
     }
-    String values = StringUtil.join(allowedValues.values,
+
+    if (allowedValues instanceof RangeAllowedValues) {
+      String message = ((RangeAllowedValues)allowedValues).describe(argument);
+        holder.registerProblem(argument, message);
+      return;
+    }
+
+    assert allowedValues instanceof AllowedValues;
+    AllowedValues typedef = (AllowedValues)allowedValues;
+    String values = StringUtil.join(typedef.values,
                                     new Function<PsiAnnotationMemberValue, String>() {
                                       @Override
                                       public String fun(PsiAnnotationMemberValue value) {
@@ -434,7 +960,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                       }
                                     }, ", ");
     String message;
-    if (allowedValues.canBeOred) {
+    if (typedef.canBeOred) {
       message = "Must be one or more of: " + values;
     } else {
       message = "Must be one of: " + values;
@@ -444,20 +970,25 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
   private static boolean isAllowed(@NotNull final PsiElement scope,
                                    @NotNull final PsiExpression argument,
-                                   @NotNull final AllowedValues allowedValues,
+                                   @NotNull final Constraints allowedValues,
                                    @NotNull final PsiManager manager,
                                    @Nullable final Set<PsiExpression> visited) {
     // Resource type check
-    if (allowedValues.types != null) {
-      return isResourceTypeAllowed(scope, argument, allowedValues, manager, visited);
+    if (allowedValues instanceof ResourceTypeAllowedValues) {
+      return isResourceTypeAllowed(scope, argument, (ResourceTypeAllowedValues)allowedValues, manager, visited);
+    } else if (allowedValues instanceof RangeAllowedValues) {
+      return isInRange(scope, argument, (RangeAllowedValues)allowedValues, manager, visited);
     }
 
-    if (isGoodExpression(argument, allowedValues, scope, manager, visited)) return true;
+    assert allowedValues instanceof AllowedValues;
+    final AllowedValues a = (AllowedValues)allowedValues;
+
+    if (isGoodExpression(argument, a, scope, manager, visited)) return true;
 
     return processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
       @Override
       public boolean process(PsiExpression expression) {
-        return isGoodExpression(expression, allowedValues, scope, manager, visited);
+        return isGoodExpression(expression, a, scope, manager, visited);
       }
     });
   }
@@ -478,9 +1009,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
       return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited);
     }
-
-    // Resource type check
-    assert allowedValues.types == null; // Handled separately
 
     if (isOneOf(expression, allowedValues, manager)) return true;
 
@@ -513,13 +1041,62 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       resolved = ((PsiCallExpression)expression).resolveMethod();
     }
 
-    AllowedValues allowedForRef;
+    Constraints allowedForRef;
     if (resolved instanceof PsiModifierListOwner &&
         (allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, getType((PsiModifierListOwner)resolved), null)) != null &&
         allowedForRef.isSubsetOf(allowedValues, manager)) return true;
 
     //noinspection ConstantConditions
     return PsiType.NULL.equals(expression.getType());
+  }
+
+  private static long getLongValue(@Nullable PsiAnnotationMemberValue value, long defaultValue) {
+    if (value == null) {
+      return defaultValue;
+    } else if (value instanceof PsiLiteral) {
+      Object o = ((PsiLiteral)value).getValue();
+      if (o instanceof Number) {
+        return ((Number)o).longValue();
+      }
+    } else if (value instanceof PsiPrefixExpression) {
+      // negative number
+      PsiPrefixExpression exp = (PsiPrefixExpression)value;
+      PsiExpression operand = exp.getOperand();
+      if (operand instanceof PsiLiteral) {
+        Object o = ((PsiLiteral)operand).getValue();
+        if (o instanceof Number) {
+          return -((Number)o).longValue();
+        }
+      }
+    } // TODO: Allow inlined arithmetic here? If so look for operator nodes
+
+    return defaultValue;
+  }
+
+  private static double getDoubleValue(@Nullable PsiAnnotationMemberValue value, double defaultValue) {
+    if (value == null) {
+      return defaultValue;
+    } else if (value instanceof PsiLiteral) {
+      Object o = ((PsiLiteral)value).getValue();
+      if (o instanceof Number) {
+        return ((Number)o).doubleValue();
+      }
+    } // TODO: Allow inlined arithmetic here? If so look for operator nodes
+
+    return defaultValue;
+  }
+
+  private static boolean getBooleanValue(@Nullable PsiAnnotationMemberValue value, boolean defaultValue) {
+    if (value == null) {
+      return defaultValue;
+    } else if (value instanceof PsiLiteral) {
+      Object o = ((PsiLiteral)value).getValue();
+      if (o instanceof Boolean) {
+        return ((Boolean)o).booleanValue();
+      }
+    }
+
+    return defaultValue;
   }
 
   /** Return value from {@link #isValidResourceTypeExpression} : the expression is valid */
@@ -531,7 +1108,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
   private static boolean isResourceTypeAllowed(@NotNull final PsiElement scope,
                                                @NotNull final PsiExpression argument,
-                                               @NotNull final AllowedValues allowedValues,
+                                               @NotNull final ResourceTypeAllowedValues allowedValues,
                                                @NotNull final PsiManager manager,
                                                @Nullable final Set<PsiExpression> visited) {
     int result = isValidResourceTypeExpression(argument, allowedValues, scope, manager, visited);
@@ -558,7 +1135,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   private static int isValidResourceTypeExpression(@NotNull PsiExpression e,
-                                                   @NotNull AllowedValues allowedValues,
+                                                   @NotNull ResourceTypeAllowedValues allowedValues,
                                                    @NotNull PsiElement scope,
                                                    @NotNull PsiManager manager,
                                                    @Nullable Set<PsiExpression> visited) {
@@ -575,7 +1152,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     // Resource type check
-    assert allowedValues.types != null;
     if (expression instanceof PsiReferenceExpression) {
       PsiReferenceExpression refExpression = (PsiReferenceExpression)expression;
       PsiExpression qualifierExpression = refExpression.getQualifierExpression();
@@ -585,7 +1161,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (r instanceof PsiReferenceExpression) {
           if (R_CLASS.equals(((PsiReferenceExpression)r).getReferenceName())) {
             String typeName = typeDef.getReferenceName();
-            return isTypeAllowed(allowedValues, typeName);
+            if (typeName != null) {
+              return allowedValues.isTypeAllowed(typeName) ? VALID : INVALID;
+            }
           }
         }
       }
@@ -600,9 +1178,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             if (outerMost instanceof PsiClass && R_CLASS.equals(((PsiClass)outerMost).getName())) {
               PsiClass typeClass = (PsiClass)parent;
               String typeClassName = typeClass.getName();
-              return isTypeAllowed(allowedValues, typeClassName);
+              return allowedValues.isTypeAllowed(typeClassName) ? VALID : INVALID;
             }
           }
+        }
+
+        if (allowedValues.types.isEmpty() && expression.getType() == PsiType.INT) {
+          // Passing literal integer to a color
+          return VALID;
         }
       }
 
@@ -651,42 +1234,100 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       resolved = ((PsiCallExpression)expression).resolveMethod();
     }
 
-    AllowedValues allowedForRef;
+    Constraints allowedForRef;
 
     if (resolved instanceof PsiModifierListOwner) {
       PsiType type = getType((PsiModifierListOwner)resolved);
       allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, type, null);
-      if (allowedForRef != null && allowedForRef.types != null) {
+      if (allowedForRef instanceof ResourceTypeAllowedValues) {
         // Happy if *any* of the resource types on the annotation matches any of the
         // annotations allowed for this API
-        for (ResourceType t1 : allowedForRef.types) {
-          for (ResourceType t2 : allowedValues.types) {
-            if (t1 == t2) {
-              return VALID;
-            }
-          }
-        }
-        return INVALID;
+        return allowedValues.isCompatibleWith((ResourceTypeAllowedValues)allowedForRef) ? VALID : INVALID;
       }
     }
 
     return UNCERTAIN;
   }
 
-  private static int isTypeAllowed(@NotNull AllowedValues allowedValues, @NotNull String typeName) {
-    if (allowedValues.types != null) {
-      for (ResourceType type : allowedValues.types) {
-        if (type.getName().equals(typeName)) {
-          return VALID;
-        }
-        if (type == ResourceType.DRAWABLE
-            && (ResourceType.COLOR.getName().equals(typeName) || ResourceType.MIPMAP.getName().equals(typeName))) {
-          // Can also supply colors and mipmaps for drawables
-          return VALID;
+  private static boolean isInRange(@NotNull final PsiElement scope,
+                                   @NotNull final PsiExpression argument,
+                                   @NotNull final RangeAllowedValues allowedValues,
+                                   @NotNull final PsiManager manager,
+                                   @Nullable final Set<PsiExpression> visited) {
+    int result = isValidRangeExpression(argument, allowedValues, scope, manager, visited);
+    if (result == VALID) {
+      return true;
+    } else if (result == INVALID) {
+      return false;
+    }
+    assert result == UNCERTAIN;
+
+    final AtomicInteger b = new AtomicInteger();
+    processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+      @Override
+      public boolean process(PsiExpression expression) {
+        int goodExpression = isValidRangeExpression(expression, allowedValues, scope, manager, visited);
+        b.set(goodExpression);
+        return goodExpression == UNCERTAIN;
+      }
+    });
+    result = b.get();
+    // Treat uncertain as allowed: this means that we were passed some integer whose origins
+    // we don't recognize; don't flag those.
+    return result != INVALID;
+  }
+
+  private static int isValidRangeExpression(@NotNull PsiExpression e,
+                                            @NotNull RangeAllowedValues allowedValues,
+                                            @NotNull PsiElement scope,
+                                            @NotNull PsiManager manager,
+                                            @Nullable Set<PsiExpression> visited) {
+    PsiExpression expression = PsiUtil.deparenthesizeExpression(e);
+    if (expression == null) return VALID;
+    if (visited == null) visited = new THashSet<PsiExpression>();
+    if (!visited.add(expression)) return VALID;
+    if (expression instanceof PsiConditionalExpression) {
+      PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
+      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited);
+      if (!thenAllowed) return INVALID;
+      PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
+      return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited) ? VALID : UNCERTAIN;
+    }
+
+    // Range check
+    int valid = allowedValues.isValid(expression);
+    if (valid != UNCERTAIN) {
+      return valid;
+    }
+
+    PsiElement resolved = null;
+    if (expression instanceof PsiReference) {
+      resolved = ((PsiReference)expression).resolve();
+      if (resolved instanceof PsiField) {
+        PsiField field = (PsiField)resolved;
+        if (field.getInitializer() != null) {
+          int fieldValid = allowedValues.isValid(field.getInitializer());
+          if (fieldValid != UNCERTAIN) {
+            return fieldValid;
+          }
         }
       }
     }
-    return INVALID;
+    else if (expression instanceof PsiCallExpression) {
+      resolved = ((PsiCallExpression)expression).resolveMethod();
+    }
+
+    Constraints allowedForRef;
+
+    if (resolved instanceof PsiModifierListOwner) {
+      PsiType type = getType((PsiModifierListOwner)resolved);
+      allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, type, null);
+      if (allowedForRef instanceof RangeAllowedValues) {
+        return allowedValues.isCompatibleWith((RangeAllowedValues)allowedForRef);
+      }
+    }
+
+    return UNCERTAIN;
   }
 
   // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessible
