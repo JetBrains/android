@@ -74,6 +74,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final ThemeEditorStyle mySelectedStyle;
   protected final AttributeDefinitions myAttributeDefinitions;
 
+  private final AttributesGrouper.GroupBy myGroupBy;
   private final ResourceResolver myResourceResolver;
   private final Project myProject;
 
@@ -143,11 +144,15 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return myThemeNameInXml;
   }
 
-  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle, @NotNull ResourceResolver resourceResolver, Project project) {
+  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
+                              @NotNull AttributesGrouper.GroupBy groupBy,
+                              @NotNull ResourceResolver resourceResolver,
+                              Project project) {
     myProject = project;
     myAttributes = new ArrayList<EditedStyleItem>();
     myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
+    myGroupBy = groupBy;
     myThemeNameInXml = mySelectedStyle.getName();
     myAttributeDefinitions = selectedStyle.getResolver().getAttributeDefinitions();
     myResourceResolver = resourceResolver;
@@ -160,7 +165,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private void reloadContent() {
     final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle);
     myAttributes.clear();
-    myLabels = AttributesSorter.generateLabels(rawAttributes, myAttributes);
+    myLabels = AttributesGrouper.generateLabels(myGroupBy, rawAttributes, myAttributes);
     fireTableStructureChanged();
   }
 
