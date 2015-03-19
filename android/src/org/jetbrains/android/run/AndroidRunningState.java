@@ -36,10 +36,12 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectH
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.CloudTestConfigurationProvider;
 import com.android.tools.idea.run.CloudTestTargetChooser;
 import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -104,7 +106,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
 import org.jetbrains.android.logcat.AndroidLogcatView;
-import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -937,6 +938,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
               message(message, STDERR);
               return false;
             }
+            UsageTracker.getInstance()
+              .trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_APK_DEPLOYED, null, null);
             if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) {
               return false;
             }

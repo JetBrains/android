@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -110,6 +111,8 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_SKIPPED, null, null);
   }
 
   public void syncStarted(boolean notifyUser) {
@@ -127,6 +130,8 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_STARTED, null, null);
   }
 
   public void syncFailed(@NotNull final String message) {
@@ -137,6 +142,8 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_FAILED, null, null);
   }
 
   public void syncEnded() {
@@ -152,6 +159,8 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_ENDED, null, null);
   }
 
   private void syncFinished() {

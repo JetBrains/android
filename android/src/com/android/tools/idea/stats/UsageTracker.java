@@ -15,16 +15,23 @@
  */
 package com.android.tools.idea.stats;
 
-import com.intellij.openapi.application.impl.ApplicationInfoImpl;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.util.KeyedExtensionCollector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Abstract Studio Usage Tracker. Implemented as Application Service.
+ * Android Studio Usage Tracker.
  */
 public abstract class UsageTracker {
+  public static final String CATEGORY_GRADLE = "gradle";
+  public static final String CATEGORY_DEPLOYMENT = "deployment";
+
+  public static final String ACTION_SYNC_STARTED = "syncStarted";
+  public static final String ACTION_SYNC_ENDED = "syncStarted";
+  public static final String ACTION_SYNC_SKIPPED = "syncSkipped";
+  public static final String ACTION_SYNC_FAILED = "syncFailed";
+
+  public static final String ACTION_APK_DEPLOYED = "apkDeployed";
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
