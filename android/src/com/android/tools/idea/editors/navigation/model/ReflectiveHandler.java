@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.Property;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import org.xml.sax.*;
 import org.xml.sax.Locator;
 import org.xml.sax.helpers.DefaultHandler;
@@ -85,7 +87,7 @@ class ReflectiveHandler extends DefaultHandler {
   }
 
   public Class getClassForName(String tag) throws ClassNotFoundException {
-    String simpleName = Utilities.capitalize(tag);
+    String simpleName = StringUtil.capitalize(tag);
     ClassLoader classLoader = getClass().getClassLoader();
     for (String clazz : classImports) {
       if (clazz.endsWith("." + simpleName)) {
@@ -249,7 +251,8 @@ class ReflectiveHandler extends DefaultHandler {
     private void installAttributes(MyErrorHandler errorHandler, String[] constructorParameterNames) throws SAXException {
       for (Map.Entry<String, String> entry : attributes.entrySet()) {
         String attributeName = entry.getKey();
-        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName) || "class".equals(attributeName)) {
+        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) ||
+            ArrayUtil.contains(attributeName, constructorParameterNames) || "class".equals(attributeName)) {
           continue;
         }
         try {

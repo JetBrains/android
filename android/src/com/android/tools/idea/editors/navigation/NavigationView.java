@@ -38,6 +38,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Conditions;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
@@ -82,7 +84,7 @@ public class NavigationView extends JComponent {
   public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
-  private static final Condition<Component> EDITORS = not(SCREENS);
+  private static final Condition<Component> EDITORS = Conditions.not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
   private static final boolean DEBUG = false;
   // See http://www.google.com/design/spec/patterns/gestures.html#gestures-gestures
@@ -758,7 +760,7 @@ public class NavigationView extends JComponent {
     if (projectResource == null) { /// seems to happen when we create a new resource
       return null;
     }
-    return virtualFile(new File(projectResource.getValue()));
+    return VfsUtil.findFileByIoFile(new File(projectResource.getValue()), false);
   }
 
   @Nullable
