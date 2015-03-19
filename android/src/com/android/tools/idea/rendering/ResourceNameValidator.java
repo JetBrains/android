@@ -19,6 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.InputValidatorEx;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,7 +116,7 @@ public class ResourceNameValidator implements InputValidatorEx {
       }
 
       if (!myIsFileType) {
-        inputString = inputString.replace('.', '_');
+        inputString = AndroidResourceUtil.getFieldNameByResourceName(inputString);
       }
 
       if (myAllowXmlExtension) {
@@ -225,7 +226,9 @@ public class ResourceNameValidator implements InputValidatorEx {
     if (appResources != null) {
       existing = new HashSet<String>();
       Collection<String> items = appResources.getItemsOfType(type);
-      existing.addAll(items);
+      for (String resourceName : items) {
+        existing.add(AndroidResourceUtil.getFieldNameByResourceName(resourceName));
+      }
     }
 
     boolean isFileType = ResourceHelper.isFileBasedResourceType(type);
