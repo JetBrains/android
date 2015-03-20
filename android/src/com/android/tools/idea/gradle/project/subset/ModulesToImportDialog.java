@@ -155,6 +155,10 @@ public class ModulesToImportDialog extends DialogWrapper {
     return module.getData().getExternalName();
   }
 
+  public void setDescription(@NotNull String description) {
+    myDescriptionLabel.setText(description);
+  }
+
   @Override
   @Nullable
   protected ValidationInfo doValidate() {

@@ -27,8 +27,6 @@ import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.java.JavaResourceRootType;
-import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
 
@@ -36,6 +34,11 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaJavaProject> {
   @Override
@@ -64,13 +67,16 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
       if (contentRoot == null) {
         continue;
       }
-      addSourceFolders(contentEntries, contentRoot.getSourceDirectories(), JavaSourceRootType.SOURCE, orphans);
-      addSourceFolders(contentEntries, contentRoot.getTestDirectories(), JavaSourceRootType.TEST_SOURCE, orphans);
+      addSourceFolders(contentEntries, contentRoot.getSourceDirectories(), SOURCE, false, orphans);
+      addSourceFolders(contentEntries, contentRoot.getGeneratedSourceDirectories(), SOURCE, true, orphans);
+
+      addSourceFolders(contentEntries, contentRoot.getTestDirectories(), TEST_SOURCE, false, orphans);
+      addSourceFolders(contentEntries, contentRoot.getGeneratedTestDirectories(), TEST_SOURCE, true, orphans);
 
       if (contentRoot instanceof ExtIdeaContentRoot) {
         ExtIdeaContentRoot extContentRoot = (ExtIdeaContentRoot)contentRoot;
-        addSourceFolders(contentEntries, extContentRoot.getResourceDirectories(), JavaResourceRootType.RESOURCE, orphans);
-        addSourceFolders(contentEntries, extContentRoot.getTestResourceDirectories(), JavaResourceRootType.TEST_RESOURCE, orphans);
+        addSourceFolders(contentEntries, extContentRoot.getResourceDirectories(), RESOURCE, false, orphans);
+        addSourceFolders(contentEntries, extContentRoot.getTestResourceDirectories(), TEST_RESOURCE, false, orphans);
       }
 
       for (File excluded : contentRoot.getExcludeDirectories()) {
@@ -94,13 +100,14 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntries,
                                 @Nullable Set<? extends IdeaSourceDirectory> sourceFolders,
                                 @NotNull JpsModuleSourceRootType type,
+                                boolean generated,
                                 @NotNull List<RootSourceFolder> orphans) {
     if (sourceFolders == null) {
       return;
     }
     for (IdeaSourceDirectory dir : sourceFolders) {
       File path = dir.getDirectory();
-      addSourceFolder(contentEntries, path, type, false, orphans);
+      addSourceFolder(contentEntries, path, type, generated, orphans);
     }
   }
 }

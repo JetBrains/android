@@ -125,7 +125,7 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   private void setUpModuleDependencies() {
-    // Make myModule depend on myLibModule.
+    // Make module depend on myLibModule.
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
