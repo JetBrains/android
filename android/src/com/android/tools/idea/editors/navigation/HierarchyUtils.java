@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.rendering.RenderedView;
@@ -28,7 +29,7 @@ class HierarchyUtils {
     if (leaf != null) {
       XmlTag tag = leaf.tag;
       if (tag != null) {
-        String attributeValue = tag.getAttributeValue("android:id");
+        String attributeValue = tag.getAttributeValue("id", SdkConstants.ANDROID_URI);
         int prefixLength = Analyser.getPrefix(attributeValue).length();
         if (attributeValue != null && prefixLength != 0) {
           return attributeValue.substring(prefixLength);
@@ -44,7 +45,7 @@ class HierarchyUtils {
       Object cookie = leaf.getCookie();
       if (cookie instanceof XmlTag) {
         XmlTag tag = (XmlTag)cookie;
-        String attributeValue = tag.getAttributeValue("android:id");
+        String attributeValue = tag.getAttributeValue("id", SdkConstants.ANDROID_URI);
         int prefixLength = Analyser.getPrefix(attributeValue).length();
         if (attributeValue != null && prefixLength != 0) {
           return attributeValue.substring(prefixLength);
