@@ -16,13 +16,16 @@
 package com.android.tools.idea.gradle;
 
 import com.google.common.collect.Maps;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
+import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
@@ -33,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.emptyList;
 
@@ -155,5 +159,42 @@ public class IdeaJavaProject implements Serializable {
 
   public boolean isBuildable() {
     return myBuildable;
+  }
+
+  public boolean containsSourceFile(@NotNull File file) {
+    for (IdeaContentRoot contentRoot : getContentRoots()) {
+      if (contentRoot != null) {
+        if (containsFile(contentRoot, file)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean containsFile(@NotNull IdeaContentRoot contentRoot, @NotNull File file) {
+    if (containsFile(contentRoot.getSourceDirectories(), file) ||
+        containsFile(contentRoot.getTestDirectories(), file) ||
+        containsFile(contentRoot.getGeneratedSourceDirectories(), file) ||
+        containsFile(contentRoot.getGeneratedTestDirectories(), file)) {
+      return true;
+    }
+    if (contentRoot instanceof ExtIdeaContentRoot) {
+      ExtIdeaContentRoot extContentRoot = (ExtIdeaContentRoot)contentRoot;
+      return containsFile(extContentRoot.getResourceDirectories(), file) || containsFile(extContentRoot.getTestResourceDirectories(), file);
+    }
+    return false;
+  }
+
+  private static boolean containsFile(@Nullable DomainObjectSet<? extends IdeaSourceDirectory> sourceFolders, @NotNull File file) {
+    if (sourceFolders != null) {
+      for (IdeaSourceDirectory folder : sourceFolders) {
+        File path = folder.getDirectory();
+        if (isAncestor(path, file, false)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
