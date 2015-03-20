@@ -21,7 +21,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.util.Conditions;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -179,15 +178,6 @@ public class Utilities {
     g.fillPolygon(new int[]{len, basePosition, basePosition, len}, new int[]{0, -height, height, 0}, 4);
   }
 
-  static <T> Condition<T> not(final Condition<T> condition) {
-    return new Condition<T>() {
-      @Override
-      public boolean value(T t) {
-        return !condition.value(t);
-      }
-    };
-  }
-
   static <T> Condition<T> instanceOf(final Class<?> type) {
     return new Condition<T>() {
       @Override
@@ -225,11 +215,6 @@ public class Utilities {
 
   public static PsiMethod createMethodFromText(Project project, String text, @Nullable PsiElement context) {
     return JavaPsiFacade.getInstance(project).getElementFactory().createMethodFromText(text, context);
-  }
-
-  @Nullable
-  public static VirtualFile virtualFile(File file) {
-    return LocalFileSystem.getInstance().findFileByIoFile(file);
   }
 
   public static VirtualFile mkDirs(VirtualFile dir, String path) throws IOException {
