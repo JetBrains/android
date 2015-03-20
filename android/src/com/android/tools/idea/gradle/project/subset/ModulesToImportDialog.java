@@ -59,6 +59,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.Collator;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -96,6 +97,7 @@ public class ModulesToImportDialog extends DialogWrapper {
   private JBLabel mySelectionStatusLabel;
 
   private volatile boolean mySkipValidation;
+  private int myMaxSelectionCount = -1;
 
   public ModulesToImportDialog(@NotNull Collection<DataNode<ModuleData>> modules, @Nullable Project project) {
     super(project, true, IdeModalityType.IDE);
@@ -162,8 +164,17 @@ public class ModulesToImportDialog extends DialogWrapper {
   @Override
   @Nullable
   protected ValidationInfo doValidate() {
-    if (!hasSelectedModules()) {
+    int selectionCount = getModulesTable().getModel().selectedRowCount;
+    if (selectionCount <= 0) {
       return new ValidationInfo("Please select at least one Module", myModulesTable);
+    }
+    if (myMaxSelectionCount > 0 && selectionCount > myMaxSelectionCount) {
+      String message = "Please select only " + myMaxSelectionCount + " module";
+      if (myMaxSelectionCount > 1) {
+        message += "s";
+      }
+      message += ".";
+      return new ValidationInfo(message, myModulesTable);
     }
     return null;
   }
@@ -262,6 +273,18 @@ public class ModulesToImportDialog extends DialogWrapper {
     mySkipValidation = false;
     initValidation();
     updateSelectionStatus();
+  }
+
+  public void setMaxSelectionCount(int maxSelectionCount) {
+    if (maxSelectionCount == 0) {
+      throw new IllegalArgumentException("Value must be different than zero");
+    }
+    myMaxSelectionCount = maxSelectionCount;
+  }
+
+  public void clearSelection() {
+    List<String> selection = Collections.emptyList();
+    updateSelection(selection);
   }
 
   private static class ShowSelectedModulesAction extends ToggleAction {

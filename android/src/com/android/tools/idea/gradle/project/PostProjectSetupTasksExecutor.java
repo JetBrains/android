@@ -85,6 +85,7 @@ import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.Projects.*;
@@ -128,6 +129,8 @@ public class PostProjectSetupTasksExecutor {
   public void onProjectSyncCompletion() {
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     messages.reportDependencySetupErrors();
+
+    findAndReportStructureIssues(myProject);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
