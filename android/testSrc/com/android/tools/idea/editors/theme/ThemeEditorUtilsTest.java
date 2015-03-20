@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -28,6 +27,8 @@ import java.util.Collection;
 import java.util.Scanner;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
+
+  private String sdkPlatformPath;
 
   @Override
   protected boolean requireRecentSdk() {
@@ -41,8 +42,11 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     while (in.hasNext()) {
       ansDoc += in.nextLine();
     }
+
+    ansDoc = String.format(ansDoc, sdkPlatformPath);
+
     doc = StringUtil.replace(doc, "\n", "");
-    assertEquals(doc, ansDoc);
+    assertEquals(ansDoc, doc);
   }
 
   public void testGenerateToolTipText() throws FileNotFoundException {
@@ -50,11 +54,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-
+    sdkPlatformPath = getTestSdkPath() + "/platforms/android-" + configuration.getTarget().getVersion().getApiLevel();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
-    
     Collection<ItemResourceValue> values = theme.getValues();
     assertEquals(6, values.size());
 
