@@ -84,8 +84,8 @@ public final class Projects {
       @Override
       public void run() {
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-        messages.removeMessages(MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES, VARIANT_SELECTION_CONFLICTS,
-                                EXTRA_GENERATED_SOURCES);
+        messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
+                                VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
 
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
