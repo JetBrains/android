@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.rendering.api.ViewType;
+import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.model.ModelDimension;
 import com.android.tools.idea.editors.navigation.model.ModelPoint;
@@ -47,19 +44,23 @@ public class AndroidRootComponent extends JComponent {
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myLayoutFile;
-  public final boolean isMenu;
+  private final @Nullable String myMenuName;
 
-  @NotNull Transform transform = createTransform(1);
+  @NotNull Transform transform = new Transform(1f);
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
   private boolean myCachedMenuValid = false;
   private RenderedView myCachedMenu;
 
-  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
+  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, @Nullable String menuName) {
     myRenderingParameters = renderingParameters;
     myLayoutFile = psiFile;
-    this.isMenu = isMenu;
+    myMenuName = menuName;
+  }
+
+  public boolean isMenu() {
+    return myMenuName != null;
   }
 
   public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
@@ -90,7 +91,7 @@ public class AndroidRootComponent extends JComponent {
       return;
     }
     myRenderResult = renderResult;
-    if (isMenu) {
+    if (isMenu()) {
       myCachedMenuValid = false;
       revalidate();
     }
@@ -108,7 +109,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public void setScale(float scale) {
-    transform = createTransform(scale);
+    transform = new Transform(scale);
     invalidate2();
   }
 
@@ -119,43 +120,6 @@ public class AndroidRootComponent extends JComponent {
       myCachedMenuValid = true;
     }
     return myCachedMenu;
-  }
-
-  private Transform createTransform(float scale) {
-    if (isMenu) {
-      return new Transform(scale) {
-        private int getDx() {
-          RenderedView menu = getCachedMenu();
-          return (menu == null) ? 0 : menu.x;
-        }
-
-        private int getDy() {
-          RenderedView menu = getCachedMenu();
-          return (menu == null) ? 0 : menu.y;
-        }
-
-        @Override
-        public int modelToViewX(int x) {
-          return super.modelToViewX(x - getDx());
-        }
-
-        @Override
-        public int modelToViewY(int y) {
-          return super.modelToViewY(y - getDy());
-        }
-
-        @Override
-        public int viewToModelX(int x) {
-          return super.viewToModelX(x) + getDx();
-        }
-
-        @Override
-        public int viewToModelY(int y) {
-          return super.viewToModelY(y) + getDy();
-        }
-      };
-    }
-    return new Transform(scale);
   }
 
   @Nullable
@@ -195,7 +159,7 @@ public class AndroidRootComponent extends JComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    return transform.modelToView(isMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
+    return transform.modelToView(myRenderingParameters.getDeviceScreenSize());
   }
 
   @Nullable
@@ -217,13 +181,7 @@ public class AndroidRootComponent extends JComponent {
   public void paintComponent(Graphics g) {
     Image scaledImage = getScaledImage();
     if (scaledImage != null) {
-      if (isMenu) {
-        Point point = transform.modelToView(ModelPoint.ORIGIN);
-        g.drawImage(scaledImage, point.x, point.y, null);
-      }
-      else {
-        g.drawImage(scaledImage, 0, 0, null);
-      }
+      g.drawImage(scaledImage, 0, 0, null);
     }
     else {
       g.setColor(JBColor.WHITE);
@@ -255,6 +213,10 @@ public class AndroidRootComponent extends JComponent {
     }
     myRenderPending = true;
 
+    // We're showing overflow menus in menu states. This isn't affecting drawing of activity states,
+    // because we're setting their menu list to be empty later in the code.
+    ActionBarHandler.showMenu(true, null, false);
+
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
@@ -263,9 +225,10 @@ public class AndroidRootComponent extends JComponent {
         final RenderTask task = renderService.createTask(myLayoutFile, configuration, renderService.createLogger(), null);
         if (task != null) {
           task.setProvideCookiesForIncludedViews(true);
-          if (!isMenu) {
-            // Don't show menus in the layout view
-            task.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
+          final ActionBarHandler actionBarHandler = task.getLayoutlibCallback().getActionBarHandler();
+          if (actionBarHandler != null) {
+            final List<String> menuList = isMenu() ? Collections.singletonList(myMenuName) : Collections.<String>emptyList();
+            actionBarHandler.setMenuIdNames(menuList);
           }
           RenderResult renderedResult = task.render();
           if (renderedResult != null) {

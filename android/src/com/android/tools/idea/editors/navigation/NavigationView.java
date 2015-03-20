@@ -239,7 +239,7 @@ public class NavigationView extends JComponent {
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
-        if (destinationRoot.isMenu) {
+        if (destinationRoot.isMenu()) {
           return;
         }
         RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
@@ -268,7 +268,7 @@ public class NavigationView extends JComponent {
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
-        if (!destinationRoot.isMenu) {
+        if (!destinationRoot.isMenu()) {
           if (!penetrate) {
             return destinationRoot.getBounds();
           }
@@ -793,15 +793,16 @@ public class NavigationView extends JComponent {
   private AndroidRootComponent createUnscaledRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myRenderingParams.facet.getModule();
-    String resourceName = isMenu ? ((MenuState)state).getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
-    VirtualFile virtualFile = getLayoutXmlVirtualFile(isMenu, resourceName, myRenderingParams.configuration);
+    String resourceName = Analyser.getXMLFileName(module, state.getClassName(), true);
+    String menuName = isMenu ? ((MenuState) state).getXmlResourceName() : null;
+    VirtualFile virtualFile = getLayoutXmlVirtualFile(false, resourceName, myRenderingParams.configuration);
     if (virtualFile == null) {
-      return new AndroidRootComponent(myRenderingParams, null, isMenu);
+      return new AndroidRootComponent(myRenderingParams, null, menuName);
     }
     else {
       PsiFile psiFile = PsiManager.getInstance(myRenderingParams.project).findFile(virtualFile);
       RenderingParameters params = isMenu ? getMenuRenderingParameters() : getActivityRenderingParameters(module, state.getClassName());
-      return new AndroidRootComponent(params, psiFile, isMenu);
+      return new AndroidRootComponent(params, psiFile, menuName);
     }
   }
 
