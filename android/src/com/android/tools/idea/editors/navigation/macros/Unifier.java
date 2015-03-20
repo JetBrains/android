@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafElement;
@@ -69,10 +70,6 @@ public class Unifier {
     Map<String, PsiElement> bindings = myMatcher.getBindings();
     if (DEBUG) System.out.println("Unifier: bindings = " + bindings);
     return bindings;
-  }
-
-  private static boolean equals2(@Nullable Object a, @Nullable Object b) {
-    return a == null ? b == null : a.equals(b);
   }
 
   private class Matcher extends JavaElementVisitor {
@@ -193,7 +190,7 @@ public class Unifier {
               PsiClass c1 = (PsiClass)r1;
               PsiClass c2 = (PsiClass)r2;
               // When one psi class is compiled but the other is from source, the instances are not '=='. Compare qualified names.
-              if (equals2(c1.getQualifiedName(), c2.getQualifiedName())){
+              if (Objects.equal(c1.getQualifiedName(), c2.getQualifiedName())){
                 return;
               }
             }
