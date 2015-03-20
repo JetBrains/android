@@ -249,8 +249,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   public void init() {
     super.init();
     registerComponents();
-    deregister(getDescriptionText());
-    getDescriptionText().setVisible(false);
+    deregister(getDescriptionLabel());
+    getDescriptionLabel().setVisible(false);
     Device device = myState.get(DEVICE_DEFINITION_KEY);
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
