@@ -27,7 +27,6 @@ import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.*;
@@ -37,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.Document;
-import java.awt.*;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.Collections;
@@ -94,11 +92,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
     myTemplateDevice = templateDevice;
     myForceCreation = forceCreation;
     setBodyComponent(myRootPanel);
-    if (templateDevice == null) {
-      setDescriptionText("Create a new hardware profile by selecting hardware features below.");
-    } else {
-      setDescriptionText(templateDevice.getDisplayName() + " (Edited)");
-    }
 
     mySoftware = new Software();
     mySoftware.setLiveWallpaperSupport(true);
@@ -148,19 +141,24 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
   public void init() {
     super.init();
     registerComponents();
+    String desc;
     if (myTemplateDevice == null) {
       initDefaultParams();
+      desc = "Create a new hardware profile by selecting hardware features below.";
     } else {
       initFromDevice();
+      desc = myTemplateDevice.getDisplayName() + " (Edited)";
     }
+    myState.put(KEY_DESCRIPTION, desc);
 
     myBuilder.setManufacturer("User");
     myBuilder.addSoftware(mySoftware);
+
     invokeUpdate(null);
   }
 
   @Override
-  protected JLabel getDescriptionText() {
+  protected JLabel getDescriptionLabel() {
     return myHelpAndErrorLabel;
   }
 
