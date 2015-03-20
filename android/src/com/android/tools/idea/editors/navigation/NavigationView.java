@@ -937,7 +937,7 @@ public class NavigationView extends JComponent {
         showPopup(e);
         return;
       }
-      if (e.getButton() != MouseEvent.BUTTON1) {
+      if (!SwingUtilities.isLeftMouseButton(e)) {
         return;
       }
       Point location = e.getPoint();
@@ -948,7 +948,7 @@ public class NavigationView extends JComponent {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-      if (e.getButton() != MouseEvent.BUTTON1) {
+      if (!SwingUtilities.isLeftMouseButton(e)) {
         return;
       }
       setMouseLocation(e.getPoint());
@@ -956,7 +956,7 @@ public class NavigationView extends JComponent {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-      if (e.getButton() != MouseEvent.BUTTON1) {
+      if (!SwingUtilities.isLeftMouseButton(e)) {
         return;
       }
       moveSelection(e.getPoint());
@@ -979,7 +979,7 @@ public class NavigationView extends JComponent {
         showPopup(e);
         return;
       }
-      if (e.getButton() != MouseEvent.BUTTON1) {
+      if (!SwingUtilities.isLeftMouseButton(e)) {
         return;
       }
       finaliseSelectionLocation(e.getPoint());
