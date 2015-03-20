@@ -591,8 +591,8 @@ public class Analyser {
       public void visitXmlTag(XmlTag tag) {
         super.visitXmlTag(tag);
         if (tag.getName().equals("fragment")) {
-          String fragmentTag = tag.getAttributeValue("android:tag");
-          String fragmentClassName = tag.getAttributeValue("android:name");
+          String fragmentTag = tag.getAttributeValue("tag", SdkConstants.ANDROID_URI);
+          String fragmentClassName = tag.getAttributeValue("name", SdkConstants.ANDROID_URI);
           if (DEBUG) LOG.info("Analyser: fragmentClassName = " + fragmentClassName);
           if (fragmentClassName != null) {
             result.add(new FragmentEntry(fragmentClassName, fragmentTag));
@@ -644,7 +644,7 @@ public class Analyser {
       @Override
       public void visitXmlTag(XmlTag tag) {
         super.visitXmlTag(tag);
-        String id = tag.getAttributeValue("android:id");
+        String id = tag.getAttributeValue("id", SdkConstants.ANDROID_URI);
         if (id != null) {
           result.add(id.substring(getPrefix(id).length()));
         }
