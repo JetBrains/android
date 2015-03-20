@@ -281,8 +281,12 @@ public final class ProjectSubset {
       @Override
       public void run() {
         ModulesToImportDialog dialog = new ModulesToImportDialog(modulesToDisplayInDialog, myProject);
+
         String description = String.format("The file '%1$s' may be include in one of the following modules.", file.getName());
         dialog.setDescription(description);
+
+        dialog.clearSelection();
+
         if (dialog.showAndGet()) {
           Collection<DataNode<ModuleData>> selectedModules = dialog.getSelectedModules();
           if (!selectedModules.isEmpty()) {
@@ -350,7 +354,7 @@ public final class ProjectSubset {
   }
 
   @Nullable
-  private Collection<DataNode<ModuleData>> getCachedModuleData() {
+  public Collection<DataNode<ModuleData>> getCachedModuleData() {
     DataNode<ProjectData> projectData = getCachedProjectData();
     if (projectData != null) {
       return findAll(projectData, MODULE);
