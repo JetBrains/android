@@ -34,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -238,7 +239,7 @@ public abstract class AndroidLogcatView implements Disposable {
             else {
               mySelectedAppFilter = null;
             }
-            if (SELECTED_APP_FILTER.equals(myCurrentFilterName)) {
+            if (StringUtil.isEmpty(myCurrentFilterName) || SELECTED_APP_FILTER.equals(myCurrentFilterName)) {
               selectFilter(SELECTED_APP_FILTER);
             }
           }
