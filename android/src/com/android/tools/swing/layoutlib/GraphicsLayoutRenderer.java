@@ -90,7 +90,6 @@ public class GraphicsLayoutRenderer {
                                  @NotNull SessionParams sessionParams,
                                  @NotNull RenderSecurityManager securityManager,
                                  @NotNull DynamicHardwareConfig hardwareConfig,
-                                 @NotNull ILayoutPullParser parser,
                                  @NotNull List<ResourceValue> resourceLookupChain,
                                  @NotNull Object credential,
                                  @NotNull SessionParams.RenderingMode renderingMode) {
@@ -162,7 +161,7 @@ public class GraphicsLayoutRenderer {
     params.setAssetRepository(new AssetRepositoryImpl(facet));
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
-    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, parser, resourceLookupChain, credential, renderingMode);
+    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential, renderingMode);
 
   }
 
