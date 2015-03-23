@@ -17,10 +17,10 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.GraphicsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,10 +39,6 @@ public class DrawableComponent extends JButton {
   private static final Logger LOG = Logger.getInstance(DrawableComponent.class.getName());
 
   private static final int PADDING = 2;
-
-  // Colors of a checkered board
-  private static final Color FIRST_COLOR = Gray._153;
-  private static final Color SECOND_COLOR = Gray._102;
 
   // Size of a square in checkered board background
   private static final int CELL_SIZE = 10;
@@ -81,19 +77,11 @@ public class DrawableComponent extends JButton {
 
   @Override
   protected void paintComponent(Graphics g) {
-    GraphicsUtil.setupAntialiasing(g);
+    com.intellij.util.ui.GraphicsUtil.setupAntialiasing(g);
 
-    g.setColor(FIRST_COLOR);
     final int width = getWidth();
     final int height = getHeight();
-    g.fillRect(0, 0, width, height);
-
-    g.setColor(SECOND_COLOR);
-    for (int y = 0; y * CELL_SIZE < height; y++) {
-      for (int x = y % 2; x * CELL_SIZE < width; x += 2) {
-        g.fillRect(x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE);
-      }
-    }
+    GraphicsUtil.paintCheckeredBackground(g, new Rectangle(0, 0, width, height), CELL_SIZE);
 
     int offset = IMAGE_PADDING;
     for (final BufferedImage image : myImages) {

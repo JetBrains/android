@@ -25,7 +25,6 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
 
 public class ColorRenderer implements TableCellRenderer {
