@@ -54,7 +54,11 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-    sdkPlatformPath = getTestSdkPath() + "/platforms/android-" + configuration.getTarget().getVersion().getApiLevel();
+
+    sdkPlatformPath = getTestSdkPath();
+    if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
+    sdkPlatformPath += "platforms/android-" + configuration.getTarget().getVersion().getApiLevel();
+
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
