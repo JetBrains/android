@@ -32,7 +32,7 @@ import java.util.List;
  * Cell editor that allows editing references in styles. It also allows providing auto-complete suggestions.
  */
 public class AttributeReferenceRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
-  protected final JPanel myPanel = new JPanel();
+  protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
   protected final JLabel myLabel = new JLabel();
   protected final JButton myEditButton = new JButton();
   protected final TextFieldWithAutoCompletion<String> myTextField;
@@ -67,10 +67,9 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
       }
     };
 
-    myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.LINE_AXIS));
-    myPanel.add(myTextField);
-    myPanel.add(Box.createHorizontalGlue());
-    myPanel.add(myEditButton);
+    myBox.add(myTextField);
+    myBox.add(Box.createHorizontalGlue());
+    myBox.add(myEditButton);
     myTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
     myTextField.setOneLineMode(true);
     myEditButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -138,9 +137,9 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
       myTextField.setVariants(myCompletionProvider.getCompletions(item));
     }
 
-    myPanel.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+    myBox.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
 
-    return myPanel;
+    return myBox;
   }
 
   @Override
