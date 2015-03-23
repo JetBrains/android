@@ -234,4 +234,15 @@ public class AndroidIcons {
     public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 512x512
     public static final Icon Lollipop = load("/icons/versions/Lollipop.png");
   }
+
+  public static class ModuleTemplates {
+    public static final Icon Wear = load("/icons/module_templates/wear_module.png"); // 512x512
+    public static final Icon Car = load("/icons/module_templates/car_module.png"); // 512x512
+    public static final Icon Glass = load("/icons/module_templates/glass_module.png"); // 512x512
+    public static final Icon Mobile = load("/icons/module_templates/mobile_module.png"); // 512x512
+    public static final Icon Tv = load("/icons/module_templates/tv_module.png"); // 512x512
+    public static final Icon Android = load("/icons/module_templates/android_module.png"); // 512x512
+    public static final Icon EclipseModule = load("/icons/module_templates/eclipse_module.png"); // 512x512
+    public static final Icon GradleModule = load("/icons/module_templates/gradle_module.png"); // 512x512
+  }
 }
