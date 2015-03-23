@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
+import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
@@ -541,6 +542,7 @@ public class ThemeEditorComponent extends Splitter {
     // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
     myAttributesFilter.setAdvancedMode(true);
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
+    myPanel.getPalette().setVisible(myCurrentSubStyle == null);
     myConfiguration.setTheme(selectedTheme.getName());
 
     final AttributesTableModel model = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration.getResourceResolver(), myModule.getProject());
@@ -561,7 +563,6 @@ public class ThemeEditorComponent extends Splitter {
     model.addTableModelListener(new TableModelListener() {
       @Override
       public void tableChanged(TableModelEvent e) {
-
         if (e.getType() == TableModelEvent.UPDATE) {
           if (e.getLastRow() == 0) { // Indicates a change in the theme name
             AndroidFacet facet = AndroidFacet.getInstance(myModule);
@@ -569,7 +570,8 @@ public class ThemeEditorComponent extends Splitter {
               facet.refreshResources();
             }
             reload(model.getThemeNameInXml());
-          } else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
+          }
+          else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
             myAttributesTable.setRowHeight(ATTRIBUTES_DEFAULT_ROW_HEIGHT);
             for (int row = 0; row < model.getRowCount(); row++) {
               final Class<?> cellClass = model.getCellClass(row, 0);
@@ -619,6 +621,9 @@ public class ThemeEditorComponent extends Splitter {
 
     myAttributesTable.setModel(model);
     model.parentAttribute.setGotoDefinitionCallback(listener);
+
+    myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(myConfiguration, model));
+
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
     model.fireTableStructureChanged();
   }
