@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
     File templateFile = instance.getTemplateFile(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
     assert templateFile != null;
     myTemplate = Template.createFromPath(templateFile);
-    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), true, false);
+    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), false, AndroidIcons.ModuleTemplates.Android);
   }
 
   @Override
