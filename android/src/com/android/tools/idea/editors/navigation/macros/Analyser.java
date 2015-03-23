@@ -362,6 +362,17 @@ public class Analyser {
     };
   }
 
+  // Look for 'simple' names of classes here to cover both platform and support library derivatives.
+  private static boolean isListInheritor(PsiClass c, boolean activity) {
+    String baseName = activity ? "ListActivity" : "ListFragment";
+      for(PsiClass s = c; s != null; s = s.getSuperClass()) {
+        if (s.getName().equals(baseName)) {
+          return true;
+        }
+      }
+    return false;
+  }
+
   private void deriveTransitions(final NavigationModel model,
                                  final MiniModel miniModel,
                                  final ActivityState activityState,
@@ -429,16 +440,8 @@ public class Analyser {
                              constant(NavigationView.LIST_VIEW_ID), CLASS_NAME_1));
     }
 
-    // Search for 'subclass style' listeners in ListActivities and ListFragments
-    PsiClass listActivityClass = Utilities.getPsiClass(myModule, "android.app.ListActivity");
-    PsiClass listFragmentClass = Utilities.getPsiClass(myModule, "android.app.ListFragment");
-    if (listActivityClass == null || listFragmentClass == null) {
-      LOG.warn("Couldn't find: android.app.ListActivity/ListFragment classes");
-      return;
-    }
-    if (isActivity && activityClass.isInheritor(listActivityClass, true) ||
-        isFragment && fragmentClass.isInheritor(listFragmentClass, true)) {
-      // Search for subclass style item click listeners on ListActivities
+    // Search for subclass style item click listeners in ListActivity and ListFragment derivatives
+    if (isListInheritor(activityOrFragmentClass, isActivity)) {
       search(activityOrFragmentClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
              createProcessor(model, classNameToActivityState, activityState, fragmentClassName, constant(NavigationView.LIST_VIEW_ID),
                              CLASS_NAME_1));
@@ -446,7 +449,7 @@ public class Analyser {
 
     // Accommodate idioms from Master-Detail template
     if (isFragment) {
-      if (fragmentClass.isInheritor(listFragmentClass, true)) {
+      if (isListInheritor(fragmentClass, false)) {
         search(activityOrFragmentClass, "void onListItemClick(ListView listView, View view, int position, long id)",
                "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
                new Processor() {
