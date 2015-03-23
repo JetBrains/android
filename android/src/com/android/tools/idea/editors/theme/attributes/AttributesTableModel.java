@@ -35,6 +35,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
+import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 import com.intellij.openapi.diagnostic.Logger;
@@ -470,6 +471,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       if (column == 1) {
         if (urlType == ResourceType.STYLE) {
           return ThemeEditorStyle.class;
+        }
+        if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {
+          return Flag.class;
         }
         if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Enum)) {
           return Enum.class;
