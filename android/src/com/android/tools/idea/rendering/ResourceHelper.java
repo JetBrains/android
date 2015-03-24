@@ -578,7 +578,7 @@ public class ResourceHelper {
 
   /**
    * Returns the given resource name, and possibly prepends a project-configured prefix to the name
-   * if set on the Gradle module.
+   * if set on the Gradle module (but only if it does not already start with the prefix).
    *
    * @param module the corresponding module
    * @param name the resource name
@@ -595,7 +595,7 @@ public class ResourceHelper {
           String resourcePrefix = LintUtils.computeResourcePrefix(p.getDelegate());
           if (resourcePrefix != null) {
             if (name != null) {
-              return LintUtils.computeResourceName(resourcePrefix, name);
+              return name.startsWith(resourcePrefix) ? name : LintUtils.computeResourceName(resourcePrefix, name);
             } else {
               return resourcePrefix;
             }
