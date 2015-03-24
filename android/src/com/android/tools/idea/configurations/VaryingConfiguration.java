@@ -295,7 +295,7 @@ public class VaryingConfiguration extends NestedConfiguration {
         if (size >= from && size < to) {
           if (!canScaleNinePatch) {
             Density density = getDensity(d);
-            if (density == Density.TV || density == Density.LOW) {
+            if (density == null || !density.isRecommended() || density == Density.LOW) {
               continue;
             }
           }

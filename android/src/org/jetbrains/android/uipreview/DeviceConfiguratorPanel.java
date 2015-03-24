@@ -46,6 +46,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -582,10 +583,14 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       final JPanel panel = new JPanel(new VerticalFlowLayout());
       final JBLabel label = new JBLabel(getCaption());
       label.setLabelFor(myComboBox);
-      myComboBox.setModel(new EnumComboBoxModel<U>(myEnumClass));
+      myComboBox.setModel(createModel());
       panel.add(label);
       panel.add(myComboBox);
       return panel;
+    }
+
+    protected ComboBoxModel createModel() {
+      return new EnumComboBoxModel<U>(myEnumClass);
     }
 
     @NotNull
@@ -711,9 +716,59 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
+  /**
+   * Specialized combo box model which filters out enum values that are marked as not interesting. This
+   * is to discourage app developers from creating specialized resource folders for specific densities.
+   */
+  private static class DensityComboBoxModel extends AbstractListModel implements ComboBoxModel {
+    private final List<Density> myList;
+    private Density mySelected = null;
+
+    public DensityComboBoxModel() {
+      myList = new ArrayList<Density>();
+      for (Density density : Density.values()) {
+        if (density.isRecommended()) {
+          myList.add(density);
+        }
+      }
+      mySelected = myList.get(0);
+    }
+
+    @Override
+    public int getSize() {
+      return myList.size();
+    }
+
+    @Override
+    public Density getElementAt(int index) {
+      return myList.get(index);
+    }
+
+    @Override
+    public void setSelectedItem(Object item) {
+      @SuppressWarnings("unchecked") Density e = (Density)item;
+      setSelectedItem(e);
+    }
+
+    public void setSelectedItem(Density item) {
+      mySelected = item;
+      fireContentsChanged(this, 0, getSize());
+    }
+
+    @Override
+    public Density getSelectedItem() {
+      return mySelected;
+    }
+  }
+
   private class MyDensityEditor extends MyEnumBasedEditor<DensityQualifier, Density> {
     private MyDensityEditor() {
       super(Density.class);
+    }
+
+    @Override
+    protected ComboBoxModel createModel() {
+      return new DensityComboBoxModel();
     }
 
     @NotNull
