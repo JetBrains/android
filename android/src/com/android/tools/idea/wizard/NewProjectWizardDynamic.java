@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -41,7 +43,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
@@ -126,6 +127,15 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       return;
     }
     File rootLocation = new File(rootPath);
+
+    File wrapperPropertiesFilePath = GradleUtil.getGradleWrapperPropertiesFilePath(rootLocation);
+    try {
+      GradleUtil.updateGradleDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION, wrapperPropertiesFilePath);
+    }
+    catch (IOException e) {
+      // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
+      LOG.warn("Failed to update Gradle wrapper file", e);
+    }
 
     String projectName = getState().get(APPLICATION_NAME_KEY);
     if (projectName == null) {
