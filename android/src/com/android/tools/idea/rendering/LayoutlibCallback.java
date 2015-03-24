@@ -93,6 +93,7 @@ public final class LayoutlibCallback extends LegacyCallback {
    * @param facet      the facet
    * @param logger     the render logger
    * @param credential the sandbox credential
+   * @param actionBarHandler An {@link ActionBarHandler} instance.
    */
   public LayoutlibCallback(@NotNull LayoutLibrary layoutLib,
                            @NotNull AppResourceRepository projectRes,
@@ -100,13 +101,13 @@ public final class LayoutlibCallback extends LegacyCallback {
                            @NotNull AndroidFacet facet,
                            @NotNull RenderLogger logger,
                            @Nullable Object credential,
-                           @NotNull RenderService renderService) {
+                           @NotNull ActionBarHandler actionBarHandler) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
-    myActionBarHandler = new ActionBarHandler(renderService, credential);
+    myActionBarHandler = actionBarHandler;
   }
 
   /** Resets the callback state for another render */
