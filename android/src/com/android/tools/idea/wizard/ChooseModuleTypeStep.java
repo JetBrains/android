@@ -145,7 +145,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       public String apply(@Nullable ModuleTemplate input) {
         return input == null ? "<none>" : input.getName();
       }
-    }, new Dimension(192, 192));
+    }, WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE);
   }
 
   private class ModuleTypeBinding extends ComponentBinding<ModuleTemplate, JPanel> {
