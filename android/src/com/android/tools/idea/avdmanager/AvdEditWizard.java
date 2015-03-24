@@ -263,7 +263,7 @@ public class AvdEditWizard extends DynamicWizard {
       if (target != null) {
 
         int oldApiLevel = target.getVersion().getApiLevel();
-        int newApiLevel = systemImageDescription.target.getVersion().getApiLevel();
+        int newApiLevel = systemImageDescription.getVersion().getApiLevel();
         if (oldApiLevel > newApiLevel) {
           String message = String.format(Locale.getDefault(), "You are about to downgrade %1$s from API level %2$d to API level %3$d. " +
                                                               "This requires a wipe of the userdata partition of the AVD. Do you wish to " +

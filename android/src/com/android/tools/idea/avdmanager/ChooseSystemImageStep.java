@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
@@ -46,9 +45,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithHeaderAndDescrip
     super("System Image", "Select a system image", null, parentDisposable);
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
-    Predicate<ISystemImage> filter = new Predicate<ISystemImage>() {
+    Predicate<AvdWizardConstants.SystemImageDescription> filter = new Predicate<AvdWizardConstants.SystemImageDescription>() {
       @Override
-      public boolean apply(ISystemImage input) {
+      public boolean apply(AvdWizardConstants.SystemImageDescription input) {
         if (myCurrentDevice == null) {
           return true;
         }
