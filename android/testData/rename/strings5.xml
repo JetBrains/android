@@ -1,0 +1,4 @@
+<resources>
+  <string name="hello">Hello!</string>
+  <string name="other">@string/he<caret>llo</string>
+</resources>
