@@ -15,31 +15,20 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.intellij.icons.AllIcons;
+import com.android.tools.idea.run.ExternalToolRunner;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.ActionEvent;
-
-/**
- * Run an Android virtual device
- */
-public class RunAvdAction extends AvdUiAction {
-  public RunAvdAction(@NotNull AvdInfoProvider provider) {
-    super(provider, "Run", "Launch this AVD in the emulator", AllIcons.Actions.Execute);
+public class EmulatorRunner extends ExternalToolRunner {
+  public EmulatorRunner(@NotNull Project project, @NotNull String consoleTitle, @NotNull GeneralCommandLine commandLine) {
+    super(project, consoleTitle, commandLine);
   }
 
   @Override
-  public void actionPerformed(ActionEvent e) {
-    AvdInfo avdInfo = getAvdInfo();
-    if (avdInfo != null) {
-      AvdManagerConnection.startAvd(myAvdInfoProvider.getProject(), avdInfo);
-    }
-  }
-
-  @Override
-  public boolean isEnabled() {
-    AvdInfo avdInfo = getAvdInfo();
-    return avdInfo != null && avdInfo.getStatus() == AvdInfo.AvdStatus.OK;
+  protected void fillToolBarActions(DefaultActionGroup toolbarActions) {
+    // override default implementation: we don't want to add a stop action since we can't just kill the emulator process
+    // without leaving stale lock files around
   }
 }
