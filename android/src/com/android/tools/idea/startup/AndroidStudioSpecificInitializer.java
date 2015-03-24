@@ -181,11 +181,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void replaceIdeaNewProjectActions() {
     // Unregister IntelliJ's version of the project actions and manually register our own.
     replaceAction("NewProject", new AndroidNewProjectAction());
-    replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
     replaceAction("ImportProject", new AndroidImportProjectAction());
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     replaceAction("ImportModule", new AndroidImportModuleAction());
 
@@ -195,6 +193,24 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     hideAction("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();
+    replaceIdeaWelcomeScreenActions();
+  }
+
+  private static void replaceIdeaWelcomeScreenActions() {
+    // Update the Welcome Screen actions
+    ActionManager am = ActionManager.getInstance();
+
+    AndroidNewProjectAction welcomeScreenNewProject = new AndroidNewProjectAction();
+    welcomeScreenNewProject.getTemplatePresentation().setText("Start a new Android Studio project");
+    replaceAction("WelcomeScreen.CreateNewProject", welcomeScreenNewProject);
+
+    AndroidImportProjectAction welcomeScreenImportProject = new AndroidImportProjectAction();
+    welcomeScreenImportProject.getTemplatePresentation().setText("Import Non-Android Studio project");
+    replaceAction("WelcomeScreen.ImportProject", welcomeScreenImportProject);
+    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart", new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));
+
+    am.getAction("WelcomeScreen.OpenProject").getTemplatePresentation().setText("Open an existing Android Studio project");
+    am.getAction("WelcomeScreen.GetFromVcs").getTemplatePresentation().setText("Check out project from Version Control");
   }
 
   private static void replaceProjectStructureActions() {
@@ -235,6 +251,16 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       am.unregisterAction(actionId);
     }
     am.registerAction(actionId, newAction);
+  }
+
+  private static void moveAction(@NotNull String actionId, @NotNull String groupId, @NotNull Constraints constraints) {
+    ActionManager am = ActionManager.getInstance();
+    AnAction action = am.getAction(actionId);
+    AnAction group = am.getAction(groupId);
+    if (action != null && group != null && group instanceof DefaultActionGroup) {
+      am.unregisterAction(actionId);
+      ((DefaultActionGroup)group).add(action, constraints);
+    }
   }
 
   private static void hideAction(@NotNull String actionId, @NotNull String backupText) {
