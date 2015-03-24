@@ -31,6 +31,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
@@ -234,6 +235,26 @@ public class GradleSyncTest extends GuiTestCase {
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(failure));
 
     HyperlinkFixture hyperlink = message.findHyperlink("More details (and potential fix)");
-    hyperlink.requireUrl("https://sites.google.com/a/android.com/tools/tech-docs/project-sync-issues-android-studio");
+    hyperlink.requireUrl("http://tools.android.com/tech-docs/project-sync-issues-android-studio");
+  }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=76984
+  public void testDaemonContextMismatchError() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    String failure = "The newly created daemon process has a different context than expected.\n" +
+                     "It won't be possible to reconnect to this daemon. Context mismatch: \n" +
+                     "Java home is different.\n" +
+                     "javaHome=c:\\Program Files\\Java\\jdk,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=7868,idleTimeout=null]\n" +
+                     "javaHome=C:\\Program Files\\Java\\jdk\\jre,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=4792,idleTimeout=10800000]";
+    projectFrame.requestProjectSyncAndSimulateFailure(failure);
+
+    Pause.pause(10, TimeUnit.SECONDS);
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("The newly created daemon"));
+
+    message.findHyperlink("Open JDK Settings");
   }
 }
