@@ -278,16 +278,13 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
       activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
-      myFilesToOpen = activityTemplate.getFilesToOpen();
+      List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
+      assert filesToOpen != null; // Putting this Path in a Wizard that doesn't support this feature is an error.
+      filesToOpen.addAll(activityTemplate.getFilesToOpen());
       return true;
     }
     else {
       return false;
     }
-  }
-
-  @NotNull
-  public List<File> getFilesToOpen() {
-    return myFilesToOpen;
   }
 }
