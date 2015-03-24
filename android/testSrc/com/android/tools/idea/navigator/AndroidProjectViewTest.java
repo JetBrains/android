@@ -115,7 +115,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "    ic_launcher.png (mdpi)\n" +
       "   values\n" +
       "    strings.xml\n" +
-      "  jni\n" +
+      "  c\n" +
       "   hello.c\n" +
       "  jniLibs\n" +
       "   libc.so\n" +
