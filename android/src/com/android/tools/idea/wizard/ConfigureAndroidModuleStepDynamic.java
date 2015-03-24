@@ -57,7 +57,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     CreateModuleTemplate template = getFormfactorModuleTemplate();
     assert template != null;
     register(FormFactorUtils.getModuleNameKey(template.getFormFactor()), myModuleName);
-    mySdkControls.init(template.getFormFactor(), template.templateMetadata.getMinSdk());
+    mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk());
     mySdkControls.register(this);
 
     register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
@@ -99,7 +99,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   public void onEnterStep() {
     super.onEnterStep();
     CreateModuleTemplate template = getFormfactorModuleTemplate();
-    if (template != null && template.getFormFactor() != null && template.templateMetadata != null) {
+    if (template != null && template.getFormFactor() != null && template.getMetadata() != null) {
       myModuleType = template;
       registerValueDeriver(FormFactorUtils.getModuleNameKey(template.getFormFactor()), ourModuleNameDeriver);
     } else {
@@ -148,7 +148,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
     if (moduleTemplate instanceof CreateModuleTemplate) {
       CreateModuleTemplate type = (CreateModuleTemplate)moduleTemplate;
-      if (type.getFormFactor() != null && type.templateMetadata != null) {
+      if (type.getFormFactor() != null && type.getMetadata() != null) {
         return type;
       }
     }

@@ -21,30 +21,22 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
- * Description for the new module templates
+ * Default implementation for constructing a {@link ModuleTemplate}.
  */
-public class NewModuleTemplate implements ModuleTemplate {
-  private final boolean myIsGallery;
+public abstract class AbstractModuleTemplate implements ModuleTemplate {
   private final Icon myIcon;
   private final String myName;
   private final String myDescription;
   private final FormFactorUtils.FormFactor myFormFactor;
 
-  public NewModuleTemplate(@NotNull String name,
-                           @Nullable String description,
-                           @Nullable FormFactorUtils.FormFactor formFactor,
-                           boolean isGallery,
-                           @Nullable Icon icon) {
-    myIsGallery = isGallery;
+  public AbstractModuleTemplate(@NotNull String name,
+                                @Nullable String description,
+                                @Nullable FormFactorUtils.FormFactor formFactor,
+                                @Nullable Icon icon) {
     myIcon = icon;
     myName = name;
     myDescription = description;
     myFormFactor = formFactor;
-  }
-
-  @Override
-  public final boolean isGalleryModuleType() {
-    return myIsGallery;
   }
 
   @Nullable
@@ -63,11 +55,6 @@ public class NewModuleTemplate implements ModuleTemplate {
   @Override
   public final String getDescription() {
     return myDescription;
-  }
-
-  @Override
-  public void updateWizardStateOnSelection(ScopedStateStore state) {
-    // Do nothing
   }
 
   @Nullable
