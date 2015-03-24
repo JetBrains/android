@@ -221,4 +221,19 @@ public class GradleSyncTest extends GuiTestCase {
 
     message.findHyperlink("Re-download dependencies and sync project (requires network)");
   }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=75520
+  public void testConnectionPermissionDeniedError() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    String failure = "Connection to the Internet denied.";
+    projectFrame.requestProjectSyncAndSimulateFailure(failure);
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(failure));
+
+    HyperlinkFixture hyperlink = message.findHyperlink("More details (and potential fix)");
+    hyperlink.requireUrl("https://sites.google.com/a/android.com/tools/tech-docs/project-sync-issues-android-studio");
+  }
 }

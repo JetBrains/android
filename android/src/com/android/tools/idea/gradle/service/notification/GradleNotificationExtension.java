@@ -59,6 +59,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                        new JavaHeapSpaceErrorHandler(),
                        new ClassLoadingErrorHandler(),
                        new ObjectStreamErrorHandler(),
+                       new ConnectionPermissionDeniedErrorHandler(),
                        new GenericErrorHandler()));
   }
 
