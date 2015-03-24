@@ -97,7 +97,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       myUpdateQueue = null;
     } else {
-      myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, null, myHost.getDisposable(), null, true);
+      myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, MergingUpdateQueue.ANY_COMPONENT, myHost.getDisposable(), null, true);
     }
     myState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, this);
   }
