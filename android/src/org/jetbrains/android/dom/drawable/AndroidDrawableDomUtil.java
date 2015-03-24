@@ -19,13 +19,13 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +38,13 @@ public class AndroidDrawableDomUtil {
   private static final String[] DRAWABLE_ROOTS_V1 =
     new String[]{"selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition", "inset", "clip", "scale", "shape",
       "animation-list", "animated-rotate", "rotate", "color"};
-  private static final String[] DRAWABLE_ROOTS_V20 =
-    new String[]{ "ripple", "animated-selector"
-      // Being considered:
-      /*, "vector", "material-progress"*/
-  };
+  private static final String[] DRAWABLE_ROOTS_V21 =
+    new String[]{
+      RippleDomFileDescription.TAG,
+      AnimatedStateListDomFileDescription.TAG,
+      VectorDomFileDescription.TAG,
+      AnimatedVectorDomFileDescription.TAG
+    };
 
   static {
     SPECIAL_STYLEABLE_NAMES.put("selector", "StateListDrawable");
@@ -55,8 +57,6 @@ public class AndroidDrawableDomUtil {
     SPECIAL_STYLEABLE_NAMES.put("animation-list", "AnimationDrawable");
     SPECIAL_STYLEABLE_NAMES.put("rotate", "RotateDrawable");
     SPECIAL_STYLEABLE_NAMES.put("animated-rotate", "AnimatedRotateDrawable");
-    SPECIAL_STYLEABLE_NAMES.put(RippleDomFileDescription.TAG, "RippleDrawable");
-    SPECIAL_STYLEABLE_NAMES.put(AnimatedStateListDomFileDescription.TAG, "AnimatedStateListDrawable");
     SPECIAL_STYLEABLE_NAMES.put("shape", "GradientDrawable");
     SPECIAL_STYLEABLE_NAMES.put("corners", "DrawableCorners");
     SPECIAL_STYLEABLE_NAMES.put("gradient", "GradientDrawableGradient");
@@ -66,6 +66,10 @@ public class AndroidDrawableDomUtil {
     SPECIAL_STYLEABLE_NAMES.put("stroke", "GradientDrawableStroke");
     SPECIAL_STYLEABLE_NAMES.put("transition", "LayerDrawable"); // Transition extends LayerDrawable, doesn't define its own styleable
     SPECIAL_STYLEABLE_NAMES.put(ColorDrawableDomFileDescription.TAG, "ColorDrawable");
+    SPECIAL_STYLEABLE_NAMES.put(RippleDomFileDescription.TAG, "RippleDrawable");
+    SPECIAL_STYLEABLE_NAMES.put(AnimatedStateListDomFileDescription.TAG, "AnimatedStateListDrawable");
+    SPECIAL_STYLEABLE_NAMES.put(VectorDomFileDescription.TAG, "VectorDrawable");
+    SPECIAL_STYLEABLE_NAMES.put(AnimatedVectorDomFileDescription.TAG, "AnimatedVectorDrawable");
   }
 
   private AndroidDrawableDomUtil() {
@@ -77,10 +81,11 @@ public class AndroidDrawableDomUtil {
 
   public static List<String> getPossibleRoots(AndroidFacet facet) {
     AndroidVersion sdkVersion = AndroidModuleInfo.get(facet).getBuildSdkVersion();
-    List<String> result = Lists.newArrayListWithExpectedSize(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V20.length);
+    List<String> result = Lists.newArrayListWithExpectedSize(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V21.length);
     Collections.addAll(result, DRAWABLE_ROOTS_V1);
-    if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 21) {
-      Collections.addAll(result, DRAWABLE_ROOTS_V20);
+    if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 21 ||
+        ApplicationManager.getApplication().isUnitTestMode()) {
+      Collections.addAll(result, DRAWABLE_ROOTS_V21);
     }
 
     return result;

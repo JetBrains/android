@@ -9,7 +9,6 @@
         <ripple android:color="#44ffaa" />
         <color android:color="#aa00aa" />
         <shape />
-        <!-- Being considered: <vector />-->
         <scale />
         <clip />
         <rotate />
