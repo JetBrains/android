@@ -178,9 +178,7 @@ public class PropertyFixture {
       waitUntilGone(myRobot, table, JTextComponentMatcher.any());
     } else {
       MessageDialogFixture dialog = MessageDialogFixture.findByTitle(myRobot, "Invalid Input");
-      String message = dialog.getMessage();
-      assertTrue("Message should contain " + expectedError + " but was " + message,
-                 message.contains(expectedError));
+      dialog.requireMessageContains(expectedError);
       dialog.clickOk();
       componentDriver.pressAndReleaseKeys(field, KeyEvent.VK_ESCAPE);
     }
