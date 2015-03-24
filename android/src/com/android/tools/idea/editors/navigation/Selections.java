@@ -35,9 +35,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Map;
 
-import static com.android.tools.idea.editors.navigation.Utilities.Line;
-import static com.android.tools.idea.editors.navigation.Utilities.diff;
-import static com.android.tools.idea.editors.navigation.Utilities.sum;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.Line;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.diff;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.sum;
 
 class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
@@ -98,7 +98,7 @@ class Selections {
     link.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.configuration.getModule(), className);
+        PsiClass psiClass = NavigationEditorUtils.getPsiClass(renderingParameters.configuration.getModule(), className);
         if (psiClass != null) {
           AndroidRootComponent.launchEditor(renderingParameters, psiClass.getContainingFile(), false);
         }
@@ -236,7 +236,8 @@ class Selections {
     private void moveTo(Point location, boolean snap) {
       Point newLocation = sum(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myTransform.modelToView(ModelDimension.create(NavigationView.MIDDLE_SNAP_GRID)));
+        newLocation = NavigationEditorUtils
+          .snap(newLocation, myTransform.modelToView(ModelDimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
       Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
       Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
@@ -332,10 +333,10 @@ class Selections {
     @Override
     protected void paintOver(Graphics g) {
       int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
-      Graphics2D lineGraphics = Utilities.createLineGraphics(g, lineWidth);
+      Graphics2D lineGraphics = NavigationEditorUtils.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation, false);
-      Line midLine = Utilities.getMidLine(sourceBounds, new Rectangle(myMouseLocation));
+      Line midLine = NavigationEditorUtils.getMidLine(sourceBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationView.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
