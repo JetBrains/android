@@ -163,68 +163,9 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
 
   @Override
   public boolean validate() {
-    setErrorHtml("");
-    return validateAppName() && validatePackageName() && validateLocation();
-  }
-
-  protected boolean validateLocation() {
-    String projectLocation = myState.get(WizardConstants.PROJECT_LOCATION_KEY);
-    if (projectLocation == null || projectLocation.isEmpty()) {
-      setErrorHtml("Please specify a project location");
-      return false;
-    }
-    // Check the separators
-    if ((File.separatorChar == '/' && projectLocation.contains("\\")) ||
-        (File.separatorChar == '\\' && projectLocation.contains("/"))) {
-      setErrorHtml("Your project location contains incorrect slashes ('\\' vs '/')");
-      return false;
-    }
-    // Check the individual components for not allowed characters.
-    File testFile = new File(projectLocation);
-    while (testFile != null) {
-      String filename = testFile.getName();
-      if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(filename)) {
-        char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
-        setErrorHtml(String.format("Illegal character in project location path: '%c' in filename: %s", illegalChar, filename));
-        return false;
-      }
-      if (INVALID_MSFT_FILENAMES.contains(filename.toLowerCase())) {
-        setErrorHtml("Illegal filename in project location path: " + filename);
-        return false;
-      }
-      if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
-        setErrorHtml("Your project location contains whitespace. This can cause " + "problems on some platforms and is not recommended.");
-      }
-      if (!CharMatcher.ASCII.matchesAllOf(filename)) {
-        setErrorHtml("Your project location contains non-ASCII characters. " + "This can cause problems on Windows. Proceed with caution.");
-      }
-      // Check that we can write to that location: make sure we can write into the first extant directory in the path.
-      if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
-        if (!testFile.getParentFile().canWrite()) {
-          setErrorHtml(String.format("The path '%s' is not writeable. Please choose a new location.", testFile.getParentFile().getPath()));
-          return false;
-        }
-      }
-      testFile = testFile.getParentFile();
-    }
-
-    File file = new File(projectLocation);
-    if (file.isFile()) {
-      setErrorHtml("There must not already be a file at the project location");
-      return false;
-    } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
-      setErrorHtml("A non-empty directory already exists at the specified project location. " +
-                   "Existing files may be overwritten. Proceed with caution.");
-    }
-    if (file.getParent() == null) {
-      setErrorHtml("The project location can not be at the filesystem root");
-      return false;
-    }
-    if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
-      setErrorHtml("The project location's parent directory must be a directory, not a plain file");
-      return false;
-    }
-    return true;
+    WizardUtils.ValidationResult locationValidationResult = WizardUtils.validateLocation(myState.get(WizardConstants.PROJECT_LOCATION_KEY));
+    setErrorHtml(locationValidationResult.isOk() ? "" : locationValidationResult.getFormattedMessage());
+    return validateAppName() && validatePackageName() && !locationValidationResult.isError();
   }
 
   protected boolean validateAppName() {
