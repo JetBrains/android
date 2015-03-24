@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.navigator.nodes.AndroidResGroupNode;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
 import com.google.common.collect.Lists;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
@@ -140,6 +142,16 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     }
 
     return super.getSelectedDirectories();
+  }
+
+  @Override
+  protected Object exhumeElementFromNode(DefaultMutableTreeNode node) {
+    Object o = super.exhumeElementFromNode(node);
+    if (o instanceof ArrayList && node.getUserObject() instanceof DirectoryGroupNode) {
+      return ((ArrayList)o).toArray();
+    }
+
+    return o;
   }
 
   @Override
