@@ -50,6 +50,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     Module module = myVirtualFile.getModule();
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile);
     myModificationCount = getModificationCount();
 
@@ -176,6 +177,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myComponent.dispose();
   }
 
+  @NotNull
   public ThemeEditorVirtualFile getVirtualFile() {
     return myVirtualFile;
   }

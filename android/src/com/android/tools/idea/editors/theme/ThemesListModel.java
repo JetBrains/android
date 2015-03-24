@@ -80,6 +80,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     return myThemeList.size();
   }
 
+  @NotNull
   @Override
   public ThemeEditorStyle getElementAt(int index) {
     return myThemeList.get(index);
@@ -93,6 +94,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
   }
 
+  @Nullable
   @Override
   public Object getSelectedItem() {
     return mySelectedObject;

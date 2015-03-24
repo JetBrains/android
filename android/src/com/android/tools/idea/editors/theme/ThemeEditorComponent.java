@@ -67,7 +67,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,7 +137,7 @@ public class ThemeEditorComponent extends Splitter {
     myClickListener = new AttributeReferenceRendererEditor.ClickListener() {
       @Override
       public void clicked(@NotNull EditedStyleItem value) {
-        if (value.isAttr()) {
+        if (value.isAttr() && getSelectedStyle() != null && myConfiguration.getResourceResolver() != null) {
           // We need to resolve the theme attribute.
           // TODO: Do we need a full resolution or can we just try to get it from the StyleWrapper?
           ItemResourceValue resourceValue = (ItemResourceValue)myConfiguration.getResourceResolver().findResValue(value.getValue(), false);
@@ -147,9 +147,16 @@ public class ThemeEditorComponent extends Splitter {
           }
 
           EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
+
+          assert editedStyleItem.getValue() != null;
           myCurrentSubStyle = myStyleResolver.getStyle(editedStyleItem.getValue());
         }
         else {
+          if (value.getValue() == null) {
+            LOG.error("null value for " + value.getName());
+            return;
+          }
+
           myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
         }
         mySubStyleSourceAttribute = value;
@@ -334,7 +341,7 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
-    final List<String> dirNames = Arrays.asList(ResourceFolderType.VALUES.getName());
+    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
 
     if (fileName == null) {
       LOG.error("Couldn't find a default filename for ResourceType.STYLE");
@@ -381,6 +388,7 @@ public class ThemeEditorComponent extends Splitter {
     myPreviousSelectedTheme = selectedTheme == null ? null : selectedTheme.getName();
   }
 
+  @Nullable
   public String getPreviousSelectedTheme() {
     return myPreviousSelectedTheme;
   }
@@ -510,11 +518,6 @@ public class ThemeEditorComponent extends Splitter {
     saveCurrentSelectedTheme();
   }
 
-  public void setSubstyle(@Nullable final String substyle) {
-    myCurrentSubStyle = substyle == null ? null : myStyleResolver.getStyle(substyle);
-    loadStyleAttributes();
-  }
-
   /**
    * Loads the theme attributes table for the current selected theme or substyle.
    */
@@ -526,8 +529,6 @@ public class ThemeEditorComponent extends Splitter {
       LOG.error("No style/theme selected");
       return;
     }
-
-    final ThemeEditorStyle parentStyle = selectedStyle.getParent();
 
     if (myCurrentSubStyle != null) {
       myPanel.setSubstyleName(myCurrentSubStyle.getName());
@@ -545,6 +546,7 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.getPalette().setVisible(myCurrentSubStyle == null);
     myConfiguration.setTheme(selectedTheme.getName());
 
+    assert myConfiguration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
     final AttributesTableModel model = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration.getResourceResolver(), myModule.getProject());
     model.setGoToDefinitionListener(myClickListener);
 
@@ -655,11 +657,6 @@ public class ThemeEditorComponent extends Splitter {
      * Set the attribute names we want to display.
      */
     public void setAttributesFilter(@NotNull Set<String> attributeNames) {
-      if (attributeNames == null) {
-        filterAttributes = SIMPLE_ATTRIBUTES;
-        return;
-      }
-
       filterAttributes = ImmutableSet.copyOf(attributeNames);
     }
 

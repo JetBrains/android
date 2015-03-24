@@ -36,7 +36,7 @@ import java.util.List;
  * Used in {@link DrawableEditor} and {@link DrawableRenderer}.
  */
 public class DrawableComponent extends JButton {
-  private static final Logger LOG = Logger.getInstance(DrawableComponent.class.getName());
+  private static final Logger LOG = Logger.getInstance(DrawableComponent.class);
 
   private static final int PADDING = 2;
 

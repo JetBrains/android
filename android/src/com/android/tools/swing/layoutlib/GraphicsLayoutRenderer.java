@@ -61,7 +61,7 @@ import java.util.List;
  * <p/>Note: This class is not thread safe.
  */
 public class GraphicsLayoutRenderer {
-  private static final Logger LOG = Logger.getInstance(GraphicsLayoutRenderer.class.getName());
+  private static final Logger LOG = Logger.getInstance(GraphicsLayoutRenderer.class);
 
   private final LayoutLibrary myLayoutLibrary;
   private final SessionParams mySessionParams;
