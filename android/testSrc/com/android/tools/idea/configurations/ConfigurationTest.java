@@ -212,7 +212,7 @@ public class ConfigurationTest extends AndroidTestCase {
     Configuration configuration1 = manager.getConfiguration(file1);
     configuration1.getConfigurationManager().setLocale(Locale.create("en"));
     configuration1.setTheme("Theme.Dialog");
-    Device device = manager.getDevices().get(manager.getDevices().size() / 2);
+    Device device = manager.getDevices().get(manager.getDevices().size() / 2 - 2);
     State state = device.getAllStates().get(device.getAllStates().size() - 1);
     configuration1.getConfigurationManager().selectDevice(device);
 
