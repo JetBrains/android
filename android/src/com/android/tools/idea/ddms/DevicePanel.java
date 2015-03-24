@@ -75,6 +75,9 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         if (myIgnoreActionEvents) return;
 
         updateClientCombo();
+        Object sel = myDeviceCombo.getSelectedItem();
+        IDevice device = (sel instanceof IDevice) ? (IDevice)sel : null;
+        myDeviceContext.fireDeviceSelected(device);
       }
     });
 
@@ -92,8 +95,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         Client client = (Client)myClientCombo.getSelectedItem();
         if (client != null) {
           myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
-          myDeviceContext.fireClientSelected(client);
         }
+        myDeviceContext.fireClientSelected(client);
       }
     });
 
