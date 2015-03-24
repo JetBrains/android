@@ -435,8 +435,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         @Nullable
         @Override
         public Document getDocument(@NotNull LabelWithEditLink component) {
-          //return component.getDocument();
-          return null;
+          return component.getDocument();
         }
       });
     }
