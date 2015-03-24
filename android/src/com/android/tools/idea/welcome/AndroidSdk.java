@@ -22,9 +22,13 @@ import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.DownloadableFileService;
 import org.jetbrains.annotations.NotNull;
@@ -32,92 +36,132 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Android SDK installable component.
  */
 public final class AndroidSdk extends InstallableComponent {
+  public static final long SIZE = 2300 * Storage.Unit.MiB.getNumberOfBytes();
   private static final ScopedStateStore.Key<Boolean> KEY_INSTALL_SDK =
     ScopedStateStore.createKey("download.sdk", ScopedStateStore.Scope.PATH, Boolean.class);
   private static final ScopedStateStore.Key<String> KEY_SDK_INSTALL_LOCATION =
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
-
-  private final DownloadableFileDescription myAndroidSdkDescription =
-    DownloadableFileService.getInstance().createFileDescription(FirstRunWizardDefaults.getSdkDownloadUrl(), FirstRunWizardDefaults.ANDROID_SDK_ARCHIVE_FILE_NAME);
+  private final DownloadableFileDescription myAndroidSdkDescription = DownloadableFileService.getInstance()
+    .createFileDescription(FirstRunWizardDefaults.getSdkDownloadUrl(), FirstRunWizardDefaults.ANDROID_SDK_ARCHIVE_FILE_NAME);
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
+  private ScopedStateStore myState;
+  private SdkComponentsStep myStep;
 
   public AndroidSdk(ScopedStateStore.Key<Boolean> keyCustomInstall) {
-    super("Android SDK", 3 * 1024 * Storage.Unit.MiB.getNumberOfBytes(), KEY_INSTALL_SDK);
+    super("Android SDK", SIZE, KEY_INSTALL_SDK);
     myKeyCustomInstall = keyCustomInstall;
-  }
-
-  private static <T> boolean isEmptyOrNull(@Nullable T[] files) {
-    return files == null || files.length == 0;
-  }
-
-  private static void copySdk(File source, File destination) throws IOException {
-    try {
-      File[] children = source.listFiles();
-      assert children != null;
-      for (File child : children) {
-        FileUtil.copyDir(child, destination);
-      }
-    }
-    catch (IOException e) {
-      FileUtil.delete(destination);
-      throw e;
-    }
   }
 
   @NotNull
   @Override
   public Set<DownloadableFileDescription> getFilesToDownloadAndExpand() {
-    return ImmutableSet.of(myAndroidSdkDescription);
+    if (getHandoffAndroidSdkSource() == null) {
+      return ImmutableSet.of(myAndroidSdkDescription);
+    }
+    else {
+      return ImmutableSet.of();
+    }
   }
 
   @Override
   public void init(ScopedStateStore state) {
+    myState = state;
+    InstallerData data = InstallerData.get(state);
+    String location;
+    if (data.exists()) {
+      location = data.getAndroidDest();
+    }
+    else {
+      location = FirstRunWizardDefaults.getDefaultSdkLocation();
+    }
     state.put(KEY_INSTALL_SDK, true);
-    state.put(KEY_SDK_INSTALL_LOCATION, FirstRunWizardDefaults.getDefaultSdkLocation());
+    state.put(KEY_SDK_INSTALL_LOCATION, location);
   }
 
   @Override
   public DynamicWizardStep[] createSteps() {
-    return new DynamicWizardStep[]{new SdkComponentsStep(InstallComponentsPath.COMPONENTS, myKeyCustomInstall, KEY_SDK_INSTALL_LOCATION)};
+    myStep = new SdkComponentsStep(InstallComponentsPath.COMPONENTS, myKeyCustomInstall, KEY_SDK_INSTALL_LOCATION);
+    return new DynamicWizardStep[]{myStep};
   }
 
   @Override
   public boolean shouldSetup() {
-    return DefaultSdks.getEligibleAndroidSdks().isEmpty();
+    List<Sdk> sdks = DefaultSdks.getEligibleAndroidSdks();
+    return sdks.isEmpty() || ApplicationManager.getApplication().isUnitTestMode();
   }
 
   @Override
-  public void perform(@NotNull InstallContext downloaded, @NotNull ScopedStateStore parameters) throws WizardException {
+  public boolean hasVisibleStep() {
+    return myStep.isStepVisible();
+  }
+
+  @Override
+  public void perform(@NotNull InstallContext downloaded) throws WizardException {
+    String destinationPath = myState.get(KEY_SDK_INSTALL_LOCATION);
+    assert destinationPath != null;
+    final File destination = new File(destinationPath);
+    File source = getHandoffAndroidSdkSource();
+    if (!shouldSetup() || FileUtil.filesEqual(source, destination)) {
+      return;
+    }
     ProgressStep progressStep = downloaded.getProgressStep();
     ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     indicator.setText("Installing Android SDK");
     indicator.setIndeterminate(true);
-    String destinationPath = parameters.get(KEY_SDK_INSTALL_LOCATION);
-    assert destinationPath != null;
-    File destination = new File(destinationPath);
-    File source = downloaded.getExpandedLocation(myAndroidSdkDescription);
-    assert source != null && source.isDirectory();
+    if (source == null) {
+      source = downloaded.getExpandedLocation(myAndroidSdkDescription);
+      assert source != null && source.isDirectory();
+    }
     try {
       FileUtil.ensureExists(destination);
       if (!FileUtil.filesEqual(destination.getCanonicalFile(), source.getCanonicalFile())) {
-        if (!destination.exists() || isEmptyOrNull(destination.listFiles())) {
-          copySdk(source, destination);
-        }
-        else if (SdkMerger.hasMergeableContent(source, destination)) {
+        if (SdkMerger.hasMergeableContent(source, destination)) {
           SdkMerger.mergeSdks(source, destination, indicator);
         }
       }
       progressStep.print(String.format("Android SDK was installed to %s", destination), ConsoleViewContentType.SYSTEM_OUTPUT);
-      DefaultSdks.setDefaultAndroidHome(destination);
+      final Application application = ApplicationManager.getApplication();
+      // SDK can only be set from write action, write action can only be started from UI thread
+      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+        @Override
+        public void run() {
+          application.runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              DefaultSdks.setDefaultAndroidHome(destination);
+            }
+          });
+        }
+      }, application.getAnyModalityState());
     }
     catch (IOException e) {
       throw new WizardException(WelcomeUIUtils.getMessageWithDetails("Unable to install Android SDK", e.getMessage()), e);
     }
+  }
+
+  @Override
+  public boolean isOptional() {
+    return false;
+  }
+
+  @Nullable
+  private File getHandoffAndroidSdkSource() {
+    InstallerData data = InstallerData.get(myState);
+    String androidSrc = data.getAndroidSrc();
+    if (!StringUtil.isEmpty(androidSrc)) {
+      File srcFolder = new File(androidSrc);
+      File[] files = srcFolder.listFiles();
+      if (srcFolder.isDirectory() && files != null && files.length > 0) {
+        return srcFolder;
+      }
+    }
+    return null;
   }
 }
