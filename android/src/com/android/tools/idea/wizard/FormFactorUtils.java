@@ -49,13 +49,13 @@ public class FormFactorUtils {
 
   /** TODO: Turn into an enum and combine with {@link com.android.tools.idea.configurations.DeviceMenuAction.FormFactor} */
   public static class FormFactor {
-    public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
+    public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
                                                            Lists.newArrayList("20", "Glass", "Google APIs"), null);
-    public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear", 20,
+    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 20,
                                                          null, Lists.newArrayList("20"));
-    public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass", 19,
+    public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
                                                           null, Lists.newArrayList("Glass"));
-    public static final FormFactor TV = new FormFactor("TV", AndroidIcons.Wizards.FormFactorTV, "TV", 21,
+    public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
                                                        Lists.newArrayList("20"), null);
 
     private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
@@ -65,16 +65,16 @@ public class FormFactorUtils {
         .put(TV.id, TV).build();
 
     public final String id;
-    @Nullable private final Icon myIcon;
     @Nullable private String displayName;
     public final int defaultApi;
     @NotNull private final List<String> myApiBlacklist;
     @NotNull private final List<String> myApiWhitelist;
+    @NotNull private final DeviceMenuAction.FormFactor myEnumValue;
 
-    FormFactor(@NotNull String id, @Nullable Icon icon, @Nullable String displayName, @NotNull int defaultApi,
-               @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
+    FormFactor(@NotNull String id, @NotNull DeviceMenuAction.FormFactor enumValue, @Nullable String displayName,
+               int defaultApi, @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
       this.id = id;
-      myIcon = icon;
+      myEnumValue = enumValue;
       this.displayName = displayName;
       this.defaultApi = defaultApi;
       myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
@@ -86,7 +86,7 @@ public class FormFactorUtils {
       if (myFormFactors.containsKey(id)) {
         return myFormFactors.get(id);
       }
-      return new FormFactor(id, null, id, 1, null, null);
+      return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null);
     }
 
     @Override
@@ -94,9 +94,14 @@ public class FormFactorUtils {
       return displayName == null ? id : displayName;
     }
 
-    @Nullable
+    @NotNull
     public Icon getIcon() {
-      return myIcon;
+      return myEnumValue.getIcon64();
+    }
+
+    @NotNull
+    public Icon getLargeIcon() {
+      return myEnumValue.getLargeIcon();
     }
 
     public static Iterator<FormFactor> iterator() {
