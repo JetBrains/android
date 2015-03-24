@@ -47,8 +47,6 @@ import static com.android.tools.idea.wizard.WizardConstants.*;
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
 public class NewModuleWizardDynamic extends DynamicWizard {
-  private List<File> myFilesToOpen = Lists.newArrayList();
-
   public NewModuleWizardDynamic(@Nullable Project project, @Nullable Module module) {
     super(project, module, "New Module");
     setTitle("Create New Module");
@@ -97,8 +95,10 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     }
     Project project = getProject();
     if (project != null) {
-      getState().put(PROJECT_LOCATION_KEY, project.getBasePath());
+      state.put(PROJECT_LOCATION_KEY, project.getBasePath());
     }
+
+    state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
   }
 
 
@@ -145,13 +145,6 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       return;
     }
 
-    // Collect files to open
-    for (AndroidStudioWizardPath path : myPaths) {
-      if (path instanceof NewFormFactorModulePath) {
-        myFilesToOpen.addAll(((NewFormFactorModulePath)path).getFilesToOpen());
-      }
-    }
-
     GradleProjectImporter.getInstance().requestProjectSync(project, new NewProjectImportGradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull final Project project) {
@@ -159,7 +152,9 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       }
 
       private boolean openTemplateFiles(Project project) {
-        return TemplateUtils.openEditors(project, myFilesToOpen, true);
+        List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
+        assert filesToOpen != null; // Always initialized in initState
+        return TemplateUtils.openEditors(project, filesToOpen, true);
       }
     });
   }
