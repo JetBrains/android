@@ -1,0 +1,31 @@
+parts {
+  device {
+    display {
+      width 1280
+      height 720
+      x 0
+      y 0
+    }
+  }
+  landscape {
+    background {
+      image back.png
+    }
+  }
+}
+layouts {
+  landscape {
+    width 1394
+    height 837
+    part1 {
+      name landscape
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 57
+      y 39
+    }
+  }
+}
