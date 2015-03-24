@@ -24,7 +24,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +67,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   // State store
   protected ScopedStateStore myState;
   // Update queue used to throttle updates
-  private MergingUpdateQueue myUpdateQueue;
+  @Nullable private MergingUpdateQueue myUpdateQueue;
   // Used by update() to ensure that multiple updates are not invoked simultaneously.
   private boolean myUpdateInProgress;
 
@@ -81,10 +80,9 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   @Override
   public final void attachToWizard(@NotNull DynamicWizard wizard) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
     myWizard = wizard;
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      myUpdateQueue = new MergingUpdateQueue("wizard.path", 100, true, null, myWizard.getDisposable(), null, false);
-    }
+    myUpdateQueue = wizard.getUpdateQueue();
     Map<String, Object> myCurrentValues = myState.flatten();
     myState = new ScopedStateStore(ScopedStateStore.Scope.PATH, myWizard.getState(), this);
     for (String keyName : myCurrentValues.keySet()) {
@@ -174,18 +172,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   @Override
   public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
     if (myUpdateQueue != null) {
-      myUpdateQueue.cancelAllUpdates();
-      myUpdateQueue.queue(new Update("update") {
-        @Override
-        public void run() {
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              update();
-            }
-          });
-        }
-      });
+      myUpdateQueue.queue(new PathUpdate());
     } else {
       // If we don't have a queue (ie we're not attached to a wizard) then just update immediately
       update();
@@ -201,7 +188,6 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
       myUpdateInProgress = true;
       deriveValues(myState.getRecentUpdates());
       myIsValid = validate();
-      myState.clearRecentUpdates();
       myUpdateInProgress = false;
     }
   }
@@ -441,6 +427,23 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
         invokeUpdate(null);
         return;
       }
+    }
+  }
+
+  private class PathUpdate extends Update {
+    public PathUpdate() {
+      super("Path Update");
+    }
+
+    @NotNull
+    @Override
+    public Object[] getEqualityObjects() {
+      return new Object[] {DynamicWizardPath.this};
+    }
+
+    @Override
+    public void run() {
+      update();
     }
   }
 }
