@@ -123,15 +123,15 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  jniLibs\n" +
       "   libc.so\n" +
       " Gradle Scripts\n" +
-      "  build.gradle (app)\n" +
-      "  sonar.gradle (app)\n" +
-      "  build.gradle (empty)\n" +
-      "  build.gradle (javamodule)\n" +
-      "  build.gradle (lib)\n" +
-      "  build.gradle (" + rootModuleName + ")\n" +
+      "  build.gradle (Project: " + rootModuleName + ")\n" +
+      "  build.gradle (Module: app)\n" +
+      "  sonar.gradle (Module: app)\n" +
+      "  build.gradle (Module: empty)\n" +
+      "  build.gradle (Module: javamodule)\n" +
+      "  build.gradle (Module: lib)\n" +
+      "  gradle-wrapper.properties (Gradle Version)\n" +
       "  settings.gradle (Project Settings)\n" +
-      "  gradle-wrapper.properties\n" +
-      "  local.properties\n";
+      "  local.properties (SDK Location)\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
       .assertStructureEqual(structure, expected, numLines, new GroupByTypeComparator(null, "android"), structure.getRootElement(),
@@ -197,8 +197,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String expected =
       projectName + "\n" +
       " Gradle Scripts\n" +
-      "  build.gradle (" + modules[0].getName() + ")\n" +
-      "  gradle-wrapper.properties\n" +
+      "  build.gradle (Module: " + modules[0].getName() + ")\n" +
+      "  gradle-wrapper.properties (Gradle Version)\n" +
       " " + modules[0].getName() + " (Android)\n" +
       "  java\n" +
       "   foo (main)\n" +
@@ -244,8 +244,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String expected =
       projectName + "\n" +
       " Gradle Scripts\n" +
-      "  build.gradle (" + modules[0].getName() + ")\n" +
-      "  gradle-wrapper.properties\n" +
+      "  build.gradle (Project: " + modules[0].getName() + ")\n" +
+      "  gradle-wrapper.properties (Gradle Version)\n" +
       " " + modules[0].getName() + "\n" +
       "  .idea\n" +
       "  AndroidManifest.xml\n" +
