@@ -77,6 +77,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
         if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
           byte[] data = AarResourceClassRegistry.get().findClassDefinition(name);
           if (data != null) {
+            data = convertClass(data);
             return defineClass(null, data, 0, data.length);
           }
         }
