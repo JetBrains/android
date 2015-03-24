@@ -208,6 +208,13 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       }
       else {
         def.addValue(valueName);
+        PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
+        if (comment != null) {
+          String docValue = XmlUtil.getCommentText((XmlComment)comment);
+          if (!StringUtil.isEmpty(docValue)) {
+            def.addValueDoc(valueName, docValue);
+          }
+        }
 
         final String strIntValue = value.getAttributeValue(ATTR_VALUE);
         if (strIntValue != null) {
