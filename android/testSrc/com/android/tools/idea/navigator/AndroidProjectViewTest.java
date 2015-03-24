@@ -96,6 +96,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   raw.asset.txt\n" +
       "  rs\n" +
       "   test.rs\n" +
+      " empty (non-Android)\n" +
       " javamodule (non-Android)\n" +
       "  java\n" +
       "   foo\n" +
@@ -122,6 +123,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " Gradle Scripts\n" +
       "  build.gradle (app)\n" +
       "  sonar.gradle (app)\n" +
+      "  build.gradle (empty)\n" +
       "  build.gradle (javamodule)\n" +
       "  build.gradle (lib)\n" +
       "  build.gradle (" + rootModuleName + ")\n" +
