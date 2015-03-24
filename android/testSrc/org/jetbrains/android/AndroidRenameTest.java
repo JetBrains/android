@@ -168,6 +168,17 @@ public class AndroidRenameTest extends AndroidTestCase {
     doTestStringRename("strings4.xml");
   }
 
+  public void testValueResource5() throws Throwable {
+    String before = "strings5.xml";
+    String after = "strings5_after.xml";
+
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/strings.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.renameElementAtCaretUsingHandler("str1");
+    myFixture.checkResultByFile(BASE_PATH + after);
+  }
+
   public void testStyleInheritance() throws Throwable {
     doTestStyleInheritance("styles1.xml", "styles1_after.xml");
   }
