@@ -68,10 +68,10 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
       if (isJdk7) {
         jdk7Hint = "<li>";
         if (jdkVersion != null) {
-          jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdk7Hint);
+          jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdkVersion);
         }
         jdk7Hint += "Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle.\n" +
-                    "Please update to a newer version (e.g. 1.7.0_67).</li>";
+                    "Please update to a newer version (e.g. 1.7.0_67).";
 
         if (!unitTestMode) {
           openJdkSettingsHyperlink = OpenProjectStructureHyperlink.openJdkSettings(project);
@@ -79,6 +79,8 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
             jdk7Hint = jdk7Hint +"\n" + openJdkSettingsHyperlink.toHtml();
           }
         }
+
+        jdk7Hint += "</li>";
       }
 
       String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" + jdk7Hint +
