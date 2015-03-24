@@ -32,6 +32,7 @@ import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import com.google.common.base.Supplier;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -62,9 +62,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
-  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @NotNull private final ComponentInstaller myComponentInstaller;
   @NotNull private final File mySdkLocation;
-  private InstallationTypeWizardStep myInstallationTypeWizardStep;
   private SdkComponentsStep mySdkComponentsStep;
   private ComponentTreeNode myComponentTree;
 
@@ -75,7 +74,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
-    myRemotePackages = remotePackages;
+    myComponentInstaller = new ComponentInstaller(remotePackages);
   }
 
   private static ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
@@ -205,8 +204,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   protected void init() {
     boolean createAvd = myMode.shouldCreateAvd();
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      myInstallationTypeWizardStep = new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL);
-      addStep(myInstallationTypeWizardStep);
+      addStep(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL));
     }
     String pathString = mySdkLocation.getAbsolutePath();
     myState.put(KEY_SDK_INSTALL_LOCATION, pathString);
@@ -225,42 +223,33 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (SystemInfo.isLinux && myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addStep(new LinuxHaxmInfoStep());
     }
+    if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
+      addStep(new InstallSummaryStep(KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, new Supplier<Collection<RemotePkgInfo>>() {
+        @Override
+        public Collection<RemotePkgInfo> get() {
+          return myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), myComponentTree.getChildrenToInstall());
+        }
+      }));
+    }
   }
+
 
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    if (!Sets.intersection(modified, ImmutableSet.of(KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION)).isEmpty() ||
-        myComponentTree.componentStateChanged(modified)) {
-      String sdkPath = myState.get(KEY_SDK_INSTALL_LOCATION);
-      SdkManager manager = null;
-      if (sdkPath != null) {
-        manager = SdkManager.createManager(sdkPath, new NullLogger());
-      }
-      myComponentTree.updateState(manager);
-      ArrayList<String> installIds =
-        new ComponentInstaller(myComponentTree.getChildrenToInstall(), myRemotePackages).getPackagesToInstall(manager);
-      final List<IPkgDesc> packages = getPackagesList(installIds);
-      myState.put(WizardConstants.INSTALL_REQUESTS_KEY, packages);
+    if (modified.contains(KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION)) {
+      myState.put(WizardConstants.INSTALL_REQUESTS_KEY, getPackageDescriptions());
     }
   }
 
-  @NotNull
-  private List<IPkgDesc> getPackagesList(@NotNull Collection<String> installIds) {
-    if (myRemotePackages != null) {
-      ImmutableSet<String> ids = ImmutableSet.copyOf(installIds);
-      ImmutableList.Builder<IPkgDesc> packages = ImmutableList.builder();
-      for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
-        IPkgDesc desc = remotePkgInfo.getDesc();
-        if (ids.contains(desc.getInstallId())) {
-          packages.add(desc);
-        }
-      }
-      return packages.build();
+  private List<IPkgDesc> getPackageDescriptions() {
+    Collection<RemotePkgInfo> installIds =
+      myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), myComponentTree.getChildrenToInstall());
+    ImmutableList.Builder<IPkgDesc> packages = ImmutableList.builder();
+    for (RemotePkgInfo remotePackage : installIds) {
+      packages.add(remotePackage.getDesc());
     }
-    else {
-      return ImmutableList.of();
-    }
+    return packages.build();
   }
 
   @NotNull
@@ -281,7 +270,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     final Collection<? extends InstallableComponent> selectedComponents = myComponentTree.getChildrenToInstall();
     CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
     InstallComponentsOperation install =
-      new InstallComponentsOperation(installContext, selectedComponents, myRemotePackages, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+      new InstallComponentsOperation(installContext, selectedComponents, myComponentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
 
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
     try {
@@ -317,7 +306,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   public boolean showsStep() {
-    return isPathVisible() && (existsAndIsVisible(myInstallationTypeWizardStep) || existsAndIsVisible(mySdkComponentsStep));
+    return isPathVisible() && (existsAndIsVisible(mySdkComponentsStep) || myMode == FirstRunWizardMode.NEW_INSTALL);
   }
 
   private static class MergeOperation extends InstallOperation<File, File> {
