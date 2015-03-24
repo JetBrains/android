@@ -72,6 +72,12 @@
   <item name="android.widget.AbsSeekBar AbsSeekBar(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.AbsSeekBar android.content.res.ColorStateList getThumbTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.AbsSeekBar android.graphics.PorterDuff.Mode getThumbTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.AbsSeekBar boolean onKeyDown(int, android.view.KeyEvent) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -86,6 +92,12 @@
   </item>
   <item name="android.widget.AbsSeekBar void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.AbsSeekBar void setThumbTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.AbsSeekBar void setThumbTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.AbsSpinner AbsSpinner(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -327,6 +339,12 @@
   <item name="android.widget.CheckedTextView CheckedTextView(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.CheckedTextView android.content.res.ColorStateList getCheckMarkTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.CheckedTextView android.graphics.PorterDuff.Mode getCheckMarkTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CheckedTextView void onDraw(android.graphics.Canvas) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -338,6 +356,12 @@
   </item>
   <item name="android.widget.CheckedTextView void setCheckMarkDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.widget.CheckedTextView void setCheckMarkTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.CheckedTextView void setCheckMarkTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.Chronometer Chronometer(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -363,6 +387,12 @@
   <item name="android.widget.CompoundButton CompoundButton(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.CompoundButton android.content.res.ColorStateList getButtonTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.CompoundButton android.graphics.PorterDuff.Mode getButtonTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CompoundButton android.os.Parcelable onSaveInstanceState()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -377,6 +407,12 @@
   </item>
   <item name="android.widget.CompoundButton void setButtonDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.widget.CompoundButton void setButtonTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.CompoundButton void setButtonTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.DatePicker DatePicker(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -465,6 +501,12 @@
   <item name="android.widget.FrameLayout FrameLayout(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.FrameLayout android.content.res.ColorStateList getForegroundTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.FrameLayout android.graphics.PorterDuff.Mode getForegroundTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.FrameLayout android.view.ViewGroup.LayoutParams generateLayoutParams(android.view.ViewGroup.LayoutParams) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -476,6 +518,17 @@
   </item>
   <item name="android.widget.FrameLayout void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.FrameLayout void setForegroundTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.FrameLayout void setForegroundTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.FrameLayout void setVisibility(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    </annotation>
   </item>
   <item name="android.widget.FrameLayout.LayoutParams LayoutParams(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -738,6 +791,12 @@
   <item name="android.widget.ImageView ImageView(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.ImageView android.content.res.ColorStateList getImageTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ImageView android.graphics.PorterDuff.Mode getImageTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.ImageView void invalidateDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -755,6 +814,12 @@
   </item>
   <item name="android.widget.ImageView void setImageResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.widget.ImageView void setImageTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ImageView void setImageTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.LinearLayout LinearLayout(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1009,6 +1074,33 @@
   <item name="android.widget.ProgressBar ProgressBar(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.ProgressBar ProgressBar(android.content.Context, android.util.AttributeSet, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.ProgressBar android.content.res.ColorStateList getIndeterminateTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.content.res.ColorStateList getProgressBackgroundTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.content.res.ColorStateList getProgressTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.content.res.ColorStateList getSecondaryProgressTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.graphics.PorterDuff.Mode getIndeterminateTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.graphics.PorterDuff.Mode getProgressBackgroundTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.graphics.PorterDuff.Mode getProgressTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar android.graphics.PorterDuff.Mode getSecondaryProgressTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.ProgressBar android.os.Parcelable onSaveInstanceState()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1024,8 +1116,32 @@
   <item name="android.widget.ProgressBar void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.ProgressBar void setIndeterminateTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar void setIndeterminateTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.ProgressBar void setInterpolator(android.content.Context, int) 1">
     <annotation name="android.support.annotation.InterpolatorRes" />
+  </item>
+  <item name="android.widget.ProgressBar void setProgressBackgroundTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar void setProgressBackgroundTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar void setProgressTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar void setProgressTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar void setSecondaryProgressTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.ProgressBar void setSecondaryProgressTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.QuickContactBadge QuickContactBadge(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1558,12 +1674,6 @@
   <item name="android.widget.TextView TextView(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.widget.TextView android.content.res.ColorStateList getTextColors(android.content.Context, android.content.res.TypedArray) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.widget.TextView android.content.res.ColorStateList getTextColors(android.content.Context, android.content.res.TypedArray) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.widget.TextView android.graphics.drawable.Drawable[] getCompoundDrawables()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1603,11 +1713,8 @@
   <item name="android.widget.TextView boolean onTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.widget.TextView int getTextColor(android.content.Context, android.content.res.TypedArray, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.widget.TextView int getTextColor(android.content.Context, android.content.res.TypedArray, int) 1">
-    <annotation name="android.support.annotation.NonNull" />
+  <item name="android.widget.TextView java.lang.String getFontFeatureSettings()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TextView void append(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1713,6 +1820,9 @@
   </item>
   <item name="android.widget.TextView void setExtractedText(android.view.inputmethod.ExtractedText) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TextView void setFontFeatureSettings(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TextView void setHint(int) 0">
     <annotation name="android.support.annotation.StringRes" />
@@ -1820,6 +1930,23 @@
   </item>
   <item name="android.widget.ToggleButton void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.Toolbar android.graphics.drawable.Drawable getNavigationIcon()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Toolbar java.lang.CharSequence getNavigationContentDescription()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Toolbar void onRtlPropertiesChanged(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    </annotation>
+  </item>
+  <item name="android.widget.Toolbar void setNavigationContentDescription(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Toolbar void setNavigationIcon(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TwoLineListItem TwoLineListItem(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
