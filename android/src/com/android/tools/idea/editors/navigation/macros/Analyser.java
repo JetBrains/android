@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.navigation.macros;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationView;
-import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.openapi.diagnostic.Logger;
@@ -192,7 +192,7 @@ public class Analyser {
     if (activityClass == null) {
       return Collections.emptyMap();
     }
-    PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onCreate(Bundle bundle)");
+    PsiMethod method = NavigationEditorUtils.findMethodBySignature(activityClass, "void onCreate(Bundle bundle)");
     if (method == null) {
       return Collections.emptyMap();
     }
@@ -203,7 +203,7 @@ public class Analyser {
     if (activityClass == null) {
       return Collections.emptyMap();
     }
-    PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onViewCreated(View view, Bundle bundle)");
+    PsiMethod method = NavigationEditorUtils.findMethodBySignature(activityClass, "void onViewCreated(View view, Bundle bundle)");
     if (method == null) {
       return Collections.emptyMap();
     }
@@ -386,13 +386,13 @@ public class Analyser {
     if (DEBUG) LOG.info("Analyser: activityClassName = " + activityClassName);
     if (DEBUG) LOG.info("Analyser: fragmentClassName = " + fragmentClassName);
 
-    final PsiClass activityClass = Utilities.getPsiClass(myModule, activityClassName);
+    final PsiClass activityClass = NavigationEditorUtils.getPsiClass(myModule, activityClassName);
     if (activityClass == null) {
       // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
       LOG.info("Class " + activityClassName + " not found");
       return;
     }
-    final PsiClass fragmentClass = fragmentClassName != null ? Utilities.getPsiClass(myModule, fragmentClassName) : null;
+    final PsiClass fragmentClass = fragmentClassName != null ? NavigationEditorUtils.getPsiClass(myModule, fragmentClassName) : null;
     if (isFragment && fragmentClass == null) {
       // Either a build is underway or a navigation file is out-of-date and refers to classes that have been deleted. Give up.
       LOG.info("Class " + fragmentClassName + " not found");
@@ -702,7 +702,7 @@ public class Analyser {
 
   @Nullable
   public static String getXMLFileName(Module module, String className, boolean isActivity) {
-    PsiClass clazz = Utilities.getPsiClass(module, className);
+    PsiClass clazz = NavigationEditorUtils.getPsiClass(module, className);
     if (clazz == null) {
       LOG.warn("Couldn't find class: " + className);
       return null;
@@ -712,7 +712,7 @@ public class Analyser {
     String body = isActivity
                   ? "void macro(Object $R, Object $id) { setContentView($R.layout.$id); }"
                   : "void macro(Object $inflater, Object $R, Object $id, Object $p) { $inflater.inflate($R.layout.$id, $p, false); }";
-    PsiClass stop = Utilities.getPsiClass(module, isActivity ? "android.app.Activity" : "android.app.Fragment");
+    PsiClass stop = NavigationEditorUtils.getPsiClass(module, isActivity ? "android.app.Activity" : "android.app.Fragment");
 
     for (PsiClass superClass = clazz; superClass != stop && superClass != null; superClass = superClass.getSuperClass()) {
       MultiMatch.Bindings<PsiElement> exp = match(superClass, signature, body);
@@ -799,7 +799,7 @@ public class Analyser {
   }
 
   private static void search(PsiClass clazz, String methodSignature, MultiMatch matcher, Processor processor) {
-    PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
+    PsiMethod method = NavigationEditorUtils.findMethodBySignature(clazz, methodSignature);
     if (method == null) {
       return;
     }
@@ -807,16 +807,16 @@ public class Analyser {
   }
 
   private static void search(PsiClass clazz, String methodSignature, String matchMacro, Processor processor) {
-    search(clazz, methodSignature, new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro)), processor);
+    search(clazz, methodSignature, new MultiMatch(NavigationEditorUtils.createMethodFromText(clazz, matchMacro)), processor);
   }
 
   @Nullable
   private static MultiMatch.Bindings<PsiElement> match(@NotNull PsiClass clazz, String methodSignature, String matchMacro) {
-    PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
+    PsiMethod method = NavigationEditorUtils.findMethodBySignature(clazz, methodSignature);
     if (method == null) {
       return null;
     }
-    MultiMatch matcher = new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro));
+    MultiMatch matcher = new MultiMatch(NavigationEditorUtils.createMethodFromText(clazz, matchMacro));
     List<MultiMatch.Bindings<PsiElement>> results = search(method.getBody(), matcher);
     if (results.size() != 1) {
       return null;
@@ -826,7 +826,7 @@ public class Analyser {
 
   @Nullable
   public static MultiMatch.Bindings<PsiElement> match(Module module, String className, String methodSignature, String matchMacro) {
-    PsiClass clazz = Utilities.getPsiClass(module, className);
+    PsiClass clazz = NavigationEditorUtils.getPsiClass(module, className);
     if (clazz == null) {
       LOG.warn("Couldn't find class: " + className);
       return null;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 
@@ -110,7 +110,7 @@ public class Macros {
   }
 
   private PsiMethod getMethodFromText(String definition) {
-    return Utilities.createMethodFromText(myProject, definition, null);
+    return NavigationEditorUtils.createMethodFromText(myProject, definition, null);
   }
 
   private Macros(Project project) {

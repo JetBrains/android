@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.editors.navigation.Listener;
-import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -175,7 +175,7 @@ public class CodeGenerator {
 
   private static void addImports(Module module, ImportHelper importHelper, PsiJavaFile file, String[] classNames) {
     for (String className : classNames) {
-      PsiClass psiClass = Utilities.getPsiClass(module, className);
+      PsiClass psiClass = NavigationEditorUtils.getPsiClass(module, className);
       if (psiClass != null) {
         importHelper.addImport(file, psiClass);
       } else {
@@ -255,7 +255,7 @@ public class CodeGenerator {
     String fragmentClassName = source.getFragmentClassName();
     final boolean targetIsFragment = fragmentClassName != null;
     String targetClassName = targetIsFragment ? fragmentClassName : sourceState.getClassName();
-    final PsiClass hostClass = Utilities.getPsiClass(module, targetClassName);
+    final PsiClass hostClass = NavigationEditorUtils.getPsiClass(module, targetClassName);
     if (hostClass == null) {
       return;
     }
@@ -266,7 +266,8 @@ public class CodeGenerator {
         destinationState.accept(new State.Visitor() {
           @Override
           public void visit(ActivityState destinationState) {
-            PsiClass listClass = Utilities.getPsiClass(module, targetIsFragment ? "android.app.ListFragment" : "android.app.ListActivity");
+            PsiClass listClass = NavigationEditorUtils
+              .getPsiClass(module, targetIsFragment ? "android.app.ListFragment" : "android.app.ListActivity");
             assert listClass != null;
             Template t =
               hostClass.isInheritor(listClass, true) ? overrideOnItemClickInList(targetIsFragment) : setOnClickListener(targetIsFragment);
