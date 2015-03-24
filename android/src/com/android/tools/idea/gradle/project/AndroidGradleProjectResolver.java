@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -252,6 +253,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtil.toStringArray(args));
     }
+
+    GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(args);
 
     return args;
   }

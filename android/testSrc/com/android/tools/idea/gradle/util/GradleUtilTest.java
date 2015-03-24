@@ -163,42 +163,42 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testGetAndroidGradleModelVersion() throws IOException {
-    String contents ="buildscript {\n" +
-                     "    repositories {\n" +
-                     "        jcenter()\n" +
-                     "    }\n" +
-                     "    dependencies {\n" +
-                     "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
-                     "    }\n" +
-                     "}";
+    String contents = "buildscript {\n" +
+                      "    repositories {\n" +
+                      "        jcenter()\n" +
+                      "    }\n" +
+                      "    dependencies {\n" +
+                      "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
+                      "    }\n" +
+                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
 
   public void testGetAndroidGradleModelVersionWithPlusInMicro() throws IOException {
-    String contents ="buildscript {\n" +
-                     "    repositories {\n" +
-                     "        jcenter()\n" +
-                     "    }\n" +
-                     "    dependencies {\n" +
-                     "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
-                     "    }\n" +
-                     "}";
+    String contents = "buildscript {\n" +
+                      "    repositories {\n" +
+                      "        jcenter()\n" +
+                      "    }\n" +
+                      "    dependencies {\n" +
+                      "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
+                      "    }\n" +
+                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
 
   public void testGetAndroidGradleModelVersionWithPlusNotation() throws IOException {
-    String contents ="buildscript {\n" +
-                     "    repositories {\n" +
-                     "        jcenter()\n" +
-                     "    }\n" +
-                     "    dependencies {\n" +
-                     "        classpath 'com.android.tools.build:gradle:+'\n" +
-                     "    }\n" +
-                     "}";
+    String contents = "buildscript {\n" +
+                      "    repositories {\n" +
+                      "        jcenter()\n" +
+                      "    }\n" +
+                      "    dependencies {\n" +
+                      "        classpath 'com.android.tools.build:gradle:+'\n" +
+                      "    }\n" +
+                      "}";
     FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
     assertNotNull(revision);
   }
@@ -263,5 +263,28 @@ public class GradleUtilTest extends TestCase {
     catch (Exception e) {
       assertSame(expected, e);
     }
+  }
+
+  public void testAddLocalMavenRepoInitScriptCommandLineOption() throws IOException {
+    File repoPath = new File("/xyz/repo");
+    List<String> cmdOptions = Lists.newArrayList();
+
+    File initScriptPath = GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(cmdOptions, repoPath);
+    assertNotNull(initScriptPath);
+
+    assertEquals(2, cmdOptions.size());
+    assertEquals("--init-script", cmdOptions.get(0));
+    assertEquals(initScriptPath.getPath(), cmdOptions.get(1));
+
+    String expectedScript = "allprojects {\n" +
+                            "  buildscript {\n" +
+                            "    repositories {\n" +
+                            "      maven { url '" + repoPath.getPath() + "'}\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}\n";
+
+    String initScript = FileUtil.loadFile(initScriptPath);
+    assertEquals(expectedScript, initScript);
   }
 }
