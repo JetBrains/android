@@ -23,7 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -49,8 +49,8 @@ public class EditedStyleItem {
     myItemResourceValue = itemResourceValue;
     mySourceTheme = sourceTheme;
 
-    AttributeDefinitions attrDef = sourceTheme.getResolver().getAttributeDefinitions();
-    String attrGroup = attrDef.getAttrGroupByName(itemResourceValue.getName());
+    AttributeDefinition attrDef = StyleResolver.getAttributeDefinition(sourceTheme.getConfiguration(), itemResourceValue);
+    String attrGroup = (attrDef == null) ? null : attrDef.getAttrGroup();
     myAttrGroup = (attrGroup == null) ? "Other non-theme attributes." : attrGroup;
 
     parseValue(myItemResourceValue.getRawXmlValue(), myItemResourceValue.isFramework());

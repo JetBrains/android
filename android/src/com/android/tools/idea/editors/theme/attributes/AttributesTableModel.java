@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
@@ -32,7 +33,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -73,7 +73,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private String myParentNameInXml;
 
   protected final ThemeEditorStyle mySelectedStyle;
-  protected final AttributeDefinitions myAttributeDefinitions;
 
   private final AttributesGrouper.GroupBy myGroupBy;
   private final ResourceResolver myResourceResolver;
@@ -155,7 +154,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     mySelectedStyle = selectedStyle;
     myGroupBy = groupBy;
     myThemeNameInXml = mySelectedStyle.getName();
-    myAttributeDefinitions = selectedStyle.getResolver().getAttributeDefinitions();
     myResourceResolver = resourceResolver;
 
     ThemeEditorStyle parent = selectedStyle.getParent();
@@ -447,8 +445,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     @Override
     public Class<?> getCellClass(int column) {
       EditedStyleItem item = myAttributes.get(myRowIndex);
-      String name = item.getName();
-      AttributeDefinition attrDefinition = myAttributeDefinitions.getAttrDefByName(name);
 
       ResourceValue resourceValue = mySelectedStyle.getConfiguration().getResourceResolver().resolveResValue(item.getItemResourceValue());
       if (resourceValue == null) {
@@ -462,6 +458,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       if (urlType == ResourceType.DRAWABLE) {
         return DrawableDomElement.class;
       }
+
+      AttributeDefinition attrDefinition =
+        StyleResolver.getAttributeDefinition(mySelectedStyle.getConfiguration(), item.getItemResourceValue());
 
       if (urlType == ResourceType.COLOR
               || (value != null && value.startsWith("#") && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color))) {

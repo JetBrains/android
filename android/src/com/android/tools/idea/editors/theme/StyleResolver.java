@@ -30,7 +30,9 @@ import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +48,6 @@ public class StyleResolver {
   private static final Logger LOG = Logger.getInstance(StyleResolver.class);
 
   private final Cache<String, ThemeEditorStyle> myStylesCache = CacheBuilder.newBuilder().build();
-  private final AttributeDefinitions myAttributeDefinition;
   private final LocalResourceRepository myResourceResolver;
   private final Project myProject;
   private final Configuration myConfiguration;
@@ -57,27 +58,21 @@ public class StyleResolver {
 
     myResourceResolver = AppResourceRepository.getAppResources(configuration.getModule(), true);
     if (myResourceResolver == null) {
-      myAttributeDefinition = null;
       LOG.error("Unable to get AppResourceRepository.");
       return;
     }
 
     IAndroidTarget target = configuration.getTarget();
     if (target == null) {
-      myAttributeDefinition = null;
       LOG.error("Unable to get IAndroidTarget.");
       return;
     }
 
     AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
     if (androidTargetData == null) {
-      myAttributeDefinition = null;
       LOG.error("Unable to get AndroidTargetData.");
       return;
     }
-
-    Project project = configuration.getModule().getProject();
-    myAttributeDefinition = androidTargetData.getAllAttrDefs(project); // all attributes, public and private
   }
 
   /**
@@ -94,11 +89,6 @@ public class StyleResolver {
   @NotNull
   public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
     return (item.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + item.getName();
-  }
-
-  @Nullable
-  public AttributeDefinitions getAttributeDefinitions() {
-    return myAttributeDefinition;
   }
 
   @Nullable
@@ -158,5 +148,23 @@ public class StyleResolver {
     }
 
     return null;
+  }
+
+  @Nullable
+  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull ItemResourceValue itemResValue) {
+    AttributeDefinitions defs;
+    if (itemResValue.isFrameworkAttr()) {
+      IAndroidTarget target = configuration.getTarget();
+      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
+      defs = androidTargetData.getAllAttrDefs(configuration.getModule().getProject());
+    }
+    else {
+      AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
+      defs = facet.getLocalResourceManager().getAttributeDefinitions();
+    }
+    if (defs == null) {
+      return null;
+    }
+    return defs.getAttrDefByName(itemResValue.getName());
   }
 }
