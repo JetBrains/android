@@ -26,6 +26,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import static org.easymock.classextension.EasyMock.*;
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link AndroidFacet}.
@@ -112,7 +113,8 @@ public class AndroidFacetTest extends AndroidTestCase {
     assertEquals("assemble", state.ASSEMBLE_TASK_NAME);
     assertEquals("compileJava", state.COMPILE_JAVA_TASK_NAME);
     assertEquals("", state.ASSEMBLE_TEST_TASK_NAME);
-    assertEquals(Sets.newHashSet("generateSources"), state.AFTER_SYNC_TASK_NAMES);
+    assertEquals("", state.COMPILE_JAVA_TEST_TASK_NAME);
+    assertThat(state.AFTER_SYNC_TASK_NAMES).containsOnly("generateSources");
 
     verify(mainArtifact);
   }
