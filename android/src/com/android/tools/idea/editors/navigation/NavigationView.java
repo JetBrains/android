@@ -58,7 +58,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.idea.editors.navigation.Utilities.*;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.*;
 
 public class NavigationView extends JComponent {
   private static final Logger LOG = Logger.getInstance(NavigationView.class.getName());
@@ -214,12 +214,12 @@ public class NavigationView extends JComponent {
         String fragmentClassName = fragment.className;
         String resource = Analyser.getXMLFileName(module, fragmentClassName, false);
         if (resource == null) {
-          PsiClass listClass = Utilities.getPsiClass(module, "android.app.ListFragment");
+          PsiClass listClass = NavigationEditorUtils.getPsiClass(module, "android.app.ListFragment");
           if (listClass == null) {
             LOG.warn("Can't find: android.app.ListFragment");
             continue;
           }
-          PsiClass psiClass = Utilities.getPsiClass(module, fragmentClassName);
+          PsiClass psiClass = NavigationEditorUtils.getPsiClass(module, fragmentClassName);
           if (psiClass != null && (psiClass.isInheritor(listClass, true))) {
             if (tag.getName().equals("ListView")) {
               return fragmentClassName;
@@ -519,7 +519,7 @@ public class NavigationView extends JComponent {
   private Point[] getControlPoints(Transition t) {
     Rectangle srcBounds = getBounds(t.getSource());
     Rectangle dstBounds = getBounds(t.getDestination());
-    return getControlPoints(srcBounds, dstBounds, Utilities.getMidLine(srcBounds, dstBounds));
+    return getControlPoints(srcBounds, dstBounds, NavigationEditorUtils.getMidLine(srcBounds, dstBounds));
   }
 
   private static int getTurnLength(Point[] points, float scale) {
@@ -1028,7 +1028,7 @@ public class NavigationView extends JComponent {
                 Point dropLocation = diff(dropLoc, midPoint(size));
                 myNavigationModel.getStateToLocation().put(state, myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 execute(state, execute);
-                dropLoc = Utilities.sum(dropLocation, MULTIPLE_DROP_STRIDE);
+                dropLoc = NavigationEditorUtils.sum(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
           }
