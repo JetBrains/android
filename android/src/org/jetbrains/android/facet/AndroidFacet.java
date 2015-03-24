@@ -24,6 +24,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.avdmanager.EmulatorRunner;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -631,18 +632,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           commandLine.addParameter(s);
         }
       }
+      final EmulatorRunner runner = new EmulatorRunner(getModule().getProject(), "AVD: " + avdName, commandLine);
       handler.notifyTextAvailable(commandLine.getCommandLineString() + '\n', ProcessOutputTypes.STDOUT);
 
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         @Override
         public void run() {
           try {
-            AndroidUtils.executeCommand(commandLine, new OutputProcessor() {
-              @Override
-              public void onTextAvailable(@NotNull String text) {
-                handler.notifyTextAvailable(text, ProcessOutputTypes.STDOUT);
-              }
-            }, WaitingStrategies.WaitForTime.getInstance(5000));
+            runner.start();
           }
           catch (ExecutionException e) {
             final String stackTrace = AndroidCommonUtils.getStackTrace(e);
