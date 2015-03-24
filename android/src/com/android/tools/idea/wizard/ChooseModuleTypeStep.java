@@ -53,7 +53,6 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
   private JPanel myPanel;
   private JBList myModuleTypeList;
   private ASGallery<ModuleTemplate> myFormFactorGallery;
-  private JPanel myTypeListPlaceholder;
   private JPanel myModulesPanel;
   private boolean myIsSynchronizingSelection = false;
 
@@ -71,9 +70,6 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
 
   public ChooseModuleTypeStep(Iterable<ModuleTemplateProvider> moduleTypesProviders, @Nullable Disposable parentDisposable) {
     super("Choose Module Type", "Select an option below to create your new module", null, parentDisposable);
-    HideableDecorator decorator = new HideableDecorator(myTypeListPlaceholder, "More Modules", false);
-    decorator.setContentComponent(myModulesPanel);
-    decorator.setOn(false);
     myModuleTypeList.setCellRenderer(new TemplateListCellRenderer());
     myModuleTypesProviders = moduleTypesProviders;
     myModuleTypeList.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
