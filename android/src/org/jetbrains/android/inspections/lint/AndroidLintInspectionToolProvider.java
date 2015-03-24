@@ -12,6 +12,7 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
@@ -572,6 +573,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintNegativeMarginInspection extends AndroidLintInspectionBase {
+    public AndroidLintNegativeMarginInspection() {
+      super(AndroidBundle.message("android.lint.inspections.negative.margin"), NegativeMarginDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintNestedScrollingInspection extends AndroidLintInspectionBase {
     public AndroidLintNestedScrollingInspection() {
       super(AndroidBundle.message("android.lint.inspections.nested.scrolling"), NestedScrollingWidgetDetector.ISSUE);
@@ -997,7 +1004,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getApiDetectorFixes(startElement, endElement, message);
+      return getApiDetectorFixes(ApiDetector.UNSUPPORTED, startElement, endElement, message);
     }
   }
 
@@ -1009,18 +1016,17 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getApiDetectorFixes(startElement, endElement, message);
+      return getApiDetectorFixes(ApiDetector.INLINED, startElement, endElement, message);
     }
   }
 
-  private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull PsiElement startElement,
+  private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull Issue issue,
+                                                           @NotNull PsiElement startElement,
                                                            @SuppressWarnings("UnusedParameters") @NotNull PsiElement endElement,
                                                            @NotNull String message) {
     // TODO: Return one for each parent context (declaration, method, class, outer class(es)
-    Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
-    Matcher matcher = pattern.matcher(message);
-    if (matcher.find()) {
-      int api = Integer.parseInt(matcher.group(1));
+    int api = ApiDetector.getRequiredVersion(issue, message, RAW);
+    if (api != -1) {
       List<AndroidLintQuickFix> list = Lists.newArrayList();
       PsiFile file = startElement.getContainingFile();
       if (file instanceof XmlFile) {
