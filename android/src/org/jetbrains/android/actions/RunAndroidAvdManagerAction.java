@@ -21,6 +21,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,6 +29,7 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -47,11 +49,12 @@ public class RunAndroidAvdManagerAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    openAvdManager();
+    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    openAvdManager(project);
   }
 
-  public static void openAvdManager() {
-    AvdListDialog dialog = new AvdListDialog(null);
+  public static void openAvdManager(@Nullable Project project) {
+    AvdListDialog dialog = new AvdListDialog(project);
     dialog.init();
     dialog.show();
   }

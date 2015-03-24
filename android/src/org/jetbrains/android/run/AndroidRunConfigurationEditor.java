@@ -110,7 +110,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       }
     };
 
-    myAvdComboComponent.setComponent(new AvdComboBox(true, false) {
+    myAvdComboComponent.setComponent(new AvdComboBox(project, true, false) {
       @Override
       public Module getModule() {
         return getModuleSelector().getModule();
