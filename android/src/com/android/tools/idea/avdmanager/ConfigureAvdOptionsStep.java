@@ -104,6 +104,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private TextFieldWithBrowseButton myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JTextField myAvdDisplayName;
+  private JBLabel mySkinDefinitionLabel;
   private Set<JComponent> myAdvancedOptionsComponents;
 
   // Labels used for the advanced settings toggle button
@@ -256,9 +257,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     if (skinDir != null) {
       File layoutFile = new File(skinDir, "layout");
       if (!layoutFile.isFile()) {
-        setErrorHtml("The skin directory does not point to a valid skin.");
+        setErrorState("The skin directory does not point to a valid skin.",
+                      mySkinDefinitionLabel, myCustomSkinPath);
         valid = false;
       }
+    }
+
+    Boolean gpu = myState.get(USE_HOST_GPU_KEY);
+    Boolean snapshot = myState.get(USE_SNAPSHOT_KEY);
+    if (gpu != null && snapshot != null && gpu && snapshot) {
+      setErrorState("GPU Emulation and Snapshot cannot by used simultaneously.", myUseHostGPUCheckBox, myStoreASnapshotForCheckBox);
+      valid = false;
     }
 
     return valid;
@@ -274,28 +283,47 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         ((JLabel)c).setIcon(null);
       } else if (c instanceof StorageField) {
         ((StorageField)c).setError(false);
+      } else if (c instanceof JCheckBox) {
+        c.setForeground(JBColor.foreground());
       } else {
         c.setBorder(null);
       }
     }
     myAvdConfigurationOptionHelpPanel.setErrorMessage("");
+    setErrorHtml(null);
   }
 
   /**
    * Set an error message and mark the given components as being in error state
    */
   private void setErrorState(String message, JComponent... errorComponents) {
-    myAvdConfigurationOptionHelpPanel.setErrorMessage(message);
+    boolean isVisible = false;
     for (JComponent c : errorComponents) {
-      if (c instanceof JLabel) {
-        c.setForeground(JBColor.RED);
-        ((JLabel)c).setIcon(AllIcons.General.BalloonError);
-      } else if (c instanceof StorageField) {
-        ((StorageField)c).setError(true);
-      } else {
-        c.setBorder(new LineBorder(JBColor.RED));
+      if (c.isShowing()) {
+        isVisible = true;
+        break;
       }
-      myErrorStateComponents.add(c);
+    }
+    if (!isVisible) {
+      setErrorHtml(message);
+    } else {
+      myAvdConfigurationOptionHelpPanel.setErrorMessage(message);
+      for (JComponent c : errorComponents) {
+        if (c instanceof JLabel) {
+          c.setForeground(JBColor.RED);
+          ((JLabel)c).setIcon(AllIcons.General.BalloonError);
+        }
+        else if (c instanceof StorageField) {
+          ((StorageField)c).setError(true);
+        }
+        else if (c instanceof JCheckBox) {
+          c.setForeground(JBColor.RED);
+        }
+        else {
+          c.setBorder(new LineBorder(JBColor.RED));
+        }
+        myErrorStateComponents.add(c);
+      }
     }
   }
 
@@ -653,6 +681,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     for (JComponent c : myAdvancedOptionsComponents) {
       c.setVisible(show);
     }
+    validate();
     myRoot.validate();
   }
 
