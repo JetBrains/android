@@ -49,10 +49,6 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
-    if (myInsideJarClassLoader) {
-      throw new ClassNotFoundException(name);
-    }
-
     return load(name);
   }
 
@@ -75,39 +71,28 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     try {
       myInsideJarClassLoader = true;
-      return myJarClassLoader.loadClass(name);
-    }
-    catch (UnsupportedClassVersionError e) {
-      try {
-        String relative = ClassContext.getInternalName(name) + DOT_CLASS;
-        InputStream is = myJarClassLoader.getResourceAsStream(relative);
-        if (is != null) {
-          byte[] data = ByteStreams.toByteArray(is);
-          is.close();
-          if (!isValidClassFile(data)) {
-            throw e;
-          }
-
-          byte[] rewritten = ClassConverter.rewriteClass(data);
-          try {
-            return defineClass(null, rewritten, 0, rewritten.length);
-          }
-          catch (UnsupportedClassVersionError inner) {
-            // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
-            // such that clients can look up the actual bytecode version required.
-            // Note that we wrap the original error, not the one from the attempted
-            // class rewrite.
-            throw InconvertibleClassError.wrap(e, name, data);
-          }
+      String relative = ClassContext.getInternalName(name) + DOT_CLASS;
+      InputStream is = myJarClassLoader.getResourceAsStream(relative);
+      if (is != null) {
+        byte[] data = ByteStreams.toByteArray(is);
+        is.close();
+        if (!isValidClassFile(data)) {
+          throw new ClassFormatError(name);
         }
-        throw e;
-      } catch (Exception ex) {
-        throw e;
+
+        byte[] rewritten = convertClass(data);
+        try {
+          return defineClass(null, rewritten, 0, rewritten.length);
+        }
+        catch (UnsupportedClassVersionError inner) {
+          // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
+          // such that clients can look up the actual bytecode version required.
+          throw InconvertibleClassError.wrap(inner, name, data);
+        }
       }
-    }
-    catch (ClassNotFoundException e) {
-      LOG.debug(e);
       return null;
+    } catch (IOException ex) {
+      throw new Error("Failed to load class " + name, ex);
     }
     finally {
       myInsideJarClassLoader = false;
@@ -146,24 +131,24 @@ public abstract class RenderClassLoader extends ClassLoader {
     if (data == null) {
       return null;
     }
-    try {
-      return defineClass(null, data, 0, data.length);
-    } catch (UnsupportedClassVersionError e) {
-      if (!isValidClassFile(data)) {
-        throw e;
-      }
 
-      byte[] rewritten = ClassConverter.rewriteClass(data);
-      try {
-        return defineClass(null, rewritten, 0, rewritten.length);
-      } catch (UnsupportedClassVersionError inner) {
-        // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
-        // such that clients can look up the actual bytecode version required.
-        // Note that we wrap the original error, not the one from the attempted
-        // class rewrite.
-        throw InconvertibleClassError.wrap(e, fqcn, data);
-      }
+    if (!isValidClassFile(data)) {
+      throw new ClassFormatError(fqcn);
     }
+
+    byte[] rewritten = convertClass(data);
+    try {
+      return defineClass(null, rewritten, 0, rewritten.length);
+    } catch (UnsupportedClassVersionError inner) {
+      // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
+      // such that clients can look up the actual bytecode version required.
+      throw InconvertibleClassError.wrap(inner, fqcn, data);
+    }
+  }
+
+  @NotNull
+  protected byte[] convertClass(@NotNull byte[] data) {
+    return ClassConverter.rewriteClass(data);
   }
 
   @Nullable
