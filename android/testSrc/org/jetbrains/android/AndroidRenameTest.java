@@ -454,6 +454,11 @@ public class AndroidRenameTest extends AndroidTestCase {
     doRenameComponentTest("MyActivity1");
   }
 
+  public void testRenameComponent2() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "ChildActivity.java", "src/p1/p2/ChildActivity.java");
+    doRenameComponentTest("MyActivity1");
+  }
+
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
