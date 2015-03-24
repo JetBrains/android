@@ -323,11 +323,26 @@ public class RenderLogger extends LayoutLog {
         int lineNumber = e.getLineNumber();
         int column = e.getColumnNumber();
 
+        // Strip out useless input sources pointing back to the internal reader
+        // e.g. "in java.io.InputStreamReader@4d957e26"
+        String reader = " in java.io.InputStreamReader@";
+        int index = msg.indexOf(reader);
+        if (index != -1) {
+          int end = msg.indexOf(')', index + 1);
+          if (end != -1) {
+            msg = msg.substring(0, index) + msg.substring(end);
+          }
+        }
+
         String path = message.substring("Failed to parse file ".length());
 
         RenderProblem.Html problem = RenderProblem.create(WARNING);
         problem.tag("xmlParse");
-        problem.throwable(throwable);
+
+        // Don't include exceptions for XML parser errors: that's just displaying irrelevant
+        // information about how we ended up parsing the file
+        //problem.throwable(throwable);
+
         HtmlBuilder builder = problem.getHtmlBuilder();
         if (lineNumber != -1) {
           builder.add("Line ").add(Integer.toString(lineNumber)).add(": ");

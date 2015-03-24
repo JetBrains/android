@@ -16,12 +16,11 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.Required;
 
 import java.util.List;
 
 @DefinesXml
-public interface Vector extends DrawableDomElement {
+public interface VectorGroup extends DrawableDomElement {
   List<VectorPath> getPaths();
   List<VectorGroup> getGroups();
   List<VectorClipPath> getClipPaths();
