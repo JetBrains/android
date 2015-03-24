@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -71,6 +72,13 @@ public class WizardConstants {
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+  /**
+   * Files to open in the editor window after the Wizard is finished.
+   */
+  @SuppressWarnings("unchecked")
+  public static final Key<List<File>> FILES_TO_OPEN_KEY = createKey("files.to.open", WIZARD, (Class<List<File>>)(Class)List.class);
+
+  // Patterns
   public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
   public static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
