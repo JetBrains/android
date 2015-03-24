@@ -48,6 +48,8 @@ public class WizardConstants {
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
   public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
 
+  public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = new Dimension(192, 192);
+
   // State Store Keys
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
