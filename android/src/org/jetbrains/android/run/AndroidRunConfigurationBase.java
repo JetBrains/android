@@ -204,7 +204,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       Variant variant = ideaAndroidProject.getSelectedVariant();
       if (!variant.getMainArtifact().isSigned()) {
         AndroidArtifactOutput output = GradleUtil.getOutput(variant.getMainArtifact());
-        String message = AndroidBundle.message("run.error.apk.not.signed", output.getOutputFile().getName());
+        String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName());
         Messages.showErrorDialog(project, message, CommonBundle.getErrorTitle());
         return null;
       }
