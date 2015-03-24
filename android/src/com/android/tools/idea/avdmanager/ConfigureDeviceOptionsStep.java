@@ -270,6 +270,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     if (refreshAll || modified.contains(DEVICE_NAME_KEY)) {
       String name = myState.get(DEVICE_NAME_KEY);
       myBuilder.setName(name == null ? "" : name);
+      myBuilder.setId(DeviceManagerConnection.getUniqueId(name));
     }
 
     if (!myState.containsKey(WIP_SCREEN_KEY)) {
