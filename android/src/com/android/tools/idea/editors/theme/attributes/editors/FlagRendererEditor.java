@@ -23,6 +23,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
 import javax.swing.*;
@@ -143,6 +144,12 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
             flag.setSelected(true);
           }
           flag.addActionListener(new CheckBoxListener());
+          String toolTipText = attrDefinition.getValueDoc(flagName);
+          if (toolTipText != null) {
+            // TODO: figure out a way to have the tooltip window resize to fit the dialog window
+            // without crashing because of exceeding height
+            flag.setToolTipText(UIUtil.convertSpace2Nbsp(toolTipText.trim().replaceAll(" +", " ")));
+          }
           box.add(flag);
         }
       }
