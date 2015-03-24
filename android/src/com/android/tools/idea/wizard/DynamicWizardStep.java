@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
@@ -322,7 +323,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * @return header color for this step
    */
   @NotNull
-  protected Color getHeaderColor() {
+  protected JBColor getHeaderColor() {
     return WizardConstants.ANDROID_NPW_HEADER_COLOR;
   }
 
