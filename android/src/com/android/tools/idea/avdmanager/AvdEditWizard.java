@@ -252,7 +252,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     boolean isCircular = DeviceDefinitionPreview.isCircular(device);
 
-    String avdName = calculateAvdName(avdInfo, device, forceCreate);
+    String avdName = calculateAvdName(avdInfo, hardwareProperties, device, forceCreate);
 
     // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
     if (avdInfo != null && !forceCreate) {
@@ -299,18 +299,22 @@ public class AvdEditWizard extends DynamicWizard {
   }
 
   @NotNull
-  private static String calculateAvdName(@Nullable AvdInfo avdInfo, @NotNull Device device, boolean forceCreate) {
+  private static String calculateAvdName(@Nullable AvdInfo avdInfo, @NotNull Map<String, String> hardwareProperties,
+                                         @NotNull Device device, boolean forceCreate) {
     if (avdInfo != null && !forceCreate) {
       return avdInfo.getName();
     }
-    String deviceName = device.getDisplayName().replace(' ', '_');
-    String manufacturer = device.getManufacturer().replace(' ', '_');
-    String candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
+    String candidateBase = hardwareProperties.get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+    if (candidateBase == null || candidateBase.isEmpty()) {
+      String deviceName = device.getDisplayName().replace(' ', '_');
+      String manufacturer = device.getManufacturer().replace(' ', '_');
+      candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
+    }
     candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
     String candidate = candidateBase;
     int i = 1;
     while (AvdManagerConnection.avdExists(candidate)) {
-      candidate = String.format("%1$s_%2$d", candidateBase, i);
+      candidate = String.format("%1$s_%2$d", candidateBase, i++);
     }
     return candidate;
   }
