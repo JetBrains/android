@@ -29,6 +29,7 @@ public class AttributeDefinition {
   private final Set<AttributeFormat> myFormats = EnumSet.noneOf(AttributeFormat.class);
   private final List<String> myValues = new ArrayList<String>();
   private final Map<String, String> myStyleable2DocValue = new HashMap<String, String>();
+  private final Map<String, String> myValueDoc = new HashMap<String, String>();
   private String myGlobalDocValue;
   private String myAttrGroup;
 
@@ -93,5 +94,14 @@ public class AttributeDefinition {
   @Override
   public String toString() {
     return myName + " [" + myFormats + ']';
+  }
+
+  public void addValueDoc(@NotNull String value, @NotNull String doc) {
+    myValueDoc.put(value, doc);
+  }
+
+  @Nullable
+  public String getValueDoc(@NotNull String value) {
+    return myValueDoc.get(value);
   }
 }
