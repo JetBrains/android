@@ -36,17 +36,16 @@ public class UnifierTest extends AndroidTestCase {
       "    $x + $y;" +
       "}", psiClass);
 
-    Unifier.DEBUG = true;
     final Map<String, PsiElement> result = Unifier.match(template, expression);
     assertNotNull(result);
 
     final PsiElement x = result.get("$x");
     final PsiElement y = result.get("$y");
 
-    assertInstanceOf(x, PsiLiteral.class);
-    assertInstanceOf(y, PsiLiteral.class);
+    final Object xValue = assertInstanceOf(x, PsiLiteral.class).getValue();
+    final Object yValue = assertInstanceOf(y, PsiLiteral.class).getValue();
 
-    assertEquals(((PsiLiteral) x).getValue(), Integer.valueOf(20));
-    assertEquals(((PsiLiteral) y).getValue(), Integer.valueOf(22));
+    assertEquals(xValue, Integer.valueOf(20));
+    assertEquals(yValue, Integer.valueOf(22));
   }
 }
