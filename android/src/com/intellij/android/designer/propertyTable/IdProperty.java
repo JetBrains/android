@@ -89,7 +89,6 @@ public class IdProperty extends AttributeProperty {
   public void setValue(@NotNull final RadViewComponent component, final Object value) throws Exception {
     final String newId = value != null ? value.toString() : "";
 
-    IdManager idManager = IdManager.get(component);
     final String oldId = component.getId();
 
     if (ourRefactoringChoice != REFACTOR_NO
@@ -171,16 +170,8 @@ public class IdProperty extends AttributeProperty {
       }
     }
 
-    if (idManager != null) {
-      idManager.removeComponent(component, false);
-    }
-
     //noinspection ConstantConditions
     super.setValue(component, value);
-
-    if (idManager != null) {
-      idManager.addComponent(component);
-    }
   }
 
   @Override

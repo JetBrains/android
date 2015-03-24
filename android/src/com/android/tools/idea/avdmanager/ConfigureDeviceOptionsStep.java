@@ -20,12 +20,18 @@ import com.android.sdklib.devices.*;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.LabelWithEditLink;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,12 +39,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.Document;
 import java.awt.event.ItemListener;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * UI for configuring a Device Hardware Profile.
@@ -63,8 +71,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private JPanel myRootPanel;
   private JCheckBox myHasHardwareButtons;
   private JCheckBox myHasHardwareKeyboard;
-  private LabelWithEditLink myDeviceName;
+  private JTextField myDeviceName;
   private JBLabel myHelpAndErrorLabel;
+  private HyperlinkLabel myHardwareSkinHelpLabel;
+  private TextFieldWithBrowseButton myCustomSkinPath;
 
   /**
    * This contains the Software for the device. Since it has no effect on the
@@ -77,6 +87,9 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
 
   private Device.Builder myBuilder = new Device.Builder();
 
+  // Intermediate key for storing the string path before we convert it to a file
+  private static final ScopedStateStore.Key<String> CUSTOM_SKIN_PATH_KEY = createKey(WIZARD_ONLY + "CustomSkinPath",
+                                                                                     ScopedStateStore.Scope.STEP, String.class);
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
     super("Configure Hardware Profile", null, null, parentDisposable);
     myTemplateDevice = templateDevice;
@@ -94,8 +107,24 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   }
 
   private void createUIComponents() {
+    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
+      @Override
+      public ListCellRenderer getRenderer() {
+        return new ColoredListCellRenderer() {
+          @Override
+          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+            append(((Navigation)value).getShortDisplayValue());
+          }
+        };
+      }
+    };
 
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class));
+    myHelpAndErrorLabel = new JBLabel();
+    myHelpAndErrorLabel.setBackground(JBColor.background());
+    myHelpAndErrorLabel.setForeground(JBColor.foreground());
+    myHelpAndErrorLabel.setOpaque(true);
+    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
+    myHardwareSkinHelpLabel.setHyperlinkTarget("");
   }
 
   @Override
@@ -165,6 +194,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(HAS_GYROSCOPE_KEY, defaultHardware.getSensors().contains(Sensor.GYROSCOPE));
     myState.put(HAS_GPS_KEY, defaultHardware.getSensors().contains(Sensor.GPS));
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
+    File skinFile = defaultHardware.getSkinFile();
+    if (skinFile != null) {
+      myState.put(CUSTOM_SKIN_PATH_KEY, skinFile.getAbsolutePath());
+    }
   }
 
   /**
@@ -379,6 +412,13 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
       }
     }
 
+    if (refreshAll || modified.contains(CUSTOM_SKIN_PATH_KEY)) {
+      File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+      if (skinFile != null) {
+        hardware.setSkinFile(skinFile);
+      }
+    }
+
     // Add the screen to the hardware definition
     hardware.setScreen(screen);
 
@@ -588,11 +628,11 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
    * Bind our controls to their state store keys
    */
   private void registerComponents() {
-    register(DEVICE_NAME_KEY, myDeviceName, LABEL_WITH_EDIT_LINK_COMPONENT_BINDING);
-    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
+    register(DEVICE_NAME_KEY, myDeviceName);
+    setControlDescription(myDeviceName, "Name of the Device Profile");
 
     register(DIAGONAL_SCREENSIZE_KEY, myDiagonalScreenSize, DOUBLE_BINDING);
-    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
+    setControlDescription(myDiagonalScreenSize, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
     register(RESOLUTION_WIDTH_KEY, myScreenResolutionWidth, INT_BINDING);
     setControlDescription(myScreenResolutionWidth, "The total number of physical pixels on a screen. " +
                                                    "When adding support for multiple screens, applications do not work directly " +
@@ -640,6 +680,34 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     setControlDescription(myHasGps, "Enables GPS (global positioning support) support in emulator");
     register(HAS_PROXIMITY_SENSOR_KEY, myHasProximitySensor);
     setControlDescription(myHasProximitySensor, "Enables proximity sensor support in emulator");
+
+    register(CUSTOM_SKIN_PATH_KEY, myCustomSkinPath);
+    FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
+    myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
+                                             getProject(), skinChooserDescriptor);
+    setControlDescription(myCustomSkinPath, "Path to a directory containing a custom skin");
+
+    registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
+      @Nullable
+      @Override
+      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
+      }
+
+      @Nullable
+      @Override
+      public File deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable File currentValue) {
+        String path = state.get(CUSTOM_SKIN_PATH_KEY);
+        if (path != null) {
+          File file = new File(path);
+          if (file.isDirectory()) {
+            return file;
+          }
+        }
+        return null;
+      }
+    });
+
   }
 
 
@@ -720,27 +788,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     }
   };
 
-  public static final ComponentBinding<String, LabelWithEditLink> LABEL_WITH_EDIT_LINK_COMPONENT_BINDING =
-    new ComponentBinding<String, LabelWithEditLink>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
-        newValue = newValue == null ? "" : newValue;
-        component.setText(newValue);
-      }
-
-      @Nullable
-      @Override
-      public String getValue(@NotNull LabelWithEditLink component) {
-        return component.getText();
-      }
-
-      @Nullable
-      @Override
-      public Document getDocument(@NotNull LabelWithEditLink component) {
-        return component.getDocument();
-      }
-    };
-
   @NotNull
   @Override
   public String getStepName() {
@@ -750,5 +797,17 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }

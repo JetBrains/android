@@ -34,7 +34,7 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.ApkUploaderService;
+import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -93,8 +93,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import org.gradle.internal.reflect.*;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -118,6 +116,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1008,7 +1007,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   @Nullable
   private static File getApk(@NotNull Variant variant, @NotNull IDevice device) {
-    List<AndroidArtifactOutput> outputs = Lists.newArrayList(variant.getMainArtifact().getOutputs());
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    List<AndroidArtifactOutput> outputs = Lists.newArrayList(mainArtifact.getOutputs());
     if (outputs.isEmpty()) {
       LOG.info("No outputs for the main artifact of variant: " + variant.getDisplayName());
       return null;
@@ -1023,13 +1023,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     else {
       List<String> abis = device.getAbis();
       int density = device.getDensity();
-      // TODO: The 2nd argument should be the ABI's supported by this variant. The model doesn't expose that right now.
-      // Explanation: If you aren't using the split apk mechanism, then you'd specify an abi filter at the variant level. That information
-      // is needed, so this argument was added to computeBestOutput, but the IDE model doesn't expose it.
-      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, null, density, abis);
+      Set<String> variantAbiFilters = getVariantAbiFilters(mainArtifact);
+      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
       if (output == null) {
-        String message =
-          AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
+        String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
         LOG.error(message);
         return null;
       }
@@ -1038,14 +1035,40 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.12.x, whichever is earlier (b.android.com/76248)
-  private static boolean hasSplitsModel(AndroidArtifactOutput androidArtifactOutput) {
+  private static boolean hasSplitsModel(@NotNull final AndroidArtifactOutput androidArtifactOutput) {
     try {
-      androidArtifactOutput.getAbiFilter();
-      return true;
+      Boolean result = GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Boolean>() {
+        @Override
+        public Boolean call() throws Exception {
+          androidArtifactOutput.getAbiFilter();
+          return true;
+        }
+      });
+      if (result != null) {
+        return result;
+      }
     }
-    catch (UnsupportedMethodException e) {
-      return false;
+    catch (Exception e) {
+      // ignored. Callable does not throw checked exceptions.
     }
+    return false;
+  }
+
+  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.13.x, whichever is earlier (b.android.com/76248)
+  @Nullable
+  private static Set<String> getVariantAbiFilters(@NotNull final AndroidArtifact artifact) {
+    try {
+      return GradleUtil.invokeGradleNonBackwardCompatibleMethod(new Callable<Set<String>>() {
+        @Override
+        @Nullable
+        public Set<String> call() throws Exception {
+          return artifact.getAbiFilters();
+        }
+      });
+    } catch (Exception e) {
+      // ignored. Callable does not throw checked exception.
+    }
+    return null;
   }
 
   private boolean checkPackageNames() {
@@ -1219,13 +1242,18 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     String errorMessage;
     message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
     try {
-      ApkUploaderService installer = ServiceManager.getService(ApkUploaderService.class);
-      if (installer.uploadApk(device, localPath, remotePath)) {
-        return installApp(device, remotePath, packageName);
-      } else {
+      InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
+      if (installedApks.isInstalled(device, new File(localPath), packageName)) {
         message("No apk changes detected. Skipping file upload.", STDOUT);
+        return true;
+      } else {
+        device.pushFile(localPath, remotePath);
+        boolean installed = installApp(device, remotePath, packageName);
+        if (installed) {
+          installedApks.setInstalled(device, new File(localPath), packageName);
+        }
+        return installed;
       }
-      return true;
     }
     catch (TimeoutException e) {
       LOG.info(e);

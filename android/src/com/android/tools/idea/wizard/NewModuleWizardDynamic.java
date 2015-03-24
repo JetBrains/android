@@ -27,9 +27,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.JComponent;
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -60,18 +62,19 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
     ConfigureAndroidProjectPath.putSdkDependentParams(getState());
   }
 
+  @Nullable
+  protected static JComponent buildHeader() {
+    return DynamicWizardStep.createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
+                                                    AndroidIcons.Wizards.NewProjectMascotGreen, "New Module");
+  }
+
   @Override
   protected void addPaths() {
     Collection<NewModuleDynamicPath> contributions = getContributedPaths();
     Iterable<ModuleTemplateProvider> templateProviders =
       Iterables.concat(ImmutableSet.of(new AndroidModuleTemplatesProvider()), contributions);
     addPath(new SingleStepPath(new ChooseModuleTypeStep(templateProviders, getDisposable())));
-    addPath(new SingleStepPath(new ConfigureAndroidModuleStepDynamic(getProject(), getDisposable())) {
-      @Override
-      public boolean isPathVisible() {
-        return myState.get(SELECTED_MODULE_TYPE_KEY) instanceof CreateModuleTemplate;
-      }
-    });
+    addPath(new SingleStepPath(new ConfigureAndroidModuleStepDynamic(getProject(), getDisposable())));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
     }

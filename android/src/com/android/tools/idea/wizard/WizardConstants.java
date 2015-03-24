@@ -35,9 +35,12 @@ public class WizardConstants {
   // Colors
   public static final JBColor ANDROID_NPW_TITLE_COLOR = new JBColor(0x689F38, 0xFFFFFF);
   public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x689F38, 0x356822);
+  public static final JBColor ANDROID_NPW_HEADER_TEXT_COLOR = new JBColor(0xFFFFFF, 0xAAAAAA);
 
   // Dimensions
-  public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, 12, 12, 12);
+  public static final int STUDIO_WIZARD_INSET_SIZE = 12;
+  public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE,
+                                                               STUDIO_WIZARD_INSET_SIZE);
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
   public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
 
@@ -63,4 +66,5 @@ public class WizardConstants {
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
 }

@@ -59,21 +59,10 @@ public class ConfigureAndroidModuleStepDynamicTest extends AndroidGradleTestCase
     assertEquals("app", module.getName());
 
     // "Lib" and "lib2" already exist
-    assertEquals("lib3", myStep.computeModuleName("Lib"));
+    assertEquals("lib3", WizardUtils.computeModuleName("Lib", getProject()));
 
     // "app" already exists
-    assertEquals("app2", myStep.computeModuleName("app"));
-  }
-
-  public void testIsValidModuleName() throws Exception {
-    assertTrue(ConfigureAndroidModuleStepDynamic.isValidModuleName("app"));
-    assertTrue(ConfigureAndroidModuleStepDynamic.isValidModuleName("lib"));
-    assertFalse(ConfigureAndroidModuleStepDynamic.isValidModuleName("123:456"));
-    assertFalse(ConfigureAndroidModuleStepDynamic.isValidModuleName("$boot"));
-
-    for (String s : ConfigureAndroidModuleStep.INVALID_MSFT_FILENAMES) {
-      assertFalse(ConfigureAndroidModuleStepDynamic.isValidModuleName(s));
-    }
+    assertEquals("app2", WizardUtils.computeModuleName("app", getProject()));
   }
 
 }

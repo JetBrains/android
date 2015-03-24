@@ -175,7 +175,8 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       constraints.setColumn(0);
       constraints.setFill(GridConstraints.FILL_NONE);
       constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
-      add(new JBLabel(property.getDisplayName()), constraints);
+      JBLabel label = new JBLabel(property.getDisplayName());
+      add(label, constraints);
       constraints.setColumn(1);
       constraints.setFill(GridConstraints.FILL_HORIZONTAL);
       constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
@@ -236,6 +237,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         }
       }
       add(component, constraints);
+      label.setLabelFor(component);
       myProperties.put(property, component);
       constraints.setRow(constraints.getRow() + 1);
     }

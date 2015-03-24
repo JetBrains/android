@@ -57,6 +57,18 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
   private JPanel myModulesPanel;
   private boolean myIsSynchronizingSelection = false;
 
+  @Nullable
+  @Override
+  protected JComponent getHeader() {
+    return NewModuleWizardDynamic.buildHeader();
+  }
+
+  @Override
+  @Nullable
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
+  }
+
   public ChooseModuleTypeStep(Iterable<ModuleTemplateProvider> moduleTypesProviders, @Nullable Disposable parentDisposable) {
     super("Choose Module Type", "Select an option below to create your new module", null, parentDisposable);
     HideableDecorator decorator = new HideableDecorator(myTypeListPlaceholder, "More Modules", false);
@@ -276,6 +288,7 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
       }
       myIsSynchronizingSelection = false;
       saveState(myPanel);
+      invokeUpdate(SELECTED_MODULE_TYPE_KEY);
     }
   }
 }

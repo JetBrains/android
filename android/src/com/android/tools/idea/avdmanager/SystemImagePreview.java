@@ -16,8 +16,18 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.stats.Distribution;
+import com.android.tools.idea.stats.DistributionService;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.process.ProcessOutput;
+import com.intellij.execution.util.ExecUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
@@ -28,7 +38,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDescription;
 
@@ -37,16 +53,39 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDe
  * launch graphic, platform and API level, and target CPU architecture.
  */
 public class SystemImagePreview extends JPanel {
+  private static final Logger LOG = Logger.getInstance(SystemImagePreview.class);
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
   private static final int FIGURE_PADDING = 3;
   private SystemImageDescription myImageDescription;
+  private Distribution myDistribution;
   private static final int PADDING = 20;
+
+  public SystemImagePreview() {
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        int standardFontHeight = getGraphics().getFontMetrics(AvdWizardConstants.STANDARD_FONT).getHeight();
+        if (myDistribution != null && mouseEvent.getY() > getHeight() - PADDING - standardFontHeight) {
+          try {
+            Desktop.getDesktop().browse(new URI(myDistribution.getUrl()));
+          } catch (URISyntaxException e) {
+            LOG.error("Syntax exception in url for distribution " + myDistribution.getVersion().toShortString());
+          } catch (IOException e) {
+            LOG.error("IOException trying to open url " + myDistribution.getUrl());
+          }
+        }
+      }
+    });
+  }
 
   /**
    * Set the image to display.
    */
   public void setImage(@Nullable SystemImageDescription image) {
     myImageDescription = image;
+    if (image != null) {
+      myDistribution = DistributionService.getInstance().getDistributionForApiLevel(image.target.getVersion().getApiLevel());
+    }
     repaint();
   }
 
@@ -143,6 +182,24 @@ public class SystemImagePreview extends JPanel {
       g2d.setFont(AvdWizardConstants.TITLE_FONT);
       g2d.drawString("This API Level is Deprecated", PADDING, infoSegmentY);
     }
+
+
+    // If this system image is not x86, paint a warning
+    if (detectHaxmInstallation(false) && !myImageDescription.systemImage.getAbiType().startsWith(Abi.X86.toString())) {
+      infoSegmentY += stringHeight * 2;
+      g2d.setFont(AvdWizardConstants.TITLE_FONT);
+      g2d.drawString("Consider using a x86 System Image", PADDING, infoSegmentY);
+      infoSegmentY += stringHeight;
+      g2d.drawString("for better emulation speed", PADDING, infoSegmentY);
+    }
+
+    if (myDistribution != null) {
+      // Paint the help link
+      g2d.setFont(AvdWizardConstants.STANDARD_FONT);
+      g2d.setColor(JBColor.BLUE);
+      g2d.drawString("? See documentation for Android " + myDistribution.getVersion().toShortString() + " APIs", PADDING,
+                     getHeight() - PADDING);
+    }
   }
 
   /**
@@ -180,5 +237,44 @@ public class SystemImagePreview extends JPanel {
       g.drawString("?", (size - width) / 2, height + (size - height) / 2);
       return new ImageIcon(image);
     }
+  }
+
+  private static Boolean myIsHaxmInstalled;
+  private static boolean detectHaxmInstallation(boolean forceRefresh) {
+    if (myIsHaxmInstalled == null || forceRefresh) {
+      try {
+        String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+        if (OS.contains("mac") || OS.contains("darwin")) {
+          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kextstat | grep intel"), null);
+          myIsHaxmInstalled = Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
+            @Override
+            public boolean apply(String input) {
+              return input != null && input.contains("com.intel.kext.intelhaxm");
+            }
+          });
+        } else if (OS.contains("win")) {
+          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc query intelhaxm"), null);
+          myIsHaxmInstalled = Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
+            @Override
+            public boolean apply(String input) {
+              return input == null || !input.contains("does not exist");
+            }
+          });
+        } else if (OS.contains("nux")) {
+          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kvm-ok"), null);
+          myIsHaxmInstalled = Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
+            @Override
+            public boolean apply(String input) {
+              return input != null && input.contains("KVM acceleration can be used");
+            }
+          });
+        } else {
+          myIsHaxmInstalled = false;
+        }
+      } catch (ExecutionException e) {
+        myIsHaxmInstalled = false;
+      }
+    }
+    return myIsHaxmInstalled;
   }
 }

@@ -16,12 +16,14 @@
 
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.NavigationEditorProvider;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
@@ -32,25 +34,36 @@ public class AndroidShowNavigationEditor extends AnAction {
     super("Navigation Editor", null, AndroidIcons.NavigationEditor);
   }
 
-  public void showNavigationEditor(@Nullable Project project, final String dir, final String file) {
+  public void showNavigationEditor(@Nullable Project project, @Nullable Module module, final String dir, final String file) {
     if (project == null) {
       return;
     }
-    final VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) { // this happens when we have the 'default' project, we can't launch nav editor here
+    if (module == null) {
       return;
     }
-    VirtualFile navFile = Utilities.getNavigationFile(baseDir, dir, file);
+    VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) { // this happens when we have the 'default' project; can't launch nav editor from here
+      return;
+    }
+    VirtualFile navFile = Utilities.getNavigationFile(baseDir, module.getName(), dir, file);
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navFile, 0);
     FileEditorManager manager = FileEditorManager.getInstance(project);
     manager.openEditor(descriptor, true);
     manager.setSelectedEditor(navFile, NavigationEditorProvider.ID);
   }
 
+  private void showNavigationEditor(@Nullable Project project, String dir, String file) {
+    if (project != null) {
+      Module[] androidModules = Utilities.getAndroidModules(project);
+      if (androidModules.length > 0) {
+        showNavigationEditor(project, androidModules[0], dir, file);
+      }
+    }
+  }
+
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = e.getProject();
-    showNavigationEditor(project, "raw", "main.nvg.xml");
+    showNavigationEditor(e.getProject(), NavigationEditor.DEFAULT_RESOURCE_FOLDER, NavigationEditor.NAVIGATION_FILE_NAME);
   }
 
   @Override

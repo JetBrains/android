@@ -256,7 +256,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      template.render(projectRoot, moduleRoot, templateState);
+      template.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
         return true;
@@ -265,7 +265,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
-      activityTemplate.render(projectRoot, moduleRoot, templateState);
+      activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
       myFilesToOpen = activityTemplate.getFilesToOpen();
       return true;
     }

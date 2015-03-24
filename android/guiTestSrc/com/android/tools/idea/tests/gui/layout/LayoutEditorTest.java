@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
 import org.junit.Test;
 
+import java.awt.*;
 import java.util.Collections;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -103,7 +104,151 @@ public class LayoutEditorTest extends GuiTestCase {
     // make sure XML source was escaped properly
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("android:text=\"", null, true));
-    assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"",
-                 editor.getCurrentLineContents(true, false, 0));
+    assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"", editor.getCurrentLineContents(true, false, 0));
+
+    // Check the resource reference symbols escaping
+    // https://code.google.com/p/android/issues/detail?id=73101
+    editor.selectEditorTab(EditorFixture.Tab.DESIGN);
+    // If it's not a valid resource reference, escape the initial symbol.
+    property.enterValue("@");
+    property.requireValue("\\@");
+    property.requireXmlValue("\\@");
+    property.enterValue("?");
+    property.requireValue("\\?");
+    property.requireXmlValue("\\?");
+    property.enterValue("@string"); // Incomplete reference.
+    property.requireValue("\\@string");
+    property.requireXmlValue("\\@string");
+    // Try a valid references.
+    property.enterValue("@string/valid_ref");
+    property.requireValue("@string/valid_ref");
+    property.requireXmlValue("@string/valid_ref");
+    property.enterValue("?android:attr");
+    property.requireValue("?android:attr");
+    property.requireXmlValue("?android:attr");
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testDeletion() throws Exception {
+    // Tests deletion: Opens a layout, finds the first TextView, deletes it,
+    // checks that the component hierarchy shows it as removed. Then performs
+    // an undo; checks that the widget is back. Then it ensures that root components
+    // cannot be deleted, by selecting it, attempting to delete it, and verifying
+    // that it's still there.
+
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    LayoutEditorFixture layout = editor.getLayoutEditor(false);
+    assertNotNull(layout);
+    layout.waitForNextRenderToFinish();
+
+    // Find and click the first text view
+    LayoutEditorComponentFixture textView = layout.findView("TextView", 0);
+    textView.click();
+
+    assertEquals("Device Screen\n" +
+                 "    RelativeLayout\n" +
+                 "        *TextView - @string/hello_world\n", layout.describeComponentTree(true));
+
+    projectFrame.invokeMenuPath("Edit", "Delete");
+
+    layout.waitForNextRenderToFinish();
+    layout.requireComponentTree("Device Screen\n" +
+                                "    *RelativeLayout\n", true);
+
+    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+
+    layout.waitForNextRenderToFinish();
+    layout.requireComponentTree("Device Screen\n" +
+                                "    RelativeLayout\n" +
+                                "        TextView - @string/hello_world\n", false);
+
+
+    // Check that we can't delete the root component
+    LayoutEditorComponentFixture relativeLayout = layout.findView("RelativeLayout", 0);
+    relativeLayout.click();
+
+    layout.requireComponentTree("Device Screen\n" +
+                                "    *RelativeLayout\n" +
+                                "        TextView - @string/hello_world\n", true);
+
+    projectFrame.invokeMenuPath("Edit", "Delete");
+
+    layout.requireComponentTree("Device Screen\n" +
+                                "    RelativeLayout\n" + // still there!
+                                "        TextView - @string/hello_world\n", false);
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testIdManipulation() throws Exception {
+    // Checks that when we insert new widgets, we assign appropriate id's (they should
+    // be unique in the application), and also check that when we copy/paste a component
+    // hierarchy, we reassign id's to keep them unique and also update all references within
+    // the pasted component to the newly assigned id's.
+
+    IdeFrameFixture projectFrame = openProject("LayoutTest");
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/ids.xml", EditorFixture.Tab.DESIGN);
+    LayoutEditorFixture layout = editor.getLayoutEditor(false);
+    assertNotNull(layout);
+    layout.waitForNextRenderToFinish();
+
+    // Find and click the first text view
+    LayoutEditorComponentFixture relativeLayout = layout.findView("RelativeLayout", 0);
+    relativeLayout.click();
+
+    projectFrame.invokeMenuPath("Edit", "Cut");
+    layout.waitForNextRenderToFinish();
+    layout.requireComponents("Device Screen\n" + "    *LinearLayout (vertical)\n", true);
+
+    Rectangle viewBounds = relativeLayout.getViewBounds();
+
+
+    // First copy
+    projectFrame.invokeMenuPath("Edit", "Paste");
+    // The paste action enters a mode where you have to click where you want to paste/insert: provide that click
+    Point p = new Point(viewBounds.x + 5, viewBounds.y + 5);
+    layout.moveMouse(p);
+    layout.click();
+
+    layout.waitForNextRenderToFinish();
+    layout.requireComponents("Device Screen\n" +
+                             "    LinearLayout (vertical)\n" +
+                             "        *RelativeLayout\n" +
+                             "            buttonid1 - \"Button\"\n" +
+                             "            buttonid2 - \"Button 2\"\n", true);
+
+    // Second copy: should use unique id's (and update relative references)
+    projectFrame.invokeMenuPath("Edit", "Paste");
+    p = new Point(viewBounds.x + 20, viewBounds.y + viewBounds.height + 150);
+    layout.moveMouse(p);
+    layout.click();
+    layout.waitForNextRenderToFinish();
+    layout.requireComponents("Device Screen\n" +
+                             "    LinearLayout (vertical)\n" +
+                             "        RelativeLayout\n" +
+                             "            buttonid1 - \"Button\"\n" +
+                             "            buttonid2 - \"Button 2\"\n" +
+                             "            *RelativeLayout\n" +
+                             // Note: button1 and button2 are already present in the project (not
+                             // in this layout) so button3 is the first unique available button name
+                             "                button3 - \"Button\"\n" +
+                             "                button4 - \"Button 2\"\n", true);
+
+    LayoutEditorComponentFixture button4 = layout.findViewById("button4");
+    button4.requireXml("<Button\n" +
+                       "android:layout_width=\"wrap_content\"\n" +
+                       "android:layout_height=\"wrap_content\"\n" +
+                       "android:text=\"Button 2\"\n" +
+                       "android:id=\"@+id/button4\"\n" +
+                       "android:layout_below=\"@+id/button3\"\n" +
+                       "android:layout_toRightOf=\"@+id/button3\"\n" + // notice how this now points to button3, not buttonid1
+                       "android:layout_toEndOf=\"@+id/button3\" />", true);
   }
 }

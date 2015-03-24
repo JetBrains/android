@@ -526,6 +526,22 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintUsingHttpInspection extends AndroidLintInspectionBase {
+    public AndroidLintUsingHttpInspection() {
+      super(AndroidBundle.message("android.lint.inspections.using.http"), PropertyFileDetector.HTTP);
+    }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String escaped = PropertyFileDetector.getSuggestedEscape(message, RAW);
+      if (escaped != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, escaped)};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
   public static class AndroidLintValidFragmentInspection extends AndroidLintInspectionBase {
     public AndroidLintValidFragmentInspection() {
       super(AndroidBundle.message("android.lint.inspections.valid.fragment"), ISSUE);
@@ -657,6 +673,18 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintGradleCompatibleInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleCompatibleInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.compatible"), GradleDetector.COMPATIBILITY);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      String before = GradleDetector.getOldValue(GradleDetector.COMPATIBILITY, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.COMPATIBILITY, message, RAW);
+      if (before != null && after != null) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
@@ -1367,7 +1395,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintPropertyEscapeInspection extends AndroidLintInspectionBase {
     public AndroidLintPropertyEscapeInspection() {
-      super(AndroidBundle.message("android.lint.inspections.property.escape"), PropertyFileDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.property.escape"), PropertyFileDetector.ESCAPE);
     }
 
     @Override

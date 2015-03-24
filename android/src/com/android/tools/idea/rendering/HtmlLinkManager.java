@@ -427,11 +427,11 @@ public class HtmlLinkManager {
               PsiJavaFile javaFile = (PsiJavaFile)targetClass.getContainingFile();
               PsiImportList importList = javaFile.getImportList();
               if (importList != null) {
-                PsiClass contextClass = JavaPsiFacade.getInstance(project).findClass("android.content.Context", scope);
+                PsiClass contextClass = JavaPsiFacade.getInstance(project).findClass(CLASS_CONTEXT, scope);
                 if (contextClass != null) {
                   importList.add(factory.createImportStatement(contextClass));
                 }
-                PsiClass attributeSetClass = JavaPsiFacade.getInstance(project).findClass("android.util.AttributeSet", scope);
+                PsiClass attributeSetClass = JavaPsiFacade.getInstance(project).findClass(CLASS_ATTRIBUTE_SET, scope);
                 if (attributeSetClass != null) {
                   importList.add(factory.createImportStatement(attributeSetClass));
                 }

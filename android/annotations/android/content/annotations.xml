@@ -249,11 +249,23 @@
   <item name="android.content.ContentResolver void registerContentObserver(android.net.Uri, boolean, android.database.ContentObserver) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver void releasePersistableUriPermission(android.net.Uri, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.ContentResolver void removePeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void requestSync(android.accounts.Account, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver void takePersistableUriPermission(android.net.Uri, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.content.ContentResolver void unregisterContentObserver(android.database.ContentObserver) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -497,7 +509,7 @@
   </item>
   <item name="android.content.Context void grantUriPermission(java.lang.String, android.net.Uri, int) 2">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, android.content.Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION}" />
       <val name="flag" val="true" />
     </annotation>
   </item>

@@ -70,6 +70,7 @@ class EclipseProject implements Comparable<EclipseProject> {
   private Document myManifestDoc;
   private Properties myProjectProperties;
   private AndroidVersion myVersion;
+  private String myAddOn;
   private String myName;
   private String myLanguageLevel;
   private List<EclipseProject> myDirectLibraries;
@@ -252,6 +253,12 @@ class EclipseProject implements Comparable<EclipseProject> {
         AndroidVersion version = SdkVersionInfo.getVersion(myVersion.getCodename(), null);
         if (version != null) {
           myVersion = version;
+        }
+      } else {
+        int index = target.lastIndexOf(':');
+        if (index != -1) {
+          myVersion = SdkVersionInfo.getVersion(target.substring(index + 1), null);
+          myAddOn = target;
         }
       }
     }
@@ -1192,6 +1199,12 @@ class EclipseProject implements Comparable<EclipseProject> {
   public AndroidVersion getCompileSdkVersion() {
     assert isAndroidProject();
     return myVersion == null ? new AndroidVersion(GradleImport.CURRENT_COMPILE_VERSION, null) : myVersion;
+  }
+
+  @Nullable
+  public String getAddOn() {
+    assert isAndroidProject();
+    return myAddOn;
   }
 
   @NonNull

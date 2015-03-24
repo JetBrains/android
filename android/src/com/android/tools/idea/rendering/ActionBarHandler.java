@@ -187,11 +187,16 @@ public class ActionBarHandler extends ActionBarCallback {
     return NAVIGATION_MODE_STANDARD;
   }
 
+  /**
+   * If set to null, this searches for the associated menu using tools:context and tools:menu attributes.
+   * To set no menu, pass an empty list.
+   */
   public void setMenuIdNames(@Nullable List<String> menus) {
     myMenus = menus;
   }
 
-  private @Nullable ActivityAttributes getActivityAttributes() {
+  @Nullable
+  private ActivityAttributes getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       ManifestInfo manifest = ManifestInfo.get(myRenderService.getModule(), false);

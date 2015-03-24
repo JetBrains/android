@@ -109,6 +109,29 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
     );
   }
 
+  public void testGotoActivityFromToolsContext() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "tools_layout1.xml", "res/layout/layout2.xml");
+    assertEquals("MyActivity.java:6:\n" +
+                 "  public class MyActivity extends Activity {\n" +
+                 "  ~~~~~~~~~~~~~|~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  public void testGotoResourceFromToolsAttribute() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "tools_layout2.xml", "res/layout/layout2.xml");
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
   @Nullable
   private PsiElement[] getDeclarationsFrom(VirtualFile file) {
     myFixture.configureFromExistingVirtualFile(file);

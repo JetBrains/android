@@ -19,10 +19,11 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.navigation.*;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.intellij.ide.dnd.DnDEvent;
@@ -30,7 +31,6 @@ import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -42,7 +42,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,14 +61,14 @@ import static com.android.tools.idea.editors.navigation.Utilities.*;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
-  public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
+  public static final ModelDimension GAP = new ModelDimension(500, 100);
   private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
   private static final Color TRIGGER_BACKGROUND_COLOR = new JBColor(Gray.get(200), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = new JBColor(Gray.get(180), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = new JBColor(Gray.get(170), Gray.get(50));
   private static final Color SNAP_GRID_LINE_COLOR_MAJOR = new JBColor(Gray.get(160), Gray.get(40));
 
-  private static final float ZOOM_FACTOR = 1.1f;
+  public static final float ZOOM_FACTOR = 1.1f;
 
   // Snap grid
   private static final int MINOR_SNAP = 32;
@@ -110,57 +109,6 @@ public class NavigationView extends JComponent {
 
   private boolean showRollover = false;
   private boolean mDrawGrid = false;
-
-  /*
-  void foo(String layoutFileBaseName) {
-    System.out.println("layoutFileBaseName = " + layoutFileBaseName);
-    Module module = myMyRenderingParams.myFacet.getModule();
-    ConfigurationManager manager = ConfigurationManager.create(module);
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
-
-    for (Device device : manager.getDevices()) {
-      com.android.sdklib.devices.State portrait = device.getDefaultState().deepCopy();
-      com.android.sdklib.devices.State landscape = device.getDefaultState().deepCopy();
-      portrait.setOrientation(ScreenOrientation.PORTRAIT);
-      landscape.setOrientation(ScreenOrientation.LANDSCAPE);
-
-      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(portrait)));
-      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(landscape)));
-    }
-  }
-  */
-
-  /* In projects with one module with an AndroidFacet, return that AndroidFacet. */
-  @Nullable
-  private static AndroidFacet getAndroidFacet(@NotNull Project project, @NotNull NavigationEditor.ErrorHandler handler) {
-    AndroidFacet result = null;
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        continue;
-      }
-      if (result == null) {
-        result = facet;
-      }
-      else {
-        handler.handleError("", "Sorry, Navigation Editor does not yet support multiple module projects. ");
-        return null;
-      }
-    }
-    return result;
-  }
-
-  @Nullable
-  public static RenderingParameters getRenderingParams(@NotNull Project project,
-                                                       @NotNull VirtualFile file,
-                                                       @NotNull NavigationEditor.ErrorHandler handler) {
-    AndroidFacet facet = getAndroidFacet(project, handler);
-    if (facet == null) {
-      return null;
-    }
-    Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-    return new RenderingParameters(project, configuration, facet);
-  }
 
   public NavigationView(RenderingParameters renderingParams, NavigationModel model, SelectionModel selectionModel) {
     myRenderingParams = renderingParams;
@@ -236,18 +184,21 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  Transition getTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
+  Transition createTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
     Component destComponent = getComponentAt(mouseUpLocation);
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
+        if (destinationRoot.isMenu) {
+          return null;
+        }
         RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
         RenderedView namedEndLeaf = getNamedParent(endLeaf);
 
         Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
         Locator sourceLocator = Locator.of(rootComponentToState.get(sourceComponent), getViewId(namedSourceLeaf));
         Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), getViewId(namedEndLeaf));
-        return new Transition("", sourceLocator, destinationLocator);
+        return new Transition(Transition.PRESS, sourceLocator, destinationLocator);
       }
     }
     return null;
@@ -266,9 +217,11 @@ public class NavigationView extends JComponent {
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
-        RenderedView endLeaf = getRenderedView(destinationRoot, location);
-        RenderedView namedEndLeaf = getNamedParent(endLeaf);
-        return getBounds(destinationRoot, namedEndLeaf);
+        if (!destinationRoot.isMenu) {
+          RenderedView endLeaf = getRenderedView(destinationRoot, location);
+          RenderedView namedEndLeaf = getNamedParent(endLeaf);
+          return getBounds(destinationRoot, namedEndLeaf);
+        }
       }
     }
     return new Rectangle(location);
@@ -290,8 +243,8 @@ public class NavigationView extends JComponent {
     repaint();
   }
 
-  public void zoom(boolean in) {
-    setScale(myTransform.myScale * (in ? ZOOM_FACTOR : 1 / ZOOM_FACTOR));
+  public void zoom(int n) {
+    setScale(myTransform.myScale * (float)Math.pow(ZOOM_FACTOR, n));
   }
 
   private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
@@ -391,6 +344,7 @@ public class NavigationView extends JComponent {
     return result;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   private static Map<String, ViewInfo> createViewNameToViewInfo(@NotNull ViewInfo root) {
     final Map<String, ViewInfo> result = new HashMap<String, ViewInfo>();
     new Object() {
@@ -467,7 +421,7 @@ public class NavigationView extends JComponent {
 
   private void drawGrid(Graphics g, Color c, Dimension modelSize, int width, int height) {
     g.setColor(c);
-    Dimension viewSize = myTransform.modelToView(com.android.navigation.Dimension.create(modelSize));
+    Dimension viewSize = myTransform.modelToView(ModelDimension.create(modelSize));
     if (viewSize.width < MIN_GRID_LINE_SEPARATION || viewSize.height < MIN_GRID_LINE_SEPARATION) {
       return;
     }
@@ -577,6 +531,10 @@ public class NavigationView extends JComponent {
       boolean vertical = a.y == b.y;
       if (!horizontal && !vertical) {
         throw new UnsupportedOperationException();
+      }
+      // Components are perfectly aligned, the 'mid line' has zero length and the transition is shown with no 'dog-leg'.
+      if (horizontal && vertical) {
+        return a;
       }
       return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
@@ -800,13 +758,13 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private static JComponent getPressGestureIcon() {
+  private JComponent getPressGestureIcon() {
     return new JComponent() {
-      private Dimension SIZE = new Dimension(24, 24);
+      private ModelDimension SIZE = new ModelDimension(100, 100);
 
       @Override
       public Dimension getPreferredSize() {
-        return SIZE;
+        return myTransform.modelToView(SIZE);
       }
 
       @Override
@@ -814,7 +772,7 @@ public class NavigationView extends JComponent {
         RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         ((Graphics2D)g).setRenderingHints(rh);
         g.setColor(GESTURE_ICON_COLOR);
-        g.fillOval(0, 0, SIZE.width - 1, SIZE.height - 1);
+        g.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
       }
     };
   }
@@ -829,7 +787,7 @@ public class NavigationView extends JComponent {
     return result;
   }
 
-  private static Component createEditorFor(final Transition transition) {
+  private Component createEditorFor(final Transition transition) {
     String gesture = transition.getType();
     return gesture.equals(Transition.PRESS) ? getPressGestureIcon() : getSwipeGestureIcon();
   }
@@ -849,9 +807,8 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String resourceName, Configuration configuration, Project project) {
+  private static VirtualFile getLayoutXmlVirtualFile(boolean menu, @Nullable String resourceName, Configuration configuration) {
     ResourceType resourceType = menu ? ResourceType.MENU : ResourceType.LAYOUT;
-    PsiManager psiManager = PsiManager.getInstance(project);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     if (resourceResolver == null) {
       return null;
@@ -860,16 +817,45 @@ public class NavigationView extends JComponent {
     if (projectResource == null) { /// seems to happen when we create a new resource
       return null;
     }
-    VirtualFile file = virtualFile(new File(projectResource.getValue()));
-    return file == null ? null : psiManager.findFile(file);
+    return virtualFile(new File(projectResource.getValue()));
   }
 
-  private AndroidRootComponent createRootComponentFor(State state) {
+  @Nullable
+  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String resourceName, Configuration configuration, Project project) {
+    VirtualFile file = getLayoutXmlVirtualFile(menu, resourceName, configuration);
+    return file == null ? null : PsiManager.getInstance(project).findFile(file);
+  }
+
+  private RenderingParameters getActivityRenderingParameters(Module module, VirtualFile virtualFile, String className) {
+    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+    Configuration configuration = myRenderingParams.myFacet.getConfigurationManager().getConfiguration(virtualFile);
+    String theme = manifestInfo.getManifestTheme();
+    ManifestInfo.ActivityAttributes activityAttributes = manifestInfo.getActivityAttributes(className);
+    if (activityAttributes != null) {
+      String activityTheme = activityAttributes.getTheme();
+      theme = activityTheme != null ? activityTheme : theme;
+    }
+    configuration.setTheme(theme);
+    return myRenderingParams.withConfiguration(configuration);
+  }
+
+  private AndroidRootComponent createUnscaledRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myRenderingParams.myFacet.getModule();
     String resourceName = isMenu ? state.getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
-    PsiFile psiFile = getLayoutXmlFile(isMenu, resourceName, myRenderingParams.myConfiguration, myRenderingParams.myProject);
-    AndroidRootComponent result = new AndroidRootComponent(myRenderingParams, psiFile, isMenu);
+    VirtualFile virtualFile = getLayoutXmlVirtualFile(isMenu, resourceName, myRenderingParams.myConfiguration);
+    if (virtualFile == null) {
+      return new AndroidRootComponent(myRenderingParams, null, isMenu);
+    }
+    else {
+      PsiFile psiFile = PsiManager.getInstance(myRenderingParams.myProject).findFile(virtualFile);
+      RenderingParameters params = isMenu ? myRenderingParams : getActivityRenderingParameters(module, virtualFile, state.getClassName());
+      return new AndroidRootComponent(params, psiFile, isMenu);
+    }
+  }
+
+  private AndroidRootComponent createRootComponentFor(State state) {
+    AndroidRootComponent result = createUnscaledRootComponentFor(state);
     result.setScale(myTransform.myScale);
     return result;
   }
@@ -892,21 +878,21 @@ public class NavigationView extends JComponent {
     setPreferredSize();
   }
 
-  private static com.android.navigation.Point getMaxLoc(Collection<com.android.navigation.Point> locations) {
+  private static ModelPoint getMaxLoc(Collection<ModelPoint> locations) {
     int maxX = 0;
     int maxY = 0;
-    for (com.android.navigation.Point location : locations) {
+    for (ModelPoint location : locations) {
       maxX = Math.max(maxX, location.x);
       maxY = Math.max(maxY, location.y);
     }
-    return new com.android.navigation.Point(maxX, maxY);
+    return new ModelPoint(maxX, maxY);
   }
 
   private void setPreferredSize() {
-    com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
-    com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
-    com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStateToLocation().values());
-    Dimension max = myTransform.modelToView(new com.android.navigation.Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
+    ModelDimension size = myRenderingParams.getDeviceScreenSize();
+    ModelDimension gridSize = new ModelDimension(size.width + GAP.width, size.height + GAP.height);
+    ModelPoint maxLoc = getMaxLoc(myNavigationModel.getStateToLocation().values());
+    Dimension max = myTransform.modelToView(new ModelDimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
     setPreferredSize(max);
   }
 
@@ -918,8 +904,8 @@ public class NavigationView extends JComponent {
     Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
     if (component instanceof AndroidRootComponent) {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
+      State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
       if (!shiftDown) {
-        State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
         if (state == null) {
           return Selections.NULL;
         }
@@ -929,7 +915,14 @@ public class NavigationView extends JComponent {
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
-        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, getNamedParent(leaf), this);
+        RenderedView namedParent = getNamedParent(leaf);
+        if (namedParent == null) {
+          return Selections.NULL;
+        }
+        if (myNavigationModel.findTransitionWithSource(Locator.of(state, getViewId(namedParent))) != null) {
+          return Selections.NULL;
+        }
+        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, namedParent, this);
       }
     }
     else {
@@ -1051,7 +1044,7 @@ public class NavigationView extends JComponent {
                 Point dropLocation = diff(dropLoc, midPoint(size));
                 myNavigationModel.getStateToLocation().put(state, myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 execute(state, execute);
-                dropLoc = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+                dropLoc = Utilities.sum(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
           }

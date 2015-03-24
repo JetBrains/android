@@ -35,6 +35,6 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
 
   @Override
   public boolean isAvailable() {
-    return Boolean.getBoolean(DEBUG_SYSTEM_PROPERTY);
+    return FirstRunWizard.isNeeded() || Boolean.getBoolean(DEBUG_SYSTEM_PROPERTY);
   }
 }
