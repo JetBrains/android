@@ -19,6 +19,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,10 +86,12 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     });
     registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
 
-    myState.put(WizardConstants.APPLICATION_NAME_KEY,
-                myState.get(WizardConstants.IS_LIBRARY_KEY)? "My Library" : "My Application");
-    String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
-    myState.put(WizardConstants.COMPANY_DOMAIN_KEY, savedCompanyDomain);
+    if (StringUtil.isEmptyOrSpaces(myState.get(APPLICATION_NAME_KEY))) {
+      String name = myState.getNotNull(WizardConstants.IS_LIBRARY_KEY, false) ? "My Library" : "My Application";
+      myState.put(WizardConstants.APPLICATION_NAME_KEY, name);
+      String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
+      myState.put(WizardConstants.COMPANY_DOMAIN_KEY, savedCompanyDomain);
+    }
     super.init();
   }
 
