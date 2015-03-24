@@ -116,6 +116,7 @@ public class DeviceMenuAction extends FlatComboAction {
   /** TODO: Combine with {@link com.android.tools.idea.wizard.FormFactorUtils.FormFactor} */
   public enum FormFactor {
     MOBILE, WEAR, GLASS, TV, CAR;
+    private Icon myIcon64;
 
     public static FormFactor getFormFactor(@NotNull Device device) {
       if (HardwareConfigHelper.isWear(device)) {
@@ -156,6 +157,18 @@ public class DeviceMenuAction extends FlatComboAction {
 
     public boolean hasEmulator() {
       return this != GLASS;
+    }
+
+    public Icon getIcon64() {
+      switch (this) {
+        case CAR: return AndroidIcons.FormFactors.Car_64;
+        case WEAR: return AndroidIcons.FormFactors.Wear_64;
+        case TV: return AndroidIcons.FormFactors.Tv_64;
+        case GLASS: return AndroidIcons.FormFactors.Glass_64;
+        case MOBILE:
+        default:
+          return AndroidIcons.FormFactors.Mobile_64;
+      }
     }
   }
 
