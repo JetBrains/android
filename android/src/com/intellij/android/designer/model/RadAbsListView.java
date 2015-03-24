@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.model;
 
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -50,7 +50,7 @@ public class RadAbsListView extends RadViewComponent {
     Configuration configuration = designer.getConfiguration();
     Module module = designer.getModule();
     IAndroidTarget target = configuration.getTarget();
-    if (target != null && RenderService.supportsCapability(module, target, Capability.ADAPTER_BINDING)) {
+    if (target != null && RenderService.supportsCapability(module, target, Features.ADAPTER_BINDING)) {
       beforeGroup.add(createListTypeAction(designer));
       beforeGroup.addSeparator();
     }
