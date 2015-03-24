@@ -244,9 +244,9 @@ public class PsiResourceItem extends ResourceItem {
           isFrameworkAttr = true;
         }
 
-        ResourceValue resValue = new ResourceValue(null, name, styleValue.isFramework());
+        ItemResourceValue resValue = new ItemResourceValue(name, isFrameworkAttr, styleValue.isFramework());
         resValue.setValue(ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true));
-        styleValue.addValue(resValue, isFrameworkAttr);
+        styleValue.addItem(resValue);
       }
     }
 
