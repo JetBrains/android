@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
@@ -23,7 +22,6 @@ import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.options.newEditor.OptionsEditor;
 import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
 import com.intellij.openapi.options.newEditor.OptionsTree;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -37,27 +35,19 @@ import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
 public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDialog> {
+  @NotNull
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
-    final Ref<OptionsEditorDialog> wrapperRef = new Ref<OptionsEditorDialog>();
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    return new IdeSettingsDialogFixture(robot, find(robot, OptionsEditorDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
         String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
-        if (expectedTitle.equals(dialog.getTitle()) && dialog.isShowing()) {
-          OptionsEditorDialog wrapper = getDialogWrapperFrom(dialog, OptionsEditorDialog.class);
-          if (wrapper != null) {
-            wrapperRef.set(wrapper);
-            return true;
-          }
-        }
-        return false;
+        return expectedTitle.equals(dialog.getTitle()) && dialog.isShowing();
       }
-    });
-    return new IdeSettingsDialogFixture(robot, dialog, wrapperRef.get());
+    }));
   }
 
-  private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull OptionsEditorDialog dialogWrapper) {
-    super(robot, target, dialogWrapper);
+  private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<OptionsEditorDialog> dialogAndWrapper) {
+    super(robot, dialogAndWrapper);
   }
 
   @NotNull
