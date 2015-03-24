@@ -20,8 +20,11 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -829,6 +832,52 @@ public final class GradleUtil {
     }
     catch (UnsupportedMethodException e) {
       // Method may not exist in the version of Gradle or the Android plugin used by the project.
+    }
+    return null;
+  }
+
+  public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      File repoPath = getAndroidStudioLocalMavenRepoPath();
+      if (repoPath != null && repoPath.isDirectory()) {
+        addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);
+      }
+    }
+  }
+
+  @Nullable
+  private static File getAndroidStudioLocalMavenRepoPath() {
+    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+    if (androidHomePath != null) {
+      File repoPath = new File(androidHomePath, FileUtil.join("gradle", "m2repository"));
+      if (repoPath.isDirectory()) {
+        return repoPath;
+      }
+    }
+    return null;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
+    try {
+      File file = FileUtil.createTempFile("asLocalRepo", SdkConstants.DOT_GRADLE);
+      file.deleteOnExit();
+
+      String contents ="allprojects {\n" +
+                       "  buildscript {\n" +
+                       "    repositories {\n" +
+                       "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                       "    }\n" +
+                       "  }\n" +
+                       "}\n";
+      FileUtil.writeToFile(file, contents);
+      ContainerUtil.addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
+
+      return file;
+    }
+    catch (IOException e) {
+      LOG.warn("Failed to set up 'local repo' Gradle init script", e);
     }
     return null;
   }
