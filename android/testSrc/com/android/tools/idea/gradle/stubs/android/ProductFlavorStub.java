@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.SigningConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +53,7 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  public int getVersionCode() {
+  public Integer getVersionCode() {
     throw new UnsupportedOperationException();
   }
 
@@ -79,17 +80,17 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  public int getRenderscriptTargetApi() {
+  public Integer getRenderscriptTargetApi() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean getRenderscriptSupportMode() {
+  public Boolean getRenderscriptSupportMode() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean getRenderscriptNdkMode() {
+  public Boolean getRenderscriptNdkMode() {
     throw new UnsupportedOperationException();
   }
 
@@ -120,6 +121,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public Collection<String> getResourceConfigurations() {
+    throw new UnsupportedOperationException();
+  }
+
+  @com.android.annotations.Nullable
+  @Override
+  public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
   }
 
