@@ -17,6 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.build.MainOutputFile;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
@@ -1017,13 +1018,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     List<String> abis = device.getAbis();
     int density = device.getDensity();
     Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
-    List<File> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
+    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
     if (apkFiles.isEmpty()) {
       String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
       LOG.error(message);
       return null;
     }
-    return apkFiles.get(0);
+    return ((MainOutputFile) apkFiles.get(0)).getOutputFile();
   }
 
   private boolean checkPackageNames() {
