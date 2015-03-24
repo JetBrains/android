@@ -102,6 +102,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myCategoryList.setSelection(ImmutableSet.of(myCategoryModel.getItem(0)));
     myCreateProfileButton.setAction(new CreateDeviceAction(this));
     myCreateProfileButton.setText("New Hardware Profile");
+    myImportProfileButton.setAction(new ImportDevicesAction(this));
+    myImportProfileButton.setText("Import Hardware Profiles");
     myTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -138,6 +140,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       JBPopupMenu menu = new JBPopupMenu();
       menu.add(createMenuItem(new CloneDeviceAction(this)));
       menu.add(createMenuItem(new EditDeviceAction(this)));
+      menu.add(createMenuItem(new ExportDeviceAction(this)));
       menu.add(createMenuItem(new DeleteDeviceAction(this)));
       menu.show(myTable, p.x, p.y);
     }
