@@ -47,8 +47,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -103,21 +101,8 @@ public class AndroidJavaDocRenderer {
 
   @NotNull
   private static String renderAttributeDoc(Configuration configuration, ItemResourceValue resValue) {
-    AttributeDefinitions defs;
-    if (resValue.isFrameworkAttr()) {
-      IAndroidTarget target = configuration.getTarget();
-      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
-      defs = androidTargetData.getAllAttrDefs(configuration.getModule().getProject());
-    } else {
-      AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
-      defs = facet.getLocalResourceManager().getAttributeDefinitions();
-    }
-    String doc = null;
-    AttributeDefinition def = (defs == null) ? null : defs.getAttrDefByName(resValue.getName());
-    if (def != null) {
-      doc = def.getDocValue(null);
-    }
-
+    AttributeDefinition def = StyleResolver.getAttributeDefinition(configuration, resValue);
+    String doc = (def == null) ? null : def.getDocValue(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.beginBold();
     builder.add(StyleResolver.getQualifiedItemName(resValue));
