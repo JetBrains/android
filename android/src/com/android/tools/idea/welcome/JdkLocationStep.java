@@ -115,7 +115,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   }
 
   @Nullable
-  private static String validateJdkLocation(@Nullable String location) {
+  public static String validateJdkLocation(@Nullable String location) {
     if (StringUtil.isEmpty(location)) {
       return "Path is empty";
     }
@@ -183,6 +183,12 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(myPathKey, myJdkPath);
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    InstallerData installerData = InstallerData.get(myState);
+    return !installerData.hasValidJdkLocation();
   }
 
   @Override
