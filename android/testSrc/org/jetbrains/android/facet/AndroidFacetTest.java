@@ -95,6 +95,11 @@ public class AndroidFacetTest extends AndroidTestCase {
 
   public void testUpdateGradleTaskNamesWithoutTestArtifact() {
     JpsAndroidModuleProperties state = new JpsAndroidModuleProperties();
+    // Set values to verify that they are cleared.
+    state.ASSEMBLE_TASK_NAME = "assembleTest";
+    state.COMPILE_JAVA_TEST_TASK_NAME = "compileJavaTest";
+    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("generateTestSources");
+
     AndroidArtifact mainArtifact = createMock(AndroidArtifact.class);
 
     expect(mainArtifact.getAssembleTaskName()).andStubReturn("assemble");
