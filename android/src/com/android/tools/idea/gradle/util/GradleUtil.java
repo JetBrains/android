@@ -43,6 +43,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
@@ -167,6 +168,23 @@ public final class GradleUtil {
   public static String getGradlePath(@NotNull Module module) {
     AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
     return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
+  }
+
+  /**
+   * Returns whether the given module is the module corresponding to the project root (i.e. gradle path of ":") and has no source roots.
+   *
+   * The default Android Studio projects create an empty module at the root level. In theory, users could add sources to that module, but
+   * we expect that most don't and keep that as a module simply to tie together other modules.
+   */
+  public static boolean isRootModuleWithNoSources(@NotNull Module module) {
+    if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
+      String gradlePath = getGradlePath(module);
+      if (gradlePath == null || gradlePath.equals(":")) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

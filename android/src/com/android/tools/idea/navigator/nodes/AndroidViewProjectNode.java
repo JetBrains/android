@@ -67,14 +67,11 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
     List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(modules.size());
     for (Module module : modules) {
-      if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
+      if (GradleUtil.isRootModuleWithNoSources(module)) {
         // exclude the root module if it doesn't have any source roots
         // The most common organization of Gradle projects has an empty root module that is simply a container for other modules.
         // If we detect such a module, then we don't show it..
-        String gradlePath = GradleUtil.getGradlePath(module);
-        if (gradlePath == null || gradlePath.equals(":")) {
-          continue;
-        }
+        continue;
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(module);

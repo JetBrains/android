@@ -26,6 +26,9 @@ import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidBuildScriptNode extends PsiFileNode {
+  public static final String MODULE_PREFIX = "Module: ";
+  public static final String PROJECT_PREFIX = "Project: ";
+
   @Nullable private final String myQualifier;
 
   public AndroidBuildScriptNode(Project project,
@@ -59,22 +62,25 @@ public class AndroidBuildScriptNode extends PsiFileNode {
     String priority;
 
     // We want the build scripts to be ordered as follows:
-    //   1. We want the build scripts inside modules.
-    //   2. Within a module, we want all the build scripts grouped together
-    //   3. Finally, we want all the global and project wide build scripts.
+    //   1. The Root Module/Project level build script should come first.
+    //   2. The module build scripts should come next
+    //   3. Within a module, we want all the build scripts grouped together
+    //   4. Finally, we want all the global and project wide build scripts.
     // This is achieved in a very simple way by the priorities set below.
     if (myQualifier != null) {
-      boolean isModuleName = ModuleManager.getInstance(myProject).findModuleByName(myQualifier) != null;
-      if (isModuleName) {
+      if (myQualifier.startsWith(PROJECT_PREFIX)) {
         priority = "1-";
       }
-      else {
+      else if (myQualifier.startsWith(MODULE_PREFIX)) {
         priority = "2-";
+      }
+      else {
+        priority = "3-";
       }
       priority += myQualifier + "-";
     }
     else {
-      priority = "3-";
+      priority = "4-";
     }
 
     PsiFile f = getValue();
