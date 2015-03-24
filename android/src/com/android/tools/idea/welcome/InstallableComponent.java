@@ -85,8 +85,7 @@ public abstract class InstallableComponent {
     }
   }
 
-  public abstract void perform(@NotNull InstallContext downloaded,
-                               @NotNull ScopedStateStore parameters) throws WizardException;
+  public abstract void perform(@NotNull InstallContext downloaded) throws WizardException;
 
   @NotNull
   public abstract Set<DownloadableFileDescription> getFilesToDownloadAndExpand();
@@ -96,4 +95,6 @@ public abstract class InstallableComponent {
   public abstract DynamicWizardStep[] createSteps();
 
   public abstract boolean shouldSetup();
+
+  public abstract boolean hasVisibleStep();
 }

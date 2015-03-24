@@ -130,7 +130,7 @@ public class FirstRunWizard extends DynamicWizard {
      */
     @Override
     public boolean isStepVisible() {
-      return myFinishClicks.get() == 1;
+      return myFinishClicks.get() == 1 || (!(myJdkPath.showsStep() || myComponentsPath.showsStep()));
     }
   }
 }
