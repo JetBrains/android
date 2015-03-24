@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.StyleResolver;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -23,8 +24,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -38,14 +37,12 @@ import java.util.*;
  * When editing, opens a dialog with checkboxes for all the possible flags to choose from.
  */
 public class FlagRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
-  private final AttributeDefinitions myAttributeDefinitions;
   private final Box myBox = new Box(BoxLayout.LINE_AXIS);
   private final JLabel myLabel = new JLabel();
   private final EditorTextField myTextField = new EditorTextField();
   private EditedStyleItem myItem = null;
 
-  public FlagRendererEditor(@Nullable AttributeDefinitions attributeDefinitions) {
-    myAttributeDefinitions = attributeDefinitions;
+  public FlagRendererEditor() {
     myBox.add(myTextField);
     myBox.add(Box.createHorizontalGlue());
     JButton editButton = new JButton();
@@ -136,18 +133,17 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
     @Override
     protected JComponent createCenterPanel() {
       Box box = new Box(BoxLayout.PAGE_AXIS);
-      if (myAttributeDefinitions != null) {
-        AttributeDefinition attrDefinition = myAttributeDefinitions.getAttrDefByName(myItem.getName());
-        if (attrDefinition != null) {
-          String[] flagNames = attrDefinition.getValues();
-          for (String flagName : flagNames) {
-            JCheckBox flag = new JCheckBox(flagName);
-            if (mySelectedFlags.contains(flagName)) {
-              flag.setSelected(true);
-            }
-            flag.addActionListener(new CheckBoxListener());
-            box.add(flag);
+      AttributeDefinition attrDefinition =
+        StyleResolver.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getItemResourceValue());
+      if (attrDefinition != null) {
+        String[] flagNames = attrDefinition.getValues();
+        for (String flagName : flagNames) {
+          JCheckBox flag = new JCheckBox(flagName);
+          if (mySelectedFlags.contains(flagName)) {
+            flag.setSelected(true);
           }
+          flag.addActionListener(new CheckBoxListener());
+          box.add(flag);
         }
       }
       return box;
