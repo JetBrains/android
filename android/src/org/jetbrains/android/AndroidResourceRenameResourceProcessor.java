@@ -15,7 +15,19 @@
  */
 package org.jetbrains.android;
 
+import com.android.builder.model.AndroidLibrary;
+import com.android.ide.common.res2.ResourceFile;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
+import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.HtmlBuilder;
+import com.google.common.collect.Lists;
+import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.history.LocalHistory;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.DocumentReference;
@@ -24,9 +36,12 @@ import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -38,7 +53,9 @@ import com.intellij.refactoring.rename.RenameJavaVariableProcessor;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.refactoring.rename.RenameXmlAttributeProcessor;
 import com.intellij.usageView.UsageInfo;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.MultiMap;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -54,13 +71,14 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.DECLARE_STYLEABLE;
 import static com.android.resources.ResourceType.STYLEABLE;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_BUNDLES;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -229,6 +247,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   private static void prepareResourceFieldRenaming(PsiField field, String newName, Map<PsiElement, String> allRenames) {
     new RenameJavaVariableProcessor().prepareRenaming(field, newName, allRenames);
+
     List<PsiElement> resources = AndroidResourceUtil.findResourcesByField(field);
 
     PsiElement res = resources.get(0);
@@ -293,6 +312,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     assert domElement instanceof ResourceElement;
     String name = ((ResourceElement)domElement).getName().getValue();
     assert name != null;
+
     List<ResourceElement> resources = manager.findValueResources(type, name);
     for (ResourceElement resource : resources) {
       XmlElement xmlElement = resource.getName().getXmlAttributeValue();
@@ -393,6 +413,256 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       }
       else if (element instanceof XmlAttributeValue) {
         new RenameXmlAttributeProcessor().renameElement(element, newName, usages, listener);
+      }
+    }
+  }
+
+  @Override
+  public void findExistingNameConflicts(final PsiElement originalElement, String newName, final MultiMap<PsiElement,String> conflicts) {
+    ResourceType type = getResourceType(originalElement);
+    if (type == null) {
+      return;
+    }
+
+    PsiElement element = LazyValueResourceElementWrapper.computeLazyElement(originalElement);
+    if (element == null) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    if (facet == null) {
+      return;
+    }
+
+    // First check to see if the new name is conflicting with an existing resource
+    newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    if (appResources.hasResourceItem(type, newName)) {
+      boolean foundElements = false;
+      PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, type.getName(), newName, true);
+      String message = String.format("Resource @%1$s/%2$s already exists", type, newName);
+      if (resourceFields.length > 0) {
+        // Use find usages to find the actual declaration location such that they can be shown in the conflicts view
+        AndroidFindUsagesHandlerFactory factory = new AndroidFindUsagesHandlerFactory();
+        if (factory.canFindUsages(originalElement)) {
+          FindUsagesHandler handler = factory.createFindUsagesHandler(resourceFields[0], false);
+          if (handler != null) {
+            PsiElement[] elements = ArrayUtil.mergeArrays(handler.getPrimaryElements(), handler.getSecondaryElements());
+            for (PsiElement e : elements) {
+              if (e instanceof LightElement) { // AndroidLightField does not work in the conflicts view; UsageInfo throws NPE
+                continue;
+              }
+              conflicts.putValue(e, message);
+              foundElements = true;
+            }
+          }
+        }
+      }
+
+      if (!foundElements) {
+        conflicts.putValue(originalElement, message);
+      }
+    }
+
+    // Next see if the renamed resource is also defined externally, in which case we should ask the
+    // user if they really want to continue. Despite the name of this method ("findExistingNameConflicts")
+    // and the dialog used to show the message (ConflictsDialog), this isn't conflict specific; the
+    // dialog title simply says "Problems Detected" and the label for the text view is "The following
+    // problems were found". We need to use this because it's the only facility in the rename processor
+    // which lets us ask the user whether to continue and to have the answer either bail out of the operation
+    // or to resume.
+    // See if this is a locally defined resource (you can't rename fields from libraries such as appcompat)
+    // e.g. ?attr/listPreferredItemHeightSmall
+    String name = getResourceName(originalElement);
+    if (name != null) {
+      Project project = facet.getModule().getProject();
+      List<ResourceItem> all = appResources.getResourceItem(type, name);
+      if (all == null) {
+        all = Collections.emptyList();
+      }
+      List<ResourceItem> local = ProjectResourceRepository.getProjectResources(facet, true).getResourceItem(type, name);
+      if (local == null) {
+        local = Collections.emptyList();
+      }
+      HtmlBuilder builder = null;
+      if (local.size() == 0 && all.size() > 0) {
+        builder = new HtmlBuilder(new StringBuilder(300));
+        builder.add("Resource is also only defined in external libraries and cannot be renamed.");
+      }
+      else if (local.size() < all.size()) {
+        // This item is also defined in one of the libraries, not just locally: we can't rename it. Should we
+        // display some sort of warning?
+        builder = new HtmlBuilder(new StringBuilder(300));
+        builder.add("The resource ").beginBold().add(PREFIX_RESOURCE_REF).add(type.getName()).add("/").add(name).endBold();
+        builder.add(" is defined outside of the project (in one of the libraries) and cannot ");
+        builder.add("be updated. This can change the behavior of the application.").newline().newline();
+        builder.add("Are you sure you want to do this?");
+      }
+      if (builder != null) {
+        appendUnhandledReferences(project, facet, all, local, builder);
+        conflicts.putValue(originalElement, builder.getHtml());
+      }
+    }
+  }
+
+  /** Looks up the {@link ResourceType} for the given refactored element. Uses the same
+   * instanceof chain checkups as is done in {@link #canProcessElement} */
+  @Nullable
+  private static ResourceType getResourceType(PsiElement originalElement) {
+    PsiElement element = LazyValueResourceElementWrapper.computeLazyElement(originalElement);
+    if (element == null) {
+      return null;
+    }
+
+    if (element instanceof PsiFile) {
+      ResourceFolderType folderType = ResourceHelper.getFolderType((PsiFile)element);
+      if (folderType != null && folderType != ResourceFolderType.VALUES) {
+        List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+        if (!types.isEmpty()) {
+          return types.get(0);
+        }
+      }
+    }
+    else if (element instanceof PsiField) {
+      PsiField field = (PsiField)element;
+      if (AndroidResourceUtil.isResourceField(field)) {
+        return ResourceType.getEnum(AndroidResourceUtil.getResourceClassName(field));
+      }
+    }
+    else if (element instanceof XmlAttributeValue) {
+      LocalResourceManager manager = LocalResourceManager.getInstance(element);
+      if (manager != null) {
+        if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element)) {
+          return ResourceType.ID;
+        }
+        XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+        if (tag != null && DomManager.getDomManager(tag.getProject()).getDomElement(tag) instanceof ResourceElement) {
+          String typeName = manager.getValueResourceType(tag);
+          if (typeName != null) {
+            return ResourceType.getEnum(typeName);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /** Looks up the resource name for the given refactored element. Uses the same
+   * instanceof chain checkups as is done in {@link #canProcessElement} */
+  @Nullable
+  private static String getResourceName(PsiElement originalElement) {
+    PsiElement element = LazyValueResourceElementWrapper.computeLazyElement(originalElement);
+    if (element == null) {
+      return null;
+    }
+
+    if (element instanceof PsiFile) {
+      PsiFile file = (PsiFile)element;
+      LocalResourceManager manager = LocalResourceManager.getInstance(element);
+      if (manager != null) {
+        String type = manager.getFileResourceType(file);
+        if (type != null) {
+          String name = file.getName();
+          return AndroidCommonUtils.getResourceName(type, name);
+        }
+      }
+      return LintUtils.getBaseName(file.getName());
+    }
+    else if (element instanceof PsiField) {
+      PsiField field = (PsiField)element;
+      return field.getName();
+    }
+    else if (element instanceof XmlAttributeValue) {
+      if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element)) {
+        return AndroidResourceUtil.getResourceNameByReferenceText(((XmlAttributeValue)element).getValue());
+      }
+      XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+      if (tag != null) {
+        DomElement domElement = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+        if (domElement instanceof ResourceElement) {
+          return ((ResourceElement)domElement).getName().getValue();
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /** Writes into the given {@link com.android.utils.HtmlBuilder} a set of references
+   * that are defined in a library (and may or may not also be defined locally) */
+  private static void appendUnhandledReferences(@NotNull Project project,
+                                                @NotNull AndroidFacet facet,
+                                                @NotNull List<ResourceItem> all,
+                                                @NotNull List<ResourceItem> local,
+                                                @NotNull HtmlBuilder builder) {
+    File root = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+    Collection<AndroidLibrary> libraries = null;
+    // Write a set of descriptions to library references. Put them in a list first such that we can
+    // sort the (to for example make test output stable.)
+    List<String> descriptions = Lists.newArrayList();
+    for (ResourceItem item : all) {
+      if (!local.contains(item)) {
+        ResourceFile source = item.getSource();
+        if (libraries == null) {
+          libraries = AppResourceRepository.findAarLibraries(facet);
+        }
+        if (source != null) {
+          File sourceFile = source.getFile();
+
+          // TODO: Look up the corresponding AAR artifact, and then use library.getRequestedCoordinates() or
+          // library.getResolvedCoordinates() here and append the coordinate. However, until b.android.com/77341
+          // is fixed this doesn't work.
+          /*
+          // Attempt to find the corresponding AAR artifact
+          AndroidLibrary library = null;
+          for (AndroidLibrary l : libraries) {
+            File res = l.getResFolder();
+            if (res.exists() && FileUtil.isAncestor(res, sourceFile, true)) {
+              library = l;
+              break;
+            }
+          }
+          */
+
+          // Look for exploded-aar and strip off the prefix path to it
+          File localRoot = root;
+          File prev = sourceFile;
+          File current = sourceFile.getParentFile();
+          while (current != null) {
+            String name = current.getName();
+            if (EXPLODED_AAR.equals(name) || EXPLODED_BUNDLES.equals(name)) {
+              localRoot = prev;
+              break;
+            }
+            prev = current;
+            current = current.getParentFile();
+          }
+
+          if (FileUtil.isAncestor(localRoot, sourceFile, true)) {
+            descriptions.add(FileUtil.getRelativePath(localRoot, sourceFile));
+          }
+          else {
+            descriptions.add(sourceFile.getPath());
+          }
+        }
+      }
+    }
+
+    Collections.sort(descriptions);
+
+    builder.newline().newline();
+    builder.add("Unhandled references:");
+    builder.newline();
+    int count = 0;
+    for (String s : descriptions) {
+      builder.add(s).newline();
+
+      count++;
+      if (count == 10) {
+        builder.add("...").newline();
+        builder.add("(Additional results truncated)");
+        break;
       }
     }
   }

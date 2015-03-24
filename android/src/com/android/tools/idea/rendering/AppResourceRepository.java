@@ -157,6 +157,22 @@ public class AppResourceRepository extends MultiResourceRepository {
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
 
+  @NotNull
+  public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<AndroidLibrary> libraries = Lists.newArrayList();
+    if (facet.isGradleProject()) {
+      IdeaAndroidProject project = facet.getIdeaAndroidProject();
+      if (project != null) {
+        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+        addGradleLibraries(libraries, facet);
+        for (AndroidFacet dependentFacet : dependentFacets) {
+          addGradleLibraries(libraries, dependentFacet);
+        }
+      }
+    }
+    return libraries;
+  }
+
   /**
    *  Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
    * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
