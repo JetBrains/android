@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
@@ -402,7 +402,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
                "android:layout_width=\"match_parent\"\n" +
                "android:layout_height=\"match_parent\" />\n";
 
-    if (service.getLayoutLib().supports(Capability.ACTION_BAR)) {
+    if (service.getLayoutLib().supports(Features.ACTION_BAR)) {
       checkRendering(service, "menu/menu1.png");
       assertEquals(newXml, layout);
     } else {
@@ -420,7 +420,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     RenderService service = getRenderService(file, configuration);
     assertNotNull(service);
 
-    if (service.getLayoutLib().supports(Capability.ACTION_BAR)) {
+    if (service.getLayoutLib().supports(Features.ACTION_BAR)) {
       checkRendering(service, "menu/menu1-light.png");
     } else {
       System.err.println("Not running MenuPreviewRendererTest.testLightTheme: Associated layoutlib in test SDK needs " +

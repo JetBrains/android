@@ -16,7 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
@@ -162,7 +162,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
     // TODO: Support included layouts
     boolean DISABLE_RENDER_INCLUDED = true;
 
-    boolean canPreviewIncluded = !DISABLE_RENDER_INCLUDED && hasCapability(myRenderContext, Capability.EMBEDDED_LAYOUT);
+    boolean canPreviewIncluded = !DISABLE_RENDER_INCLUDED && hasCapability(myRenderContext, Features.EMBEDDED_LAYOUT);
     group.add(new PreviewAction(myRenderContext, "Preview Included", ACTION_PREVIEW_MODE, RenderPreviewMode.INCLUDES, canPreviewIncluded));
     List<VirtualFile> variations = ResourceHelper.getResourceVariations(file, true);
     group.add(new PreviewAction(myRenderContext, "Preview Layout Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.VARIATIONS,
@@ -188,16 +188,16 @@ public class ConfigurationMenuAction extends FlatComboAction {
   }
 
   static void addRtlPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    boolean enabled = hasCapability(context, Capability.RTL);
+    boolean enabled = hasCapability(context, Features.RTL);
     group.add(new PreviewAction(context, "Preview Right-to-Left Layout", ACTION_PREVIEW_MODE, RenderPreviewMode.RTL, enabled));
   }
 
   static void addApiLevelPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    boolean enabled = hasCapability(context, Capability.SIMULATE_PLATFORM);
+    boolean enabled = hasCapability(context, Features.SIMULATE_PLATFORM);
     group.add(new PreviewAction(context, "Preview Android Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.API_LEVELS, enabled));
   }
 
-  private static boolean hasCapability(RenderContext context, Capability capability) {
+  private static boolean hasCapability(RenderContext context, int capability) {
     boolean enabled = false;
     Configuration configuration = context.getConfiguration();
     Module module = context.getModule();

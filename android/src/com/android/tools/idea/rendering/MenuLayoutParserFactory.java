@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Maps;
@@ -49,7 +49,7 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
   private final RenderService myRenderService;
 
   public MenuLayoutParserFactory(@NotNull RenderService renderService) {
-    assert renderService.supportsCapability(Capability.ACTION_BAR) : "Action Bar not supported.";
+    assert renderService.supportsCapability(Features.ACTION_BAR) : "Action Bar not supported.";
     myRenderService = renderService;
   }
 

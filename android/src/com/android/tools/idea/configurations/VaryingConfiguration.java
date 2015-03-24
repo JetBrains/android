@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.rendering.api.Features;
 import com.android.resources.Density;
 import com.android.resources.NightMode;
 import com.android.resources.UiMode;
@@ -287,7 +286,7 @@ public class VaryingConfiguration extends NestedConfiguration {
         to = biggest + 0.1;
       }
 
-      boolean canScaleNinePatch = supports(Capability.FIXED_SCALABLE_NINE_PATCH);
+      boolean canScaleNinePatch = supports(Features.FIXED_SCALABLE_NINE_PATCH);
       for (Device d : devices) {
         if (isTv != isTv(d) || isWear != isWear(d)) {
           continue;
