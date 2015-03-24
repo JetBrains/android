@@ -46,14 +46,15 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.FILES_TO_OPEN_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
  * Presents a wizard to the user to create a new project.
  */
 public class NewProjectWizardDynamic extends DynamicWizard {
+
   private static final String ERROR_MSG_TITLE = "Error in New Project Wizard";
-  private final List<File> myFilesToOpen = Lists.newArrayList();
   private Project myProject;
 
   public NewProjectWizardDynamic(@Nullable Project project, @Nullable Module module) {
@@ -111,6 +112,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     if (mavenUrl != null) {
       state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
+
+    state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
   }
 
   @Override
@@ -143,13 +146,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     String projectName = getState().get(APPLICATION_NAME_KEY);
     if (projectName == null) {
       projectName = "Unnamed Project";
-    }
-
-    // Collect files to open
-    for (AndroidStudioWizardPath path : myPaths) {
-      if (path instanceof NewFormFactorModulePath) {
-        myFilesToOpen.addAll(((NewFormFactorModulePath)path).getFilesToOpen());
-      }
     }
 
     // Pick the highest language level of all the modules/form factors.
@@ -191,7 +187,9 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         }
 
         private boolean openTemplateFiles(Project project) {
-          return TemplateUtils.openEditors(project, myFilesToOpen, true);
+          List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
+          assert filesToOpen != null; // Always initialized in initState
+          return TemplateUtils.openEditors(project, filesToOpen, true);
         }
       }, null, initialLanguageLevel);
     }
