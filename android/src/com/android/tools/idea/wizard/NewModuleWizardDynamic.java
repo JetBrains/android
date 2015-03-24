@@ -26,6 +26,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +94,12 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
 
   @Override
   protected String getWizardActionDescription() {
-    return String.format("Create %1$s", getState().get(APPLICATION_NAME_KEY));
+    String applicationName = getState().get(APPLICATION_NAME_KEY);
+    if (StringUtil.isEmptyOrSpaces(applicationName)) {
+      ModuleTemplate moduleType = myState.get(SELECTED_MODULE_TYPE_KEY);
+      applicationName = moduleType != null ? moduleType.getName() : "Module";
+    }
+    return String.format("Create %1$s", applicationName);
   }
 
   @Override

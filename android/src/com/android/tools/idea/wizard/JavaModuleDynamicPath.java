@@ -19,7 +19,6 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -32,17 +31,16 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
-import static com.android.tools.idea.wizard.WizardConstants.PACKAGE_NAME_KEY;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Path for creating a plain Java Module
  */
 public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModuleDynamicPath {
-
   public static final String JAVA_LIBRARY = "Java Library";
-  private final ScopedStateStore.Key<String> PACKAGE_NAME = ScopedStateStore.createKey(ATTR_PACKAGE_NAME, ScopedStateStore.Scope.PATH, String.class);
+  private static final ScopedStateStore.Key<String> SRC_DIR = ScopedStateStore.createKey(ATTR_SRC_DIR, ScopedStateStore.Scope.PATH, String.class);
+  private static final ScopedStateStore.Key<String> PACKAGE_NAME = ScopedStateStore.createKey(ATTR_PACKAGE_NAME, ScopedStateStore.Scope.PATH, String.class);
+
   @NotNull private final Disposable myDisposable;
   private final TemplateMetadata myMetadata;
   private final Template myTemplate;
@@ -72,6 +70,17 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
       };
     addStep(parameterStep);
     myState.put(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate.getRootPath(), myMetadata));
+    myState.put(SRC_DIR, "src/main/java");
+
+    put(ATTR_RES_DIR, "src/main/res");
+    put(ATTR_AIDL_DIR, "src/main/aidl");
+    put(ATTR_MANIFEST_DIR, "src/main");
+    put(ATTR_TEST_DIR, "src/androidTest");
+  }
+
+  private void put(String attr, String value) {
+    ScopedStateStore.Key<String> key = ScopedStateStore.createKey(attr, ScopedStateStore.Scope.PATH, String.class);
+    myState.put(key, value);
   }
 
   @Override
@@ -95,7 +104,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
     parameterValueMap.putAll(myState.flatten());
 
     // Compute the module directory
-    String projectName = (String)parameterValueMap.get("projectName");
+    String projectName = (String)parameterValueMap.get(FormFactorUtils.ATTR_MODULE_NAME);
     String moduleName = WizardUtils.computeModuleName(projectName, getProject());
     String modulePath = FileUtil.toSystemIndependentName(FileUtil.join(project.getBasePath(), moduleName));
     parameterValueMap.put(TemplateMetadata.ATTR_PROJECT_OUT, modulePath);
@@ -104,10 +113,9 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
     // Compute the output directory
     String packageName = myState.get(PACKAGE_NAME);
     assert packageName != null;
-    String packagePath = "src/main/java/" + packageName.replace('.', '/');
+    String packagePath = FileUtil.join(myState.getNotNull(SRC_DIR, "src/main/java/"), packageName.replace('.', '/'));
     String srcOut = FileUtil.toSystemIndependentName(FileUtil.join(modulePath, packagePath));
     parameterValueMap.put(TemplateMetadata.ATTR_SRC_OUT, srcOut);
-
     parameterValueMap.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, true);
     parameterValueMap.put(ATTR_IS_LIBRARY_MODULE, true);
 
