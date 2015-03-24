@@ -29,6 +29,7 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
@@ -243,9 +244,10 @@ public class SystemImagePreview extends JPanel {
   private static boolean detectHaxmInstallation(boolean forceRefresh) {
     if (myIsHaxmInstalled == null || forceRefresh) {
       try {
+        // TODO: Use the IntelliJ platform lookup methods here: SystemInfo.isMac, SystemInfo.isWindows, etc
         String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
         if (OS.contains("mac") || OS.contains("darwin")) {
-          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kextstat | grep intel"), null);
+          ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("/usr/sbin/kextstat | grep intel"), null);
           myIsHaxmInstalled = Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
             @Override
             public boolean apply(String input) {
