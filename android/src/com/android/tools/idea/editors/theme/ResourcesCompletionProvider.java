@@ -22,7 +22,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,13 +49,13 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
   public List<String> getCompletions(@NotNull EditedStyleItem value) {
     ThemeEditorStyle selectedStyle = value.getSourceStyle();
 
-    AttributeDefinitions attributeDefinitions = selectedStyle.getResolver().getAttributeDefinitions();
-    if (attributeDefinitions == null) {
+    AttributeDefinition attrDefinition =
+      StyleResolver.getAttributeDefinition(selectedStyle.getConfiguration(), value.getItemResourceValue());
+    if (attrDefinition == null) {
       return Collections.emptyList();
     }
 
     Set<ResourceType> acceptedTypes = EnumSet.noneOf(ResourceType.class);
-    AttributeDefinition attrDefinition = attributeDefinitions.getAttrDefByName(value.getName());
     if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
       acceptedTypes.add(ResourceType.COLOR);
     }
