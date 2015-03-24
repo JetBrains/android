@@ -62,7 +62,7 @@ public class DeviceArtDescriptor {
 
   /** Returns the absolute path to {@link #FN_BASE} folder, or null if it couldn't be located. */
   @Nullable
-  private static File getBundledDescriptorsFolder() {
+  public static File getBundledDescriptorsFolder() {
     // In the IDE distribution, this should be in plugins/android/lib/FN_BASE
     String androidJarPath = PathManager.getJarPathForClass(DeviceArtDescriptor.class);
     if (androidJarPath != null) {
