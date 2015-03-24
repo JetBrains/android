@@ -45,15 +45,15 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
                                                                @NotNull FormFactorUtils.FormFactor formFactor) {
     if (formFactor.equals(FormFactorUtils.FormFactor.MOBILE)) {
       CreateModuleTemplate androidApplication =
-        new CreateModuleTemplate(metadata, formFactor, "Phone & Tablet Module", true, AndroidIcons.ModuleTemplates.Mobile);
+        new CreateModuleTemplate(metadata, formFactor, "Phone & Tablet Module", AndroidIcons.ModuleTemplates.Mobile);
       androidApplication.setCustomValue(WizardConstants.IS_LIBRARY_KEY, false);
       CreateModuleTemplate androidLibrary =
-        new CreateModuleTemplate(metadata, formFactor, "Android Library", false, AndroidIcons.ModuleTemplates.Android);
+        new CreateModuleTemplate(metadata, null, "Android Library", AndroidIcons.ModuleTemplates.Android);
       androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
       return ImmutableSet.<ModuleTemplate>of(androidApplication, androidLibrary);
     }
     else {
-      return ImmutableSet.<ModuleTemplate>of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(), true,
+      return ImmutableSet.<ModuleTemplate>of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(),
                                                                       getModuleTypeIcon(formFactor.getEnumValue())));
     }
   }

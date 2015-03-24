@@ -56,7 +56,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
     File templateFile = instance.getTemplateFile(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
     assert templateFile != null;
     myTemplate = Template.createFromPath(templateFile);
-    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), false, AndroidIcons.ModuleTemplates.Android);
+    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), AndroidIcons.ModuleTemplates.Android);
   }
 
   @Override
