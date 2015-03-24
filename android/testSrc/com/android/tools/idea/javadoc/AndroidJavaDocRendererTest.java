@@ -276,11 +276,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>\n" +
                  "<BR/>\n" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;<B>textColor</B> = ?textColorPrimary<BR/>\n" +
-                 "<table style=\"background-color:rgb(0,0,0);color:white;width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;<B>textStyle</B> = normal&nbsp;&nbsp;&nbsp;&nbsp;<B>textSize</B> = 18sp<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary<BR/>\n" +
+                 "<table style=\"background-color:rgb(0,0,0);color:white;width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>\n" +
+                 "<BR/>\n" +
                  "Inherits from: @android:style/TextAppearance:<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;<B>textColorHighlight</B> = #FFFF9200&nbsp;&nbsp;&nbsp;&nbsp;<B>textColorLink</B> = #5C5CFF</body></html>");
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>\n" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>\n" +
+                 "</body></html>");
   }
 
   // TODO: Test flavor docs
