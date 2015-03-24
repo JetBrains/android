@@ -85,7 +85,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myTable.setModelAndUpdateColumns(myModel);
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
-    myCenterCardPanel.add(ScrollPaneFactory.createScrollPane(myTable), NONEMPTY);
+    JPanel nonemptyPanel = new JPanel(new BorderLayout());
+    myCenterCardPanel.add(nonemptyPanel, NONEMPTY);
+    nonemptyPanel.add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
     myCenterCardPanel.add(new EmptyAvdListPanel(this), EMPTY);
     add(myCenterCardPanel, BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
@@ -102,8 +104,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     newButton.setIcon(createAvdAction.getIcon());
     newButton.setText(createAvdAction.getText());
     southPanel.add(newButton, BorderLayout.WEST);
-
-    add(southPanel, BorderLayout.SOUTH);
+    nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
     myTable.addMouseListener(myEditingListener);
     myTable.addMouseMotionListener(myEditingListener);
