@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.navigation.model;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationEditor;
-import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -46,7 +46,8 @@ public abstract class NavigationEditorTest extends AndroidTestCase {
     Project project = myFixture.getProject();
     Module module = myFixture.getModule();
     VirtualFile navFile =
-      Utilities.getNavigationFile(project.getBaseDir(), module.getName(), deviceQualifier, NavigationEditor.NAVIGATION_FILE_NAME);
+      NavigationEditorUtils
+        .getNavigationFile(project.getBaseDir(), module.getName(), deviceQualifier, NavigationEditor.NAVIGATION_FILE_NAME);
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(navFile);
     Analyser analyser = new Analyser(module);
     return analyser.getNavigationModel(configuration);

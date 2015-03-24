@@ -19,7 +19,6 @@ package com.android.tools.idea.editors.navigation;
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.navigation.Event.Operation;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
@@ -107,7 +106,7 @@ public class NavigationEditor implements FileEditor {
       return null;
     }
     List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
-    VirtualFile layoutFile = Utilities.findLayoutFile(resourceDirectories, navigationDirectoryName);
+    VirtualFile layoutFile = NavigationEditorUtils.findLayoutFile(resourceDirectories, navigationDirectoryName);
     if (layoutFile == null) {
       return null;
     }
@@ -117,9 +116,9 @@ public class NavigationEditor implements FileEditor {
 
   public NavigationEditor(Project project, VirtualFile file) {
     myFile = file;
-    Module[] androidModules = Utilities.getAndroidModules(project);
+    Module[] androidModules = NavigationEditorUtils.getAndroidModules(project);
     String moduleName = file.getParent().getParent().getName();
-    Module module = Utilities.findModule(androidModules, moduleName);
+    Module module = NavigationEditorUtils.findModule(androidModules, moduleName);
     if (module == null) {
       String errorMessage = (NAVIGATION_DIRECTORY.equals(moduleName)
                             ? "Legacy navigation editor file" : "Android module \"" + moduleName + "\" not found") +
@@ -322,7 +321,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   private static String[] getDisplayNames(String[] dirNames) {
-    return Utilities.map(dirNames, new Function<String, String>() {
+    return NavigationEditorUtils.map(dirNames, new Function<String, String>() {
       @Override
       public String fun(String s) {
         return DEFAULT_RESOURCE_FOLDER + s.substring(LAYOUT_DIR_NAME.length());
@@ -339,7 +338,7 @@ public class NavigationEditor implements FileEditor {
       final Module module = renderingParams.facet.getModule();
 
       JPanel combos = new JPanel(new FlowLayout());
-      final Module[] androidModules = Utilities.getAndroidModules(renderingParams.project);
+      final Module[] androidModules = NavigationEditorUtils.getAndroidModules(renderingParams.project);
       // Module selector
       if (androidModules.length > 1) {
         final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));

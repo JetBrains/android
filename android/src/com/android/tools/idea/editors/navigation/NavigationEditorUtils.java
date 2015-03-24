@@ -38,7 +38,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 
-public class Utilities {
+public class NavigationEditorUtils {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
   static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 255));
 
