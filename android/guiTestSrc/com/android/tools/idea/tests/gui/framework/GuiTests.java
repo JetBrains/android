@@ -197,6 +197,17 @@ public final class GuiTests {
     }
   }
 
+  /** Waits until an IDE popup is shown (and returns it */
+  public static JBList waitForPopup(@NotNull Robot robot) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
+      @Override
+      protected boolean isMatching(JBList list) {
+        ListModel model = list.getModel();
+        return model instanceof ListPopupModel;
+      }
+    });
+  }
+
   /**
    * Clicks an IntelliJ/Studio popup menu item with the given label
    *
@@ -236,9 +247,19 @@ public final class GuiTests {
           return;
         }
         items.add(s);
+      } else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
+        String s = elementAt.toString();
+        if (s.startsWith(labelPrefix)) {
+          new JListFixture(robot, list).clickItem(i);
+          return;
+        }
+        items.add(s);
       }
     }
 
+    if (items.isEmpty()) {
+      fail("Could not find any menu items in popup");
+    }
     fail("Did not find menu item with prefix '" + labelPrefix + "' among " + Joiner.on(", ").join(items));
   }
 
