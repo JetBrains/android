@@ -90,7 +90,7 @@ import static java.io.File.separatorChar;
  */
 public class GradleImport {
   public static final String NL = SdkUtils.getLineSeparator();
-  public static final int CURRENT_COMPILE_VERSION = 19;
+  public static final int CURRENT_COMPILE_VERSION = 21;
   public static final String CURRENT_BUILD_TOOLS_VERSION = SdkConstants.MIN_BUILD_TOOLS_VERSION;
   public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + GRADLE_PLUGIN_RECOMMENDED_VERSION;
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
