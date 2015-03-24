@@ -19,10 +19,10 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.editors.navigation.model.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.wizard.NewAndroidActivityWizard;
@@ -48,8 +48,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -90,6 +88,7 @@ public class NavigationView extends JComponent {
   private static final boolean DEBUG = false;
   // See http://www.google.com/design/spec/patterns/gestures.html#gestures-gestures
   private static final Color GESTURE_ICON_COLOR = new JBColor(new Color(0xE64BA7), new Color(0xE64BA7));
+  private static final String DEVICE_DEFAULT_THEME_NAME = SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
@@ -831,15 +830,23 @@ public class NavigationView extends JComponent {
 
   private RenderingParameters getActivityRenderingParameters(Module module, String className) {
     ManifestInfo manifestInfo = ManifestInfo.get(module, false);
-    Configuration configuration = myRenderingParams.myConfiguration.clone();
+    Configuration newConfiguration = myRenderingParams.myConfiguration.clone();
     String theme = manifestInfo.getManifestTheme();
     ManifestInfo.ActivityAttributes activityAttributes = manifestInfo.getActivityAttributes(className);
     if (activityAttributes != null) {
       String activityTheme = activityAttributes.getTheme();
       theme = activityTheme != null ? activityTheme : theme;
     }
-    configuration.setTheme(theme);
-    return myRenderingParams.withConfiguration(configuration);
+    newConfiguration.setTheme(theme);
+    return myRenderingParams.withConfiguration(newConfiguration);
+  }
+
+  // If an activity specifies android:Theme.DeviceDefault.NoActionBar.Fullscreen or similar
+  // we won't render the menu at all. For menus, unconditionally replace the theme with a default.
+  private RenderingParameters getMenuRenderingParameters() {
+    Configuration newConfiguration = myRenderingParams.myConfiguration.clone();
+    newConfiguration.setTheme(DEVICE_DEFAULT_THEME_NAME);
+    return myRenderingParams.withConfiguration(newConfiguration);
   }
 
   private AndroidRootComponent createUnscaledRootComponentFor(State state) {
@@ -852,7 +859,7 @@ public class NavigationView extends JComponent {
     }
     else {
       PsiFile psiFile = PsiManager.getInstance(myRenderingParams.myProject).findFile(virtualFile);
-      RenderingParameters params = isMenu ? myRenderingParams : getActivityRenderingParameters(module, state.getClassName());
+      RenderingParameters params = isMenu ? getMenuRenderingParameters() : getActivityRenderingParameters(module, state.getClassName());
       return new AndroidRootComponent(params, psiFile, isMenu);
     }
   }
