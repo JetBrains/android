@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.model.ModelDimension;
+import com.android.tools.idea.editors.navigation.model.ModelPoint;
 import com.android.tools.idea.rendering.*;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -45,17 +48,19 @@ public class AndroidRootComponent extends JComponent {
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myLayoutFile;
-  private final boolean myIsMenu;
+  public final boolean isMenu;
 
   @NotNull Transform transform = createTransform(1);
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
+  private boolean myCachedMenuValid = false;
+  private RenderedView myCachedMenu;
 
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
     myRenderingParameters = renderingParameters;
     myLayoutFile = psiFile;
-    myIsMenu = isMenu;
+    this.isMenu = isMenu;
   }
 
   public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
@@ -86,7 +91,8 @@ public class AndroidRootComponent extends JComponent {
       return;
     }
     myRenderResult = renderResult;
-    if (myIsMenu) {
+    if (isMenu) {
+      myCachedMenuValid = false;
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
@@ -107,26 +113,25 @@ public class AndroidRootComponent extends JComponent {
     invalidate2();
   }
 
-  private Transform createTransform(float scale) {
-    if (myIsMenu) {
-      return new Transform(scale) {
-        private boolean myCachedRenderedViewValid = false;
-        private RenderedView myCachedRenderedView;
+  @Nullable
+  private RenderedView getCachedMenu() {
+    if (!myCachedMenuValid) {
+      myCachedMenu = getMenu(myRenderResult);
+      myCachedMenuValid = true;
+    }
+    return myCachedMenu;
+  }
 
-        private RenderedView getRenderedView() {
-          if (!myCachedRenderedViewValid) {
-            myCachedRenderedView = getMenu(myRenderResult);
-            myCachedRenderedViewValid = true;
-          }
-          return myCachedRenderedView;
-        }
+  private Transform createTransform(float scale) {
+    if (isMenu) {
+      return new Transform(scale) {
         private int getDx() {
-          RenderedView menu = getRenderedView();
+          RenderedView menu = getCachedMenu();
           return (menu == null) ? 0 : menu.x;
         }
 
         private int getDy() {
-          RenderedView menu = getRenderedView();
+          RenderedView menu = getCachedMenu();
           return (menu == null) ? 0 : menu.y;
         }
 
@@ -181,36 +186,19 @@ public class AndroidRootComponent extends JComponent {
     return findMenu(hierarchy.getRoots());
   }
 
-  private static com.android.navigation.Dimension size(@Nullable RenderedView view) {
+  private static ModelDimension size(@Nullable RenderedView view) {
     if (view == null) {
       //return com.android.navigation.Dimension.ZERO;
-      return new com.android.navigation.Dimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
+      return new ModelDimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
     }
-    return new com.android.navigation.Dimension(view.w, view.h);
+    return new ModelDimension(view.w, view.h);
   }
 
   @Override
   public Dimension getPreferredSize() {
-    return transform.modelToView(myIsMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
+    return transform.modelToView(isMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
   }
 
-  //ScalableImage image = myRenderResult.getImage();
-  //if (image != null) {
-  //  image.paint(g);
-  //}
-      /*
-      if (false) {
-        Graphics2D g2 = (Graphics2D)g;
-        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
-        //g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-        g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        g2.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
-      }
-      if (false) {
-        g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
-      }
-      */
   @Nullable
   private Image getScaledImage() {
     if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
@@ -230,8 +218,8 @@ public class AndroidRootComponent extends JComponent {
   public void paintComponent(Graphics g) {
     Image scaledImage = getScaledImage();
     if (scaledImage != null) {
-      if (myIsMenu) {
-        Point point = transform.modelToView(com.android.navigation.Point.ORIGIN);
+      if (isMenu) {
+        Point point = transform.modelToView(ModelPoint.ORIGIN);
         g.drawImage(scaledImage, point.x, point.y, null);
       }
       else {
@@ -276,6 +264,10 @@ public class AndroidRootComponent extends JComponent {
         RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
         final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
         if (service != null) {
+          if (!isMenu) {
+            // Don't show menus in the layout view
+            service.getLayoutlibCallback().getActionBarCallback().setMenuIdNames(Collections.<String>emptyList());
+          }
           RenderResult renderedResult = service.render();
           if (renderedResult != null) {
             RenderSession session = renderedResult.getSession();

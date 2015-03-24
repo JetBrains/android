@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.tools.idea.editors.navigation.model.ModelDimension;
+import com.android.tools.idea.editors.navigation.model.ModelPoint;
 import com.android.tools.idea.rendering.RenderedView;
 
 import java.awt.*;
@@ -48,11 +50,11 @@ public class Transform {
     return scale(d);
   }
 
-  public Point modelToView(com.android.navigation.Point loc) {
+  public Point modelToView(ModelPoint loc) {
     return new Point(modelToViewX(loc.x), modelToViewY(loc.y));
   }
 
-  public Dimension modelToView(com.android.navigation.Dimension size) {
+  public Dimension modelToView(ModelDimension size) {
     return new Dimension(modelToViewW(size.width), modelToViewH(size.height));
   }
 
@@ -82,11 +84,11 @@ public class Transform {
     return unScale(d);
   }
 
-  public com.android.navigation.Point viewToModel(Point loc) {
-    return new com.android.navigation.Point(viewToModelX(loc.x), viewToModelY(loc.y));
+  public ModelPoint viewToModel(Point loc) {
+    return new ModelPoint(viewToModelX(loc.x), viewToModelY(loc.y));
   }
 
-  public com.android.navigation.Dimension viewToModel(Dimension dim) {
-    return new com.android.navigation.Dimension(viewToModelW(dim.width), viewToModelH(dim.height));
+  public ModelDimension viewToModel(Dimension dim) {
+    return new ModelDimension(viewToModelW(dim.width), viewToModelH(dim.height));
   }
 }

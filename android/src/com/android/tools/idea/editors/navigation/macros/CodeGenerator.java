@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.navigation.*;
+import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;

@@ -27,7 +27,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
@@ -348,6 +347,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
     if (newStep != null) {
       showStep(newStep);
+    } else {
+      LOG.error("Stepped into Path " + myCurrentPath + " which returned a null step");
     }
   }
 
@@ -375,6 +376,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
     if (newStep != null) {
       showStep(newStep);
+    } else {
+      LOG.error("Stepped into Path " + myCurrentPath + " which returned a null step");
     }
   }
 
@@ -383,28 +386,13 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * inside a write action and a command. Subclasses should rarely need to override
    * this method.
    */
-  public final void doFinishAction() {
+  public void doFinishAction() {
     if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
       myHost.shakeWindow();
       return;
     }
     myHost.close(false);
-    new WriteCommandAction<Void>(getProject(), getWizardActionDescription(), (PsiFile[])null) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
-        for (AndroidStudioWizardPath path : myPaths) {
-          if (path.isPathVisible()) {
-            path.performFinishingActions();
-          }
-        }
-        performFinishingActions();
-      }
-
-      @Override
-      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-        return DynamicWizard.this.getUndoConfirmationPolicy();
-      }
-    }.execute();
+    new WizardCompletionAction().execute();
   }
 
   protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
@@ -578,6 +566,27 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       } else {
         return null;
       }
+    }
+  }
+
+  protected final class WizardCompletionAction extends WriteCommandAction<Void> {
+    public WizardCompletionAction() {
+      super(DynamicWizard.this.getProject(), DynamicWizard.this.getWizardActionDescription());
+    }
+
+    @Override
+    protected void run(@NotNull Result<Void> result) throws Throwable {
+      for (AndroidStudioWizardPath path : myPaths) {
+        if (path.isPathVisible()) {
+          path.performFinishingActions();
+        }
+      }
+      performFinishingActions();
+    }
+
+    @Override
+    protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
+      return DynamicWizard.this.getUndoConfirmationPolicy();
     }
   }
 }

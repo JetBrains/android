@@ -3,11 +3,13 @@ package org.jetbrains.android.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.Alarm;
@@ -24,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,22 +43,57 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final boolean myAddEmptyElement;
   private final boolean myShowNotLaunchedOnly;
   private final Alarm myAlarm = new Alarm(this);
+  private final JBPopupMenu myMenu;
   private String[] myOldAvds = ArrayUtil.EMPTY_STRING_ARRAY;
 
   public AvdComboBox(boolean addEmptyElement, boolean showNotLaunchedOnly) {
     myAddEmptyElement = addEmptyElement;
     myShowNotLaunchedOnly = showNotLaunchedOnly;
 
+    myMenu = new JBPopupMenu();
+    JMenuItem openManagerMenuItem = new JMenuItem("Open AVD Manager");
+    openManagerMenuItem.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        RunAndroidAvdManagerAction.openAvdManager();
+      }
+    });
+    myMenu.add(openManagerMenuItem);
+    JMenuItem createTabletMenuItem = new JMenuItem("Create Default Nexus 7 (Tablet)");
+    createTabletMenuItem.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AvdInfo avdInfo = AvdBuilder.createNexus7();
+        if (avdInfo != null) {
+          doUpdateAvds();
+          getComboBox().setSelectedItem(avdInfo.getName());
+        }
+      }
+    });
+    myMenu.add(createTabletMenuItem);
+    JMenuItem createPhoneMenuItem = new JMenuItem("Create Default Nexus 5 (Phone)");
+    createPhoneMenuItem.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AvdInfo avdInfo = AvdBuilder.createNexus5();
+        if (avdInfo != null) {
+          doUpdateAvds();
+          getComboBox().setSelectedItem(avdInfo.getName());
+        }
+      }
+    });
+    myMenu.add(createPhoneMenuItem);
+
     addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final AndroidPlatform platform = findAndroidPlatform();
+        AvdComboBox avdComboBox = AvdComboBox.this;
         if (platform == null) {
-          Messages.showErrorDialog(AvdComboBox.this, "Cannot find any configured Android SDK");
+          Messages.showErrorDialog(avdComboBox, "Cannot find any configured Android SDK");
           return;
         }
-
-        RunAndroidAvdManagerAction.openAvdManager();
+        myMenu.show(avdComboBox, avdComboBox.getX() + avdComboBox.getWidth(), avdComboBox.getY());
       }
     });
 

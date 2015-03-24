@@ -55,8 +55,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
 
   private static final String EXAMPLE_DOMAIN = "example.com";
   public static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
-  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
-  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(INVALID_FILENAME_CHARS);
+  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
 
   @VisibleForTesting
   static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
@@ -65,12 +64,11 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
         "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
 
 
-  protected TextFieldWithBrowseButton myProjectLocation;
-  protected JTextField myAppName;
-  protected JPanel myPanel;
-  protected JTextField myCompanyDomain;
-  protected LabelWithEditLink myPackageName;
-  protected JLabel myProjectLocationLabel;
+  private TextFieldWithBrowseButton myProjectLocation;
+  private JTextField myAppName;
+  private JPanel myPanel;
+  private JTextField myCompanyDomain;
+  private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
     this("Configure your new project", disposable);
@@ -331,7 +329,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
       String name = state.get(WizardConstants.APPLICATION_NAME_KEY);
       name = name == null ? "" : name;
-      name = name.replaceAll(INVALID_FILENAME_CHARS, "");
+      name = name.replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
       name = name.replaceAll("\\s", "");
       File baseDirectory = new File(NewProjectWizardState.getProjectFileDirectory());
       File projectDir = new File(baseDirectory, name);

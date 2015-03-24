@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * Represents a view in the layout editor
  */
@@ -135,5 +137,25 @@ public class LayoutEditorComponentFixture {
   private static String describe(@NotNull Rectangle rectangle) {
     // More brief description than toString default: java.awt.Rectangle[x=0,y=100,width=768,height=1084]
     return "[" + rectangle.x + "," + rectangle.y + ":" + rectangle.width + "x" + rectangle.height;
+  }
+
+  public void requireXml(String expected, boolean collapseSpaces) {
+    String xml = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        return myComponent.getTag().getText();
+      }
+    });
+    if (collapseSpaces) {
+      while (true) {
+        String prev = xml;
+        xml = xml.replaceAll("  ", " ");
+        if (xml.equals(prev)) {
+          break;
+        }
+      }
+      xml = xml.replaceAll("\n ", "\n");
+    }
+    assertEquals(xml, expected);
   }
 }

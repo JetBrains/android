@@ -31,15 +31,24 @@ import javax.swing.*;
 
 public class StringsVirtualFile extends LightVirtualFile {
   private static final Key<StringsVirtualFile> KEY = Key.create(StringsVirtualFile.class.getName());
-  private final AndroidFacet myFacet;
+  @NotNull private final AndroidFacet myFacet;
 
   private StringsVirtualFile(@NotNull AndroidFacet facet) {
-    super("Translations Editor", StringsResourceFileType.INSTANCE, "This feature is in active development. Please file bugs.");
+    super("Translations Editor", StringsResourceFileType.INSTANCE, "");
     myFacet = facet;
   }
 
+  @NotNull
   public AndroidFacet getFacet() {
     return myFacet;
+  }
+
+  @Override
+  public VirtualFile getParent() {
+    // Returns the module folder as the parent of this file. This is only so that the breadcrumb at the top looks like
+    // "project > module > Translations Editor" instead of just "Translations Editor"
+    VirtualFile moduleFile = myFacet.getModule().getModuleFile();
+    return moduleFile == null ? null : moduleFile.getParent();
   }
 
   @Nullable

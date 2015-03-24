@@ -422,6 +422,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   @Nullable
   private NamedObject getSelectedObject() {
     int selectedIndex = myList.getSelectedIndex();
+    selectedIndex = Math.min(selectedIndex, myListModel.getSize() - 1);
     return selectedIndex >= 0 ? myListModel.get(selectedIndex) : null;
   }
 

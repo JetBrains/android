@@ -27,7 +27,7 @@ public class FmUtil {
    * offer a layout name partially containing the activity suffix (e.g. "main_activi").
    */
   public static String stripSuffix(String name, String suffix, boolean recursiveStrip) {
-    if (name.isEmpty()) {
+    if (name.length() < 2) {
       return name;
     }
 

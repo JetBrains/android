@@ -55,6 +55,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
@@ -78,6 +79,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,8 +117,8 @@ public final class GradleUtil {
    * experiments, Gradle only failed with slashes. This list may grow if
    * we find any other unsupported characters.
    */
-  public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
-  public static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
+  private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
+  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
   }
@@ -268,12 +270,11 @@ public final class GradleUtil {
   public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
     Properties properties = PropertiesUtil.getProperties(propertiesFile);
     String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (url == null) {
-      return null;
-    }
-    Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-    if (m.matches()) {
-      return m.group(1);
+    if (url != null) {
+      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+      if (m.matches()) {
+        return m.group(1);
+      }
     }
     return null;
   }
@@ -281,7 +282,7 @@ public final class GradleUtil {
   @NotNull
   private static String getGradleDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     String suffix = binOnly ? "bin" : "all";
-    return String.format("http://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
+    return String.format("https://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
   }
 
   @Nullable
@@ -802,6 +803,32 @@ public final class GradleUtil {
         Collections.sort(coordinates, GradleCoordinate.COMPARE_PLUS_LOWER);
         return coordinates.get(coordinates.size() - 1);
       }
+    }
+    return null;
+  }
+
+  /**
+   * Invokes the given task (which is assumed to invoke a non-backwards compatible method in Gradle or the Android Gradle plug-in) and
+   * ignores any {@link java.lang.NoSuchMethodError} or {@link org.gradle.tooling.model.UnsupportedMethodException} caught during the task
+   * invocation. If any of these exceptions is caught, this method will simply return {@code null}.
+   *
+   * @param task the task to invoke.
+   * @param <T> the type returned by the task.
+   * @return the value returned by the given task, or {@code null} if the task is invoking does it not defined in Gradle or the Android
+   * Gradle plug-in.
+   * @throws Exception any checked exception thrown by the task execution.
+   */
+  @Nullable
+  public static <T> T invokeGradleNonBackwardCompatibleMethod(@NotNull Callable<T> task) throws Exception {
+    try {
+      return task.call();
+    }
+    catch (NoSuchMethodError e) {
+      // https://code.google.com/p/android/issues/detail?id=77060
+      // Method may not exist in the version of Gradle or the Android plugin used by the project.
+    }
+    catch (UnsupportedMethodException e) {
+      // Method may not exist in the version of Gradle or the Android plugin used by the project.
     }
     return null;
   }

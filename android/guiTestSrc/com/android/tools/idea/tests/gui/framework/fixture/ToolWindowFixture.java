@@ -68,14 +68,17 @@ public abstract class ToolWindowFixture {
     return contentRef.get();
   }
 
-  protected void activate() {
-    boolean isActive = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+  protected boolean isActive() {
+    return GuiActionRunner.execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         return myToolWindow.isActive();
       }
     });
-    if (isActive) {
+  }
+
+  protected void activate() {
+    if (isActive()) {
       return;
     }
 
@@ -99,6 +102,9 @@ public abstract class ToolWindowFixture {
     pause(new Condition("Wait for ToolWindow to be visible") {
       @Override
       public boolean test() {
+        if (!isActive()) {
+          activate();
+        }
         return isVisible();
       }
     });

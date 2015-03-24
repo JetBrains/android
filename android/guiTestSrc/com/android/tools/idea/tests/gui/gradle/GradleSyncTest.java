@@ -17,11 +17,14 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -29,20 +32,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.util.SystemProperties.getLineSeparator;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -136,13 +136,9 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSync();
 
-    MessageDialogFixture messageDialog = findGradleSyncMessageDialog(myRobot);
-    String message = messageDialog.getMessage();
-    assertThat(message).startsWith("The project seems to have more than one module (or sub-project) " +
-                                   "but the file 'settings.gradle' does not specify any of them.");
-    messageDialog.clickCancel(); // Do not continue with sync.
-
-    assertTrue(lastGradleSyncFailed(projectFrame.getProject()));
+    // Sync should be successful for multi-module projects with an empty settings.gradle file.
+    projectFrame.requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
   }
 
   @Test @IdeGuiTest
@@ -157,10 +153,59 @@ public class GradleSyncTest extends GuiTestCase {
                 .waitForGradleProjectSyncToFinish();
   }
 
-  public void createEmptyGradleSettingsFile(@NotNull File projectPath) throws IOException {
+  private static void createEmptyGradleSettingsFile(@NotNull File projectPath) throws IOException {
     File settingsFilePath = new File(projectPath, FN_SETTINGS_GRADLE);
     delete(settingsFilePath);
     writeToFile(settingsFilePath, " ");
     assertThat(settingsFilePath).isFile();
+  }
+
+  @Test @IdeGuiTest
+  public void testGradleDslMethodNotFoundInBuildFile() throws IOException {
+    final IdeFrameFixture projectFrame = openSimpleApplication();
+
+    File topLevelBuildFile = new File(projectFrame.getProjectPath(), FN_BUILD_GRADLE);
+    assertThat(topLevelBuildFile).isFile();
+    String content = "asdf()" + getLineSeparator() + loadFile(topLevelBuildFile);
+    writeToFile(topLevelBuildFile, content);
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
+                                                                         firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
+
+    final EditorFixture editor = projectFrame.getEditor();
+    editor.close();
+
+    // Verify that at least we offer some sort of hint.
+    HyperlinkFixture openGradleWrapperFileHyperlink = message.findHyperlink("Open Gradle wrapper file");
+    openGradleWrapperFileHyperlink.click();
+
+    Pause.pause(new Condition("Wait for gradle-wrapper.properties is opened") {
+      @Override
+      public boolean test() {
+        VirtualFile currentFile = editor.getCurrentFile();
+        return currentFile != null && currentFile.getName().equals("gradle-wrapper.properties");
+      }
+    }, SHORT_TIMEOUT);
+  }
+
+  @Test @IdeGuiTest
+  public void testGradleDslMethodNotFoundInSettingsFile() throws IOException {
+    final IdeFrameFixture projectFrame = openSimpleApplication();
+
+    File settingsFile = new File(projectFrame.getProjectPath(), FN_SETTINGS_GRADLE);
+    assertThat(settingsFile).isFile();
+    writeToFile(settingsFile, "incude ':app'");
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR,
+                                                                         firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
+
+    // Ensure the error message contains the location of the error.
+    message.requireLocation(settingsFile, 1);
   }
 }

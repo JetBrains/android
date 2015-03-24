@@ -29,6 +29,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -52,22 +53,29 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
 * A labeled combo box of SDK options for a given FormFactor.
 */
 public final class FormFactorApiComboBox extends JComboBox {
+  private static final Logger LOG = Logger.getInstance(FormFactorApiComboBox.class);
   private static final Set<AndroidVersion> ourInstalledVersions = Sets.newHashSet();
   private static final List<AndroidTargetComboBoxItem> ourTargets = Lists.newArrayList();
   private static IAndroidTarget ourHighestInstalledApiTarget;
 
-  @NotNull private final FormFactor myFormFactor;
+  @NotNull private FormFactor myFormFactor;
 
 
   private IPkgDesc myInstallRequest;
-  private final Key<String> myBuildApiKey;
-  private final Key<Integer> myBuildApiLevelKey;
-  private final Key<Integer> myTargetApiLevelKey;
-  private final Key<String> myTargetApiStringKey;
-  private final Key<AndroidTargetComboBoxItem> myTargetComboBoxKey;
-  private final Key<Boolean> myInclusionKey;
+  private Key<String> myBuildApiKey;
+  private Key<Integer> myBuildApiLevelKey;
+  private Key<Integer> myTargetApiLevelKey;
+  private Key<String> myTargetApiStringKey;
+  private Key<AndroidTargetComboBoxItem> myTargetComboBoxKey;
+  private Key<Boolean> myInclusionKey;
 
   public FormFactorApiComboBox(@NotNull FormFactor formFactor, int minSdkLevel) {
+    init(formFactor, minSdkLevel);
+  }
+
+  public FormFactorApiComboBox() { }
+
+  public void init(@NotNull FormFactor formFactor, int minSdkLevel) {
     myFormFactor = formFactor;
     if (ourHighestInstalledApiTarget == null) {
       // Do one time initialization here
@@ -85,6 +93,7 @@ public final class FormFactorApiComboBox extends JComboBox {
   }
 
   public void register(@NotNull ScopedDataBinder binder) {
+    assert myFormFactor != null : "register() called on FormFactorApiComboBox before init()";
     binder.register(getTargetComboBoxKey(myFormFactor), this, TARGET_COMBO_BINDING);
   }
 

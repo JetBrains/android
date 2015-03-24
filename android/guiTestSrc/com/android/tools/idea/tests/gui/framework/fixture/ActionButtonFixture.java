@@ -42,6 +42,18 @@ public class ActionButtonFixture extends ComponentFixture<ActionButton> {
     return new ActionButtonFixture(robot, button);
   }
 
+  @NotNull
+  public static ActionButtonFixture findByText(@NotNull final String text, @NotNull Robot robot, @NotNull Container container) {
+    final ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(ActionButton button) {
+        AnAction action = button.getAction();
+        return text.equals(action.getTemplatePresentation().getText());
+      }
+    });
+    return new ActionButtonFixture(robot, button);
+  }
+
   private ActionButtonFixture(@NotNull Robot robot, @NotNull ActionButton target) {
     super(robot, target);
   }

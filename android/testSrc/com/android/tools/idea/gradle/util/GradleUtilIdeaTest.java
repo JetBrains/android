@@ -131,6 +131,6 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
 
     Properties gradleProperties = PropertiesUtil.getProperties(new File(projectWrapperDirPath, FN_GRADLE_WRAPPER_PROPERTIES));
     String distributionUrl = gradleProperties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    assertEquals("http://services.gradle.org/distributions/gradle-" + gradleVersion + "-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-" + gradleVersion + "-all.zip", distributionUrl);
   }
 }

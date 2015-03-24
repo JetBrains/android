@@ -103,6 +103,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
   private JPanel mySkinPanel;
   private TextFieldWithBrowseButton myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
+  private JTextField myAvdDisplayName;
   private Set<JComponent> myAdvancedOptionsComponents;
 
   // Labels used for the advanced settings toggle button
@@ -167,6 +168,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
     myToggleSdCardSettingsLabel.setForeground(JBColor.blue);
+    myOrientationToggle.setOpaque(false);
   }
 
   /**
@@ -211,7 +213,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check Ram
     Storage ram = myState.get(RAM_STORAGE_KEY);
     if (ram == null || ram.getSizeAsUnit(Unit.MiB) < 128) {
-      setErrorState("RAM must be a numeric (integer) value of at least 128Mb. Recommendation is 1Gb.",
+      setErrorState("RAM must be a numeric (integer) value of at least 128MB. Recommendation is 1GB.",
                     myMemoryAndStorageLabel, myRamLabel, myRamStorage);
       valid = false;
     }
@@ -219,7 +221,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check VM Heap
     Storage vmHeap = myState.get(VM_HEAP_STORAGE_KEY);
     if (vmHeap == null || vmHeap.getSizeAsUnit(Unit.MiB) < 16) {
-      setErrorState("VM Heap must be a numeric (integer) value of at least 16Mb.",
+      setErrorState("VM Heap must be a numeric (integer) value of at least 16MB.",
                     myMemoryAndStorageLabel, myVmHeapLabel, myVmHeapStorage);
       valid = false;
     }
@@ -227,7 +229,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     // Check Internal Storage
     Storage internal = myState.get(INTERNAL_STORAGE_KEY);
     if (internal == null || internal.getSizeAsUnit(Unit.MiB) < 200) {
-      setErrorState("Internal storage must be a numeric (integer) value of at least 200Mb.",
+      setErrorState("Internal storage must be a numeric (integer) value of at least 200MB.",
                     myMemoryAndStorageLabel, myInternalStorageLabel, myInternalStorage);
       valid = false;
     }
@@ -243,8 +245,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     } else {
       Storage sdCard = myState.get(SD_CARD_STORAGE_KEY);
-      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 30 || sdCard.getSizeAsUnit(Unit.GiB) > 1023)) {
-        setErrorState("The SD card must be between 30Mb and 1023Gb",
+      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 10)) {
+        setErrorState("The SD card must be larger than 10MB",
                       myMemoryAndStorageLabel, mySdCardLabel, myNewSdCardStorage);
         valid = false;
       }
@@ -301,6 +303,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
    * Bind components to their specified keys and help messaging.
    */
   private void registerComponents() {
+    register(DISPLAY_NAME_KEY, myAvdDisplayName);
     register(DEVICE_DEFINITION_KEY, myDeviceName, DEVICE_NAME_BINDING);
     register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
@@ -338,6 +341,26 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
         @Override
         protected Storage getStorage(@NotNull Device device) {
           return calculateVmHeap(device);
+        }
+      });
+
+      registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
+        @Nullable
+        @Override
+        public Set<Key<?>> getTriggerKeys() {
+          return makeSetOf(DEVICE_DEFINITION_KEY, SYSTEM_IMAGE_KEY);
+        }
+
+        @Nullable
+        @Override
+        public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+          Device device = state.get(DEVICE_DEFINITION_KEY);
+          SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
+          if (device != null && systemImage != null) { // Should always be the case
+            return String.format(Locale.getDefault(), "%1$s API %2$d",
+                                 device.getDisplayName(), systemImage.target.getVersion().getApiLevel());
+          }
+          return null; // Should never occur
         }
       });
     }
@@ -431,6 +454,30 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
                                                  getProject(), skinChooserDescriptor);
     setControlDescription(myCustomSkinPath, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
+
+    registerValueDeriver(CUSTOM_SKIN_PATH_KEY, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+        return makeSetOf(CUSTOM_SKIN_PATH_KEY);
+      }
+
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
+        String path = state.get(CUSTOM_SKIN_PATH_KEY);
+        if (path == null || path.isEmpty()) {
+          Device device = state.get(DEVICE_DEFINITION_KEY);
+          if (device != null) {
+            File file = device.getDefaultHardware().getSkinFile();
+            if (file != null) {
+              path = file.getAbsolutePath();
+            }
+          }
+        }
+        return path;
+      }
+    });
 
     registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
       @Nullable
@@ -619,7 +666,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     myOrientationToggle.setEnabled(device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
   }
 
-  private static Storage calculateVmHeap(@NotNull Device device) {
+  public static Storage calculateVmHeap(@NotNull Device device) {
     // Set the default VM heap size. This is based on the Android CDD minimums for each
     // screen size and density.
     Screen s = device.getDefaultHardware().getScreen();
@@ -688,5 +735,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
 
     @Nullable
     protected abstract Storage getStorage(@NotNull Device device);
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleBackgroundColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_COLOR;
+  }
+
+  @Nullable
+  @Override
+  protected JBColor getTitleTextColor() {
+    return WizardConstants.ANDROID_NPW_HEADER_TEXT_COLOR;
   }
 }
