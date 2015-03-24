@@ -375,7 +375,6 @@ public class AvdManagerConnection {
       IJ_LOG.error("Could not create AVD " + avdName, e);
       return null;
     }
-    ISystemImage image = systemImageDescription.systemImage;
 
     // TODO: Fix this so that the screen appears in the proper orientation
     Dimension resolution = device.getScreenSize(device.getDefaultState().getOrientation()); //device.getScreenSize(orientation);
@@ -391,9 +390,9 @@ public class AvdManagerConnection {
 
     return ourAvdManager.createAvd(avdFolder,
                                     avdName,
-                                    systemImageDescription.target,
-                                    image.getTag(),
-                                    image.getAbiType(),
+                                    systemImageDescription.getTarget(),
+                                    systemImageDescription.getTag(),
+                                    systemImageDescription.getAbiType(),
                                     skinFolder,
                                     skinName,
                                     sdCard,
@@ -407,7 +406,7 @@ public class AvdManagerConnection {
 
   @Nullable
   private static File getRoundSkin(AvdWizardConstants.SystemImageDescription systemImageDescription) {
-    File[] skins = systemImageDescription.systemImage.getSkins();
+    File[] skins = systemImageDescription.getSkins();
     for (File skin : skins) {
       if (skin.getName().contains("Round")) {
         return skin;
