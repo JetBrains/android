@@ -40,6 +40,7 @@ public class AttributesPanel {
   private JPanel myRightPanel;
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;
+  private JBScrollPane myPaletteScrollPane;
 
   public AttributesPanel() {
     myNewThemeButton.setIcon(AllIcons.General.Add);
@@ -134,6 +135,10 @@ public class AttributesPanel {
 
   public JPanel getConfigToolbar() {
     return myConfigToolbar;
+  }
+
+  public JBScrollPane getPaletteScrollPane() {
+    return myPaletteScrollPane;
   }
 
   public ColorPalette getPalette() {

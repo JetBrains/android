@@ -21,20 +21,27 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * Component that renders a list of colors.
  */
-public class ColorPalette extends JComponent implements Scrollable {
+public class ColorPalette extends JComponent implements Scrollable, ItemSelectable {
   protected static int CHECKERED_BACKGROUND_SIZE = 8;
 
   private int myColorBoxSize = 50;
   private int myColorBoxPadding = myColorBoxSize / 10;
   private boolean myShowCheckeredBackground = false;
   private ColorPaletteModel myColorListModel;
+  private Border mySelectedBorder = UIManager.getBorder("Table.focusCellHighlightBorder");
+  private int mySelectedItem = -1;
 
   /**
    * Model for the ColorPalette component.
@@ -49,6 +56,11 @@ public class ColorPalette extends JComponent implements Scrollable {
      * Returns the element located at the index {@code i}.
      */
     Color getColorAt(int i);
+
+    /**
+     * Returns the tooltip for the element located at the index {@code i}.
+     */
+    String getToolTipAt(int i);
   }
 
   /**
@@ -70,12 +82,40 @@ public class ColorPalette extends JComponent implements Scrollable {
     public Color getColorAt(int i) {
       return myColorList.get(i);
     }
+
+    @Override
+    public String getToolTipAt(int i) {
+      return myColorList.get(i).toString();
+    }
   }
 
   public ColorPalette(@NotNull ColorPaletteModel colorListModel) {
     myColorListModel = colorListModel;
 
+    setToolTipText(""); // just to initialize tooltips for the component
     setOpaque(false);
+
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        int selected = itemAtPoint(e.getPoint());
+
+        if (selected == mySelectedItem) {
+          return;
+        }
+
+        if (mySelectedItem != -1) {
+          itemStateChanged(mySelectedItem, ItemEvent.DESELECTED);
+        }
+        if (selected != -1) {
+          mySelectedItem = selected;
+          itemStateChanged(mySelectedItem, ItemEvent.SELECTED);
+        } else {
+          clearSelection();
+        }
+        repaint();
+      }
+    });
   }
 
   public ColorPalette() {
@@ -127,6 +167,35 @@ public class ColorPalette extends JComponent implements Scrollable {
     return new Dimension(myColorListModel.getCount() * (myColorBoxSize + myColorBoxPadding) + myColorBoxPadding, minSize);
   }
 
+  private int itemAtPoint(@NotNull Point p) {
+    if (p.y <= myColorBoxPadding || p.y > myColorBoxPadding + myColorBoxSize) {
+      return -1;
+    }
+
+    if (p.x <= myColorBoxPadding) {
+      return -1;
+    }
+
+    int position = (p.x - myColorBoxPadding) / (myColorBoxSize + myColorBoxPadding);
+    int maxBoxX = position * (myColorBoxSize + myColorBoxPadding) + myColorBoxSize;
+    // Check that the point is not outside the end boundary
+    if ((p.x - myColorBoxPadding) > maxBoxX) {
+      return -1;
+    }
+
+    return position;
+  }
+
+  @Override
+  public String getToolTipText(MouseEvent event) {
+    int position = itemAtPoint(event.getPoint());
+    if (position == -1) {
+      return "";
+    }
+
+    return myColorListModel.getToolTipAt(position);
+  }
+
   @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
@@ -145,10 +214,36 @@ public class ColorPalette extends JComponent implements Scrollable {
       int x = i * (myColorBoxSize + myColorBoxPadding) + myColorBoxPadding;
       g.fillRect(x, myColorBoxPadding, myColorBoxSize, myColorBoxSize);
 
+      if (mySelectedItem == i && mySelectedBorder != null) {
+        mySelectedBorder.paintBorder(this, g, x, myColorBoxPadding, myColorBoxSize, myColorBoxSize);
+      }
+
       if (x > width) {
         break;
       }
     }
+  }
+
+  public ItemListener[] getItemListeners() {
+    return listenerList.getListeners(ItemListener.class);
+  }
+
+  @Override
+  public Object[] getSelectedObjects() {
+    if (mySelectedItem == -1) {
+      return null;
+    }
+    return new Color[] { myColorListModel.getColorAt(mySelectedItem) };
+  }
+
+  @Override
+  public void addItemListener(ItemListener l) {
+    listenerList.add(ItemListener.class, l);
+  }
+
+  @Override
+  public void removeItemListener(ItemListener l) {
+    listenerList.remove(ItemListener.class, l);
   }
 
   @Override
@@ -175,5 +270,15 @@ public class ColorPalette extends JComponent implements Scrollable {
   @Override
   public boolean getScrollableTracksViewportHeight() {
     return false;
+  }
+
+  public void clearSelection() {
+    mySelectedItem = -1;
+  }
+
+  private void itemStateChanged(int position, int stateChange) {
+    for (ItemListener itemListener : getItemListeners()) {
+      itemListener.itemStateChanged(new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, myColorListModel.getColorAt(position), stateChange));
+    }
   }
 }
