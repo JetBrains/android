@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.navigation;
 import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.model.ModelDimension;
-import com.android.tools.idea.editors.navigation.model.ModelPoint;
 import com.android.tools.idea.rendering.*;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
