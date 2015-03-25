@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.tools.idea.editors.navigation.macros.Analyser;
+import com.android.tools.idea.editors.navigation.macros.CodeTemplate;
 import com.android.tools.idea.editors.navigation.macros.MultiMatch;
 import com.intellij.psi.*;
 import org.jetbrains.android.AndroidTestCase;
@@ -48,7 +49,7 @@ public class AnalyserTest extends AndroidTestCase {
 
     final PsiMethod template = myElementFactory.createMethodFromText(TEMPLATE, null);
 
-    final List<MultiMatch.Bindings<PsiElement>> bindingsList = Analyser.search(method, new MultiMatch(template));
+    final List<MultiMatch.Bindings<PsiElement>> bindingsList = Analyser.search(method, new MultiMatch(CodeTemplate.fromMethod(template)));
     assertEquals(bindingsList.size(), 2);
 
     final List expectedMatches = Arrays.asList("a string", 20);

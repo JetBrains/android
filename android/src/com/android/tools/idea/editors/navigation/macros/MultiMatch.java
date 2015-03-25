@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -24,14 +23,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MultiMatch {
-  public final PsiMethod macro;
-  public final Map<String, PsiMethod> subMacros = new LinkedHashMap<String, PsiMethod>(); // make deterministic while prototyping
+  public final CodeTemplate macro;
+  public final Map<String, CodeTemplate> subMacros = new LinkedHashMap<String, CodeTemplate>(); // make deterministic while prototyping
 
-  public MultiMatch(PsiMethod macro) {
+  public MultiMatch(CodeTemplate macro) {
     this.macro = macro;
   }
 
-  public void addSubMacro(String name, PsiMethod macro) {
+  public void addSubMacro(String name, CodeTemplate macro) {
     subMacros.put(name, macro);
   }
 
@@ -42,9 +41,9 @@ public class MultiMatch {
       return null;
     }
     Map<String, Map<String, PsiElement>> subBindings = new HashMap<String, Map<String, PsiElement>>();
-    for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
+    for (Map.Entry<String, CodeTemplate> entry : subMacros.entrySet()) {
       String name = entry.getKey();
-      PsiMethod template = entry.getValue();
+      CodeTemplate template = entry.getValue();
       Map<String, PsiElement> subBinding = Unifier.match(template, bindings.get(name));
       if (subBinding == null) {
         return null;
@@ -57,9 +56,9 @@ public class MultiMatch {
   public String instantiate(Bindings<String> bindings) {
     Map<String, String> bb = bindings.bindings;
 
-    for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
+    for (Map.Entry<String, CodeTemplate> entry : subMacros.entrySet()) {
       String name = entry.getKey();
-      PsiMethod template = entry.getValue();
+      CodeTemplate template = entry.getValue();
       bb.put(name, Instantiation.instantiate2(template, bindings.subBindings.get(name)));
     }
 
