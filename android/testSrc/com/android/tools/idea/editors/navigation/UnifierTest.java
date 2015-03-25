@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.tools.idea.editors.navigation.macros.CodeTemplate;
 import com.android.tools.idea.editors.navigation.macros.Unifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -36,7 +37,7 @@ public class UnifierTest extends AndroidTestCase {
       "    $x + $y;" +
       "}", psiClass);
 
-    final Map<String, PsiElement> result = Unifier.match(template, expression);
+    final Map<String, PsiElement> result = Unifier.match(CodeTemplate.fromMethod(template), expression);
     assertNotNull(result);
 
     final PsiElement x = result.get("$x");

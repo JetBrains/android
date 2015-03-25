@@ -106,7 +106,7 @@ public class Macros {
   }
 
   public MultiMatch createMacro(String methodDefinition) {
-    return new MultiMatch(getMethodFromText(methodDefinition));
+    return new MultiMatch(CodeTemplate.fromMethod(getMethodFromText(methodDefinition)));
   }
 
   private PsiMethod getMethodFromText(String definition) {
@@ -127,6 +127,6 @@ public class Macros {
     installMenuItemClickAndCallMacro = createMacro(INSTALL_MENU_ITEM_CLICK_LISTENER);
 
     defineInnerClassToLaunchActivityMacro = createMacro(DEFINE_INNER_CLASS);
-    defineInnerClassToLaunchActivityMacro.addSubMacro("$f", getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG));
+    defineInnerClassToLaunchActivityMacro.addSubMacro("$f", CodeTemplate.fromMethod(getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG)));
   }
 }
