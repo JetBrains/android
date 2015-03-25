@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.navigation.model.ModelDimension;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -27,12 +27,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.List;
@@ -49,8 +51,6 @@ public class AndroidRootComponent extends JComponent {
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
-  private boolean myCachedMenuValid = false;
-  private RenderedView myCachedMenu;
 
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, @Nullable String menuName) {
     myRenderingParameters = renderingParameters;
@@ -90,10 +90,6 @@ public class AndroidRootComponent extends JComponent {
       return;
     }
     myRenderResult = renderResult;
-    if (isMenu()) {
-      myCachedMenuValid = false;
-      revalidate();
-    }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
     revalidate(); // invalidate parent (NavigationView)
     parent.repaint();
@@ -112,50 +108,6 @@ public class AndroidRootComponent extends JComponent {
     invalidate2();
   }
 
-  @Nullable
-  private RenderedView getCachedMenu() {
-    if (!myCachedMenuValid) {
-      myCachedMenu = getMenu(myRenderResult);
-      myCachedMenuValid = true;
-    }
-    return myCachedMenu;
-  }
-
-  @Nullable
-  private static RenderedView findMenu(List<RenderedView> children) {
-    for (RenderedView child : children) {
-      ViewInfo view = child.view;
-      if (view != null && view.getViewType() == ViewType.ACTION_BAR_OVERFLOW_MENU) {
-        return child.getParent();
-      }
-      RenderedView menu = findMenu(child.getChildren());
-      if (menu != null) {
-        return menu;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static RenderedView getMenu(RenderResult renderResult) {
-    if (renderResult == null) {
-      return null;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    if (hierarchy == null) {
-      return null;
-    }
-    return findMenu(hierarchy.getRoots());
-  }
-
-  private static ModelDimension size(@Nullable RenderedView view) {
-    if (view == null) {
-      //return com.android.navigation.Dimension.ZERO;
-      return new ModelDimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
-    }
-    return new ModelDimension(view.w, view.h);
-  }
-
   @Override
   public Dimension getPreferredSize() {
     return transform.modelToView(myRenderingParameters.getDeviceScreenSize());
@@ -163,11 +115,6 @@ public class AndroidRootComponent extends JComponent {
 
   @Nullable
   private Image getScaledImage() {
-    if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
-      RenderedImage renderedImage = (myRenderResult == null) ? null : myRenderResult.getImage();
-      BufferedImage image = (renderedImage == null) ? null : renderedImage.getOriginalImage();
-      myScaledImage = (image == null) ? null : ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
-    }
     return myScaledImage;
   }
 
@@ -192,11 +139,11 @@ public class AndroidRootComponent extends JComponent {
       String message = "[" + (myLayoutFile == null ? "no xml resource" : myLayoutFile.getName()) + "]";
       center(g, message, font, vCenter);
       //center(g, message, font, vCenter + font.getSize() * 2);
-      render();
+      render(transform.myScale);
     }
   }
 
-  private void render() {
+  private void render(final float scale) {
     if (myLayoutFile == null) {
       return;
     }
@@ -229,14 +176,26 @@ public class AndroidRootComponent extends JComponent {
             final List<String> menuList = isMenu() ? Collections.singletonList(myMenuName) : Collections.<String>emptyList();
             actionBarHandler.setMenuIdNames(menuList);
           }
-          RenderResult renderedResult = task.render();
+
+          // Setting up FakeImageFactory to draw directly to scaled-down image.
+          // This allows us to drastically reduce memory used by Navigation Editor.
+          final FakeImageFactory factory = new FakeImageFactory();
+          final Dimension size = AndroidRootComponent.this.getSize();
+          final BufferedImage image = UIUtil.createImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+          final Graphics2D graphics = (Graphics2D) image.getGraphics();
+          graphics.setTransform(AffineTransform.getScaleInstance(scale, scale));
+          factory.setGraphics(graphics);
+
+          RenderResult renderedResult = task.render(factory);
           if (renderedResult != null) {
             RenderSession session = renderedResult.getSession();
             if (session != null) {
               Result result = session.getResult();
               if (result.isSuccess()) {
                 setRenderResult(renderedResult);
+                myScaledImage = image;
                 task.dispose();
+                myRenderPending = false;
                 return;
               }
             }
