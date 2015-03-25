@@ -31,9 +31,8 @@ import java.util.*;
 
 class ReflectiveHandler extends DefaultHandler {
   // public static final List<String> DEFAULT_PACKAGES = Arrays.<String>asList("java.lang", "android.view", "android.widget");
-  public static final List<String> DEFAULT_PACKAGES = Arrays.asList();
-  public static final List<String> DEFAULT_CLASSES = Arrays.asList();
-  public static final String[] EMPTY_STRING_ARRAY = new String[0];
+  public static final List<String> DEFAULT_PACKAGES = Collections.emptyList();
+  public static final List<String> DEFAULT_CLASSES = Collections.emptyList();
 
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
@@ -128,7 +127,7 @@ class ReflectiveHandler extends DefaultHandler {
 
   private static String[] findParameterNames(@Nullable Constructor constructor) {
     if (constructor == null) {
-      return EMPTY_STRING_ARRAY;
+      return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     Annotation[][] annotations = constructor.getParameterAnnotations();
     String[] result = new String[annotations.length];
@@ -334,7 +333,7 @@ class ReflectiveHandler extends DefaultHandler {
 
   private String[] getConstructorParameterNames(Class type) {
     if (type == null) {
-      return EMPTY_STRING_ARRAY;
+      return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     return getParameterNames(getConstructor(type));
   }
