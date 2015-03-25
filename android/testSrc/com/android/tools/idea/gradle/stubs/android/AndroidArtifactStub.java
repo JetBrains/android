@@ -27,10 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
@@ -152,7 +149,7 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override@NotNull
   public Set<String> getIdeSetupTaskNames() {
-    throw new UnsupportedOperationException();
+    return Collections.emptySet();
   }
 
   /**
