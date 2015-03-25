@@ -20,8 +20,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ColorPalette;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +42,7 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
   private final AttributesTableModel myModel;
 
   private List<Color> myColorList;
+  private Multimap<Color, EditedStyleItem> myColorReferences = HashMultimap.create();
 
   public AttributesModelColorPaletteModel(@NotNull Configuration configuration, @NotNull AttributesTableModel model) {
     myResourceResolver = configuration.getResourceResolver();
@@ -59,6 +62,15 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
     return myColorList.get(i);
   }
 
+  @Override
+  public String getToolTipAt(int i) {
+    StringBuilder tooltip = new StringBuilder("This color is used in:\n\n");
+    for(EditedStyleItem item : myColorReferences.get(myColorList.get(i))) {
+      tooltip.append(item.getName()).append('\n');
+    }
+    return  tooltip.toString();
+  }
+
   private void loadColors() {
     if (myResourceResolver == null) {
       myColorList = Collections.emptyList();
@@ -73,7 +85,10 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
       }
 
       EditedStyleItem item = (EditedStyleItem)myModel.getValueAt(i, 0);
-      colorSet.addAll(ResourceHelper.resolveMultipleColors(myResourceResolver, item.getItemResourceValue()));
+      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, item.getItemResourceValue())) {
+        myColorReferences.put(color, item);
+        colorSet.add(color);
+      }
     }
 
     myColorList = ImmutableList.copyOf(Multisets.copyHighestCountFirst(colorSet).elementSet());
