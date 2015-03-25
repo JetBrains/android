@@ -21,6 +21,8 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.*;
 import com.android.tools.idea.monitor.actions.RecordingAction;
+import com.android.tools.chartlib.TimelineComponent;
+import com.android.tools.chartlib.TimelineData;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
