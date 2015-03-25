@@ -807,7 +807,8 @@ public class Analyser {
   }
 
   private static void search(PsiClass clazz, String methodSignature, String matchMacro, Processor processor) {
-    search(clazz, methodSignature, new MultiMatch(NavigationEditorUtils.createMethodFromText(clazz, matchMacro)), processor);
+    final PsiMethod psiMethod = NavigationEditorUtils.createMethodFromText(clazz, matchMacro);
+    search(clazz, methodSignature, new MultiMatch(CodeTemplate.fromMethod(psiMethod)), processor);
   }
 
   @Nullable
@@ -816,7 +817,8 @@ public class Analyser {
     if (method == null) {
       return null;
     }
-    MultiMatch matcher = new MultiMatch(NavigationEditorUtils.createMethodFromText(clazz, matchMacro));
+    final PsiMethod psiMethod = NavigationEditorUtils.createMethodFromText(clazz, matchMacro);
+    MultiMatch matcher = new MultiMatch(CodeTemplate.fromMethod(psiMethod));
     List<MultiMatch.Bindings<PsiElement>> results = search(method.getBody(), matcher);
     if (results.size() != 1) {
       return null;

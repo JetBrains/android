@@ -23,6 +23,7 @@ import com.intellij.psi.impl.source.tree.java.PsiIdentifierImpl;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -37,8 +38,8 @@ public class Unifier {
   private int indent = 0;
 
   @Nullable
-  public static Map<String, PsiElement> match(PsiMethod method, PsiElement element) {
-    return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
+  public static Map<String, PsiElement> match(CodeTemplate template, PsiElement element) {
+    return new Unifier().unify(template.getParameters(), template.getBody(), element);
   }
 
   /*
@@ -56,15 +57,10 @@ public class Unifier {
   }
 
   @Nullable
-  public Map<String, PsiElement> unify(PsiMethod macro, PsiElement candidate) {
-    return unify(macro.getParameterList(), macro.getBody(), candidate);
-  }
-
-  @Nullable
-  public Map<String, PsiElement> unify(PsiParameterList parameterList, PsiElement body, PsiElement candidate) {
+  public Map<String, PsiElement> unify(List<String> parameterList, PsiElement body, PsiElement candidate) {
     Matcher myMatcher = new Matcher(candidate);
-    for (PsiParameter parameter : parameterList.getParameters()) {
-      myMatcher.bindings.put(parameter.getName(), UNBOUND);
+    for (String parameter : parameterList) {
+      myMatcher.bindings.put(parameter, UNBOUND);
     }
     body.accept(myMatcher);
     Map<String, PsiElement> bindings = myMatcher.getBindings();
