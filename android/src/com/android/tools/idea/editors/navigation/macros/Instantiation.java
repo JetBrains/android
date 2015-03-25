@@ -20,13 +20,12 @@ import com.intellij.psi.*;
 import java.util.Map;
 
 public class Instantiation {
-  public static PsiElement instantiate(PsiMethod method, final Map<String, PsiElement> bindings) {
-    PsiParameterList parameterList = method.getParameterList();
-    for (PsiParameter parameter : parameterList.getParameters()) {
-      assert bindings.containsKey(parameter.getName());
+  public static PsiElement instantiate(CodeTemplate template, final Map<String, PsiElement> bindings) {
+    for (String parameter : template.getParameters()) {
+      assert bindings.containsKey(parameter);
     }
 
-    PsiElement body = method.getBody().getStatements()[0].getFirstChild();
+    PsiElement body = template.getBody();
 
     PsiElement result = body.copy();
 
@@ -42,13 +41,12 @@ public class Instantiation {
     return result;
   }
 
-  public static String instantiate2(PsiMethod method, final Map<String, String> bindings) {
-    PsiParameterList parameterList = method.getParameterList();
-    for (PsiParameter parameter : parameterList.getParameters()) {
-      assert bindings.containsKey(parameter.getName());
+  public static String instantiate2(CodeTemplate template, final Map<String, String> bindings) {
+    for (String parameter : template.getParameters()) {
+      assert bindings.containsKey(parameter);
     }
 
-    PsiElement body = method.getBody().getStatements()[0].getFirstChild();
+    PsiElement body = template.getBody();
     String result = body.getText();
 
     result = replaceAll(result, ".$()", ""); // remove the method calling artifact
