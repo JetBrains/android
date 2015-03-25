@@ -58,8 +58,6 @@ class Selections {
 
     protected abstract void paintOver(Graphics g);
 
-    protected abstract void remove();
-
     protected void configureInspector(Inspector inspector) {
     }
   }
@@ -80,10 +78,6 @@ class Selections {
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
       return this;
-    }
-
-    @Override
-    protected void remove() {
     }
   }
 
@@ -167,10 +161,6 @@ class Selections {
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
       return this;
-    }
-
-    @Override
-    protected void remove() {
     }
 
     @Override
@@ -345,10 +335,6 @@ class Selections {
     protected Selection finaliseSelectionLocation(Point mouseUpLocation) {
       myNavigationView.createTransition(mySourceComponent, myNamedLeaf, mouseUpLocation);
       return NULL;
-    }
-
-    @Override
-    protected void remove() {
     }
   }
 }
