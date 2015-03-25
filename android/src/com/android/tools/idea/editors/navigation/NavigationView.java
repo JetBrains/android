@@ -160,7 +160,6 @@ public class NavigationView extends JComponent {
       Action remove = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          mySelectionModel.getSelection().remove();
           setSelection(Selections.NULL);
         }
       };
