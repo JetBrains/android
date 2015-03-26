@@ -26,7 +26,8 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.CloudTestTargetChooser;
+import com.android.tools.idea.run.CloudConfiguration;
+import com.android.tools.idea.run.CloudTargetChooser;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
@@ -70,6 +71,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectWithoutModel;
+import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
@@ -95,7 +97,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean FILTER_LOGCAT_AUTOMATICALLY = true;
 
-  public int SELECTED_MATRIX_CONFIGURATION_ID = 0;
+  public int SELECTED_CLOUD_CONFIGURATION_ID = 0;
   public String SELECTED_CLOUD_PROJECT_ID = "";
   public boolean IS_VALID_CLOUD_SELECTION = false; // indicates whether the selected matrix config + project combo is valid
   public String INVALID_CLOUD_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
@@ -272,7 +274,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         targetChooser = new UsbDeviceTargetChooser();
         break;
       case CLOUD_TEST_OPTION:
-        targetChooser = new CloudTestTargetChooser(SELECTED_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_PROJECT_ID);
+        targetChooser = new CloudTargetChooser(MATRIX, SELECTED_CLOUD_CONFIGURATION_ID, SELECTED_CLOUD_PROJECT_ID);
         break;
       default:
         assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;

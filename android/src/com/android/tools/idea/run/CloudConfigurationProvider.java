@@ -16,9 +16,11 @@
 package com.android.tools.idea.run;
 
 
+import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -29,50 +31,55 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * {@link CloudTestConfigurationProvider} allows providers of cloud testing support to plug into Android Studio.
+ * {@link CloudConfigurationProvider} allows providers of cloud execution support to plug into Android Studio.
  * A cloud provider can run a given android project on the cloud on a specific cloud project and a matrix of configurations
  * on which the tests need to be run. Studio provides the UI that allows the selection of a specific cloud project, and a
  * specific configuration, and then passes on that information to the cloud provider in order to run the tests.
  */
-public abstract class CloudTestConfigurationProvider {
-  public static final ExtensionPointName<CloudTestConfigurationProvider> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.run.cloudTestingConfigurationProvider");
+public abstract class CloudConfigurationProvider {
+  public static final ExtensionPointName<CloudConfigurationProvider> EP_NAME =
+    ExtensionPointName.create("com.android.tools.idea.run.cloudConfigurationProvider");
 
   /**
    * Returns a list of device configurations supported by this provider for a given android project. The list typically contains a set of
    * default configurations applicable for the project, and custom configurations specifically created by the user for that project.
    * */
   @NotNull
-  public abstract List<? extends CloudTestConfiguration> getTestingConfigurations(@NotNull AndroidFacet facet);
+  public abstract List<? extends CloudConfiguration> getCloudConfigurations(@NotNull AndroidFacet facet,
+                                                                            @NotNull Kind configurationKind);
 
-  /** Shows a dialog that allows specifying a set of device configurations and returns the selected configuration. */
+  /** Shows a dialog that allows specifying a set of device configurations and returns the selected configuration.
+   * Uses {@code kind} only if {@code selectedConfig} is {@code null}, otherwise the kind of the dialog matches the kind of
+   * {@code selectedConfig}.*/
   @Nullable
-  public abstract CloudTestConfiguration openMatrixConfigurationDialog(@NotNull AndroidFacet facet,
-                                                                       @NotNull CloudTestConfiguration selectedConfig);
-
+  public abstract CloudConfiguration openMatrixConfigurationDialog(@NotNull AndroidFacet facet,
+                                                                   @Nullable CloudConfiguration selectedConfig,
+                                                                   @NotNull Kind configurationKind);
   /** Returns the cloud project id to use. */
   @Nullable
   public abstract String openCloudProjectConfigurationDialog(@NotNull Project project, @Nullable String currentProject);
 
-  public abstract boolean supportsDebugging();
+  public abstract void launchCloudDevice(int selectedConfigurationId,
+                                         @NotNull String cloudProjectId,
+                                         @NotNull AndroidFacet facet);
 
   @NotNull
-  public abstract ExecutionResult execute(int selectedConfigurationId,
-                                          @NotNull String cloudProjectId,
-                                          @NotNull AndroidRunningState runningState,
-                                          @NotNull Executor executor) throws ExecutionException;
+  public abstract ExecutionResult executeCloudMatrixTests(int selectedConfigurationId,
+                                                          @NotNull String cloudProjectId,
+                                                          @NotNull AndroidRunningState runningState,
+                                                          @NotNull Executor executor) throws ExecutionException;
 
   public static boolean isEnabled() {
     return CloudTestingConfigurable.getPersistedEnableProperty();
   }
 
   @Nullable
-  public static CloudTestConfigurationProvider getCloudTestingProvider() {
+  public static CloudConfigurationProvider getCloudConfigurationProvider() {
     if (!isEnabled()) {
       return null;
     }
 
-    CloudTestConfigurationProvider[] extensions = EP_NAME.getExtensions();
+    CloudConfigurationProvider[] extensions = EP_NAME.getExtensions();
     if (extensions.length > 0) {
       return extensions[0];
     }

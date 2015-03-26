@@ -37,8 +37,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
-import com.android.tools.idea.run.CloudTestConfigurationProvider;
-import com.android.tools.idea.run.CloudTestTargetChooser;
+import com.android.tools.idea.run.CloudConfigurationProvider;
+import com.android.tools.idea.run.CloudTargetChooser;
 import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.stats.UsageTracker;
@@ -125,6 +125,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
@@ -233,14 +234,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     }
 
-    CloudTestConfigurationProvider provider = CloudTestConfigurationProvider.getCloudTestingProvider();
-    boolean debugOnCloud = myTargetChooser instanceof CloudTestTargetChooser
-                            && executor instanceof DefaultDebugExecutor;
-    boolean providerSupportsDebugging = provider != null && provider.supportsDebugging();
+    CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
+    boolean debugMatrixOnCloud = myTargetChooser instanceof CloudTargetChooser &&
+                                 ((CloudTargetChooser)myTargetChooser).getConfigurationKind() == MATRIX &&
+                                 executor instanceof DefaultDebugExecutor;
 
-    // Show the device chooser if either the config specifies it, or if the request is to debug on cloud
-    // while the provider doesn't support that
-    if (myTargetChooser instanceof ManualTargetChooser || (debugOnCloud && !providerSupportsDebugging)) {
+    // Show the device chooser if either the config specifies it, or if the request is to debug a matrix of devices on cloud
+    // (which does not make sense).
+    if (myTargetChooser instanceof ManualTargetChooser || debugMatrixOnCloud) {
       if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
         DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
 
@@ -274,7 +275,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         }
 
         if (chooser.isCloudTestOptionSelected()) {
-          return provider.execute(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId(), this, executor);
+          return provider
+            .executeCloudMatrixTests(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId(), this, executor);
         }
         else {
           final IDevice[] selectedDevices = chooser.getSelectedDevices();
@@ -292,11 +294,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         }
       }
-    } else if (myTargetChooser instanceof CloudTestTargetChooser) {
+    } else if (myTargetChooser instanceof CloudTargetChooser) {
       assert provider != null;
-      CloudTestTargetChooser cloudTestTargetChooser = (CloudTestTargetChooser)myTargetChooser;
-      return provider
-        .execute(cloudTestTargetChooser.getMatrixConfigurationId(), cloudTestTargetChooser.getCloudProjectId(), this, executor);
+      CloudTargetChooser cloudTargetChooser = (CloudTargetChooser)myTargetChooser;
+      return provider.executeCloudMatrixTests(cloudTargetChooser.getCloudConfigurationId(), cloudTargetChooser.getCloudProjectId(), this,
+                                              executor);
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
