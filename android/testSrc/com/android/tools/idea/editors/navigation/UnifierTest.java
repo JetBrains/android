@@ -24,18 +24,20 @@ import org.jetbrains.android.AndroidTestCase;
 import java.util.Map;
 
 public class UnifierTest extends AndroidTestCase {
+  private PsiElementFactory myElementFactory;
 
-  public void testUnifier() throws Exception {
-    final Project project = this.getProject();
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    final PsiElementFactory elementFactory = facade.getElementFactory();
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myElementFactory = JavaPsiFacade.getInstance(this.getProject()).getElementFactory();
+  }
 
-    final PsiClass psiClass = elementFactory.createClass("Dummy");
-    final PsiExpression expression = elementFactory.createExpressionFromText("20 + 22", psiClass);
-    final PsiMethod template = elementFactory.createMethodFromText(
+  public void testUnifierSimple() throws Exception {
+    final PsiExpression expression = myElementFactory.createExpressionFromText("20 + 22", null);
+    final PsiMethod template = myElementFactory.createMethodFromText(
       "void macro(int $x, int $y) {" +
       "    $x + $y;" +
-      "}", psiClass);
+      "}", null);
 
     final Map<String, PsiElement> result = Unifier.match(CodeTemplate.fromMethod(template), expression);
     assertNotNull(result);
@@ -48,5 +50,11 @@ public class UnifierTest extends AndroidTestCase {
 
     assertEquals(xValue, Integer.valueOf(20));
     assertEquals(yValue, Integer.valueOf(22));
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    myElementFactory = null;
   }
 }
