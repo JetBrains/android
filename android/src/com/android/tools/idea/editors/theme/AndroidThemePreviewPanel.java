@@ -75,7 +75,7 @@ public class AndroidThemePreviewPanel extends AndroidPreviewPanel implements Ren
         PsiClass viewClass = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
 
         if (viewClass == null) {
-          LOG.error("Unable to find 'com.android.View'");
+          LOG.error("Unable to find 'android.view.View'");
           return;
         }
         Query<PsiClass> viewClasses = ClassInheritorsSearch.search(viewClass, GlobalSearchScope.projectScope(project), true);
