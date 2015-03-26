@@ -111,9 +111,8 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       }
     }
 
-    ComponentInstaller operation =
-      new ComponentInstaller(Collections.singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))), null);
-    ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
+    ComponentInstaller operation = new ComponentInstaller(null);
+    ArrayList<String> packagesToDownload = getAndroidSdkPackages(manager, operation);
     operation.installPackages(manager, packagesToDownload, new LoggerForTest());
     manager.reloadSdk(log);
     LocalPkgInfo[] installedPkgs = manager.getLocalSdk().getPkgsInfos(EnumSet.allOf(PkgType.class));
@@ -143,15 +142,19 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     })), 0, shouldntBeenInstalled.size());
   }
 
+  private static ArrayList<String> getAndroidSdkPackages(SdkManager manager, ComponentInstaller operation) {
+    return operation.getPackagesToInstall(manager, Collections
+      .singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))));
+  }
+
   public void DISABLEDtestComponentsToInstall() {
     File sdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
-    ComponentInstaller operation =
-      new ComponentInstaller(Collections.singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))), null);
 
     SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assert manager != null;
 
-    ArrayList<String> packagesToDownload = operation.getPackagesToInstall(manager);
+    ComponentInstaller operation = new ComponentInstaller(null);
+    ArrayList<String> packagesToDownload = getAndroidSdkPackages(manager, operation);
 
     System.out.println(Joiner.on("\n").join(packagesToDownload));
     assertTrue(packagesToDownload.isEmpty());
