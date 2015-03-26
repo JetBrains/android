@@ -121,8 +121,8 @@ public class DrawableComponent extends JButton {
 
     // If attribute is private, draw a cross on it
     if (!myIsPublic) {
-      g.drawLine(PADDING, PADDING, width - PADDING, height - PADDING);
-      g.drawLine(width - PADDING, PADDING, PADDING, height - PADDING);
+      g.setColor(JBColor.WHITE);
+      GraphicsUtil.drawCross(g, new Rectangle(PADDING, PADDING, width - PADDING, height - PADDING), 0.5f);
     }
   }
 }

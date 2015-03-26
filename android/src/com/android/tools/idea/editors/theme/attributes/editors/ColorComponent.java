@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,12 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.awt.image.ColorModel;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.util.List;
+
+import static com.intellij.util.ui.GraphicsUtil.setupAntialiasing;
 
 public class ColorComponent extends JButton {
   private static final Logger LOG = Logger.getInstance(ColorComponent.class);
@@ -80,7 +85,7 @@ public class ColorComponent extends JButton {
       return;
     }
 
-    GraphicsUtil.setupAntialiasing(g);
+    setupAntialiasing(g);
 
     final int width = getWidth();
     final int height = getHeight();
@@ -114,13 +119,15 @@ public class ColorComponent extends JButton {
       }
     }
 
-    //noinspection UseJBColor
-    g.setColor(myDrawnColor != null && ColorUtil.isDark(myDrawnColor) ? Color.WHITE : Color.BLACK);
+    Color cellBackground = myDrawnColor != null ? myDrawnColor : myBackgroundColor;
 
+    //noinspection UseJBColor
+    Color cellForeground = ColorUtil.isDark(cellBackground) ? Color.WHITE : Color.BLACK;
+
+    g.setColor(cellForeground);
     // If the attribute is private, draw a cross on it
     if (!myIsPublic) {
-      g.drawLine(PADDING, PADDING, width - PADDING, height - PADDING);
-      g.drawLine(width - PADDING, PADDING, PADDING, height - PADDING);
+      GraphicsUtil.drawCross(g, new Rectangle(PADDING, PADDING, width - PADDING, height - PADDING), 0.5f);
     }
 
     FontMetrics fm = g.getFontMetrics();
