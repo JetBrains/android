@@ -23,7 +23,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemoteSdk;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
@@ -87,7 +87,7 @@ public class AndroidSdkData {
     }
 
     File canonicalLocation = new File(canonicalPath);
-    if (!DefaultSdks.isValidAndroidSdkPath(canonicalLocation)) {
+    if (!IdeSdks.isValidAndroidSdkPath(canonicalLocation)) {
       return null;
     }
 

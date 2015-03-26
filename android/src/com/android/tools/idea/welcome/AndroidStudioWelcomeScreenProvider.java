@@ -22,7 +22,7 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.avdmanager.LogWrapper;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -69,7 +69,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     else if (!persistentData.isSdkUpToDate()) {
       return FirstRunWizardMode.NEW_INSTALL;
     }
-    else if (DefaultSdks.getEligibleAndroidSdks().isEmpty()) {
+    else if (IdeSdks.getEligibleAndroidSdks().isEmpty()) {
       return FirstRunWizardMode.MISSING_SDK;
     }
     else {

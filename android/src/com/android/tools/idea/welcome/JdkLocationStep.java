@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Function;
@@ -227,7 +227,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @NotNull
   private static Iterable<String> getMacCandidateJdks() {
     // See http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html
-    return getCandidatePaths(MAC_JDKS_DIR, DefaultSdks.MAC_JDK_CONTENT_PATH);
+    return getCandidatePaths(MAC_JDKS_DIR, IdeSdks.MAC_JDK_CONTENT_PATH);
   }
 
   @NotNull

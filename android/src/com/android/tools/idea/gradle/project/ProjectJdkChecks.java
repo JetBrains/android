@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
@@ -68,7 +68,7 @@ final class ProjectJdkChecks {
 
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
     if (version != null && version.getFeatureLevel() >= 21) {
-      Sdk jdk = DefaultSdks.getDefaultJdk();
+      Sdk jdk = IdeSdks.getJdk();
       if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 

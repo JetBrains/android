@@ -21,7 +21,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -58,7 +58,7 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.IdeaGradleProject.newIdeaGradleProject;
 import static com.android.tools.idea.gradle.IdeaJavaProject.newJavaProject;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
-import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidHomes;
+import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
@@ -217,7 +217,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       LocalProperties localProperties = getLocalProperties();
       // Ensure that Android Studio and the project (local.properties) point to the same Android SDK home. If they are not the same, we'll
       // ask the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's choice.
-      syncIdeAndProjectAndroidHomes(localProperties);
+      syncIdeAndProjectAndroidSdks(localProperties);
     }
   }
 
@@ -230,7 +230,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (!isAndroidStudio()) {
         LocalProperties localProperties = getLocalProperties();
         if (localProperties.getAndroidSdkPath() == null) {
-          File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+          File androidHomePath = IdeSdks.getAndroidSdkPath();
           // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
           if (androidHomePath != null) {
             args.add(KeyValue.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
