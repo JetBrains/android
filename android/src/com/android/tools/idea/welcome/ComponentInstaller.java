@@ -25,9 +25,12 @@ import com.android.sdklib.repository.local.Update;
 import com.android.sdklib.repository.local.UpdateResult;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.utils.ILogger;
+import com.android.utils.NullLogger;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,18 +41,15 @@ import java.util.*;
  * Installs SDK components.
  */
 public final class ComponentInstaller {
-  private final Collection<? extends InstallableComponent> myComponents;
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
 
-  public ComponentInstaller(@NotNull Collection<? extends InstallableComponent> components,
-                            @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    myComponents = components;
+  public ComponentInstaller(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     myRemotePackages = remotePackages;
   }
 
-  private static Set<String> getPackageIds(Collection<LocalPkgInfo> pkgs) {
+  private static Set<String> getPackageIds(Collection<LocalPkgInfo> localPackages) {
     Set<String> toUpdate = Sets.newHashSet();
-    for (LocalPkgInfo localPkgInfo : pkgs) {
+    for (LocalPkgInfo localPkgInfo : localPackages) {
       toUpdate.add(localPkgInfo.getDesc().getInstallId());
     }
     return toUpdate;
@@ -78,10 +78,10 @@ public final class ComponentInstaller {
     }
   }
 
-  private Set<String> getRequiredPackages() {
+  private Set<String> getRequiredPackages(@NotNull Iterable<? extends InstallableComponent> components) {
     // TODO: Prompt about connection in handoff case?
     Set<String> packages = Sets.newHashSet();
-    for (InstallableComponent component : myComponents) {
+    for (InstallableComponent component : components) {
       for (IPkgDesc pkg : component.getRequiredSdkPackages(myRemotePackages)) {
         if (pkg != null) {
           packages.add(pkg.getInstallId());
@@ -96,8 +96,8 @@ public final class ComponentInstaller {
    *
    * @param manager SDK manager instance or <code>null</code> if this is a new install.
    */
-  public ArrayList<String> getPackagesToInstall(@Nullable SdkManager manager) {
-    Set<String> toInstall = getRequiredPackages();
+  public ArrayList<String> getPackagesToInstall(@Nullable SdkManager manager, @NotNull Iterable<? extends InstallableComponent> components) {
+    Set<String> toInstall = getRequiredPackages(components);
     if (manager == null) {
       return Lists.newArrayList(toInstall);
     }
@@ -109,6 +109,28 @@ public final class ComponentInstaller {
       }
       return Lists.newArrayList(toInstall);
     }
+  }
+
+  /**
+   * Returns a collection of package info objects for packages that will be installed.
+   */
+  public Collection<RemotePkgInfo> getPackagesToInstallInfos(@Nullable String sdkPath,
+                                                             @NotNull Iterable<? extends InstallableComponent> components) {
+    if (!StringUtil.isEmptyOrSpaces(sdkPath) && myRemotePackages != null) {
+      SdkManager sdkManager = SdkManager.createManager(sdkPath, new NullLogger());
+      if (sdkManager != null) {
+        Set<String> packagesToInstall = ImmutableSet
+          .copyOf(new ComponentInstaller(myRemotePackages).getPackagesToInstall(sdkManager, components));
+        Set<RemotePkgInfo> remotePackages = Sets.newHashSetWithExpectedSize(packagesToInstall.size());
+        for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
+          if (packagesToInstall.contains(remotePkgInfo.getDesc().getInstallId())) {
+            remotePackages.add(remotePkgInfo);
+          }
+        }
+        return remotePackages;
+      }
+    }
+    return ImmutableSet.of();
   }
 
   public void installPackages(@NotNull SdkManager manager, @NotNull ArrayList<String> packages, ILogger logger) throws WizardException {

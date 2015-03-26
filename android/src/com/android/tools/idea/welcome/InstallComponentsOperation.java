@@ -16,12 +16,9 @@
 package com.android.tools.idea.welcome;
 
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.avdmanager.LogWrapper;
 import com.android.tools.idea.wizard.ImportUIUtil;
 import com.android.utils.ILogger;
-import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -37,15 +34,15 @@ import java.util.Collection;
  */
 public class InstallComponentsOperation extends InstallOperation<File, File> {
   @NotNull private final Logger LOG = Logger.getInstance(getClass());
-  @Nullable private Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @NotNull private final ComponentInstaller myComponentInstaller;
   @NotNull private Collection<? extends InstallableComponent> myComponents;
 
   public InstallComponentsOperation(@NotNull InstallContext context,
                                     @NotNull Collection<? extends InstallableComponent> components,
-                                    @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                                    @NotNull ComponentInstaller componentInstaller,
                                     double progressRatio) {
     super(context, progressRatio);
-    myRemotePackages = remotePackages;
+    myComponentInstaller = componentInstaller;
     myComponents = components;
   }
 
@@ -65,16 +62,15 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
   @NotNull
   @Override
   protected File perform(@NotNull ProgressIndicator indicator, @NotNull File sdkLocation) throws WizardException {
-    ComponentInstaller componentInstaller = new ComponentInstaller(myComponents, myRemotePackages);
     SdkManager manager = SdkManager.createManager(sdkLocation.getAbsolutePath(), new LogWrapper(LOG));
     if (manager != null) {
       indicator.setText("Checking for updated SDK components");
-      ArrayList<String> packages = componentInstaller.getPackagesToInstall(manager);
+      ArrayList<String> packages = myComponentInstaller.getPackagesToInstall(manager, myComponents);
       while (!packages.isEmpty()) {
         ILogger logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext, packages.size());
-        componentInstaller.installPackages(manager, packages, logger);
+        myComponentInstaller.installPackages(manager, packages, logger);
         manager.reloadSdk(new LogWrapper(LOG));
-        packages = componentInstaller.getPackagesToInstall(manager);
+        packages = myComponentInstaller.getPackagesToInstall(manager, myComponents);
         String message = getRetryMessage(packages);
         if (message != null) {
           promptToRetry(message, message, null);
