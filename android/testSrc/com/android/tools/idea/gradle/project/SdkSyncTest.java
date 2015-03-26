@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.Nullable;
@@ -38,24 +38,24 @@ public class SdkSyncTest extends IdeaTestCase {
     myLocalProperties = new LocalProperties(myProject);
     myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
-    assertNull(DefaultSdks.getDefaultAndroidHome());
+    assertNull(IdeSdks.getAndroidSdkPath());
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
-    DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, null);
+    IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
 
-    SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties);
+    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertProjectSdkSet();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
-    DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, null);
+    IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
 
-    SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties);
+    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertProjectSdkSet();
   }
@@ -64,7 +64,7 @@ public class SdkSyncTest extends IdeaTestCase {
     myLocalProperties.setAndroidSdkPath(myAndroidSdkPath);
     myLocalProperties.save();
 
-    SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties);
+    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertDefaultSdkSet();
   }
@@ -77,7 +77,7 @@ public class SdkSyncTest extends IdeaTestCase {
         return myAndroidSdkPath;
       }
     };
-    SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties, task);
+    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, task);
 
     assertProjectSdkSet();
     assertDefaultSdkSet();
@@ -92,19 +92,19 @@ public class SdkSyncTest extends IdeaTestCase {
       }
     };
     try {
-      SdkSync.syncIdeAndProjectAndroidHomes(myLocalProperties, task);
+      SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, task);
       fail("Expecting ExternalSystemException");
     } catch (ExternalSystemException e) {
       // expected
     }
 
-    assertNull(DefaultSdks.getDefaultAndroidHome());
+    assertNull(IdeSdks.getAndroidSdkPath());
     myLocalProperties = new LocalProperties(myProject);
     assertNull(myLocalProperties.getAndroidSdkPath());
   }
 
   private void assertDefaultSdkSet() {
-    File actual = DefaultSdks.getDefaultAndroidHome();
+    File actual = IdeSdks.getAndroidSdkPath();
     assertNotNull(actual);
     assertEquals(myAndroidSdkPath.getPath(), actual.getPath());
   }

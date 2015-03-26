@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.ScopedStateStore.Scope;
 import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +67,7 @@ public class SetupJdkPath extends DynamicWizardPath {
       path = javaDir.getAbsolutePath();
     }
     else {
-      Sdk jdk = DefaultSdks.getDefaultJdk(FirstRunWizardDefaults.MIN_JDK_VERSION);
+      Sdk jdk = IdeSdks.getJdk(FirstRunWizardDefaults.MIN_JDK_VERSION);
       if (jdk != null) {
         path = jdk.getHomePath();
       }
@@ -87,7 +86,7 @@ public class SetupJdkPath extends DynamicWizardPath {
   public boolean performFinishingActions() {
     String path = myState.get(KEY_JDK_LOCATION);
     assert path != null;
-    DefaultSdks.setDefaultJavaHome(new File(path));
+    IdeSdks.setJdkPath(new File(path));
     return true;
   }
 

@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +27,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -69,6 +70,7 @@ public final class LocalProperties {
    * @throws IllegalArgumentException if there is already a directory called "local.properties" in the given project.
    */
   public LocalProperties(@NotNull Project project) throws IOException {
+    //noinspection ConstantConditions
     this(new File(project.getBasePath()));
   }
 
@@ -82,8 +84,8 @@ public final class LocalProperties {
    */
   public LocalProperties(@NotNull File projectDirPath) throws IOException {
     myProjectDirPath = projectDirPath;
-    myFilePath = new File(projectDirPath, SdkConstants.FN_LOCAL_PROPERTIES);
-    myProperties = PropertiesUtil.getProperties(myFilePath);
+    myFilePath = new File(projectDirPath, FN_LOCAL_PROPERTIES);
+    myProperties = getProperties(myFilePath);
   }
 
   /**
@@ -91,9 +93,9 @@ public final class LocalProperties {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    String path = myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
+    String path = getProperty(SDK_DIR_PROPERTY);
     if (isNotEmpty(path)) {
-      if (!FileUtil.isAbsolute(path)) {
+      if (!isAbsolute(path)) {
         String canonicalPath = toCanonicalPath(new File(myProjectDirPath, toSystemDependentName(path)).getPath());
         File file = new File(canonicalPath);
         if (!file.isDirectory()) {
@@ -126,19 +128,24 @@ public final class LocalProperties {
   // Sets the path as it is given. When invoked from production code, the path is assumed to be "system dependent".
   @VisibleForTesting
   void doSetAndroidSdkPath(@NotNull String path) {
-    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, path);
+    myProperties.setProperty(SDK_DIR_PROPERTY, path);
   }
 
   public boolean hasAndroidDirProperty() {
-    String property = myProperties.getProperty("android.dir");
-    return !Strings.isNullOrEmpty(property);
+    String property = getProperty("android.dir");
+    return !isNullOrEmpty(property);
+  }
+
+  @Nullable
+  public String getProperty(@NotNull String key) {
+    return myProperties.getProperty(key);
   }
 
   /**
    * Saves any changes to the underlying local.properties file.
    */
   public void save() throws IOException {
-    PropertiesUtil.savePropertiesToFile(myProperties, myFilePath, HEADER_COMMENT);
+    savePropertiesToFile(myProperties, myFilePath, HEADER_COMMENT);
   }
 
   @NotNull

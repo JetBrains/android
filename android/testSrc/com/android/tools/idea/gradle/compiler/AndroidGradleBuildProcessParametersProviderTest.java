@@ -19,7 +19,7 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -61,7 +61,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
         String jdkHome = myJdk.getHomePath();
         assertNotNull(jdkHome);
         File jdkHomePath = new File(FileUtil.toSystemDependentName(jdkHome));
-        DefaultSdks.setDefaultJavaHome(jdkHomePath);
+        IdeSdks.setJdkPath(jdkHomePath);
       }
     });
 
