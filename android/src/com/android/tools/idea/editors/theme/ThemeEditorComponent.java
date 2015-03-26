@@ -46,7 +46,6 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -68,6 +67,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -187,11 +187,17 @@ public class ThemeEditorComponent extends Splitter {
                                                                                 new FlagRendererEditor()));
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class,
                                          new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
-    myAttributesTable.setDefaultRenderer(DrawableDomElement.class,
-                                         new DelegatingCellRenderer(myModule, myConfiguration, false, new DrawableRenderer(myAttributesTable, renderTask)));
+    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
+                                                                                              new DrawableRenderer(myAttributesTable,
+                                                                                                                   renderTask)));
     myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
-      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         this.setFont(HEADER_FONT);
         return this;
@@ -220,14 +226,16 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myPanel.getAdvancedFilterCheckBox().addItemListener(new ItemListener() {
+    myPanel.getAdvancedFilterCheckBox().addActionListener(new ActionListener() {
       @Override
-      public void itemStateChanged(ItemEvent e) {
+      public void actionPerformed(ActionEvent e) {
         if (myAttributesTable.isEditing()) {
           myAttributesTable.getCellEditor().cancelCellEditing();
         }
+
         myAttributesTable.clearSelection();
-        myAttributesFilter.setAdvancedMode(myPanel.isAdvancedMode());
+        myPanel.getPalette().clearSelection();
+        myAttributesFilter.setFilterEnabled(!myPanel.isAdvancedMode());
 
         myAttributesFilter.setAttributesFilter(myPreviewPanel.getUsedAttrs());
 
@@ -539,8 +547,8 @@ public class ThemeEditorComponent extends Splitter {
       myStyleEditor.setAreDetailsActive(true);
     }
 
-    // Setting advanced to true here is a required workaround until we fix the hack to set the cell height below.
-    myAttributesFilter.setAdvancedMode(true);
+    // Disabling the filter here is a required workaround until we fix the hack to set the cell height below.
+    myAttributesFilter.setFilterEnabled(false);
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
     myPanel.getPalette().setVisible(myCurrentSubStyle == null);
     myConfiguration.setTheme(selectedTheme.getName());
@@ -586,7 +594,8 @@ public class ThemeEditorComponent extends Splitter {
                 }
               }
             }
-          } else {
+          }
+          else {
             reload(myPreviousSelectedTheme);
           }
         }
@@ -611,7 +620,7 @@ public class ThemeEditorComponent extends Splitter {
     TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
     sorter.setRowFilter(myAttributesFilter);
     myAttributesTable.setRowSorter(sorter);
-    myPanel.setAdvancedMode(myAttributesFilter.myAdvancedMode);
+    myPanel.setAdvancedMode(!myAttributesFilter.myIsFilterEnabled);
 
     ActionListener listener = new ActionListener() {
       @Override
@@ -624,6 +633,29 @@ public class ThemeEditorComponent extends Splitter {
     model.parentAttribute.setGotoDefinitionCallback(listener);
 
     myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(myConfiguration, model));
+    myPanel.getPalette().addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          AttributesModelColorPaletteModel model = (AttributesModelColorPaletteModel)myPanel.getPalette().getModel();
+          List<EditedStyleItem> references = model.getReferences((Color)e.getItem());
+          if (references.isEmpty()) {
+            return;
+          }
+
+          HashSet<String> attributeNames = new HashSet<String>(references.size());
+          for(EditedStyleItem item : references) {
+            attributeNames.add(item.getQualifiedName());
+          }
+          myAttributesFilter.setAttributesFilter(attributeNames);
+          myAttributesFilter.setFilterEnabled(true);
+        } else {
+          myAttributesFilter.setFilterEnabled(false);
+        }
+        ((TableRowSorter)myAttributesTable.getRowSorter()).sort();
+        myPanel.getAdvancedFilterCheckBox().getModel().setSelected(!myAttributesFilter.myIsFilterEnabled);
+      }
+    });
 
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
     model.fireTableStructureChanged();
@@ -637,19 +669,15 @@ public class ThemeEditorComponent extends Splitter {
 
   class StyleAttributesFilter extends RowFilter<AttributesTableModel, Integer> {
     // TODO: This is just a random list of attributes. Replace with a possibly dynamic list of simple attributes.
-    private final Set<String> SIMPLE_ATTRIBUTES = ImmutableSet
+    public final Set<String> ATTRIBUTES_DEFAULT_FILTER = ImmutableSet
       .of("android:background", "android:colorAccent", "android:colorBackground", "android:colorForegroundInverse", "android:colorPrimary",
           "android:editTextColor", "spinnerStyle", "android:textColorHighlight", "android:textColorLinkInverse", "android:textColorPrimary",
           "windowTitleStyle", "android:windowFullscreen");
-    private boolean myAdvancedMode = true;
-    private boolean myLocallyDefinedMode = false;
-    private Set<String> filterAttributes = SIMPLE_ATTRIBUTES;
+    private boolean myIsFilterEnabled = true;
+    private Set<String> filterAttributes = ATTRIBUTES_DEFAULT_FILTER;
 
-    public void setOnlyLocallyDefinedMode(boolean local) {
-      this.myLocallyDefinedMode = local;
-    }
-    public void setAdvancedMode(boolean advanced) {
-      this.myAdvancedMode = advanced;
+    public void setFilterEnabled(boolean enabled) {
+      this.myIsFilterEnabled = enabled;
     }
 
     /**
@@ -661,12 +689,16 @@ public class ThemeEditorComponent extends Splitter {
 
     @Override
     public boolean include(Entry<? extends AttributesTableModel, ? extends Integer> entry) {
+      if (!myIsFilterEnabled) {
+        return true;
+      }
+
       // We use the column 1 because it's the one that contains the ItemResourceValueWrapper.
       Object value = entry.getModel().getValueAt(entry.getIdentifier().intValue(), 1);
       String attributeName;
 
       if (value instanceof TableLabel) {
-        return myAdvancedMode;
+        return false;
       }
       if (value instanceof EditedStyleItem) {
         attributeName = ((EditedStyleItem)value).getQualifiedName();
@@ -679,14 +711,6 @@ public class ThemeEditorComponent extends Splitter {
       if (selectedTheme == null) {
         LOG.error("No theme selected.");
         return false;
-      }
-      if (myLocallyDefinedMode && !selectedTheme.isAttributeDefined(attributeName)) {
-        return false;
-      }
-
-      if (myAdvancedMode) {
-        // All Attributes shown.
-        return true;
       }
 
       return filterAttributes.contains(attributeName);
