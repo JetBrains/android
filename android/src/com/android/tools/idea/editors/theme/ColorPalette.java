@@ -55,11 +55,18 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
     /**
      * Returns the element located at the index {@code i}.
      */
+    @NotNull
     Color getColorAt(int i);
+
+    /**
+     * Returns the index a given color or -1 if it doesn't exist.
+     */
+    int indexOf(@NotNull Color c);
 
     /**
      * Returns the tooltip for the element located at the index {@code i}.
      */
+    @NotNull
     String getToolTipAt(int i);
   }
 
@@ -78,11 +85,18 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
       return myColorList.size();
     }
 
+    @NotNull
     @Override
     public Color getColorAt(int i) {
       return myColorList.get(i);
     }
 
+    @Override
+    public int indexOf(@NotNull Color c) {
+      return myColorList.indexOf(c);
+    }
+
+    @NotNull
     @Override
     public String getToolTipAt(int i) {
       return myColorList.get(i).toString();
@@ -110,10 +124,11 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
         if (selected != -1) {
           mySelectedItem = selected;
           itemStateChanged(mySelectedItem, ItemEvent.SELECTED);
-        } else {
+          repaint();
+        }
+        else {
           clearSelection();
         }
-        repaint();
       }
     });
   }
@@ -123,10 +138,15 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
     this(new StaticColorPaletteModel(Collections.<Color>emptyList()));
   }
 
-  public void setModel(ColorPaletteModel colorListModel) {
+  public void setModel(@NotNull ColorPaletteModel colorListModel) {
     myColorListModel = colorListModel;
 
     revalidate();
+  }
+
+  @NotNull
+  public ColorPaletteModel getModel() {
+    return myColorListModel;
   }
 
   /**
@@ -215,7 +235,9 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
       g.fillRect(x, myColorBoxPadding, myColorBoxSize, myColorBoxSize);
 
       if (mySelectedItem == i && mySelectedBorder != null) {
+        g.setXORMode(Color.WHITE);
         mySelectedBorder.paintBorder(this, g, x, myColorBoxPadding, myColorBoxSize, myColorBoxSize);
+        g.setPaintMode();
       }
 
       if (x > width) {
@@ -274,6 +296,8 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
 
   public void clearSelection() {
     mySelectedItem = -1;
+
+    repaint();
   }
 
   private void itemStateChanged(int position, int stateChange) {
