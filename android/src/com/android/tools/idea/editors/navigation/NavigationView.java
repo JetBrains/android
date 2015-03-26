@@ -28,6 +28,8 @@ import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.wizard.NewAndroidActivityWizard;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
@@ -100,8 +102,8 @@ public class NavigationView extends JComponent {
   private final SelectionModel mySelectionModel;
   private final CodeGenerator myCodeGenerator;
 
-  private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
-  private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
+  private final BiMap<State, AndroidRootComponent> myStateComponentAssociation = HashBiMap.create();
+  private final BiMap<Transition, Component> myTransitionEditorAssociation = HashBiMap.create();
 
   private boolean myStateCacheIsValid;
   private boolean myTransitionEditorCacheIsValid;
@@ -244,7 +246,7 @@ public class NavigationView extends JComponent {
         RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
         RenderedView namedEndLeaf = HierarchyUtils.getNamedParent(endLeaf);
 
-        Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
+        Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().inverse();
         State sourceState = rootComponentToState.get(sourceComponent);
         String fragmentClassName = getFragmentClassName(sourceState, namedSourceLeaf);
         Locator sourceLocator = Locator.of(sourceState, fragmentClassName, HierarchyUtils.getViewId(namedSourceLeaf));
@@ -287,7 +289,7 @@ public class NavigationView extends JComponent {
   public void setScale(float scale) {
     myTransform = new Transform(scale);
     myBackgroundImage = null;
-    for (AndroidRootComponent root : getStateComponentAssociation().keyToValue.values()) {
+    for (AndroidRootComponent root : getStateComponentAssociation().values()) {
       root.setScale(scale);
     }
     setPreferredSize();
@@ -300,7 +302,7 @@ public class NavigationView extends JComponent {
     setScale(myTransform.myScale * (float)Math.pow(ZOOM_FACTOR, n));
   }
 
-  private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
+  private BiMap<State, AndroidRootComponent> getStateComponentAssociation() {
     if (!myStateCacheIsValid) {
       syncStateCache(myStateComponentAssociation);
       myStateCacheIsValid = true;
@@ -308,7 +310,7 @@ public class NavigationView extends JComponent {
     return myStateComponentAssociation;
   }
 
-  private Assoc<Transition, Component> getTransitionEditorAssociation() {
+  private BiMap<Transition, Component> getTransitionEditorAssociation() {
     if (!myTransitionEditorCacheIsValid) {
       syncTransitionCache(myTransitionEditorAssociation);
       myTransitionEditorCacheIsValid = true;
@@ -327,7 +329,7 @@ public class NavigationView extends JComponent {
   private Map<String, RenderedView> getNameToRenderedView(State state) {
     Map<String, RenderedView> result = myNameToRenderedView.get(state);
     if (result == null) {
-      AndroidRootComponent androidRootComponent = getStateComponentAssociation().keyToValue.get(state);
+      AndroidRootComponent androidRootComponent = getStateComponentAssociation().get(state);
       if (androidRootComponent == null) {
         return Collections.emptyMap();
       }
@@ -503,7 +505,7 @@ public class NavigationView extends JComponent {
     }
 
     // draw component shadows
-    for (Component c : getStateComponentAssociation().keyToValue.values()) {
+    for (Component c : getStateComponentAssociation().values()) {
       Rectangle r = c.getBounds();
       ShadowPainter.drawRectangleShadow(g, r.x, r.y, r.width, r.height);
     }
@@ -653,16 +655,16 @@ public class NavigationView extends JComponent {
   }
 
   private Rectangle getBounds(Locator source) {
-    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
+    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation();
     AndroidRootComponent component = stateToComponent.get(source.getState());
     return getBounds(component, getRenderedView(source));
   }
 
   @Override
   public void doLayout() {
-    Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
+    Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation();
 
-    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
+    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation();
     for (State state : stateToComponent.keySet()) {
       AndroidRootComponent root = stateToComponent.get(state);
       root.setLocation(myTransform.modelToView(myNavigationModel.getStateToLocation().get(state)));
@@ -688,12 +690,12 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private <K, V extends Component> void removeLeftovers(Assoc<K, V> assoc, Collection<K> a) {
-    for (Map.Entry<K, V> e : new ArrayList<Map.Entry<K, V>>(assoc.keyToValue.entrySet())) {
+  private <K, V extends Component> void removeLeftovers(BiMap<K, V> assoc, Collection<K> a) {
+    for (Map.Entry<K, V> e : new ArrayList<Map.Entry<K, V>>(assoc.entrySet())) {
       K k = e.getKey();
       V v = e.getValue();
       if (!a.contains(k)) {
-        assoc.remove(k, v);
+        assoc.remove(k);
         remove(v);
         repaint();
       }
@@ -734,14 +736,14 @@ public class NavigationView extends JComponent {
     return gesture.equals(Transition.PRESS) ? getPressGestureIcon() : getSwipeGestureIcon();
   }
 
-  private void syncTransitionCache(Assoc<Transition, Component> assoc) {
+  private void syncTransitionCache(BiMap<Transition, Component> assoc) {
     if (DEBUG) LOG.info("NavigationView: syncTransitionCache");
     // add anything that is in the model but not in our cache
     for (Transition transition : myNavigationModel.getTransitions()) {
-      if (!assoc.keyToValue.containsKey(transition)) {
+      if (!assoc.containsKey(transition)) {
         Component editor = createEditorFor(transition);
         add(editor);
-        assoc.add(transition, editor);
+        assoc.put(transition, editor);
       }
     }
     // remove anything that is in our cache but not in the model
@@ -811,7 +813,7 @@ public class NavigationView extends JComponent {
     return result;
   }
 
-  private void syncStateCache(Assoc<State, AndroidRootComponent> assoc) {
+  private void syncStateCache(BiMap<State, AndroidRootComponent> assoc) {
     if (DEBUG) LOG.info("NavigationView: syncStateCache");
     assoc.clear();
     removeAll();
@@ -819,9 +821,9 @@ public class NavigationView extends JComponent {
 
     // add anything that is in the model but not in our cache
     for (State state : myNavigationModel.getStates()) {
-      if (!assoc.keyToValue.containsKey(state)) {
+      if (!assoc.containsKey(state)) {
         AndroidRootComponent root = createRootComponentFor(state);
-        assoc.add(state, root);
+        assoc.put(state, root);
         add(root);
       }
     }
@@ -849,7 +851,7 @@ public class NavigationView extends JComponent {
 
   private void bringToFront(@Nullable State state) {
     if (state != null) {
-      AndroidRootComponent menuComponent = getStateComponentAssociation().keyToValue.get(state);
+      AndroidRootComponent menuComponent = getStateComponentAssociation().get(state);
       if (menuComponent != null) {
         setComponentZOrder(menuComponent, 0);
       }
@@ -871,11 +873,11 @@ public class NavigationView extends JComponent {
     if (component instanceof NavigationView) {
       return Selections.NULL;
     }
-    Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
+    Transition transition = getTransitionEditorAssociation().inverse().get(component);
     if (component instanceof AndroidRootComponent) {
       // Select a top-level 'screen'
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
-      State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
+      State state = getStateComponentAssociation().inverse().get(androidRootComponent);
       if (!shiftDown) {
         if (state == null) {
           return Selections.NULL;
@@ -990,7 +992,7 @@ public class NavigationView extends JComponent {
     private int applicableDropCount = 0;
 
     private void execute(State state, boolean execute) {
-      if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
+      if (!getStateComponentAssociation().containsKey(state)) {
         if (execute) {
           myNavigationModel.addState(state);
         }
