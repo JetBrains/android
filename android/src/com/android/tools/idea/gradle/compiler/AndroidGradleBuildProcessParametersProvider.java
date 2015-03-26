@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
@@ -32,9 +30,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.PathUtil;
 import com.intellij.util.net.HttpConfigurable;
-import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -111,7 +107,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       jvmArgs.add(createJvmArg(GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
-    File javaHome = DefaultSdks.getDefaultJavaHome();
+    File javaHome = IdeSdks.getJdkPath();
     if (javaHome != null) {
       jvmArgs.add(createJvmArg(GRADLE_JAVA_HOME_DIR_PATH, javaHome.getPath()));
     }

@@ -31,7 +31,7 @@ import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErr
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Splitter;
@@ -307,7 +307,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           BuildLauncher launcher = connection.newBuild();
           GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
 
-          File javaHome = DefaultSdks.getDefaultJavaHome();
+          File javaHome = IdeSdks.getJdkPath();
           if (javaHome != null) {
             launcher.setJavaHome(javaHome);
           }
@@ -417,7 +417,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
             if (AndroidStudioSpecificInitializer.isAndroidStudio() &&
                 error != null &&
                 error.startsWith("Supplied javaHome is not a valid folder")) {
-              File androidHome = DefaultSdks.getDefaultAndroidHome();
+              File androidHome = IdeSdks.getAndroidSdkPath();
               String androidSdkPath = androidHome != null ? androidHome.getPath() : null;
               SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
               selectSdkDialog.setModal(true);
@@ -429,7 +429,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
                     ApplicationManager.getApplication().runWriteAction(new Runnable() {
                       @Override
                       public void run() {
-                        DefaultSdks.setDefaultJavaHome(new File(jdkHome));
+                        IdeSdks.setJdkPath(new File(jdkHome));
                       }
                     });
                   }

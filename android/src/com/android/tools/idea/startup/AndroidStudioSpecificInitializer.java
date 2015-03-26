@@ -21,7 +21,7 @@ import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.welcome.AndroidStudioWelcomeScreenProvider;
 import com.android.tools.idea.welcome.FirstRunWizardMode;
@@ -303,7 +303,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
-    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null) {
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
       return;
@@ -322,7 +322,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         public void run() {
           String androidHome = sdk.getHomePath();
           assert androidHome != null;
-          DefaultSdks.createAndroidSdksForAllTargets(new File(FileUtil.toSystemDependentName(androidHome)));
+          IdeSdks.createAndroidSdkPerAndroidTarget(new File(FileUtil.toSystemDependentName(androidHome)));
         }
       });
       return;
@@ -362,7 +362,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
             }
 
             // Fill out any missing build APIs for this new SDK.
-            DefaultSdks.createAndroidSdksForAllTargets(androidSdkPath);
+            IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
           }
         }
       }

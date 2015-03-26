@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.structure;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -100,8 +100,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultJavaHome(getJdkLocation());
-        DefaultSdks.setDefaultAndroidHome(getSdkLocation(), myProject);
+        IdeSdks.setJdkPath(getJdkLocation());
+        IdeSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
@@ -119,7 +119,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose Android SDK Location", new Function<File, Void>() {
       @Override
       public Void fun(File file) {
-        if (!DefaultSdks.isValidAndroidSdkPath(file)) {
+        if (!IdeSdks.isValidAndroidSdkPath(file)) {
           throw new IllegalArgumentException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
         }
         return null;
@@ -243,7 +243,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
    */
   @Nullable
   private static Sdk getFirstDefaultAndroidSdk(boolean create) {
-    List<Sdk> allAndroidSdks = DefaultSdks.getEligibleAndroidSdks();
+    List<Sdk> allAndroidSdks = IdeSdks.getEligibleAndroidSdks();
     if (!allAndroidSdks.isEmpty()) {
       return allAndroidSdks.get(0);
     }
@@ -254,7 +254,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (sdkData == null) {
       return null;
     }
-    List<Sdk> sdks = DefaultSdks.createAndroidSdksForAllTargets(sdkData.getLocation());
+    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(sdkData.getLocation());
     return !sdks.isEmpty() ? sdks.get(0) : null;
   }
 
@@ -263,7 +263,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
    */
   @NotNull
   private static String getDefaultSdkPath() {
-    File path = DefaultSdks.getDefaultAndroidHome();
+    File path = IdeSdks.getAndroidSdkPath();
     if (path != null) {
       return path.getPath();
     }
@@ -282,7 +282,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
    */
   @NotNull
   private static String getDefaultJdkPath() {
-    File javaHome = DefaultSdks.getDefaultJavaHome();
+    File javaHome = IdeSdks.getJdkPath();
     return javaHome != null ? javaHome.getPath() : "";
   }
 
@@ -299,7 +299,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   public boolean validate() throws ConfigurationException {
-    if (!DefaultSdks.isValidAndroidSdkPath(getSdkLocation())) {
+    if (!IdeSdks.isValidAndroidSdkPath(getSdkLocation())) {
       throw new ConfigurationException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
     }
 
@@ -313,7 +313,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   public List<ProjectConfigurationError> validateState() {
     List<ProjectConfigurationError> errors = Lists.newArrayList();
 
-    if (!DefaultSdks.isValidAndroidSdkPath(getSdkLocation())) {
+    if (!IdeSdks.isValidAndroidSdkPath(getSdkLocation())) {
       ProjectConfigurationError error =
         new ProjectConfigurationError(CHOOSE_VALID_SDK_DIRECTORY_ERR, mySdkLocationTextField.getTextField());
       errors.add(error);
@@ -339,7 +339,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       return true;
     }
     if (SystemInfo.isMac) {
-      File potentialPath = new File(file, DefaultSdks.MAC_JDK_CONTENT_PATH);
+      File potentialPath = new File(file, IdeSdks.MAC_JDK_CONTENT_PATH);
       if (potentialPath.isDirectory() && JavaSdk.checkForJdk(potentialPath)) {
         myJdkLocationTextField.setText(potentialPath.getPath());
         return true;
@@ -355,7 +355,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     String jdkPath = getDefaultJdkPath();
     String sdkPath = getDefaultSdkPath();
     boolean validJdk = !jdkPath.isEmpty() && JavaSdk.checkForJdk(new File(jdkPath));
-    boolean validSdk = !sdkPath.isEmpty() && DefaultSdks.isValidAndroidSdkPath(new File(sdkPath));
+    boolean validSdk = !sdkPath.isEmpty() && IdeSdks.isValidAndroidSdkPath(new File(sdkPath));
     return !validJdk || !validSdk;
   }
 }

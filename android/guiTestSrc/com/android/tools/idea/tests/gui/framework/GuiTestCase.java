@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -305,7 +305,7 @@ public abstract class GuiTestCase {
       updateGradleVersions(projectPath);
     }
 
-    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+    File androidHomePath = IdeSdks.getAndroidSdkPath();
     assertNotNull(androidHomePath);
 
     LocalProperties localProperties = new LocalProperties(projectPath);

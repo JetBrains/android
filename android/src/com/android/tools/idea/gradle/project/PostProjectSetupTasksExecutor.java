@@ -38,7 +38,7 @@ import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.templates.TemplateManager;
@@ -63,14 +63,10 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -93,6 +89,10 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
+import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
@@ -211,7 +211,7 @@ public class PostProjectSetupTasksExecutor {
       }
       ModifiableRootModel model = moduleRootManager.getModifiableModel();
       try {
-        Sdk jdk = DefaultSdks.getDefaultJdk();
+        Sdk jdk = IdeSdks.getJdk();
         model.setSdk(jdk);
       }
       finally {
@@ -352,7 +352,7 @@ public class PostProjectSetupTasksExecutor {
     }
 
     int startingIndex = -1;
-    List<String> pathSegments = FileUtil.splitPath(jarFilePath.getParentFile().getPath());
+    List<String> pathSegments = splitPath(jarFilePath.getParentFile().getPath());
     int segmentCount = pathSegments.size();
     for (int i = 0; i < segmentCount; i++) {
       if (ResourceFolderManager.EXPLODED_AAR.equals(pathSegments.get(i))) {
@@ -370,7 +370,7 @@ public class PostProjectSetupTasksExecutor {
     String groupId = pathSegments.get(startingIndex++);
 
     if (ImportModule.SUPPORT_GROUP_ID.equals(groupId)) {
-      File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+      File androidHomePath = IdeSdks.getAndroidSdkPath();
 
       File repositoryLocation = SdkMavenRepository.ANDROID.getRepositoryLocation(androidHomePath, true);
       if (repositoryLocation != null) {
@@ -384,7 +384,7 @@ public class PostProjectSetupTasksExecutor {
 
         String sourceJarName = artifactId + "-" + version + SOURCES_JAR_NAME_SUFFIX;
         sourceJarRelativePath.add(sourceJarName);
-        File sourceJar = new File(repositoryLocation, FileUtil.join(ArrayUtil.toStringArray(sourceJarRelativePath)));
+        File sourceJar = new File(repositoryLocation, join(toStringArray(sourceJarRelativePath)));
         return sourceJar.isFile() ? sourceJar : null;
       }
     }
@@ -395,15 +395,15 @@ public class PostProjectSetupTasksExecutor {
   @Nullable
   private static File getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
+    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
       return null;
     }
-    String path = url.substring(StandardFileSystems.JAR_PROTOCOL_PREFIX.length());
-    int index = path.lastIndexOf(URLUtil.JAR_SEPARATOR);
+    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
+    int index = path.lastIndexOf(JAR_SEPARATOR);
     if (index != -1) {
       path = path.substring(0, index);
     }
-    return new File(FileUtil.toSystemDependentName(path));
+    return new File(toSystemDependentName(path));
   }
 
   private void findAndShowVariantConflicts() {
@@ -446,7 +446,7 @@ public class PostProjectSetupTasksExecutor {
     // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
     checkExpiredPreviewBuild(project);
 
-    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
       String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
@@ -605,17 +605,16 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
     myGenerateSourcesAfterSync = generateSourcesAfterSync;
   }
 
-  public void setUsingCachedProjectData(boolean usingCachedProjectData) {
-    myUsingCachedProjectData = usingCachedProjectData;
-  }
-
   public void setLastSyncTimestamp(long lastSyncTimestamp) {
     myLastSyncTimestamp = lastSyncTimestamp;
+  }
+
+  public void setUsingCachedProjectData(boolean usingCachedProjectData) {
+    myUsingCachedProjectData = usingCachedProjectData;
   }
 
   private static class InstallSdkToolsHyperlink extends NotificationHyperlink {

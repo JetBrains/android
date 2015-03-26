@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -56,7 +56,6 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
@@ -72,7 +71,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidHomes;
+import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.gradle.util.Projects.*;
@@ -85,6 +84,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refres
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
@@ -127,7 +127,7 @@ public class GradleProjectImporter {
    */
   public void importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
-    File projectDirPath = new File(toSystemDependentName(projectDir.getPath()));
+    File projectDirPath = virtualToIoFile(projectDir);
 
     // Sync Android SDKs paths *before* importing project. Studio will freeze if the project has a local.properties file pointing to a SDK
     // path that does not exist. The cause is that having 2 dialogs: one modal (the "Project Import" one) and another from
@@ -135,7 +135,7 @@ public class GradleProjectImporter {
     try {
       LocalProperties localProperties = new LocalProperties(projectDirPath);
       if (isAndroidStudio()) {
-        syncIdeAndProjectAndroidHomes(localProperties);
+        syncIdeAndProjectAndroidSdks(localProperties);
       }
     }
     catch (IOException e) {
@@ -157,7 +157,7 @@ public class GradleProjectImporter {
    */
   private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project project) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
-    File projectDirPath = VfsUtilCore.virtualToIoFile(projectDir);
+    File projectDirPath = virtualToIoFile(projectDir);
     try {
       importProject(projectDir.getName(), projectDirPath, true, new NewProjectImportGradleSyncListener() {
         @Override
@@ -471,7 +471,7 @@ public class GradleProjectImporter {
 
     // Set the JDK to use when syncing project.
     if (isAndroidStudio()) {
-      Sdk jdk = DefaultSdks.getDefaultJdk();
+      Sdk jdk = IdeSdks.getJdk();
       if (jdk != null) {
         settings.setGradleJvm(jdk.getName());
       }
@@ -479,7 +479,7 @@ public class GradleProjectImporter {
       // validate Gradle SDK
       if (!ExternalSystemJdkUtil.checkForJdk(project, settings.getGradleJvm())) {
         // Set first acceptable JDK to use when syncing project (or create one if it is not set up yet)
-        Sdk jdk = DefaultSdks.getDefaultJdk();
+        Sdk jdk = IdeSdks.getJdk();
         if (jdk != null) {
           settings.setGradleJvm(jdk.getName());
         }

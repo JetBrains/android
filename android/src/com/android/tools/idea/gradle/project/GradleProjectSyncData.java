@@ -41,7 +41,7 @@ import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.sdk.DefaultSdks.getDefaultAndroidHome;
+import static com.android.tools.idea.sdk.IdeSdks.getAndroidSdkPath;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.io.Files.toByteArray;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -103,7 +103,7 @@ public class GradleProjectSyncData implements Serializable {
 
   private static boolean needsAndroidSdkSync(@NotNull final Project project) {
     if (isAndroidStudio()) {
-      final File ideSdkPath = getDefaultAndroidHome();
+      final File ideSdkPath = getAndroidSdkPath();
       if (ideSdkPath != null) {
         try {
           LocalProperties localProperties = new LocalProperties(project);

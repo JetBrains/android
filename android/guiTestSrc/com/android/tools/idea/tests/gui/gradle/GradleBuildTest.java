@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -55,7 +55,7 @@ public class GradleBuildTest extends GuiTestCase {
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 
-    File actualJdkPath = DefaultSdks.getDefaultJavaHome();
+    File actualJdkPath = IdeSdks.getJdkPath();
     assertNotNull(actualJdkPath);
     assertEquals(jdkPath.getPath(), actualJdkPath.getPath());
   }
