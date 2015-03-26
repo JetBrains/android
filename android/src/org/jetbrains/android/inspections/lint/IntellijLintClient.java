@@ -9,7 +9,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
@@ -295,7 +295,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
       }
     }
 
-    return DefaultSdks.getDefaultAndroidHome();
+    return IdeSdks.getAndroidSdkPath();
   }
 
   @Nullable

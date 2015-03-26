@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -341,7 +341,7 @@ public final class GradleUtil {
 
     // Set the JDK again, just in case it changed name after creating a project.
     // See https://code.google.com/p/android/issues/detail?id=156747
-    Sdk jdk = DefaultSdks.getDefaultJdk();
+    Sdk jdk = IdeSdks.getJdk();
     if (jdk != null) {
       projectSettings.setGradleJvm(jdk.getName());
     }
