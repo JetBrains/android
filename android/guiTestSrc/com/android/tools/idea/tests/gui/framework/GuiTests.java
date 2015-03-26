@@ -16,11 +16,11 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
-import com.intellij.ide.RecentProjectsManagerImpl;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -64,6 +64,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
@@ -94,13 +95,13 @@ public final class GuiTests {
     setUpDefaultProjectCreationLocationPath();
 
     final File androidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            DefaultSdks.setDefaultAndroidHome(androidSdkPath, null);
+            IdeSdks.setAndroidSdkPath(androidSdkPath, null);
           }
         });
       }
@@ -108,7 +109,7 @@ public final class GuiTests {
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
-    RecentProjectsManagerImpl.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
+    RecentProjectsManager.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
   }
 
   // Called by IdeTestApplication via reflection.
@@ -181,7 +182,7 @@ public final class GuiTests {
   public static void deleteFile(@Nullable final VirtualFile file) {
     // File deletion must happen on UI thread under write lock
     if (file != null) {
-      GuiActionRunner.execute(new GuiTask() {
+      execute(new GuiTask() {
         @Override
         protected void executeInEDT() throws Throwable {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -269,7 +270,7 @@ public final class GuiTests {
   /** Returns the root container containing the given component */
   @Nullable
   public static Container getRootContainer(@NotNull final Component component) {
-    return GuiActionRunner.execute(new GuiQuery<Container>() {
+    return execute(new GuiQuery<Container>() {
       @Override
       @Nullable
       protected Container executeInEDT() throws Throwable {

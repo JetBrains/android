@@ -36,9 +36,9 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Tests for {@link DefaultSdks}.
+ * Tests for {@link IdeSdks}.
  */
-public class DefaultSdksTest extends IdeaTestCase {
+public class IdeSdksTest extends IdeaTestCase {
   private File myAndroidSdkPath;
 
   @Override
@@ -64,34 +64,34 @@ public class DefaultSdksTest extends IdeaTestCase {
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
   }
 
-  public void testCreateAndroidSdksForAllTargets() {
-    List<Sdk> sdks = DefaultSdks.createAndroidSdksForAllTargets(myAndroidSdkPath);
+  public void testCreateAndroidSdkPerAndroidTarget() {
+    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
     assertOneSdkPerAvailableTarget(sdks);
   }
 
-  public void testGetDefaultAndroidHome() {
+  public void testGetAndroidSdkPath() {
     // Create default SDKs first.
-    DefaultSdks.createAndroidSdksForAllTargets(myAndroidSdkPath);
+    IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
-    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    File androidHome = IdeSdks.getAndroidSdkPath();
     assertNotNull(androidHome);
     assertEquals(myAndroidSdkPath.getPath(), androidHome.getPath());
   }
 
   public void testGetEligibleAndroidSdks() {
     // Create default SDKs first.
-    List<Sdk> sdks = DefaultSdks.createAndroidSdksForAllTargets(myAndroidSdkPath);
+    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
-    List<Sdk> eligibleSdks = DefaultSdks.getEligibleAndroidSdks();
+    List<Sdk> eligibleSdks = IdeSdks.getEligibleAndroidSdks();
     assertEquals(sdks.size(), eligibleSdks.size());
   }
 
-  public void testSetDefaultAndroidHomeUpdatingLocalPropertiesFile() throws IOException {
+  public void testSetAndroiSdkPathUpdatingLocalPropertiesFile() throws IOException {
     LocalProperties localProperties = new LocalProperties(myProject);
     localProperties.setAndroidSdkPath("");
     localProperties.save();
 
-    List<Sdk> sdks = DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, null);
+    List<Sdk> sdks = IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);

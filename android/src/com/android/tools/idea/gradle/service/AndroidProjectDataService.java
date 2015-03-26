@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
@@ -163,7 +163,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           if (homePath != null) {
             NewProjectUtil.applyJdkToProject(project, jdk);
             homePath = FileUtil.toSystemDependentName(homePath);
-            DefaultSdks.setDefaultJavaHome(new File(homePath));
+            IdeSdks.setJdkPath(new File(homePath));
             PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
           }
         }
