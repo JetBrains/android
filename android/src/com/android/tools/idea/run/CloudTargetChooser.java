@@ -16,19 +16,26 @@
 package com.android.tools.idea.run;
 
 
+import com.android.tools.idea.run.CloudConfiguration.Kind;
 import org.jetbrains.android.run.TargetChooser;
 
-public class CloudTestTargetChooser implements TargetChooser {
-  private final int matrixConfigurationId;
+public class CloudTargetChooser implements TargetChooser {
+  private final Kind configurationKind;
+  private final int cloudConfigurationId;
   private final String cloudProjectId;
 
-  public CloudTestTargetChooser(int selectedMatrixConfigurationId, String chosenCloudProjectId) {
-    matrixConfigurationId = selectedMatrixConfigurationId;
+  public CloudTargetChooser(Kind configurationKind, int selectedCloudConfigurationId, String chosenCloudProjectId) {
+    this.configurationKind = configurationKind;
+    cloudConfigurationId = selectedCloudConfigurationId;
     cloudProjectId = chosenCloudProjectId;
   }
 
-  public int getMatrixConfigurationId() {
-    return matrixConfigurationId;
+  public Kind getConfigurationKind() {
+    return configurationKind;
+  }
+
+  public int getCloudConfigurationId() {
+    return cloudConfigurationId;
   }
 
   public String getCloudProjectId() {

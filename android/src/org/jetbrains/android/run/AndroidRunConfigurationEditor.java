@@ -54,6 +54,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
+
 /**
  * @author yole
  */
@@ -81,12 +83,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox myUseLastSelectedDeviceCheckBox;
   private JRadioButton myRunTestsInGoogleCloudRadioButton;
 
-  private CloudMatrixConfigurationComboBox myCloudConfigurationCombo;
+  private CloudConfigurationComboBox myCloudConfigurationCombo;
   private JBLabel myCloudProjectLabel;
   private JBLabel myMatrixConfigLabel;
   private CloudProjectIdLabel myCloudProjectIdLabel;
   private ActionButton myCloudProjectIdUpdateButton;
-  @Nullable private final CloudTestConfigurationProvider myCloudTestConfigurationProvider;
+  @Nullable private final CloudConfigurationProvider myCloudConfigurationProvider;
 
   private AvdComboBox myAvdCombo;
   private String incorrectPreferredAvd;
@@ -110,7 +112,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myProject = project;
     $$$setupUI$$$(); // Create UI components after myProject is available. Also see https://youtrack.jetbrains.com/issue/IDEA-67765
 
-    myCloudTestConfigurationProvider = CloudTestConfigurationProvider.getCloudTestingProvider();
+    myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
 
     myCommandLineField.setDialogCaption("Emulator Additional Command Line Options");
 
@@ -199,12 +201,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     AnAction action = new SelectCloudProjectAction();
     myCloudProjectIdUpdateButton =
       new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", new Dimension(25, 25));
-    myCloudConfigurationCombo = new CloudMatrixConfigurationComboBox();
+    myCloudConfigurationCombo = new CloudConfigurationComboBox(MATRIX);
     Disposer.register(this, myCloudConfigurationCombo);
   }
 
   private void updateGoogleCloudVisible(AndroidRunConfigurationBase configuration) {
-    boolean shouldShow = configuration instanceof AndroidTestRunConfiguration && CloudTestConfigurationProvider.isEnabled();
+    boolean shouldShow = configuration instanceof AndroidTestRunConfiguration && CloudConfigurationProvider.isEnabled();
     myRunTestsInGoogleCloudRadioButton.setVisible(shouldShow);
     myCloudConfigurationCombo.setVisible(shouldShow);
     myCloudProjectLabel.setVisible(shouldShow);
@@ -240,12 +242,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
   }
 
-  private CloudTestConfiguration getCloudConfigurationComboSelection() {
-    return (CloudTestConfiguration) myCloudConfigurationCombo.getComboBox().getSelectedItem();
+  private CloudConfiguration getCloudConfigurationComboSelection() {
+    return (CloudConfiguration) myCloudConfigurationCombo.getComboBox().getSelectedItem();
   }
 
-  public int getSelectedMatrixConfigurationId() {
-    CloudTestConfiguration selection = getCloudConfigurationComboSelection();
+  public int getSelectedCloudConfigurationId() {
+    CloudConfiguration selection = getCloudConfigurationComboSelection();
     if (selection == null) {
       return -1;
     }
@@ -253,12 +255,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   private boolean isValidCloudSelection() {
-    CloudTestConfiguration selection = getCloudConfigurationComboSelection();
+    CloudConfiguration selection = getCloudConfigurationComboSelection();
     return selection != null && selection.getDeviceConfigurationCount() > 0 && myCloudProjectIdLabel.isProjectSpecified();
   }
 
   private String getInvalidSelectionErrorMessage() {
-    CloudTestConfiguration selection = getCloudConfigurationComboSelection();
+    CloudConfiguration selection = getCloudConfigurationComboSelection();
     if (selection == null) {
       return "Matrix configuration not specified";
     }
@@ -373,7 +375,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myUseLastSelectedDeviceCheckBox.setSelected(configuration.USE_LAST_SELECTED_DEVICE);
 
     myRunTestsInGoogleCloudRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.CLOUD_TEST_OPTION);
-    myCloudConfigurationCombo.selectConfiguration(configuration.SELECTED_MATRIX_CONFIGURATION_ID);
+    myCloudConfigurationCombo.selectConfiguration(configuration.SELECTED_CLOUD_CONFIGURATION_ID);
     myCloudProjectIdLabel.updateCloudProjectId(configuration.SELECTED_CLOUD_PROJECT_ID);
 
     myAvdComboComponent.setEnabled(targetSelectionMode == TargetSelectionMode.EMULATOR);
@@ -430,7 +432,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       configuration.setTargetSelectionMode(TargetSelectionMode.CLOUD_TEST_OPTION);
     }
 
-    configuration.SELECTED_MATRIX_CONFIGURATION_ID = getSelectedMatrixConfigurationId();
+    configuration.SELECTED_CLOUD_CONFIGURATION_ID = getSelectedCloudConfigurationId();
     configuration.SELECTED_CLOUD_PROJECT_ID = myCloudProjectIdLabel.getText();
     configuration.IS_VALID_CLOUD_SELECTION = isValidCloudSelection();
     configuration.INVALID_CLOUD_SELECTION_ERROR = getInvalidSelectionErrorMessage();
@@ -472,12 +474,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private class SelectCloudProjectAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
-      if (myCloudTestConfigurationProvider == null) {
+      if (myCloudConfigurationProvider == null) {
         return;
       }
 
       String selectedProjectId =
-        myCloudTestConfigurationProvider.openCloudProjectConfigurationDialog(myProject, myCloudProjectIdLabel.getText());
+        myCloudConfigurationProvider.openCloudProjectConfigurationDialog(myProject, myCloudProjectIdLabel.getText());
 
       if (selectedProjectId != null) {
         myCloudProjectIdLabel.updateCloudProjectId(selectedProjectId);
