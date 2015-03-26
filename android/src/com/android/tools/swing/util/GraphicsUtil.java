@@ -39,4 +39,24 @@ public class GraphicsUtil {
   public static void paintCheckeredBackground(Graphics g, Rectangle rect, int cellSize) {
     paintCheckeredBackground(g, Color.LIGHT_GRAY, Color.GRAY, rect, cellSize);
   }
+
+  /**
+   * Draw a cross.
+   *
+   * @param g The {@link Graphics} instance
+   * @param rect {@link Rectangle} to paint the cross into
+   * @param alpha Alpha level to use painting the cross
+   */
+  public static void drawCross(Graphics g, Rectangle rect, float alpha) {
+    Color color = g.getColor();
+    //noinspection UseJBColor
+    g.setColor(new Color(color.getRGBComponents(null)[0],
+                         color.getRGBComponents(null)[1],
+                         color.getRGBComponents(null)[2],
+                         0.5f));
+
+    g.drawLine(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
+    g.drawLine(rect.x, rect.height, rect.x + rect.width, rect.y);
+    g.setColor(color);
+  }
 }
