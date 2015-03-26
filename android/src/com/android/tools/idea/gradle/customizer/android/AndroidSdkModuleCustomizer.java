@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -56,7 +56,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
     if (androidProject == null) {
       return;
     }
-    File androidSdkHomePath = DefaultSdks.getDefaultAndroidHome();
+    File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
       return;

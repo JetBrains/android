@@ -21,7 +21,7 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.welcome.installoperations.CheckSdkOperation;
 import com.android.tools.idea.wizard.DynamicWizardPath;
@@ -424,7 +424,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
           application.runWriteAction(new Runnable() {
             @Override
             public void run() {
-              DefaultSdks.setDefaultAndroidHome(input, null);
+              IdeSdks.setAndroidSdkPath(input, null);
               AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
             }
           });

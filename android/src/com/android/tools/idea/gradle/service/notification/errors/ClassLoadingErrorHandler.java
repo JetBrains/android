@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.StopGradleDaemonsHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
@@ -53,7 +53,7 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
         isJdk7 = true;
       }
       else if (classNotFound) {
-        Sdk jdk = DefaultSdks.getDefaultJdk();
+        Sdk jdk = IdeSdks.getJdk();
         if (jdk != null) {
           String jdkHomePath = jdk.getHomePath();
           if (jdkHomePath != null) {

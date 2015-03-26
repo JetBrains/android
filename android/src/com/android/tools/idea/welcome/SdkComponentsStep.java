@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.WizardUtils;
@@ -153,7 +153,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private static boolean isExistingSdk(@Nullable String path) {
     if (!StringUtil.isEmptyOrSpaces(path)) {
       File file = new File(path);
-      return file.isDirectory() && DefaultSdks.isValidAndroidSdkPath(file);
+      return file.isDirectory() && IdeSdks.isValidAndroidSdkPath(file);
     }
     else {
       return false;

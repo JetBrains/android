@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -225,7 +225,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
-    File androidRepoPath = new File(DefaultSdks.getDefaultAndroidHome(), FileUtil.join("extras", "android", "m2repository"));
+    File androidRepoPath = new File(IdeSdks.getAndroidSdkPath(), FileUtil.join("extras", "android", "m2repository"));
     assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test").isDirectory();
 
     IdeFrameFixture projectFrame = openSimpleApplication();

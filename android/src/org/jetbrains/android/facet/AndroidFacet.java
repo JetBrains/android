@@ -34,7 +34,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
@@ -623,7 +623,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void launchEmulator(@Nullable final String avdName, @NotNull final String commands, @NotNull final ProcessHandler handler) {
     File sdkLocation = null;
     if (Projects.isGradleProject(getModule().getProject()) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      sdkLocation = DefaultSdks.getDefaultAndroidHome();
+      sdkLocation = IdeSdks.getAndroidSdkPath();
     }
     else {
       AndroidPlatform platform = getConfiguration().getAndroidPlatform();

@@ -23,7 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -798,7 +798,7 @@ public final class AndroidSdkUtils {
   public static AndroidSdkData tryToChooseAndroidSdk() {
     if (ourSdkData == null) {
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        File path = DefaultSdks.getDefaultAndroidHome();
+        File path = IdeSdks.getAndroidSdkPath();
         if (path != null) {
           ourSdkData = AndroidSdkData.getSdkData(path.getPath());
           if (ourSdkData != null) {
