@@ -19,18 +19,23 @@ import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.intellij.ide.IdeTooltipManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
+import com.intellij.ui.HintHint;
+import com.intellij.ui.LightweightHint;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.AbstractTableCellEditor;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.Html;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.*;
 
 /**
@@ -108,9 +113,9 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
       super(false);
       String value = myItem.getValue();
       if (!StringUtil.isEmpty(value)) {
-       for (String flag : Splitter.on("|").split(value)) {
-         mySelectedFlags.add(flag);
-       }
+        for (String flag : Splitter.on("|").split(value)) {
+          mySelectedFlags.add(flag);
+        }
       }
       setTitle("Flag Options");
       init();
@@ -131,6 +136,57 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
       }
     }
 
+    private class FlagCheckBox extends JCheckBox {
+      LightweightHint myTooltipHint;
+      final String myToolTipText;
+
+      public FlagCheckBox(@NotNull String name, @Nullable String toolTipText) {
+        super(name);
+        myToolTipText = toolTipText;
+        addActionListener(new CheckBoxListener());
+        addMouseListener(new MouseAdapter() {
+
+          @Override
+          public void mouseEntered(MouseEvent e) {
+            showTooltip(e);
+          }
+
+          @Override
+          public void mouseExited(MouseEvent e) {
+            if (myTooltipHint != null) {
+              myTooltipHint.hide();
+              myTooltipHint = null;
+            }
+          }
+        });
+      }
+
+      public void showTooltip(MouseEvent e) {
+        if (myToolTipText == null) {
+          return;
+        }
+        Point point = e.getPoint();
+        if (myTooltipHint == null) {
+          HintHint hintHint = new HintHint(this, point).setAwtTooltip(true).setContentActive(false);
+          final JLayeredPane layeredPane = this.getRootPane().getLayeredPane();
+          final JEditorPane pane = IdeTooltipManager.initPane(new Html(myToolTipText.replaceAll("\\s+", " ")), hintHint, layeredPane);
+          myTooltipHint = new LightweightHint(pane);
+          myTooltipHint.show(this, point.x, point.y, null, hintHint);
+        }
+        else {
+          myTooltipHint.setLocation(new RelativePoint(this, point));
+        }
+      }
+
+      @Override
+      protected void processMouseMotionEvent(MouseEvent e) {
+        super.processMouseMotionEvent(e);
+        if (!myTooltipHint.isRealPopup()) {
+          showTooltip(e);
+        }
+      }
+    }
+
     @Override
     protected JComponent createCenterPanel() {
       Box box = new Box(BoxLayout.PAGE_AXIS);
@@ -139,17 +195,11 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
       if (attrDefinition != null) {
         String[] flagNames = attrDefinition.getValues();
         for (String flagName : flagNames) {
-          JCheckBox flag = new JCheckBox(flagName);
+          FlagCheckBox flag = new FlagCheckBox(flagName, attrDefinition.getValueDoc(flagName));
           if (mySelectedFlags.contains(flagName)) {
             flag.setSelected(true);
           }
           flag.addActionListener(new CheckBoxListener());
-          String toolTipText = attrDefinition.getValueDoc(flagName);
-          if (toolTipText != null) {
-            // TODO: figure out a way to have the tooltip window resize to fit the dialog window
-            // without crashing because of exceeding height
-            flag.setToolTipText(UIUtil.convertSpace2Nbsp(toolTipText.trim().replaceAll(" +", " ")));
-          }
           box.add(flag);
         }
       }
