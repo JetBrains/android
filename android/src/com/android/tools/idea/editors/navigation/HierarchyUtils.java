@@ -108,37 +108,20 @@ class HierarchyUtils {
     return "null";
   }
 
+  private static void appendToBuilderIndented(RenderedView view, String indent, StringBuilder buffer) {
+    //noinspection StringConcatenationInsideStringBufferAppend
+    buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
+    for (RenderedView c : view.getChildren()) {
+      appendToBuilderIndented(c, "  " + indent, buffer);
+    }
+  }
+
   static String toString(@Nullable RenderedView root) {
     if (root == null) {
       return "";
     }
     final StringBuilder buffer = new StringBuilder();
-    new Object() {
-      public void display(RenderedView view, String indent) {
-        //noinspection StringConcatenationInsideStringBufferAppend
-        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
-        for (RenderedView c : view.getChildren()) {
-          display(c, "  " + indent);
-        }
-      }
-    }.display(root, "");
-    return buffer.toString();
-  }
-
-  static String toString(@Nullable ViewInfo root) {
-    if (root == null) {
-      return "";
-    }
-    final StringBuilder buffer = new StringBuilder();
-    new Object() {
-      public void display(ViewInfo view, String indent) {
-        //noinspection StringConcatenationInsideStringBufferAppend
-        buffer.append(indent + getClassName(view) + " " + getTagName(view) + " " + getViewId(view) + "\n");
-        for (ViewInfo c : view.getChildren()) {
-          display(c, ".." + indent);
-        }
-      }
-    }.display(root, "");
+    appendToBuilderIndented(root, "", buffer);
     return buffer.toString();
   }
 }
