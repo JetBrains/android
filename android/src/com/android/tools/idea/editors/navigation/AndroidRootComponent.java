@@ -95,10 +95,6 @@ public class AndroidRootComponent extends JComponent {
     parent.repaint();
   }
 
-  public float getScale() {
-    return transform.myScale;
-  }
-
   private void invalidate2() {
     myScaledImage = null;
   }

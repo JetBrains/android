@@ -91,17 +91,6 @@ public class Analyser {
     return null;
   }
 
-  public static void commit(Project project, @Nullable PsiFile file) {
-    if (file == null) {
-      return;
-    }
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
-    Document document1 = documentManager.getDocument(file);
-    if (document1 != null) {
-      documentManager.commitDocument(document1);
-    }
-  }
-
   private static Set<String> getActivitiesFromManifestFile(Module module) {
     Set<String> result = new HashSet<String>();
     ManifestInfo manifestInfo = ManifestInfo.get(module, false);
@@ -824,16 +813,6 @@ public class Analyser {
       return null;
     }
     return results.get(0);
-  }
-
-  @Nullable
-  public static MultiMatch.Bindings<PsiElement> match(Module module, String className, String methodSignature, String matchMacro) {
-    PsiClass clazz = NavigationEditorUtils.getPsiClass(module, className);
-    if (clazz == null) {
-      LOG.warn("Couldn't find class: " + className);
-      return null;
-    }
-    return match(clazz, methodSignature, matchMacro);
   }
 
   @SuppressWarnings("UnusedDeclaration")

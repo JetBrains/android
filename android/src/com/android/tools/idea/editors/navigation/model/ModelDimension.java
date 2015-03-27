@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.navigation.model;
 import java.awt.Dimension;
 
 public class ModelDimension {
-  public static final ModelDimension ZERO = new ModelDimension(0, 0);
-
   public final int width;
   public final int height;
 

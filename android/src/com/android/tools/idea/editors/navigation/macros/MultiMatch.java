@@ -53,18 +53,6 @@ public class MultiMatch {
     return new Bindings<PsiElement>(bindings, subBindings);
   }
 
-  public String instantiate(Bindings<String> bindings) {
-    Map<String, String> bb = bindings.bindings;
-
-    for (Map.Entry<String, CodeTemplate> entry : subMacros.entrySet()) {
-      String name = entry.getKey();
-      CodeTemplate template = entry.getValue();
-      bb.put(name, Instantiation.instantiate2(template, bindings.subBindings.get(name)));
-    }
-
-    return Instantiation.instantiate2(macro, bb);
-  }
-
   public static class Bindings<T> {
     public final Map<String, T> bindings;
     public final Map<String, Map<String, T>> subBindings;
@@ -74,29 +62,8 @@ public class MultiMatch {
       this.subBindings = subBindings;
     }
 
-    Bindings() {
-      this(new HashMap<String, T>(), new HashMap<String, Map<String, T>>());
-    }
-
     public T get(String key) {
       return bindings.get(key);
-    }
-
-    public void put(String key, T value) {
-      bindings.put(key, value);
-    }
-
-    public T get(String key1, String key2) {
-      Map<String, T> subBinding = subBindings.get(key1);
-      return subBinding == null ? null : subBinding.get(key2);
-    }
-
-    public void put(String key1, String key2, T value) {
-      Map<String, T> subBinding = subBindings.get(key1);
-      if (subBinding == null) {
-        subBindings.put(key1, subBinding = new HashMap<String, T>());
-      }
-      subBinding.put(key2, value);
     }
 
     @Override

@@ -164,11 +164,9 @@ public class CodeGenerator {
   }
 
   public final Module module;
-  public final NavigationModel navigationModel;
   public final Listener<String> listener;
 
-  public CodeGenerator(NavigationModel navigationModel, Module module, Listener<String> listener) {
-    this.navigationModel = navigationModel;
+  public CodeGenerator(Module module, Listener<String> listener) {
     this.module = module;
     this.listener = listener;
   }

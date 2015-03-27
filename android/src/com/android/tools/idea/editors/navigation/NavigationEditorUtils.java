@@ -53,10 +53,6 @@ public class NavigationEditorUtils {
     return Math.sqrt(p.x * p.x + p.y * p.y);
   }
 
-  public static Point max(Point p1, Point p2) {
-    return new Point(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
-  }
-
   public static Point scale(Point p, float k) {
     return new Point((int)(k * p.x), (int)(k * p.y));
   }
@@ -83,10 +79,6 @@ public class NavigationEditorUtils {
 
   public static Point point(Dimension d) {
     return new Point(d.width, d.height);
-  }
-
-  public static Dimension dimension(Point p) {
-    return new Dimension(Math.abs(p.x), Math.abs(p.y));
   }
 
   public static Point project(Point p, Rectangle r) {
@@ -384,10 +376,6 @@ public class NavigationEditorUtils {
       this.a = a;
       this.b = b;
       this.horizontal = horizontal;
-    }
-
-    Point project(Point p) {
-      return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
 }
