@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.annotations;
+package com.android.tools.idea.editors.navigation.annotations;
 
 import java.lang.annotation.*;
 

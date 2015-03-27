@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.annotations.Transient;
 import com.android.tools.idea.editors.navigation.Event;
 import com.android.tools.idea.editors.navigation.EventDispatcher;
 import com.intellij.openapi.util.Condition;
