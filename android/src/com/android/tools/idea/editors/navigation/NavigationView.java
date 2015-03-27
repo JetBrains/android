@@ -282,10 +282,6 @@ public class NavigationView extends JComponent {
     return new Rectangle(location);
   }
 
-  public float getScale() {
-    return myTransform.myScale;
-  }
-
   public void setScale(float scale) {
     myTransform = new Transform(scale);
     myBackgroundImage = null;
