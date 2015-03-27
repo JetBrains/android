@@ -57,11 +57,18 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
     return myColorList.size();
   }
 
+  @NotNull
   @Override
   public Color getColorAt(int i) {
     return myColorList.get(i);
   }
 
+  @Override
+  public int indexOf(@NotNull Color c) {
+    return myColorList.indexOf(c);
+  }
+
+  @NotNull
   @Override
   public String getToolTipAt(int i) {
     StringBuilder tooltip = new StringBuilder("This color is used in:\n\n");
@@ -97,5 +104,9 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
   @Override
   public void tableChanged(TableModelEvent e) {
     loadColors();
+  }
+
+  public List<EditedStyleItem> getReferences(Color color) {
+    return ImmutableList.copyOf(myColorReferences.get(color));
   }
 }
