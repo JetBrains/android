@@ -349,6 +349,25 @@ public class NavigationView extends JComponent {
     return result;
   }
 
+  private static void fillViewByIdMap(RenderedView parent, Map<String, RenderedView> map) {
+    for (RenderedView child : parent.getChildren()) {
+      String id = HierarchyUtils.getViewId(child);
+      if (id != null) {
+        map.put(id, child);
+      }
+      // The view of a ListActivity or ListFragment may not have an id.
+      // To make th views of these special classes locatable, add an entry for all elements where the tag name is "ListView".
+      // todo deal with multiple listViews in a single layout
+      XmlTag tag = child.tag;
+      if (tag != null) {
+        if (tag.getName().equals("ListView")) {
+          map.put(LIST_VIEW_ID, child);
+        }
+      }
+      fillViewByIdMap(child, map);
+    }
+  }
+
   private static Map<String, RenderedView> createViewNameToRenderedView(@NotNull RenderedView root) {
     final Map<String, RenderedView> result = new HashMap<String, RenderedView>();
     // Add fake rendered view for overflow menus so that sources of a menu transitions are shown upper right
@@ -356,43 +375,7 @@ public class NavigationView extends JComponent {
       int w = FAKE_OVERFLOW_MENU_WIDTH;
       result.put(Analyser.FAKE_OVERFLOW_MENU_ID, new RenderedView(root, null, null, root.x + root.w - w, 0, w, w));
     }
-    new Object() {
-      void walk(RenderedView parent) {
-        for (RenderedView child : parent.getChildren()) {
-          String id = HierarchyUtils.getViewId(child);
-          if (id != null) {
-            result.put(id, child);
-          }
-          // The view of a ListActivity or ListFragment may not have an id.
-          // To make th views of these special classes locatable, add an entry for all elements where the tag name is "ListView".
-          // todo deal with multiple listViews in a single layout
-          XmlTag tag = child.tag;
-          if (tag != null) {
-            if (tag.getName().equals("ListView")) {
-              result.put(LIST_VIEW_ID, child);
-            }
-          }
-          walk(child);
-        }
-      }
-    }.walk(root);
-    return result;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  private static Map<String, ViewInfo> createViewNameToViewInfo(@NotNull ViewInfo root) {
-    final Map<String, ViewInfo> result = new HashMap<String, ViewInfo>();
-    new Object() {
-      void walk(ViewInfo parent) {
-        for (ViewInfo child : parent.getChildren()) {
-          String id = HierarchyUtils.getViewId(child);
-          if (id != null) {
-            result.put(id, child);
-          }
-          walk(child);
-        }
-      }
-    }.walk(root);
+    fillViewByIdMap(root, result);
     return result;
   }
 
