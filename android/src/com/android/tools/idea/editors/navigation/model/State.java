@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Property;
+import com.android.tools.idea.editors.navigation.annotations.Property;
 
 public abstract class State {
   private final String className;

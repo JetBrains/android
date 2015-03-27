@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.Property;
+import com.android.tools.idea.editors.navigation.annotations.Property;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import org.xml.sax.*;
