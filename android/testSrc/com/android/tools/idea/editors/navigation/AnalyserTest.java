@@ -31,6 +31,26 @@ public class AnalyserTest extends AndroidTestCase {
     "  $builder.append($obj);" +
     "}";
 
+  public static final String TEMPLATE_INNER_CLASS =
+    "void macro(Method $method, Object $obj, Argument $arg) {" +
+    "  new Runnable() {" +
+    "    @Override public void run() {" +
+    "      $obj.$method($arg);" +
+    "    }" +
+    "  };" +
+    "}";
+
+  public static final String INNER_CLASS_EXAMPLE =
+    "public static void main() {" +
+    "  new Thread(" +
+    "    new Runnable() {" +
+    "      @Override public void run() {" +
+    "        System.out.println(\"Hello from separate thread\");" +
+    "      }" +
+    "    }" +
+    "  ).start();" +
+    "}";
+
   private PsiElementFactory myElementFactory = null;
 
   @Override
@@ -49,7 +69,8 @@ public class AnalyserTest extends AndroidTestCase {
 
     final PsiMethod template = myElementFactory.createMethodFromText(TEMPLATE, null);
 
-    final List<MultiMatch.Bindings<PsiElement>> bindingsList = Analyser.search(method, new MultiMatch(CodeTemplate.fromMethod(template)));
+    final List<MultiMatch.Bindings<PsiElement>> bindingsList =
+      Analyser.search(method, new MultiMatch(CodeTemplate.fromMethod(template)));
     assertEquals(bindingsList.size(), 2);
 
     final List expectedMatches = Arrays.asList("a string", 20);
@@ -64,6 +85,27 @@ public class AnalyserTest extends AndroidTestCase {
       final Object expected = iterator.next();
       assertEquals(got, expected);
     }
+  }
+
+  public void testInnerClass() {
+    final PsiMethod method = myElementFactory.createMethodFromText(INNER_CLASS_EXAMPLE, null);
+
+    final PsiMethod template = myElementFactory.createMethodFromText(TEMPLATE_INNER_CLASS, null);
+
+    final List<MultiMatch.Bindings<PsiElement>> bindingsList =
+      Analyser.search(method, new MultiMatch(CodeTemplate.fromMethod(template)));
+    assertEquals(1, bindingsList.size());
+
+    final MultiMatch.Bindings<PsiElement> bindings = bindingsList.get(0);
+
+    final PsiReferenceExpression object = assertInstanceOf(bindings.get("$obj"), PsiReferenceExpression.class);
+    assertEquals("System.out", object.getText());
+
+    final PsiLiteralExpression argument = assertInstanceOf(bindings.get("$arg"), PsiLiteralExpression.class);
+    assertEquals("Hello from separate thread", argument.getValue());
+
+    final PsiIdentifier methodName = assertInstanceOf(bindings.get("$method"), PsiIdentifier.class);
+    assertEquals("println", methodName.getText());
   }
 
   @Override
