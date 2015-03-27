@@ -321,12 +321,11 @@ public class NavigationEditor implements FileEditor {
   }
 
   private static String[] getDisplayNames(String[] dirNames) {
-    return NavigationEditorUtils.map(dirNames, new Function<String, String>() {
-      @Override
-      public String fun(String s) {
-        return DEFAULT_RESOURCE_FOLDER + s.substring(LAYOUT_DIR_NAME.length());
-      }
-    });
+    final String[] result = new String[dirNames.length];
+    for (int i = 0; i < dirNames.length; i++) {
+      result[i] = DEFAULT_RESOURCE_FOLDER + dirNames[i].substring(LAYOUT_DIR_NAME.length());
+    }
+    return result;
   }
 
   private static JComponent createToolbar(ActionGroup actions, final RenderingParameters renderingParams, String dirName) {
