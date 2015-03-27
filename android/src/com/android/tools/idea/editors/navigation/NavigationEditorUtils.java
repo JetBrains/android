@@ -301,27 +301,6 @@ public class NavigationEditorUtils {
     return null;
   }
 
-  public static <I, O> O[] map(I[] a, Function<I, O> f, Class<O> resultType) {
-    //noinspection unchecked
-    O[] result = (O[])Array.newInstance(resultType, a.length);
-    for (int i = 0; i < result.length; i++) {
-      result[i] = f.fun(a[i]);
-    }
-    return result;
-  }
-
-  public static <I, O> O[] map(I[] a, Function<I, O> f) {
-    try {
-      //noinspection unchecked
-      Class<O> type = (Class<O>)f.getClass().getMethod("fun", a.getClass().getComponentType()).getReturnType();
-      return map(a, f, type);
-
-    }
-    catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public static Graphics2D createLineGraphics(Graphics g, int lineWidth) {
     Graphics2D g2D = (Graphics2D)g.create();
     g2D.setColor(TRANSITION_LINE_COLOR);
