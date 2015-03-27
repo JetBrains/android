@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.navigation.model;
 import com.android.annotations.Property;
 
 public class ModelPoint {
-  public static final ModelPoint ORIGIN = new ModelPoint(0, 0);
-
   public final int x;
   public final int y;
 

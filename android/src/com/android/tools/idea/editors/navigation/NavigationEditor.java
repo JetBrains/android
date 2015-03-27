@@ -134,7 +134,7 @@ public class NavigationEditor implements FileEditor {
     myRenderingParams = renderingParams;
     myAnalyser = new Analyser(module);
     myNavigationModel = read(file);
-    CodeGenerator codeGenerator = new CodeGenerator(myNavigationModel, module, new Listener<String>() {
+    CodeGenerator codeGenerator = new CodeGenerator(module, new Listener<String>() {
       @Override
       public void notify(@NotNull String event) {
         postDelayedRefresh();
