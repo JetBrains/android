@@ -382,10 +382,11 @@ public class RenderTask implements IImageFactory {
   /**
    * Renders the model and returns the result as a {@link com.android.ide.common.rendering.api.RenderSession}.
    *
+   * @param factory Factory for images which would be used to render layouts to.
    * @return the {@link RenderResult resulting from rendering the current model
    */
   @Nullable
-  private RenderResult createRenderSession() {
+  private RenderResult createRenderSession(@NotNull IImageFactory factory) {
     if (myPsiFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
@@ -480,7 +481,7 @@ public class RenderTask implements IImageFactory {
       params.setOverrideBgColor(0);
     }
 
-    params.setImageFactory(this);
+    params.setImageFactory(factory);
 
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
@@ -592,7 +593,7 @@ public class RenderTask implements IImageFactory {
   private static final Object RENDERING_LOCK = new Object();
 
   @Nullable
-  public RenderResult render() {
+  public RenderResult render(@NotNull IImageFactory factory) {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
@@ -603,7 +604,7 @@ public class RenderTask implements IImageFactory {
     synchronized (RENDERING_LOCK) {
       RenderResult renderResult;
       try {
-        renderResult = createRenderSession();
+        renderResult = createRenderSession(factory);
       } catch (final Exception e) {
         String message = e.getMessage();
         if (message == null) {
@@ -615,6 +616,14 @@ public class RenderTask implements IImageFactory {
 
       return renderResult;
     }
+  }
+
+  /**
+   * Run rendering with default IImageFactory implementation provided by RenderTask
+   */
+  @Nullable
+  public RenderResult render() {
+    return render(this);
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
