@@ -149,7 +149,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   }
 
   private static String getFullMessage(LogMessageHeader header, String message) {
-    return AndroidLogcatFormatter.formatMessage(header, message);
+    return AndroidLogcatFormatter.formatMessageFull(header, message);
   }
 
   public void cancel() {
