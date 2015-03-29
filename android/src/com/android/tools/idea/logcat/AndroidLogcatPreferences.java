@@ -32,6 +32,16 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
   public String TOOL_WINDOW_LOG_LEVEL = "VERBOSE";
   public String TOOL_WINDOW_CONFIGURED_FILTER = "";
   public boolean TOOL_WINDOW_REGEXP_FILTER = true;
+  /**
+   * Optional, but if set, used for applying one final format pass on output going to the logcat
+   * console.
+   *
+   * Don't set formatting directly; instead,
+   * use {@link AndroidLogcatFormatter#createCustomFormat(boolean, boolean, boolean, boolean)}
+   *
+   * Or, set to an empty string to disable this extra step of processing
+   */
+  public String LOGCAT_FORMAT_STRING = "";
 
   public static AndroidLogcatPreferences getInstance(Project project) {
     return ServiceManager.getService(project, AndroidLogcatPreferences.class);
