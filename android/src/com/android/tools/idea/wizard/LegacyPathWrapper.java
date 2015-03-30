@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.options.ConfigurationException;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,11 +37,12 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   private final NewModuleWizardState myWizardState;
   private final WizardPath myWizardPath;
   private final List<ModuleWizardStep> mySteps;
-  private Iterable<ModuleTemplate> myTypes;
+  private final Iterable<ModuleTemplate> myTemplates;
   private DynamicWizard myWizard;
   private int myCurrentStep;
 
   public LegacyPathWrapper(NewModuleWizardState wizardState, WizardPath wizardPath) {
+    myTemplates = getModuleTemplates(wizardPath);
     myWizardState = wizardState;
     myWizardPath = wizardPath;
     mySteps = ImmutableList.copyOf(myWizardPath.getSteps());
@@ -54,12 +57,41 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
     }
   }
 
+  static Iterable<ModuleTemplate> getModuleTemplates(@NotNull WizardPath wizardPath) {
+    Collection<ChooseTemplateStep.MetadataListItem> templates = wizardPath.getBuiltInTemplates();
+    if (wizardPath instanceof ImportSourceModulePath) {
+      ChooseTemplateStep.MetadataListItem template = Iterables.getFirst(templates, null);
+      assert template != null;
+      LegacyModuleTemplate importEclipse =
+        new LegacyModuleTemplate(template, "Import Eclipse ADT Project", "Import an existing Eclipse ADT project as a module",
+                                 AndroidIcons.ModuleTemplates.EclipseModule);
+      LegacyModuleTemplate importGradle =
+        new LegacyModuleTemplate(template, "Import Gradle Project", "Import an existing Gradle project as a module",
+                                 AndroidIcons.ModuleTemplates.GradleModule);
+      return ImmutableList.<ModuleTemplate>of(importGradle, importEclipse);
+    }
+    else if (wizardPath instanceof WrapArchiveWizardPath) {
+      ChooseTemplateStep.MetadataListItem template = Iterables.getFirst(templates, null);
+      assert template != null;
+      return Collections.<ModuleTemplate>singleton(
+        new LegacyModuleTemplate(template, "Import .JAR/.AAR Package", "Import an existing JAR or AAR package as a new project module",
+                                 AndroidIcons.ModuleTemplates.Android));
+    }
+    else {
+      ImmutableList.Builder<ModuleTemplate> templatesBuilder = ImmutableList.builder();
+      for (ChooseTemplateStep.MetadataListItem template : templates) {
+        templatesBuilder.add(new LegacyModuleTemplate(template, null));
+      }
+      return templatesBuilder.build();
+    }
+  }
+
   @Override
   public void onPathStarted(boolean fromBeginning) {
     if (fromBeginning) {
       ModuleTemplate moduleTemplate = myWizard.getState().get(WizardConstants.SELECTED_MODULE_TYPE_KEY);
-      if (moduleTemplate instanceof TemplateEntryModuleTemplate) {
-        myWizardState.setTemplateLocation(((TemplateEntryModuleTemplate)moduleTemplate).getTemplateFile());
+      if (moduleTemplate instanceof LegacyModuleTemplate) {
+        myWizardState.setTemplateLocation(((LegacyModuleTemplate)moduleTemplate).getLocation());
       }
       myCurrentStep = findNext(-1, 1);
     }
@@ -134,7 +166,7 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   @Override
   public boolean isPathVisible() {
     ModuleTemplate moduleTemplate = myWizard.getState().get(WizardConstants.SELECTED_MODULE_TYPE_KEY);
-    return moduleTemplate != null && Iterables.contains(myTypes, moduleTemplate);
+    return moduleTemplate != null && Iterables.contains(myTemplates, moduleTemplate);
   }
 
   @Override
@@ -202,16 +234,7 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   @NotNull
   @Override
   public Iterable<ModuleTemplate> getModuleTemplates() {
-    if (myTypes == null) {
-      myTypes = ImmutableList
-        .copyOf(Iterables.transform(myWizardPath.getBuiltInTemplates(), new Function<ChooseTemplateStep.MetadataListItem, ModuleTemplate>() {
-          @Override
-          public ModuleTemplate apply(ChooseTemplateStep.MetadataListItem input) {
-            return new TemplateEntryModuleTemplate(input);
-          }
-        }));
-    }
-    return myTypes;
+    return myTemplates;
   }
 
   public void updateWizard() {
@@ -228,54 +251,24 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
     return true;
   }
 
-  private static final class TemplateEntryModuleTemplate implements ModuleTemplate {
-    private final ChooseTemplateStep.MetadataListItem myTemplate;
+  private static class LegacyModuleTemplate extends NewModuleTemplate {
+    private final File myLocation;
 
-    public TemplateEntryModuleTemplate(ChooseTemplateStep.MetadataListItem template) {
-      myTemplate = template;
+    public LegacyModuleTemplate(@NotNull ChooseTemplateStep.MetadataListItem listItem,
+                                @NotNull String name,
+                                @Nullable String description,
+                                @Nullable Icon icon) {
+      super(name, description, null, false, icon);
+      myLocation = listItem.getTemplateFile();
     }
 
-    @Override
-    public boolean isGalleryModuleType() {
-      return false;
+    public LegacyModuleTemplate(@NotNull ChooseTemplateStep.MetadataListItem listItem, @Nullable Icon icon) {
+      this(listItem, listItem.toString(), listItem.getDescription(), icon);
     }
 
-    @Nullable
-    @Override
-    public Icon getIcon() {
-      // TODO
-      return null;
-    }
-
-    @Override
-    public String toString() {
-      return myTemplate.toString();
-    }
-
-    @Override
-    public String getName() {
-      return myTemplate.toString();
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-      return myTemplate != null ? myTemplate.getDescription() : "";
-    }
-
-    @Override
-    public void updateWizardStateOnSelection(ScopedStateStore state) {
-      // Do nothing
-    }
-
-    @Nullable
-    @Override
-    public FormFactorUtils.FormFactor getFormFactor() {
-      return null;
-    }
-
-    public File getTemplateFile() {
-      return myTemplate.getTemplateFile();
+    @NotNull
+    public File getLocation() {
+      return myLocation;
     }
   }
 }

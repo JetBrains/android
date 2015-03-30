@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +33,48 @@ import java.util.List;
  * Provides basic new module templates.
  */
 public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvider {
+  /**
+   * Helper method for requesting module templates associated with the specified metadata and
+   * target form factors. Usually this is a 1:1 relationship, but, for example, the metadata for
+   * the mobile form factor can be used to generate two separate module templates (one which acts
+   * as a main entry point for your app, while the other acts as a library which can be shared
+   * across apps).
+   */
+  @NotNull
+  private static Collection<ModuleTemplate> getModuleTemplates(@NotNull TemplateMetadata metadata,
+                                                               @NotNull FormFactorUtils.FormFactor formFactor) {
+    if (formFactor.equals(FormFactorUtils.FormFactor.MOBILE)) {
+      CreateModuleTemplate androidApplication =
+        new CreateModuleTemplate(metadata, formFactor, "Phone & Tablet Module", true, AndroidIcons.ModuleTemplates.Mobile);
+      androidApplication.setCustomValue(WizardConstants.IS_LIBRARY_KEY, false);
+      CreateModuleTemplate androidLibrary =
+        new CreateModuleTemplate(metadata, formFactor, "Android Library", false, AndroidIcons.ModuleTemplates.Android);
+      androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
+      return ImmutableSet.<ModuleTemplate>of(androidApplication, androidLibrary);
+    }
+    else {
+      return ImmutableSet.<ModuleTemplate>of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(), true,
+                                                                      getModuleTypeIcon(formFactor.getEnumValue())));
+    }
+  }
+
+  private static Icon getModuleTypeIcon(@NotNull DeviceMenuAction.FormFactor enumValue) {
+    switch (enumValue) {
+      case CAR:
+        return AndroidIcons.ModuleTemplates.Car;
+      case GLASS:
+        return AndroidIcons.ModuleTemplates.Glass;
+      case MOBILE:
+        return AndroidIcons.ModuleTemplates.Mobile;
+      case TV:
+        return AndroidIcons.ModuleTemplates.Tv;
+      case WEAR:
+        return AndroidIcons.ModuleTemplates.Wear;
+      default:
+        throw new IllegalArgumentException(enumValue.name());
+    }
+  }
+
   @NotNull
   @Override
   public Iterable<ModuleTemplate> getModuleTemplates() {
@@ -46,25 +91,9 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
         if (formFactor == null) {
           continue;
         }
-        moduleTemplates.addAll(getModuleTypes(metadata, formFactor));
+        moduleTemplates.addAll(getModuleTemplates(metadata, formFactor));
       }
     }
     return moduleTemplates;
   }
-
-  @NotNull
-  private static Collection<ModuleTemplate> getModuleTypes(@NotNull TemplateMetadata metadata,
-                                                       @NotNull FormFactorUtils.FormFactor formFactor) {
-    if (formFactor.equals(FormFactorUtils.FormFactor.MOBILE)) {
-      CreateModuleTemplate androidApplication = new CreateModuleTemplate(metadata, formFactor,
-                                                                     formFactor.toString() + " Application", true, true);
-      androidApplication.setCustomValue(WizardConstants.IS_LIBRARY_KEY, false);
-      CreateModuleTemplate androidLibrary = new CreateModuleTemplate(metadata, formFactor, "Android Library", true, false);
-      androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
-      return ImmutableSet.<ModuleTemplate>of(androidApplication, androidLibrary);
-    } else {
-      return ImmutableSet.<ModuleTemplate>of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(), true, true));
-    }
-  }
-
 }
