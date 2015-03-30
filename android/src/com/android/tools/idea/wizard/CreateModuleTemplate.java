@@ -24,20 +24,19 @@ import javax.swing.*;
 import java.util.Map;
 
 /**
- * A entry used by {@link com.android.tools.idea.wizard.ChooseModuleTypeStep} to represent an option for a module
+ * A entry used by {@link ChooseModuleTypeStep} to represent an option for a module
  * type to create
  */
-public class CreateModuleTemplate extends NewModuleTemplate {
-  public final TemplateMetadata templateMetadata;
-  private String myName;
+public class CreateModuleTemplate extends AbstractModuleTemplate {
   private final Map<ScopedStateStore.Key<?>, Object> myCustomValues = Maps.newHashMap();
+  @Nullable private final TemplateMetadata templateMetadata;
+  private final String myName;
 
   public CreateModuleTemplate(@Nullable TemplateMetadata metadata,
                               @Nullable FormFactorUtils.FormFactor formFactor,
                               @NotNull String name,
-                              boolean gallery,
                               @NotNull Icon icon) {
-    super(name, metadata != null ? metadata.getDescription() : null, formFactor, gallery, icon);
+    super(name, metadata != null ? metadata.getDescription() : null, formFactor, icon);
     templateMetadata = metadata;
     myName = name;
   }
@@ -47,8 +46,13 @@ public class CreateModuleTemplate extends NewModuleTemplate {
     return myName;
   }
 
+  @Nullable
+  public TemplateMetadata getMetadata() {
+    return templateMetadata;
+  }
+
   @Override
-  public void updateWizardStateOnSelection(ScopedStateStore state) {
+  public void updateWizardState(@NotNull ScopedStateStore state) {
     for (ScopedStateStore.Key<?> k : myCustomValues.keySet()) {
       state.unsafePut(k, myCustomValues.get(k));
     }
@@ -57,4 +61,5 @@ public class CreateModuleTemplate extends NewModuleTemplate {
   public <T> void setCustomValue(ScopedStateStore.Key<? super T> key, T value) {
     myCustomValues.put(key, value);
   }
+
 }
