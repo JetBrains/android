@@ -18,12 +18,10 @@ package org.jetbrains.android.dom.converters;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
@@ -40,7 +38,6 @@ import org.jetbrains.android.resourceManagers.FileResourceProcessor;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.api.RenderResources.REFERENCE_NULL;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
