@@ -54,14 +54,15 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
   @Override
   public void init() {
     super.init();
-    ImmutableList.Builder<ModuleTemplate> galleryTemplates = ImmutableList.builder();
+    ImmutableList.Builder<ModuleTemplate> deviceTemplates = ImmutableList.builder();
     ImmutableList.Builder<ModuleTemplate> extrasTemplates = ImmutableList.builder();
     Set<FormFactorUtils.FormFactor> formFactorSet = Sets.newHashSet();
-    // "Gallery" templates are shown first, with less important templates following
+    // Android device templates are shown first, with less important templates following
     for (ModuleTemplateProvider provider : myModuleTypesProviders) {
       for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
-        if (moduleTemplate.isGalleryModuleType()) {
-          galleryTemplates.add(moduleTemplate);
+        boolean isAndroidDeviceTemplate = moduleTemplate.getFormFactor() != null;
+        if (isAndroidDeviceTemplate) {
+          deviceTemplates.add(moduleTemplate);
         }
         else {
           extrasTemplates.add(moduleTemplate);
@@ -86,7 +87,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       });
     }
 
-    List<ModuleTemplate> galleryTemplatesList = galleryTemplates.build();
+    List<ModuleTemplate> galleryTemplatesList = deviceTemplates.build();
     List<ModuleTemplate> extrasTemplatesList = extrasTemplates.build();
 
     Iterable<ModuleTemplate> allTemplates = Iterables.concat(galleryTemplatesList, extrasTemplatesList);
@@ -105,7 +106,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
   public boolean commitStep() {
     ModuleTemplate selected = myState.get(SELECTED_MODULE_TYPE_KEY);
     if (selected != null) {
-      selected.updateWizardStateOnSelection(myState);
+      selected.updateWizardState(myState);
     }
     return true;
   }
