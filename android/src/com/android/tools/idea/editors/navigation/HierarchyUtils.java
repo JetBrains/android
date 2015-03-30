@@ -39,22 +39,6 @@ class HierarchyUtils {
     return null;
   }
 
-  @Nullable
-  static String getViewId(@Nullable ViewInfo leaf) {
-    if (leaf != null) {
-      Object cookie = leaf.getCookie();
-      if (cookie instanceof XmlTag) {
-        XmlTag tag = (XmlTag)cookie;
-        String attributeValue = tag.getAttributeValue("id", SdkConstants.ANDROID_URI);
-        int prefixLength = Analyser.getPrefix(attributeValue).length();
-        if (attributeValue != null && prefixLength != 0) {
-          return attributeValue.substring(prefixLength);
-        }
-      }
-    }
-    return null;
-  }
-
   @NotNull
   static RenderedView getRoot(@NotNull RenderedView view) {
     while (true) {
@@ -78,17 +62,6 @@ class HierarchyUtils {
     if (leaf != null) {
       if (leaf.tag != null) {
         return leaf.tag.getName();
-      }
-    }
-    return "null";
-  }
-
-  private static String getTagName(@Nullable ViewInfo leaf) {
-    if (leaf != null) {
-      Object cookie = leaf.getCookie();
-      if (cookie instanceof XmlTag) {
-        XmlTag tag = (XmlTag)cookie;
-        return tag.getName();
       }
     }
     return "null";
