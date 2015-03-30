@@ -20,28 +20,43 @@ import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.Wrapper;
+import com.intellij.ui.table.JBTable;
+import com.intellij.ui.tabs.TabInfo;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class HprofViewPanel implements Disposable {
+  @NotNull private Project myProject;
+
   @NotNull private JPanel myContainer;
   @NotNull private JBRunnerTabs myNavigationTabs;
 
   private static final int DIVIDER_WIDTH = 4;
 
   @NotNull private HeapTableManager myHeapTableManager;
+  private Snapshot mySnapshot;
 
   public HprofViewPanel(@NotNull final Project project) {
-    myNavigationTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
+    myProject = project;
+    myNavigationTabs = new JBRunnerTabs(myProject, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     myNavigationTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
     myNavigationTabs.setPaintBorder(0, 0, 0, 0);
 
@@ -64,6 +79,11 @@ public class HprofViewPanel implements Disposable {
   }
 
   public void setSnapshot(@NotNull Snapshot snapshot) {
+    mySnapshot = snapshot;
+
+    myNavigationTabs.addTab(new TabInfo(HeapTableManager.createNavigationSplitter(new JBTable(), null)).setText("GC Roots")
+                              .setSideComponent(createToolBar(myProject)));
+
     myHeapTableManager.setSnapshot(snapshot);
   }
 
@@ -75,5 +95,72 @@ public class HprofViewPanel implements Disposable {
   @Override
   public void dispose() {
 
+  }
+
+  private static class ComputeDominatorIndicator extends Task.Backgroundable {
+    @NotNull private final CountDownLatch myLatch;
+
+    public ComputeDominatorIndicator(@NotNull Project project) {
+      super(project, "Computing dominators...", true);
+      myLatch = new CountDownLatch(1);
+    }
+
+    public void exit() {
+      myLatch.countDown();
+    }
+
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      indicator.setIndeterminate(true);
+
+      while (myLatch.getCount() > 0) {
+        try {
+          myLatch.await(200, TimeUnit.MILLISECONDS);
+        }
+        catch (InterruptedException e) {
+          exit();
+          break;
+        }
+      }
+    }
+  }
+
+  private JToolBar createToolBar(@NotNull final Project project) {
+    final JToggleButton dominatorButton = new JToggleButton(AndroidIcons.Ddms.AllocationTracker, false);
+    dominatorButton.addItemListener(new ItemListener() {
+      private boolean myDominatorsComputed = false;
+
+      @Override
+      public void itemStateChanged(ItemEvent itemEvent) {
+        if (itemEvent.getStateChange() == ItemEvent.SELECTED && !myDominatorsComputed) {
+          myDominatorsComputed = true;
+          final ComputeDominatorIndicator indicator = new ComputeDominatorIndicator(project);
+          ProgressManager.getInstance().run(indicator);
+
+          ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+            @Override
+            public void run() {
+              mySnapshot.computeDominators();
+
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  myHeapTableManager.notifyDominatorsComputed();
+                  indicator.exit();
+                }
+              });
+            }
+          });
+        }
+        else if (itemEvent.getStateChange() == ItemEvent.DESELECTED) {
+          dominatorButton.setSelected(true);
+        }
+      }
+    });
+    JToolBar toolBar = new JToolBar();
+    toolBar.add(dominatorButton);
+    toolBar.setFloatable(false);
+
+    return toolBar;
   }
 }
