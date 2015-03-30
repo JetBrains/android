@@ -90,6 +90,11 @@ public class FormFactorUtils {
       return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null);
     }
 
+    @NotNull
+    public DeviceMenuAction.FormFactor getEnumValue() {
+      return myEnumValue;
+    }
+
     @Override
     public String toString() {
       return displayName == null ? id : displayName;
@@ -98,11 +103,6 @@ public class FormFactorUtils {
     @NotNull
     public Icon getIcon() {
       return myEnumValue.getIcon64();
-    }
-
-    @NotNull
-    public Icon getLargeIcon() {
-      return myEnumValue.getLargeIcon();
     }
 
     public static Iterator<FormFactor> iterator() {

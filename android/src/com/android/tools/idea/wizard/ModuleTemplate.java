@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -37,6 +38,7 @@ public interface ModuleTemplate {
   /**
    * @return module template name.
    */
+  @NotNull
   String getName();
 
   /**
