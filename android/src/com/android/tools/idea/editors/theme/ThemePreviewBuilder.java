@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
@@ -39,8 +41,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.android.SdkConstants.*;
 
 public class ThemePreviewBuilder {
+  /** Namespace schema to use for attributes specific to the preview builder. */
+  public static final String BUILDER_URI = "http://schemas.android.com/tools/preview/builder";
+  /** Attribute to use to specify the ComponentGroup that a specific item in the preview belongs to. */
+  public static final String BUILDER_ATTR_GROUP = "group";
+
   private static final LoremGenerator ourLoremGenerator = new LoremGenerator();
 
+  private final ArrayList<Predicate<ComponentDefinition>> myComponentFilters = new ArrayList<Predicate<ComponentDefinition>>();
+
+  /**
+   * Defines groups for the framework widgets. All the project widgets will go into "Custom".
+   */
   public enum ComponentGroup {
     TEXT("Text", VALUE_VERTICAL),
     EDIT("Edit", VALUE_VERTICAL),
@@ -63,19 +75,23 @@ public class ThemePreviewBuilder {
     }
   }
 
+  /**
+   * Class that contains the definition of an Android widget so it can be displayed on the preview.
+   */
   public static class ComponentDefinition {
-    private static AtomicInteger ourCounter = new AtomicInteger(0);
+    private static final AtomicInteger ourCounter = new AtomicInteger(0);
 
     private final int id;
     final String description;
     final ComponentGroup group;
     final String name;
+    final List<String> aliases = new ArrayList<String>();
 
     final HashMap<String, String> attributes = new HashMap<String, String>();
-    int apiLevel = 0;
+    int apiLevel;
 
     public ComponentDefinition(String description, ComponentGroup group, String name) {
-      id = ourCounter.incrementAndGet();
+      this.id = ourCounter.incrementAndGet();
 
       this.description = description;
       this.name = name;
@@ -96,7 +112,7 @@ public class ThemePreviewBuilder {
     }
 
     /**
-     * Set the API level this component is present in. The component won't be displayed for API levels lower than the specified one.
+     * Set the API level this component is present in. This can be used to filter components that are not available in certain API levels.
      */
     @NotNull
     public ComponentDefinition setApiLevel(int apiLevel) {
@@ -120,8 +136,63 @@ public class ThemePreviewBuilder {
       set(ATTR_TEXT, text);
       return this;
     }
+
+    /**
+     * Adds a component name alias to help with text search.
+     */
+    public ComponentDefinition addAlias(@NotNull String text) {
+      aliases.add(text);
+      return this;
+    }
   }
 
+  public static class ApiLevelFilter implements Predicate<ComponentDefinition> {
+    private final int myApiLevel;
+
+    public ApiLevelFilter(int apiLevel) {
+      myApiLevel = apiLevel;
+    }
+
+    @Override
+    public boolean apply(ComponentDefinition input) {
+      return input.apiLevel <= myApiLevel;
+    }
+  }
+
+  /**
+   * Preview builder filter that returns components matching a certain string.
+   */
+  public static class SearchFilter implements Predicate<ComponentDefinition> {
+    private final boolean myCaseSensitive;
+    private final String mySearchTerm;
+
+    public SearchFilter(@NotNull String searchTerm, boolean caseSensitive) {
+      myCaseSensitive = caseSensitive;
+      mySearchTerm = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+    }
+
+    public SearchFilter(@NotNull String searchTerm) {
+      this(searchTerm, false);
+    }
+
+    @Override
+    public boolean apply(ComponentDefinition input) {
+      if (Strings.isNullOrEmpty(mySearchTerm)) {
+        return true;
+      }
+
+      StringBuilder searchString = new StringBuilder(input.name);
+      searchString.append(' ').append(Joiner.on(' ').join(input.aliases))
+        .append(' ').append(input.description)
+        .append(' ').append(input.group.name);
+
+      return myCaseSensitive
+             ? searchString.toString().contains(mySearchTerm)
+             : searchString.toString().toLowerCase().contains(mySearchTerm);
+    }
+  }
+
+  // List containing all the pre-defined components that are displayed in the preview.
   public static final List<ComponentDefinition> AVAILABLE_BASE_COMPONENTS = ImmutableList.of(
     // Toolbar
     new ComponentDefinition("Toolbar",        ComponentGroup.TOOLBAR, "Toolbar")
@@ -129,21 +200,29 @@ public class ThemePreviewBuilder {
       .set(ATTR_TITLE, "Toolbar")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
       .set("minHeight", "?attr/actionBarSize")
-      .set(ATTR_BACKGROUND, "?attr/colorPrimary"),
+      .set(ATTR_BACKGROUND, "?attr/colorPrimary")
+      .addAlias("Actionbar"),
 
     // Buttons
     new ComponentDefinition("Button",         ComponentGroup.BUTTONS, BUTTON),
-    new ComponentDefinition("Small button",   ComponentGroup.BUTTONS, BUTTON).set(ATTR_STYLE, "?android:attr/buttonStyleSmall"),
-    new ComponentDefinition("Toggle button",  ComponentGroup.BUTTONS, TOGGLE_BUTTON).setText(""),
-    new ComponentDefinition("Radio button",   ComponentGroup.BUTTONS, RADIO_BUTTON).setText(""),
-    new ComponentDefinition("Checkbox",       ComponentGroup.BUTTONS, CHECK_BOX).setText(""),
+    new ComponentDefinition("Small button",   ComponentGroup.BUTTONS, BUTTON)
+      .set(ATTR_STYLE, "?android:attr/buttonStyleSmall"),
+    new ComponentDefinition("Toggle button",  ComponentGroup.BUTTONS, TOGGLE_BUTTON)
+      .setText(""),
+    new ComponentDefinition("Radio button",   ComponentGroup.BUTTONS, RADIO_BUTTON)
+      .setText(""),
+    new ComponentDefinition("Checkbox",       ComponentGroup.BUTTONS, CHECK_BOX)
+      .setText(""),
     //new ComponentDefinition("Switch", ComponentGroup.BUTTONS, SWITCH).setText(""),
 
     // Text
     new ComponentDefinition("New text",       ComponentGroup.TEXT, TEXT_VIEW),
-    new ComponentDefinition("Large text",     ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceLarge"),
-    new ComponentDefinition("Medium text",    ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceMedium"),
-    new ComponentDefinition("Small text",     ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceSmall"),
+    new ComponentDefinition("Large text",     ComponentGroup.TEXT, TEXT_VIEW)
+      .set("textAppearance", "?android:attr/textAppearanceLarge"),
+    new ComponentDefinition("Medium text",    ComponentGroup.TEXT, TEXT_VIEW)
+      .set("textAppearance", "?android:attr/textAppearanceMedium"),
+    new ComponentDefinition("Small text",     ComponentGroup.TEXT, TEXT_VIEW)
+      .set("textAppearance", "?android:attr/textAppearanceSmall"),
 
     // Edit
     new ComponentDefinition("Input text",     ComponentGroup.EDIT, EDIT_TEXT),
@@ -161,19 +240,20 @@ public class ThemePreviewBuilder {
       .set(ATTR_STYLE, "?android:attr/progressBarStyleHorizontal"),
     new ComponentDefinition("SeekBar",        ComponentGroup.OTHER, SEEK_BAR)
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
-    new ComponentDefinition("RatingBar",      ComponentGroup.OTHER, "RatingBar"),
+    new ComponentDefinition("RatingBar",      ComponentGroup.OTHER, "RatingBar")
+      .addAlias("Stars"),
     new ComponentDefinition("Spinner",        ComponentGroup.OTHER, SPINNER)
+      .addAlias("ListBox")
   );
 
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
-  static final int VERTICAL_GROUP_PADDING = 15;
-  static final int LINE_PADDING = 5;
-  static final int GROUP_TITLE_FONT_SIZE = 12;
-  static final int GROUP_PADDING = 45;
+  private static final int VERTICAL_GROUP_PADDING = 15;
+  private static final int LINE_PADDING = 5;
+  private static final int GROUP_TITLE_FONT_SIZE = 12;
+  private static final int GROUP_PADDING = 45;
 
   private List<ComponentDefinition> myAdditionalComponents;
-  private int myApiLevel = Integer.MAX_VALUE;
-  private double myScale = 1;
+  private double myScale = 1.0;
   private String myGroupHeaderColor = "@android:color/darker_gray";
   private PrintStream myDebugPrintStream;
 
@@ -212,6 +292,8 @@ public class ThemePreviewBuilder {
     component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT, "1");
     component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, "5dp");
 
+    component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, def.group.name());
+
     return component;
   }
 
@@ -222,6 +304,8 @@ public class ThemePreviewBuilder {
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER_VERTICAL);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_ORIENTATION, group.orientation);
+
+    elementGroup.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     if (VALUE_VERTICAL.equals(group.orientation)) {
       elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, verticalPadding);
@@ -259,7 +343,16 @@ public class ThemePreviewBuilder {
     return ImmutableList.copyOf(Iterables.filter(components, new Predicate<ComponentDefinition>() {
       @Override
       public boolean apply(ComponentDefinition input) {
-        return (input.apiLevel <= myApiLevel) && group.equals(input.group);
+        if (group != input.group) {
+          return false;
+        }
+
+        for (Predicate<ComponentDefinition> filter : myComponentFilters) {
+          if (!filter.apply(input)) {
+            return false;
+          }
+        }
+        return true;
       }
     }));
   }
@@ -280,12 +373,9 @@ public class ThemePreviewBuilder {
     return this;
   }
 
-  /**
-   * Filter controls that were added after the given API level.
-   */
   @NotNull
-  public ThemePreviewBuilder setApiLevel(int apiLevel) {
-    myApiLevel = apiLevel;
+  public ThemePreviewBuilder addComponentFilter(@NotNull Predicate<ComponentDefinition> filter) {
+    myComponentFilters.add(filter);
 
     return this;
   }
@@ -293,7 +383,7 @@ public class ThemePreviewBuilder {
   @NotNull
   public ThemePreviewBuilder addAllComponents(@NotNull List<ComponentDefinition> definitions) {
     if (myAdditionalComponents == null) {
-      myAdditionalComponents = new ArrayList<ComponentDefinition>();
+      myAdditionalComponents = new ArrayList<ComponentDefinition>(definitions.size());
     }
     myAdditionalComponents.addAll(definitions);
 
@@ -316,7 +406,7 @@ public class ThemePreviewBuilder {
 
   @NotNull
   public ThemePreviewBuilder setGroupHeaderColor(@NotNull Color color) {
-    myGroupHeaderColor = "#" + Integer.toHexString(color.getRGB());
+    myGroupHeaderColor = '#' + Integer.toHexString(color.getRGB());
 
     return this;
   }
@@ -358,6 +448,7 @@ public class ThemePreviewBuilder {
       separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "1px");
       separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, toPx(LINE_PADDING));
       separator.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, myGroupHeaderColor);
+      separator.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
       Element groupTitle = document.createElement(TEXT_VIEW);
       groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
@@ -365,7 +456,8 @@ public class ThemePreviewBuilder {
       groupTitle.setAttributeNS(ANDROID_URI, ATTR_TEXT_SIZE, toPx(GROUP_TITLE_FONT_SIZE));
       groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, toPx(LINE_PADDING));
       groupTitle.setAttributeNS(ANDROID_URI, "textColor", myGroupHeaderColor);
-      groupTitle.setAttributeNS(ANDROID_URI, "text", group.name());
+      groupTitle.setAttributeNS(ANDROID_URI, "text", group.name.toUpperCase());
+      groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
       Element elementGroup = buildElementGroup(document, group, toPx(VERTICAL_GROUP_PADDING));
 
