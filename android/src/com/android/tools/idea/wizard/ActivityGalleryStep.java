@@ -35,6 +35,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 
 /**
  * Gallery of Android activity templates.
@@ -68,7 +69,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
 
   private JComponent createGallery() {
     myGallery = new ASGallery<Optional<TemplateEntry>>();
-    Dimension thumbnailSize = new Dimension(192, 192);
+    Dimension thumbnailSize = DEFAULT_GALLERY_THUMBNAIL_SIZE;
     myGallery.setThumbnailSize(thumbnailSize);
     myGallery.setMinimumSize(new Dimension(thumbnailSize.width * 2 + 1, thumbnailSize.height));
     myGallery.setLabelProvider(new Function<Optional<TemplateEntry>, String>() {
