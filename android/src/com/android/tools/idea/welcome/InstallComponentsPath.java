@@ -206,6 +206,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       addStep(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL));
     }
+    addStep(new SelectThemeStep(KEY_CUSTOM_INSTALL));
     String pathString = mySdkLocation.getAbsolutePath();
     myState.put(KEY_SDK_INSTALL_LOCATION, pathString);
 

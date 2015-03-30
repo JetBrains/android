@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -112,8 +113,8 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
   @NotNull
   @Override
-  protected Color getHeaderColor() {
-    Color color = getStepHeader().color;
+  protected JBColor getHeaderColor() {
+    JBColor color = getStepHeader().color;
     return color == null ? super.getHeaderColor() : color;
   }
 
@@ -129,9 +130,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     @NotNull public final String title;
     @Nullable public final String description;
     @Nullable public final Icon stepIcon;
-    @Nullable public final Color color;
+    @Nullable public final JBColor color;
 
-    private WizardStepHeaderSettings(@NotNull String title, @Nullable String description, @Nullable Icon stepIcon, @Nullable Color color) {
+    private WizardStepHeaderSettings(@NotNull String title, @Nullable String description, @Nullable Icon stepIcon, @Nullable JBColor color) {
       this.title = title;
       this.description = description;
       this.stepIcon = stepIcon;
@@ -139,7 +140,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
 
     @NotNull
-    public static WizardStepHeaderSettings createCustomColorHeader(@NotNull Color color, @NotNull String title) {
+    public static WizardStepHeaderSettings createCustomColorHeader(@NotNull JBColor color, @NotNull String title) {
       return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, color);
     }
 
