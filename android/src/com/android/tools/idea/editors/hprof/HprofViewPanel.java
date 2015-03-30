@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.idea.editors.hprof.heaptable.HeapTableManager;
+import com.android.tools.idea.editors.hprof.tables.gcroottable.GcRootTable;
+import com.android.tools.idea.editors.hprof.tables.heaptable.HeapTableManager;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.Disposable;
@@ -30,7 +31,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.Wrapper;
-import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.TabInfo;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +52,7 @@ public class HprofViewPanel implements Disposable {
   private static final int DIVIDER_WIDTH = 4;
 
   @NotNull private HeapTableManager myHeapTableManager;
+  private GcRootTable myGcRootTable;
   private Snapshot mySnapshot;
 
   public HprofViewPanel(@NotNull final Project project) {
@@ -81,7 +82,8 @@ public class HprofViewPanel implements Disposable {
   public void setSnapshot(@NotNull Snapshot snapshot) {
     mySnapshot = snapshot;
 
-    myNavigationTabs.addTab(new TabInfo(HeapTableManager.createNavigationSplitter(new JBTable(), null)).setText("GC Roots")
+    myGcRootTable = new GcRootTable(mySnapshot);
+    myNavigationTabs.addTab(new TabInfo(HeapTableManager.createNavigationSplitter(myGcRootTable, null)).setText("GC Roots")
                               .setSideComponent(createToolBar(myProject)));
 
     myHeapTableManager.setSnapshot(snapshot);
@@ -146,6 +148,7 @@ public class HprofViewPanel implements Disposable {
                 @Override
                 public void run() {
                   myHeapTableManager.notifyDominatorsComputed();
+                  myGcRootTable.notifyDominatorsComputed();
                   indicator.exit();
                 }
               });

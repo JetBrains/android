@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.heaptable;
+package com.android.tools.idea.editors.hprof.tables.heaptable;
 
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
@@ -23,15 +23,11 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.TabInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 import javax.swing.*;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,7 +36,7 @@ import java.util.List;
 public class HeapTableManager {
   private static final int DIVIDER_WIDTH = 4;
 
-  @NotNull private List<JBTable> myHeapTables = new ArrayList<JBTable>();
+  @NotNull private List<HeapTable> myHeapTables = new ArrayList<HeapTable>();
   @NotNull private JBRunnerTabs myTabs;
   private Snapshot mySnapshot;
 
@@ -82,10 +78,9 @@ public class HeapTableManager {
   }
 
   public void notifyDominatorsComputed() {
-    for (JBTable table : myHeapTables) {
-      ((HeapTableModel)table.getModel()).enableAllColumns();
+    for (HeapTable table : myHeapTables) {
+      table.notifyDominatorsComputed();
     }
-    prettifyHeapTables();
   }
 
   private void createHeapTabs() {
@@ -96,36 +91,12 @@ public class HeapTableManager {
         continue;
       }
 
-      HeapTableModel model = new HeapTableModel(HeapTableModel.createDefaultHeapTableColumns(), heap);
-      JBTable table = new JBTable(model);
-      table.setAutoCreateRowSorter(true);
+      HeapTableModel model = new HeapTableModel(HeapTableModel.createHeapTableColumns(), heap);
+      HeapTable table = new HeapTable(model);
       myHeapTables.add(table);
 
       JBSplitter splitter = createNavigationSplitter(table, new JBList());
       myTabs.addTab(new TabInfo(splitter).setText(model.getHeapName()));
-    }
-
-    prettifyHeapTables();
-  }
-
-  private void prettifyHeapTables() {
-    for (JBTable table : myHeapTables) {
-      table.getRowSorter().toggleSortOrder(0);
-    }
-
-    for (JBTable table : myHeapTables) {
-      TableModel tableModel = table.getModel();
-      assert (tableModel instanceof HeapTableModel);
-      HeapTableModel heapTableModel = (HeapTableModel)tableModel;
-
-      for (int i = 0; i < table.getColumnModel().getColumnCount(); ++i) {
-        TableColumn column = table.getColumnModel().getColumn(i);
-        column.setPreferredWidth(heapTableModel.getColumnWidth(i));
-
-        DefaultTableCellHeaderRenderer headerRenderer = new DefaultTableCellHeaderRenderer();
-        headerRenderer.setHorizontalAlignment(heapTableModel.getColumnHeaderJustification(i));
-        column.setHeaderRenderer(headerRenderer);
-      }
     }
   }
 }
