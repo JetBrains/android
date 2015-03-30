@@ -16,14 +16,18 @@
 package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * Wizard header component
@@ -52,14 +56,26 @@ public class WizardStepHeaderPanel extends JPanel {
                                null, null, null);
   }
 
-  public static WizardStepHeaderPanel create(@NotNull Color headerColor, @Nullable Icon wizardIcon, @Nullable Icon stepIcon,
+  public static WizardStepHeaderPanel create(@NotNull final JBColor headerColor, @Nullable Icon wizardIcon, @Nullable Icon stepIcon,
                               @NotNull String title, @Nullable String description) {
-    WizardStepHeaderPanel panel = new WizardStepHeaderPanel();
+    final WizardStepHeaderPanel panel = new WizardStepHeaderPanel();
     panel.setBackground(headerColor);
     panel.setTitle(title);
     panel.setDescription(description);
     panel.setStepIcon(stepIcon);
     panel.setWizardIcon(wizardIcon);
+    UIManager.addPropertyChangeListener(new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+        // Force an update of static JBColor.DARK. This is required to show the correct color after a LookAndFeel change.
+        JBColor.setDark(UIUtil.isUnderDarcula());
+        panel.setBackground(headerColor);
+
+        // The font size was not set correctly after a LookAndFeel change from Darcula to Standard.
+        Font font = UIManager.getFont("Label.font");
+        panel.myTitleLabel.setFont(new Font(font.getFontName(), font.getStyle(), 24));
+      }
+    });
     return panel;
   }
 
