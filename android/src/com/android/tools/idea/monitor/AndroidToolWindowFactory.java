@@ -110,8 +110,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
     ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
-    DeviceMonitorStatus deviceMonitorStatus = new DeviceMonitorStatus(project);
-
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
     assert logcatView != null;
@@ -121,10 +119,10 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     Content adbLogsContent = createAdbLogsContent(layoutUi, project);
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
 
-    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext, deviceMonitorStatus);
+    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
     layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
 
-    Content cpuContent = createCpuContent(layoutUi, project, deviceContext, deviceMonitorStatus);
+    Content cpuContent = createCpuContent(layoutUi, project, deviceContext);
     layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
@@ -198,9 +196,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
   private static Content createMemoryContent(@NotNull RunnerLayoutUi layoutUi,
                                              @NotNull Project project,
-                                             @NotNull DeviceContext deviceContext,
-                                             @NotNull DeviceMonitorStatus deviceMonitorStatus) {
-    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext, deviceMonitorStatus);
+                                             @NotNull DeviceContext deviceContext) {
+    MemoryMonitorView view = new MemoryMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("Memory", view.createComponent(), "Memory", AndroidIcons.MemoryMonitor, null);
     content.setCloseable(false);
     return content;
@@ -208,9 +205,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
   private static Content createCpuContent(@NotNull RunnerLayoutUi layoutUi,
                                           @NotNull Project project,
-                                          @NotNull DeviceContext deviceContext,
-                                          @NotNull DeviceMonitorStatus deviceMonitorStatus) {
-    CpuMonitorView view = new CpuMonitorView(project, deviceContext, deviceMonitorStatus);
+                                          @NotNull DeviceContext deviceContext) {
+    CpuMonitorView view = new CpuMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", AndroidIcons.CpuMonitor, null);
     content.setCloseable(false);
     return content;

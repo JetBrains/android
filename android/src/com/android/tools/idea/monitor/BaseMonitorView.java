@@ -25,12 +25,10 @@ import java.awt.event.HierarchyListener;
 
 public abstract class BaseMonitorView implements HierarchyListener {
   @NotNull protected Project myProject;
-  @NotNull protected DeviceMonitorStatus myDeviceMonitorStatus;
   @NotNull protected JPanel myContentPane;
 
-  protected BaseMonitorView(@NotNull Project project, @NotNull DeviceMonitorStatus deviceMonitorStatus) {
+  protected BaseMonitorView(@NotNull Project project) {
     myProject = project;
-    myDeviceMonitorStatus = deviceMonitorStatus;
     myContentPane = new JPanel(new BorderLayout());
     myContentPane.addHierarchyListener(this);
   }
@@ -41,7 +39,6 @@ public abstract class BaseMonitorView implements HierarchyListener {
       if (!getSampler().isRunning()) {
         getSampler().start();
       }
-      myDeviceMonitorStatus.statusChanged();
     }
   }
 
