@@ -34,21 +34,17 @@ import java.util.List;
 public class AttributeReferenceRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
   protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
   protected final JLabel myLabel = new JLabel();
-  protected final JButton myEditButton = new JButton();
   protected final TextFieldWithAutoCompletion<String> myTextField;
   protected final CompletionProvider myCompletionProvider;
   protected EditedStyleItem myEditValue;
   protected String myStringValue;
-  protected boolean myAreDetailsActive;
 
   /**
    * Constructs a new <code>AttributeReferenceRendererEditor</code> with optional auto-completion.
-   * @param listener listener to be called when the details button is pressed.
    * @param project the project to be used for auto-completion.
    * @param completionProvider an optional {@link CompletionProvider} to provide the completion suggestions.
    */
-  public AttributeReferenceRendererEditor(@Nullable final ClickListener listener,
-                                          @Nullable Project project,
+  public AttributeReferenceRendererEditor(@Nullable Project project,
                                           @Nullable CompletionProvider completionProvider) {
     if (project != null) {
       myCompletionProvider = completionProvider;
@@ -69,42 +65,9 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
 
     myBox.add(myTextField);
     myBox.add(Box.createHorizontalGlue());
-    myBox.add(myEditButton);
     myTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
     myTextField.setOneLineMode(true);
-    myEditButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    myEditButton.setText("...");
-    int buttonWidth = myEditButton.getFontMetrics(myEditButton.getFont()).stringWidth("...") + 10;
-    myEditButton.setPreferredSize(new Dimension(buttonWidth, myEditButton.getHeight()));
     myLabel.setOpaque(true); // Allows for colored background
-
-    if (listener != null) {
-      myEditButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-          AttributeReferenceRendererEditor.this.cancelCellEditing();
-          if (myEditValue == null) {
-            return;
-          }
-
-          cancelCellEditing();
-
-          listener.clicked(myEditValue);
-        }
-      });
-      setAreDetailsActive(true);
-    } else {
-      // No listener, so no need for details button.
-      setAreDetailsActive(false);
-    }
-  }
-
-  public AttributeReferenceRendererEditor(@Nullable Project project, @Nullable CompletionProvider completionProvider) {
-    this(null, project, completionProvider);
-  }
-
-  public AttributeReferenceRendererEditor(@NotNull final ClickListener listener) {
-    this(listener, null, null);
   }
 
   @Override
@@ -125,7 +88,6 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
       return null;
     }
 
-    myEditButton.setVisible(myAreDetailsActive);
     EditedStyleItem item = (EditedStyleItem)value;
     myEditValue = item;
     myStringValue = item.getRawXmlValue();
@@ -145,10 +107,6 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
   @Override
   public Object getCellEditorValue() {
     return myTextField.getText();
-  }
-
-  public void setAreDetailsActive(boolean areDetailsActive) {
-    myAreDetailsActive = areDetailsActive;
   }
 
   public interface ClickListener {
