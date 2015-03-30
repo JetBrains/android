@@ -163,7 +163,7 @@ public class ThemeEditorComponent extends Splitter {
         loadStyleAttributes();
       }
     };
-    myStyleEditor = new AttributeReferenceRendererEditor(myClickListener, project, completionProvider);
+    myStyleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     RenderTask renderTask = null;
@@ -537,15 +537,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    if (myCurrentSubStyle != null) {
-      myPanel.setSubstyleName(myCurrentSubStyle.getName());
-
-      // Editing substyle of a substyle is disabled, because it's not clear how to do it properly
-      myStyleEditor.setAreDetailsActive(false);
-    } else {
-      myPanel.setSubstyleName(null);
-      myStyleEditor.setAreDetailsActive(true);
-    }
+    myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getName());
 
     // Disabling the filter here is a required workaround until we fix the hack to set the cell height below.
     myAttributesFilter.setFilterEnabled(false);
