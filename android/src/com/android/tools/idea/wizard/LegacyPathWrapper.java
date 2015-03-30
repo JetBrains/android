@@ -251,14 +251,15 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
     return true;
   }
 
-  private static class LegacyModuleTemplate extends NewModuleTemplate {
+  private static final class LegacyModuleTemplate extends AbstractModuleTemplate {
     private final File myLocation;
+
 
     public LegacyModuleTemplate(@NotNull ChooseTemplateStep.MetadataListItem listItem,
                                 @NotNull String name,
                                 @Nullable String description,
                                 @Nullable Icon icon) {
-      super(name, description, null, false, icon);
+      super(name, description, null, icon);
       myLocation = listItem.getTemplateFile();
     }
 
@@ -269,6 +270,11 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
     @NotNull
     public File getLocation() {
       return myLocation;
+    }
+
+    @Override
+    public void updateWizardState(@NotNull ScopedStateStore state) {
+      // Do nothing
     }
   }
 }
