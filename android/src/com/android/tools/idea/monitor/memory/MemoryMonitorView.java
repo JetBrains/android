@@ -61,8 +61,8 @@ public class MemoryMonitorView extends BaseMonitorView
   @NotNull private TimelineComponent myTimelineComponent;
   @NotNull private MemorySampler myMemorySampler;
 
-  public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceMonitorStatus deviceMonitorStatus) {
-    super(project, deviceMonitorStatus);
+  public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
+    super(project);
     myDeviceContext = deviceContext;
 
     // Buffer at one and a half times the sample frequency.
@@ -87,8 +87,6 @@ public class MemoryMonitorView extends BaseMonitorView
     myMemorySampler.addListener(this);
 
     myContentPane.addHierarchyListener(this);
-
-    myDeviceMonitorStatus.registerView(this);
 
     myDeviceContext.addListener(this, project);
   }
