@@ -81,6 +81,13 @@ public class HeapTableManager {
     createHeapTabs();
   }
 
+  public void notifyDominatorsComputed() {
+    for (JBTable table : myHeapTables) {
+      ((HeapTableModel)table.getModel()).enableAllColumns();
+    }
+    prettifyHeapTables();
+  }
+
   private void createHeapTabs() {
     Collection<Heap> heaps = mySnapshot.getHeaps();
 
