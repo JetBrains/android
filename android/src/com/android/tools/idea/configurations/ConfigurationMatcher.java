@@ -759,16 +759,17 @@ public class ConfigurationMatcher {
     private final Map<String, Integer> mIdRank;
 
     public PhoneConfigComparator(Map<String, Integer> idRank) {
-      // put the sort order for the density.
-      mDensitySort.put(Density.HIGH.getDpiValue(), 1);
-      mDensitySort.put(Density.MEDIUM.getDpiValue(), 2);
-      mDensitySort.put(Density.XHIGH.getDpiValue(), 3);
-      mDensitySort.put(Density.DPI_400.getDpiValue(), 4);
-      mDensitySort.put(Density.XXHIGH.getDpiValue(), 5);
-      mDensitySort.put(Density.DPI_560.getDpiValue(), 6);
-      mDensitySort.put(Density.XXXHIGH.getDpiValue(), 7);
-      mDensitySort.put(Density.TV.getDpiValue(), 8);
-      mDensitySort.put(Density.LOW.getDpiValue(), 9);
+      int i = 0;
+      mDensitySort.put(Density.HIGH.getDpiValue(), ++i);
+      mDensitySort.put(Density.MEDIUM.getDpiValue(), ++i);
+      mDensitySort.put(Density.XHIGH.getDpiValue(), ++i);
+      mDensitySort.put(Density.DPI_400.getDpiValue(), ++i);
+      mDensitySort.put(Density.XXHIGH.getDpiValue(), ++i);
+      mDensitySort.put(Density.DPI_560.getDpiValue(), ++i);
+      mDensitySort.put(Density.XXXHIGH.getDpiValue(), ++i);
+      mDensitySort.put(Density.DPI_280.getDpiValue(), ++i);
+      mDensitySort.put(Density.TV.getDpiValue(), ++i);
+      mDensitySort.put(Density.LOW.getDpiValue(), ++i);
 
       mIdRank = idRank;
     }
