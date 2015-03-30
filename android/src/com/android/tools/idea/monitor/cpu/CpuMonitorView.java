@@ -45,8 +45,8 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
   @NotNull private final CpuSampler myCpuSampler;
   private final DeviceContext myDeviceContext;
 
-  public CpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceMonitorStatus deviceMonitorStatus) {
-    super(project, deviceMonitorStatus);
+  public CpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
+    super(project);
 
     // Buffer at one and a half times the sample frequency.
     float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
@@ -65,8 +65,6 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
 
     myCpuSampler = new CpuSampler(data, SAMPLE_FREQUENCY_MS);
     myCpuSampler.addListener(this);
-
-    myDeviceMonitorStatus.registerView(this);
 
     myDeviceContext = deviceContext;
     myDeviceContext.addListener(this, project);
