@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -62,9 +61,9 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 /**
  * Loader for Android Project class in order to use them in the layout editor.
  * <p/>This implements {@link IProjectCallback} for the old and new API through
- * {@link LegacyCallback}
+ * {@link LayoutlibCallback}
  */
-public class LayoutlibCallback extends LegacyCallback {
+public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
@@ -91,7 +90,7 @@ public class LayoutlibCallback extends LegacyCallback {
   private int myParserCount;
 
   /**
-   * Creates a new {@link LayoutlibCallback} to be used with the layout lib.
+   * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
    *
    * @param renderTask The associated render task
    * @param layoutLib  The layout library this callback is going to be invoked from
@@ -102,14 +101,14 @@ public class LayoutlibCallback extends LegacyCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    */
-  public LayoutlibCallback(@Nullable RenderTask renderTask,
-                           @NotNull LayoutLibrary layoutLib,
-                           @NotNull AppResourceRepository projectRes,
-                           @NotNull Module module,
-                           @NotNull AndroidFacet facet,
-                           @NotNull RenderLogger logger,
-                           @Nullable Object credential,
-                           @Nullable ActionBarHandler actionBarHandler) {
+  public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
+                               @NotNull LayoutLibrary layoutLib,
+                               @NotNull AppResourceRepository projectRes,
+                               @NotNull Module module,
+                               @NotNull AndroidFacet facet,
+                               @NotNull RenderLogger logger,
+                               @Nullable Object credential,
+                               @Nullable ActionBarHandler actionBarHandler) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
@@ -157,7 +156,7 @@ public class LayoutlibCallback extends LegacyCallback {
   @Override
   @SuppressWarnings("unchecked")
   public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
-      throws Exception {
+      throws ClassNotFoundException {
     if (className.indexOf('.') == -1 && !VIEW_FRAGMENT.equals(className) && !VIEW_INCLUDE.equals(className)) {
       // When something is *really* wrong we get asked to load core Android classes.
       // Ignore these; custom views should always have fully qualified names. However,
@@ -183,6 +182,18 @@ public class LayoutlibCallback extends LegacyCallback {
       return myClassLoader.loadClass(className, constructorSignature, constructorParameters);
     }
     return myClassLoader.loadView(className, constructorSignature, constructorParameters);
+  }
+
+  @Override
+  public Object loadClass(@NotNull String name, @Nullable Class[] constructorSignature, @Nullable Object[] constructorArgs)
+      throws ClassNotFoundException {
+    myUsed = true;
+    return myClassLoader.loadClass(name, constructorSignature, constructorArgs);
+  }
+
+  @Override
+  public boolean supports(int ideFeature) {
+    return ideFeature <= Features.LAST_FEATURE;
   }
 
   /**
