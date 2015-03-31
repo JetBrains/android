@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -211,7 +212,7 @@ class BuildVariantUpdater {
       if (IdeaAndroidProject.class.isAssignableFrom(customizer.getSupportedModelType())) {
         // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
         ProjectSystemId projectSystemId = customizer.getProjectSystemId();
-        if (projectSystemId == targetProjectSystemId || projectSystemId == ProjectSystemId.IDE) {
+        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
           //noinspection unchecked
           customizers.add(customizer);
         }
