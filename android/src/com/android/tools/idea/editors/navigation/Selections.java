@@ -49,7 +49,6 @@ class Selections {
   public static Selection NULL = new EmptySelection();
 
   abstract static class Selection {
-
     protected abstract void moveTo(Point location);
 
     protected abstract Selection finaliseSelectionLocation(Point location);
@@ -58,8 +57,11 @@ class Selections {
 
     protected abstract void paintOver(Graphics g);
 
-    protected void configureInspector(Inspector inspector) {
-    }
+    protected void configureInspector(Inspector inspector) { }
+
+    protected void onSetup() { }
+
+    protected void onRemove() { }
   }
 
   private static class EmptySelection extends Selection {
@@ -218,7 +220,7 @@ class Selections {
                                   Transform transform) {
       super(renderingParameters, navigationModel, component, transition);
       myMouseDownLocation = mouseDownLocation;
-      myOrigComponentLocation = myComponent.getLocation();
+      myOrigComponentLocation = AndroidRootComponent.relativePoint(myComponent.getLocation());
       myState = state;
       myTransform = transform;
     }
@@ -252,6 +254,20 @@ class Selections {
     protected Selection finaliseSelectionLocation(Point location) {
       moveTo(location, SNAP_ON_MOUSE_UP);
       return this;
+    }
+
+    @Override
+    protected void paint(Graphics g, boolean hasFocus) {
+    }
+
+    @Override
+    protected void onSetup() {
+      myComponent.setSelected(true);
+    }
+
+    @Override
+    protected void onRemove() {
+      myComponent.setSelected(false);
     }
 
     @Override
