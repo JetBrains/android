@@ -99,6 +99,9 @@
   <item name="android.graphics.drawable.InsetDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.LayerDrawable LayerDrawable(android.graphics.drawable.Drawable[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.LayerDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
