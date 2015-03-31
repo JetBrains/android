@@ -102,6 +102,7 @@ public class SdkState {
 
   public boolean loadAsync(long timeoutMs,
                            boolean canBeCancelled,
+                           @Nullable Runnable onLocalComplete,
                            @Nullable Runnable onSuccess,
                            @Nullable Runnable onError) {
     if (myIndicator != null) {
@@ -112,7 +113,7 @@ public class SdkState {
       return false;
     }
 
-    LoadTask task = new LoadTask(canBeCancelled, onSuccess, onError);
+    LoadTask task = new LoadTask(canBeCancelled, onLocalComplete, onSuccess, onError);
     myIndicator = new BackgroundableProcessIndicator(task);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, myIndicator);
     return true;
@@ -158,8 +159,10 @@ public class SdkState {
 
     @Nullable private final Runnable myOnSuccess;
     @Nullable private final Runnable myOnError;
+    @Nullable private final Runnable myOnLocalComplete;
 
     public LoadTask(boolean canBeCancelled,
+                    @Nullable Runnable onLocalComplete,
                     @Nullable Runnable onSuccess,
                     @Nullable Runnable onError) {
       super(null /*project*/,
@@ -168,6 +171,7 @@ public class SdkState {
             PerformInBackgroundOption.ALWAYS_BACKGROUND);
       myOnSuccess = onSuccess;
       myOnError = onError;
+      myOnLocalComplete = onLocalComplete;
     }
 
     @Override
@@ -189,6 +193,9 @@ public class SdkState {
         if (indicator.isCanceled()) {
           return;
         }
+        if (myOnLocalComplete != null) {
+          ApplicationManager.getApplication().invokeLater(myOnLocalComplete);
+        }
 
         // fetch sdk repository sources.
         indicator.setText("Find SDK Repository...");
@@ -199,7 +206,6 @@ public class SdkState {
         if (indicator.isCanceled()) {
           return;
         }
-
         // fetch remote sdk
         indicator.setText("Check SDK Repository...");
         indicator.setText2("");
