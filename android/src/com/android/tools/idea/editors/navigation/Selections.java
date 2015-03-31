@@ -187,18 +187,18 @@ class Selections {
           configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, true);
         }
       });
-      {
-        JComboBox comboBox = transitionInspector.gesture;
-        comboBox.addItem(Transition.PRESS);
-        comboBox.setSelectedItem(myTransition.getType());
-        comboBox.addItemListener(new ItemListener() {
-          @Override
-          public void itemStateChanged(ItemEvent itemEvent) {
-            myTransition.setType((String)itemEvent.getItem());
-            myNavigationModel.getListeners().notify(Event.update(Transition.class));
-          }
-        });
-      }
+
+      JComboBox comboBox = transitionInspector.gesture;
+      comboBox.addItem(Transition.PRESS);
+      comboBox.setSelectedItem(myTransition.getType());
+      comboBox.addItemListener(new ItemListener() {
+        @Override
+        public void itemStateChanged(ItemEvent itemEvent) {
+          myTransition.setType((String)itemEvent.getItem());
+          myNavigationModel.getListeners().notify(Event.update(Transition.class));
+        }
+      });
+
       configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.destination,
                                           myTransition.getDestination().getState().getClassName());
       inspector.setInspectorComponent(transitionInspector.container);
@@ -277,26 +277,24 @@ class Selections {
         public void visit(ActivityState activity) {
           final Module module = myRenderingParameters.configuration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
-          {
-            HyperlinkLabel link = activityInspector.classNameLabel;
-            final String className = activity.getClassName();
-            configureHyperLinkLabelForClassName(myRenderingParameters, link, className);
+
+          HyperlinkLabel classNameLink = activityInspector.classNameLabel;
+          final String className = activity.getClassName();
+          configureHyperLinkLabelForClassName(myRenderingParameters, classNameLink, className);
+
+          HyperlinkLabel xmlFileLink = activityInspector.xmlFileNameLabel;
+          String xmlFileName = Analyser.getXMLFileName(module, activity.getClassName(), true);
+          configureHyperlinkForXMLFile(myRenderingParameters, xmlFileLink, xmlFileName, false);
+
+          JPanel fragmentList = activityInspector.fragmentList;
+          fragmentList.removeAll();
+          fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
+          for (FragmentEntry entry : activity.getFragments()) {
+            HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
+            configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
+            fragmentList.add(hyperlinkLabel);
           }
-          {
-            HyperlinkLabel link = activityInspector.xmlFileNameLabel;
-            String xmlFileName = Analyser.getXMLFileName(module, activity.getClassName(), true);
-            configureHyperlinkForXMLFile(myRenderingParameters, link, xmlFileName, false);
-          }
-          {
-            JPanel fragmentList = activityInspector.fragmentList;
-            fragmentList.removeAll();
-            fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
-            for (FragmentEntry entry : activity.getFragments()) {
-              HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
-              configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
-              fragmentList.add(hyperlinkLabel);
-            }
-          }
+
           inspector.setInspectorComponent(activityInspector.container);
         }
 
