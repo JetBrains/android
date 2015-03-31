@@ -26,7 +26,9 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -42,17 +44,47 @@ import java.util.List;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class AndroidRootComponent extends JComponent {
   public static final boolean DEBUG = false;
+  public static final int PADDING = 3;
+  private static final int ARC_SIZE = 10;
+  private static final Font FONT = UIUtil.getLabelFont();
+  private static final FontMetrics FONT_METRICS = new Canvas().getFontMetrics(FONT);
+
+  public static int getTopShift() {
+    return PADDING + FONT_METRICS.getHeight();
+  }
+
+  public static Point relativePoint(final Point p) {
+    return new Point(p.x - PADDING, p.y - getTopShift());
+  }
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myLayoutFile;
   private final @Nullable String myMenuName;
+  private final String myActivityName;
 
   @NotNull Transform transform = new Transform(1f);
-  private Image myScaledImage;
+  private BufferedImage myScaledImage;
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
+  private boolean mySelected = false;
 
-  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, @Nullable String menuName) {
+  public AndroidRootComponent(@NotNull final String className,
+                              @NotNull final RenderingParameters renderingParameters,
+                              @Nullable final PsiFile psiFile,
+                              @Nullable String menuName) {
+    final String activityName;
+
+    // Extracting the last component from fully qualified class name.
+    int dotIndex = className.lastIndexOf('.');
+    if (dotIndex == -1) {
+      activityName = className;
+    } else {
+      activityName = className.substring(dotIndex + 1);
+    }
+
+    // Indicate in the title whether current state is a menu state.
+    myActivityName = menuName == null ? activityName : activityName + " [menu]";
+
     myRenderingParameters = renderingParameters;
     myLayoutFile = psiFile;
     myMenuName = menuName;
@@ -106,11 +138,12 @@ public class AndroidRootComponent extends JComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    return transform.modelToView(myRenderingParameters.getDeviceScreenSize());
+    Dimension d = transform.modelToView(myRenderingParameters.getDeviceScreenSize());
+    return new Dimension(d.width + 2 * PADDING, d.height + 2 * PADDING + FONT_METRICS.getHeight());
   }
 
   @Nullable
-  private Image getScaledImage() {
+  private BufferedImage getScaledImage() {
     return myScaledImage;
   }
 
@@ -119,22 +152,39 @@ public class AndroidRootComponent extends JComponent {
     g.drawString(message, (getWidth() - messageWidth) / 2, height);
   }
 
+  private Color getBackgroundColor() {
+    if (mySelected) {
+      return JBColor.BLUE;
+    } else {
+      return Gray._30;
+    }
+  }
+
+  public void setSelected(boolean selected) {
+    mySelected = selected;
+  }
+
   @Override
   public void paintComponent(Graphics g) {
+    GraphicsUtil.setupAAPainting(g);
+
+    g.setColor(getBackgroundColor());
+    Dimension size = getSize();
+    g.fillRoundRect(0, 0, size.width, size.height, ARC_SIZE, ARC_SIZE);
+
+    g.setColor(JBColor.WHITE);
+
     Image scaledImage = getScaledImage();
     if (scaledImage != null) {
-      g.drawImage(scaledImage, 0, 0, null);
+      g.setFont(FONT);
+      g.drawString(myActivityName, PADDING, PADDING + FONT_METRICS.getAscent());
+      g.drawImage(scaledImage, PADDING, getTopShift(), null);
     }
     else {
-      g.setColor(JBColor.WHITE);
-      g.fillRect(0, 0, getWidth(), getHeight());
-      g.setColor(JBColor.GRAY);
       Font font = g.getFont();
       int vCenter = getHeight() / 2;
-      //center(g, "Initialising...", font, vCenter);
       String message = "[" + (myLayoutFile == null ? "no xml resource" : myLayoutFile.getName()) + "]";
       center(g, message, font, vCenter);
-      //center(g, message, font, vCenter + font.getSize() * 2);
       render(transform.myScale);
     }
   }
@@ -177,7 +227,7 @@ public class AndroidRootComponent extends JComponent {
           // This allows us to drastically reduce memory used by Navigation Editor.
           final FakeImageFactory factory = new FakeImageFactory();
           final Dimension size = AndroidRootComponent.this.getSize();
-          final BufferedImage image = UIUtil.createImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+          final BufferedImage image = UIUtil.createImage(size.width - 2 * PADDING, size.height - 2 * PADDING, BufferedImage.TYPE_INT_ARGB);
           final Graphics2D graphics = (Graphics2D) image.getGraphics();
           graphics.setTransform(AffineTransform.getScaleInstance(scale, scale));
           factory.setGraphics(graphics);
