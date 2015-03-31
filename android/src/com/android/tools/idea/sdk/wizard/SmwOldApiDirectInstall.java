@@ -153,6 +153,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     logger.info("Loading SDK information...\n");
     if (!sdkState.loadAsync(1000 * 3600 * 24,  // 24 hour timeout since last check
                        false,           // canBeCancelled
+                       null,            // onLocalComplete
                        onSdkAvailable,  // onSuccess
                        null)) {         // onError -- TODO display something?
       onSdkAvailable.run();
