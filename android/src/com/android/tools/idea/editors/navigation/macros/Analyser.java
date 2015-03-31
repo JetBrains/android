@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
@@ -396,24 +398,34 @@ public class Analyser {
     // Search for menu inflation in Activities
 
     if (isActivity) {
-      search(activityClass, "boolean onCreateOptionsMenu(Menu menu)",
-             "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }", new Processor() {
-          @Override
-          public void process(MultiMatch.Bindings<PsiElement> args) {
-            String menuIdName = args.get("id").getLastChild().getText();
-            final MenuState menu = getMenuState(activityClassName, menuIdName, miniModel.classNameToMenuToMenuState);
-            addTransition(model, new Transition(Transition.PRESS, Locator.of(activityState, FAKE_OVERFLOW_MENU_ID), Locator.of(menu)));
-            for (PsiClass superClass = activityClass; superClass != null; superClass = superClass.getSuperClass()) {
-              // Search for menu item bindings in the style the Navigation Editor generates them
-              search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemClickAndCallMacro,
-                     createProcessor(model, menu, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
-                                     getFindMenuItem(myMacros), CLASS_NAME_1));
-              // Search for switch statement style menu item bindings
-              search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
-                     createProcessor(model, classNameToActivityState, menu, fragmentClassName, constant(null), CLASS_NAME_1));
+      boolean actionBarDisabled = false;
+      final ResourceResolver resolver = configuration.getResourceResolver();
+      if (resolver != null) {
+        ResourceValue value = resolver.findItemInTheme("windowActionBar", true);
+        if (value != null && "false".equalsIgnoreCase(value.getValue())) {
+          actionBarDisabled = true;
+        }
+      }
+      if (!actionBarDisabled) {
+        search(activityClass, "boolean onCreateOptionsMenu(Menu menu)",
+               "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }", new Processor() {
+            @Override
+            public void process(MultiMatch.Bindings<PsiElement> args) {
+              String menuIdName = args.get("id").getLastChild().getText();
+              final MenuState menu = getMenuState(activityClassName, menuIdName, miniModel.classNameToMenuToMenuState);
+              addTransition(model, new Transition(Transition.PRESS, Locator.of(activityState, FAKE_OVERFLOW_MENU_ID), Locator.of(menu)));
+              for (PsiClass superClass = activityClass; superClass != null; superClass = superClass.getSuperClass()) {
+                // Search for menu item bindings in the style the Navigation Editor generates them
+                search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemClickAndCallMacro,
+                       createProcessor(model, menu, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
+                                       getFindMenuItem(myMacros), CLASS_NAME_1));
+                // Search for switch statement style menu item bindings
+                search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
+                       createProcessor(model, classNameToActivityState, menu, fragmentClassName, constant(null), CLASS_NAME_1));
+              }
             }
-          }
-        });
+          });
+      }
     }
 
     // In both Activities and Fragments, search for:

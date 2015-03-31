@@ -762,14 +762,6 @@ public class NavigationView extends JComponent {
     return myRenderingParams.withConfiguration(newConfiguration);
   }
 
-  // If an activity specifies android:Theme.DeviceDefault.NoActionBar.Fullscreen or similar
-  // we won't render the menu at all. For menus, unconditionally replace the theme with a default.
-  private RenderingParameters getMenuRenderingParameters() {
-    Configuration newConfiguration = myRenderingParams.configuration.clone();
-    newConfiguration.setTheme(DEVICE_DEFAULT_THEME_NAME);
-    return myRenderingParams.withConfiguration(newConfiguration);
-  }
-
   private AndroidRootComponent createUnscaledRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myRenderingParams.facet.getModule();
@@ -781,7 +773,7 @@ public class NavigationView extends JComponent {
     }
     else {
       PsiFile psiFile = PsiManager.getInstance(myRenderingParams.project).findFile(virtualFile);
-      RenderingParameters params = isMenu ? getMenuRenderingParameters() : getActivityRenderingParameters(module, state.getClassName());
+      RenderingParameters params = getActivityRenderingParameters(module, state.getClassName());
       return new AndroidRootComponent(params, psiFile, menuName);
     }
   }
