@@ -300,18 +300,17 @@ public class Analyser {
       @Override
       public String locateIn(MultiMatch.Bindings<PsiElement> args) {
         PsiElement view = args.get("$view");
-        {
-          MultiMatch.Bindings<PsiElement> bindings = macros.findViewById1.match(view);
-          if (bindings != null) {
-            return bindings.get("$id").getText();
-          }
+
+        MultiMatch.Bindings<PsiElement> bindings1 = macros.findViewById1.match(view);
+        if (bindings1 != null) {
+          return bindings1.get("$id").getText();
         }
-        {
-          MultiMatch.Bindings<PsiElement> bindings = macros.findViewById2.match(view);
-          if (bindings != null) {
-            return bindings.get("$id").getText();
-          }
+
+        MultiMatch.Bindings<PsiElement> bindings2 = macros.findViewById2.match(view);
+        if (bindings2 != null) {
+          return bindings2.get("$id").getText();
         }
+
         return null;
       }
     };
@@ -323,13 +322,9 @@ public class Analyser {
       @Override
       public String locateIn(MultiMatch.Bindings<PsiElement> args) {
         PsiElement view = args.get("$menuItem");
-        {
-          MultiMatch.Bindings<PsiElement> bindings = macros.findMenuItem.match(view);
-          if (bindings != null) {
-            return bindings.get("$id").getText();
-          }
-        }
-        return null;
+
+        MultiMatch.Bindings<PsiElement> bindings = macros.findMenuItem.match(view);
+        return (bindings == null) ? null : bindings.get("$id").getText();
       }
     };
   }
@@ -523,11 +518,10 @@ public class Analyser {
         // Examine fragments associated with this activity
 
         List<FragmentEntry> fragments = getFragmentEntries(layoutFile);
-        {
-          List<FragmentEntry> fragmentList = sourceActivity.getFragments();
-          fragmentList.clear();
-          fragmentList.addAll(fragments);
-        }
+
+        List<FragmentEntry> fragmentList = sourceActivity.getFragments();
+        fragmentList.clear();
+        fragmentList.addAll(fragments);
 
         for (FragmentEntry fragment : fragments) {
           deriveTransitions(model, next, sourceActivity, fragment.className, configuration, false);

@@ -129,65 +129,55 @@ public class NavigationView extends JComponent {
     setLayout(null);
 
     // Mouse listener
-    {
-      MouseAdapter mouseListener = new MyMouseListener();
-      addMouseListener(mouseListener);
-      addMouseMotionListener(mouseListener);
-    }
+    MouseAdapter mouseListener = new MyMouseListener();
+    addMouseListener(mouseListener);
+    addMouseMotionListener(mouseListener);
 
     // Focus listener
-    {
-      addFocusListener(new FocusListener() {
-        @Override
-        public void focusGained(FocusEvent focusEvent) {
-          repaint();
-        }
+    addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent focusEvent) {
+        repaint();
+      }
 
-        @Override
-        public void focusLost(FocusEvent focusEvent) {
-          repaint();
-        }
-      });
-    }
+      @Override
+      public void focusLost(FocusEvent focusEvent) {
+        repaint();
+      }
+    });
 
     // Drag and Drop listener
-    {
-      final DnDManager dndManager = DnDManager.getInstance();
-      dndManager.registerTarget(new MyDnDTarget(), this);
-    }
+    final DnDManager dndManager = DnDManager.getInstance();
+    dndManager.registerTarget(new MyDnDTarget(), this);
 
     // Key listeners
-    {
-      Action remove = new AbstractAction() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          setSelection(Selections.NULL);
-        }
-      };
-      registerKeyBinding(KeyEvent.VK_DELETE, "delete", remove);
-      registerKeyBinding(KeyEvent.VK_BACK_SPACE, "backspace", remove);
-    }
+    Action remove = new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        setSelection(Selections.NULL);
+      }
+    };
+    registerKeyBinding(KeyEvent.VK_DELETE, "delete", remove);
+    registerKeyBinding(KeyEvent.VK_BACK_SPACE, "backspace", remove);
 
     // Model listener
-    {
-      myNavigationModel.getListeners().add(new Listener<Event>() {
-        @Override
-        public void notify(@NotNull Event event) {
-          if (DEBUG) LOG.info("NavigationView:: <listener> " + myStateCacheIsValid + " " + myTransitionEditorCacheIsValid);
-          if (event.operandType.isAssignableFrom(State.class)) {
-            myStateCacheIsValid = false;
-          }
-          if (event.operandType.isAssignableFrom(Transition.class)) {
-            myTransitionEditorCacheIsValid = false;
-          }
-          if (event == NavigationEditor.PROJECT_READ) {
-            setSelection(Selections.NULL);
-          }
-          revalidate();
-          repaint();
+    myNavigationModel.getListeners().add(new Listener<Event>() {
+      @Override
+      public void notify(@NotNull Event event) {
+        if (DEBUG) LOG.info("NavigationView:: <listener> " + myStateCacheIsValid + " " + myTransitionEditorCacheIsValid);
+        if (event.operandType.isAssignableFrom(State.class)) {
+          myStateCacheIsValid = false;
         }
-      });
-    }
+        if (event.operandType.isAssignableFrom(Transition.class)) {
+          myTransitionEditorCacheIsValid = false;
+        }
+        if (event == NavigationEditor.PROJECT_READ) {
+          setSelection(Selections.NULL);
+        }
+        revalidate();
+        repaint();
+      }
+    });
   }
 
   @Nullable

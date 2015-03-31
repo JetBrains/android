@@ -33,7 +33,7 @@ public class MenuState extends State {
   }
 
   public static MenuState create(String className, String xmlResourceName) {
-       return new MenuState(className, xmlResourceName);
+    return new MenuState(className, xmlResourceName);
   }
 
   @Override
