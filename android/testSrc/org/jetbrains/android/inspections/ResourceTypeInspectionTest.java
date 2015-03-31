@@ -353,6 +353,11 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printMax(\"1234567\"); // OK\n" +
             "        printMax(\"12345678\"); // OK\n" +
             "        printMax(/*Length must be at most 8 (was 9)*/\"123456789\"/**/); // ERROR\n" +
+            "        printAtMost(1 << 2); // OK\n" +
+            "        printMax(\"123456\" + \"\"); //OK\n" +
+            "        printAtMost(/*Value must be ≤ 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be ≤ 7 (was 32)*/1 << 5/**/); // ERROR\n" +
+            "        printMax(/*Length must be at most 8 (was 11)*/\"123456\" + \"45678\"/**/); //ERROR\n" +
             "\n" +
             "        printRange(/*Length must be at least 4 and at most 6 (was 3)*/\"123\"/**/); // ERROR\n" +
             "        printRange(\"1234\"); // OK\n" +
