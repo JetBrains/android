@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
@@ -261,7 +260,7 @@ public class NavigationView extends JComponent {
       return c.getBounds();
     }
     Rectangle r = c.transform.getBounds(leaf);
-    return new Rectangle(c.getX() + r.x, c.getY() + r.y, r.width, r.height);
+    return new Rectangle(c.getX() + r.x + AndroidRootComponent.PADDING, c.getY() + r.y + AndroidRootComponent.getTopShift(), r.width, r.height);
   }
 
   Rectangle getNamedLeafBoundsAt(Component sourceComponent, Point location, boolean penetrate) {
@@ -486,7 +485,7 @@ public class NavigationView extends JComponent {
     // draw component shadows
     for (Component c : getStateComponentAssociation().values()) {
       Rectangle r = c.getBounds();
-      ShadowPainter.drawRectangleShadow(g, r.x, r.y, r.width, r.height);
+      ShadowPainter.drawRectangleShadow(g, r.x, r.y, r.width - AndroidRootComponent.PADDING, r.height - AndroidRootComponent.PADDING);
     }
   }
 
@@ -769,12 +768,12 @@ public class NavigationView extends JComponent {
     String menuName = isMenu ? ((MenuState) state).getXmlResourceName() : null;
     VirtualFile virtualFile = getLayoutXmlVirtualFile(false, resourceName, myRenderingParams.configuration);
     if (virtualFile == null) {
-      return new AndroidRootComponent(myRenderingParams, null, menuName);
+      return new AndroidRootComponent(state.getClassName(), myRenderingParams, null, menuName);
     }
     else {
       PsiFile psiFile = PsiManager.getInstance(myRenderingParams.project).findFile(virtualFile);
       RenderingParameters params = getActivityRenderingParameters(module, state.getClassName());
-      return new AndroidRootComponent(params, psiFile, menuName);
+      return new AndroidRootComponent(state.getClassName(), params, psiFile, menuName);
     }
   }
 
@@ -846,6 +845,7 @@ public class NavigationView extends JComponent {
     }
     Transition transition = getTransitionEditorAssociation().inverse().get(component);
     if (component instanceof AndroidRootComponent) {
+      Point location = AndroidRootComponent.relativePoint(mouseDownLocation);
       // Select a top-level 'screen'
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       State state = getStateComponentAssociation().inverse().get(androidRootComponent);
@@ -858,11 +858,11 @@ public class NavigationView extends JComponent {
           bringToFront(myNavigationModel.findAssociatedMenuState((ActivityState)state));
         }
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition, myRenderingParams,
-                                                            mouseDownLocation, state, myTransform);
+                                                            location, state, myTransform);
       }
       else {
         // Select a specific view
-        RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
+        RenderedView leaf = getRenderedView(androidRootComponent, location);
         if (leaf == null) {
           return Selections.NULL;
         }
@@ -877,7 +877,7 @@ public class NavigationView extends JComponent {
         if (myNavigationModel.findTransitionWithSource(Locator.of(state, HierarchyUtils.getViewId(namedParent))) != null) {
           return Selections.NULL;
         }
-        return new Selections.ViewSelection(androidRootComponent, mouseDownLocation, namedParent, this);
+        return new Selections.ViewSelection(androidRootComponent, location, namedParent, this);
       }
     }
     else {
