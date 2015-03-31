@@ -153,26 +153,23 @@ public class NavigationEditor implements FileEditor {
     SelectionModel selectionModel = new SelectionModel();
     NavigationView editor = new NavigationView(renderingParams, navigationModel, selectionModel, codeGenerator);
     JPanel panel = new JPanel(new BorderLayout());
-    {
-      JComponent toolBar = createToolbar(getActions(editor), renderingParams, dirName);
-      panel.add(toolBar, BorderLayout.NORTH);
-    }
-    {
-      Splitter splitPane = new Splitter();
-      splitPane.setDividerWidth(1);
-      splitPane.setShowDividerIcon(false);
-      splitPane.setProportion(.8f);
-      {
-        JBScrollPane scrollPane = new JBScrollPane(editor);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-        splitPane.setFirstComponent(scrollPane);
-      }
-      {
-        Inspector inspector = new Inspector(selectionModel);
-        splitPane.setSecondComponent(new JBScrollPane(inspector.container));
-      }
-      panel.add(splitPane);
-    }
+
+    JComponent toolBar = createToolbar(getActions(editor), renderingParams, dirName);
+    panel.add(toolBar, BorderLayout.NORTH);
+
+    Splitter splitPane = new Splitter();
+    splitPane.setDividerWidth(1);
+    splitPane.setShowDividerIcon(false);
+    splitPane.setProportion(.8f);
+
+    JBScrollPane scrollPane = new JBScrollPane(editor);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+    splitPane.setFirstComponent(scrollPane);
+
+    Inspector inspector = new Inspector(selectionModel);
+    splitPane.setSecondComponent(new JBScrollPane(inspector.container));
+    panel.add(splitPane);
+
     return panel;
   }
 
@@ -252,18 +249,17 @@ public class NavigationEditor implements FileEditor {
 
   private static JComponent createErrorComponent(String title, String errorMessage) {
     JPanel panel = new JPanel(new BorderLayout());
-    {
-      JLabel label = new JLabel(title);
-      label.setFont(label.getFont().deriveFont(30f));
-      label.setHorizontalAlignment(SwingConstants.CENTER);
-      panel.add(label, BorderLayout.NORTH);
-    }
-    {
-      JLabel label = new JLabel(errorMessage);
-      label.setFont(label.getFont().deriveFont(20f));
-      label.setHorizontalAlignment(SwingConstants.CENTER);
-      panel.add(label, BorderLayout.CENTER);
-    }
+
+    JLabel titleLabel = new JLabel(title);
+    titleLabel.setFont(titleLabel.getFont().deriveFont(30f));
+    titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    panel.add(titleLabel, BorderLayout.NORTH);
+
+    JLabel errorLabel = new JLabel(errorMessage);
+    errorLabel.setFont(errorLabel.getFont().deriveFont(20f));
+    errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    panel.add(errorLabel, BorderLayout.CENTER);
+
     return new JBScrollPane(panel);
   }
 
@@ -333,75 +329,72 @@ public class NavigationEditor implements FileEditor {
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     // UI for module and configuration selection
-    {
-      final Module module = renderingParams.facet.getModule();
+    final Module module = renderingParams.facet.getModule();
 
-      JPanel combos = new JPanel(new FlowLayout());
-      final Module[] androidModules = NavigationEditorUtils.getAndroidModules(renderingParams.project);
-      // Module selector
-      if (androidModules.length > 1) {
-        final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
-        final String originalSelection = module.getName();
-        moduleSelector.setSelectedItem(originalSelection);
-        moduleSelector.addActionListener(new ActionListener() {
-          boolean disabled = false;
+    JPanel combos = new JPanel();
+    final Module[] androidModules = NavigationEditorUtils.getAndroidModules(renderingParams.project);
 
-          @Override
-          public void actionPerformed(ActionEvent event) {
-            if (disabled) {
-              return;
-            }
-            int selectedIndex = moduleSelector.getSelectedIndex();
-            Module newModule = androidModules[selectedIndex];
-            AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
-            newEditor.showNavigationEditor(renderingParams.project, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
-            disabled = true;
-            moduleSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
-            disabled = false;
+    // Module selector
+    if (androidModules.length > 1) {
+      final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
+      final String originalSelection = module.getName();
+      moduleSelector.setSelectedItem(originalSelection);
+      moduleSelector.addActionListener(new ActionListener() {
+        boolean disabled = false;
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+          if (disabled) {
+            return;
           }
-        });
-        combos.add(moduleSelector);
-      }
-      // Configuration selector
-      String[] dirNames = resourceDirectoryNames(renderingParams.facet, LAYOUT_DIR_NAME);
-      String[] navDirNames = getDisplayNames(dirNames);
-      if (dirNames.length > 1) {
-        final ComboBox deviceSelector = new ComboBox(navDirNames);
-        final String originalSelection = dirName;
-        deviceSelector.setSelectedItem(originalSelection);
-        deviceSelector.addActionListener(new ActionListener() {
-          boolean disabled = false;
-
-          @Override
-          public void actionPerformed(ActionEvent event) {
-            if (disabled) {
-              return;
-            }
-            String dirName = (String)deviceSelector.getSelectedItem();
-            AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
-            newEditor.showNavigationEditor(renderingParams.project, module, dirName, NAVIGATION_FILE_NAME);
-            disabled = true;
-            deviceSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
-            disabled = false;
-          }
-        });
-        combos.add(deviceSelector);
-      }
-      panel.add(combos, BorderLayout.CENTER);
+          int selectedIndex = moduleSelector.getSelectedIndex();
+          Module newModule = androidModules[selectedIndex];
+          AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
+          newEditor.showNavigationEditor(renderingParams.project, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
+          disabled = true;
+          moduleSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
+          disabled = false;
+        }
+      });
+      combos.add(moduleSelector);
     }
+    // Configuration selector
+    String[] dirNames = resourceDirectoryNames(renderingParams.facet, LAYOUT_DIR_NAME);
+    String[] navDirNames = getDisplayNames(dirNames);
+    if (dirNames.length > 1) {
+      final ComboBox deviceSelector = new ComboBox(navDirNames);
+      final String originalSelection = dirName;
+      deviceSelector.setSelectedItem(originalSelection);
+      deviceSelector.addActionListener(new ActionListener() {
+        boolean disabled = false;
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+          if (disabled) {
+            return;
+          }
+          String dirName = (String)deviceSelector.getSelectedItem();
+          AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
+          newEditor.showNavigationEditor(renderingParams.project, module, dirName, NAVIGATION_FILE_NAME);
+          disabled = true;
+          deviceSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
+          disabled = false;
+        }
+      });
+      combos.add(deviceSelector);
+    }
+    panel.add(combos, BorderLayout.CENTER);
+
     // Zoom controls
-    {
-      ActionManager actionManager = ActionManager.getInstance();
-      ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, actions, true);
-      panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
-    }
+    ActionManager actionManager = ActionManager.getInstance();
+    ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, actions, true);
+    panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+
     // Link to on-line help
-    {
-      HyperlinkLabel label = new HyperlinkLabel();
-      label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
-      label.setHyperlinkText("   ", "What's this?", "");
-      panel.add(label, BorderLayout.WEST);
-    }
+    HyperlinkLabel label = new HyperlinkLabel();
+    label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
+    label.setHyperlinkText("   ", "What's this?", "");
+    panel.add(label, BorderLayout.WEST);
 
     return panel;
   }
