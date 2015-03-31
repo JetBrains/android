@@ -79,7 +79,7 @@ public class RenderTask implements IImageFactory {
   private final RenderLogger myLogger;
 
   @NotNull
-  private final LayoutlibCallback myLayoutlibCallback;
+  private final LayoutlibCallbackImpl myLayoutlibCallback;
 
   private final AndroidVersion myMinSdkVersion;
 
@@ -148,7 +148,7 @@ public class RenderTask implements IImageFactory {
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    myLayoutlibCallback = new LayoutlibCallback(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler);
+    myLayoutlibCallback = new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler);
     myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -728,7 +728,7 @@ public class RenderTask implements IImageFactory {
   }
 
   @NotNull
-  public LayoutlibCallback getLayoutlibCallback() {
+  public LayoutlibCallbackImpl getLayoutlibCallback() {
     return myLayoutlibCallback;
   }
 

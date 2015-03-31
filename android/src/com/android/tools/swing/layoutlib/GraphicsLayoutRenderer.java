@@ -132,12 +132,13 @@ public class GraphicsLayoutRenderer {
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    LayoutlibCallback layoutlibCallback = new LayoutlibCallback(null, layoutLib, appResources, module, facet, logger, credential, null) {
-      @Override
-      public ActionBarCallback getActionBarCallback() {
-        return actionBarCallback;
-      }
-    };
+    LayoutlibCallbackImpl layoutlibCallback =
+      new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null) {
+        @Override
+        public ActionBarCallback getActionBarCallback() {
+          return actionBarCallback;
+        }
+      };
 
 
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(configuration.getDevice());
