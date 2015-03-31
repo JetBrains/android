@@ -32,6 +32,9 @@ public class SelectionModel {
     if (mySelection == selection) {
       return;
     }
+    mySelection.onRemove();
+
+    selection.onSetup();
     mySelection = selection;
     listeners.notify(SELECTION_UPDATED);
   }
