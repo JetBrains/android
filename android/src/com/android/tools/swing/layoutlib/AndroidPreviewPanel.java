@@ -16,9 +16,11 @@
 package com.android.tools.swing.layoutlib;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
@@ -32,13 +34,15 @@ import java.util.Set;
  */
 public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class);
-
+  private final DumbService myDumbService;
+  private Configuration myConfiguration;
   private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
-  protected Configuration myConfiguration;
 
   public AndroidPreviewPanel(@NotNull Configuration configuration) {
     myConfiguration = configuration;
+
+    myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
   }
 
   @Override
@@ -88,6 +92,17 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     super.paintComponent(graphics);
 
     if (myGraphicsLayoutRenderer == null && myDocument != null) {
+      if (myDumbService.isDumb()) {
+        // We avoid inflating views when running on dumb mode. Layoutlib might try to access the PSI and it would fail.
+        myDumbService.runWhenSmart(new Runnable() {
+          @Override
+          public void run() {
+            repaint();
+          }
+        });
+        return;
+      }
+
       ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
       try {
         myGraphicsLayoutRenderer =
@@ -141,5 +156,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     }
 
     return myGraphicsLayoutRenderer.getUsedAttrs();
+  }
+
+  public ViewInfo findViewAtPoint(Point p) {
+    return myGraphicsLayoutRenderer != null ? myGraphicsLayoutRenderer.findViewAtPoint(p) : null;
   }
 }
