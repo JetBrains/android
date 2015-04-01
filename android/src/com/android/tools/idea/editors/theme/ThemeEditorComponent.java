@@ -43,7 +43,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
@@ -288,19 +287,7 @@ public class ThemeEditorComponent extends Splitter {
     final JScrollPane scroll = myPanel.getAttributesScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
 
-    JBScrollPane scrollPanel = new JBScrollPane(myPreviewPanel,
-                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-                                                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    /*
-     * Set a preferred size for the preview panel. Since we are using HORIZONTAL_SCROLLBAR_NEVER, the width will be ignored and the panel
-     * size used.
-     * The height should be set according to a reasonable space to display the preview layout.
-     *
-     * TODO: Check the height value.
-     */
-    myPreviewPanel.setPreferredSize(new Dimension(64, 2000));
-
-    setFirstComponent(scrollPanel);
+    setFirstComponent(myPreviewPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
   }

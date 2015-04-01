@@ -62,7 +62,6 @@ public class GraphicsLayoutRenderer {
   private final SessionParams mySessionParams;
   private final FakeImageFactory myImageFactory;
   private final DynamicHardwareConfig myHardwareConfig;
-  private SessionParams.RenderingMode myRenderingMode = SessionParams.RenderingMode.NORMAL;
   private final Object myCredential;
   private final RenderSecurityManager mySecurityManager;
   /**
@@ -86,8 +85,7 @@ public class GraphicsLayoutRenderer {
                                  @NotNull RenderSecurityManager securityManager,
                                  @NotNull DynamicHardwareConfig hardwareConfig,
                                  @NotNull List<ResourceValue> resourceLookupChain,
-                                 @NotNull Object credential,
-                                 @NotNull SessionParams.RenderingMode renderingMode) {
+                                 @NotNull Object credential) {
     myLayoutLibrary = layoutLib;
     mySecurityManager = securityManager;
     myHardwareConfig = hardwareConfig;
@@ -95,7 +93,6 @@ public class GraphicsLayoutRenderer {
     myImageFactory = new FakeImageFactory();
     myResourceLookupChain = resourceLookupChain;
     myCredential = credential;
-    myRenderingMode = renderingMode;
 
     sessionParams.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
     mySessionParams.setImageFactory(myImageFactory);
@@ -112,7 +109,7 @@ public class GraphicsLayoutRenderer {
     Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
 
-    LayoutLibrary layoutLib = null;
+    LayoutLibrary layoutLib;
     try {
       layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
 
@@ -156,7 +153,7 @@ public class GraphicsLayoutRenderer {
     params.setAssetRepository(new AssetRepositoryImpl(facet));
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
-    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential, renderingMode);
+    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
 
   }
 
@@ -288,6 +285,53 @@ public class GraphicsLayoutRenderer {
     }
 
     return Collections.unmodifiableSet(usedAttrs);
+  }
+
+  @Nullable
+  private static ViewInfo viewAtPoint(@NotNull Point parentPosition, @NotNull ViewInfo view, @NotNull Point p) {
+    int x = parentPosition.x + view.getLeft();
+    int y = parentPosition.y + view.getTop();
+    Rectangle rect = new Rectangle(x,
+                                   y,
+                                   view.getRight() - view.getLeft(),
+                                   view.getBottom() - view.getTop());
+    if (rect.contains(p)) {
+      for (ViewInfo childView : view.getChildren()) {
+        if (childView.getCookie() == null) {
+          continue;
+        }
+
+        ViewInfo hitView = viewAtPoint(rect.getLocation(), childView, p);
+
+        if (hitView != null) {
+          return hitView;
+        }
+      }
+
+      return view;
+    }
+
+    return null;
+  }
+
+  /**
+   * Find the view at a given point.
+   */
+  @Nullable
+  public ViewInfo findViewAtPoint(@NotNull Point p) {
+    if (myRenderSession == null) {
+      return null;
+    }
+
+    Point base = new Point();
+    for (ViewInfo view : myRenderSession.getRootViews()) {
+      ViewInfo hitView = viewAtPoint(base, view, p);
+      if (hitView != null) {
+        return hitView;
+      }
+    }
+
+    return null;
   }
 
   public Dimension getPreferredSize() {
