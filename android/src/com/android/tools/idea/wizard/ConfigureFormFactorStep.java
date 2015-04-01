@@ -15,29 +15,18 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.sdklib.internal.repository.packages.Package;
-import com.android.sdklib.internal.repository.sources.SdkSource;
-import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.utils.StdLogger;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import com.android.utils.ILogger;
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
@@ -49,7 +38,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,6 +94,8 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
   private static final String DOWNLOAD_LINK_CARD = "link";
   private static final String DOWNLOAD_PROGRESS_CARD = "progress";
+
+  private final List<Runnable> myRunOnEnter = Lists.newArrayList();
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms require separate SDKs", disposable);
@@ -188,7 +178,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myFormFactorPanel.removeAll();
 
     int row = 0;
-    Map<FormFactor, Integer> minSdks = Maps.newHashMap();
+    final Map<FormFactor, Integer> minSdks = Maps.newHashMap();
     for (File templateFile : applicationTemplates) {
       TemplateMetadata metadata = manager.getTemplate(templateFile);
       if (metadata == null || metadata.getFormFactor() == null) {
@@ -208,7 +198,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     gridLayoutManager.setVGap(5);
     gridLayoutManager.setHGap(10);
     myFormFactorPanel.setLayout(gridLayoutManager);
-    for (FormFactor formFactor : myFormFactors) {
+    for (final FormFactor formFactor : myFormFactors) {
       GridConstraints c = new GridConstraints();
       c.setRow(row);
       c.setColumn(0);
@@ -233,14 +223,21 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
 
         JBCardLayout layout = new JBCardLayout();
-        JPanel downloadCardPanel = new JPanel(layout);
+        final JPanel downloadCardPanel = new JPanel(layout);
         downloadCardPanel.add(DOWNLOAD_PROGRESS_CARD, createDownloadingMessage());
         final HyperlinkLabel link = new HyperlinkLabel("Download");
         downloadCardPanel.add(DOWNLOAD_LINK_CARD, link);
         layout.show(downloadCardPanel, DOWNLOAD_PROGRESS_CARD);
         c.setColumn(1);
         myFormFactorPanel.add(downloadCardPanel, c);
-        findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
+        myRunOnEnter.add(new Runnable() {
+          @Override
+          public void run() {
+            // Unfortunately we can't run at this time, since we don't yet know the modality state the callbacks need to run under.
+            // Thus we postpone until this step is actually shown.
+            findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
+          }
+        });
       }
 
       if (formFactor.equals(MOBILE)) {
@@ -267,77 +264,53 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   }
 
   private void findCompatibleSdk(final FormFactor formFactor, final int minSdkLevel, final HyperlinkLabel link, final JPanel cardPanel) {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+    final SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    Runnable onComplete = new Runnable() {
       @Override
       public void run() {
-        final Package remote = findLatestRemotePackage(formFactor, minSdkLevel);
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (remote != null) {
-              showDownloadLink(link, remote, cardPanel);
-            }
-            else {
-              cardPanel.setVisible(false);
-            }
-          }
-        }, ModalityState.stateForComponent(myFormFactorPanel));
+        List<RemotePkgInfo> packageList = Lists.newArrayList(state.getUpdates().getNewPkgs());
+        Collections.sort(packageList);
+        Iterator<RemotePkgInfo> result =
+          Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel)).iterator();
+        if (result.hasNext()) {
+          showDownloadLink(link, result.next(), cardPanel);
+        }
+        else {
+          cardPanel.setVisible(false);
+        }
       }
-    });
-  }
+    };
 
-  private void showDownloadLink(final HyperlinkLabel link, final Package remote, final JPanel cardPanel) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    Runnable onError = new Runnable() {
       @Override
       public void run() {
-        link.addHyperlinkListener(new HyperlinkAdapter() {
-          @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
-            showDownloadWizard(remote);
-            populateAdditionalFormFactors();
-            myFormFactorPanel.validate();
-          }
-        });
-        ((JBCardLayout)cardPanel.getLayout()).show(cardPanel, DOWNLOAD_LINK_CARD);
+        cardPanel.setVisible(false);
       }
-    });
+    };
+
+    if (!state.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete, onError)) {
+      onComplete.run();
+    }
   }
 
-  private static void showDownloadWizard(Package pack) {
-    List<IPkgDesc> requestedPackages = Lists.newArrayList(pack.getPkgDesc());
+  private void showDownloadLink(final HyperlinkLabel link, final RemotePkgInfo remote, final JPanel cardPanel) {
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        showDownloadWizard(remote.getDesc());
+        populateAdditionalFormFactors();
+        myFormFactorPanel.validate();
+      }
+    });
+    ((JBCardLayout)cardPanel.getLayout()).show(cardPanel, DOWNLOAD_LINK_CARD);
+  }
+
+  private static void showDownloadWizard(IPkgDesc pack) {
+    List<IPkgDesc> requestedPackages = Lists.newArrayList(pack);
     SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
                                                                 new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
     sdkQuickfixWizard.init();
     sdkQuickfixWizard.show();
-  }
-
-  @Nullable
-  public Package findLatestRemotePackage(FormFactor formFactor, int minSdkLevel) {
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null) {
-      return null;
-    }
-    RemoteSdk remote = sdkData.getRemoteSdk();
-    ILogger logger = new StdLogger(StdLogger.Level.WARNING);
-    SdkSources sources = remote.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
-    Multimap<PkgType, RemotePkgInfo> packages = remote.fetch(sources, logger);
-
-    if (packages.isEmpty()) {
-      return null;
-    }
-
-    List<Package> packageList = Lists.newArrayList();
-    for (SdkSource source : sources.getAllSources()) {
-      Package[] sourcePackages = source.getPackages();
-      if (sourcePackages == null) {
-        continue;
-      }
-      packageList.addAll(Arrays.asList(sourcePackages));
-    }
-    Collections.sort(packageList);
-    Iterable<Package> result =
-      Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel));
-    return Iterables.getFirst(result, null);
   }
 
   @Override
@@ -346,6 +319,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
       FormFactorApiComboBox.loadInstalledVersions();
     }
+    for (Runnable r : myRunOnEnter) {
+      r.run();
+    }
+    myRunOnEnter.clear();
   }
 
   @Override
