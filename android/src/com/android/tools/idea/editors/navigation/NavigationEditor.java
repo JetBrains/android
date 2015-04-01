@@ -69,7 +69,7 @@ import java.util.List;
 import static com.android.tools.idea.editors.navigation.NavigationView.GAP;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class NavigationEditor implements FileEditor {
+public class NavigationEditor extends UserDataHolderBase implements FileEditor {
   public static final String NAVIGATION_DIRECTORY = ".navigation";
   public static final String DEFAULT_RESOURCE_FOLDER = SdkConstants.FD_RES_RAW;
   public static final String LAYOUT_DIR_NAME = SdkConstants.FD_RES_LAYOUT;
@@ -85,7 +85,6 @@ public class NavigationEditor implements FileEditor {
   private static final ModelDimension UNATTACHED_STRIDE = new ModelDimension(50, 50);
   private static final boolean RUN_ANALYSIS_ON_BACKGROUND_THREAD = false;
 
-  private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final VirtualFile myFile;
@@ -678,16 +677,5 @@ public class NavigationEditor implements FileEditor {
   @Override
   public void dispose() {
     saveNavigationFile();
-  }
-
-  @Nullable
-  @Override
-  public <T> T getUserData(@NotNull Key<T> key) {
-    return myUserDataHolder.getUserData(key);
-  }
-
-  @Override
-  public <T> void putUserData(@NotNull Key<T> key, @Nullable T value) {
-    myUserDataHolder.putUserData(key, value);
   }
 }
