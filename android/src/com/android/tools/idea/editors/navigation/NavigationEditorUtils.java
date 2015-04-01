@@ -25,7 +25,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.JBColor;
-import com.intellij.util.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 
@@ -82,7 +80,7 @@ public class NavigationEditorUtils {
   }
 
   public static Point project(Point p, Rectangle r) {
-    return new Point(bound(p.x, x1(r), x2(r)), bound(p.y, y1(r), y2(r)));
+    return new Point(clamp(p.x, x1(r), x2(r)), clamp(p.y, y1(r), y2(r)));
   }
 
   public static Point centre(@NotNull Rectangle r) {
@@ -334,8 +332,8 @@ public class NavigationEditorUtils {
     return dst.y + dst.height;
   }
 
-  private static int bound(int i, int min, int max) {
-      return i < min ? min : i > max ? max : i;
+  private static int clamp(int i, int min, int max) {
+    return Math.max(min, Math.min(i, max));
   }
 
   private static boolean overlaps(int min1, int max1, int min2, int max2) {
@@ -361,8 +359,8 @@ public class NavigationEditorUtils {
     Point midSrc = centre(src);
     Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
 
-    Point b = horizontal ? new Point(middle, bound(midSrc.y, y1(dst), y2(dst)))
-                         : new Point(bound(midSrc.x, x1(dst), x2(dst)), middle);
+    Point b = horizontal ? new Point(middle, clamp(midSrc.y, y1(dst), y2(dst)))
+                         : new Point(clamp(midSrc.x, x1(dst), x2(dst)), middle);
 
     return new Line(a, b, horizontal);
   }
