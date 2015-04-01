@@ -97,9 +97,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
       targetElement.setAttribute(STYLE_NAME, editorState.getSubStyleName());
     }
 
-    if (editorState.getProportion() != null) {
-      targetElement.setAttribute(PROPORTION, editorState.getProportion().toString());
-    }
+    targetElement.setAttribute(PROPORTION, Float.toString(editorState.getProportion()));
   }
 
   @NotNull
