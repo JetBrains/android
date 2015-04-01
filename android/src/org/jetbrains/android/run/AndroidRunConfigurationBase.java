@@ -72,6 +72,7 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectWithoutModel;
 import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
+import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
@@ -97,10 +98,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean FILTER_LOGCAT_AUTOMATICALLY = true;
 
-  public int SELECTED_CLOUD_CONFIGURATION_ID = 0;
-  public String SELECTED_CLOUD_PROJECT_ID = "";
-  public boolean IS_VALID_CLOUD_SELECTION = false; // indicates whether the selected matrix config + project combo is valid
-  public String INVALID_CLOUD_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
+  public int SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = 0;
+  public String SELECTED_CLOUD_MATRIX_PROJECT_ID = "";
+  public int SELECTED_CLOUD_DEVICE_CONFIGURATION_ID = 0;
+  public String SELECTED_CLOUD_DEVICE_PROJECT_ID = "";
+  public boolean IS_VALID_CLOUD_MATRIX_SELECTION = false; // indicates whether the selected matrix config + project combo is valid
+  public String INVALID_CLOUD_MATRIX_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
+  public boolean IS_VALID_CLOUD_DEVICE_SELECTION = false; // indicates whether the selected cloud device config + project combo is valid
+  public String INVALID_CLOUD_DEVICE_SELECTION_ERROR = ""; // specifies the error if the cloud device config + project combo is invalid
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -273,8 +278,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       case USB_DEVICE:
         targetChooser = new UsbDeviceTargetChooser();
         break;
-      case CLOUD_TEST_OPTION:
-        targetChooser = new CloudTargetChooser(MATRIX, SELECTED_CLOUD_CONFIGURATION_ID, SELECTED_CLOUD_PROJECT_ID);
+      case CLOUD_MATRIX_TEST:
+        targetChooser = new CloudTargetChooser(MATRIX, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
+        break;
+      case CLOUD_DEVICE_LAUNCH:
+        targetChooser = new CloudTargetChooser(SINGLE_DEVICE, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
         break;
       default:
         assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;

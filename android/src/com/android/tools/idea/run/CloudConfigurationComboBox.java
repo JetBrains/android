@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.SimpleTextAttributes;
@@ -48,9 +49,10 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
   private ActionListener myActionListener;
   private final CloudConfigurationProvider myConfigurationProvider;
 
-  // a cache of configuration selected by module, so that if the module selection changes back and forth, we retain
-  // the appropriate selected test configuration
-  private static Map<Module, CloudConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  /** A cache of configurations selected by <kind, module>, so that if the module selection changes back and forth, we retain
+   * the appropriate selected test configuration.
+   */
+  private static Map<Pair<Kind, Module>, CloudConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
 
   public CloudConfigurationComboBox(@NotNull Kind configurationKind) {
     myConfigurationKind = configurationKind;
@@ -63,7 +65,7 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
       public void actionPerformed(ActionEvent e) {
         Object item = getComboBox().getSelectedItem();
         if (item instanceof CloudConfiguration) {
-          myConfigurationByModuleCache.put(myCurrentModule, (CloudConfiguration)item);
+          myConfigurationByModuleCache.put(Pair.create(myConfigurationKind, myCurrentModule), (CloudConfiguration)item);
         }
       }
     });
@@ -128,7 +130,7 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
     }
 
     getComboBox().setModel(new ListComboBoxModel(myTestingConfigurations));
-    CloudConfiguration selectedConfig = myConfigurationByModuleCache.get(myCurrentModule);
+    CloudConfiguration selectedConfig = myConfigurationByModuleCache.get(Pair.create(myConfigurationKind, myCurrentModule));
     if (selectedConfig != null && myTestingConfigurations.contains(selectedConfig)) {
       getComboBox().setSelectedItem(selectedConfig);
     }
