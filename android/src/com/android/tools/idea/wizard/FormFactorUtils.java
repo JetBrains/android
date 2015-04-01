@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.sdklib.internal.repository.packages.AddonPackage;
-import com.android.sdklib.internal.repository.packages.Package;
+import com.android.sdklib.repository.descriptors.IPkgDescAddon;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
@@ -197,17 +198,17 @@ public class FormFactorUtils {
     };
   }
 
-  public static Predicate<Package> getMinSdkPackageFilter(
+  public static Predicate<RemotePkgInfo> getMinSdkPackageFilter(
     @NotNull final FormFactor formFactor, final int minSdkLevel) {
-    return new Predicate<Package>() {
+    return new Predicate<RemotePkgInfo>() {
       @Override
-      public boolean apply(@Nullable Package input) {
+      public boolean apply(@Nullable RemotePkgInfo input) {
         if (input == null) {
           return false;
         }
-        if (input instanceof AddonPackage) {
-          AddonPackage addon = (AddonPackage)input;
-          return doFilter(formFactor, minSdkLevel, addon.getNameId(), addon.getAndroidVersion().getFeatureLevel());
+        if (input.getDesc().getType() == PkgType.PKG_ADDON) {
+          IPkgDescAddon addon = (IPkgDescAddon)input.getDesc();
+          return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
         }
         // TODO: add other package types
         return false;
@@ -239,7 +240,7 @@ public class FormFactorUtils {
 
 
   /**
-   * @return true iff inputVersion is parsable as an int that matches inputVersion, or if inputName contains filterItem.
+   * @return true iff inputVersion is parsable as an int that matches filterItem, or if inputName contains filterItem.
    */
   private static boolean matches(@NotNull String filterItem, @Nullable String inputName, int inputVersion) {
     if (Integer.toString(inputVersion).equals(filterItem)) {
