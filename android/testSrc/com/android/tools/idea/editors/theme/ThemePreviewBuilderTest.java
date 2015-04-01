@@ -68,7 +68,13 @@ public class ThemePreviewBuilderTest extends TestCase {
     assertEquals(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS.size() + 1, nodeList.getLength());
 
     // This shouldn't filter our custom component
-    document = customComponentBuilder.setApiLevel(15).build();
+    Predicate<ThemePreviewBuilder.ComponentDefinition> api15Filter = new Predicate<ThemePreviewBuilder.ComponentDefinition>() {
+      @Override
+      public boolean apply(ThemePreviewBuilder.ComponentDefinition input) {
+        return input.apiLevel <= 15;
+      }
+    };
+    document = customComponentBuilder.addComponentFilter(api15Filter).build();
     nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
     Iterable filteredBaseComponents =
       Iterables.filter(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS, new Predicate<ThemePreviewBuilder.ComponentDefinition>() {
@@ -80,7 +86,13 @@ public class ThemePreviewBuilderTest extends TestCase {
     assertEquals(Iterables.size(filteredBaseComponents) + 1, nodeList.getLength());
 
     // This should filter the custom component
-    document = customComponentBuilder.setApiLevel(14).build();
+    Predicate<ThemePreviewBuilder.ComponentDefinition> api14Filter = new Predicate<ThemePreviewBuilder.ComponentDefinition>() {
+      @Override
+      public boolean apply(ThemePreviewBuilder.ComponentDefinition input) {
+        return input.apiLevel <= 14;
+      }
+    };
+    document = customComponentBuilder.addComponentFilter(api14Filter).build();
     nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
     filteredBaseComponents =
       Iterables.filter(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS, new Predicate<ThemePreviewBuilder.ComponentDefinition>() {
@@ -123,5 +135,46 @@ public class ThemePreviewBuilderTest extends TestCase {
     }
     assertTrue("'Custom' header should be present", headerTitles.contains(ThemePreviewBuilder.ComponentGroup.CUSTOM.name()));
     assertEquals(ThemePreviewBuilder.ComponentGroup.values().length, nodeList.getLength());
+  }
+
+  public void testSearchFilter() throws ParserConfigurationException, XPathExpressionException {
+    ThemePreviewBuilder.ComponentDefinition customComponent =
+      new ThemePreviewBuilder.ComponentDefinition("Custom_Component", ThemePreviewBuilder.ComponentGroup.CUSTOM, "CustomComponent")
+        .addAlias("Spinner")
+        .addAlias("ABC")
+        .addAlias("DEF");
+
+    XPath xPath = XPathFactory.newInstance().newXPath();
+    ThemePreviewBuilder customComponentBuilder = new ThemePreviewBuilder().addComponent(customComponent);
+
+    // Check the search "spinner" returns both the actual spinner control and the custom component with the alias
+    Document document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("SPINNER")).build();
+    NodeList nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(2, nodeList.getLength());
+
+    // Test matching the name
+    document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("CustomCOMPONENT")).build();
+    nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(1, nodeList.getLength());
+
+    // Test matching the description
+    document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("Custom_COMPONENT")).build();
+    nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(1, nodeList.getLength());
+
+    // Test searching for an alias that only matches our custom component
+    document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("AbC")).build();
+    nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(1, nodeList.getLength());
+
+    // Test partial match
+    document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("EF")).build();
+    nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(1, nodeList.getLength());
+
+    // Test case sensitive search
+    document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("AbC", true)).build();
+    nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(0, nodeList.getLength());
   }
 }
