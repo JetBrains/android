@@ -117,10 +117,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     ThemeEditorState state = (ThemeEditorState)fileEditorState;
     myComponent.reload(state.getThemeName(), state.getSubStyleName());
 
-    Float proportion = state.getProportion();
-    if (proportion != null) {
-      myComponent.setProportion(proportion);
-    }
+    myComponent.setProportion(state.getProportion());
   }
 
   @Override
