@@ -591,6 +591,19 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     field.getTextField().addFocusListener(this);
   }
 
+  protected void register(@NotNull Key<String> key, @NotNull final TextAccessor field) {
+    assert field instanceof JComponent;
+
+    JComponent component = (JComponent)field;
+    String value = bindAndGet(key, component, null);
+    if (value != null) {
+      field.setText(value);
+    } else {
+      myState.put(key, field.getText());
+    }
+    component.addFocusListener(this);
+  }
+
   /**
    * Connects the given {@link ColorPanel} to the given key and sets a listener to pick up changes that need to trigger validation
    * and UI updates.
