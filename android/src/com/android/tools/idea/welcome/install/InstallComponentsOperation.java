@@ -65,12 +65,14 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
     SdkManager manager = SdkManager.createManager(sdkLocation.getAbsolutePath(), new LogWrapper(LOG));
     if (manager != null) {
       indicator.setText("Checking for updated SDK components");
-      ArrayList<String> packages = myComponentInstaller.getPackagesToInstall(manager, myComponents);
+      ArrayList<String> packages = myComponentInstaller.getPackagesToInstall(manager, myComponents, true);
       while (!packages.isEmpty()) {
         ILogger logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext, packages.size());
         myComponentInstaller.installPackages(manager, packages, logger);
         manager.reloadSdk(new LogWrapper(LOG));
-        packages = myComponentInstaller.getPackagesToInstall(manager, myComponents);
+        // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
+        // defaultUpdateAvailable so we don't think everything failed to install.
+        packages = myComponentInstaller.getPackagesToInstall(manager, myComponents, false);
         String message = getRetryMessage(packages);
         if (message != null) {
           promptToRetry(message, message, null);
