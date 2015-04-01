@@ -133,8 +133,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   public void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
-    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_TEST_OPTION && !IS_VALID_CLOUD_SELECTION) {
-      throw new RuntimeConfigurationError(INVALID_CLOUD_SELECTION_ERROR);
+    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_MATRIX_TEST && !IS_VALID_CLOUD_MATRIX_SELECTION) {
+      throw new RuntimeConfigurationError(INVALID_CLOUD_MATRIX_SELECTION_ERROR);
+    }
+    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
+      throw new RuntimeConfigurationError(INVALID_CLOUD_DEVICE_SELECTION_ERROR);
     }
 
     Module module = facet.getModule();
