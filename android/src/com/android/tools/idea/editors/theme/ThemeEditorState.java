@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.google.common.base.Objects;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import org.jetbrains.annotations.Nullable;
@@ -22,12 +23,12 @@ import org.jetbrains.annotations.Nullable;
 public class ThemeEditorState implements FileEditorState {
   private final @Nullable String myThemeName;
   private final @Nullable String mySubStyleName;
-  private final @Nullable Float myProportion;
+  private final float myProportion;
 
   public ThemeEditorState(@Nullable String themeName, @Nullable String subStyleName, @Nullable Float proportion) {
     myThemeName = themeName;
     mySubStyleName = subStyleName;
-    myProportion = proportion;
+    myProportion = proportion == null ? 0.5f : proportion;
   }
 
   @Nullable
@@ -40,8 +41,7 @@ public class ThemeEditorState implements FileEditorState {
     return mySubStyleName;
   }
 
-  @Nullable
-  public Float getProportion() {
+  public float getProportion() {
     return myProportion;
   }
 
@@ -54,21 +54,14 @@ public class ThemeEditorState implements FileEditorState {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     ThemeEditorState that = (ThemeEditorState)o;
-
-    if (myProportion != null ? !myProportion.equals(that.myProportion) : that.myProportion != null) return false;
-    if (mySubStyleName != null ? !mySubStyleName.equals(that.mySubStyleName) : that.mySubStyleName != null) return false;
-    if (myThemeName != null ? !myThemeName.equals(that.myThemeName) : that.myThemeName != null) return false;
-
-    return true;
+    return Objects.equal(myProportion, that.myProportion) &&
+           Objects.equal(myThemeName, that.myThemeName) &&
+           Objects.equal(mySubStyleName, that.mySubStyleName);
   }
 
   @Override
   public int hashCode() {
-    int result = myThemeName != null ? myThemeName.hashCode() : 0;
-    result = 31 * result + (mySubStyleName != null ? mySubStyleName.hashCode() : 0);
-    result = 31 * result + (myProportion != null ? myProportion.hashCode() : 0);
-    return result;
+    return Objects.hashCode(myThemeName, mySubStyleName, myProportion);
   }
 }
