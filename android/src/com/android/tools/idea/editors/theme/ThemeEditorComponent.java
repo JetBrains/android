@@ -631,6 +631,10 @@ public class ThemeEditorComponent extends Splitter {
         } else {
           myAttributesFilter.setFilterEnabled(false);
         }
+
+        if (myAttributesTable.isEditing()) {
+          myAttributesTable.getCellEditor().cancelCellEditing();
+        }
         ((TableRowSorter)myAttributesTable.getRowSorter()).sort();
         myPanel.getAdvancedFilterCheckBox().getModel().setSelected(!myAttributesFilter.myIsFilterEnabled);
       }
