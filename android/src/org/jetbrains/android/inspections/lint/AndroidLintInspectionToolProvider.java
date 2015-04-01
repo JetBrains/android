@@ -6,6 +6,8 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -22,6 +24,8 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1440,7 +1444,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      String highest = Integer.toString(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API); // TODO: preview platform??
+      String highest = Integer.toString(getHighestApi(startElement)); // TODO: preview platform??
       String label = "Update targetSdkVersion to " + highest;
       if (startElement.getContainingFile() instanceof XmlFile) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(label, "targetSdkVersion\\s*=\\s*[\"'](.*)[\"']", highest)};
@@ -1449,6 +1453,25 @@ public class AndroidLintInspectionToolProvider {
       } else{
         return AndroidLintQuickFix.EMPTY_ARRAY;
       }
+    }
+
+    private static int getHighestApi(PsiElement element) {
+      int max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+      AndroidFacet instance = AndroidFacet.getInstance(element);
+      if (instance != null) {
+        AndroidSdkData sdkData = instance.getSdkData();
+        if (sdkData != null) {
+          for (IAndroidTarget target : sdkData.getTargets()) {
+            if (target.isPlatform()) {
+              AndroidVersion version = target.getVersion();
+              if (version.getApiLevel() > max && !version.isPreview()) {
+                max = version.getApiLevel();
+              }
+            }
+          }
+        }
+      }
+      return max;
     }
   }
 
