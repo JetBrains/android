@@ -25,7 +25,8 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
-import com.android.tools.idea.welcome.*;
+import com.android.tools.idea.welcome.install.*;
+import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.*;
 import com.android.utils.NullLogger;
 import com.google.common.base.Function;
@@ -54,7 +55,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.View;
