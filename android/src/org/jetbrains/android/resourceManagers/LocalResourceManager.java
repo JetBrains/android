@@ -17,6 +17,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -334,4 +335,40 @@ public class LocalResourceManager extends ResourceManager {
     }
     return targets;
   }
+
+  @Override
+  @NotNull
+  public Collection<String> getResourceNames(@NotNull String type) {
+    return getResourceNames(type, true);
+  }
+
+  @NotNull
+  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
+    final Set<String> result = new HashSet<String>();
+    ResourceType t = ResourceType.getEnum(type);
+    if (publicOnly && t != null) {
+      AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
+      for (String name : getValueResourceNames(type)) {
+        if (!appResources.isPrivate(t, name)) {
+          result.add(name);
+        }
+      }
+      for (String name : getFileResourcesNames(type)) {
+        if (!appResources.isPrivate(t, name)) {
+          result.add(name);
+        }
+      }
+      if (t == ResourceType.ID) {
+        for (String name : getIds(true)) {
+          if (!appResources.isPrivate(t, name)) {
+            result.add(name);
+          }
+        }
+      }
+    } else {
+      super.getResourceNames(type);
+    }
+    return result;
+  }
+
 }
