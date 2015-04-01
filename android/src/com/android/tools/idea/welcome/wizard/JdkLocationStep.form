@@ -57,7 +57,7 @@
               <text value="Button"/>
             </properties>
           </component>
-          <component id="84064" class="javax.swing.JLabel" binding="myDetectLabel">
+          <component id="84064" class="javax.swing.JLabel">
             <constraints/>
             <properties>
               <text value=" and press "/>
