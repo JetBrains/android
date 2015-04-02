@@ -26,7 +26,6 @@ import org.jetbrains.android.run.AndroidRunningState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,8 +35,6 @@ import java.util.List;
  * specific configuration, and then passes on that information to the cloud provider in order to run the tests.
  */
 public abstract class CloudTestConfigurationProvider {
-  public static final boolean SHOW_CLOUD_TESTING_OPTION = Boolean.getBoolean("show.google.cloud.testing.option");
-
   public static final ExtensionPointName<CloudTestConfigurationProvider> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.run.cloudTestingConfigurationProvider");
 
@@ -65,13 +62,19 @@ public abstract class CloudTestConfigurationProvider {
                                           @NotNull AndroidRunningState runningState,
                                           @NotNull Executor executor) throws ExecutionException;
 
+  public static boolean isEnabled() {
+    return CloudTestingConfigurable.getPersistedEnableProperty();
+  }
+
   @Nullable
   public static CloudTestConfigurationProvider getCloudTestingProvider() {
-    if (SHOW_CLOUD_TESTING_OPTION) {
-      CloudTestConfigurationProvider[] extensions = EP_NAME.getExtensions();
-      if (extensions.length > 0) {
-        return extensions[0];
-      }
+    if (!isEnabled()) {
+      return null;
+    }
+
+    CloudTestConfigurationProvider[] extensions = EP_NAME.getExtensions();
+    if (extensions.length > 0) {
+      return extensions[0];
     }
 
     return null;
