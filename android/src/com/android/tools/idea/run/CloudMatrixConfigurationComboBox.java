@@ -69,7 +69,7 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
   }
 
   public void setFacet(@NotNull AndroidFacet facet) {
-    if (!CloudTestConfigurationProvider.SHOW_CLOUD_TESTING_OPTION) {
+    if (!CloudTestConfigurationProvider.isEnabled()) {
       return; // Running tests in cloud is not enabled!
     }
 
