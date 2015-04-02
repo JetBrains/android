@@ -27,7 +27,6 @@ import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.DialogWrapperHost;
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -149,7 +148,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         refreshImages(true);
       }
     });
-    myInstallLatestVersionButton.addActionListener(new ActionListener() {
+    myInstallLatestVersionButton.addActionListener(new ActionListener() {  // TODO(jbakermalone): actually show this button in the ui
       @Override
       public void actionPerformed(ActionEvent e) {
         installForDevice();
@@ -237,10 +236,17 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     Runnable remoteComplete = new Runnable() {
       @Override
       public void run() {
-        items.addAll(getRemoteImages());
-        updateListModel(items);
-        myRemoteStatusPanel.setVisible(false);
-        myRefreshButton.setEnabled(true);
+        List<AvdWizardConstants.SystemImageDescription> remotes = getRemoteImages();
+        if (remotes != null) {
+          items.addAll(remotes);
+          updateListModel(items);
+          myRemoteStatusPanel.setVisible(false);
+          myRefreshButton.setEnabled(true);
+        }
+        else {
+          myShowRemoteCheckbox.setEnabled(false);
+          myShowRemoteCheckbox.setSelected(false);
+        }
 
       }
     };
@@ -252,27 +258,26 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       }
     };
 
-    if (!mySdkState.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false,
-                              localComplete, remoteComplete, error)) {
-      localComplete.run();
-      remoteComplete.run();
-    }
+    mySdkState.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false,
+                         localComplete, remoteComplete, error, true);
   }
 
+  @Nullable
   private List<AvdWizardConstants.SystemImageDescription> getRemoteImages() {
     List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
     Set<RemotePkgInfo> infos = mySdkState.getUpdates().getNewPkgs();
 
     if (infos.isEmpty()) {
-      myShowRemoteCheckbox.setEnabled(false);
-      myShowRemoteCheckbox.setSelected(false);
+      return null;
     }
     else {
       for (RemotePkgInfo info : infos) {
         if (info.getDesc().getType().equals(PkgType.PKG_SYS_IMAGE)) {
           IAndroidTarget target = findTarget(info);
           AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(info.getDesc(), target);
-          items.add(desc);
+          if (myFilter == null || myFilter.apply(desc)) {
+            items.add(desc);
+          }
         }
       }
     }
@@ -280,7 +285,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   private IAndroidTarget findTarget(RemotePkgInfo info) {
-    List<IAndroidTarget> targets = Lists.newArrayList(mySdkState.getSdkData().getLocalSdk().getTargets());
+    IAndroidTarget[] targets = mySdkState.getSdkData().getLocalSdk().getTargets();
     for (IAndroidTarget target : targets) {
       IdDisplay imageVendor = info.getDesc().getVendor();
       if ((imageVendor == null && target.isPlatform() ||
@@ -574,17 +579,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
 
     private void downloadImage(AvdWizardConstants.SystemImageDescription image) {
-      IPkgDesc remote = image.getRemotePackage();
-      IPkgDesc request = null;
-      if (remote.getType().equals(PkgType.PKG_SYS_IMAGE)) {
-        request =
-          PkgDesc.Builder.newSysImg(remote.getAndroidVersion(), remote.getTag(), remote.getPath(), remote.getMajorRevision())
-            .create();
-      }
-      else if (remote.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
-        request = PkgDesc.Builder.newAddonSysImg(image.getVersion(), remote.getVendor(), image.getTag(), image.getAbiType(),
-                                                 remote.getMajorRevision()).create();
-      }
+      IPkgDesc request = image.getRemotePackage();
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
       SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
                                                                   new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));

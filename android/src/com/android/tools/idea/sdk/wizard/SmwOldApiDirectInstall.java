@@ -151,13 +151,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     // If needed, it does a backgroundable Task to load the SDK and then calls onSdkAvailable.
     // Otherwise it returns false, in which case we call onSdkAvailable ourselves.
     logger.info("Loading SDK information...\n");
-    if (!sdkState.loadAsync(1000 * 3600 * 24,  // 24 hour timeout since last check
-                       false,           // canBeCancelled
-                       null,            // onLocalComplete
-                       onSdkAvailable,  // onSuccess
-                       null)) {         // onError -- TODO display something?
-      onSdkAvailable.run();
-    }
+    sdkState.loadAsync(1000 * 3600 * 24, false, null, onSdkAvailable, null, false);  // TODO(jbakermalone): display something on error?
   }
 
   @NotNull
