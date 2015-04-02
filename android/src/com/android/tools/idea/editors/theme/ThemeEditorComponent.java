@@ -44,6 +44,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.util.Processor;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -58,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -74,15 +76,13 @@ import java.util.Set;
 
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
-  private static final Font HEADER_FONT = UIUtil.getTitledBorderFont().deriveFont(20.0f);
 
-  private static final int ATTRIBUTES_DEFAULT_ROW_HEIGHT = 20;
+  public static final float HEADER_FONT_SCALE = 1.3f;
+  public static final int REGULAR_CELL_PADDING = 4;
+  public static final int LARGE_CELL_PADDING = 10;
 
-  public static final Map<Class<?>, Integer> ROW_HEIGHTS = ImmutableMap.of(
-    Color.class, 60,
-    TableLabel.class, 35,
-    DrawableDomElement.class, 64
-  );
+  private Map<Class<?>, Integer> myRowHeights;
+  private Font myHeaderFont;
 
   private StyleResolver myStyleResolver;
   private String myPreviousSelectedTheme;
@@ -189,7 +189,7 @@ public class ThemeEditorComponent extends Splitter {
                                                      int row,
                                                      int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        this.setFont(HEADER_FONT);
+        this.setFont(myHeaderFont);
         return this;
       }
     });
@@ -553,10 +553,10 @@ public class ThemeEditorComponent extends Splitter {
             reload(model.getThemeNameInXml());
           }
           else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
-            myAttributesTable.setRowHeight(ATTRIBUTES_DEFAULT_ROW_HEIGHT);
+            myAttributesTable.setRowHeight(myRowHeights.get(Object.class));
             for (int row = 0; row < model.getRowCount(); row++) {
               final Class<?> cellClass = model.getCellClass(row, 0);
-              final Integer rowHeight = ROW_HEIGHTS.get(cellClass);
+              final Integer rowHeight = myRowHeights.get(cellClass);
               if (rowHeight != null) {
                 // TODO important colors should be taller then less important colors.
                 int viewRow = myAttributesTable.convertRowIndexToView(row);
@@ -691,5 +691,27 @@ public class ThemeEditorComponent extends Splitter {
 
       return filterAttributes.contains(attributeName);
     }
+  }
+
+  @Override
+  public void setUI(PanelUI ui) {
+    super.setUI(ui);
+
+    Font regularFont = UIUtil.getLabelFont();
+
+    int regularFontSize = getFontMetrics(regularFont).getHeight();
+    myHeaderFont = regularFont.deriveFont(regularFontSize * HEADER_FONT_SCALE);
+    int headerFontSize = getFontMetrics(myHeaderFont).getHeight();
+
+    // Big cells contain two lines of text, and we want some space between them
+    // (thus multiplier is 2.8 rather than 2). Also, we need some padding on top and bottom.
+    int bigCellSize = (int) Math.floor(2.8f * regularFontSize) + LARGE_CELL_PADDING;
+
+    myRowHeights = ImmutableMap.of(
+      Object.class, regularFontSize + REGULAR_CELL_PADDING,
+      Color.class, bigCellSize,
+      DrawableDomElement.class, bigCellSize,
+      TableLabel.class, headerFontSize + LARGE_CELL_PADDING
+    );
   }
 }
