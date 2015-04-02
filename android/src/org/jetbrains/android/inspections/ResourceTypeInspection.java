@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -507,6 +508,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (v instanceof Number) {
           return (Number)v;
         }
+      } else if (argument instanceof PsiBinaryExpression) {
+        Object v = JavaConstantExpressionEvaluator.computeConstantExpression(argument, false);
+        if (v instanceof Number) {
+          return (Number)v;
+        }
       }
       return null;
     }
@@ -541,14 +547,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     @Override
     @MagicConstant(intValues = {VALID, INVALID, UNCERTAIN})
     public int isValid(@NotNull PsiExpression argument) {
-      if (argument instanceof PsiLiteral) {
-        PsiLiteral literal = (PsiLiteral)argument;
-        Object literalValue = literal.getValue();
-        if (literalValue instanceof Number) {
-          long value = ((Number)literalValue).longValue();
-          return value >= from && value <= to ? VALID : INVALID;
-        }
+      Number literalValue = guessSize(argument);
+      if (literalValue != null) {
+        long value = literalValue.longValue();
+        return value >= from && value <= to ? VALID : INVALID;
       }
+
       return UNCERTAIN;
     }
 
@@ -742,6 +746,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         Object o = literal.getValue();
         if (o instanceof String) {
           return ((String)o).length();
+        }
+      } else if (argument instanceof PsiBinaryExpression) {
+        Object v = JavaConstantExpressionEvaluator.computeConstantExpression(argument, false);
+        if (v instanceof String) {
+          return ((String)v).length();
         }
       }
       return -1;
