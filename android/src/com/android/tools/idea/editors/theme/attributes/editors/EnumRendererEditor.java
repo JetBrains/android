@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
@@ -52,11 +53,18 @@ public class EnumRendererEditor extends AbstractTableCellEditor implements Table
     }
 
     EditedStyleItem item = (EditedStyleItem) value;
-    String itemValue = item.getValue();
-    myComboBox.removeAllItems();
-    myComboBox.addItem(itemValue);
-    myComboBox.setSelectedItem(itemValue);
-    return myComboBox;
+    final Component component;
+    if (column == 0) {
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, item.getQualifiedName(), isSelected, hasFocus, row, column);
+    } else {
+      String itemValue = item.getValue();
+      myComboBox.removeAllItems();
+      myComboBox.addItem(itemValue);
+      myComboBox.setSelectedItem(itemValue);
+      component = myComboBox;
+    }
+
+    return component;
   }
 
   @Override

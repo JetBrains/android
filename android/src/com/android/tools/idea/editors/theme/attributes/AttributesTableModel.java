@@ -467,29 +467,29 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return Color.class;
       }
 
-      if (column == 1) {
-        if (urlType == ResourceType.STYLE) {
-          return ThemeEditorStyle.class;
-        }
-        if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {
-          return Flag.class;
-        }
-        if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Enum)) {
-          return Enum.class;
-        }
-        if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
-          return Integer.class;
-        }
-        if (urlType == ResourceType.BOOL
-                || (("true".equals(value) || "false".equals(value))
-                        && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
-          return Boolean.class;
-        }
-
-        return EditedStyleItem.class;
+      if (urlType == ResourceType.STYLE) {
+        return ThemeEditorStyle.class;
       }
 
-      return String.class;
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {
+        return Flag.class;
+      }
+
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Enum)) {
+        return Enum.class;
+      }
+
+      if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
+        return Integer.class;
+      }
+
+      if (urlType == ResourceType.BOOL
+          || (("true".equals(value) || "false".equals(value))
+              && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
+        return Boolean.class;
+      }
+
+      return EditedStyleItem.class;
     }
 
     @Override

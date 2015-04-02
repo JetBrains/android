@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HintHint;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -86,8 +87,15 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
     }
 
     myItem = (EditedStyleItem)value;
-    myLabel.setText(myItem.getValue());
-    return myLabel;
+    final Component component;
+    if (column == 0) {
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, myItem.getQualifiedName(), isSelected, hasFocus, row, column);
+    } else {
+      myLabel.setText(myItem.getValue());
+      component = myLabel;
+    }
+
+    return component;
   }
 
   @Override
