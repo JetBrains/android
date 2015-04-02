@@ -34,62 +34,26 @@ import java.awt.*;
  * Uses delegate to draw "simple" extracted value (which is usually a String or a Boolean)
  */
 public class DelegatingCellRenderer implements TableCellRenderer {
-  private final Module myModule;
-  private final Configuration myConfiguration;
   private final TableCellRenderer myDelegate;
-  private final boolean myConvertValueToString;
 
-  public DelegatingCellRenderer(final Module module,
-                                final Configuration configuration,
-                                boolean convertValueToString,
-                                final TableCellRenderer delegate) {
-    myModule = module;
-    myConfiguration = configuration;
+  public DelegatingCellRenderer(final TableCellRenderer delegate) {
     myDelegate = delegate;
-    myConvertValueToString = convertValueToString;
   }
 
-  public DelegatingCellRenderer(final Module module, final Configuration configuration, final TableCellRenderer delegate) {
-    this(module, configuration, true, delegate);
-  }
 
   @Override
   public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-    final Object stringValue;
-    final CellSpanModel model = (CellSpanModel)table.getModel();
-    EditedStyleItem item = null;
 
-    boolean isEditedStyle = value instanceof EditedStyleItem;
-    if (isEditedStyle) {
-      item = (EditedStyleItem) value;
-      if (column == 0) {
-        stringValue = item.getQualifiedName();
-      } else {
-        stringValue = ThemeEditorUtils
-          .extractRealValue(item, model.getCellClass(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column)));
-      }
-    }
-    else {
-      stringValue = value;
-    }
+    EditedStyleItem item = (value instanceof  EditedStyleItem) ? (EditedStyleItem) value : null;
 
     final Component returnedComponent =
-      myDelegate.getTableCellRendererComponent(table, myConvertValueToString ? stringValue : value, isSelected, hasFocus, row, column);
-
-    // Displays private attributes (that should not be modified) with a cross or on a gray background
-    if (isEditedStyle && !item.isPublicAttribute()
-            && !(myDelegate instanceof ColorRenderer || myDelegate instanceof DrawableRenderer)) {
-      returnedComponent.setBackground(JBColor.LIGHT_GRAY);
-    } else {
-      returnedComponent.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-    }
+      myDelegate.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
     // Displays in bold attributes that are overriding their inherited value
-    if (item != null && item.getSourceStyle().equals(((AttributesTableModel) table.getModel()).getSelectedStyle())) {
-      returnedComponent.setFont(table.getFont().deriveFont(Font.BOLD));
-    } else {
-      returnedComponent.setFont(table.getFont());
-    }
+    returnedComponent.setFont((item != null && item.getSourceStyle().equals(((AttributesTableModel) table.getModel()).getSelectedStyle()))
+                              ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
+
+    returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.GRAY : table.getForeground());
 
     if (!(returnedComponent instanceof JComponent)) {
       // Does not support tooltips
@@ -101,10 +65,11 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     // we get the tooltip.
     final JComponent jComponent = (JComponent)returnedComponent;
     Point mousePos = table.getMousePosition();
-    if (mousePos != null && isEditedStyle) {
+    if (mousePos != null && item != null) {
       if (table.getCellRect(row, column, true).contains(mousePos)) {
         final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
-        String toolTipText = ThemeEditorUtils.generateToolTipText(resValue, myModule, myConfiguration);
+        Configuration configuration = item.getSourceStyle().getConfiguration();
+        String toolTipText = ThemeEditorUtils.generateToolTipText(resValue, configuration.getModule(), configuration);
         jComponent.setToolTipText(toolTipText);
       }
     } else {
