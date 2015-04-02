@@ -782,6 +782,21 @@
   <item name="android.view.View.DragShadowBuilder void onProvideShadowMetrics(android.graphics.Point, android.graphics.Point) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View.MeasureSpec int getMode(int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.EXACTLY, android.view.View.MeasureSpec.AT_MOST}" />
+    </annotation>
+  </item>
+  <item name="android.view.View.MeasureSpec int makeMeasureSpec(int, int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="to" val="1073741823" />
+    </annotation>
+  </item>
+  <item name="android.view.View.MeasureSpec int makeMeasureSpec(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.EXACTLY, android.view.View.MeasureSpec.AT_MOST}" />
+    </annotation>
+  </item>
   <item name="android.view.View.MeasureSpec java.lang.String toString(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
