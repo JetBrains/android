@@ -68,7 +68,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   private CloudMatrixConfigurationComboBox myCloudConfigurationCombo;
   private CloudProjectIdLabel myCloudProjectIdLabel;
   private ActionButton myCloudProjectIdUpdateButton;
-  private final CloudTestConfigurationProvider myCloudConfigurationFactory;
+  private final CloudTestConfigurationProvider myCloudTestConfigurationProvider;
 
 
   @NonNls private static final String SELECTED_SERIALS_PROPERTY = "ANDROID_EXTENDED_DEVICE_CHOOSER_SERIALS";
@@ -83,7 +83,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
                                      boolean showCloudTarget) {
     super(facet.getModule().getProject(), true, IdeModalityType.PROJECT);
 
-    myCloudConfigurationFactory = CloudTestConfigurationProvider.getCloudTestingProvider();
+    myCloudTestConfigurationProvider = CloudTestConfigurationProvider.getCloudTestingProvider();
 
     setTitle(AndroidBundle.message("choose.device.dialog.title"));
 
@@ -94,7 +94,8 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     // we need to make sure that:
     // a) showing it here makes sense in that a significant number of users actually select that option, and
     // b) it is obvious that by choosing this you will incur a cost on your Google account.
-    boolean isGoogleCloudRadioButtonShown = CloudTestConfigurationProvider.SHOW_CLOUD_TESTING_OPTION && showCloudTarget;
+    boolean isGoogleCloudRadioButtonShown = CloudTestConfigurationProvider.isEnabled() && showCloudTarget;
+
     if (isGoogleCloudRadioButtonShown) {
       myCloudConfigurationCombo.getComboBox().addActionListener(new ActionListener() {
         @Override
@@ -322,8 +323,13 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     AnAction action = new AnAction() {
       @Override
       public void actionPerformed(AnActionEvent e) {
+        if (myCloudTestConfigurationProvider == null) {
+          return;
+        }
+
         String selectedProjectId =
-          myCloudConfigurationFactory.openCloudProjectConfigurationDialog(myProject, myCloudProjectIdLabel.getText());
+          myCloudTestConfigurationProvider.openCloudProjectConfigurationDialog(myProject, myCloudProjectIdLabel.getText());
+
         if (selectedProjectId != null) {
           myCloudProjectIdLabel.updateCloudProjectId(selectedProjectId);
           updateOkButton();

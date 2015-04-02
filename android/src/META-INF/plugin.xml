@@ -589,6 +589,8 @@
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
 
+    <applicationConfigurable groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
+
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
