@@ -346,21 +346,31 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[]) 1">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 1">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 2">
+    <annotation name="android.support.annotation.AttrRes" />
+  </item>
+  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 3">
+    <annotation name="android.support.annotation.StyleRes" />
+  </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 0">
-    <annotation name="android.support.annotation.StyleableRes" />
+    <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 1">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int[]) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 3">
