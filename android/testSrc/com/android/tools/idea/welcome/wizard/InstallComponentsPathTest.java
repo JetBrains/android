@@ -145,7 +145,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
 
   private static ArrayList<String> getAndroidSdkPackages(SdkManager manager, ComponentInstaller operation) {
     return operation.getPackagesToInstall(manager, Collections
-      .singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))));
+      .singleton(new AndroidSdk(new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null))), true);
   }
 
   public void DISABLEDtestComponentsToInstall() {
