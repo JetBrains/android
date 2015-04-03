@@ -159,7 +159,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     }
 
     SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    state.loadSynchronously(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null);
+    state.loadSynchronously(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
     return state.getRemotePkgInfos();
   }
 
