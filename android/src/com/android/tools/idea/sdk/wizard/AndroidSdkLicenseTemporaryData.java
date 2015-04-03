@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.sdklib.internal.repository.packages.License;
+import com.android.sdklib.repository.License;
 
 /**
  * This class will only exist until we get full SDK manager integration
