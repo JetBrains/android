@@ -36,11 +36,13 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.android.sdk.AndroidSdkData;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 public class SdkState {
@@ -57,7 +59,7 @@ public class SdkState {
   private Multimap<PkgType, RemotePkgInfo> myRemotePkgs;
 
   private long myLastRefreshMs;
-  private BackgroundableProcessIndicator myIndicator;
+  private ProgressWindow myIndicator;
 
   private SdkState(@NonNull AndroidSdkData sdkData) {
     mySdkData = sdkData;
@@ -95,6 +97,10 @@ public class SdkState {
     return myLocalPkgInfos;
   }
 
+  public Multimap<PkgType, RemotePkgInfo> getRemotePkgInfos() {
+    return myRemotePkgs;
+  }
+
   @Nullable
   public UpdateResult getUpdates() {
     return myUpdates;
@@ -115,6 +121,26 @@ public class SdkState {
 
     LoadTask task = new LoadTask(canBeCancelled, onLocalComplete, onSuccess, onError);
     myIndicator = new BackgroundableProcessIndicator(task);
+    ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, myIndicator);
+    return true;
+  }
+
+  public boolean loadSynchronously(long timeoutMs,
+                           boolean canBeCancelled,
+                           @Nullable Runnable onLocalComplete,
+                           @Nullable Runnable onSuccess,
+                           @Nullable Runnable onError) {
+    if (myIndicator != null) {
+      myIndicator.startBlocking();
+      return false;
+    }
+
+    if (System.currentTimeMillis() - myLastRefreshMs < timeoutMs) {
+      return false;
+    }
+
+    LoadTask task = new LoadTask(canBeCancelled, onLocalComplete, onSuccess, onError);
+    myIndicator = new ProgressWindow(canBeCancelled, false, null);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, myIndicator);
     return true;
   }

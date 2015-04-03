@@ -15,33 +15,27 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.internal.repository.sources.SdkSources;
-import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.SdkAddonsListConstants;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
-import com.android.tools.idea.sdk.LogWrapper;
-import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
 import com.intellij.util.proxy.CommonProxy;
 import org.jetbrains.android.AndroidPlugin;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,13 +139,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    Multimap<PkgType, RemotePkgInfo> remotePackages = ProgressManager.getInstance()
-      .runProcessWithProgressSynchronously(new ThrowableComputable<Multimap<PkgType, RemotePkgInfo>, RuntimeException>() {
-        @Override
-        public Multimap<PkgType, RemotePkgInfo> compute() throws RuntimeException {
-          return fetchPackages();
-        }
-      }, "Fetching Android SDK component information", false, null);
+    Multimap<PkgType, RemotePkgInfo> remotePackages = fetchPackages();
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -170,13 +158,9 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
         throw new IllegalArgumentException(connectionState.name());
     }
 
-    ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-    if (progressIndicator != null) {
-      progressIndicator.setIndeterminate(true);
-    }
-    RemoteSdk remoteSdk = new RemoteSdk(new SettingsController(new LogWrapper(Logger.getInstance(getClass()))));
-    SdkSources sdkSources = remoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, new NullLogger());
-    return remoteSdk.fetch(sdkSources, new NullLogger());
+    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    state.loadSynchronously(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null);
+    return state.getRemotePkgInfos();
   }
 
   @Override
