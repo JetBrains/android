@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.google.common.collect.Lists;
@@ -142,6 +143,18 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public File getLintJar() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public File getExternalAnnotations() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public File getPublicResources() {
     throw new UnsupportedOperationException();
   }
 
