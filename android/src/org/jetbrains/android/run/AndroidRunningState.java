@@ -1502,9 +1502,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         myTargetDevices = new IDevice[]{device};
       }
 
-      // devices (esp. emulators) may be reported as online, but may not have services running yet
-      // check to see if the acore process is alive before continuing
-      if (device.getClient("android.process.acore") == null) {
+      // Devices (esp. emulators) may be reported as online, but may not have services running yet. Attempting to
+      // install at this time would result in an error like "Could not access the Package Manager".
+      // We use the following heuristic to check that the system is in a reasonable state to install apps.
+      if (device.getClients().length < 5 &&
+          device.getClient("android.process.acore") == null &&
+          device.getClient("com.google.android.wearable.app") == null) {
         message(String.format("Device %1$s is online, waiting for processes to start up..", device.getName()), STDOUT);
         return;
       }
