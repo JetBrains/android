@@ -82,5 +82,6 @@
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" name="spantable" level="project" />
     <orderEntry type="module" module-name="rpclib" />
+    <orderEntry type="module" module-name="chartlib" />
   </component>
 </module>
