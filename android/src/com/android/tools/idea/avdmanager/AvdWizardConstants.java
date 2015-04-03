@@ -27,9 +27,9 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.Nullable;
@@ -152,15 +152,16 @@ public class AvdWizardConstants {
   public static final class SystemImageDescription {
     private IAndroidTarget target;
     private ISystemImage systemImage;
-    private com.android.sdklib.internal.repository.packages.Package remotePackage;
+    private IPkgDesc remotePackage;
 
     public SystemImageDescription(IAndroidTarget target, ISystemImage systemImage) {
       this.target = target;
       this.systemImage = systemImage;
     }
 
-    public SystemImageDescription(com.android.sdklib.internal.repository.packages.Package remotePackage) {
+    public SystemImageDescription(IPkgDesc remotePackage, IAndroidTarget target) {
       this.remotePackage = remotePackage;
+      this.target = target;
     }
 
     @Override
@@ -183,11 +184,11 @@ public class AvdWizardConstants {
       if (target != null) {
         return target.getVersion();
       } else {
-        return remotePackage.getPkgDesc().getAndroidVersion();
+        return remotePackage.getAndroidVersion();
       }
     }
 
-    public com.android.sdklib.internal.repository.packages.Package getRemotePackage() {
+    public IPkgDesc getRemotePackage() {
       return remotePackage;
     }
 
@@ -199,9 +200,9 @@ public class AvdWizardConstants {
     public String getAbiType() {
       if (systemImage != null) {
         return systemImage.getAbiType();
-      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE
-              || remotePackage.getPkgDesc().getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
-        return remotePackage.getPkgDesc().getPath();
+      } else if (remotePackage.getType() == PkgType.PKG_SYS_IMAGE
+              || remotePackage.getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
+        return remotePackage.getPath();
       } else {
         return "";
       }
@@ -212,14 +213,17 @@ public class AvdWizardConstants {
       if (systemImage != null) {
         return systemImage.getTag();
       }
-      return remotePackage.getPkgDesc().getTag();
+      return remotePackage.getTag();
     }
 
     public String getName() {
       if (target != null) {
         return target.getFullName();
       }
-      return remotePackage.getDescription();
+      if (remotePackage != null) {
+        return String.format("%s not installed", remotePackage.getAndroidVersion());
+      }
+      return "Unknown platform";
     }
 
     public String getVendor() {
@@ -227,7 +231,7 @@ public class AvdWizardConstants {
         return target.getVendor();
       }
       if (remotePackage != null) {
-        IdDisplay vendor = remotePackage.getPkgDesc().getVendor();
+        IdDisplay vendor = remotePackage.getVendor();
         if (vendor != null) {
           return vendor.getDisplay();
         }
