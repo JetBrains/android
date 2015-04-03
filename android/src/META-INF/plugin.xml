@@ -169,7 +169,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <projectConfigurable groupId="build" id="gradle.compiler" parentId="project.propCompiler"
+    <projectConfigurable id="gradle.compiler" parentId="project.propCompiler"
                          provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
