@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
@@ -48,15 +49,15 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  */
 public class IdeaAndroidProject implements Serializable {
   private static final long serialVersionUID = 1L;
+  private static final Logger LOG = Logger.getInstance("#" + IdeaAndroidProject.class.getName());
 
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myDelegate;
 
+  @NotNull private final CountDownLatch myProxyDelegateLatch = new CountDownLatch(1);
   @Nullable private AndroidProject myProxyDelegate;
-
-  @NotNull private final Object myProxyDelegateLock = new Object();
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -99,12 +100,8 @@ public class IdeaAndroidProject implements Serializable {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        AndroidProject proxy = reproxy(AndroidProject.class, myDelegate);
-        synchronized (myProxyDelegateLock) {
-          if (myProxyDelegate == null) {
-            myProxyDelegate = proxy;
-          }
-        }
+        myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
+        myProxyDelegateLatch.countDown();
       }
     });
 
@@ -579,17 +576,18 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
+    try {
+      // If required, wait for the proxy operation to complete.
+      myProxyDelegateLatch.await();
+    }
+    catch (InterruptedException e) {
+      LOG.error(e);
+      Thread.currentThread().interrupt();
+    }
+
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-
-    synchronized (myProxyDelegateLock) {
-      if (myProxyDelegate == null) {
-        // Compute the proxy object in case the proxy operation scheduled in the pooled thread is not yet completed.
-        myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
-      }
-    }
-
     out.writeObject(myProxyDelegate);
     out.writeObject(mySelectedVariantName);
     out.writeObject(mySelectedTestArtifactName);
