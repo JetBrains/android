@@ -397,6 +397,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   @Override
   protected void resetEditorFrom(T configuration) {
+    // Set configurations before resetting the module selector to avoid premature calls to setFacet.
+    myCloudMatrixProjectIdLabel.setConfiguration(configuration);
+    myCloudMatrixConfigurationCombo.setConfiguration(configuration);
+    myCloudDeviceProjectIdLabel.setConfiguration(configuration);
+    myCloudDeviceConfigurationCombo.setConfiguration(configuration);
+
     myModuleSelector.reset(configuration);
 
     updateGoogleCloudVisible(configuration);
