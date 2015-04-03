@@ -106,11 +106,7 @@ public class Platform extends InstallableComponent {
       return !myIsDefaultPlatform;
     }
     for (LocalPkgInfo info : infos) {
-      com.android.sdklib.internal.repository.packages.Package packageInfo = info.getPackage();
-      if (packageInfo == null) {
-        continue;
-      }
-      IPkgDesc desc = packageInfo.getPkgDesc();
+      IPkgDesc desc = info.getDesc();
       // No unchecking if the platform is already installed. We can update but not remove existing platforms
       AndroidVersion androidVersion = desc.getAndroidVersion();
       int apiLevel = androidVersion == null ? 0 : androidVersion.getApiLevel();
