@@ -95,8 +95,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private static final String DOWNLOAD_LINK_CARD = "link";
   private static final String DOWNLOAD_PROGRESS_CARD = "progress";
 
-  private final List<Runnable> myRunOnEnter = Lists.newArrayList();
-
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms require separate SDKs", disposable);
     myDisposable = disposable;
@@ -230,14 +228,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         layout.show(downloadCardPanel, DOWNLOAD_PROGRESS_CARD);
         c.setColumn(1);
         myFormFactorPanel.add(downloadCardPanel, c);
-        myRunOnEnter.add(new Runnable() {
-          @Override
-          public void run() {
-            // Unfortunately we can't run at this time, since we don't yet know the modality state the callbacks need to run under.
-            // Thus we postpone until this step is actually shown.
-            findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
-          }
-        });
+        findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
       }
 
       if (formFactor.equals(MOBILE)) {
@@ -288,9 +279,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       }
     };
 
-    if (!state.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete, onError)) {
-      onComplete.run();
-    }
+    state.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete, onError, false);
   }
 
   private void showDownloadLink(final HyperlinkLabel link, final RemotePkgInfo remote, final JPanel cardPanel) {
@@ -319,10 +308,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
       FormFactorApiComboBox.loadInstalledVersions();
     }
-    for (Runnable r : myRunOnEnter) {
-      r.run();
-    }
-    myRunOnEnter.clear();
   }
 
   @Override
