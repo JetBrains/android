@@ -22,6 +22,7 @@ import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -54,6 +55,8 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private AndroidProject myDelegate;
 
   @Nullable private AndroidProject myProxyDelegate;
+
+  @NotNull private final Object myProxyDelegateLock = new Object();
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -91,8 +94,19 @@ public class IdeaAndroidProject implements Serializable {
     myRootDirPath = rootDirPath;
     myDelegate = delegate;
 
-    // Compute the proxy object to avoid reproxying the model during every serialization operation
-    myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
+    // Compute the proxy object to avoid reproxying the model during every serialization operation and also schedule it to run
+    // asynchronously to avoid blocking the project sync operation for reproxying to complete.
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        AndroidProject proxy = reproxy(AndroidProject.class, myDelegate);
+        synchronized (myProxyDelegateLock) {
+          if (myProxyDelegate == null) {
+            myProxyDelegate = proxy;
+          }
+        }
+      }
+    });
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
@@ -568,6 +582,14 @@ public class IdeaAndroidProject implements Serializable {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
+
+    synchronized (myProxyDelegateLock) {
+      if (myProxyDelegate == null) {
+        // Compute the proxy object in case the proxy operation scheduled in the pooled thread is not yet completed.
+        myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
+      }
+    }
+
     out.writeObject(myProxyDelegate);
     out.writeObject(mySelectedVariantName);
     out.writeObject(mySelectedTestArtifactName);
