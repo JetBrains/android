@@ -71,6 +71,11 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @Override
+  public int getApiVersion() {
+    return 3;
+  }
+
+  @Override
   @NotNull
   public String getName() {
     return myName;
