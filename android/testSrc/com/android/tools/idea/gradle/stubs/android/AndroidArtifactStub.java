@@ -129,6 +129,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
     return new File(myFileStructure.getRootDir(), path);
   }
 
+  @NonNull
+  @Override
+  public File getJavaResourcesFolder() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   @NotNull
   public DependenciesStub getDependencies() {
