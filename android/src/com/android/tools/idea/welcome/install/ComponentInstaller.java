@@ -95,8 +95,11 @@ public final class ComponentInstaller {
    * Returns a list of package install IDs for packages that are missing or outdated.
    *
    * @param manager SDK manager instance or <code>null</code> if this is a new install.
+   * @param defaultUpdateAvailable If true, and if remote package information is not available, assume each package may have an update and
+        *                          try to reinstall. If false and remote package information not available, assume no updates are available.
    */
-  public ArrayList<String> getPackagesToInstall(@Nullable SdkManager manager, @NotNull Iterable<? extends InstallableComponent> components) {
+  public ArrayList<String> getPackagesToInstall(@Nullable SdkManager manager, @NotNull Iterable<? extends InstallableComponent> components,
+                                                boolean defaultUpdateAvailable) {
     Set<String> toInstall = getRequiredPackages(components);
     if (manager == null) {
       return Lists.newArrayList(toInstall);
@@ -105,7 +108,9 @@ public final class ComponentInstaller {
       List<LocalPkgInfo> installed = getInstalledPackages(manager, toInstall);
       if (!installed.isEmpty()) {
         toInstall.removeAll(getPackageIds(installed));
-        toInstall.addAll(getPackageIds(getOldPackages(installed)));
+        if (myRemotePackages != null || defaultUpdateAvailable) {
+          toInstall.addAll(getPackageIds(getOldPackages(installed)));
+        }
       }
       return Lists.newArrayList(toInstall);
     }
@@ -120,7 +125,7 @@ public final class ComponentInstaller {
       SdkManager sdkManager = SdkManager.createManager(sdkPath, new NullLogger());
       if (sdkManager != null) {
         Set<String> packagesToInstall = ImmutableSet
-          .copyOf(new ComponentInstaller(myRemotePackages).getPackagesToInstall(sdkManager, components));
+          .copyOf(new ComponentInstaller(myRemotePackages).getPackagesToInstall(sdkManager, components, true));
         Set<RemotePkgInfo> remotePackages = Sets.newHashSetWithExpectedSize(packagesToInstall.size());
         for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
           if (packagesToInstall.contains(remotePkgInfo.getDesc().getInstallId())) {

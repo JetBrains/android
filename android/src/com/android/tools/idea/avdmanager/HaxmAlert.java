@@ -17,25 +17,17 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.internal.repository.sources.SdkSources;
-import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
-import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.*;
-import com.android.utils.NullLogger;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
@@ -388,13 +380,10 @@ public class HaxmAlert extends JPanel {
 
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);
       installContext.print("Looking for SDK updates...\n", ConsoleViewContentType.NORMAL_OUTPUT);
-      RemoteSdk remoteSdk = new RemoteSdk(new SettingsController(new LogWrapper(Logger.getInstance(getClass()))));
-      SdkSources sdkSources = remoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, new NullLogger());
-      Multimap<PkgType, RemotePkgInfo> remotePackages = remoteSdk.fetch(sdkSources, new NullLogger());
 
       // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
       InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(remotePackages), 0.5);
+        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null), 0.5);
 
       try {
         install.then(InstallOperation.wrap(installContext, new Function<File, File>() {
