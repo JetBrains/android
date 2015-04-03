@@ -210,9 +210,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myReuseSelectionCheckbox.setVisible(showReuseDevicesCheckbox);
     myReuseSelectionCheckbox.setSelected(selectReuseDevicesCheckbox);
 
-    // Set facet after all other initializations.
+    // Set facet and restore previous choices after all other initializations.
     if (isGoogleCloudRadioButtonShown) {
-      myCloudProjectIdLabel.setFacet(facet);
+      myCloudProjectIdLabel.restoreChosenProjectId();
       myCloudConfigurationCombo.setFacet(facet);
     }
 
@@ -227,7 +227,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     private final AndroidFacet myFacet;
     private final String myEmulatorOptions;
 
-    public LaunchDeviceActionListener(AndroidFacet facet, String emulatorOptions) {
+    public LaunchDeviceActionListener(@NotNull AndroidFacet facet, String emulatorOptions) {
       myFacet = facet;
       myEmulatorOptions = emulatorOptions;
     }

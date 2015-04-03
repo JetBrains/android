@@ -24,6 +24,7 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.run.AndroidRunConfigurationBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -43,16 +44,21 @@ import java.util.Map;
  */
 public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
   private final Kind myConfigurationKind;
+  private AndroidRunConfigurationBase myCurrentAndroidConfiguration;
   private Module myCurrentModule;
   private AndroidFacet myCurrentFacet;
   private List<? extends CloudConfiguration> myTestingConfigurations;
   private ActionListener myActionListener;
   private final CloudConfigurationProvider myConfigurationProvider;
 
-  /** A cache of configurations selected by <kind, module>, so that if the module selection changes back and forth, we retain
-   * the appropriate selected test configuration.
+  // Used to keep track of user choices when run config and/or module are not available.
+  private static Map<Kind, CloudConfiguration> myLastChosenCloudConfigurationPerKind = Maps.newHashMapWithExpectedSize(5);
+
+  /** A cache of matrix configurations selected by <kind, module> per android run configuration, so that if
+   * the android configuration and/or module selections change back and forth, we retain the appropriate selected matrix configuration.
    */
-  private static Map<Pair<Kind, Module>, CloudConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  private static Map<AndroidRunConfigurationBase, Map<Pair<Kind, Module>, CloudConfiguration>>
+    myMatrixConfigurationByAndroidConfigurationAndModuleCache = Maps.newHashMapWithExpectedSize(5);
 
   public CloudConfigurationComboBox(@NotNull Kind configurationKind) {
     myConfigurationKind = configurationKind;
@@ -65,7 +71,17 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
       public void actionPerformed(ActionEvent e) {
         Object item = getComboBox().getSelectedItem();
         if (item instanceof CloudConfiguration) {
-          myConfigurationByModuleCache.put(Pair.create(myConfigurationKind, myCurrentModule), (CloudConfiguration)item);
+          CloudConfiguration cloudConfiguration = (CloudConfiguration)item;
+          myLastChosenCloudConfigurationPerKind.put(myConfigurationKind, cloudConfiguration);
+          if (myCurrentAndroidConfiguration != null && myCurrentModule != null) {
+            Map<Pair<Kind, Module>, CloudConfiguration> matrixConfigurationByModuleCache =
+              myMatrixConfigurationByAndroidConfigurationAndModuleCache.get(myCurrentAndroidConfiguration);
+            if (matrixConfigurationByModuleCache == null) {
+              matrixConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
+              myMatrixConfigurationByAndroidConfigurationAndModuleCache.put(myCurrentAndroidConfiguration, matrixConfigurationByModuleCache);
+            }
+            matrixConfigurationByModuleCache.put(Pair.create(myConfigurationKind, myCurrentModule), cloudConfiguration);
+          }
         }
       }
     });
@@ -107,6 +123,10 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
     updateContent();
   }
 
+  public void setConfiguration(@NotNull AndroidRunConfigurationBase configuration) {
+    myCurrentAndroidConfiguration = configuration;
+  }
+
   @Override
   public void dispose() {
     CloudConfigurationCoordinator.getInstance(myConfigurationKind).removeComboBox(this);
@@ -130,9 +150,21 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
     }
 
     getComboBox().setModel(new ListComboBoxModel(myTestingConfigurations));
-    CloudConfiguration selectedConfig = myConfigurationByModuleCache.get(Pair.create(myConfigurationKind, myCurrentModule));
-    if (selectedConfig != null && myTestingConfigurations.contains(selectedConfig)) {
-      getComboBox().setSelectedItem(selectedConfig);
+
+    if (myCurrentAndroidConfiguration == null) {
+      CloudConfiguration cloudConfiguration = myLastChosenCloudConfigurationPerKind.get(myConfigurationKind);
+      if (cloudConfiguration != null && myTestingConfigurations.contains(cloudConfiguration)) {
+        getComboBox().setSelectedItem(cloudConfiguration);
+      }
+    } else {
+      Map<Pair<Kind, Module>, CloudConfiguration> matrixConfigurationByModuleCache =
+        myMatrixConfigurationByAndroidConfigurationAndModuleCache.get(myCurrentAndroidConfiguration);
+      if (matrixConfigurationByModuleCache != null) {
+        CloudConfiguration selectedConfig = matrixConfigurationByModuleCache.get(Pair.create(myConfigurationKind, myCurrentModule));
+        if (selectedConfig != null && myTestingConfigurations.contains(selectedConfig)) {
+          getComboBox().setSelectedItem(selectedConfig);
+        }
+      }
     }
   }
 
