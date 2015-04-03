@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.sdklib.SdkManager;
-import com.android.tools.idea.avdmanager.LogWrapper;
+import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.wizard.ImportUIUtil;
 import com.android.utils.ILogger;
 import com.intellij.execution.ui.ConsoleViewContentType;

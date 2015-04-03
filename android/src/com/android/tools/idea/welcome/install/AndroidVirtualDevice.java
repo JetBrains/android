@@ -33,7 +33,7 @@ import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.LogWrapper;
+import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.ScopedStateStore;

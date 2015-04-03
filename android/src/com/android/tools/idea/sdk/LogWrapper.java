@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.sdk;
 
 import com.android.annotations.NonNull;
 import com.android.utils.ILogger;
