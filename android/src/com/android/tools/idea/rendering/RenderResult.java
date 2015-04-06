@@ -104,6 +104,11 @@ public class RenderResult {
     return myImage;
   }
 
+  @Nullable
+  public BufferedImage getRenderedImage() {
+    return myImage != null ? myImage.getOriginalImage() : null;
+  }
+
   @NotNull
   public PsiFile getFile() {
     return myFile;
