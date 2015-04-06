@@ -20,7 +20,6 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
@@ -32,64 +31,67 @@ import java.util.Set;
  */
 public abstract class Update {
 
-    public static UpdateResult computeUpdates(@NonNull LocalPkgInfo[] localPkgs,
-                                        @NonNull Multimap<PkgType, RemotePkgInfo> remotePkgs) {
+  public static UpdateResult computeUpdates(@NonNull LocalPkgInfo[] localPkgs,
+                                            @NonNull Multimap<PkgType, RemotePkgInfo> remotePkgs) {
+    UpdatablePkgInfo[] updatablePkgInfos = new UpdatablePkgInfo[localPkgs.length];
+    for (int i = 0; i < localPkgs.length; i++) {
+      updatablePkgInfos[i] = new UpdatablePkgInfo(localPkgs[i], null);
+    }
+    UpdateResult result = new UpdateResult();
+    Set<RemotePkgInfo> updates = Sets.newTreeSet();
 
-      UpdateResult result = new UpdateResult();
-        Set<RemotePkgInfo> updates = Sets.newTreeSet();
-
-        // Find updates to locally installed packages
-        for (LocalPkgInfo local : localPkgs) {
-            RemotePkgInfo update = findUpdate(local, remotePkgs, result);
-            if (update != null) {
-                updates.add(update);
-            }
-        }
-
-        // Find new packages not yet installed
-        nextRemote: for (RemotePkgInfo remote : remotePkgs.values()) {
-            if (updates.contains(remote)) {
-                // if package is already a known update, it's not new.
-                continue nextRemote;
-            }
-            IPkgDesc remoteDesc = remote.getDesc();
-            for (LocalPkgInfo local : localPkgs) {
-                IPkgDesc localDesc = local.getDesc();
-                if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc)) {
-                    // if package is same as an installed or is an update for an installed
-                    // one, then it's not new.
-                    continue nextRemote;
-                }
-            }
-
-            result.addNewPkgs(remote);
-        }
-
-        return result;
+    // Find updates to locally installed packages
+    for (UpdatablePkgInfo info : updatablePkgInfos) {
+      RemotePkgInfo update = findUpdate(info, remotePkgs, result);
+      if (update != null) {
+        info.setUpdate(update);
+        updates.add(update);
+      }
     }
 
-    private static RemotePkgInfo findUpdate(@NonNull LocalPkgInfo local,
-                                            @NonNull Multimap<PkgType, RemotePkgInfo> remotePkgs,
-                                            @NonNull UpdateResult result) {
-        RemotePkgInfo currUpdatePkg = null;
-        IPkgDesc currUpdateDesc = null;
-        IPkgDesc localDesc = local.getDesc();
-
-        for (RemotePkgInfo remote: remotePkgs.get(localDesc.getType())) {
-            IPkgDesc remoteDesc = remote.getDesc();
-            if ((currUpdateDesc == null && remoteDesc.isUpdateFor(localDesc)) ||
-                    (currUpdateDesc != null && remoteDesc.isUpdateFor(currUpdateDesc))) {
-                currUpdatePkg = remote;
-                currUpdateDesc = remoteDesc;
-            }
+    // Find new packages not yet installed
+    nextRemote: for (RemotePkgInfo remote : remotePkgs.values()) {
+      if (updates.contains(remote)) {
+        // if package is already a known update, it's not new.
+        continue nextRemote;
+      }
+      IPkgDesc remoteDesc = remote.getDesc();
+      for (UpdatablePkgInfo info : updatablePkgInfos) {
+        IPkgDesc localDesc = info.getLocalInfo().getDesc();
+        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc)) {
+          // if package is same as an installed or is an update for an installed
+          // one, then it's not new.
+          continue nextRemote;
         }
+      }
 
-        local.setUpdate(currUpdatePkg);
-        if (currUpdatePkg != null) {
-            result.addUpdatedPkgs(local);
-        }
-
-        return currUpdatePkg;
+      result.addNewPkgs(remote);
     }
+
+    return result;
+  }
+
+  private static RemotePkgInfo findUpdate(@NonNull UpdatablePkgInfo info,
+                                          @NonNull Multimap<PkgType, RemotePkgInfo> remotePkgs,
+                                          @NonNull UpdateResult result) {
+    RemotePkgInfo currUpdatePkg = null;
+    IPkgDesc currUpdateDesc = null;
+    IPkgDesc localDesc = info.getLocalInfo().getDesc();
+
+    for (RemotePkgInfo remote: remotePkgs.get(localDesc.getType())) {
+      IPkgDesc remoteDesc = remote.getDesc();
+      if ((currUpdateDesc == null && remoteDesc.isUpdateFor(localDesc)) ||
+          (currUpdateDesc != null && remoteDesc.isUpdateFor(currUpdateDesc))) {
+        currUpdatePkg = remote;
+        currUpdateDesc = remoteDesc;
+      }
+    }
+
+    if (currUpdatePkg != null) {
+      result.addUpdatedPkgs(info);
+    }
+
+    return currUpdatePkg;
+  }
 
 }

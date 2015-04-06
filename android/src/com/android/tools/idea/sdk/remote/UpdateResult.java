@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.remote;
 
 import com.android.annotations.NonNull;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.google.common.collect.Sets;
 
 import java.util.Set;
@@ -28,7 +27,7 @@ import java.util.Set;
  * Results from {@link Update#computeUpdates(LocalPkgInfo[], com.google.common.collect.Multimap)}.
  */
 public final class UpdateResult {
-    private final Set<LocalPkgInfo> mUpdatedPkgs = Sets.newTreeSet();
+    private final Set<UpdatablePkgInfo> mUpdatedPkgs = Sets.newTreeSet();
     private final Set<RemotePkgInfo> mNewPkgs = Sets.newTreeSet();
     private final long mTimestampMs;
 
@@ -50,7 +49,7 @@ public final class UpdateResult {
      * @return A non-null, possibly empty list of update candidates.
      */
     @NonNull
-    public Set<LocalPkgInfo> getUpdatedPkgs() {
+    public Set<UpdatablePkgInfo> getUpdatedPkgs() {
         return mUpdatedPkgs;
     }
 
@@ -70,7 +69,7 @@ public final class UpdateResult {
      *
      * @param pkgInfo The {@link LocalPkgInfo} which has an available update.
      */
-    void addUpdatedPkgs(@NonNull LocalPkgInfo pkgInfo) {
+    void addUpdatedPkgs(@NonNull UpdatablePkgInfo pkgInfo) {
         mUpdatedPkgs.add(pkgInfo);
     }
 
