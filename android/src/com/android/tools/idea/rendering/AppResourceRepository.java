@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -285,11 +289,14 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   void updateRoots(List<LocalResourceRepository> resources, List<LocalResourceRepository> libraries) {
+    mResourceVisibility = null;
+
     if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do
       return;
     }
 
+    mResourceVisibility = null;
     myLibraries = libraries;
     setChildren(resources);
   }
@@ -321,6 +328,57 @@ public class AppResourceRepository extends MultiResourceRepository {
     return null;
   }
 
+  private ResourceVisibilityLookup mResourceVisibility;
+  private ResourceVisibilityLookup.Provider mResourceVisibilityProvider;
+
+  @Nullable
+  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
+    if (mResourceVisibilityProvider == null) {
+      if (!myFacet.isGradleProject() || myFacet.getIdeaAndroidProject() == null) {
+        return null;
+      }
+      mResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
+    }
+
+    return mResourceVisibilityProvider;
+  }
+
+  @NonNull
+  public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
+    IdeaAndroidProject project = facet.getIdeaAndroidProject();
+    if (project != null) {
+      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
+      if (provider != null) {
+        AndroidProject delegate = project.getDelegate();
+        Variant variant = project.getSelectedVariant();
+        return provider.get(delegate, variant);
+      }
+    }
+
+    return ResourceVisibilityLookup.NONE;
+  }
+
+  /**
+   * Returns true if the given resource is private
+   *
+   * @param type the type of the resource
+   * @param name the name of the resource
+   * @return true if the given resource is private
+   */
+  public boolean isPrivate(@NonNull ResourceType type, @NonNull String name) {
+    if (mResourceVisibility == null) {
+      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
+      if (provider == null) {
+        return false;
+      }
+      assert myFacet.getIdeaAndroidProject() != null; // enforced in getResourceVisibility()
+      mResourceVisibility = provider.get(myFacet.getIdeaAndroidProject().getDelegate(),
+                                         myFacet.getIdeaAndroidProject().getSelectedVariant());
+    }
+
+    return mResourceVisibility.isPrivate(type, name);
+  }
+
   // For LayoutlibCallback
 
   // Project resource ints are defined as 0x7FXX#### where XX is the resource type (layout, drawable,
@@ -328,7 +386,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   // which should be fine.
   private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
 
-  /** Map of (name, id) for resources of type {@link com.android.resources.ResourceType#ID} coming from R.java */
+  /** Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java */
   private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
   /** Map of (id, [name, resType]) for all resources coming from R.java */
   private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
