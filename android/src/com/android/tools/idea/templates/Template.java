@@ -83,6 +83,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -296,7 +297,7 @@ public class Template {
         }
       }
     }
-    if (myNeedsGradleSync && !myProject.isDefault()) {
+    if (myNeedsGradleSync && !myProject.isDefault() && isBuildWithGradle(project)) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
