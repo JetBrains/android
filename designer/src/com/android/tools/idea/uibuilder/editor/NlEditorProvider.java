@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2012 JetBrains s.r.o.
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.android.designer;
+package com.android.tools.idea.uibuilder.editor;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -30,63 +32,59 @@ import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
-import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.VALUE_FALSE;
-
-/**
- * @author Alexander Lobas
- */
-public final class AndroidDesignerEditorProvider implements FileEditorProvider, DumbAware {
+public class NlEditorProvider implements FileEditorProvider, DumbAware {
   /** FileEditorProvider ID for the layout editor */
-  public static final String ANDROID_DESIGNER_ID = "android-designer";
+  public static final String DESIGNER_ID = "android-designer2";
 
-  public static boolean acceptLayout(final @NotNull Project project, final @NotNull VirtualFile file) {
+  public static boolean acceptLayout(@NonNull Project project, @NonNull VirtualFile file) {
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
     return psiFile instanceof XmlFile &&
-           AndroidFacet.getInstance(psiFile) != null &&
-           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile) &&
-           // Only show if not deliberately intended for Nele for now
-           (AndroidPsiUtils.getRootTagAttributeSafely((XmlFile)psiFile, "nele", TOOLS_URI) == null ||
-           VALUE_FALSE.equals(AndroidPsiUtils.getRootTagAttributeSafely((XmlFile)psiFile, "nele", TOOLS_URI)));
+           getFacet(project, file) != null &&
+           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
+  }
+
+  @Nullable
+  private static AndroidFacet getFacet(@NonNull Project project, @NonNull VirtualFile file) {
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+    return psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
   }
 
   @Override
-  public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
+  public boolean accept(@NonNull Project project, @NonNull VirtualFile file) {
     return acceptLayout(project, file);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new AndroidDesignerEditor(project, file);
+  public FileEditor createEditor(@NonNull Project project, @NonNull VirtualFile file) {
+    AndroidFacet facet = getFacet(project, file);
+    assert facet != null; // checked by acceptLayout
+    return new NlEditor(facet, file);
   }
 
   @Override
-  public void disposeEditor(@NotNull FileEditor editor) {
+  public void disposeEditor(@NonNull FileEditor editor) {
     Disposer.dispose(editor);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
-    // TODO: Auto-generated method stub
+  public FileEditorState readState(@NonNull Element sourceElement, @NonNull Project project, @NonNull VirtualFile file) {
     return FileEditorState.INSTANCE;
   }
 
   @Override
-  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
-    // TODO: Auto-generated method stub
+  public void writeState(@NonNull FileEditorState state, @NonNull Project project, @NonNull Element targetElement) {
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String getEditorTypeId() {
-    return ANDROID_DESIGNER_ID;
+    return DESIGNER_ID;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public FileEditorPolicy getPolicy() {
     return AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()
