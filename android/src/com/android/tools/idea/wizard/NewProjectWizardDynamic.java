@@ -28,11 +28,9 @@ import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -122,6 +120,16 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
+  }
+
+  @Override
+  public void doFinishAction() {
+    super.doFinishAction();
+
+    // super.doFinishAction invokes performFinishActions in a writeCommandAction. Due to changes made to
+    // ApplicationEx.runProcessWithProgressSynchronously in Idea 14, Modal Tasks are not showing a modal dialog when executed with write
+    // access. As we need the modal dialog with progress while improting the project, invoking project importer outside writeCommandAction.
+
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
