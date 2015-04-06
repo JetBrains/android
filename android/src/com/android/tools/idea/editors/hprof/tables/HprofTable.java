@@ -27,6 +27,9 @@ import java.util.List;
 public abstract class HprofTable extends JBTable {
   public HprofTable(@NotNull TableModel model) {
     super(model);
+    setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    setRowHeight(19);
+    setUpdateSelectionOnSort(true);
     setAutoCreateRowSorter(true);
     setDefaultSort();
     prettifyTable();
@@ -55,7 +58,9 @@ public abstract class HprofTable extends JBTable {
   }
 
   public void setDefaultSort() {
-    getRowSorter().toggleSortOrder(0);
+    if (getColumnModel().getColumnCount() > 0) {
+      getRowSorter().toggleSortOrder(0);
+    }
   }
 
   public List<? extends RowSorter.SortKey> getSortOrder() {

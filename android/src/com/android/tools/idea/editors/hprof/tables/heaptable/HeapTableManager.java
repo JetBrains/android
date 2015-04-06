@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.editors.hprof.tables.heaptable;
 
+import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTable;
+import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTableModel;
+import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tabs.TabInfo;
@@ -29,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +59,7 @@ public class HeapTableManager {
       navigationPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
-    JBPanel contextInformationPanel = new JBPanel();
+    JBPanel contextInformationPanel = new JBPanel(new BorderLayout());
     contextInformationPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     contextInformationPanel.setBackground(JBColor.background());
     if (rightPanelContents != null) {
@@ -92,11 +96,27 @@ public class HeapTableManager {
       }
 
       HeapTableModel model = new HeapTableModel(HeapTableModel.createHeapTableColumns(), heap);
-      HeapTable table = new HeapTable(model);
-      myHeapTables.add(table);
+      final HeapTable heapTable = new HeapTable(model);
+      myHeapTables.add(heapTable);
 
-      JBSplitter splitter = createNavigationSplitter(table, new JBList());
-      myTabs.addTab(new TabInfo(splitter).setText(model.getHeapName()));
+      final InstancesTable instancesTable = new InstancesTable(new InstancesTableModel(mySnapshot));
+      final Heap closedHeap = heap;
+
+      heapTable.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent mouseEvent) {
+          super.mouseClicked(mouseEvent);
+          int row = heapTable.getSelectedRow();
+          if (row >= 0) {
+            int modelRow = heapTable.getRowSorter().convertRowIndexToModel(row);
+            ClassObj classObj = (ClassObj)heapTable.getModel().getValueAt(modelRow, 0);
+            instancesTable.setInstances(closedHeap, classObj.getInstances());
+          }
+        }
+      });
+
+      JBSplitter splitter = createNavigationSplitter(heapTable, instancesTable);
+      myTabs.addTab(new TabInfo(splitter).setText(model.getHeapName()).setSideComponent(null));
     }
   }
 }
