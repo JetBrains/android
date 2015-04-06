@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.hprof;
 
+import com.android.tools.perflib.heap.HprofParser;
+import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.io.MemoryMappedFileBuffer;
 import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -49,6 +52,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
   private void parseHprofFileInBackground(@NotNull final Project project, @NotNull final VirtualFile file) {
     final Task.Modal parseTask = new Task.Modal(project, "Parsing hprof file", false) {
       private String myErrorMessage;
+      private Snapshot mySnapshot;
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
@@ -59,6 +63,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
           // Currently HprofParser takes too much memory and cripples the IDE.]
           // new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
           // TODO: Use HprofParser
+          mySnapshot = new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
         }
         catch (Throwable throwable) {
           throwable.printStackTrace();
@@ -70,6 +75,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
 
       @Override
       public void onSuccess() {
+        myHprofViewPanel.setSnapshot(mySnapshot);
       }
 
       @Override
