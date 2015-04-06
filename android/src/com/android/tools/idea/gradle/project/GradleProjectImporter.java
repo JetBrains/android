@@ -45,9 +45,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectTypeService;
@@ -528,22 +525,15 @@ public class GradleProjectImporter {
         ExternalProjectInfo externalProjectData =
           ProjectDataManager.getInstance().getExternalProjectData(project, SYSTEM_ID, getProjectBasePath(project));
         if (externalProjectData != null) {
-          final DataNode<ProjectData> externalProjectStructure = externalProjectData.getExternalProjectStructure();
+          DataNode<ProjectData> externalProjectStructure = externalProjectData.getExternalProjectStructure();
           if (externalProjectStructure != null) {
             PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
             executor.setGenerateSourcesAfterSync(false);
             executor.setUsingCachedProjectData(true);
             executor.setLastSyncTimestamp(gradleProjectSyncData.getLastGradleSyncTimestamp());
 
-            final ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
-
-            String title = ExternalSystemBundle.message("progress.refresh.text", project.getName(), SYSTEM_ID);
-            new Task.Backgroundable(project, title, true, PerformInBackgroundOption.DEAF) {
-              @Override
-              public void run(@NotNull ProgressIndicator indicator) {
-                setUpTask.onSuccess(externalProjectStructure);
-              }
-            }.queue();
+            ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
+            setUpTask.onSuccess(externalProjectStructure);
             return;
           }
         }
