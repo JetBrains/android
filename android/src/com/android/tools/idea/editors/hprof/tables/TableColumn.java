@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.heaptable;
+package com.android.tools.idea.editors.hprof.tables;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class HeapTableColumn<T> {
+public abstract class TableColumn<MT, T> {
   @NotNull private String myColumnName;
   @NotNull private Class<T> myClass;
   private int myHeaderJustification;
   private int myColumnWidth;
   private boolean myEnabled;
 
-  public HeapTableColumn(@NotNull String columnName,
-                         @NotNull Class<T> classType,
-                         int headerJustification,
-                         int relativeWidth,
-                         boolean enabled) {
+  public TableColumn(@NotNull String columnName, @NotNull Class<T> classType, int headerJustification, int relativeWidth, boolean enabled) {
     myColumnName = columnName;
     myClass = classType;
     myHeaderJustification = headerJustification;
@@ -62,5 +58,5 @@ public abstract class HeapTableColumn<T> {
     return myColumnWidth;
   }
 
-  public abstract T getValue(@NotNull HeapTableModel model, int row);
+  public abstract T getValue(@NotNull MT modelType, int row);
 }
