@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.DependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.NotBuildableModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.ArtifactsByConfigurationModuleCustomizer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.RunResult;
@@ -47,7 +47,7 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
 
   private final List<ModuleCustomizer<IdeaJavaProject>> myCustomizers =
     ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer(),
-                     new NotBuildableModuleCustomizer());
+                     new ArtifactsByConfigurationModuleCustomizer());
 
   @Override
   @NotNull
