@@ -18,13 +18,13 @@ package com.android.tools.idea.sdk;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.Update;
-import com.android.sdklib.repository.local.UpdateResult;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemoteSdk;
+import com.android.tools.idea.sdk.remote.Update;
+import com.android.tools.idea.sdk.remote.UpdateResult;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -50,6 +50,10 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class SdkState {
+
+  /** Default expiration delay is 24 hours. */
+  public final static long DEFAULT_EXPIRATION_PERIOD_MS = 24 * 3600 * 1000;
+
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.sdk.SdkState");
 
   @GuardedBy(value = "sSdkStates")

@@ -17,11 +17,11 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
 import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
