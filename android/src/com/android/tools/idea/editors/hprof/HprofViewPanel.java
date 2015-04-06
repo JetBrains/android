@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.hprof;
 
+import com.android.tools.idea.editors.hprof.heaptable.HeapTableManager;
+import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -36,10 +38,14 @@ public class HprofViewPanel implements Disposable {
 
   private static final int DIVIDER_WIDTH = 4;
 
+  @NotNull private HeapTableManager myHeapTableManager;
+
   public HprofViewPanel(@NotNull final Project project) {
     myNavigationTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     myNavigationTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
     myNavigationTabs.setPaintBorder(0, 0, 0, 0);
+
+    myHeapTableManager = new HeapTableManager(myNavigationTabs);
 
     JBPanel treePanel = new JBPanel();
     treePanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
@@ -55,6 +61,10 @@ public class HprofViewPanel implements Disposable {
 
     myContainer = new JPanel(new BorderLayout());
     myContainer.add(mainSplitter);
+  }
+
+  public void setSnapshot(@NotNull Snapshot snapshot) {
+    myHeapTableManager.setSnapshot(snapshot);
   }
 
   @NotNull
