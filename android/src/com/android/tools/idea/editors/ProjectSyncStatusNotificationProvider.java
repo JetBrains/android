@@ -21,18 +21,12 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
-import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
-import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.MessageView;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +56,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (!Projects.isBuildWithGradle(myProject)) {
       return null;
     }
