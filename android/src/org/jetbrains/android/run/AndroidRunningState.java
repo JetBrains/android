@@ -1330,21 +1330,28 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           retry = true;
           break;
         case INSTALL_FAILED_VERSION_DOWNGRADE:
-          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.version.downgrade")) &&
-                  uninstallPackage(device, packageName);
+          String reason = AndroidBundle.message("deployment.failed.uninstall.prompt.text",
+                                                AndroidBundle.message("deployment.failed.reason.version.downgrade"));
+          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
           break;
         case INCONSISTENT_CERTIFICATES:
-          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.different.signature")) &&
-                  uninstallPackage(device, packageName);
+          reason = AndroidBundle.message("deployment.failed.uninstall.prompt.text",
+                                         AndroidBundle.message("deployment.failed.reason.different.signature"));
+          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
           break;
         case INSTALL_FAILED_DEXOPT:
-          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.dexopt")) &&
-                  uninstallPackage(device, packageName);
+          reason = AndroidBundle.message("deployment.failed.uninstall.prompt.text",
+                                         AndroidBundle.message("deployment.failed.reason.dexopt"));
+          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
           break;
         case NO_CERTIFICATE:
           message(AndroidBundle.message("deployment.failed.no.certificates.explanation"), STDERR);
           showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
           retry = false;
+          break;
+        case UNTYPED_ERROR:
+          reason = AndroidBundle.message("deployment.failed.uninstall.prompt.generic.text", result.failureMessage);
+          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
           break;
         default:
           retry = false;
@@ -1378,7 +1385,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       @Override
       public void run() {
         int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(),
-                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.text", reason),
+                                                 reason,
                                                  AndroidBundle.message("deployment.failed.title"),
                                                  Messages.getQuestionIcon());
         uninstall.set(result == Messages.OK);
