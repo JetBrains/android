@@ -35,10 +35,10 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 
-public class NotBuildableModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
+public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
   @Override
   public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject model) {
-    if (model != null && !model.isBuildable()) {
+    if (model != null) {
       Map<String, Set<File>> artifactsByConfiguration = model.getArtifactsByConfiguration();
       if (artifactsByConfiguration != null) {
         for (Map.Entry<String, Set<File>> entry : artifactsByConfiguration.entrySet()) {
