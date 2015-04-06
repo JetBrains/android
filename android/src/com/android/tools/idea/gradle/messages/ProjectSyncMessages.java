@@ -41,6 +41,7 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -245,6 +246,14 @@ public class ProjectSyncMessages {
     for (String dependent : setupErrors.getDependentsOnLibrariesWithoutBinaryPath()) {
       String msg = String.format("Module '%1$s' depends on libraries that do not have a 'binary' path.", dependent);
       add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
+    }
+
+    for (DependencySetupErrors.InvalidModuleDependency dependency : setupErrors.getInvalidModuleDependencies()) {
+      String msg = String.format("Ignoring dependency of module '%1$s' on module '%2$s'. %3$s",
+                                 dependency.dependent, dependency.dependency.getName(), dependency.detail);
+      VirtualFile buildFile = getBuildFile(dependency.dependency);
+      assert buildFile != null;
+      add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.WARNING, new OpenFileDescriptor(dependency.dependency.getProject(), buildFile, 0), msg));
     }
 
     reportModulesNotFoundIssues(FAILED_TO_SET_UP_DEPENDENCIES, setupErrors.getMissingModulesWithBackupLibraries());
