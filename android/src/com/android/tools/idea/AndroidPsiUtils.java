@@ -338,4 +338,25 @@ public class AndroidPsiUtils {
       });
     }
   }
+
+  /**
+   * Returns the value of the given tag's attribute and acquires a read lock if necessary
+   *
+   * @param tag the tag to look up the attribute for
+   * @return the attribute value, or null
+   */
+  @Nullable
+  public static String getAttributeSafely(@NotNull final XmlTag tag, @Nullable final String namespace, @NotNull final String name) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return tag.getAttributeValue(name, namespace);
+    } else {
+      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          return tag.getAttributeValue(name, namespace);
+        }
+      });
+    }
+  }
 }
