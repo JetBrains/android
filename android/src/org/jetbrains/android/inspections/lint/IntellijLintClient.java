@@ -3,11 +3,13 @@ package org.jetbrains.android.inspections.lint;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.client.api.*;
@@ -696,6 +698,22 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
       return new LocationHandle(source.getFile(), tag);
     }
     return super.createResourceItemHandle(item);
+  }
+
+  @NonNull
+  @Override
+  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
+    Module module = getModule();
+    if (module != null) {
+      AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+      if (appResources != null) {
+        ResourceVisibilityLookup.Provider provider = appResources.getResourceVisibilityProvider();
+        if (provider != null) {
+          return provider;
+        }
+      }
+    }
+    return super.getResourceVisibilityProvider();
   }
 
   private static class LocationHandle implements Location.Handle, Computable<Location> {

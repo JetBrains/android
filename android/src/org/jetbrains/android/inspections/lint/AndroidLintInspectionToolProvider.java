@@ -1597,6 +1597,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.set.java.script.enabled"), SetJavaScriptEnabledDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintShortAlarmInspection extends AndroidLintInspectionBase {
+    public AndroidLintShortAlarmInspection() {
+      super(AndroidBundle.message("android.lint.inspections.short.alarm"), AlarmDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintShowToastInspection extends AndroidLintInspectionBase {
     public AndroidLintShowToastInspection() {
       super(AndroidBundle.message("android.lint.inspections.show.toast"), ToastDetector.ISSUE);
