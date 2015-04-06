@@ -18,7 +18,7 @@ package org.jetbrains.android.sdk;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.internal.repository.MockPlatformTarget;
+import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
