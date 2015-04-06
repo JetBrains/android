@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 import java.util.ArrayList;
 
 public class HeapTableModel extends AbstractTableModel {
@@ -80,6 +81,14 @@ public class HeapTableModel extends AbstractTableModel {
   @NotNull
   public String getHeapName() {
     return myHeap.getName();
+  }
+
+  public void enableAllColumns() {
+    for (HeapTableColumn column : myColumns) {
+      column.setEnabled(true);
+    }
+    refreshUiColumnToEnabledMap();
+    fireTableStructureChanged();
   }
 
   @NotNull
