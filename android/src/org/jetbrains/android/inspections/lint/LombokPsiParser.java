@@ -33,13 +33,17 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.TypeConversionUtil;
+import com.intellij.util.ArrayUtil;
 import lombok.ast.Node;
 import lombok.ast.Position;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
@@ -955,6 +959,11 @@ public class LombokPsiParser extends JavaParser {
     }
   }
 
+  @NotNull
+  public static ResolvedAnnotation createResolvedAnnotation(@NonNull PsiAnnotation annotation) {
+    return new ResolvedPsiAnnotation(annotation);
+  }
+
   private static class ResolvedPsiAnnotation extends ResolvedAnnotation {
     private PsiAnnotation myAnnotation;
 
@@ -1041,16 +1050,63 @@ public class LombokPsiParser extends JavaParser {
       } else if (v instanceof PsiArrayInitializerMemberValue) {
         PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
         PsiAnnotationMemberValue[] values = mv.getInitializers();
-        Object[] result = new Object[values.length];
-        int index = 0;
+        List<Object> list = Lists.newArrayListWithExpectedSize(values.length);
         for (PsiAnnotationMemberValue mmv : values) {
           if (mmv instanceof PsiLiteral) {
-            PsiLiteral literal = (PsiLiteral) mmv;
-            result[index] = literal.getValue();
+            PsiLiteral literal = (PsiLiteral)mmv;
+            list.add(literal.getValue());
+          } else if (mmv instanceof PsiExpression) {
+            list.add(JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)mmv, false));
           }
-          index++;
         }
-        return result;
+
+        PsiReference reference = pair.getReference();
+        if (reference != null) {
+          PsiElement resolved = reference.resolve();
+          if (resolved instanceof PsiAnnotationMethod) {
+            PsiType returnType = ((PsiAnnotationMethod)resolved).getReturnType();
+            if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new String[list.size()]);
+            } else if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(
+              CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Annotation[list.size()]);
+            } else if (returnType == PsiType.INT) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Integer[list.size()]);
+            } else if (returnType == PsiType.LONG) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Long[list.size()]);
+            } else if (returnType == PsiType.DOUBLE) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Double[list.size()]);
+            } else if (returnType == PsiType.FLOAT) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Float[list.size()]);
+            }
+          }
+        }
+
+        // Pick type of array. Annotations are limited to Strings, Classes
+        // and Annotations
+        if (!list.isEmpty()) {
+          Object first = list.get(0);
+          if (first instanceof String) {
+            //noinspection SuspiciousToArrayCall,SSBasedInspection
+            return list.toArray(new String[list.size()]);
+          } else if (first instanceof Annotation) {
+              //noinspection SuspiciousToArrayCall
+            return list.toArray(new Annotation[list.size()]);
+          } else if (first instanceof Class) {
+            //noinspection SuspiciousToArrayCall
+            return list.toArray(new Class[list.size()]);
+          }
+        } else {
+          return ArrayUtil.EMPTY_STRING_ARRAY;
+        }
+
+        return list.toArray();
       }
 
       return null;
