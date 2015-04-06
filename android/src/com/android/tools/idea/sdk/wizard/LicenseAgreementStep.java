@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.sdklib.internal.repository.packages.License;
+import com.android.sdklib.repository.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
