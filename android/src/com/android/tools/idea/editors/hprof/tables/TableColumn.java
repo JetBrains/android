@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.hprof.tables;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class TableColumn<MT, T> {
   @NotNull private String myColumnName;
@@ -58,5 +59,6 @@ public abstract class TableColumn<MT, T> {
     return myColumnWidth;
   }
 
+  @Nullable
   public abstract T getValue(@NotNull MT modelType, int row);
 }
