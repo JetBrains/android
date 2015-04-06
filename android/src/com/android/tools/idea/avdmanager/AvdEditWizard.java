@@ -29,15 +29,16 @@ import com.android.tools.idea.wizard.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
@@ -326,9 +327,8 @@ public class AvdEditWizard extends DynamicWizard {
           String message = String.format(Locale.getDefault(), "You are about to downgrade %1$s from API level %2$d to API level %3$d. " +
                                                               "This requires a wipe of the userdata partition of the AVD. Do you wish to " +
                                                               "continue with the data wipe?", avdName, oldApiLevel, newApiLevel);
-          int result = JOptionPane
-            .showConfirmDialog(null, message, "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
-          if (result == JOptionPane.YES_OPTION) {
+          int result = Messages.showYesNoDialog((Project)null, message, "Confirm Data Wipe", AllIcons.General.QuestionDialog);
+          if (result == Messages.YES) {
             AvdManagerConnection.getDefaultAvdManagerConnection().wipeUserData(avdInfo);
           } else {
             return null; // Cancel the edit operation

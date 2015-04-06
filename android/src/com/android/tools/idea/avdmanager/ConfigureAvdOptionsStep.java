@@ -33,7 +33,9 @@ import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -297,11 +299,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       Storage orig = myState.get(SD_CARD_STORAGE_KEY);
       Storage current = myState.get(DISPLAY_SD_SIZE_KEY);
       if (orig != null && !orig.equals(current)) {
-        int result = JOptionPane
-          .showConfirmDialog(null, "Changing the size of the built-in SD card will erase " +
-                                   "the current contents of the card. Continue?",
-                             "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
-        if (result != JOptionPane.YES_OPTION) {
+        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
+                                                             "the current contents of the card. Continue?",
+                                              "Confirm Data Wipe", AllIcons.General.QuestionDialog);
+        if (result != Messages.YES) {
           return false;
         }
       }

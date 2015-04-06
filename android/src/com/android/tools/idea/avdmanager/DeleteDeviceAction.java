@@ -16,10 +16,11 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 /**
@@ -39,10 +40,9 @@ public class DeleteDeviceAction extends DeviceUiAction {
   @Override
   public void actionPerformed(ActionEvent e) {
     Device device = myProvider.getDevice();
-    int result = JOptionPane
-      .showConfirmDialog(null, "Do you really want to delete Device " + device.getDisplayName() + "?",
-                         "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-    if (result == JOptionPane.YES_OPTION) {
+    int result = Messages.showYesNoDialog((Project)null, "Do you really want to delete Device " + device.getDisplayName() + "?",
+                                          "Confirm Deletion", AllIcons.General.QuestionDialog);
+    if (result == Messages.YES) {
       DeviceManagerConnection.getDefaultDeviceManagerConnection().deleteDevice(device);
       myProvider.refreshDevices();
       myProvider.selectDefaultDevice();
