@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.invoker.messages;
 
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
-import com.android.tools.idea.ui.MultilineColoredTreeCellRenderer;
-import com.android.tools.idea.ui.WrapAwareTreeNodePartListener;
 import com.google.common.base.Joiner;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.errorTreeView.*;
@@ -29,16 +27,13 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vcs.changes.issueLinks.LinkMouseListenerBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.Navigatable;
+import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.containers.Convertor;
-import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,10 +43,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.MouseListener;
 import java.util.Locale;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.util.ui.UIUtil.getParentOfType;
+import static com.intellij.util.ui.tree.TreeUtil.selectFirstNode;
 
 /**
  * Tree view displayed in the "Messages" window. The difference between this one and the original one is that this one displays messages as
@@ -65,7 +62,6 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
   private volatile boolean myDisposed;
 
   public GradleBuildTreeViewPanel(@NotNull Project project) {
-    //noinspection ConstantConditions
     super(project, null);
 
     myConfiguration = GradleBuildTreeViewConfiguration.getInstance(project);
@@ -78,7 +74,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     // We need to remove the JTree from the JScrollPane to register a new cell renderer. The reason is that the superclass calls
     // MultilineTreeCellRenderer#installRenderer which installs a new cell renderer, puts the JTree in a JScrollPane and sets the
     // cell renderer over and over when resetting the caches. A simple call to JTree#setCellRenderer does not work because of this.
-    JScrollPane scrollPane = UIUtil.getParentOfType(JScrollPane.class, myTree);
+    JScrollPane scrollPane = getParentOfType(JScrollPane.class, myTree);
     assert scrollPane != null;
 
     myTree.getParent().remove(myTree);
@@ -86,19 +82,8 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     assert parent instanceof JPanel;
     parent.remove(scrollPane);
 
-    scrollPane = MultilineColoredTreeCellRenderer.installRenderer(myTree, new MessageTreeRenderer());
+    scrollPane = MultilineTreeCellRenderer.installRenderer(myTree, new MessageTreeRenderer());
     parent.add(scrollPane, BorderLayout.CENTER);
-
-    MouseListener[] mouseListeners = myTree.getMouseListeners();
-    if (mouseListeners != null) {
-      for (MouseListener mouseListener : mouseListeners) {
-        if (mouseListener instanceof LinkMouseListenerBase) {
-          // This listener is installed by default at NewErrorTreeViewPanel:153.
-          myTree.removeMouseListener(mouseListener);
-        }
-      }
-    }
-    new WrapAwareTreeNodePartListener(myTree.getCellRenderer()).installOn(myTree);
 
     new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
       @Override
@@ -245,7 +230,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
       });
     }
     else {
-      TreeUtil.selectFirstNode(myTree);
+      selectFirstNode(myTree);
     }
   }
 
@@ -279,7 +264,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     @NotNull private final ErrorTreeElementKind myElementKind;
 
     FilterMessagesByKindAction(@NotNull ErrorTreeElementKind elementKind) {
-      super(StringUtil.capitalize(elementKind.toString().toLowerCase(Locale.getDefault())));
+      super(capitalize(elementKind.toString().toLowerCase(Locale.getDefault())));
       myElementKind = elementKind;
     }
 
