@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.openapi.project.Project;
@@ -34,6 +35,7 @@ import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModul
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
   @Override
@@ -45,6 +47,10 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
           Set<File> artifacts = entry.getValue();
           if (artifacts != null && !artifacts.isEmpty()) {
             for (File artifact : artifacts) {
+              if (!artifact.isFile() || !endsWithIgnoreCase(artifact.getName(), SdkConstants.DOT_JAR)) {
+                // We only expose artifacts that are jar files.
+                continue;
+              }
               String libraryName = moduleModel.getModule().getName() + "." + getNameWithoutExtension(artifact);
               LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
               Library library = libraryTable.getLibraryByName(libraryName);
