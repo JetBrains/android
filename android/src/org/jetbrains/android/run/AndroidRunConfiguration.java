@@ -286,7 +286,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Nullable
-  private String getActivityToLaunch(@NotNull final AndroidFacet facet, @Nullable ProcessHandler processHandler) {
+  protected String getActivityToLaunch(@NotNull final AndroidFacet facet, @Nullable ProcessHandler processHandler) {
     String activityToLaunch = null;
 
     if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
@@ -410,8 +410,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return false;
   }
 
-  private static abstract class MyApplicationLauncher extends AndroidApplicationLauncher {
-    private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfiguration.MyApplicationLauncher");
+  protected static abstract class MyApplicationLauncher extends AndroidApplicationLauncher {
+    protected static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfiguration.MyApplicationLauncher");
 
     @Nullable
     protected abstract String getActivityName(@Nullable ProcessHandler processHandler);

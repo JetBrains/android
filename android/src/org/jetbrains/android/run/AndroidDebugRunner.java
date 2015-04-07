@@ -408,8 +408,15 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    return (DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) || DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) &&
-           profile instanceof AndroidRunConfigurationBase;
+    if (!DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) && !DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) {
+      return false;
+    }
+
+    if (!(profile instanceof AndroidRunConfigurationBase)) {
+      return false;
+    }
+
+    return ((AndroidRunConfigurationBase)profile).usesSimpleLauncher();
   }
 
   private class MyDebugLauncher implements DebugLauncher {
