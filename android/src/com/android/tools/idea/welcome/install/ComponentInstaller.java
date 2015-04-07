@@ -16,20 +16,19 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.sdklib.repository.local.Update;
-import com.android.sdklib.repository.local.UpdateResult;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.tools.idea.sdk.remote.Update;
+import com.android.tools.idea.sdk.remote.UpdateResult;
+import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.base.Function;
+import com.google.common.collect.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +46,7 @@ public final class ComponentInstaller {
     myRemotePackages = remotePackages;
   }
 
-  private static Set<String> getPackageIds(Collection<LocalPkgInfo> localPackages) {
+  private static Set<String> getPackageIds(Iterable<LocalPkgInfo> localPackages) {
     Set<String> toUpdate = Sets.newHashSet();
     for (LocalPkgInfo localPkgInfo : localPackages) {
       toUpdate.add(localPkgInfo.getDesc().getInstallId());
@@ -67,11 +66,16 @@ public final class ComponentInstaller {
     return toCheckForUpdate;
   }
 
-  private Collection<LocalPkgInfo> getOldPackages(Collection<LocalPkgInfo> installed) {
+  private Iterable<LocalPkgInfo> getOldPackages(Collection<LocalPkgInfo> installed) {
     if (myRemotePackages != null) {
       LocalPkgInfo[] packagesArray = ArrayUtil.toObjectArray(installed, LocalPkgInfo.class);
       UpdateResult result = Update.computeUpdates(packagesArray, myRemotePackages);
-      return result.getUpdatedPkgs();
+      return Iterables.transform(result.getUpdatedPkgs(), new Function<UpdatablePkgInfo, LocalPkgInfo>() {
+        @Override
+        public LocalPkgInfo apply(@Nullable UpdatablePkgInfo input) {
+          return input.getLocalInfo();
+        }
+      });
     }
     else {
       return installed; // We should try reinstalling all...

@@ -17,10 +17,9 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.sdklib.repository.SdkAddonsListConstants;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
@@ -159,7 +158,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     }
 
     SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    state.loadSynchronously(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
+    state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
     return state.getRemotePkgInfos();
   }
 

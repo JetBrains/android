@@ -17,8 +17,8 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

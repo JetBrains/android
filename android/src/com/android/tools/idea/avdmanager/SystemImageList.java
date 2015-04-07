@@ -22,9 +22,8 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.DialogWrapperHost;
 import com.google.common.base.Predicate;
@@ -258,7 +257,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       }
     };
 
-    mySdkState.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false,
+    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false,
                          localComplete, remoteComplete, error, true);
   }
 
