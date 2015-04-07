@@ -25,7 +25,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
