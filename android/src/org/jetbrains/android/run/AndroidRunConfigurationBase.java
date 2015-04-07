@@ -356,4 +356,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
   }
+
+  public boolean usesSimpleLauncher() {
+    return true;
+  }
 }
