@@ -16,9 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.templates.Template;
@@ -279,7 +278,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       }
     };
 
-    state.loadAsync(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete, onError, false);
+    state.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete, onError, false);
   }
 
   private void showDownloadLink(final HyperlinkLabel link, final RemotePkgInfo remote, final JPanel cardPanel) {

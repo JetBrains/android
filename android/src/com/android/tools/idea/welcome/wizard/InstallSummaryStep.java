@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.WizardConstants;
