@@ -54,6 +54,7 @@ import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,6 +84,7 @@ public class HtmlLinkManager {
   private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
+  private static final String URL_REFRESH_RENDER = "refreshRender";
   static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -174,6 +176,8 @@ public class HtmlLinkManager {
       if (command != null) {
         command.execute();
       }
+    } else if (url.startsWith(URL_REFRESH_RENDER)) {
+      handleRefreshRenderUrl(result);
     }
     else {
       assert false : "Unexpected URL: " + url;
@@ -740,13 +744,7 @@ public class HtmlLinkManager {
   private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
-    RenderTask renderTask = result.getRenderTask();
-    if (renderTask != null) {
-      RenderContext renderContext = renderTask.getRenderContext();
-      if (renderContext != null) {
-        renderContext.requestRender();
-      }
-    }
+    requestRender(result);
   }
 
   public String createEditAttributeUrl(String attribute, String value) {
@@ -832,6 +830,33 @@ public class HtmlLinkManager {
 
   private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
     RenderSecurityManager.sEnabled = false;
+    requestRender(result);
+
+    Messages.showInfoMessage(module.getProject(),
+         "The custom view rendering sandbox was disabled for this session.\n\n" +
+         "You can turn it off permanently by adding\n" +
+         RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
+         "to {install}/bin/idea.properties.",
+         "Disabled Rendering Sandbox");
+  }
+
+  public String createRefreshRenderUrl() {
+    return URL_REFRESH_RENDER;
+  }
+
+  private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
+    if (result != null) {
+      RenderTask renderTask = result.getRenderTask();
+      if (renderTask != null) {
+        RenderContext renderContext = renderTask.getRenderContext();
+        if (renderContext != null) {
+          RefreshRenderAction.clearCache(renderContext);
+        }
+      }
+    }
+  }
+
+  private static void requestRender(@Nullable RenderResult result) {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
@@ -841,12 +866,5 @@ public class HtmlLinkManager {
         }
       }
     }
-
-    Messages.showInfoMessage(module.getProject(),
-         "The custom view rendering sandbox was disabled for this session.\n\n" +
-         "You can turn it off permanently by adding\n" +
-         RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
-         "to {install}/bin/idea.properties.",
-         "Disabled Rendering Sandbox");
   }
 }
