@@ -1510,6 +1510,14 @@ public class GradleImport {
           copyDir(child, new File(dest, child.getName()), handler, updateEncoding, sourceModule);
         }
       }
+
+      // Delete empty directories. This happens for example when a whole source subdirectory
+      // turns out to only contain special files that are moved elsewhere (such as .aidl or resource files)
+      File[] copied = dest.listFiles();
+      if (copied != null && copied.length == 0) {
+        //noinspection ResultOfMethodCallIgnored
+        dest.delete();
+      }
     }
     else if (updateEncoding && isTextFile(source)
              // Property files have their own special encoding; don't touch these
