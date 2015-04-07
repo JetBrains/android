@@ -220,7 +220,7 @@ public class RenderLogger extends LayoutLog {
     }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
-        // The project callback is given a chance to resolve classes,
+        // The LayoutlibCallback is given a chance to resolve classes,
         // and when it fails, it will record it in its own list which
         // is displayed in a special way (with action hyperlinks etc).
         // Therefore, include these messages in the visible render log,
