@@ -565,6 +565,8 @@ public class RenderErrorPanel extends JPanel {
           ShowExceptionFix detailsFix = new ShowExceptionFix(logger.getModule().getProject(), throwable);
           builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
         }
+        builder.add(", ");
+        builder.addLink("Clear cache", myLinkManager.createRefreshRenderUrl());
         builder.add(")");
 
         if (firstThrowable == null && throwable != null) {

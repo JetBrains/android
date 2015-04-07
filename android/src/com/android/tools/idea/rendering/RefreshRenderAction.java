@@ -38,8 +38,12 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    clearCache(myContext);
+  }
+
+  public static void clearCache(RenderContext context) {
     ModuleClassLoader.clearCache();
-    Configuration configuration = myContext.getConfiguration();
+    Configuration configuration = context.getConfiguration();
 
     if (configuration != null) {
       // Clear layoutlib bitmap cache (in case files have been modified externally)
@@ -60,6 +64,6 @@ public class RefreshRenderAction extends AnAction {
       configuration.updated(ConfigurationListener.MASK_RENDERING);
     }
 
-    myContext.requestRender();
+    context.requestRender();
   }
 }
