@@ -143,8 +143,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private static final Pattern TYPED_ERROR = Pattern.compile("Error\\s+[Tt]ype\\s+(\\d+).*");
   private static final String ERROR_PREFIX = "Error";
 
-  static final int NO_ERROR = -2;
-  private static final int UNTYPED_ERROR = -1;
+  public static final int NO_ERROR = -2;
+  public static final int UNTYPED_ERROR = -1;
 
   /** Default suffix for test packages (as added by Android Gradle plugin) */
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
