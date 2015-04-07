@@ -565,6 +565,25 @@ public abstract class ImportModule implements Comparable<ImportModule> {
             myImporter.copyTextFile(ImportModule.this, source, destRs);
             myImporter.getSummary().reportMoved(ImportModule.this, source, destRs);
             return true;
+          } else if (!sourcePath.endsWith(DOT_JAVA)
+                     && !sourcePath.endsWith(DOT_CLASS) // in case Eclipse built .class into source dir
+                     && !sourcePath.endsWith(DOT_JAR)
+                     && !sourcePath.equals("package.html") // leave docs with their code
+                     && !sourcePath.equals("overview.html")
+                     && source.isFile()) {
+            // Move resources over to the resource folder
+            File resourceDir = new File(main, FD_JAVA_RES);
+            File relative = GradleImport.computeRelativePath(srcJava, source);
+            if (relative == null) {
+              relative = GradleImport.computeRelativePath(srcJava.getCanonicalFile(), source);
+            }
+            if (relative != null) {
+              File destResource = new File(resourceDir, relative.getPath());
+              myImporter.mkdirs(destResource.getParentFile());
+              Files.copy(source, destResource);
+              myImporter.getSummary().reportMoved(ImportModule.this, source, destResource);
+              return true;
+            }
           }
           return false;
         }

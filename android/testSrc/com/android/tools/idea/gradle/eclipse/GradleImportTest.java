@@ -387,9 +387,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void testMoveRsAndAidl() throws Exception {
+  public void testMoveRsResourcesAndAidl() throws Exception {
     File projectDir = createProject("test1", "test.pkg");
     createSampleAidlFile(projectDir, "src", "test.pkg");
+    createSampleTimeZoneData(projectDir, "src");
     createSampleRsFile(projectDir, "src", "test.pkg");
 
     // Project being imported
@@ -412,7 +413,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    pkg\n"
                  + "      IHardwareService.aidl\n"
                  + "      MyActivity.java\n"
-                 + "      latency.rs\n",
+                 + "      latency.rs\n"
+                 + "  zoneinfo-global\n"
+                 + "    Pacific\n"
+                 + "      Honolulu.ics\n",
                  fileTree(projectDir, true));
 
     File imported = checkProject(projectDir,
@@ -422,6 +426,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  + DEFAULT_MOVED
                                  + "* src/test/pkg/IHardwareService.aidl => app/src/main/aidl/test/pkg/IHardwareService.aidl\n"
                                  + "* src/test/pkg/latency.rs => app/src/main/rs/latency.rs\n"
+                                 + "* src/zoneinfo-global/Pacific/Honolulu.ics => app/src/main/resources/zoneinfo-global/Pacific/Honolulu.ics\n"
                                  + MSG_FOOTER,
                                  true /* checkBuild */);
 
@@ -445,6 +450,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "          ic_launcher.xml\n"
                  + "        values\n"
                  + "          strings.xml\n"
+                 + "      resources\n"
+                 + "        zoneinfo-global\n"
+                 + "          Pacific\n"
+                 + "            Honolulu.ics\n"
                  + "      rs\n"
                  + "        latency.rs\n"
                  + "build.gradle\n"
@@ -3915,6 +3924,12 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                                   + "package " + pkg + ";\n"
                                                   + "public class " + name + " {\n"
                                                   + "}\n");
+  }
+
+  private static File createSampleTimeZoneData(@NonNull File projectDir, String src) throws IOException {
+    return createSourceFile(projectDir, src + "/zoneinfo-global/Pacific/Honolulu.ics", ""
+                                                                  + "BEGIN:VCALENDAR\n"
+                                                                  + "END:VCALENDAR\n");
   }
 
   private static File createSampleAidlFile(@NonNull File projectDir, String src, String pkg)
