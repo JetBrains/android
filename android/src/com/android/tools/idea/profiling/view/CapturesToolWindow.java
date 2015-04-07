@@ -76,6 +76,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
     myStructure = new CapturesTreeStructure(myProject);
     myBuilder = new AbstractTreeBuilder(myTree, model, myStructure, null);
     Disposer.register(this, myBuilder);
+    Disposer.register(project, this);
 
     myBuilder.initRootNode();
     myBuilder.getInitialized().doWhenDone(new Runnable() {
@@ -116,6 +117,10 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
 
   @Override
   public void dispose() {
+    if (myConnection != null) {
+      myConnection.disconnect();
+      myConnection = null;
+    }
   }
 
   @Override
