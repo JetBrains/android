@@ -23,7 +23,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.DynamicWizardStep;

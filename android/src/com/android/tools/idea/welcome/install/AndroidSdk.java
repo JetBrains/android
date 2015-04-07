@@ -22,7 +22,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
