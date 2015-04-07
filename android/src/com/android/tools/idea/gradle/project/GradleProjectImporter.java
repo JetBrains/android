@@ -534,7 +534,9 @@ public class GradleProjectImporter {
 
             ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
             setUpTask.onSuccess(externalProjectStructure);
-            return;
+            if (!isGradleProjectWithoutModel(project)) {
+              return;
+            }
           }
         }
       }
