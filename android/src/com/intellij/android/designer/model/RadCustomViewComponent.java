@@ -45,11 +45,9 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
 
   @Override
   public String getCreationXml() {
-    return "<view android:layout_width=\"wrap_content\"\n" +
-           "android:layout_height=\"wrap_content\"\n" +
-           "class=\"" +
-           getClientProperty(NAME_KEY) +
-           "\"/>";
+    return "<" + getClientProperty(NAME_KEY) + "\n" +
+           "android:layout_width=\"wrap_content\"\n" +
+           "android:layout_height=\"wrap_content\"/>";
   }
 
   @Override
@@ -96,14 +94,14 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
   public String getViewClass() {
     XmlTag tag = getTag();
 
-    String classAttribute = tag.getAttributeValue("class");
-    if (!StringUtil.isEmpty(classAttribute)) {
-      return classAttribute;
-    }
-
     String tagName = tag.getName();
     if (!StringUtil.isEmpty(tagName) && !tagName.equals("view")) {
       return tagName;
+    }
+
+    String classAttribute = tag.getAttributeValue("class");
+    if (!StringUtil.isEmpty(classAttribute)) {
+      return classAttribute;
     }
 
     return null;
