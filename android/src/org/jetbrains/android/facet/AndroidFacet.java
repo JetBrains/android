@@ -33,21 +33,19 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.ParametersList;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -620,7 +618,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
   }
 
-  public void launchEmulator(@Nullable final String avdName, @NotNull final String commands, @NotNull final ProcessHandler handler) {
+  public void launchEmulator(@Nullable final String avdName, @NotNull final String commands) {
     File sdkLocation = null;
     if (Projects.isGradleProject(getModule().getProject()) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
       sdkLocation = IdeSdks.getAndroidSdkPath();
@@ -647,7 +645,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
         }
       }
       final EmulatorRunner runner = new EmulatorRunner(getModule().getProject(), "AVD: " + avdName, commandLine);
-      handler.notifyTextAvailable(commandLine.getCommandLineString() + '\n', ProcessOutputTypes.STDOUT);
 
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         @Override
@@ -656,8 +653,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
             runner.start();
           }
           catch (ExecutionException e) {
-            final String stackTrace = AndroidCommonUtils.getStackTrace(e);
-            handler.notifyTextAvailable(stackTrace, ProcessOutputTypes.STDERR);
+            Logger.getInstance(this.getClass()).error("Unexpected error while launching AVD", e);
           }
         }
       });
