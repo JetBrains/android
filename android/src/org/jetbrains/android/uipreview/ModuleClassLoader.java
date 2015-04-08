@@ -93,7 +93,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               //noinspection UseOfSystemOutOrSystemErr
               System.out.println("  defining class " + name + " from AAR registry");
             }
-            return defineClass(null, data, 0, data.length);
+            return defineClassAndPackage(name, data, 0, data.length);
           }
         }
       }
@@ -105,7 +105,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         clazz = RecyclerViewHelper.getViewHolder();
       }
       if (clazz != null) {
-        return defineClass(name, clazz, 0, clazz.length);
+        return defineClassAndPackage(name, clazz, 0, clazz.length);
       }
       throw e;
     }
