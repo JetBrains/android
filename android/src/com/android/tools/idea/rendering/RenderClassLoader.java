@@ -87,7 +87,7 @@ public abstract class RenderClassLoader extends ClassLoader {
             //noinspection UseOfSystemOutOrSystemErr
             System.out.println("  defining class " + name + " from .jar file");
           }
-          return defineClass(null, rewritten, 0, rewritten.length);
+          return defineClassAndPackage(null, rewritten, 0, rewritten.length);
         }
         catch (UnsupportedClassVersionError inner) {
           // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
@@ -147,7 +147,7 @@ public abstract class RenderClassLoader extends ClassLoader {
         //noinspection UseOfSystemOutOrSystemErr
         System.out.println("  defining class " + fqcn + " from disk file");
       }
-      return defineClass(null, rewritten, 0, rewritten.length);
+      return defineClassAndPackage(null, rewritten, 0, rewritten.length);
     } catch (UnsupportedClassVersionError inner) {
       // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
       // such that clients can look up the actual bytecode version required.
@@ -201,5 +201,19 @@ public abstract class RenderClassLoader extends ClassLoader {
       }
       path = path.substring(0, last) + '$' + path.substring(last + 1);
     }
+  }
+
+  protected Class<?> defineClassAndPackage(String name, byte[] b, int offset, int len) {
+    if (name != null) {
+      int i = name.lastIndexOf('.');
+      if (i != 0) {
+        String packageName = name.substring(0, i);
+        Package pkg = getPackage(packageName);
+        if (pkg == null) {
+          definePackage(packageName, null, null, null, null, null, null, null);
+        }
+      }
+    }
+    return defineClass(name, b, offset, len);
   }
 }
