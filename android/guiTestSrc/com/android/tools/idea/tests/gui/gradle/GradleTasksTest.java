@@ -94,7 +94,7 @@ public class GradleTasksTest extends GuiTestCase {
     //   2. Start 'build' task once again (assuming that it takes some time for it to finish)
     //   3. Stop the task
     //   4. Ensure that the task is really finished
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     projectFrame.requestProjectSync();
     projectFrame.waitForGradleProjectSyncToFinish();
 
@@ -133,7 +133,7 @@ public class GradleTasksTest extends GuiTestCase {
 
   @NotNull
   private IdeFrameFixture openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     Module module = projectFrame.getModule("app");
 
     // Add a long-running task and refresh the project.

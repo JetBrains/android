@@ -28,7 +28,7 @@ import static junit.framework.Assert.assertEquals;
 public class SampleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testEditor() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
 

@@ -48,7 +48,7 @@ public class LayoutEditorTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testSetProperty() throws Exception {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = projectFrame.getEditor();
@@ -137,7 +137,7 @@ public class LayoutEditorTest extends GuiTestCase {
     // cannot be deleted, by selecting it, attempting to delete it, and verifying
     // that it's still there.
 
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -190,7 +190,7 @@ public class LayoutEditorTest extends GuiTestCase {
     // hierarchy, we reassign id's to keep them unique and also update all references within
     // the pasted component to the newly assigned id's.
 
-    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = projectFrame.getEditor();

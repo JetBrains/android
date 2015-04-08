@@ -44,7 +44,7 @@ public class GradleBuildTest extends GuiTestCase {
 
     File jdkPath = new File(jdkPathValue);
 
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     projectFrame.invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
 
     // Find message dialog explaining the source of the error.
