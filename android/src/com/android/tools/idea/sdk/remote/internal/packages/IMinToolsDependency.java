@@ -28,16 +28,15 @@ import com.android.sdklib.repository.SdkRepoConstants;
  */
 public interface IMinToolsDependency {
 
-    /**
-     * The value of {@link #getMinToolsRevision()} when the
-     * {@link SdkRepoConstants#NODE_MIN_TOOLS_REV} was not specified in the XML source.
-     */
-    public static final FullRevision MIN_TOOLS_REV_NOT_SPECIFIED =
-        new FullRevision(FullRevision.MISSING_MAJOR_REV);
+  /**
+   * The value of {@link #getMinToolsRevision()} when the
+   * {@link SdkRepoConstants#NODE_MIN_TOOLS_REV} was not specified in the XML source.
+   */
+  FullRevision MIN_TOOLS_REV_NOT_SPECIFIED = new FullRevision(FullRevision.MISSING_MAJOR_REV);
 
-    /**
-     * The minimal revision of the tools package required by this extra package if > 0,
-     * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
-     */
-    public abstract FullRevision getMinToolsRevision();
+  /**
+   * The minimal revision of the tools package required by this extra package if > 0,
+   * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
+   */
+  FullRevision getMinToolsRevision();
 }

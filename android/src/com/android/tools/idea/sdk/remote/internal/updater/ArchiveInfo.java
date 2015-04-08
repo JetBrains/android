@@ -41,128 +41,125 @@ import java.util.Collection;
  * dependency, either here or in the {@code SdkUpdaterChooserDialog}, since we currently
  * have no need for it.
  *
- * @see com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo#ArchiveInfo(Archive, Archive, com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo[])
+ * @see ArchiveInfo#ArchiveInfo(Archive, Archive, ArchiveInfo[])
  */
-public class ArchiveInfo extends ArchiveReplacement implements Comparable<com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo> {
+public class ArchiveInfo extends ArchiveReplacement implements Comparable<ArchiveInfo> {
 
-    private final com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo[] mDependsOn;
-    private final ArrayList<com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo> mDependencyFor = new ArrayList<com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo>();
-    private boolean mAccepted;
-    private boolean mRejected;
+  private final ArchiveInfo[] mDependsOn;
+  private final ArrayList<ArchiveInfo> mDependencyFor = new ArrayList<ArchiveInfo>();
+  private boolean mAccepted;
+  private boolean mRejected;
 
-    /**
-     * Creates a new replacement where the {@code newArchive} will replace the
-     * currently installed {@code replaced} archive.
-     * When {@code newArchive} is not intended to replace anything (e.g. because
-     * the user is installing a new package not present on her system yet), then
-     * {@code replace} shall be null.
-     *
-     * @param newArchive A "new archive" to be installed. This is always an archive
-     *          that comes from a remote site. This <em>may</em> be null.
-     * @param replaced An optional local archive that the new one will replace.
-     *          Can be null if this archive does not replace anything.
-     * @param dependsOn An optional new or local dependency, that is an archive that
-     *          <em>this</em> archive depends upon. In other words, we can only install
-     *          this archive if the dependency has been successfully installed. It also
-     *          means we need to install the dependency first. Can be null or empty.
-     *          However it cannot contain nulls.
-     */
-    public ArchiveInfo(
-            @Nullable Archive newArchive,
-            @Nullable Archive replaced,
-            @Nullable com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo[] dependsOn) {
-        super(newArchive, replaced);
-        mDependsOn = dependsOn;
+  /**
+   * Creates a new replacement where the {@code newArchive} will replace the
+   * currently installed {@code replaced} archive.
+   * When {@code newArchive} is not intended to replace anything (e.g. because
+   * the user is installing a new package not present on her system yet), then
+   * {@code replace} shall be null.
+   *
+   * @param newArchive A "new archive" to be installed. This is always an archive
+   *                   that comes from a remote site. This <em>may</em> be null.
+   * @param replaced   An optional local archive that the new one will replace.
+   *                   Can be null if this archive does not replace anything.
+   * @param dependsOn  An optional new or local dependency, that is an archive that
+   *                   <em>this</em> archive depends upon. In other words, we can only install
+   *                   this archive if the dependency has been successfully installed. It also
+   *                   means we need to install the dependency first. Can be null or empty.
+   *                   However it cannot contain nulls.
+   */
+  public ArchiveInfo(@Nullable Archive newArchive, @Nullable Archive replaced, @Nullable ArchiveInfo[] dependsOn) {
+    super(newArchive, replaced);
+    mDependsOn = dependsOn;
+  }
+
+  /**
+   * Returns an optional new or local dependency, that is an archive that <em>this</em>
+   * archive depends upon. In other words, we can only install this archive if the
+   * dependency has been successfully installed. It also means we need to install the
+   * dependency first.
+   * <p/>
+   * This array can be null or empty. It can't contain nulls though.
+   */
+  @Nullable
+  public ArchiveInfo[] getDependsOn() {
+    return mDependsOn;
+  }
+
+  /**
+   * Returns true if this new archive is a dependency for <em>another</em> one that we
+   * want to install.
+   */
+  public boolean isDependencyFor() {
+    return mDependencyFor.size() > 0;
+  }
+
+  /**
+   * Adds an {@link ArchiveInfo} for which <em>this</em> package is a dependency.
+   * This means the package added here depends on this package.
+   */
+  @NonNull
+  public ArchiveInfo addDependencyFor(ArchiveInfo dependencyFor) {
+    if (!mDependencyFor.contains(dependencyFor)) {
+      mDependencyFor.add(dependencyFor);
     }
 
-    /**
-     * Returns an optional new or local dependency, that is an archive that <em>this</em>
-     * archive depends upon. In other words, we can only install this archive if the
-     * dependency has been successfully installed. It also means we need to install the
-     * dependency first.
-     * <p/>
-     * This array can be null or empty. It can't contain nulls though.
-     */
-    @Nullable
-    public com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo[] getDependsOn() {
-        return mDependsOn;
-    }
+    return this;
+  }
 
-    /**
-     * Returns true if this new archive is a dependency for <em>another</em> one that we
-     * want to install.
-     */
-    public boolean isDependencyFor() {
-        return mDependencyFor.size() > 0;
-    }
+  /**
+   * Returns the list of {@link ArchiveInfo} for which <em>this</em> package is a dependency.
+   * This means the packages listed here depend on this package.
+   * <p/>
+   * Implementation detail: this is the internal mutable list. Callers should not modify it.
+   * This list can be empty but is never null.
+   */
+  @NonNull
+  public Collection<ArchiveInfo> getDependenciesFor() {
+    return mDependencyFor;
+  }
 
-    /**
-     * Adds an {@link com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo} for which <em>this</em> package is a dependency.
-     * This means the package added here depends on this package.
-     */
-    @NonNull
-    public com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo addDependencyFor(com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo dependencyFor) {
-        if (!mDependencyFor.contains(dependencyFor)) {
-            mDependencyFor.add(dependencyFor);
-        }
+  /**
+   * Sets whether this archive was accepted (either manually by the user or
+   * automatically if it doesn't have a license) for installation.
+   */
+  public void setAccepted(boolean accepted) {
+    mAccepted = accepted;
+  }
 
-        return this;
-    }
+  /**
+   * Returns whether this archive was accepted (either manually by the user or
+   * automatically if it doesn't have a license) for installation.
+   */
+  public boolean isAccepted() {
+    return mAccepted;
+  }
 
-    /**
-     * Returns the list of {@link com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo} for which <em>this</em> package is a dependency.
-     * This means the packages listed here depend on this package.
-     * <p/>
-     * Implementation detail: this is the internal mutable list. Callers should not modify it.
-     * This list can be empty but is never null.
-     */
-    @NonNull
-    public Collection<com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo> getDependenciesFor() {
-        return mDependencyFor;
-    }
+  /**
+   * Sets whether this archive was rejected manually by the user.
+   * An archive can neither accepted nor rejected.
+   */
+  public void setRejected(boolean rejected) {
+    mRejected = rejected;
+  }
 
-    /**
-     * Sets whether this archive was accepted (either manually by the user or
-     * automatically if it doesn't have a license) for installation.
-     */
-    public void setAccepted(boolean accepted) {
-        mAccepted = accepted;
-    }
+  /**
+   * Returns whether this archive was rejected manually by the user.
+   * An archive can neither accepted nor rejected.
+   */
+  public boolean isRejected() {
+    return mRejected;
+  }
 
-    /**
-     * Returns whether this archive was accepted (either manually by the user or
-     * automatically if it doesn't have a license) for installation.
-     */
-    public boolean isAccepted() {
-        return mAccepted;
+  /**
+   * ArchiveInfos are compared using ther "new archive" ordering.
+   *
+   * @see Archive#compareTo(Archive)
+   */
+  @Override
+  public int compareTo(ArchiveInfo rhs) {
+    if (getNewArchive() != null && rhs != null) {
+      return getNewArchive().compareTo(rhs.getNewArchive());
     }
-
-    /**
-     * Sets whether this archive was rejected manually by the user.
-     * An archive can neither accepted nor rejected.
-     */
-    public void setRejected(boolean rejected) {
-        mRejected = rejected;
-    }
-
-    /**
-     * Returns whether this archive was rejected manually by the user.
-     * An archive can neither accepted nor rejected.
-     */
-    public boolean isRejected() {
-        return mRejected;
-    }
-
-    /**
-     * ArchiveInfos are compared using ther "new archive" ordering.
-     *
-     * @see Archive#compareTo(Archive)
-     */
-    @Override
-    public int compareTo(com.android.tools.idea.sdk.remote.internal.updater.ArchiveInfo rhs) {
-        if (getNewArchive() != null && rhs != null) {
-            return getNewArchive().compareTo(rhs.getNewArchive());
-        }
-        return 0;
-    }
+    return 0;
+  }
 }

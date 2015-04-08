@@ -19,21 +19,14 @@ package com.android.tools.idea.sdk.remote.internal.sources;
 import com.android.annotations.Nullable;
 import com.android.sdklib.repository.RepoConstants;
 import com.android.sdklib.repository.SdkRepoConstants;
-
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import org.w3c.dom.*;
 import org.xml.sax.ErrorHandler;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.regex.Pattern;
 
 
 /**

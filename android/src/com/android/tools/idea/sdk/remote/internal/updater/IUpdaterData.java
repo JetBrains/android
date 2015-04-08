@@ -17,11 +17,8 @@
 package com.android.tools.idea.sdk.remote.internal.updater;
 
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskFactory;
-import com.android.tools.idea.sdk.remote.internal.updater.*;
-import com.android.tools.idea.sdk.remote.internal.updater.UpdaterData;
 import com.android.utils.ILogger;
 
 
@@ -31,16 +28,13 @@ import com.android.utils.ILogger;
  */
 public interface IUpdaterData {
 
-    public abstract ITaskFactory getTaskFactory();
+  ITaskFactory getTaskFactory();
 
-    public abstract ILogger getSdkLog();
+  ILogger getSdkLog();
 
-    public abstract DownloadCache getDownloadCache();
+  DownloadCache getDownloadCache();
 
-    public abstract SdkManager getSdkManager();
+  SdkManager getSdkManager();
 
-    public abstract AvdManager getAvdManager();
-
-    public abstract SettingsController getSettingsController();
-
+  SettingsController getSettingsController();
 }

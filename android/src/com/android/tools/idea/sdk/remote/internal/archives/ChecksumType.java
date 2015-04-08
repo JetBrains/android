@@ -19,29 +19,34 @@ package com.android.tools.idea.sdk.remote.internal.archives;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/** The checksum type. */
+/**
+ * The checksum type.
+ */
 public enum ChecksumType {
-    /** A SHA1 checksum, represented as a 40-hex string. */
-    SHA1("SHA-1");  //$NON-NLS-1$
+  /**
+   * A SHA1 checksum, represented as a 40-hex string.
+   */
+  SHA1("SHA-1");  //$NON-NLS-1$
 
-    private final String mAlgorithmName;
+  private final String mAlgorithmName;
 
-    /**
-     * Constructs a {@link com.android.tools.idea.sdk.remote.internal.archives.ChecksumType} with the algorithm name
-     * suitable for {@link MessageDigest#getInstance(String)}.
-     * <p/>
-     * These names are officially documented at
-     * http://java.sun.com/javase/6/docs/technotes/guides/security/StandardNames.html#MessageDigest
-     */
-    private ChecksumType(String algorithmName) {
-        mAlgorithmName = algorithmName;
-    }
+  /**
+   * Constructs a {@link com.android.tools.idea.sdk.remote.internal.archives.ChecksumType} with the algorithm name
+   * suitable for {@link MessageDigest#getInstance(String)}.
+   * <p/>
+   * These names are officially documented at
+   * http://java.sun.com/javase/6/docs/technotes/guides/security/StandardNames.html#MessageDigest
+   */
+  ChecksumType(String algorithmName) {
+    mAlgorithmName = algorithmName;
+  }
 
-    /**
-     * Returns a new {@link MessageDigest} instance for this checksum type.
-     * @throws NoSuchAlgorithmException if this algorithm is not available.
-     */
-    public MessageDigest getMessageDigest() throws NoSuchAlgorithmException {
-        return MessageDigest.getInstance(mAlgorithmName);
-    }
+  /**
+   * Returns a new {@link MessageDigest} instance for this checksum type.
+   *
+   * @throws NoSuchAlgorithmException if this algorithm is not available.
+   */
+  public MessageDigest getMessageDigest() throws NoSuchAlgorithmException {
+    return MessageDigest.getInstance(mAlgorithmName);
+  }
 }
