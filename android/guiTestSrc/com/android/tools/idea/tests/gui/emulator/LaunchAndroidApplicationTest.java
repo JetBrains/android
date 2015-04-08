@@ -38,7 +38,7 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.runApp(APP_NAME);
     projectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
@@ -55,7 +55,7 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     final EditorFixture editor = projectFrame.getEditor();
     final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
       "setContentView", "(R.layout.activity_my);", true);
