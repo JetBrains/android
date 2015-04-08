@@ -80,8 +80,6 @@ public abstract class GuiTestCase {
   @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
   private String myTestName;
 
-  private static boolean ourFileChooserUsedForProjectImport;
-
   /**
    * @return the name of the test method being executed.
    */

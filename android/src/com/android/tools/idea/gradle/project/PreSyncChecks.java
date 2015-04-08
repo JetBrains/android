@@ -25,7 +25,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -41,9 +40,9 @@ import static com.android.SdkConstants.*;
 import static com.android.sdklib.repository.FullRevision.parseRevision;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.intellij.openapi.ui.Messages.*;
+import static com.intellij.openapi.ui.Messages.getQuestionIcon;
+import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 final class PreSyncChecks {
@@ -66,11 +65,11 @@ final class PreSyncChecks {
     syncMessages.removeMessages(PROJECT_SYNCING_ERROR_GROUP);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleUtil.attemptToUseEmbeddedGradle(project);
+      attemptToUseEmbeddedGradle(project);
     }
 
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
     boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
@@ -93,8 +92,8 @@ final class PreSyncChecks {
       return PreSyncCheckResult.success();
     }
 
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
 
@@ -117,13 +116,13 @@ final class PreSyncChecks {
 
   // Returns true if wrapper was created or sync should continue immediately after executing this method.
   private static boolean createWrapperIfNecessary(@NotNull Project project) {
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
     if (gradleSettings == null) {
       // Unlikely to happen. When we get to this point we already created GradleProjectSettings.
       return true;
     }
 
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
 
     if (wrapperPropertiesFile == null) {
       DistributionType distributionType = gradleSettings.getDistributionType();
@@ -144,16 +143,7 @@ final class PreSyncChecks {
                    "Would you like the project to use the Gradle wrapper?\n" +
                    "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
                    "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-      Icon icon = getQuestionIcon();
-      int answer;
-      if (SystemInfo.isMac && isGuiTestingMode()) {
-        // On Mac, IDEA does not use a regular dialog, but a "Mac sheet" which is not UI-test-friendly. Here we force IDEA to use a
-        // regular dialog.
-        answer = showIdeaMessageDialog(project, msg, GRADLE_SYNC_MSG_TITLE, new String[]{OK_BUTTON, CANCEL_BUTTON}, 0, icon, null);
-      }
-      else {
-        answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, icon);
-      }
+      int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
       createWrapper = answer == Messages.OK;
 
     }
