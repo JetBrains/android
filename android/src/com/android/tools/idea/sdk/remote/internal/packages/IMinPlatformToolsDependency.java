@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.SdkRepoConstants;
 
@@ -30,22 +29,21 @@ import com.android.sdklib.repository.SdkRepoConstants;
  */
 public interface IMinPlatformToolsDependency {
 
-    /**
-     * The value of {@link #getMinPlatformToolsRevision()} when the
-     * {@link SdkRepoConstants#NODE_MIN_PLATFORM_TOOLS_REV} was not specified in the XML source.
-     * Since this is a required attribute in the XML schema, it can only happen when dealing
-     * with an invalid repository XML.
-     */
-    public static final FullRevision MIN_PLATFORM_TOOLS_REV_INVALID =
-        new FullRevision(FullRevision.MISSING_MAJOR_REV);
+  /**
+   * The value of {@link #getMinPlatformToolsRevision()} when the
+   * {@link SdkRepoConstants#NODE_MIN_PLATFORM_TOOLS_REV} was not specified in the XML source.
+   * Since this is a required attribute in the XML schema, it can only happen when dealing
+   * with an invalid repository XML.
+   */
+  FullRevision MIN_PLATFORM_TOOLS_REV_INVALID = new FullRevision(FullRevision.MISSING_MAJOR_REV);
 
-    /**
-     * The minimal revision of the tools package required by this package if > 0,
-     * or {@link #MIN_PLATFORM_TOOLS_REV_INVALID} if the value was missing.
-     * <p/>
-     * This attribute is mandatory and should not be normally missing.
-     * It can only happen when dealing with an invalid repository XML.
-     */
-    public abstract FullRevision getMinPlatformToolsRevision();
+  /**
+   * The minimal revision of the tools package required by this package if > 0,
+   * or {@link #MIN_PLATFORM_TOOLS_REV_INVALID} if the value was missing.
+   * <p/>
+   * This attribute is mandatory and should not be normally missing.
+   * It can only happen when dealing with an invalid repository XML.
+   */
+  FullRevision getMinPlatformToolsRevision();
 
 }

@@ -28,19 +28,21 @@ package com.android.tools.idea.sdk.remote.internal.archives;
  * @see com.android.tools.idea.sdk.remote.internal.archives.HostOs
  */
 public enum LegacyOs {
-    ANY("Any"),
-    LINUX("Linux"),
-    MACOSX("MacOS X"),
-    WINDOWS("Windows");
+  ANY("Any"),
+  LINUX("Linux"),
+  MACOSX("MacOS X"),
+  WINDOWS("Windows");
 
-    private final String mUiName;
+  private final String mUiName;
 
-    private LegacyOs(String uiName) {
-        mUiName = uiName;
-    }
+  LegacyOs(String uiName) {
+    mUiName = uiName;
+  }
 
-    /** Returns the UI name of the OS. */
-    public String getUiName() {
-        return mUiName;
-    }
+  /**
+   * Returns the UI name of the OS.
+   */
+  public String getUiName() {
+    return mUiName;
+  }
 }

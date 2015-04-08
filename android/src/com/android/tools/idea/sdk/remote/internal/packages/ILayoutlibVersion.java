@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.utils.Pair;
 
 /**
@@ -24,20 +23,20 @@ import com.android.utils.Pair;
  */
 public interface ILayoutlibVersion {
 
-    public static final int LAYOUTLIB_API_NOT_SPECIFIED = 0;
-    public static final int LAYOUTLIB_REV_NOT_SPECIFIED = 0;
+  int LAYOUTLIB_API_NOT_SPECIFIED = 0;
+  int LAYOUTLIB_REV_NOT_SPECIFIED = 0;
 
-    /**
-     * Returns the layoutlib version. Mandatory starting with repository XSD rev 4.
-     * <p/>
-     * The first integer is the API of layoublib, which should be > 0.
-     * It will be equal to {@link #LAYOUTLIB_API_NOT_SPECIFIED} (0) if the layoutlib
-     * version isn't specified.
-     * <p/>
-     * The second integer is the revision for that given API. It is >= 0
-     * and works as a minor revision number, incremented for the same API level.
-     *
-     * @since sdk-repository-4.xsd
-     */
-    public Pair<Integer, Integer> getLayoutlibVersion();
+  /**
+   * Returns the layoutlib version. Mandatory starting with repository XSD rev 4.
+   * <p/>
+   * The first integer is the API of layoublib, which should be > 0.
+   * It will be equal to {@link #LAYOUTLIB_API_NOT_SPECIFIED} (0) if the layoutlib
+   * version isn't specified.
+   * <p/>
+   * The second integer is the revision for that given API. It is >= 0
+   * and works as a minor revision number, incremented for the same API level.
+   *
+   * @since sdk-repository-4.xsd
+   */
+  Pair<Integer, Integer> getLayoutlibVersion();
 }

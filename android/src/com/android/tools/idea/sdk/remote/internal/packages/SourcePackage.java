@@ -23,22 +23,15 @@ import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersion.AndroidVersionException;
 import com.android.sdklib.SdkManager;
-import com.android.tools.idea.sdk.remote.internal.packages.*;
-import com.android.tools.idea.sdk.remote.internal.packages.IAndroidVersionProvider;
-import com.android.tools.idea.sdk.remote.internal.packages.IExactApiLevelDependency;
-import com.android.tools.idea.sdk.remote.internal.packages.IMinApiLevelDependency;
-import com.android.tools.idea.sdk.remote.internal.packages.MajorRevisionPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.sdklib.repository.IDescription;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.sdklib.io.IFileOp;
+import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-
+import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
+import com.android.tools.idea.sdk.remote.internal.archives.Archive;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.w3c.dom.Node;
 
@@ -264,10 +257,8 @@ public class SourcePackage extends MajorRevisionPackage implements IAndroidVersi
         }
 
         if (mVersion.isPreview()) {
-            return String.format("Sources for Android '%1$s' Preview SDK, revision %2$s%3$s",
-                mVersion.getCodename(),
-                getRevision().toShortString(),
-                isObsolete() ? " (Obsolete)" : "");
+            return String.format("Sources for Android '%1$s' Preview SDK, revision %2$s%3$s", mVersion.getCodename(),
+                                 getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
         } else {
             return String.format("Sources for Android SDK, API %1$d, revision %2$s%3$s",
                 mVersion.getApiLevel(),

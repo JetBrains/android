@@ -17,8 +17,6 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.sdk.remote.internal.packages.IAndroidVersionProvider;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 
 /**
  * Interface used to decorate a {@link Package} that has a dependency
@@ -33,7 +31,9 @@ import com.android.tools.idea.sdk.remote.internal.packages.Package;
  */
 public interface IPlatformDependency {
 
-    /** Returns the version of the platform dependency of this package. */
-    AndroidVersion getAndroidVersion();
+  /**
+   * Returns the version of the platform dependency of this package.
+   */
+  AndroidVersion getAndroidVersion();
 
 }

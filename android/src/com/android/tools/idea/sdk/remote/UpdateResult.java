@@ -27,59 +27,59 @@ import java.util.Set;
  * Results from {@link Update#computeUpdates(LocalPkgInfo[], com.google.common.collect.Multimap)}.
  */
 public final class UpdateResult {
-    private final Set<UpdatablePkgInfo> mUpdatedPkgs = Sets.newTreeSet();
-    private final Set<RemotePkgInfo> mNewPkgs = Sets.newTreeSet();
-    private final long mTimestampMs;
+  private final Set<UpdatablePkgInfo> mUpdatedPkgs = Sets.newTreeSet();
+  private final Set<RemotePkgInfo> mNewPkgs = Sets.newTreeSet();
+  private final long mTimestampMs;
 
-    public UpdateResult() {
-        mTimestampMs = System.currentTimeMillis();
-    }
+  public UpdateResult() {
+    mTimestampMs = System.currentTimeMillis();
+  }
 
-    /**
-     * Returns the timestamp (in {@link System#currentTimeMillis()} time) when this object was created.
-     */
-    public long getTimestampMs() {
-        return mTimestampMs;
-    }
+  /**
+   * Returns the timestamp (in {@link System#currentTimeMillis()} time) when this object was created.
+   */
+  public long getTimestampMs() {
+    return mTimestampMs;
+  }
 
-    /**
-     * Returns the set of packages that have local updates available.
-     * Use {@link LocalPkgInfo#getUpdate()} to retrieve the computed updated candidate.
-     *
-     * @return A non-null, possibly empty list of update candidates.
-     */
-    @NonNull
-    public Set<UpdatablePkgInfo> getUpdatedPkgs() {
-        return mUpdatedPkgs;
-    }
+  /**
+   * Returns the set of packages that have local updates available.
+   * Use {@link LocalPkgInfo#getUpdate()} to retrieve the computed updated candidate.
+   *
+   * @return A non-null, possibly empty list of update candidates.
+   */
+  @NonNull
+  public Set<UpdatablePkgInfo> getUpdatedPkgs() {
+    return mUpdatedPkgs;
+  }
 
-    /**
-     * Returns the set of new remote packages that are not locally present
-     * and that the user could install.
-     *
-     * @return A non-null, possibly empty list of new install candidates.
-     */
-    @NonNull
-    public Set<RemotePkgInfo> getNewPkgs() {
-        return mNewPkgs;
-    }
+  /**
+   * Returns the set of new remote packages that are not locally present
+   * and that the user could install.
+   *
+   * @return A non-null, possibly empty list of new install candidates.
+   */
+  @NonNull
+  public Set<RemotePkgInfo> getNewPkgs() {
+    return mNewPkgs;
+  }
 
-    /**
-     * Add a package to the set of packages with available updates.
-     *
-     * @param pkgInfo The {@link LocalPkgInfo} which has an available update.
-     */
-    void addUpdatedPkgs(@NonNull UpdatablePkgInfo pkgInfo) {
-        mUpdatedPkgs.add(pkgInfo);
-    }
+  /**
+   * Add a package to the set of packages with available updates.
+   *
+   * @param pkgInfo The {@link LocalPkgInfo} which has an available update.
+   */
+  void addUpdatedPkgs(@NonNull UpdatablePkgInfo pkgInfo) {
+    mUpdatedPkgs.add(pkgInfo);
+  }
 
-    /**
-     * Add a package to the set of new remote packages that are not locally present
-     * and that the user could install.
-     *
-     * @param pkgInfo The {@link RemotePkgInfo} which has an available update.
-     */
-    void addNewPkgs(@NonNull RemotePkgInfo pkgInfo) {
-        mNewPkgs.add(pkgInfo);
-    }
+  /**
+   * Add a package to the set of new remote packages that are not locally present
+   * and that the user could install.
+   *
+   * @param pkgInfo The {@link RemotePkgInfo} which has an available update.
+   */
+  void addNewPkgs(@NonNull RemotePkgInfo pkgInfo) {
+    mNewPkgs.add(pkgInfo);
+  }
 }
