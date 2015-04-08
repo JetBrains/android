@@ -21,7 +21,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,18 +45,19 @@ public class ThemePreviewBuilder {
   /** Attribute to use to specify the ComponentGroup that a specific item in the preview belongs to. */
   public static final String BUILDER_ATTR_GROUP = "group";
 
-  private static final LoremGenerator ourLoremGenerator = new LoremGenerator();
-
   private final ArrayList<Predicate<ComponentDefinition>> myComponentFilters = new ArrayList<Predicate<ComponentDefinition>>();
 
   /**
    * Defines groups for the framework widgets. All the project widgets will go into "Custom".
    */
   public enum ComponentGroup {
-    TEXT("Text", VALUE_VERTICAL),
-    EDIT("Edit", VALUE_VERTICAL),
-    BUTTONS("Buttons", VALUE_HORIZONTAL),
+    // The order of the groups is important since it will be the one used to display the preview.
     TOOLBAR("Toolbar", VALUE_VERTICAL),
+    BUTTONS("Buttons", VALUE_HORIZONTAL),
+    PROGRESS("Progress & activity", VALUE_HORIZONTAL),
+    SLIDERS("Sliders/Seekbar", VALUE_HORIZONTAL),
+    SWTICHES("Switches/toggle", VALUE_HORIZONTAL),
+    TEXT("Text", VALUE_HORIZONTAL),
     OTHER("Misc", VALUE_VERTICAL),
     CUSTOM("Custom", VALUE_VERTICAL);
 
@@ -88,7 +88,17 @@ public class ThemePreviewBuilder {
     final List<String> aliases = new ArrayList<String>();
 
     final HashMap<String, String> attributes = new HashMap<String, String>();
+    private final int weight;
     int apiLevel;
+
+    public ComponentDefinition(String description, ComponentGroup group, String name, int weight) {
+      this.id = ourCounter.incrementAndGet();
+
+      this.description = description;
+      this.name = name;
+      this.group = group;
+      this.weight = weight;
+    }
 
     public ComponentDefinition(String description, ComponentGroup group, String name) {
       this.id = ourCounter.incrementAndGet();
@@ -96,6 +106,7 @@ public class ThemePreviewBuilder {
       this.description = description;
       this.name = name;
       this.group = group;
+      this.weight = 1;
     }
 
     /**
@@ -204,56 +215,50 @@ public class ThemePreviewBuilder {
       .addAlias("Actionbar"),
 
     // Buttons
-    new ComponentDefinition("Button",         ComponentGroup.BUTTONS, BUTTON),
+    new ComponentDefinition("Button",         ComponentGroup.BUTTONS, BUTTON, 5),
     new ComponentDefinition("Small button",   ComponentGroup.BUTTONS, BUTTON)
       .set(ATTR_STYLE, "?android:attr/buttonStyleSmall"),
-    new ComponentDefinition("Toggle button",  ComponentGroup.BUTTONS, TOGGLE_BUTTON)
-      .setText(""),
-    new ComponentDefinition("Radio button",   ComponentGroup.BUTTONS, RADIO_BUTTON)
-      .setText(""),
-    new ComponentDefinition("Checkbox",       ComponentGroup.BUTTONS, CHECK_BOX)
-      .setText(""),
-    //new ComponentDefinition("Switch", ComponentGroup.BUTTONS, SWITCH).setText(""),
 
-    // Text
-    new ComponentDefinition("New text",       ComponentGroup.TEXT, TEXT_VIEW),
-    new ComponentDefinition("Large text",     ComponentGroup.TEXT, TEXT_VIEW)
-      .set("textAppearance", "?android:attr/textAppearanceLarge"),
-    new ComponentDefinition("Medium text",    ComponentGroup.TEXT, TEXT_VIEW)
-      .set("textAppearance", "?android:attr/textAppearanceMedium"),
+    new ComponentDefinition("Radio button",   ComponentGroup.SWTICHES, RADIO_BUTTON, 4)
+      .setText(""),
+    new ComponentDefinition("Checkbox",       ComponentGroup.SWTICHES, CHECK_BOX, 4)
+      .setText(""),
+    new ComponentDefinition("Toggle button",  ComponentGroup.SWTICHES, TOGGLE_BUTTON)
+      .setText(""),
+
+    // Text,
     new ComponentDefinition("Small text",     ComponentGroup.TEXT, TEXT_VIEW)
       .set("textAppearance", "?android:attr/textAppearanceSmall"),
+    new ComponentDefinition("Medium text",    ComponentGroup.TEXT, TEXT_VIEW)
+      .set("textAppearance", "?android:attr/textAppearanceMedium"),
+    new ComponentDefinition("Large text",     ComponentGroup.TEXT, TEXT_VIEW)
+      .set("textAppearance", "?android:attr/textAppearanceLarge"),
 
     // Edit
-    new ComponentDefinition("Input text",     ComponentGroup.EDIT, EDIT_TEXT),
+    /*new ComponentDefinition("Input text",     ComponentGroup.EDIT, EDIT_TEXT),
     new ComponentDefinition("Long text",      ComponentGroup.EDIT, EDIT_TEXT)
       .set(ATTR_INPUT_TYPE, "textLongMessage").setText(ourLoremGenerator.generate(50, true)),
     new ComponentDefinition("Long text",      ComponentGroup.EDIT, EDIT_TEXT)
-      .set(ATTR_INPUT_TYPE, "textMultiLine").setText(ourLoremGenerator.generate(50, true)),
+      .set(ATTR_INPUT_TYPE, "textMultiLine").setText(ourLoremGenerator.generate(50, true)),*/
 
     // Misc
-    new ComponentDefinition("ProgressBar",    ComponentGroup.OTHER, PROGRESS_BAR),
-    new ComponentDefinition("ProgressBar",    ComponentGroup.OTHER, PROGRESS_BAR)
+    new ComponentDefinition("ProgressBar",    ComponentGroup.PROGRESS, PROGRESS_BAR),
+    new ComponentDefinition("ProgressBar",    ComponentGroup.PROGRESS, PROGRESS_BAR)
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
       .set(ATTR_STYLE, "?android:attr/progressBarStyleSmall"),
-    new ComponentDefinition("ProgressBar",    ComponentGroup.OTHER, PROGRESS_BAR)
+    new ComponentDefinition("ProgressBar",    ComponentGroup.PROGRESS, PROGRESS_BAR)
       .set(ATTR_STYLE, "?android:attr/progressBarStyleHorizontal"),
-    new ComponentDefinition("SeekBar",        ComponentGroup.OTHER, SEEK_BAR)
-      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
-    new ComponentDefinition("RatingBar",      ComponentGroup.OTHER, "RatingBar")
-      .addAlias("Stars"),
-    new ComponentDefinition("Spinner",        ComponentGroup.OTHER, SPINNER)
-      .addAlias("ListBox")
+    new ComponentDefinition("SeekBar",        ComponentGroup.SLIDERS, SEEK_BAR)
+      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
   );
 
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
   private static final int VERTICAL_GROUP_PADDING = 15;
   private static final int LINE_PADDING = 5;
-  private static final int GROUP_TITLE_FONT_SIZE = 12;
+  private static final int GROUP_TITLE_FONT_SIZE = 9;
   private static final int GROUP_PADDING = 45;
 
   private List<ComponentDefinition> myAdditionalComponents;
-  private double myScale = 1.0;
   private String myGroupHeaderColor = "@android:color/darker_gray";
   private PrintStream myDebugPrintStream;
 
@@ -289,7 +294,13 @@ public class ThemePreviewBuilder {
       component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     }
 
-    component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT, "1");
+    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY)) {
+      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER);
+    }
+
+    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT)) {
+      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT, Integer.toString(def.weight));
+    }
     component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, "5dp");
 
     component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, def.group.name());
@@ -358,19 +369,17 @@ public class ThemePreviewBuilder {
   }
 
   /**
-   * Returns the passed number as a string with format %dpx. The set scaling factor is applied to the passed number before returning it.
+   * Returns the passed number as a string with format %ddp.
    */
-  private String toPx(int n) {
-    return String.format("%d" + UNIT_PX, (int)(n * myScale));
+  private static String toDp(int n) {
+    return String.format("%d" + UNIT_DP, n);
   }
 
   /**
-   * Sets a scaling factor that will be applied to the group fonts and paddings (but not to the controls displayed themselves).
+   * Returns the passed number as a string with format %dsp.
    */
-  public ThemePreviewBuilder setScale(double scale) {
-    myScale = scale;
-
-    return this;
+  private static String toSp(int n) {
+    return String.format("%d" + UNIT_SP, n);
   }
 
   @NotNull
@@ -423,7 +432,7 @@ public class ThemePreviewBuilder {
     Document document = documentBuilder.newDocument();
 
     Element layout = buildMainLayoutElement(document);
-    layout.setAttributeNS(ANDROID_URI, ATTR_PADDING, toPx(LINE_PADDING));
+    layout.setAttributeNS(ANDROID_URI, ATTR_PADDING, toDp(LINE_PADDING));
     document.appendChild(layout);
 
     // Iterate over all the possible classes.
@@ -437,7 +446,7 @@ public class ThemePreviewBuilder {
       if (!isFirstGroup) {
         Element padding = document.createElement(VIEW);
         padding.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-        padding.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toPx(GROUP_PADDING));
+        padding.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toDp(GROUP_PADDING));
         layout.appendChild(padding);
       } else {
         isFirstGroup = false;
@@ -445,21 +454,21 @@ public class ThemePreviewBuilder {
 
       Element separator = document.createElement(VIEW);
       separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "1px");
-      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, toPx(LINE_PADDING));
+      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toDp(1));
+      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, toDp(LINE_PADDING));
       separator.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, myGroupHeaderColor);
       separator.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
       Element groupTitle = document.createElement(TEXT_VIEW);
       groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
       groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_TEXT_SIZE, toPx(GROUP_TITLE_FONT_SIZE));
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, toPx(LINE_PADDING));
+      groupTitle.setAttributeNS(ANDROID_URI, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
+      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(LINE_PADDING));
       groupTitle.setAttributeNS(ANDROID_URI, "textColor", myGroupHeaderColor);
       groupTitle.setAttributeNS(ANDROID_URI, "text", group.name.toUpperCase());
       groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
-      Element elementGroup = buildElementGroup(document, group, toPx(VERTICAL_GROUP_PADDING));
+      Element elementGroup = buildElementGroup(document, group, toDp(VERTICAL_GROUP_PADDING));
 
       layout.appendChild(separator);
       layout.appendChild(groupTitle);
@@ -472,7 +481,7 @@ public class ThemePreviewBuilder {
         // Break layout for big groups.
         // TODO: Make the number of elements per row configurable.
         if (elementCounter++ % 3 == 0) {
-          elementGroup = buildElementGroup(document, group, toPx(VERTICAL_GROUP_PADDING));
+          elementGroup = buildElementGroup(document, group, toDp(VERTICAL_GROUP_PADDING));
           layout.appendChild(elementGroup);
         }
       }
