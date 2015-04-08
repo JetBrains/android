@@ -46,7 +46,7 @@ public class RenameTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void sourceRoot() throws Exception {
-    final IdeFrameFixture projectFrame = openSimpleApplication();
+    final IdeFrameFixture projectFrame = importSimpleApplication();
     final Project project = projectFrame.getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {

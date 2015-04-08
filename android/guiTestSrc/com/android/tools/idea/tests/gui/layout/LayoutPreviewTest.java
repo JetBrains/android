@@ -67,7 +67,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     // orientation to landscape, create a landscape variation file, ensure
     // it's in the right folder, toggle orientation back, ensure file switched
     // back to the portrait/original file
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -132,7 +132,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   @Ignore  // TODO: Remove when issue 76009 is fixed.
   @IdeGuiTest(closeProjectBeforeExecution = true)
   public void testPreviewConfigurationTweaks() throws Exception {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -164,7 +164,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   @Test
   @IdeGuiTest(closeProjectBeforeExecution = true)
   public void testEdits() throws Exception {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = projectFrame.getEditor();
@@ -215,7 +215,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     // applies the suggested fix to build the project, and finally asserts that the
     // build is now successful.
 
-    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
@@ -271,7 +271,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
     // correct.
 
-    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/widgets.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
@@ -337,7 +337,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     // applies the suggested fix to build the project, and finally asserts that the
     // build is now successful.
 
-    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);

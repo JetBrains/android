@@ -29,7 +29,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class IdeSettingsTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSettingsRemovalForGradleProjects() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     IdeSettingsDialogFixture settingsDialog = projectFrame.openIdeSettings();
     List<String> settingsNames = settingsDialog.getProjectSettingsNames();
     assertThat(settingsNames).excludes("Gant", "GUI Designer", "Compiler");
