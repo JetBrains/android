@@ -23,30 +23,17 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
-import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.UrlOpener;
 import com.android.sdklib.io.FileOp;
 import com.android.sdklib.io.IFileOp;
 import com.android.utils.Pair;
-
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHeader;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -188,34 +175,6 @@ public class DownloadCache {
         return mStrategy;
     }
 
-    @Nullable
-    public File getCacheRoot() {
-        return mCacheRoot;
-    }
-
-    /**
-     * Computes the size of the cached files.
-     *
-     * @return The sum of the byte size of the cached files.
-     */
-    public long getCurrentSize() {
-        long size = 0;
-
-        if (mCacheRoot != null) {
-            File[] files = mFileOp.listFiles(mCacheRoot);
-            for (File f : files) {
-                if (mFileOp.isFile(f)) {
-                    String name = f.getName();
-                    if (name.startsWith(BIN_FILE_PREFIX) || name.startsWith(INFO_FILE_PREFIX)) {
-                        size += f.length();
-                    }
-                }
-            }
-        }
-
-        return size;
-    }
-
     /**
      * Removes all cached files from the cache directory.
      */
@@ -227,29 +186,6 @@ public class DownloadCache {
                     String name = f.getName();
                     if (name.startsWith(BIN_FILE_PREFIX) || name.startsWith(INFO_FILE_PREFIX)) {
                         mFileOp.delete(f);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Removes all obsolete cached files from the cache directory
-     * that do not match the latest revision.
-     */
-    public void clearOldCache() {
-        String prefix1 = BIN_FILE_PREFIX + REV_FILE_PREFIX;
-        String prefix2 = INFO_FILE_PREFIX + REV_FILE_PREFIX;
-        if (mCacheRoot != null) {
-            File[] files = mFileOp.listFiles(mCacheRoot);
-            for (File f : files) {
-                if (mFileOp.isFile(f)) {
-                    String name = f.getName();
-                    if (name.startsWith(BIN_FILE_PREFIX) ||
-                            name.startsWith(INFO_FILE_PREFIX)) {
-                        if (!name.startsWith(prefix1) && !name.startsWith(prefix2)) {
-                            mFileOp.delete(f);
-                        }
                     }
                 }
             }

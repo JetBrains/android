@@ -16,13 +16,10 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.tools.idea.sdk.remote.internal.packages.*;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.SdkRepoConstants;
-
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
 import java.util.Map;
@@ -34,128 +31,126 @@ import java.util.Properties;
  */
 public abstract class NoPreviewRevisionPackage extends Package {
 
-    private final NoPreviewRevision mRevision;
+  private final NoPreviewRevision mRevision;
 
-    /**
-     * Creates a new package from the attributes and elements of the given XML node.
-     * This constructor should throw an exception if the package cannot be created.
-     *
-     * @param source The {@link SdkSource} where this is loaded from.
-     * @param packageNode The XML element being parsed.
-     * @param nsUri The namespace URI of the originating XML document, to be able to deal with
-     *          parameters that vary according to the originating XML schema.
-     * @param licenses The licenses loaded from the XML originating document.
-     */
-    NoPreviewRevisionPackage(SdkSource source,
-            Node packageNode,
-            String nsUri,
-            Map<String,String> licenses) {
-        super(source, packageNode, nsUri, licenses);
+  /**
+   * Creates a new package from the attributes and elements of the given XML node.
+   * This constructor should throw an exception if the package cannot be created.
+   *
+   * @param source      The {@link SdkSource} where this is loaded from.
+   * @param packageNode The XML element being parsed.
+   * @param nsUri       The namespace URI of the originating XML document, to be able to deal with
+   *                    parameters that vary according to the originating XML schema.
+   * @param licenses    The licenses loaded from the XML originating document.
+   */
+  NoPreviewRevisionPackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+    super(source, packageNode, nsUri, licenses);
 
-        mRevision = PackageParserUtils.parseNoPreviewRevisionElement(
-                PackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
+    mRevision =
+      PackageParserUtils.parseNoPreviewRevisionElement(PackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
+  }
+
+  /**
+   * Manually create a new package with one archive and the given attributes.
+   * This is used to create packages from local directories in which case there must be
+   * one archive which URL is the actual target location.
+   * <p/>
+   * Properties from props are used first when possible, e.g. if props is non null.
+   * <p/>
+   * By design, this creates a package with one and only one archive.
+   */
+  public NoPreviewRevisionPackage(SdkSource source,
+                                  Properties props,
+                                  int revision,
+                                  String license,
+                                  String description,
+                                  String descUrl,
+                                  String archiveOsPath) {
+    super(source, props, revision, license, description, descUrl, archiveOsPath);
+
+    String revStr = getProperty(props, PkgProps.PKG_REVISION, null);
+
+    NoPreviewRevision rev = null;
+    if (revStr != null) {
+      try {
+        rev = NoPreviewRevision.parseRevision(revStr);
+      }
+      catch (NumberFormatException ignore) {
+      }
+    }
+    if (rev == null) {
+      rev = new NoPreviewRevision(revision);
     }
 
-    /**
-     * Manually create a new package with one archive and the given attributes.
-     * This is used to create packages from local directories in which case there must be
-     * one archive which URL is the actual target location.
-     * <p/>
-     * Properties from props are used first when possible, e.g. if props is non null.
-     * <p/>
-     * By design, this creates a package with one and only one archive.
-     */
-    public NoPreviewRevisionPackage(
-            SdkSource source,
-            Properties props,
-            int revision,
-            String license,
-            String description,
-            String descUrl,
-            String archiveOsPath) {
-        super(source, props, revision, license, description, descUrl, archiveOsPath);
+    mRevision = rev;
+  }
 
-        String revStr = getProperty(props, PkgProps.PKG_REVISION, null);
+  /**
+   * Returns the revision, an int > 0, for all packages (platform, add-on, tool, doc).
+   * Can be 0 if this is a local package of unknown revision.
+   */
+  @Override
+  public NoPreviewRevision getRevision() {
+    return mRevision;
+  }
 
-        NoPreviewRevision rev = null;
-        if (revStr != null) {
-            try {
-                rev = NoPreviewRevision.parseRevision(revStr);
-            } catch (NumberFormatException ignore) {}
-        }
-        if (rev == null) {
-            rev = new NoPreviewRevision(revision);
-        }
 
-        mRevision = rev;
+  @Override
+  public void saveProperties(Properties props) {
+    super.saveProperties(props);
+    props.setProperty(PkgProps.PKG_REVISION, mRevision.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((mRevision == null) ? 0 : mRevision.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof NoPreviewRevisionPackage)) {
+      return false;
+    }
+    NoPreviewRevisionPackage other = (NoPreviewRevisionPackage)obj;
+    if (mRevision == null) {
+      if (other.mRevision != null) {
+        return false;
+      }
+    }
+    else if (!mRevision.equals(other.mRevision)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public UpdateInfo canBeUpdatedBy(Package replacementPackage) {
+    if (replacementPackage == null) {
+      return UpdateInfo.INCOMPATIBLE;
     }
 
-    /**
-     * Returns the revision, an int > 0, for all packages (platform, add-on, tool, doc).
-     * Can be 0 if this is a local package of unknown revision.
-     */
-    @Override
-    public NoPreviewRevision getRevision() {
-        return mRevision;
+    // check they are the same item.
+    if (!sameItemAs(replacementPackage)) {
+      return UpdateInfo.INCOMPATIBLE;
     }
 
-
-    @Override
-    public void saveProperties(Properties props) {
-        super.saveProperties(props);
-        props.setProperty(PkgProps.PKG_REVISION, mRevision.toString());
+    // check revision number
+    if (replacementPackage.getRevision().compareTo(this.getRevision()) > 0) {
+      return UpdateInfo.UPDATE;
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((mRevision == null) ? 0 : mRevision.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (!(obj instanceof com.android.tools.idea.sdk.remote.internal.packages.NoPreviewRevisionPackage)) {
-            return false;
-        }
-        com.android.tools.idea.sdk.remote.internal.packages.NoPreviewRevisionPackage
-          other = (com.android.tools.idea.sdk.remote.internal.packages.NoPreviewRevisionPackage) obj;
-        if (mRevision == null) {
-            if (other.mRevision != null) {
-                return false;
-            }
-        } else if (!mRevision.equals(other.mRevision)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public UpdateInfo canBeUpdatedBy(Package replacementPackage) {
-        if (replacementPackage == null) {
-            return UpdateInfo.INCOMPATIBLE;
-        }
-
-        // check they are the same item.
-        if (!sameItemAs(replacementPackage)) {
-            return UpdateInfo.INCOMPATIBLE;
-        }
-
-        // check revision number
-        if (replacementPackage.getRevision().compareTo(this.getRevision()) > 0) {
-            return UpdateInfo.UPDATE;
-        }
-
-        // not an upgrade but not incompatible either.
-        return UpdateInfo.NOT_UPDATE;
-    }
+    // not an upgrade but not incompatible either.
+    return UpdateInfo.NOT_UPDATE;
+  }
 
 
 }

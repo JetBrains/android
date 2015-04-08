@@ -16,10 +16,9 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
+import com.android.sdklib.repository.MajorRevision;
 
 
 /**
@@ -32,15 +31,16 @@ import com.android.sdklib.repository.FullRevision.PreviewComparison;
  */
 public interface IFullRevisionProvider {
 
-    /**
-     * Returns whether the given package represents the same item as the current package.
-     * <p/>
-     * Two packages are considered the same if they represent the same thing, except for the
-     * revision number.
-     * @param pkg The package to compare
-     * @param comparePreview How to compare previews.
-     * @return true if the items are the same.
-     */
-    public abstract boolean sameItemAs(Package pkg, PreviewComparison comparePreview);
+  /**
+   * Returns whether the given package represents the same item as the current package.
+   * <p/>
+   * Two packages are considered the same if they represent the same thing, except for the
+   * revision number.
+   *
+   * @param pkg            The package to compare
+   * @param comparePreview How to compare previews.
+   * @return true if the items are the same.
+   */
+  boolean sameItemAs(Package pkg, PreviewComparison comparePreview);
 
 }

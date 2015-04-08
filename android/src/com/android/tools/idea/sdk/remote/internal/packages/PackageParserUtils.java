@@ -18,17 +18,8 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
-import com.android.tools.idea.sdk.remote.internal.archives.BitSize;
-import com.android.tools.idea.sdk.remote.internal.archives.HostOs;
-import com.android.tools.idea.sdk.remote.internal.archives.LegacyArch;
-import com.android.tools.idea.sdk.remote.internal.archives.LegacyOs;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.NoPreviewRevision;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.SdkRepoConstants;
-
+import com.android.sdklib.repository.*;
+import com.android.tools.idea.sdk.remote.internal.archives.*;
 import org.w3c.dom.Node;
 
 import java.util.Properties;
