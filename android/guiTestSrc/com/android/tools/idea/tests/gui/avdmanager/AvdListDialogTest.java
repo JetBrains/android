@@ -26,7 +26,7 @@ public class AvdListDialogTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testCreateAvd() throws Exception {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
@@ -54,7 +54,7 @@ public class AvdListDialogTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testEditAvd() throws Exception {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
     makeNexus5(ideFrame);
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 19");

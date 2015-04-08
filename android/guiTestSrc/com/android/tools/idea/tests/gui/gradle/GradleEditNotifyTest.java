@@ -31,7 +31,7 @@ public class GradleEditNotifyTest extends GuiTestCase {
     // the build.gradle model is out of date
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/build.gradle");
 

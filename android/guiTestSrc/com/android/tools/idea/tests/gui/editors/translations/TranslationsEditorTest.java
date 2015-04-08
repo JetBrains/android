@@ -41,7 +41,7 @@ public class TranslationsEditorTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testBasics() throws IOException {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
 
     // open editor on a strings file
     String stringsXmlPath = "app/src/main/res/values/strings.xml";

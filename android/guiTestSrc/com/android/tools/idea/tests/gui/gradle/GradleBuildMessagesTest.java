@@ -32,7 +32,7 @@ public class GradleBuildMessagesTest extends GuiTestCase {
 
   @Test
   public void hyperlinks() throws Exception {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     projectFrame.invokeProjectMakeWithGradleOutput(
       ":app:preBuild FAILED\n" +
       "\n" +
