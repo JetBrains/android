@@ -51,7 +51,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
-import junit.framework.Assert;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -82,7 +81,6 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture.findByTitle;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.INFO;
@@ -567,7 +565,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog().clickCancel();
+    findGradleSyncMessageDialog(projectFrame.target).clickCancel();
 
     String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
@@ -610,7 +608,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog().clickOk();
+    findGradleSyncMessageDialog(projectFrame.target).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -626,7 +624,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog().clickOk();
+    findGradleSyncMessageDialog(projectFrame.target).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -775,16 +773,17 @@ public class GradleSyncTest extends GuiTestCase {
     cleanUpProjectForImport(projectDirPath);
 
     // Import project
-    findWelcomeFrame().clickImportProjectButton();
+    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
+    welcomeFrame.clickImportProjectButton();
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
 
     VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
-    Assert.assertNotNull(toSelect);
+    assertNotNull(toSelect);
 
     importProjectDialog.select(toSelect).clickOk();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog().clickOk();
+    findGradleSyncMessageDialog(welcomeFrame.target).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectDirPath);
     projectFrame.waitForGradleProjectSyncToFinish()
@@ -793,8 +792,8 @@ public class GradleSyncTest extends GuiTestCase {
 
 
   @NotNull
-  private MessageDialogFixture findGradleSyncMessageDialog() {
-    return findByTitle(myRobot, "Gradle Sync");
+  private MessagesFixture findGradleSyncMessageDialog(@NotNull Container root) {
+    return MessagesFixture.findByTitle(myRobot, root, "Gradle Sync");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74341
