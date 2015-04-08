@@ -769,7 +769,7 @@ public class Template {
       FileUtil.writeToFile(tempFile, mergeText);
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
       ManifestMerger2.Invoker merger = ManifestMerger2.newMerger(targetManifest, logger, MergeType.APPLICATION)
-          .withFeatures(Feature.EXTRACT_FQCNS)
+          .withFeatures(Feature.EXTRACT_FQCNS, Feature.NO_PLACEHOLDER_REPLACEMENT)
           .addLibraryManifest(tempFile);
       MergingReport mergeReport = merger
         .merge();
