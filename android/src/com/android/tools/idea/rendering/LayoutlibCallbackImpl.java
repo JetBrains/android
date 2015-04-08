@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -56,11 +57,12 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.RenderParamsFlags.*;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Loader for Android Project class in order to use them in the layout editor.
- * <p/>This implements {@link IProjectCallback} for the old and new API through
+ * <p/>This implements {@code com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
  * {@link LayoutlibCallback}
  */
 public class LayoutlibCallbackImpl extends LayoutlibCallback {
@@ -658,5 +660,24 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   public ActionBarHandler getActionBarHandler() {
     return myActionBarHandler;
+  }
+
+  @Nullable
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T getFlag(@NotNull SessionParams.Key<T> key) {
+    if (key == FLAG_KEY_APPLICATION_PACKAGE) {
+      return (T)getPackage();
+    }
+    if (key == FLAG_KEY_RECYCLER_VIEW_SUPPORT) {
+      return (T)Boolean.TRUE;
+    }
+    return null;
+  }
+
+  @Nullable
+  private String getPackage() {
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule, false);
+    return manifestInfo != null ? manifestInfo.getPackage() : null;
   }
 }
