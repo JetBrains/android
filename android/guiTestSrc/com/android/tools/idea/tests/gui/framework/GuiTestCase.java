@@ -80,6 +80,8 @@ public abstract class GuiTestCase {
   @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
   private String myTestName;
 
+  private static boolean ourFileChooserUsedForProjectImport;
+
   /**
    * @return the name of the test method being executed.
    */
@@ -183,10 +185,14 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true, null);
+  protected IdeFrameFixture importSimpleApplication() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+  }
 
-    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
+  @NotNull
+  protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    File projectPath = setUpProject(projectDirName, false, true, null);
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
     AndroidPlugin.GuiTestSuiteState testSuiteState = getTestSuiteState();
@@ -199,12 +205,7 @@ public abstract class GuiTestCase {
       return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
     }
 
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(toSelect);
-      }
-    });
+    doImportProject(toSelect);
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -213,8 +214,21 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openSimpleApplication() throws IOException {
-    return openProject("SimpleApplication");
+  protected File importProject(@NotNull String projectDirName) throws IOException {
+    File projectPath = setUpProject(projectDirName, false, true, null);
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+    doImportProject(toSelect);
+    return projectPath;
+  }
+
+  private static void doImportProject(@NotNull final VirtualFile projectDir) {
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        GradleProjectImporter.getInstance().importProject(projectDir);
+      }
+    });
   }
 
   @NotNull
