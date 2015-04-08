@@ -32,11 +32,15 @@ import com.intellij.util.lang.ClassPath;
 import com.intellij.util.lang.ClasspathCache;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.text.StringTokenizer;
+import org.fest.reflect.reference.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -45,12 +49,12 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
 import static com.intellij.openapi.application.PathManager.PROPERTY_CONFIG_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static com.intellij.util.containers.ContainerUtil.addAll;
 import static com.intellij.util.ui.UIUtil.initDefaultLAF;
-import static org.fest.reflect.core.Reflection.*;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.staticMethod;
 
 public class IdeTestApplication implements Disposable {
   private static final Logger LOG = Logger.getInstance(IdeTestApplication.class);
@@ -189,24 +193,12 @@ public class IdeTestApplication implements Disposable {
 
   @NotNull
   private static List<URL> getUrlsFrom(@NotNull ClassLoader classLoader) throws URISyntaxException, MalformedURLException {
-    // We need to use reflection because classLoader was loaded using another ClassLoader.
-    List<URL> urls = Lists.newArrayList();
-
-    Object urlList = field("myURLs").ofType(Object.class).in(classLoader).get(); // List<URL>
-    assert urlList != null;
-
-    int urlCount = method("size").withReturnType(int.class).in(urlList).invoke();
-
-    for (int i = 0; i < urlCount; i++) {
-      Object url = method("get").withReturnType(Object.class).withParameterTypes(int.class).in(urlList).invoke(i);
-      if (url != null) {
-        String value = method("toString").withReturnType(String.class).in(url).invoke();
-        if (isNotEmpty(value)) {
-          URI uri = new URI(value);
-          urls.add(uri.toURL());
-        }
-      }
-    }
+    // We need to use reflection because the given classLoader was loaded using another ClassLoader and 'instanceof UrlClassLoader' returns
+    // false.
+    List<URL> urls = field("myURLs").ofType(new TypeRef<List<URL>>() {})
+                                    .in(classLoader)
+                                    .get();
+    assert urls != null;
     return urls;
   }
 
