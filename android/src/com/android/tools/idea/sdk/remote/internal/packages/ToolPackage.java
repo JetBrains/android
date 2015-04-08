@@ -22,22 +22,19 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
-import com.android.tools.idea.sdk.remote.internal.packages.*;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.sdklib.repository.IDescription;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
+import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
+import com.android.tools.idea.sdk.remote.internal.archives.Archive;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.utils.GrabProcessOutput;
 import com.android.utils.GrabProcessOutput.IProcessOutput;
 import com.android.utils.GrabProcessOutput.Wait;
-
 import org.w3c.dom.Node;
 
 import java.io.File;

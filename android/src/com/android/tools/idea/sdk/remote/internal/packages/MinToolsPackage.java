@@ -16,11 +16,8 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.tools.idea.sdk.remote.internal.packages.IMinToolsDependency;
-import com.android.tools.idea.sdk.remote.internal.packages.MajorRevisionPackage;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.sdklib.repository.FullRevision;
-
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
 import java.util.Map;

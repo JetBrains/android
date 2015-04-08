@@ -30,49 +30,57 @@ import java.util.Locale;
  * <a href="http://d.android.com/sdk">http://d.android.com/sdk</a>
  */
 public enum HostOs {
-    /** Any of the Unix-like host OSes. */
-    LINUX("Linux"),
-    /** Any variation of MacOS X. */
-    MACOSX("MacOS X"),
-    /** Any variation of Windows. */
-    WINDOWS("Windows");
+  /**
+   * Any of the Unix-like host OSes.
+   */
+  LINUX("Linux"),
+  /**
+   * Any variation of MacOS X.
+   */
+  MACOSX("MacOS X"),
+  /**
+   * Any variation of Windows.
+   */
+  WINDOWS("Windows");
 
-    private final String mUiName;
+  private final String mUiName;
 
-    private HostOs(@NonNull String uiName) {
-        mUiName = uiName;
-    }
+  HostOs(@NonNull String uiName) {
+    mUiName = uiName;
+  }
 
-    /**
-     * Returns the UI name of the OS.
-     */
-    @NonNull
-    public String getUiName() {
-        return mUiName;
-    }
+  /**
+   * Returns the UI name of the OS.
+   */
+  @NonNull
+  public String getUiName() {
+    return mUiName;
+  }
 
-    /**
-     * Returns the XML name of the OS.
-     * @returns Null, windows, macosx or linux.
-     */
-    @NonNull
-    public String getXmlName() {
-        return toString().toLowerCase(Locale.US);
-    }
+  /**
+   * Returns the XML name of the OS.
+   *
+   * @returns Null, windows, macosx or linux.
+   */
+  @NonNull
+  public String getXmlName() {
+    return toString().toLowerCase(Locale.US);
+  }
 
-    /**
-     * Returns the enum value matching the given XML name.
-     * @return A valid {@link com.android.tools.idea.sdk.remote.internal.archives.HostOs} constnat or null if not a valid XML name.
-     */
-    @Nullable
-    public static com.android.tools.idea.sdk.remote.internal.archives.HostOs fromXmlName(@Nullable String xmlName) {
-        if (xmlName != null) {
-            for (com.android.tools.idea.sdk.remote.internal.archives.HostOs v : values()) {
-                if (v.getXmlName().equalsIgnoreCase(xmlName)) {
-                    return v;
-                }
-            }
+  /**
+   * Returns the enum value matching the given XML name.
+   *
+   * @return A valid {@link HostOs} constnat or null if not a valid XML name.
+   */
+  @Nullable
+  public static HostOs fromXmlName(@Nullable String xmlName) {
+    if (xmlName != null) {
+      for (HostOs v : values()) {
+        if (v.getXmlName().equalsIgnoreCase(xmlName)) {
+          return v;
         }
-        return null;
+      }
     }
+    return null;
+  }
 }
