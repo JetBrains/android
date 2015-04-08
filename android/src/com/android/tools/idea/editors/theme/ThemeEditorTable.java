@@ -53,7 +53,7 @@ public class ThemeEditorTable extends CellSpanTable {
       return null;
     }
 
-    AttributesTableModel.RowContents contents = ((AttributesTableModel) model).getRowContents(row);
+    AttributesTableModel.RowContents contents = ((AttributesTableModel) model).getRowContents(this.convertRowIndexToModel(row));
     if (contents == null) {
       return null;
     }
