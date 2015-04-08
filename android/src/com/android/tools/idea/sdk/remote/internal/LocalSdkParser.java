@@ -25,22 +25,11 @@ import com.android.sdklib.ISystemImage.LocationType;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.androidTarget.PlatformTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.sdk.remote.internal.*;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.packages.AddonPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.DocPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.ExtraPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.tools.idea.sdk.remote.internal.packages.PlatformPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.PlatformToolPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.SamplePackage;
-import com.android.tools.idea.sdk.remote.internal.packages.SourcePackage;
-import com.android.tools.idea.sdk.remote.internal.packages.SystemImagePackage;
-import com.android.tools.idea.sdk.remote.internal.packages.ToolPackage;
 import com.android.sdklib.io.FileOp;
 import com.android.sdklib.repository.AddonManifestIniProps;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.remote.internal.packages.*;
+import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.utils.ILogger;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
@@ -48,12 +37,7 @@ import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Scans a local SDK to find which packages are currently installed.

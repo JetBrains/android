@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.sdk.remote.internal.packages.IPlatformDependency;
 
 /**
  * Interface for packages that provide an {@link AndroidVersion}.

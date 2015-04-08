@@ -17,9 +17,6 @@
 package com.android.tools.idea.sdk.remote.internal.archives;
 
 
-import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
-import com.android.tools.idea.sdk.remote.internal.archives.HostOs;
-
 /**
  * The legacy Architecture that this archive can be downloaded on.
  * <p/>
@@ -31,19 +28,21 @@ import com.android.tools.idea.sdk.remote.internal.archives.HostOs;
  * @see HostOs
  */
 public enum LegacyArch {
-    ANY("Any"),
-    PPC("PowerPC"),
-    X86("x86"),
-    X86_64("x86_64");
+  ANY("Any"),
+  PPC("PowerPC"),
+  X86("x86"),
+  X86_64("x86_64");
 
-    private final String mUiName;
+  private final String mUiName;
 
-    private LegacyArch(String uiName) {
-        mUiName = uiName;
-    }
+  LegacyArch(String uiName) {
+    mUiName = uiName;
+  }
 
-    /** Returns the UI name of the architecture. */
-    public String getUiName() {
-        return mUiName;
-    }
+  /**
+   * Returns the UI name of the architecture.
+   */
+  public String getUiName() {
+    return mUiName;
+  }
 }

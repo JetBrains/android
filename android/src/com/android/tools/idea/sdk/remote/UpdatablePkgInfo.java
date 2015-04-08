@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk.remote;
 
 import com.android.annotations.NonNull;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import org.jetbrains.annotations.Nullable;
 
