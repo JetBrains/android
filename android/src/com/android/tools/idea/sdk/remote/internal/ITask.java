@@ -17,13 +17,10 @@
 package com.android.tools.idea.sdk.remote.internal;
 
 
-import com.android.tools.idea.sdk.remote.internal.*;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-
 /**
  * A task that executes and can update a monitor to display its status.
  * The task will generally be run in a separate thread.
  */
 public interface ITask {
-    public abstract void run(ITaskMonitor monitor);
+  void run(ITaskMonitor monitor);
 }

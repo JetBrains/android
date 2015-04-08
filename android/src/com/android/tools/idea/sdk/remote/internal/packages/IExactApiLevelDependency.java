@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.tools.idea.sdk.remote.internal.packages.IMinApiLevelDependency;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.sdklib.repository.RepoConstants;
 
 /**
@@ -34,18 +32,18 @@ import com.android.sdklib.repository.RepoConstants;
  */
 public interface IExactApiLevelDependency {
 
-    /**
-     * The value of {@link #getExactApiLevel()} when the {@link RepoConstants#NODE_API_LEVEL}
-     * was not specified in the XML source.
-     */
-    public static final int API_LEVEL_INVALID = 0;
+  /**
+   * The value of {@link #getExactApiLevel()} when the {@link RepoConstants#NODE_API_LEVEL}
+   * was not specified in the XML source.
+   */
+  int API_LEVEL_INVALID = 0;
 
-    /**
-     * Returns the exact API level required by this package, if > 0,
-     * or {@link #API_LEVEL_INVALID} if the value was missing.
-     * <p/>
-     * This attribute is mandatory and should not be normally missing.
-     * It can only happen when dealing with an invalid repository XML.
-     */
-    public abstract int getExactApiLevel();
+  /**
+   * Returns the exact API level required by this package, if > 0,
+   * or {@link #API_LEVEL_INVALID} if the value was missing.
+   * <p/>
+   * This attribute is mandatory and should not be normally missing.
+   * It can only happen when dealing with an invalid repository XML.
+   */
+  int getExactApiLevel();
 }

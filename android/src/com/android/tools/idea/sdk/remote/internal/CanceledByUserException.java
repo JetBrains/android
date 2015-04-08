@@ -16,17 +16,15 @@
 
 package com.android.tools.idea.sdk.remote.internal;
 
-import com.android.tools.idea.sdk.remote.internal.DownloadCache;
-
 /**
  * Exception thrown by {@link DownloadCache} and {@link com.android.tools.idea.sdk.remote.internal.UrlOpener} when a user
  * cancels an HTTP Basic authentication or NTML authentication dialog.
  */
 public class CanceledByUserException extends Exception {
-    private static final long serialVersionUID = -7669346110926032403L;
+  private static final long serialVersionUID = -7669346110926032403L;
 
-    public CanceledByUserException(String message) {
-        super(message);
-    }
+  public CanceledByUserException(String message) {
+    super(message);
+  }
 }
 

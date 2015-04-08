@@ -22,15 +22,6 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
-import com.android.tools.idea.sdk.remote.internal.LocalSdkParser;
-import com.android.tools.idea.sdk.remote.internal.NullTaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
-import com.android.tools.idea.sdk.remote.internal.packages.IMinApiLevelDependency;
-import com.android.tools.idea.sdk.remote.internal.packages.IMinToolsDependency;
-import com.android.tools.idea.sdk.remote.internal.packages.NoPreviewRevisionPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.tools.idea.sdk.remote.internal.packages.PackageParserUtils;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.PkgProps;
@@ -40,6 +31,10 @@ import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDescExtra;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
+import com.android.tools.idea.sdk.remote.internal.LocalSdkParser;
+import com.android.tools.idea.sdk.remote.internal.NullTaskMonitor;
+import com.android.tools.idea.sdk.remote.internal.archives.Archive;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.utils.NullLogger;
 import org.w3c.dom.Node;
 
@@ -553,11 +548,8 @@ public class ExtraPackage extends NoPreviewRevisionPackage
 
         // First find if this extra is already installed. If so, reuse the same directory.
         LocalSdkParser localParser = new LocalSdkParser();
-        Package[] pkgs = localParser.parseSdk(
-                osSdkRoot,
-                sdkManager,
-                LocalSdkParser.PARSE_EXTRAS,
-                new NullTaskMonitor(NullLogger.getLogger()));
+        Package[] pkgs = localParser.parseSdk(osSdkRoot, sdkManager, LocalSdkParser.PARSE_EXTRAS,
+                                              new NullTaskMonitor(NullLogger.getLogger()));
 
         for (Package pkg : pkgs) {
             if (sameItemAs(pkg) && pkg instanceof com.android.tools.idea.sdk.remote.internal.packages.ExtraPackage) {

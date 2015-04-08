@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.sdk.remote.internal.sources;
 
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.sdklib.repository.IDescription;
 
 
@@ -25,66 +24,66 @@ import com.android.sdklib.repository.IDescription;
  */
 public enum SdkSourceCategory implements IDescription {
 
-    /**
-     * The default canonical and official Android repository.
-     */
-    ANDROID_REPO("Android Repository", true),
+  /**
+   * The default canonical and official Android repository.
+   */
+  ANDROID_REPO("Android Repository", true),
 
-    /**
-     * Repositories contributed by the SDK_UPDATER_URLS env var,
-     * only used for local debugging.
-     */
-    GETENV_REPOS("Custom Repositories", false),
+  /**
+   * Repositories contributed by the SDK_UPDATER_URLS env var,
+   * only used for local debugging.
+   */
+  GETENV_REPOS("Custom Repositories", false),
 
-    /**
-     * All third-party add-ons fetched from the Android repository.
-     */
-    ADDONS_3RD_PARTY("Third party Add-ons", true),
+  /**
+   * All third-party add-ons fetched from the Android repository.
+   */
+  ADDONS_3RD_PARTY("Third party Add-ons", true),
 
-    /**
-     * All add-ons contributed locally by the user via the "Add Add-on Site" button.
-     */
-    USER_ADDONS("User Add-ons", false),
+  /**
+   * All add-ons contributed locally by the user via the "Add Add-on Site" button.
+   */
+  USER_ADDONS("User Add-ons", false),
 
-    /**
-     * Add-ons contributed by the SDK_UPDATER_USER_URLS env var,
-     * only used for local debugging.
-     */
-    GETENV_ADDONS("Custom Add-ons", false);
+  /**
+   * Add-ons contributed by the SDK_UPDATER_USER_URLS env var,
+   * only used for local debugging.
+   */
+  GETENV_ADDONS("Custom Add-ons", false);
 
 
-    private final String mUiName;
-    private final boolean mAlwaysDisplay;
+  private final String mUiName;
+  private final boolean mAlwaysDisplay;
 
-    private SdkSourceCategory(String uiName, boolean alwaysDisplay) {
-        mUiName = uiName;
-        mAlwaysDisplay = alwaysDisplay;
-    }
+  private SdkSourceCategory(String uiName, boolean alwaysDisplay) {
+    mUiName = uiName;
+    mAlwaysDisplay = alwaysDisplay;
+  }
 
-    /**
-     * Returns the UI-visible name of the category. Displayed in the available package tree.
-     * Cannot be null nor empty.
-     */
-    public String getUiName() {
-        return mUiName;
-    }
+  /**
+   * Returns the UI-visible name of the category. Displayed in the available package tree.
+   * Cannot be null nor empty.
+   */
+  public String getUiName() {
+    return mUiName;
+  }
 
-    /**
-     * True if this category must always be displayed by the available package tree, even
-     * if empty.
-     * When false, the category must not be displayed when empty.
-     */
-    public boolean getAlwaysDisplay() {
-        return mAlwaysDisplay;
-    }
+  /**
+   * True if this category must always be displayed by the available package tree, even
+   * if empty.
+   * When false, the category must not be displayed when empty.
+   */
+  public boolean getAlwaysDisplay() {
+    return mAlwaysDisplay;
+  }
 
-    @Override
-    public String getLongDescription() {
-        return getUiName();
-    }
+  @Override
+  public String getLongDescription() {
+    return getUiName();
+  }
 
-    @Override
-    public String getShortDescription() {
-        return getUiName();
-    }
+  @Override
+  public String getShortDescription() {
+    return getUiName();
+  }
 }
