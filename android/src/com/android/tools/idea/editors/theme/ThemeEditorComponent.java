@@ -552,11 +552,13 @@ public class ThemeEditorComponent extends Splitter {
       @Override
       public void tableChanged(TableModelEvent e) {
         if (e.getType() == TableModelEvent.UPDATE) {
+
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          if (facet != null) {
+            facet.refreshResources();
+          }
+
           if (e.getLastRow() == 0) { // Indicates a change in the theme name
-            AndroidFacet facet = AndroidFacet.getInstance(myModule);
-            if (facet != null) {
-              facet.refreshResources();
-            }
             reload(model.getThemeNameInXml());
           }
           else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
