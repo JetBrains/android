@@ -15,48 +15,35 @@
  */
 package com.android.tools.idea.properties.basicTypes;
 
+import com.android.tools.idea.properties.ObservableValue;
 import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.expressions.bool.AndExpression;
 import com.android.tools.idea.properties.expressions.bool.BooleanExpression;
-import com.android.tools.idea.properties.expressions.string.IsEmptyExpression;
-import com.android.tools.idea.properties.expressions.string.StringExpression;
-import com.android.tools.idea.properties.expressions.string.TrimExpression;
+import com.android.tools.idea.properties.expressions.bool.NotExpression;
+import com.android.tools.idea.properties.expressions.bool.OrExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A String-backed {@link ObservableProperty}.
+ * Base class that every boolean-type property should inherit from, as it provides useful methods
+ * that enable chaining.
  */
-public final class StringValueProperty extends StringProperty {
-
-  private String myValue;
-
-  public StringValueProperty(final String value) {
-    myValue = value;
-  }
-
-  public StringValueProperty() {
-    this("");
+public abstract class BoolProperty extends ObservableProperty<Boolean> implements BooleanExpression {
+  @NotNull
+  @Override
+  public BooleanExpression not() {
+    return new NotExpression(this);
   }
 
   @NotNull
   @Override
-  public String get() {
-    return myValue;
+  public BooleanExpression or(@NotNull ObservableValue<Boolean> other) {
+    return new OrExpression(this, other);
   }
 
   @NotNull
   @Override
-  public BooleanExpression isEmpty() {
-    return new IsEmptyExpression(this);
+  public BooleanExpression and(@NotNull ObservableValue<Boolean> other) {
+    return new AndExpression(this, other);
   }
 
-  @NotNull
-  @Override
-  public StringExpression trim() {
-    return new TrimExpression(this);
-  }
-
-  @Override
-  protected void setDirectly(@NotNull String value) {
-    myValue = value;
-  }
 }
