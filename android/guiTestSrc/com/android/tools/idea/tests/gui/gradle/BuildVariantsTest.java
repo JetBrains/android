@@ -41,7 +41,7 @@ public class BuildVariantsTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSwitchVariantWithFlavor() throws IOException {
-    IdeFrameFixture projectFrame = openProject("Flavoredlib");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
 
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Release");
@@ -84,7 +84,7 @@ public class BuildVariantsTest extends GuiTestCase {
     final String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
     final String unitTestSrc = MODULE_NAME + "/src/test/java";
 
-    IdeFrameFixture projectFrame = openProject("SimpleApplicationWithUnitTests");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplicationWithUnitTests");
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
     buildVariants.activate();
 

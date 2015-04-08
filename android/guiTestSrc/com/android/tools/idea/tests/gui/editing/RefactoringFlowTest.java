@@ -32,7 +32,7 @@ public class RefactoringFlowTest extends GuiTestCase {
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
     // you get a warning in the conflicts dialog first
-    IdeFrameFixture project = openSimpleApplication();
+    IdeFrameFixture project = importSimpleApplication();
     EditorFixture editor = project.getEditor();
     editor.open("app/src/main/res/values/strings.xml");
     editor.moveTo(editor.findOffset("hello^_world"));
@@ -58,7 +58,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     // a resource that is only defined locally and make sure there is
     // no dialog.
 
-    IdeFrameFixture ideFrame = openProject("LayoutTest");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/values/override.xml");
     // <string name="abc_searchview_description_submit">@string/abc_searchview_description_voice</string>

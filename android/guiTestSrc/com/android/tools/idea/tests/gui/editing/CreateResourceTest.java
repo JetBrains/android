@@ -34,7 +34,7 @@ public class CreateResourceTest extends GuiTestCase {
     // and makes sure the prefix is correct, including checking that we don't end up with
     // double prefixes as described in issue http://b.android.com/77421.
 
-    IdeFrameFixture ideFrame = openProject("LayoutTest");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = ideFrame.getEditor();
     editor.open("lib/src/main/java/com/android/tools/test/mylibrary/LibraryActivity.java");
     editor.select(editor.findOffset("R.layout.^activity_library"),

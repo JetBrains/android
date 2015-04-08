@@ -29,7 +29,7 @@ public class HardwareProfileTest extends GuiTestCase {
 
   @Test
   public void testCreateHardwareProfile() throws Exception {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
     ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();

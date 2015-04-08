@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -119,17 +118,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testMissingInterModuleDependencies() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    File projectPath = setUpProject("ModuleDependencies", false, true, null);
-
-    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
-    assertNotNull(toSelect);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(toSelect);
-      }
-    });
+    File projectPath = importProject("ModuleDependencies");
 
     ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
     projectSubsetDialog.selectModule("javalib1", false)
@@ -153,7 +142,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testNonExistingInterModuleDependencies() throws IOException {
-    final IdeFrameFixture projectFrame = importProject("ModuleDependencies");
+    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
     projectFrame.waitForGradleProjectSyncToFinish();
 
     Module appModule = projectFrame.getModule("app");
@@ -186,7 +175,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testUserDefinedLibrarySources() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     Project project = projectFrame.getProject();
 
     String libraryName = "guava-18.0";
@@ -228,7 +217,7 @@ public class GradleSyncTest extends GuiTestCase {
     File androidRepoPath = new File(IdeSdks.getAndroidSdkPath(), FileUtil.join("extras", "android", "m2repository"));
     assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test").isDirectory();
 
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     assertTrue("Android Support Repository deleted", FileUtil.delete(androidRepoPath));
 
@@ -293,7 +282,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testJdkNodeModificationInProjectView() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     AndroidTreeStructureProvider treeStructureProvider = null;
     TreeStructureProvider[] treeStructureProviders = Extensions.getExtensions(TreeStructureProvider.EP_NAME, projectFrame.getProject());
@@ -359,7 +348,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest @Ignore // Removed minimum plugin version check. It is failing in some projects.
   public void testUnsupportedPluginVersion() throws IOException {
     // Open the project without updating the version of the plug-in
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     final Project project = projectFrame.getProject();
 
@@ -398,7 +387,7 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test @IdeGuiTest @Ignore // Works only when executed individually
   public void testHandlingOfOutOfMemoryErrors() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     // Force a sync failure by allocating not enough memory for the Gradle daemon.
     Properties gradleProperties = new Properties();
@@ -419,7 +408,7 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=73872
   @Test @IdeGuiTest
   public void testHandlingOfClassLoadingErrors() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.requestProjectSyncAndSimulateFailure("Unable to load class 'com.android.utils.ILogger'");
 
@@ -433,7 +422,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=72556
   public void testHandlingOfUnexpectedEndOfBlockData() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.requestProjectSyncAndSimulateFailure("unexpected end of block data");
 
@@ -447,7 +436,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=66880
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.deleteGradleWrapper()
                 .requestProjectSync()
@@ -458,7 +447,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=72294
   public void testSyncWithEmptyGradleSettingsFileInMultiModuleProject() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     createEmptyGradleSettingsFile(projectFrame.getProjectPath());
 
@@ -470,7 +459,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=76444
   public void testSyncWithEmptyGradleSettingsFileInSingleModuleProject() throws IOException {
-    IdeFrameFixture projectFrame = importProject("Basic");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("Basic");
 
     createEmptyGradleSettingsFile(projectFrame.getProjectPath());
 
@@ -488,7 +477,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testGradleDslMethodNotFoundInBuildFile() throws IOException {
-    final IdeFrameFixture projectFrame = openSimpleApplication();
+    final IdeFrameFixture projectFrame = importSimpleApplication();
 
     File topLevelBuildFile = new File(projectFrame.getProjectPath(), FN_BUILD_GRADLE);
     assertThat(topLevelBuildFile).isFile();
@@ -509,7 +498,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testGradleDslMethodNotFoundInSettingsFile() throws IOException {
-    final IdeFrameFixture projectFrame = openSimpleApplication();
+    final IdeFrameFixture projectFrame = importSimpleApplication();
 
     File settingsFile = new File(projectFrame.getProjectPath(), FN_SETTINGS_GRADLE);
     assertThat(settingsFile).isFile();
@@ -527,7 +516,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=76797
   public void testHandlingOfZipFileOpeningError() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.requestProjectSyncAndSimulateFailure("error in opening zip file");
 
@@ -540,7 +529,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=75520
   public void testConnectionPermissionDeniedError() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     String failure = "Connection to the Internet denied.";
     projectFrame.requestProjectSyncAndSimulateFailure(failure);
@@ -555,7 +544,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=76984
   public void testDaemonContextMismatchError() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     String failure = "The newly created daemon process has a different context than expected.\n" +
                      "It won't be possible to reconnect to this daemon. Context mismatch: \n" +
@@ -572,7 +561,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest @Ignore // We don't perform check for Gradle version in the IDE.
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.useLocalGradleDistribution(getUnsupportedGradleHome())
                 .requestProjectSync();
@@ -596,7 +585,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.deleteGradleWrapper()
                 .useLocalGradleDistribution(getUnsupportedGradleHome())
@@ -614,7 +603,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest @Ignore
   public void testCreateWrapperWhenLocalDistributionPathIsNotSet() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.deleteGradleWrapper()
                 .useLocalGradleDistribution("")
@@ -629,7 +618,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest @Ignore
   public void testCreateWrapperWhenLocalDistributionPathDoesNotExist() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
     projectFrame.deleteGradleWrapper()
@@ -646,7 +635,7 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=74842
   @Test @IdeGuiTest
   public void testPrematureEndOfContentLength() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     // Simulate this Gradle error.
     final String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
@@ -679,7 +668,7 @@ public class GradleSyncTest extends GuiTestCase {
     File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
-    IdeFrameFixture ideFrame = importProject(projectDirName);
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish(projectDirName);
     final Module app = ideFrame.getModule("app");
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
@@ -725,13 +714,13 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSyncWithUnresolvedDependencies() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     testSyncWithUnresolvedAppCompat(projectFrame);
   }
 
   @Test @IdeGuiTest
   public void testSyncWithUnresolvedDependenciesWithAndroidGradlePluginOneDotZero() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     VirtualFile projectBuildFile = projectFrame.findFileByRelativePath("build.gradle", true);
     Document document = getDocument(projectBuildFile);
@@ -811,7 +800,7 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=74341
   @Test @IdeGuiTest
   public void testEditorFindsAppCompatStyle() throws IOException {
-    IdeFrameFixture ideFrame = importProject("AarDependency");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("AarDependency");
 
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
     ideFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
@@ -823,17 +812,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testModuleSelectionOnImport() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    File projectPath = setUpProject("Flavoredlib", false, true, null);
-
-    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
-    assertNotNull(toSelect);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(toSelect);
-      }
-    });
+    File projectPath = importProject("Flavoredlib");
 
     ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
     projectSubsetDialog.selectModule("lib", false)
@@ -852,7 +831,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testLocalJarsAsModules() throws IOException {
-    IdeFrameFixture projectFrame = importProject("LocalJarsAsModules");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LocalJarsAsModules");
     Module localJarModule = projectFrame.getModule("localJarAsModule");
 
     // Module should be a Java module, not buildable (since it doesn't have source code).

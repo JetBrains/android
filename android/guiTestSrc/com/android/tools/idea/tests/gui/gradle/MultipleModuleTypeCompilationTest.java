@@ -42,7 +42,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
-    IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     GradleInvocationResult result = ideFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
@@ -51,7 +51,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
-    IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     CompileContext context = ideFrame.invokeProjectMakeUsingJps();
 
     String[] invokedTasks = null;
