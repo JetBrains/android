@@ -267,21 +267,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         boolean showCloudTarget = getConfiguration() instanceof AndroidTestRunConfiguration && !(executor instanceof DefaultDebugExecutor);
         final ExtendedDeviceChooserDialog chooser =
           new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, true,
-                                          myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget);
+                                          myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget, myCommandLine);
         chooser.show();
         if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
           return null;
         }
 
-        if (chooser.isToLaunchEmulator()) {
-          final String selectedAvd = chooser.getSelectedAvd();
-          if (selectedAvd == null) {
-            return null;
-          }
-          myTargetChooser = new EmulatorTargetChooser(selectedAvd);
-          myAvdName = selectedAvd;
-        }
-        else if (chooser.isCloudTestOptionSelected()) {
+        if (chooser.isCloudTestOptionSelected()) {
           return provider.execute(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId(), this, executor);
         }
         else {
@@ -712,7 +704,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         chooseAvd();
       }
       if (myAvdName != null) {
-        myFacet.launchEmulator(myAvdName, myCommandLine, getProcessHandler());
+        myFacet.launchEmulator(myAvdName, myCommandLine);
       }
       else if (getProcessHandler().isStartNotified()) {
         message("Canceled", STDERR);
