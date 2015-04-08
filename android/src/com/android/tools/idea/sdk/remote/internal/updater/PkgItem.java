@@ -27,20 +27,20 @@ import com.android.tools.idea.sdk.remote.internal.packages.Package.UpdateInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 
 /**
- * A {@link com.android.tools.idea.sdk.remote.internal.updater.PkgItem} represents one main {@link Package} combined with its state
+ * A {@link PkgItem} represents one main {@link Package} combined with its state
  * and an optional update package.
  * <p/>
  * The main package is final and cannot change since it's what "defines" this PkgItem.
  * The state or update package can change later.
  */
-public class PkgItem implements Comparable<com.android.tools.idea.sdk.remote.internal.updater.PkgItem> {
+public class PkgItem implements Comparable<PkgItem> {
   private final PkgState mState;
   private final Package mMainPkg;
   private Package mUpdatePkg;
   private boolean mChecked;
 
   /**
-   * The state of the a given {@link com.android.tools.idea.sdk.remote.internal.updater.PkgItem}, that is the relationship between
+   * The state of the a given {@link PkgItem}, that is the relationship between
    * a given remote package and the local repository.
    */
   public enum PkgState {
@@ -59,7 +59,7 @@ public class PkgItem implements Comparable<com.android.tools.idea.sdk.remote.int
   }
 
   /**
-   * Create a new {@link com.android.tools.idea.sdk.remote.internal.updater.PkgItem} for this main package.
+   * Create a new {@link PkgItem} for this main package.
    * The main package is final and cannot change since it's what "defines" this PkgItem.
    * The state or update package can change later.
    */
@@ -127,7 +127,7 @@ public class PkgItem implements Comparable<com.android.tools.idea.sdk.remote.int
   }
 
   @Override
-  public int compareTo(com.android.tools.idea.sdk.remote.internal.updater.PkgItem pkg) {
+  public int compareTo(PkgItem pkg) {
     return getMainPackage().compareTo(pkg.getMainPackage());
   }
 
@@ -179,11 +179,11 @@ public class PkgItem implements Comparable<com.android.tools.idea.sdk.remote.int
   }
 
   /**
-   * Checks whether too {@link com.android.tools.idea.sdk.remote.internal.updater.PkgItem} are the same.
+   * Checks whether too {@link PkgItem} are the same.
    * This checks both items have the same state, both main package are similar
    * and that they have the same updating packages.
    */
-  public boolean isSameItemAs(com.android.tools.idea.sdk.remote.internal.updater.PkgItem item) {
+  public boolean isSameItemAs(PkgItem item) {
     if (this == item) {
       return true;
     }
@@ -207,13 +207,12 @@ public class PkgItem implements Comparable<com.android.tools.idea.sdk.remote.int
   }
 
   /**
-   * Equality is defined as {@link #isSameItemAs(com.android.tools.idea.sdk.remote.internal.updater.PkgItem)}: state, main package
+   * Equality is defined as {@link #isSameItemAs(PkgItem)}: state, main package
    * and update package must be the similar.
    */
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof com.android.tools.idea.sdk.remote.internal.updater.PkgItem) &&
-           this.isSameItemAs((com.android.tools.idea.sdk.remote.internal.updater.PkgItem)obj);
+    return (obj instanceof PkgItem) && this.isSameItemAs((PkgItem)obj);
   }
 
   @Override
