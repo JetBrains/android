@@ -42,7 +42,7 @@ import java.util.Set;
 public class BuildToolPackage extends FullRevisionPackage {
 
   /**
-   * The base value returned by {@link com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage#installId()}.
+   * The base value returned by {@link BuildToolPackage#installId()}.
    */
   private static final String INSTALL_ID_BASE = SdkConstants.FD_BUILD_TOOLS + '-';
 
@@ -65,10 +65,10 @@ public class BuildToolPackage extends FullRevisionPackage {
   }
 
   /**
-   * Creates either a valid {@link com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage} or a {@link BrokenPackage}.
+   * Creates either a valid {@link BuildToolPackage} or a {@link BrokenPackage}.
    * <p/>
    * If the build-tool directory contains valid properties,
-   * this creates a new {@link com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage} with the reversion listed in the properties.
+   * this creates a new {@link BuildToolPackage} with the reversion listed in the properties.
    * Otherwise returns a new {@link BrokenPackage} with some explanation on what failed.
    * <p/>
    * Note that the folder name is not enforced. A build-tool directory must have a
@@ -77,7 +77,7 @@ public class BuildToolPackage extends FullRevisionPackage {
    *
    * @param buildToolDir The SDK/build-tool/revision folder
    * @param props        The properties located in {@code buildToolDir} or null if not found.
-   * @return A new {@link com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage} or a new {@link BrokenPackage}.
+   * @return A new {@link BuildToolPackage} or a new {@link BrokenPackage}.
    */
   public static Package create(File buildToolDir, Properties props) {
     String error = null;
@@ -138,14 +138,13 @@ public class BuildToolPackage extends FullRevisionPackage {
     }
 
     if (error == null && rev != null) {
-      com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage pkg =
-        new com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage(null,                       //source
-                                                                                 props, 0,
-                                                                                 //revision (extracted from props)
-                                                                                 null,                       //license
-                                                                                 null,                       //description
-                                                                                 null,                       //descUrl
-                                                                                 buildToolDir.getAbsolutePath());
+      BuildToolPackage pkg = new BuildToolPackage(null,                       //source
+                                                  props, 0,
+                                                  //revision (extracted from props)
+                                                  null,                       //license
+                                                  null,                       //description
+                                                  null,                       //descUrl
+                                                  buildToolDir.getAbsolutePath());
 
       if (pkg.hasCompatibleArchive()) {
         return pkg;
@@ -289,9 +288,8 @@ public class BuildToolPackage extends FullRevisionPackage {
   public boolean sameItemAs(Package pkg, PreviewComparison comparePreview) {
     // Contrary to other package types, build-tools do not "update themselves"
     // so 2 build tools with 2 different revisions are not the same item.
-    if (pkg instanceof com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage) {
-      com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage rhs =
-        (com.android.tools.idea.sdk.remote.internal.packages.BuildToolPackage)pkg;
+    if (pkg instanceof BuildToolPackage) {
+      BuildToolPackage rhs = (BuildToolPackage)pkg;
       return rhs.getRevision().compareTo(getRevision(), comparePreview) == 0;
     }
     return false;
