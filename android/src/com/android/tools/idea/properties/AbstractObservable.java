@@ -27,6 +27,7 @@ import java.util.List;
 public abstract class AbstractObservable<T> implements ObservableValue<T> {
   private final List<InvalidationListener<T>> myListeners = Lists.newArrayListWithCapacity(0);
   private final UnsafeWeakList<InvalidationListener<T>> myWeakListeners = new UnsafeWeakList<InvalidationListener<T>>(0);
+  private boolean myNotificationsEnabled = true;
 
   @Override
   public final void addListener(@NotNull InvalidationListener<T> listener) {
@@ -49,6 +50,10 @@ public abstract class AbstractObservable<T> implements ObservableValue<T> {
    * invalidated.
    */
   protected final void notifyInvalidated() {
+    if (!myNotificationsEnabled) {
+      return;
+    }
+
     for (InvalidationListener<T> listener : myListeners) {
       listener.onInvalidated(this);
     }
@@ -56,5 +61,13 @@ public abstract class AbstractObservable<T> implements ObservableValue<T> {
     for (InvalidationListener<T> listener : myWeakListeners) {
       listener.onInvalidated(this);
     }
+  }
+
+  /**
+   * Call to enable / disable the firing of listeners. Child classes may use this (with caution!)
+   * to prevent multiple listeners being fired for the same invalidation event.
+   */
+  protected final void setNotificationsEnabled(boolean enabled) {
+    myNotificationsEnabled = enabled;
   }
 }

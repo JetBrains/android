@@ -29,7 +29,9 @@ public abstract class ObservableProperty<T> extends AbstractObservable<T> {
 
   public final void set(@NotNull T value) {
     if (!areValuesEqual(get(), value)) {
+      setNotificationsEnabled(false);
       setDirectly(value);
+      setNotificationsEnabled(true);
       notifyInvalidated();
     }
   }

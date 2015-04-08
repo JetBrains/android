@@ -13,34 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.basicTypes;
+package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.basicTypes.BoolProperty;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.text.JTextComponent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 /**
- * A boolean-backed {@link ObservableProperty}.
+ * {@link ObservableProperty} that wraps a Swing component and exposes its editable state.
  */
-public final class BoolValueProperty extends BoolProperty {
+public final class EditableProperty extends BoolProperty implements PropertyChangeListener {
+  private final JTextComponent myTextComponent;
 
-  private Boolean myValue;
-
-  public BoolValueProperty(final Boolean value) {
-    myValue = value;
+  public EditableProperty(JTextComponent textComponent) {
+    myTextComponent = textComponent;
+    myTextComponent.addPropertyChangeListener("editable", this);
   }
 
-  public BoolValueProperty() {
-    this(false);
+  @Override
+  public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+    notifyInvalidated();
   }
 
   @NotNull
   @Override
   public Boolean get() {
-    return myValue;
+    return myTextComponent.isEditable();
   }
 
   @Override
   protected void setDirectly(@NotNull Boolean value) {
-    myValue = value;
+    myTextComponent.setEditable(value);
   }
 }
