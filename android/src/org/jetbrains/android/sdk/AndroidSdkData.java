@@ -49,7 +49,6 @@ public class AndroidSdkData {
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
   private final LocalSdk myLocalSdk;
-  private final RemoteSdk myRemoteSdk;
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
@@ -124,7 +123,6 @@ public class AndroidSdkData {
 
   private AndroidSdkData(@NotNull LocalSdk localSdk) {
     myLocalSdk = localSdk;
-    myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(getClass())));
     String path = localSdk.getPath();
     assert path != null;
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(path, SdkConstants.FD_PLATFORM_TOOLS);
@@ -215,11 +213,6 @@ public class AndroidSdkData {
   @NotNull
   public LocalSdk getLocalSdk() {
     return myLocalSdk;
-  }
-
-  @NotNull
-  public RemoteSdk getRemoteSdk() {
-    return myRemoteSdk;
   }
 
   @NotNull

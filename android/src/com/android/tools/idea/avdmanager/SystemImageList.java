@@ -42,6 +42,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.*;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -284,7 +285,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   private IAndroidTarget findTarget(RemotePkgInfo info) {
-    IAndroidTarget[] targets = mySdkState.getSdkData().getLocalSdk().getTargets();
+    AndroidSdkData data = mySdkState.getSdkData();
+    assert data != null; // we shouldn't be able to get here without local data being set
+    IAndroidTarget[] targets = data.getLocalSdk().getTargets();
     for (IAndroidTarget target : targets) {
       IdDisplay imageVendor = info.getDesc().getVendor();
       if ((imageVendor == null && target.isPlatform() ||
@@ -302,7 +305,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private List<AvdWizardConstants.SystemImageDescription> getLocalImages() {
     List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
 
-    List<IAndroidTarget> targets = Lists.newArrayList(mySdkState.getSdkData().getLocalSdk().getTargets());
+    AndroidSdkData data = mySdkState.getSdkData();
+    assert data != null; // we shouldn't be able to get here without local data being set
+    List<IAndroidTarget> targets = Lists.newArrayList(data.getLocalSdk().getTargets());
 
     for (IAndroidTarget target : targets) {
       ISystemImage[] systemImages = target.getSystemImages();
