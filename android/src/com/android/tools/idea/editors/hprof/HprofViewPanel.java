@@ -20,7 +20,7 @@ import com.android.tools.idea.editors.hprof.tables.heaptable.HeapTableManager;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -38,19 +38,14 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class HprofViewPanel implements Disposable {
+  private static final int DIVIDER_WIDTH = 4;
   @NotNull private Project myProject;
-
   @NotNull private JPanel myContainer;
   @NotNull private JBRunnerTabs myNavigationTabs;
-
-  private static final int DIVIDER_WIDTH = 4;
-
   @NotNull private HeapTableManager myHeapTableManager;
   private GcRootTable myGcRootTable;
   private Snapshot mySnapshot;
@@ -84,7 +79,7 @@ public class HprofViewPanel implements Disposable {
 
     myGcRootTable = new GcRootTable(mySnapshot);
     myNavigationTabs.addTab(new TabInfo(HeapTableManager.createNavigationSplitter(myGcRootTable, null)).setText("GC Roots")
-                              .setSideComponent(createToolBar(myProject)));
+                              .setActions(new DefaultActionGroup(new ComputeDominatorAction(myProject)), ActionPlaces.UNKNOWN));
 
     myHeapTableManager.setSnapshot(snapshot);
   }
@@ -127,43 +122,49 @@ public class HprofViewPanel implements Disposable {
     }
   }
 
-  private JToolBar createToolBar(@NotNull final Project project) {
-    final JToggleButton dominatorButton = new JToggleButton(AndroidIcons.Ddms.AllocationTracker, false);
-    dominatorButton.addItemListener(new ItemListener() {
-      private boolean myDominatorsComputed = false;
+  private class ComputeDominatorAction extends ToggleAction {
+    @NotNull Project myProject;
+    private boolean myDominatorsComputed;
 
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED && !myDominatorsComputed) {
-          myDominatorsComputed = true;
-          final ComputeDominatorIndicator indicator = new ComputeDominatorIndicator(project);
-          ProgressManager.getInstance().run(indicator);
+    private ComputeDominatorAction(@NotNull Project project) {
+      super(null, "Compute Dominators", AndroidIcons.Ddms.AllocationTracker);
+      myProject = project;
+    }
 
-          ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-            @Override
-            public void run() {
-              mySnapshot.computeDominators();
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      if (!myDominatorsComputed && e.getInputEvent() != null) {
+        myDominatorsComputed = true;
+        final ComputeDominatorIndicator indicator = new ComputeDominatorIndicator(myProject);
+        ProgressManager.getInstance().run(indicator);
 
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  myHeapTableManager.notifyDominatorsComputed();
-                  myGcRootTable.notifyDominatorsComputed();
-                  indicator.exit();
-                }
-              });
-            }
-          });
-        }
-        else if (itemEvent.getStateChange() == ItemEvent.DESELECTED) {
-          dominatorButton.setSelected(true);
-        }
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+          @Override
+          public void run() {
+            mySnapshot.computeDominators();
+
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                myHeapTableManager.notifyDominatorsComputed();
+                myGcRootTable.notifyDominatorsComputed();
+                indicator.exit();
+              }
+            });
+          }
+        });
       }
-    });
-    JToolBar toolBar = new JToolBar();
-    toolBar.add(dominatorButton);
-    toolBar.setFloatable(false);
+    }
 
-    return toolBar;
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myDominatorsComputed;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myDominatorsComputed |= state;
+    }
   }
 }
