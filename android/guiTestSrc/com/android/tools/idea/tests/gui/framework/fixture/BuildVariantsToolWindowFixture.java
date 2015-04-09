@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
 import com.intellij.ui.content.Content;
 import org.fest.swing.cell.JTableCellReader;
@@ -92,7 +93,15 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, comboBox);
 
     comboBoxFixture.selectItem(testArtifactDescription);
-
+    if (ProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
+      myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
+    }
+    myProjectFrame.waitForBackgroundTasksToFinish();
     return this;
+  }
+
+  @NotNull
+  public BuildVariantsToolWindowFixture selectUnitTests() {
+    return this.selectTestArtifact("Unit Tests");
   }
 }

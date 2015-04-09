@@ -737,6 +737,9 @@ public class EditorFixture {
       case SHOW_INTENTION_ACTIONS:
         invokeActionViaKeystroke("ShowIntentionActions");
         break;
+      case RUN_FROM_CONTEXT:
+        invokeActionViaKeystroke("RunClass");
+        break;
       case EXTEND_SELECTION:
       case SHRINK_SELECTION:
         // Need to find the right action id's for these; didn't see them in the default keymap
@@ -999,7 +1002,8 @@ public class EditorFixture {
     NEXT_ERROR,
     PREVIOUS_ERROR,
     NEXT_METHOD,
-    PREVIOUS_METHOD
+    PREVIOUS_METHOD,
+    RUN_FROM_CONTEXT
   }
 
   /**

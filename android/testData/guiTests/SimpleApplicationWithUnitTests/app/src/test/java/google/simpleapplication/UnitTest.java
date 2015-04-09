@@ -25,7 +25,12 @@ import java.lang.Deprecated;
  */
 public class UnitTest {
   @Test
-  public void someTest() {
-    Assert.assertEquals(4, 2 + 2);
+  public void passingTest() throws Exception {
+    Assert.assertEquals(2, 1 + 1);
+  }
+
+  @Test
+  public void failingTest() throws Exception {
+    Assert.assertEquals(5, 2 + 2);
   }
 }
