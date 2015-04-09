@@ -175,7 +175,7 @@ public class InstallerData {
 
   public boolean hasValidJdkLocation() {
     File javaDir = getJavaDir();
-    return javaDir != null && JdkLocationStep.validateJdkLocation(javaDir) == null;
+    return javaDir != null && JdkDetection.validateJdkLocation(javaDir) == null;
   }
 
   @Nullable
