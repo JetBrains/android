@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +31,10 @@ public class VariantStub implements Variant {
   @NotNull private final String myBuildType;
   @NotNull private final AndroidArtifactStub myMainArtifact;
   @NotNull private final AndroidArtifactStub myInstrumentationTestArtifact;
+  @NotNull private final JavaArtifactStub myUnitTestArtifact;
 
   @NotNull private final Collection<AndroidArtifact> myExtraAndroidArtifacts = Lists.newArrayList();
+  @NotNull private final Collection<JavaArtifact> myExtraJavaArtifacts = Lists.newArrayList();
 
   /**
    * Creates a new {@link VariantStub}.
@@ -45,10 +46,12 @@ public class VariantStub implements Variant {
   VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     myName = name;
     myBuildType = buildType;
-    myMainArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, fileStructure);
-    myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_ANDROID_TEST, buildType, fileStructure);
-
+    myMainArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, buildType, fileStructure);
+    myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_ANDROID_TEST, "androidTest/" + buildType,
+                                                            buildType, fileStructure);
     myExtraAndroidArtifacts.add(myInstrumentationTestArtifact);
+    myUnitTestArtifact = new JavaArtifactStub(AndroidProject.ARTIFACT_UNIT_TEST, "test/" + buildType, buildType, fileStructure);
+    myExtraJavaArtifacts.add(myUnitTestArtifact);
   }
 
   @Override
@@ -74,6 +77,11 @@ public class VariantStub implements Variant {
     return myInstrumentationTestArtifact;
   }
 
+  @NotNull
+  public JavaArtifactStub getUnitTestArtifact() {
+    return myUnitTestArtifact;
+  }
+
   @Override
   @NotNull
   public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
@@ -83,7 +91,7 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public Collection<JavaArtifact> getExtraJavaArtifacts() {
-    return ImmutableSet.of();
+    return myExtraJavaArtifacts;
   }
 
   @Override
