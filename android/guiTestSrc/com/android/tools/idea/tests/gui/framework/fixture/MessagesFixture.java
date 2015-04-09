@@ -32,8 +32,8 @@ import java.awt.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -56,6 +56,13 @@ public class MessagesFixture {
   @NotNull
   public MessagesFixture clickOk() {
     findAndClickOkButton(myDelegate);
+    return this;
+  }
+
+  @NotNull
+  public MessagesFixture requireMessageContains(@NotNull String message) {
+    String actual = ((Delegate)myDelegate).getMessage();
+    assertThat(actual).contains(message);
     return this;
   }
 
@@ -82,13 +89,12 @@ public class MessagesFixture {
     String sheetTitle = getTitle(sheetPanel, robot);
     assertThat(sheetTitle).as("Sheet title").isEqualTo(title);
 
-    return new JPanelFixture(robot, sheetPanel);
+    return new MacSheetPanelFixture(robot, sheetPanel);
   }
 
   @Nullable
   private static String getTitle(@NotNull JPanel sheetPanel, @NotNull Robot robot) {
-    SheetController sheetController = findSheetController(sheetPanel);
-    final JEditorPane messageTextPane = field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
+    final JEditorPane messageTextPane = getMessageTextPane(sheetPanel);
 
     JEditorPane titleTextPane = robot.finder().find(sheetPanel, new GenericTypeMatcher<JEditorPane>(JEditorPane.class) {
       @Override
@@ -97,23 +103,49 @@ public class MessagesFixture {
       }
     });
 
-    String htmlText = titleTextPane.getText();
-    if (isNotEmpty(htmlText)) {
-      try {
-        Document document = loadDocument(htmlText);
-        Element rootElement = document.getRootElement();
-        String sheetTitle = rootElement.getChild("body").getText();
-        return sheetTitle.replace("\n", "").trim();
-      }
-      catch (Throwable e) {
-        Logger.getInstance(MessagesFixture.class).info("Failed to read sheet title", e);
-      }
+    return getHtmlBody(titleTextPane.getText());
+  }
+
+  interface Delegate {
+    @NotNull String getMessage();
+  }
+
+  private static class MacSheetPanelFixture extends JPanelFixture implements Delegate {
+    public MacSheetPanelFixture(@NotNull Robot robot, @NotNull JPanel target) {
+      super(robot, target);
     }
-    return null;
+
+    @Override
+    @NotNull
+    public String getMessage() {
+      JEditorPane messageTextPane = getMessageTextPane(target);
+      String text = getHtmlBody(messageTextPane.getText());
+      return nullToEmpty(text);
+    }
+  }
+
+  @NotNull
+  private static JEditorPane getMessageTextPane(@NotNull JPanel sheetPanel) {
+    SheetController sheetController = findSheetController(sheetPanel);
+    return field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
   }
 
   @NotNull
   private static SheetController findSheetController(@NotNull JPanel sheetPanel) {
     return field("this$0").ofType(SheetController.class).in(sheetPanel).get();
+  }
+
+  @Nullable
+  private static String getHtmlBody(@NotNull String html) {
+    try {
+      Document document = loadDocument(html);
+      Element rootElement = document.getRootElement();
+      String sheetTitle = rootElement.getChild("body").getText();
+      return sheetTitle.replace("\n", "").trim();
+    }
+    catch (Throwable e) {
+      Logger.getInstance(MessagesFixture.class).info("Failed to parse HTML '" + html + "'", e);
+    }
+    return null;
   }
 }
