@@ -41,10 +41,11 @@
           <text value="&amp;Matrix configuration:"/>
         </properties>
       </component>
-      <component id="2bb29" class="com.android.tools.idea.run.CloudMatrixConfigurationComboBox" binding="myCloudConfigurationCombo" custom-create="true">
+      <component id="2bb29" class="com.android.tools.idea.run.CloudConfigurationComboBox" binding="myCloudConfigurationCombo" custom-create="true">
         <constraints>
           <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
+        <properties/>
       </component>
       <component id="6b597" class="javax.swing.JLabel" binding="myCloudProjectLabel">
         <constraints>
@@ -83,7 +84,8 @@
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Launch"/>
+          <text value=""/>
+          <toolTipText value="Launch a Device"/>
         </properties>
       </component>
       <component id="dc052" class="javax.swing.JRadioButton" binding="myChooserRunningDeviceRadioButton">

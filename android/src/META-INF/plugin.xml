@@ -705,8 +705,8 @@
                     interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.run.cloudTestingConfigurationProvider"
-                    interface="com.android.tools.idea.run.CloudTestConfigurationProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
+                    interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="org.jetbrains.android">

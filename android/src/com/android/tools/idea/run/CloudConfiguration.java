@@ -17,7 +17,9 @@ package com.android.tools.idea.run;
 
 import javax.swing.*;
 
-public abstract class CloudTestConfiguration {
+public abstract class CloudConfiguration {
+
+  public enum Kind {SINGLE_DEVICE, MATRIX};
 
   public abstract int getId();
 
@@ -25,7 +27,7 @@ public abstract class CloudTestConfiguration {
 
   public abstract Icon getIcon();
 
-  /** Returns the number of device configurations included in this test configuration. */
+  /** Returns the number of device configurations included in this cloud configuration. */
   public abstract int getDeviceConfigurationCount();
 
   public abstract boolean isEditable();
