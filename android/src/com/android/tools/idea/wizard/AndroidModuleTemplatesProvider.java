@@ -48,7 +48,7 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
         new CreateModuleTemplate(metadata, formFactor, "Phone & Tablet Module", AndroidIcons.ModuleTemplates.Mobile);
       androidApplication.setCustomValue(WizardConstants.IS_LIBRARY_KEY, false);
       CreateModuleTemplate androidLibrary =
-        new CreateModuleTemplate(metadata, null, "Android Library", AndroidIcons.ModuleTemplates.Android);
+        new CreateModuleTemplate(metadata, formFactor, "Android Library", AndroidIcons.ModuleTemplates.Android);
       androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
       return ImmutableSet.<ModuleTemplate>of(androidApplication, androidLibrary);
     }
