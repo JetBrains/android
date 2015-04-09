@@ -16,18 +16,31 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
-import junit.framework.TestCase;
+import com.intellij.testFramework.fixtures.*;
+import org.jetbrains.android.AndroidTestBase;
 
-public class ConsoleHighlighterTest extends TestCase {
+public class ConsoleHighlighterTest extends AndroidTestBase {
   private ConsoleHighlighter myHighlighter;
+  private JavaCodeInsightTestFixture myFixture;
 
   @Override
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     super.setUp();
+    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    myFixture.setUp();
+
     myHighlighter = new ConsoleHighlighter();
     myHighlighter.print("12345", null);
     myHighlighter.print("1234567890", null);
     myHighlighter.print("12345678901234567890", null);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    myFixture.tearDown();
+    super.tearDown();
   }
 
   public void testOffsetRangeIndex() {
