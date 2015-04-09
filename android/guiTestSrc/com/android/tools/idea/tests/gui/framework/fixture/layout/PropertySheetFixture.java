@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.propertyTable.PropertyTable;
@@ -26,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 
 /**
  * Fixture representing the property sheet in an associated layout editor
@@ -43,7 +44,7 @@ public class PropertySheetFixture {
     myEditorFixture = editorFixture;
     myPanel = panel;
 
-    myPropertyTablePanel = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<PropertyTablePanel>(PropertyTablePanel.class) {
+    myPropertyTablePanel = waitUntilFound(myRobot, new GenericTypeMatcher<PropertyTablePanel>(PropertyTablePanel.class) {
       @Override
       protected boolean isMatching(PropertyTablePanel component) {
         return true;
