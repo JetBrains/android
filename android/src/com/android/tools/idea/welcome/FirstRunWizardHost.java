@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
-  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @NotNull private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -71,7 +71,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private boolean myIsActive;
 
   public FirstRunWizardHost(@NotNull FirstRunWizardMode mode,
-                            @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+                            @NotNull Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(new BorderLayout());
     myMode = mode;
     myRemotePackages = remotePackages;

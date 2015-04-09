@@ -156,6 +156,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     return new FirstRunWizardHost(wizardMode, remotePackages);
   }
 
+  @NotNull
   private Multimap<PkgType, RemotePkgInfo> fetchPackages() {
     ConnectionState connectionState = checkInternetConnection();
     switch (connectionState) {
