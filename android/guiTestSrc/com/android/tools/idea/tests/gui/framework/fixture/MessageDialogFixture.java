@@ -22,19 +22,16 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
-import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.base.Strings.nullToEmpty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-public class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> {
+class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements MessagesFixture.Delegate {
   @NotNull
-  public static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
+  static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
     final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
     JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
@@ -60,29 +57,7 @@ public class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> {
     super(robot, target, dialogWrapper);
   }
 
-  @NotNull
-  public MessageDialogFixture clickOk() {
-    findAndClickOkButton(this);
-    return this;
-  }
-
-  public MessageDialogFixture clickButton(@NotNull String text) {
-    findAndClickButton(this, text);
-    return this;
-  }
-
-  public void requireMessage(@NotNull String message) {
-    assertEquals(message, getMessage());
-  }
-
-  public void requireMessageContains(@NotNull String message) {
-    assertTrue(getMessage() + " does not contain expected message fragment " + message, getMessage().contains(message));
-  }
-
-  public void requireMessageMatches(@NotNull @RegExp String pattern) {
-    assertTrue(getMessage() + " does not match expected pattern " + pattern, getMessage().matches(pattern));
-  }
-
+  @Override
   @NotNull
   public String getMessage() {
     final JTextPane textPane = robot.finder().findByType(target, JTextPane.class);
