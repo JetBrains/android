@@ -59,8 +59,9 @@ public class SdkState {
   @GuardedBy(value = "sSdkStates")
   private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
 
-  @NonNull
+  @Nullable
   private final AndroidSdkData mySdkData;
+  private final RemoteSdk myRemoteSdk;
   private LocalPkgInfo[] myLocalPkgInfos = new LocalPkgInfo[0];
   private SdkSources mySources;
   private UpdateResult myUpdates;
@@ -71,12 +72,13 @@ public class SdkState {
 
   private final Object myTaskLock = new Object();
 
-  private SdkState(@NonNull AndroidSdkData sdkData) {
+  private SdkState(@Nullable AndroidSdkData sdkData) {
     mySdkData = sdkData;
+    myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(SdkState.class)));
   }
 
   @NonNull
-  public static SdkState getInstance(@NonNull AndroidSdkData sdkData) {
+  public static SdkState getInstance(@Nullable AndroidSdkData sdkData) {
     synchronized (sSdkStates) {
       for (Iterator<SoftReference<SdkState>> it = sSdkStates.iterator(); it.hasNext(); ) {
         SoftReference<SdkState> ref = it.next();
@@ -97,7 +99,7 @@ public class SdkState {
     }
   }
 
-  @NonNull
+  @Nullable
   public AndroidSdkData getSdkData() {
     return mySdkData;
   }
@@ -296,16 +298,17 @@ public class SdkState {
         ApplicationEx app = ApplicationManagerEx.getApplicationEx();
         SdkLifecycleListener notifier = app.getMessageBus().syncPublisher(SdkLifecycleListener.TOPIC);
 
-        // fetch local sdk
-        indicator.setText("Loading local SDK...");
-        indicator.setText2("");
-        if (myForceRefresh) {
-          mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+        if (mySdkData != null) {
+          // fetch local sdk
+          indicator.setText("Loading local SDK...");
+          indicator.setText2("");
+          if (myForceRefresh) {
+            mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+          }
+          myLocalPkgInfos = mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL);
+          notifier.localSdkLoaded(mySdkData);
+          indicator.setFraction(0.25);
         }
-        myLocalPkgInfos = mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL);
-        notifier.localSdkLoaded(mySdkData);
-        indicator.setFraction(0.25);
-
         if (indicator.isCanceled()) {
           return;
         }
@@ -319,7 +322,7 @@ public class SdkState {
         // fetch sdk repository sources.
         indicator.setText("Find SDK Repository...");
         indicator.setText2("");
-        mySources = mySdkData.getRemoteSdk().fetchSources(myForceRefresh ? 0 : RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
+        mySources = myRemoteSdk.fetchSources(myForceRefresh ? 0 : RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
         indicator.setFraction(0.50);
 
         if (indicator.isCanceled()) {
@@ -328,7 +331,7 @@ public class SdkState {
         // fetch remote sdk
         indicator.setText("Check SDK Repository...");
         indicator.setText2("");
-        myRemotePkgs = mySdkData.getRemoteSdk().fetch(mySources, logger);
+        myRemotePkgs = myRemoteSdk.fetch(mySources, logger);
         notifier.remoteSdkLoaded(mySdkData);
         indicator.setFraction(0.75);
 
