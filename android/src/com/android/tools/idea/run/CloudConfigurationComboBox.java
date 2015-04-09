@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -32,26 +33,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {@link CloudMatrixConfigurationComboBox} displays the list of device matrix configurations obtained from the cloud provider
+ * {@link CloudConfigurationComboBox} displays the list of cloud configurations obtained from the cloud provider
  * in a ComboboxWithBrowseButton.
  *
  * When the browse action is invoked, it delegates to the provider to display a more detailed dialog where the list of device matrices
  * can be updated. The model is updated on return from that dialog, since users could have changed the list of configurations. This
- * change is also propagated to other instances of this class via the {@link CloudMatrixConfigurationCoordinator}.
+ * change is also propagated to other instances of this class via the {@link CloudConfigurationCoordinator}.
  */
-public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
+public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
+  private final Kind myConfigurationKind;
   private Module myCurrentModule;
   private AndroidFacet myCurrentFacet;
-  private List<? extends CloudTestConfiguration> myTestingConfigurations;
+  private List<? extends CloudConfiguration> myTestingConfigurations;
   private ActionListener myActionListener;
-  private final CloudTestConfigurationProvider myConfigurationProvider;
+  private final CloudConfigurationProvider myConfigurationProvider;
 
   // a cache of configuration selected by module, so that if the module selection changes back and forth, we retain
   // the appropriate selected test configuration
-  private static Map<Module, CloudTestConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  private static Map<Module, CloudConfiguration> myConfigurationByModuleCache = Maps.newHashMapWithExpectedSize(5);
 
-  public CloudMatrixConfigurationComboBox() {
-    myConfigurationProvider = CloudTestConfigurationProvider.getCloudTestingProvider();
+  public CloudConfigurationComboBox(@NotNull Kind configurationKind) {
+    myConfigurationKind = configurationKind;
+    myConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
     setMinimumSize(new Dimension(100, getMinimumSize().height));
 
     getComboBox().setRenderer(new TestConfigurationRenderer());
@@ -59,23 +62,23 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
       @Override
       public void actionPerformed(ActionEvent e) {
         Object item = getComboBox().getSelectedItem();
-        if (item instanceof CloudTestConfiguration) {
-          myConfigurationByModuleCache.put(myCurrentModule, (CloudTestConfiguration)item);
+        if (item instanceof CloudConfiguration) {
+          myConfigurationByModuleCache.put(myCurrentModule, (CloudConfiguration)item);
         }
       }
     });
 
-    CloudMatrixConfigurationCoordinator.getInstance().addComboBox(this);
+    CloudConfigurationCoordinator.getInstance(myConfigurationKind).addComboBox(this);
   }
 
   public void setFacet(@NotNull AndroidFacet facet) {
-    if (!CloudTestConfigurationProvider.isEnabled()) {
+    if (!CloudConfigurationProvider.isEnabled()) {
       return; // Running tests in cloud is not enabled!
     }
 
     myCurrentFacet = facet;
     myCurrentModule = myCurrentFacet.getModule();
-    myTestingConfigurations = myConfigurationProvider.getTestingConfigurations(myCurrentFacet);
+    myTestingConfigurations = myConfigurationProvider.getCloudConfigurations(myCurrentFacet, myConfigurationKind);
 
     // Since setFacet can be called multiple times, make sure to remove any previously registered listeners.
     removeActionListener(myActionListener);
@@ -83,14 +86,18 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
     myActionListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        CloudTestConfiguration selectedConfig = myConfigurationProvider
-          .openMatrixConfigurationDialog(myCurrentFacet, (CloudTestConfiguration)getComboBox().getSelectedItem());
-        if (selectedConfig != null) {
-          CloudMatrixConfigurationCoordinator.getInstance().
-            updateComboBoxesWithNewTestingConfigurations(myConfigurationProvider.getTestingConfigurations(myCurrentFacet), myCurrentModule);
+        CloudConfiguration selectedConfig = myConfigurationProvider
+          .openMatrixConfigurationDialog(myCurrentFacet, (CloudConfiguration)getComboBox().getSelectedItem(), myConfigurationKind);
+        // Update the comboboxes' contents even if selectedConfig is null since it might mean that a user deleted
+        // all configurations in the Matrix Configuration dialog.
+        List<? extends CloudConfiguration> cloudConfigurations =
+          myConfigurationProvider.getCloudConfigurations(myCurrentFacet, myConfigurationKind);
+        CloudConfigurationCoordinator.getInstance(myConfigurationKind)
+          .updateComboBoxesWithNewCloudConfigurations(cloudConfigurations, myCurrentModule);
+        if (cloudConfigurations.isEmpty() || selectedConfig != null) {
           getComboBox().setSelectedItem(selectedConfig);
-          getComboBox().updateUI();
         }
+        getComboBox().updateUI();
       }
     };
     addActionListener(myActionListener);
@@ -100,13 +107,13 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
 
   @Override
   public void dispose() {
-    CloudMatrixConfigurationCoordinator.getInstance().removeComboBox(this);
+    CloudConfigurationCoordinator.getInstance(myConfigurationKind).removeComboBox(this);
     super.dispose();
   }
 
   public void selectConfiguration(int id) {
     if (myTestingConfigurations != null) {
-      for (CloudTestConfiguration configuration : myTestingConfigurations) {
+      for (CloudConfiguration configuration : myTestingConfigurations) {
         if (configuration.getId() == id) {
           getComboBox().setSelectedItem(configuration);
           return;
@@ -121,19 +128,19 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
     }
 
     getComboBox().setModel(new ListComboBoxModel(myTestingConfigurations));
-    CloudTestConfiguration selectedConfig = myConfigurationByModuleCache.get(myCurrentModule);
+    CloudConfiguration selectedConfig = myConfigurationByModuleCache.get(myCurrentModule);
     if (selectedConfig != null && myTestingConfigurations.contains(selectedConfig)) {
       getComboBox().setSelectedItem(selectedConfig);
     }
   }
 
-  public void updateTestingConfigurations(List<? extends CloudTestConfiguration> testingConfigurations, Module module) {
+  public void updateCloudConfigurations(List<? extends CloudConfiguration> cloudConfigurations, Module module) {
     if (myCurrentFacet != null && myCurrentModule.equals(module)) {
-      myTestingConfigurations = testingConfigurations;
+      myTestingConfigurations = cloudConfigurations;
       int selectedConfigurationId = -1;
       Object selectedItem = getComboBox().getSelectedItem();
       if (selectedItem != null) {
-        selectedConfigurationId = ((CloudTestConfiguration) selectedItem).getId();
+        selectedConfigurationId = ((CloudConfiguration) selectedItem).getId();
       }
       updateContent();
       selectConfiguration(selectedConfigurationId);
@@ -145,8 +152,8 @@ public class CloudMatrixConfigurationComboBox extends ComboboxWithBrowseButton {
     protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
       if (value == null) {
         append("[none]", SimpleTextAttributes.ERROR_ATTRIBUTES);
-      } else if (value instanceof CloudTestConfiguration) {
-        CloudTestConfiguration config = (CloudTestConfiguration)value;
+      } else if (value instanceof CloudConfiguration) {
+        CloudConfiguration config = (CloudConfiguration)value;
         append(config.getDisplayName(),
                config.getDeviceConfigurationCount() < 1 ? SimpleTextAttributes.ERROR_ATTRIBUTES : SimpleTextAttributes.REGULAR_ATTRIBUTES);
         setIcon(config.getIcon());

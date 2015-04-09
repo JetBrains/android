@@ -147,7 +147,7 @@
                       <text value="Test Devices Configuration:"/>
                     </properties>
                   </component>
-                  <component id="1bb6c" class="com.android.tools.idea.run.CloudMatrixConfigurationComboBox" binding="myCloudConfigurationCombo" custom-create="true">
+                  <component id="1bb6c" class="com.android.tools.idea.run.CloudConfigurationComboBox" binding="myCloudConfigurationCombo" custom-create="true">
                     <constraints>
                       <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
                     </constraints>
