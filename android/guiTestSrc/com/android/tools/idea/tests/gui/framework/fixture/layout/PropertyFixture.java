@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.AttributeProperty;
 import com.intellij.designer.model.Property;
@@ -39,6 +39,7 @@ import java.awt.event.KeyEvent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
+import static javax.swing.SwingUtilities.windowForComponent;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
 
@@ -73,7 +74,7 @@ public class PropertyFixture {
    * Requires the property value to be the given value
    */
   public PropertyFixture requireValue(@NotNull String value) throws Exception {
-    assertEquals(value, getValue());
+    assertEquals("Property '" + myProperty.getName() + "'", value, getValue());
     return this;
   }
 
@@ -177,9 +178,9 @@ public class PropertyFixture {
       // Ensure that after entering the text, the property is committed and exists text editing
       waitUntilGone(myRobot, table, JTextComponentMatcher.any());
     } else {
-      MessageDialogFixture dialog = MessageDialogFixture.findByTitle(myRobot, "Invalid Input");
-      dialog.requireMessageContains(expectedError);
-      dialog.clickOk();
+      MessagesFixture messages = MessagesFixture.findByTitle(myRobot, windowForComponent(table), "Invalid Input");
+      messages.requireMessageContains(expectedError)
+              .clickOk();
       componentDriver.pressAndReleaseKeys(field, KeyEvent.VK_ESCAPE);
     }
   }

@@ -19,7 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
 import org.junit.Test;
 
@@ -48,7 +48,7 @@ public class GradleBuildTest extends GuiTestCase {
     projectFrame.invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
 
     // Find message dialog explaining the source of the error.
-    MessageDialogFixture.findByTitle(myRobot, "Gradle Running").clickOk();
+    MessagesFixture.findByTitle(myRobot, projectFrame.target, "Gradle Running").clickOk();
 
     // Find the dialog to select the path of the JDK.
     SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(myRobot);
