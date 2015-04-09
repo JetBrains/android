@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.properties;
 
+import com.android.tools.idea.properties.basicTypes.BoolValueProperty;
 import com.android.tools.idea.properties.basicTypes.IntValueProperty;
 import com.android.tools.idea.properties.basicTypes.StringValueProperty;
 import org.jetbrains.annotations.NotNull;
@@ -148,6 +149,35 @@ public final class BindingsManagerTest {
     assertThat(a.get()).isEqualTo(9);
     assertThat(b.get()).isEqualTo(9);
     assertThat(c.get()).isEqualTo(9);
+  }
+
+  @Test
+  public void oneWayBindingsCanBeEnabledConditionally() {
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    IntValueProperty srcProperty = new IntValueProperty(10);
+    IntValueProperty destProperty = new IntValueProperty(-5);
+    BoolValueProperty bindingEnabled = new BoolValueProperty(true);
+
+    bindings.bind(destProperty, srcProperty, bindingEnabled);
+    assertThat(destProperty.get()).isEqualTo(10);
+
+    srcProperty.set(20);
+    assertThat(destProperty.get()).isEqualTo(20);
+
+    bindingEnabled.set(false);
+    assertThat(destProperty.get()).isEqualTo(20);
+
+    srcProperty.set(30);
+    assertThat(destProperty.get()).isEqualTo(20);
+
+    srcProperty.set(40);
+    assertThat(destProperty.get()).isEqualTo(20);
+
+    bindingEnabled.set(true);
+    assertThat(destProperty.get()).isEqualTo(40);
+
+    srcProperty.set(50);
+    assertThat(destProperty.get()).isEqualTo(50);
   }
 
   @Test
