@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
+import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
@@ -45,6 +46,9 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +145,13 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     listenForProjectChanges(myProject, myDisposable);
 
     Projects.enforceExternalBuild(myProject);
+
+    // Make sure the gradle test configurations are ignored in this project, since they don't work in Android gradle projects. This
+    // will modify .idea/runConfigurations.xml
+    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
+    runConfigurationProducerManager.addIgnoredProducer(AllInPackageGradleConfigurationProducer.class);
+    runConfigurationProducerManager.addIgnoredProducer(TestMethodGradleConfigurationProducer.class);
+    runConfigurationProducerManager.addIgnoredProducer(TestClassGradleConfigurationProducer.class);
   }
 
   private static void listenForProjectChanges(@NotNull Project project, @NotNull Disposable disposable) {
