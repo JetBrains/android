@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.editors.hprof.tables.instancestable;
 
-import com.android.tools.idea.editors.hprof.tables.HprofTable;
-import com.android.tools.perflib.heap.Heap;
-import com.android.tools.perflib.heap.Instance;
+import com.android.tools.idea.editors.hprof.tables.HprofTreeTable;
+import com.intellij.ui.treeStructure.treetable.TreeTableModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
-public class InstancesTable extends HprofTable {
-  public InstancesTable(@NotNull InstancesTableModel model) {
+public class InstancesTreeTable extends HprofTreeTable {
+  public InstancesTreeTable(@NotNull InstancesTreeTableModel model) {
     super(model);
   }
 
-  public void setInstances(@Nullable Heap heap, @Nullable Collection<Instance> entries) {
-    ((InstancesTableModel)getModel()).setInstances(heap, entries);
+  @Override
+  public void setModel(@NotNull TreeTableModel model) {
+    super.setModel(model);
+    assert (model instanceof InstancesTreeTableModel);
+    prettifyTable();
   }
 }

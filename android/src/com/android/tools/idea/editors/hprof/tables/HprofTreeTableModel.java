@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
+import com.android.tools.perflib.heap.Snapshot;
+import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
+import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.AbstractTableModel;
+import javax.swing.tree.TreeNode;
 
-public abstract class HprofTableModel extends AbstractTableModel {
-  @Override
-  public String getColumnName(int column) {
-    return getColumn(column).getColumnName();
-  }
+public abstract class HprofTreeTableModel extends ListTreeTableModelOnColumns {
+  @NotNull protected Snapshot mySnapshot;
 
-  @Override
-  public Class<?> getColumnClass(int column) {
-    return getColumn(column).getColumnClass();
+  protected HprofTreeTableModel(@NotNull Snapshot snapshot, @NotNull TreeNode root, @Nullable ColumnInfo[] columns) {
+    super(root, columns);
+    mySnapshot = snapshot;
   }
 
   public int getColumnWidth(int column) {
@@ -39,22 +40,30 @@ public abstract class HprofTableModel extends AbstractTableModel {
   }
 
   @Override
-  public Object getValueAt(int row, int column) {
+  public Object getValueAt(@NotNull Object node, int column) {
     //noinspection unchecked
-    return isColumnEnabled(column) ? getColumn(column).getValue(this, row) : null;
+    return isColumnEnabled(column) ? getColumn(column).valueOf(node) : null;
+  }
+
+  @Override
+  public boolean isCellEditable(@NotNull Object node, int column) {
+    return false;
+  }
+
+  @Override
+  public void setValueAt(@Nullable Object aValue, @NotNull Object node, int column) {
+
   }
 
   public void enableAllColumns() {
     for (int i = 0; i < getColumnCount(); ++i) {
       getColumn(i).setEnabled(true);
     }
-    fireTableDataChanged();
   }
 
   protected boolean isColumnEnabled(int column) {
     return getColumn(column).getEnabled();
   }
 
-  @NotNull
-  protected abstract TableColumn getColumn(int column);
+  protected abstract HprofColumnInfo getColumn(int column);
 }
