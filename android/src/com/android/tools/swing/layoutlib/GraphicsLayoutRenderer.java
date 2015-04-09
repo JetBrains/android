@@ -272,17 +272,18 @@ public class GraphicsLayoutRenderer {
   }
 
   /**
-   * Returns the list of attribute names used to render the
-   * @return
+   * Returns the list of attribute names used to render the layout
    */
+  @NotNull
   public Set<String> getUsedAttrs() {
     HashSet<String> usedAttrs = new HashSet<String>();
     for(ResourceValue value : myResourceLookupChain) {
-      if (value == null || value.getName() == null) {
+      if (!(value instanceof ItemResourceValue) || value.getName() == null) {
+        // Only selects resources that are also attributes
         continue;
       }
-
-      usedAttrs.add((value.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + value.getName());
+      ItemResourceValue itemValue = (ItemResourceValue)value;
+      usedAttrs.add((itemValue.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + itemValue.getName());
     }
 
     return Collections.unmodifiableSet(usedAttrs);
