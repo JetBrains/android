@@ -46,7 +46,7 @@ import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_DEPENDENCIES;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
+import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 /**
@@ -90,28 +90,24 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       if (androidGradleFacet != null) {
         String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         if (Objects.equal(gradlePath, dependency.getGradlePath())) {
-          if (dependency.getBackupDependency() != null) {
-            // Now we check that the module has an AndroidProject. If it doesn't, we should not set module dependency but link against the
-            // backup library instead.
-            // See https://code.google.com/p/android/issues/detail?id=162634
-            AndroidProject project = getAndroidProject(module);
-            if (project == null) {
-              break;
-            }
-          }
           moduleDependency = module;
           break;
         }
       }
     }
+    LibraryDependency backup = dependency.getBackupDependency();
+    boolean hasLibraryBackup = backup != null;
+
     if (moduleDependency != null) {
       ModuleOrderEntry orderEntry = model.addModuleOrderEntry(moduleDependency);
       orderEntry.setExported(true);
+
+      if (backup != null) {
+        setModuleCompiledArtifact(moduleDependency, backup);
+      }
       return;
     }
 
-    LibraryDependency backup = dependency.getBackupDependency();
-    boolean hasLibraryBackup = backup != null;
     String msg = String.format("Unable to find module with Gradle path '%1$s'.", dependency.getGradlePath());
 
     Message.Type type = Message.Type.ERROR;
@@ -130,9 +126,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
   }
 
-  private void updateDependency(@NotNull ModifiableRootModel moduleModel,
-                                @NotNull LibraryDependency dependency,
-                                @NotNull AndroidProject androidProject) {
+  public static void updateDependency(@NotNull ModifiableRootModel moduleModel,
+                                      @NotNull LibraryDependency dependency,
+                                      @NotNull AndroidProject androidProject) {
     Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
     setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths);
 
