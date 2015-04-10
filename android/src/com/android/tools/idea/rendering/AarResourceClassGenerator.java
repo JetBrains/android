@@ -29,7 +29,6 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
@@ -75,7 +74,6 @@ public class AarResourceClassGenerator {
     return new AarResourceClassGenerator(appResources, aarResources);
   }
 
-  @SuppressWarnings("deprecation") // Need to handle DeclareStyleableResourceValue
   @Nullable
   public byte[] generate(String fqcn) {
     String className = ClassContext.getInternalName(fqcn);
@@ -105,29 +103,27 @@ public class AarResourceClassGenerator {
           ResourceValue resourceValue = item.getResourceValue(false);
           assert resourceValue instanceof DeclareStyleableResourceValue;
           DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-          Map<String,AttrResourceValue> attributes = dv.getAllAttributes();
-          if (attributes != null) {
-            int idx = 0;
-            for (AttrResourceValue value : attributes.values()) {
-              Integer initialValue = idx++;
-              StringBuilder sb = new StringBuilder(30);
-              sb.append(key);
-              sb.append('_');
-              if (value.isFramework()) {
-                sb.append("android_");
-              }
-              String v = value.getName();
-              // See AndroidResourceUtil.getFieldNameByResourceName
-              for (int i = 0, n = v.length(); i < n; i++) {
-                char c = v.charAt(i);
-                if (c == '.' || c == ':' || c == '-') {
-                  sb.append('_');
-                } else {
-                  sb.append(c);
-                }
-              }
-              cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, sb.toString(), "I", null, initialValue).visitEnd();
+          List<AttrResourceValue> attributes = dv.getAllAttributes();
+          int idx = 0;
+          for (AttrResourceValue value : attributes) {
+            Integer initialValue = idx++;
+            StringBuilder sb = new StringBuilder(30);
+            sb.append(key);
+            sb.append('_');
+            if (value.isFramework()) {
+              sb.append("android_");
             }
+            String v = value.getName();
+            // See AndroidResourceUtil.getFieldNameByResourceName
+            for (int i = 0, n = v.length(); i < n; i++) {
+              char c = v.charAt(i);
+              if (c == '.' || c == ':' || c == '-') {
+                sb.append('_');
+              } else {
+                sb.append(c);
+              }
+            }
+            cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, sb.toString(), "I", null, initialValue).visitEnd();
           }
         }
 
@@ -143,15 +139,15 @@ public class AarResourceClassGenerator {
           ResourceValue resourceValue = item.getResourceValue(false);
           assert resourceValue instanceof DeclareStyleableResourceValue;
           DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-          Map<String,AttrResourceValue> attributes = dv.getAllAttributes();
-          if (attributes == null) {
+          List<AttrResourceValue> attributes = dv.getAllAttributes();
+          if (attributes.isEmpty()) {
             continue;
           }
 
           mv.visitIntInsn(BIPUSH, attributes.size());
           mv.visitIntInsn(NEWARRAY, T_INT);
           int idx = 0;
-          for (AttrResourceValue value : attributes.values()) {
+          for (AttrResourceValue value : attributes) {
             mv.visitInsn(DUP);
             switch (idx) {
               case 0:
