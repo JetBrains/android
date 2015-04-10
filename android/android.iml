@@ -83,5 +83,6 @@
     <orderEntry type="library" name="spantable" level="project" />
     <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="module" module-name="chartlib" />
+    <orderEntry type="module" module-name="diff-impl" scope="TEST" />
   </component>
 </module>
