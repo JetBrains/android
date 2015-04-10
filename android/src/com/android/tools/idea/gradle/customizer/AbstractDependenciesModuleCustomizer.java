@@ -70,20 +70,20 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     }
   }
 
-  protected void setUpLibraryDependency(@NotNull ModifiableRootModel model,
-                                        @NotNull String libraryName,
-                                        @NotNull DependencyScope scope,
-                                        @NotNull Collection<String> binaryPaths) {
+  protected static void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+                                               @NotNull String libraryName,
+                                               @NotNull DependencyScope scope,
+                                               @NotNull Collection<String> binaryPaths) {
     Collection<String> empty = Collections.emptyList();
     setUpLibraryDependency(model, libraryName, scope, binaryPaths, empty, empty);
   }
 
-  protected void setUpLibraryDependency(@NotNull ModifiableRootModel model,
-                                        @NotNull String libraryName,
-                                        @NotNull DependencyScope scope,
-                                        @NotNull Collection<String> binaryPaths,
-                                        @NotNull Collection<String> sourcePaths,
-                                        @NotNull Collection<String> documentationPaths) {
+  protected static void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+                                               @NotNull String libraryName,
+                                               @NotNull DependencyScope scope,
+                                               @NotNull Collection<String> binaryPaths,
+                                               @NotNull Collection<String> sourcePaths,
+                                               @NotNull Collection<String> documentationPaths) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(model.getProject());
     Library library = libraryTable.getLibraryByName(libraryName);
     if (library == null) {
