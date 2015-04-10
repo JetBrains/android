@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -26,6 +27,8 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -84,6 +87,7 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAI
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
@@ -151,7 +155,7 @@ public class PostProjectSetupTasksExecutor {
       @Override
       public void run() {
         attachSourcesToLibraries();
-        ensureAllModulesHaveValidSdks();
+        adjustModuleStructures();
         ensureValidSdks();
       }
     });
@@ -196,12 +200,15 @@ public class PostProjectSetupTasksExecutor {
     myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
   }
 
-  private void ensureAllModulesHaveValidSdks() {
+  private void adjustModuleStructures() {
     Set<Sdk> androidSdks = Sets.newHashSet();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+
+      adjustInterModuleDependencies(moduleRootManager);
+
       Sdk sdk = moduleRootManager.getSdk();
       if (sdk != null) {
         if (isAndroidSdk(sdk)) {
@@ -221,6 +228,35 @@ public class PostProjectSetupTasksExecutor {
 
     for (Sdk sdk: androidSdks) {
       refreshLibrariesIn(sdk);
+    }
+
+    removeAllModuleCompiledArtifacts(myProject);
+  }
+
+  private static void adjustInterModuleDependencies(@NotNull ModuleRootManager moduleRootManager) {
+    // Verifies that inter-module dependencies between Android modules are correctly set. If module A depends on module B, and module B
+    // does not contain sources but exposes an AAR as an artifact, the IDE should set the dependency in the 'exploded AAR' instead of trying
+    // to find the library in module B. The 'exploded AAR' is in the 'build' folder of module A.
+    // See: https://code.google.com/p/android/issues/detail?id=162634
+    AndroidProject androidProject = getAndroidProject(moduleRootManager.getModule());
+    if (androidProject == null) {
+      return;
+    }
+
+    ModifiableRootModel modifiableModel = moduleRootManager.getModifiableModel();
+    try {
+      for (Module dependency : moduleRootManager.getModuleDependencies()) {
+        AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
+        if (dependencyAndroidProject == null) {
+          LibraryDependency backup = getModuleCompiledArtifact(dependency);
+          if (backup != null) {
+            DependenciesModuleCustomizer.updateLibraryDependency(modifiableModel, backup, androidProject);
+          }
+        }
+      }
+    }
+    finally {
+      modifiableModel.commit();
     }
   }
 
