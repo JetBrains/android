@@ -55,6 +55,7 @@ import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Condition;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -769,6 +770,62 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(libraryDependency);
     assertThat(libraryDependency.getLibraryName()).isEqualTo("localJarAsModule.local");
     assertTrue(libraryDependency.isExported());
+  }
+
+  @Test @IdeGuiTest
+  public void testLocalAarsAsModules() throws IOException {
+    IdeFrameFixture projectFrame = importProject("LocalAarsAsModules");
+    Module localAarModule = projectFrame.getModule("library-debug");
+
+    // When AAR files are exposed as artifacts, they don't have an AndroidProject model.
+    AndroidFacet androidFacet = AndroidFacet.getInstance(localAarModule);
+    assertNull(androidFacet);
+    assertNull(getAndroidProject(localAarModule));
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(localAarModule);
+    LibraryOrderEntry libraryDependency = null;
+    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        libraryDependency = (LibraryOrderEntry)orderEntry;
+        break;
+      }
+    }
+    assertNull(libraryDependency); // Should not expose the AAR as library, instead it should use the "exploded AAR".
+
+    Module appModule = projectFrame.getModule("app");
+    moduleRootManager = ModuleRootManager.getInstance(appModule);
+    // Verify that the module depends on the AAR that it contains (in "exploded-aar".)
+    libraryDependency = null;
+    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        libraryDependency = (LibraryOrderEntry)orderEntry;
+        break;
+      }
+    }
+
+    assertNotNull(libraryDependency);
+    assertThat(libraryDependency.getLibraryName()).isEqualTo("library-debug-unspecified");
+    assertTrue(libraryDependency.isExported());
+  }
+
+  @Test @IdeGuiTest
+  public void testInterModuleDependencies() throws IOException {
+    IdeFrameFixture projectFrame = importProject("MultiModule");
+
+    Module appModule = projectFrame.getModule("app");
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(appModule);
+
+    // Verify that the module "app" depends on module "library"
+    ModuleOrderEntry moduleDependency = null;
+    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
+      if (orderEntry instanceof ModuleOrderEntry) {
+        moduleDependency = (ModuleOrderEntry)orderEntry;
+        break;
+      }
+    }
+
+    assertNotNull(moduleDependency);
+    assertThat(moduleDependency.getModuleName()).isEqualTo("library");
   }
 
   @NotNull
