@@ -106,7 +106,7 @@ import static org.junit.Assert.assertNotNull;
 public class GradleSyncTest extends GuiTestCase {
   @Before
   public void disableSourceGenTask() {
-    GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN = 0;
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
   @After
@@ -668,7 +668,9 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testImportProjectWithoutWrapper() throws IOException {
-    GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
+    GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
+    settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
+    settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
 
     File projectDirPath = copyProjectBeforeOpening("AarDependency");
 
