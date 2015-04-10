@@ -34,8 +34,12 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -124,6 +128,15 @@ public class ThemeEditorUtils {
       currentStyle = currentStyle.getParent();
     }
 
+    // Sort the list of items in alphabetical order of the name of the items
+    // so that the ordering of the list is not modified by overriding attributes
+    Collections.sort(allValues, new Comparator<EditedStyleItem>() {
+      // Is not consistent with equals
+      @Override
+      public int compare(EditedStyleItem item1, EditedStyleItem item2) {
+        return item1.getQualifiedName().compareTo(item2.getQualifiedName());
+      }
+    });
     return allValues;
   }
 
