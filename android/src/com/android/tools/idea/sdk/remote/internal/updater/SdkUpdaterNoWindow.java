@@ -85,35 +85,8 @@ public class SdkUpdaterNoWindow {
     // Use a factory that only outputs to the given ILogger.
     mUpdaterData.setTaskFactory(new ConsoleTaskFactory());
 
-    // Check that the AVD Manager has been correctly initialized. This is done separately
-    // from the constructor in the GUI-based UpdaterWindowImpl to give time to the UI to
-    // initialize before displaying a message box. Since we don't have any GUI here
-    // we can call it whenever we want.
-    if (mUpdaterData.checkIfInitFailed()) {
-      return;
-    }
-
     // Setup the default sources including the getenv overrides.
     mUpdaterData.setupDefaultSources();
-
-    mUpdaterData.getLocalSdkParser().parseSdk(osSdkRoot, sdkManager, new NullTaskMonitor(sdkLog));
-  }
-
-  /**
-   * Performs the actual update.
-   *
-   * @param pkgFilter     A list of {@link SdkRepoConstants#NODES} to limit the type of packages
-   *                      we can update. A null or empty list means to update everything possible.
-   * @param includeAll    True to list and install all packages, including obsolete ones.
-   * @param dryMode       True to check what would be updated/installed but do not actually
-   *                      download or install anything.
-   * @param acceptLicense SDK licenses to automatically accept.
-   * @deprecated Use {@link #updateAll(ArrayList, boolean, boolean, String, boolean)}
-   * instead
-   */
-  @Deprecated
-  public void updateAll(ArrayList<String> pkgFilter, boolean includeAll, boolean dryMode, String acceptLicense) {
-    updateAll(pkgFilter, includeAll, dryMode, acceptLicense, false);
   }
 
   /**
@@ -133,16 +106,6 @@ public class SdkUpdaterNoWindow {
                         String acceptLicense,
                         boolean includeDependencies) {
     mUpdaterData.updateOrInstallAll_NoGUI(pkgFilter, includeAll, dryMode, acceptLicense, includeDependencies);
-  }
-
-  /**
-   * Lists remote packages available for install using 'android update sdk --no-ui'.
-   *
-   * @param includeAll     True to list and install all packages, including obsolete ones.
-   * @param extendedOutput True to display more details on each package.
-   */
-  public void listRemotePackages(boolean includeAll, boolean extendedOutput) {
-    mUpdaterData.listRemotePackages_NoGUI(includeAll, extendedOutput);
   }
 
   // -----

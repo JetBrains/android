@@ -95,42 +95,6 @@ public class PlatformPackage extends MinToolsPackage implements IAndroidVersionP
     mPkgDesc = setDescriptions(PkgDesc.Builder.newPlatform(mVersion, (MajorRevision)getRevision(), getMinToolsRevision())).create();
   }
 
-  /**
-   * Creates a new platform package based on an actual {@link IAndroidTarget} (which
-   * must have {@link IAndroidTarget#isPlatform()} true) from the {@link SdkManager}.
-   * This is used to list local SDK folders in which case there is one archive which
-   * URL is the actual target location.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public static Package create(@NonNull IAndroidTarget target, @Nullable Properties props) {
-    return new PlatformPackage(target, props);
-  }
-
-  @VisibleForTesting(visibility = Visibility.PRIVATE)
-  protected PlatformPackage(@NonNull IAndroidTarget target, @Nullable Properties props) {
-    this(null /*source*/, target, props);
-  }
-
-  @VisibleForTesting(visibility = Visibility.PRIVATE)
-  protected PlatformPackage(@Nullable SdkSource source, @NonNull IAndroidTarget target, @Nullable Properties props) {
-    super(source,                     //source
-          props,                      //properties
-          target.getRevision(),       //revision
-          null,                       //license
-          target.getDescription(),    //description
-          null,                       //descUrl
-          target.getLocation()        //archiveOsPath
-    );
-
-    mVersion = target.getVersion();
-    mVersionName = target.getVersionName();
-    mLayoutlibVersion = new LayoutlibVersionMixin(props);
-    mIncludedAbi = props == null ? null : props.getProperty(PkgProps.PLATFORM_INCLUDED_ABI);
-
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newPlatform(mVersion, (MajorRevision)getRevision(), getMinToolsRevision())).create();
-  }
-
   @Override
   @NonNull
   public IPkgDesc getPkgDesc() {
