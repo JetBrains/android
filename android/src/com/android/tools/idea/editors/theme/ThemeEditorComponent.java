@@ -171,24 +171,15 @@ public class ThemeEditorComponent extends Splitter {
       renderTask = service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
     }
 
-
-    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(myModule, myConfiguration, false, new ColorRenderer(myConfiguration, myAttributesTable)));
-    myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
-                                                                                           new AttributeReferenceRendererEditor(project, completionProvider)));
-    myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myModule, myConfiguration, myAttributesTable.getDefaultRenderer(String.class)));
-    myAttributesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(myModule, myConfiguration,
-                                                                                   myAttributesTable.getDefaultRenderer(Integer.class)));
-    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
-                                                                                   new BooleanRendererEditor(myModule)));
-    myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
-                                                                                new EnumRendererEditor()));
-    myAttributesTable.setDefaultRenderer(Flag.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
-                                                                                new FlagRendererEditor()));
-    myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class,
-                                         new DelegatingCellRenderer(myModule, myConfiguration, false, myStyleEditor));
-    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(myModule, myConfiguration, false,
-                                                                                              new DrawableRenderer(myAttributesTable,
-                                                                                                                   renderTask)));
+    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRenderer(myConfiguration, myAttributesTable)));
+    myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
+    myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
+    myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myAttributesTable.getDefaultRenderer(String.class)));
+    myAttributesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(new IntegerRenderer()));
+    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(new BooleanRendererEditor(myModule)));
+    myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
+    myAttributesTable.setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
+    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRenderer(myAttributesTable, renderTask)));
     myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table,

@@ -20,6 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 
@@ -57,9 +58,16 @@ public class BooleanRendererEditor extends AbstractTableCellEditor implements Ta
     }
 
     EditedStyleItem item = (EditedStyleItem) value;
-    myComboBox.removeAllItems();
-    myComboBox.addItem(item.getValue());
-    return myComboBox;
+
+    final Component component;
+    if (column == 0) {
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, item.getQualifiedName(), isSelected, hasFocus, row, column);
+    } else {
+      myComboBox.removeAllItems();
+      myComboBox.addItem(item.getValue());
+      component = myComboBox;
+    }
+    return component;
   }
 
   @Override
