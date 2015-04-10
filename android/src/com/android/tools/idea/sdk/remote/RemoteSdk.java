@@ -105,7 +105,7 @@ public class RemoteSdk {
         for (Archive archive : p.getArchives()) {
           size += archive.getSize();
         }
-        RemotePkgInfo r = new RemotePkgInfo(d, source, size);
+        RemotePkgInfo r = new RemotePkgInfo(d, source, size, p);
         remotes.put(d.getType(), r);
       }
     }
