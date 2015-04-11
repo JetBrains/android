@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -677,7 +677,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Nullable
   private String getPackage() {
-    ManifestInfo manifestInfo = ManifestInfo.get(myModule, false);
-    return manifestInfo != null ? manifestInfo.getPackage() : null;
+    AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
+    return info == null ? null : info.getPackage();
   }
 }
