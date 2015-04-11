@@ -158,7 +158,6 @@ public class PsiResourceItem extends ResourceItem {
         value = parseStyleValue(new StyleResourceValue(type, name, parent, isFrameworks));
         break;
       case DECLARE_STYLEABLE:
-        //noinspection deprecation
         value = parseDeclareStyleable(new DeclareStyleableResourceValue(type, name, isFrameworks));
         break;
       case ATTR:
@@ -209,7 +208,6 @@ public class PsiResourceItem extends ResourceItem {
     return tag.getAttributeValue(attributeName);
   }
 
-  @SuppressWarnings("deprecation") // support for deprecated (but supported) API
   @NonNull
   private ResourceValue parseDeclareStyleable(@NonNull DeclareStyleableResourceValue declareStyleable) {
     assert myTag != null;
