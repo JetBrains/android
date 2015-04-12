@@ -27,7 +27,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -39,13 +38,11 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -171,48 +168,16 @@ public class Template {
     return new Template(new File(getTemplateRootFolder(), category + File.separator + name));
   }
 
-  @NotNull
-  public static String processFreemarkerTemplate(@NotNull Configuration freemarker,
-                                                 @NotNull Map<String, Object> paramMap,
-                                                 @NotNull String name) throws IOException, TemplateException {
-    freemarker.template.Template inputsTemplate = freemarker.getTemplate(name);
-    StringWriter out = new StringWriter();
-    inputsTemplate.process(paramMap, out);
-    out.flush();
-    final String s = out.toString();
-    return s.replace("\r", "");
-  }
 
   @NotNull
   public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
-    // Create the data model.
-    final Map<String, Object> paramMap = new HashMap<String, Object>();
-
-    // Builtin conversion methods
-    paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
-    paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
-    paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
-    paramMap.put("activityToLayout", new FmActivityToLayoutMethod());
-    paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
-    paramMap.put("classToResource", new FmClassNameToResourceMethod());
-    paramMap.put("escapeXmlAttribute", new FmEscapeXmlAttributeMethod());
-    paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
-    paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
-    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
-    paramMap.put("extractLetters", new FmExtractLettersMethod());
-    paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
-    paramMap.put("truncate", new FmTruncateStringMethod());
-
-    // Dependency list
-    paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
+    final Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(args);
 
     // Root folder of the templates
+    // TODO: This doesn't look like it's used anywhere. Confirm...?
     if (ApplicationManager.getApplication() != null && getTemplateRootFolder() != null) {
       paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
     }
-
-    // Wizard parameters supplied by user, specific to this template
-    paramMap.putAll(args);
 
     return paramMap;
   }
@@ -386,7 +351,7 @@ public class Template {
       }
       else {
         myLoader.setTemplateFile(getTemplateFile(file));
-        xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
+        xml = processFreemarkerTemplate(freemarker, paramMap, file);
       }
 
       xml = XmlUtils.stripBom(xml);
@@ -452,7 +417,8 @@ public class Template {
                                  boolean gradleSyncIfNeeded) {
     try {
       myLoader.setTemplateFile(getTemplateFile(fileRecipe));
-      String xml = processFreemarkerTemplate(freemarker, paramMap, fileRecipe.getName());
+      String xml = processFreemarkerTemplate(freemarker, paramMap, fileRecipe);
+
       xml = XmlUtils.stripBom(xml);
 
       Recipe recipe = Recipe.parse(new StringReader(xml));
