@@ -24,9 +24,15 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.structure.developerServices.DeveloperService;
+import com.android.tools.idea.structure.developerServices.DeveloperServices;
+import com.android.tools.idea.structure.developerServices.ServiceCategory;
+import com.android.tools.idea.structure.developerServices.view.ServiceCategoryConfigurable;
 import com.android.tools.idea.structure.gradle.AndroidModuleConfigurable;
 import com.android.tools.idea.structure.gradle.AndroidProjectConfigurable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -66,6 +72,7 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +83,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -290,14 +296,33 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         Module[] modules = moduleManager.getModules();
         Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
+        Module firstModule = null;
         Module toSelect = null;
         for (Module module : modules) {
           AndroidModuleConfigurable configurable = addModule(module);
           if (configurable != null) {
+            if (AndroidFacet.getInstance(module) != null && firstModule == null) {
+              firstModule = module;
+            }
             myConfigurables.add(configurable);
             if (configurable.getDisplayName().equals(myUiState.lastSelectedConfigurable)) {
               toSelect = module;
             }
+          }
+        }
+
+        // Populate the "Developer Services" section, defaulting to the first module
+        removeServices();
+        if (!myProject.isDefault() && firstModule != null) {
+          Set<ServiceCategory> categories = Sets.newHashSet();
+          for (DeveloperService s : DeveloperServices.getAll(firstModule)) {
+            categories.add(s.getCategory());
+          }
+          ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
+          Collections.sort(categoriesSorted);
+          for (ServiceCategory category : categoriesSorted) {
+            // TODO: Allow changing the module from a pulldown in the UI
+            myConfigurables.add(new ServiceCategoryConfigurable(firstModule, category));
           }
         }
 
@@ -315,6 +340,14 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
     finally {
       token.finish();
+    }
+  }
+
+  private void removeServices() {
+    for (Iterator<Configurable> it = myConfigurables.iterator(); it.hasNext(); ) {
+      if (it.next() instanceof ServiceCategoryConfigurable) {
+        it.remove();
+      }
     }
   }
 
@@ -473,12 +506,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   private class SidePanel extends JPanel {
     @NotNull private final JBList myList;
     @NotNull private final DefaultListModel myListModel;
-    private int myFirstModuleIndex;
+    @NotNull private final Map<Object, String> mySectionHeaderMap = Maps.newHashMap();
 
     SidePanel() {
       super(new BorderLayout());
       myListModel = new DefaultListModel();
-      myFirstModuleIndex = 0;
       myList = new JBList(myListModel);
       ListItemDescriptor descriptor = new ListItemDescriptor() {
         @Override
@@ -512,13 +544,13 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
         @Override
         public boolean hasSeparatorAboveOf(Object value) {
-          return myListModel.indexOf(value) == myFirstModuleIndex;
+          return mySectionHeaderMap.containsKey(value);
         }
 
         @Override
         @Nullable
         public String getCaptionAboveOf(Object value) {
-          return hasSeparatorAboveOf(value) ? "Modules" : null;
+          return hasSeparatorAboveOf(value) ? mySectionHeaderMap.get(value) : null;
         }
       };
 
@@ -550,11 +582,20 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     private void reset() {
       myListModel.clear();
-      myFirstModuleIndex = 0;
+      mySectionHeaderMap.clear();
+      Class<? extends Configurable> activeSection = null;
       for (Configurable configurable : myConfigurables) {
         myListModel.addElement(configurable);
-        if (!(configurable instanceof AndroidModuleConfigurable)) {
-          myFirstModuleIndex = myListModel.size();
+
+        if (activeSection == configurable.getClass()) {
+          continue;
+        }
+        activeSection = configurable.getClass();
+        if (configurable instanceof AndroidModuleConfigurable) {
+          mySectionHeaderMap.put(configurable, "Modules");
+        }
+        else if (configurable instanceof ServiceCategoryConfigurable) {
+          mySectionHeaderMap.put(configurable, "Developer Services");
         }
       }
     }
