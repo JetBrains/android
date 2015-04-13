@@ -26,16 +26,13 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.RepoConstants;
-import com.android.sdklib.repository.descriptors.IPkgDescExtra;
-import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDescExtra;
+import com.android.sdklib.repository.descriptors.*;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
-import com.android.tools.idea.sdk.remote.internal.LocalSdkParser;
-import com.android.tools.idea.sdk.remote.internal.NullTaskMonitor;
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.android.utils.NullLogger;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -172,94 +169,6 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     }
 
     return paths.toArray(new String[paths.size()]);
-  }
-
-  /**
-   * Manually create a new package with one archive and the given attributes or properties.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public static Package create(SdkSource source,
-                               Properties props,
-                               String vendor,
-                               String path,
-                               int revision,
-                               String license,
-                               String description,
-                               String descUrl,
-                               String archiveOsPath) {
-    ExtraPackage ep = new ExtraPackage(source, props, vendor, path, revision, license, description, descUrl, archiveOsPath);
-    return ep;
-  }
-
-  /**
-   * Constructor used to create a mock {@link ExtraPackage}.
-   * Most of the attributes here are optional.
-   * When not defined, they will be extracted from the {@code props} properties.
-   */
-  @VisibleForTesting(visibility = Visibility.PRIVATE)
-  protected ExtraPackage(SdkSource source,
-                         Properties props,
-                         String vendorId,
-                         String path,
-                         int revision,
-                         String license,
-                         String description,
-                         String descUrl,
-                         String archiveOsPath) {
-    super(source, props, revision, license, description, descUrl, archiveOsPath);
-
-    mMinToolsMixin = new MinToolsMixin(source, props, revision, license, description, descUrl, archiveOsPath);
-
-    // The path argument comes before whatever could be in the properties
-    mPath = path != null ? path : getProperty(props, PkgProps.EXTRA_PATH, path);
-
-    String name = getProperty(props, PkgProps.EXTRA_NAME_DISPLAY, "");     //$NON-NLS-1$
-    String vname = getProperty(props, PkgProps.EXTRA_VENDOR_DISPLAY, "");   //$NON-NLS-1$
-    String vid = vendorId != null ? vendorId : getProperty(props, PkgProps.EXTRA_VENDOR_ID, ""); //$NON-NLS-1$
-
-    if (vid == null || vid.length() == 0) {
-      // If vid is missing, use the old <vendor> attribute.
-      // <vendor> did not exist prior to schema repo-v3 and tools r8.
-      String vendor = getProperty(props, PkgProps.EXTRA_VENDOR, "");      //$NON-NLS-1$
-      vid = sanitizeLegacyVendor(vendor);
-      if (vname == null || vname.length() == 0) {
-        vname = vendor;
-      }
-    }
-    if (vname == null || vname.length() == 0) {
-      // The vendor-display name can be empty, in which case we use the vendor-id.
-      vname = vid;
-    }
-    mVendor = new IdDisplay(vid.trim(), vname.trim());
-
-    if (name == null || name.length() == 0) {
-      // If name is missing, use the <path> attribute as done in an addon-3 schema.
-      name = LocalExtraPkgInfo.getPrettyName(mVendor, mPath);
-    }
-    mDisplayName = name.trim();
-
-    mOldPaths = getProperty(props, PkgProps.EXTRA_OLD_PATHS, null);
-
-    mMinApiLevel = getPropertyInt(props, PkgProps.EXTRA_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
-
-    String projectFiles = getProperty(props, PkgProps.EXTRA_PROJECT_FILES, null);
-    ArrayList<String> filePaths = new ArrayList<String>();
-    if (projectFiles != null && projectFiles.length() > 0) {
-      for (String filePath : projectFiles.split(Pattern.quote(File.pathSeparator))) {
-        filePath = filePath.trim();
-        if (filePath.length() > 0) {
-          filePaths.add(filePath);
-        }
-      }
-    }
-
-    mProjectFiles = filePaths.toArray(new String[filePaths.size()]);
-
-    mPkgDesc =
-      (IPkgDescExtra)setDescriptions(PkgDesc.Builder.newExtra(mVendor, mPath, mDisplayName, getOldPaths(), getRevision())).create();
   }
 
   @Override
@@ -510,17 +419,11 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
    */
   @Override
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-
     // First find if this extra is already installed. If so, reuse the same directory.
-    LocalSdkParser localParser = new LocalSdkParser();
-    Package[] pkgs = localParser.parseSdk(osSdkRoot, sdkManager, LocalSdkParser.PARSE_EXTRAS, new NullTaskMonitor(NullLogger.getLogger()));
-
-    for (Package pkg : pkgs) {
-      if (sameItemAs(pkg) && pkg instanceof ExtraPackage) {
-        File localPath = ((ExtraPackage)pkg).getLocalArchivePath();
-        if (localPath != null) {
-          return localPath;
-        }
+    LocalSdk sdk = sdkManager.getLocalSdk();
+    for (LocalPkgInfo info : sdk.getPkgsInfos(PkgType.PKG_EXTRA)) {
+      if (PkgDescExtra.compatibleVendorAndPath(mPkgDesc, (IPkgDescExtra)info.getDesc())) {
+        return info.getLocalDir();
       }
     }
 

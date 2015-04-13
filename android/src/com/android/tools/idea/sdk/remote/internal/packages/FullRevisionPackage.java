@@ -51,31 +51,6 @@ public abstract class FullRevisionPackage extends Package implements IFullRevisi
       PackageParserUtils.parseFullRevisionElement(PackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
   }
 
-  /**
-   * Manually create a new package with one archive and the given attributes.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * Properties from props are used first when possible, e.g. if props is non null.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public FullRevisionPackage(SdkSource source,
-                             Properties props,
-                             int revision,
-                             String license,
-                             String description,
-                             String descUrl,
-                             String archiveOsPath) {
-    super(source, props, revision, license, description, descUrl, archiveOsPath);
-
-    FullRevision rev = PackageParserUtils.getPropertyFull(props, PkgProps.PKG_REVISION);
-    if (rev == null) {
-      rev = new FullRevision(revision);
-    }
-    mPreviewVersion = rev;
-  }
-
   @Override
   public FullRevision getRevision() {
     return mPreviewVersion;

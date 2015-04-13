@@ -67,40 +67,6 @@ public class DocPackage extends MajorRevisionPackage implements IAndroidVersionP
     mPkgDesc = setDescriptions(PkgDesc.Builder.newDoc(mVersion, (MajorRevision)getRevision())).create();
   }
 
-  /**
-   * Manually create a new package with one archive and the given attributes.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public static Package create(SdkSource source,
-                               Properties props,
-                               int apiLevel,
-                               String codename,
-                               int revision,
-                               String license,
-                               String description,
-                               String descUrl,
-                               String archiveOsPath) {
-    return new DocPackage(source, props, apiLevel, codename, revision, license, description, descUrl, archiveOsPath);
-  }
-
-  private DocPackage(SdkSource source,
-                     Properties props,
-                     int apiLevel,
-                     String codename,
-                     int revision,
-                     String license,
-                     String description,
-                     String descUrl,
-                     String archiveOsPath) {
-    super(source, props, revision, license, description, descUrl, archiveOsPath);
-    mVersion = new AndroidVersion(props, apiLevel, codename);
-
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newDoc(mVersion, (MajorRevision)getRevision())).create();
-  }
-
   @Override
   @NonNull
   public IPkgDesc getPkgDesc() {
