@@ -42,7 +42,7 @@ public class ThemeEditorTable extends CellSpanTable {
   @Override
   public JPopupMenu getComponentPopupMenu() {
     final Point point = getMousePosition();
-    return getPopupMenuAtCell(rowAtPoint(point), columnAtPoint(point));
+    return point != null ? getPopupMenuAtCell(rowAtPoint(point), columnAtPoint(point)) : null;
   }
 
   private JPopupMenu getPopupMenuAtCell(final int row, final int column) {
