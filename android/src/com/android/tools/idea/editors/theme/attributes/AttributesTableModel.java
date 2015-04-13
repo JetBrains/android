@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -356,7 +357,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public Class<?> getCellClass(int column) {
-      return String.class;
+      return ParentAttribute.class;
     }
 
     @Override
