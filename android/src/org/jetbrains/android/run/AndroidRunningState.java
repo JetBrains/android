@@ -275,7 +275,15 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           return null;
         }
 
-        if (chooser.isCloudTestOptionSelected()) {
+        if (chooser.isToLaunchEmulator()) {
+          final String selectedAvd = chooser.getSelectedAvd();
+          if (selectedAvd == null) {
+            return null;
+          }
+          myTargetChooser = new EmulatorTargetChooser(selectedAvd);
+          myAvdName = selectedAvd;
+        }
+        else if (chooser.isCloudTestOptionSelected()) {
           return provider
             .executeCloudMatrixTests(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId(), this, executor);
         }
