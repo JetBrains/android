@@ -133,6 +133,22 @@ public class NavigationView extends JComponent {
     addMouseListener(mouseListener);
     addMouseMotionListener(mouseListener);
 
+    // Popup menu
+    final JPopupMenu menu = new JBPopupMenu();
+    final JMenuItem anItem = new JBMenuItem("New Activity...");
+    anItem.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        Module module = myRenderingParams.facet.getModule();
+        NewAndroidActivityWizard dialog = new NewAndroidActivityWizard(module, null, null);
+        dialog.init();
+        dialog.setOpenCreatedFiles(false);
+        dialog.show();
+      }
+    });
+    menu.add(anItem);
+    setComponentPopupMenu(menu);
+
     // Focus listener
     addFocusListener(new FocusListener() {
       @Override
@@ -877,29 +893,8 @@ public class NavigationView extends JComponent {
   }
 
   private class MyMouseListener extends MouseAdapter {
-    private void showPopup(MouseEvent e) {
-      JPopupMenu menu = new JBPopupMenu();
-      JMenuItem anItem = new JBMenuItem("New Activity...");
-      anItem.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-          Module module = myRenderingParams.facet.getModule();
-          NewAndroidActivityWizard dialog = new NewAndroidActivityWizard(module, null, null);
-          dialog.init();
-          dialog.setOpenCreatedFiles(false);
-          dialog.show();
-        }
-      });
-      menu.add(anItem);
-      menu.show(e.getComponent(), e.getX(), e.getY());
-    }
-
     @Override
     public void mousePressed(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        showPopup(e);
-        return;
-      }
       if (!SwingUtilities.isLeftMouseButton(e)) {
         return;
       }
@@ -938,10 +933,6 @@ public class NavigationView extends JComponent {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        showPopup(e);
-        return;
-      }
       if (!SwingUtilities.isLeftMouseButton(e)) {
         return;
       }
