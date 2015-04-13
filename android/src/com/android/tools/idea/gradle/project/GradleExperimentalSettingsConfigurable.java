@@ -31,6 +31,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JPanel myPanel;
   private JCheckBox myEnableModuleSelectionOnImportCheckBox;
   private JSpinner myModuleNumberSpinner;
+  private JCheckBox mySkipSourceGenOnSyncCheckbox;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -68,7 +69,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public boolean isModified() {
-    if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled()) {
+    if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
+        mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -78,6 +80,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @Override
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
+    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
@@ -94,9 +97,14 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     return myEnableModuleSelectionOnImportCheckBox.isSelected();
   }
 
+  private boolean isSkipSourceGenOnSync() {
+    return mySkipSourceGenOnSyncCheckbox.isSelected();
+  }
+
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
+    mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
   }
 
