@@ -240,7 +240,16 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    if (modified.contains(KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION)) {
+    if (modified.contains(KEY_SDK_INSTALL_LOCATION)) {
+      String sdkPath = myState.get(KEY_SDK_INSTALL_LOCATION);
+      SdkManager manager = null;
+      if (sdkPath != null) {
+        manager = SdkManager.createManager(sdkPath, new NullLogger());
+      }
+      myComponentTree.updateState(manager);
+    }
+    if (modified.contains(KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION) ||
+        myComponentTree.componentStateChanged(modified)) {
       myState.put(WizardConstants.INSTALL_REQUESTS_KEY, getPackageDescriptions());
     }
   }
