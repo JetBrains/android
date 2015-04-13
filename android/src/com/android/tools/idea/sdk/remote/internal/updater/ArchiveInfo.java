@@ -47,8 +47,6 @@ public class ArchiveInfo extends ArchiveReplacement implements Comparable<Archiv
 
   private final ArchiveInfo[] mDependsOn;
   private final ArrayList<ArchiveInfo> mDependencyFor = new ArrayList<ArchiveInfo>();
-  private boolean mAccepted;
-  private boolean mRejected;
 
   /**
    * Creates a new replacement where the {@code newArchive} will replace the
@@ -86,14 +84,6 @@ public class ArchiveInfo extends ArchiveReplacement implements Comparable<Archiv
   }
 
   /**
-   * Returns true if this new archive is a dependency for <em>another</em> one that we
-   * want to install.
-   */
-  public boolean isDependencyFor() {
-    return mDependencyFor.size() > 0;
-  }
-
-  /**
    * Adds an {@link ArchiveInfo} for which <em>this</em> package is a dependency.
    * This means the package added here depends on this package.
    */
@@ -104,50 +94,6 @@ public class ArchiveInfo extends ArchiveReplacement implements Comparable<Archiv
     }
 
     return this;
-  }
-
-  /**
-   * Returns the list of {@link ArchiveInfo} for which <em>this</em> package is a dependency.
-   * This means the packages listed here depend on this package.
-   * <p/>
-   * Implementation detail: this is the internal mutable list. Callers should not modify it.
-   * This list can be empty but is never null.
-   */
-  @NonNull
-  public Collection<ArchiveInfo> getDependenciesFor() {
-    return mDependencyFor;
-  }
-
-  /**
-   * Sets whether this archive was accepted (either manually by the user or
-   * automatically if it doesn't have a license) for installation.
-   */
-  public void setAccepted(boolean accepted) {
-    mAccepted = accepted;
-  }
-
-  /**
-   * Returns whether this archive was accepted (either manually by the user or
-   * automatically if it doesn't have a license) for installation.
-   */
-  public boolean isAccepted() {
-    return mAccepted;
-  }
-
-  /**
-   * Sets whether this archive was rejected manually by the user.
-   * An archive can neither accepted nor rejected.
-   */
-  public void setRejected(boolean rejected) {
-    mRejected = rejected;
-  }
-
-  /**
-   * Returns whether this archive was rejected manually by the user.
-   * An archive can neither accepted nor rejected.
-   */
-  public boolean isRejected() {
-    return mRejected;
   }
 
   /**

@@ -51,41 +51,6 @@ public abstract class NoPreviewRevisionPackage extends Package {
   }
 
   /**
-   * Manually create a new package with one archive and the given attributes.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * Properties from props are used first when possible, e.g. if props is non null.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public NoPreviewRevisionPackage(SdkSource source,
-                                  Properties props,
-                                  int revision,
-                                  String license,
-                                  String description,
-                                  String descUrl,
-                                  String archiveOsPath) {
-    super(source, props, revision, license, description, descUrl, archiveOsPath);
-
-    String revStr = getProperty(props, PkgProps.PKG_REVISION, null);
-
-    NoPreviewRevision rev = null;
-    if (revStr != null) {
-      try {
-        rev = NoPreviewRevision.parseRevision(revStr);
-      }
-      catch (NumberFormatException ignore) {
-      }
-    }
-    if (rev == null) {
-      rev = new NoPreviewRevision(revision);
-    }
-
-    mRevision = rev;
-  }
-
-  /**
    * Returns the revision, an int > 0, for all packages (platform, add-on, tool, doc).
    * Can be 0 if this is a local package of unknown revision.
    */

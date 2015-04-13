@@ -92,50 +92,6 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
     mPkgDesc = setDescriptions(PkgDesc.Builder.newTool(getRevision(), mMinPlatformToolsRevision)).create();
   }
 
-  /**
-   * Manually create a new package with one archive and the given attributes or properties.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public static Package create(SdkSource source,
-                               Properties props,
-                               int revision,
-                               String license,
-                               String description,
-                               String descUrl,
-                               String archiveOsPath) {
-    return new ToolPackage(source, props, revision, license, description, descUrl, archiveOsPath);
-  }
-
-  @VisibleForTesting(visibility = Visibility.PRIVATE)
-  protected ToolPackage(SdkSource source,
-                        Properties props,
-                        int revision,
-                        String license,
-                        String description,
-                        String descUrl,
-                        String archiveOsPath) {
-    super(source, props, revision, license, description, descUrl, archiveOsPath);
-
-    // Setup min-platform-tool
-    String revStr = getProperty(props, PkgProps.MIN_PLATFORM_TOOLS_REV, null);
-
-    FullRevision rev = MIN_PLATFORM_TOOLS_REV_INVALID;
-    if (revStr != null) {
-      try {
-        rev = FullRevision.parseRevision(revStr);
-      }
-      catch (NumberFormatException ignore) {
-      }
-    }
-
-    mMinPlatformToolsRevision = rev;
-
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newTool(getRevision(), mMinPlatformToolsRevision)).create();
-  }
-
   @Override
   @NonNull
   public IPkgDesc getPkgDesc() {
