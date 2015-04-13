@@ -27,6 +27,7 @@ import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.android.tools.swing.ui.NavigationComponent;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -35,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.DocumentAdapter;
@@ -61,6 +63,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -75,6 +78,14 @@ import java.util.concurrent.TimeUnit;
 public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
+
+  private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
+    ImmutableMap.of(
+      "android.support.design.widget.FloatingActionButton",
+      new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.BUTTONS, "android.support.design.widget.FloatingActionButton")
+        .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
+        .set("clickable", "true")
+    );
 
   /** Min API level to use for filtering. */
   private int myMinApiLevel;
@@ -223,7 +234,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
           LOG.error("Unable to find 'android.view.View'");
           return;
         }
-        Query<PsiClass> viewClasses = ClassInheritorsSearch.search(viewClass, GlobalSearchScope.projectScope(project), true);
+
+        Query<PsiClass> viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getProjectScope(project), true);
         final ArrayList<ComponentDefinition> customComponents =
           new ArrayList<ComponentDefinition>();
         viewClasses.forEach(new Processor<PsiClass>() {
@@ -234,12 +246,28 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
             if (description == null || className == null) {
               // Currently we ignore anonymous views
-              // TODO: Decide how we want to display anonymous classes
               return false;
             }
 
             customComponents
               .add(new ComponentDefinition(description, ThemePreviewBuilder.ComponentGroup.CUSTOM, className));
+            return true;
+          }
+        });
+
+        // Now search for support library components.
+        viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getLibrariesScope(project), true);
+        viewClasses.forEach(new Processor<PsiClass>() {
+          @Override
+          public boolean process(PsiClass psiClass) {
+            String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+            String className = psiClass.getQualifiedName();
+
+            ComponentDefinition component = SUPPORT_LIBRARY_COMPONENTS.get(className);
+            if (component != null) {
+              customComponents.add(component);
+            }
+
             return true;
           }
         });
