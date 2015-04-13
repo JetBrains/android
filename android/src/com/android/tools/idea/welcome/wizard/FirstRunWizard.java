@@ -85,11 +85,6 @@ public class FirstRunWizard extends DynamicWizard {
   }
 
   @Override
-  public boolean canCancel() {
-    return AndroidSdkUtils.isAndroidSdkAvailable();
-  }
-
-  @Override
   public void doCancelAction() {
     ConfirmFirstRunWizardCloseDialog.Result result = new ConfirmFirstRunWizardCloseDialog().open();
     switch (result) {
