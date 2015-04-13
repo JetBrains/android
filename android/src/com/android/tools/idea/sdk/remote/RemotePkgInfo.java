@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.IListDescription;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.tools.idea.sdk.remote.internal.packages.Package;
 
 
 /**
@@ -42,11 +43,17 @@ public class RemotePkgInfo implements IDescription, IListDescription, Comparable
    * Size of the archives that make up this package
    */
   private final long mDownloadSize;
+  private final Package mPackage;
 
-  public RemotePkgInfo(@NonNull IPkgDesc pkgDesc, @NonNull IDescription sourceUri, long downloadSize) {
+  public RemotePkgInfo(@NonNull IPkgDesc pkgDesc, @NonNull IDescription sourceUri, long downloadSize, Package pack) {
     mPkgDesc = pkgDesc;
     mSourceUri = sourceUri;
     mDownloadSize = downloadSize;
+    mPackage = pack;
+  }
+
+  public Package getPackage() {
+    return mPackage;
   }
 
   /**

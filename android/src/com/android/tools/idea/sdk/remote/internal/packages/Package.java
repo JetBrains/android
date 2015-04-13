@@ -118,59 +118,6 @@ public abstract class Package implements IDescription, IListDescription, Compara
   }
 
   /**
-   * Manually create a new package with one archive and the given attributes.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * Properties from props are used first when possible, e.g. if props is non null.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public Package(SdkSource source,
-                 Properties props,
-                 int revision,
-                 String license,
-                 String description,
-                 String descUrl,
-                 String archiveOsPath) {
-
-    if (description == null) {
-      description = "";
-    }
-    if (descUrl == null) {
-      descUrl = "";
-    }
-
-    mLicense = new License(getProperty(props, PkgProps.PKG_LICENSE, license), getProperty(props, PkgProps.PKG_LICENSE_REF, null));
-    mListDisplay = getProperty(props, PkgProps.PKG_LIST_DISPLAY, "");       //$NON-NLS-1$
-    mDescription = getProperty(props, PkgProps.PKG_DESC, description);
-    mDescUrl = getProperty(props, PkgProps.PKG_DESC_URL, descUrl);
-    mReleaseNote = getProperty(props, PkgProps.PKG_RELEASE_NOTE, "");       //$NON-NLS-1$
-    mReleaseUrl = getProperty(props, PkgProps.PKG_RELEASE_URL, "");       //$NON-NLS-1$
-    mObsolete = getProperty(props, PkgProps.PKG_OBSOLETE, null);
-
-    // If source is null and we can find a source URL in the properties, generate
-    // a dummy source just to store the URL. This allows us to easily remember where
-    // a package comes from.
-    String srcUrl = getProperty(props, PkgProps.PKG_SOURCE_URL, null);
-    if (props != null && source == null && srcUrl != null) {
-      // Both Addon and Extra packages can come from an addon source.
-      // For Extras, we can tell by looking at the source URL.
-      if (this instanceof AddonPackage || ((this instanceof ExtraPackage) && srcUrl.endsWith(SdkAddonConstants.URL_DEFAULT_FILENAME))) {
-        source = new SdkAddonSource(srcUrl, null /*uiName*/);
-      }
-      else {
-        source = new SdkRepoSource(srcUrl, null /*uiName*/);
-      }
-    }
-    mSource = source;
-
-    // Note: if archiveOsPath is non-null, this makes a local archive (e.g. a locally
-    // installed package.) If it's null, this makes a remote archive.
-    mArchives = initializeArchives(props, archiveOsPath);
-  }
-
-  /**
    * Returns the {@link IPkgDesc} describing this package's meta data.
    *
    * @return A non-null {@link IPkgDesc}.

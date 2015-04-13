@@ -25,9 +25,10 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.ISdkChangeListener;
 import com.android.sdklib.repository.License;
-import com.android.sdklib.repository.SdkAddonConstants;
 import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.sdklib.util.LineUtil;
+import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.*;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.archives.ArchiveInstaller;
@@ -36,16 +37,15 @@ import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.tools.idea.sdk.remote.internal.packages.PlatformToolPackage;
 import com.android.tools.idea.sdk.remote.internal.packages.ToolPackage;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoSource;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSourceCategory;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.utils.ILogger;
 import com.android.utils.IReaderLogger;
-import com.android.utils.SparseIntArray;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -63,7 +63,6 @@ public class UpdaterData implements IUpdaterData {
 
   private String mOsSdkRoot;
 
-  private final LocalSdkParser mLocalSdkParser = new LocalSdkParser();
   /**
    * Holds all sources. Do not use this directly.
    * Instead use {@link #getSources()} so that unit tests can override this as needed.
@@ -89,7 +88,6 @@ public class UpdaterData implements IUpdaterData {
    * Lazily created in {@link #getDownloadCache()}.
    */
   private DownloadCache mDownloadCache;
-  private AndroidLocationException mAvdManagerInitError;
 
   /**
    * Creates a new updater data.
@@ -133,10 +131,6 @@ public class UpdaterData implements IUpdaterData {
     return mSources;
   }
 
-  public LocalSdkParser getLocalSdkParser() {
-    return mLocalSdkParser;
-  }
-
   @Override
   public ILogger getSdkLog() {
     return mSdkLog;
@@ -165,35 +159,6 @@ public class UpdaterData implements IUpdaterData {
       mPackageLoader = new PackageLoader(this);
     }
     return mPackageLoader;
-  }
-
-  /**
-   * Check if any error occurred during initialization.
-   * If it did, display an error message.
-   *
-   * @return True if an error occurred, false if we should continue.
-   */
-  public boolean checkIfInitFailed() {
-    if (mAvdManagerInitError != null) {
-      String example;
-      if (SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS) {
-        example = "%USERPROFILE%";     //$NON-NLS-1$
-      }
-      else {
-        example = "~";                 //$NON-NLS-1$
-      }
-
-      String error = String.format("The AVD manager normally uses the user's profile directory to store " +
-                                   "AVD files. However it failed to find the default profile directory. " +
-                                   "\n" +
-                                   "To fix this, please set the environment variable ANDROID_SDK_HOME to " +
-                                   "a valid path such as \"%s\".", example);
-
-      displayInitError(error);
-
-      return true;
-    }
-    return false;
   }
 
   protected void displayInitError(String error) {
@@ -248,7 +213,6 @@ public class UpdaterData implements IUpdaterData {
   public void reloadSdk() {
     // reload SDK
     mSdkManager.reloadSdk(mSdkLog);
-    mLocalSdkParser.clearPackages();
 
     // notify listeners
     broadcastOnSdkReload();
@@ -279,25 +243,6 @@ public class UpdaterData implements IUpdaterData {
     // Load user sources (this will also notify change listeners but this operation is
     // done early enough that there shouldn't be any anyway.)
     sources.loadUserAddons(getSdkLog());
-  }
-
-  /**
-   * Returns the list of installed packages, parsing them if this has not yet been done.
-   * <p/>
-   * The package list is cached in the {@link LocalSdkParser} and will be reset when
-   * {@link #reloadSdk()} is invoked.
-   */
-  public Package[] getInstalledPackages(ITaskMonitor monitor) {
-    LocalSdkParser parser = getLocalSdkParser();
-
-    Package[] packages = parser.getPackages();
-
-    if (packages == null) {
-      // load on demand the first time
-      packages = parser.parseSdk(getOsSdkRoot(), getSdkManager(), monitor);
-    }
-
-    return packages;
   }
 
   /**
@@ -335,14 +280,6 @@ public class UpdaterData implements IUpdaterData {
         boolean installedPlatformTools = false;
         boolean preInstallHookInvoked = false;
 
-        // Mark all current local archives as already installed.
-        HashSet<Archive> installedArchives = new HashSet<Archive>();
-        for (Package p : getInstalledPackages(monitor.createSubMonitor(1))) {
-          for (Archive a : p.getArchives()) {
-            installedArchives.add(a);
-          }
-        }
-
         int numInstalled = 0;
         nextArchive:
         for (ArchiveInfo ai : archives) {
@@ -369,14 +306,6 @@ public class UpdaterData implements IUpdaterData {
                   monitor.log("Skipping '%1$s'; it depends on a missing package.", archive.getParentPackage().getShortDescription());
                   continue nextArchive;
                 }
-                else if (!installedArchives.contains(na)) {
-                  // This archive depends on another one that was not installed.
-                  // We shouldn't get here.
-                  // Skip it.
-                  monitor.logError("Skipping '%1$s'; it depends on '%2$s' which was not installed.",
-                                   archive.getParentPackage().getShortDescription(), adep.getShortDescription());
-                  continue nextArchive;
-                }
               }
             }
 
@@ -389,12 +318,7 @@ public class UpdaterData implements IUpdaterData {
             if (installer.install(ai, mOsSdkRoot, forceHttp, mSdkManager, getDownloadCache(), monitor)) {
               // We installed this archive.
               newlyInstalledArchives.add(archive);
-              installedArchives.add(archive);
               numInstalled++;
-
-              // If this package was replacing an existing one, the old one
-              // is no longer installed.
-              installedArchives.remove(ai.getReplaced());
 
               // Check if we successfully installed a platform-tool or add-on package.
               if (archive.getParentPackage() instanceof AddonPackage) {
@@ -568,133 +492,6 @@ public class UpdaterData implements IUpdaterData {
   }
 
   /**
-   * Fetches all archives available on the known remote sources.
-   * <p/>
-   * Used by {@link UpdaterData#listRemotePackages_NoGUI} and
-   * {@link UpdaterData#updateOrInstallAll_NoGUI}.
-   *
-   * @param includeAll True to list and install all packages, including obsolete ones.
-   * @return A list of potential {@link ArchiveInfo} to install.
-   */
-  private List<ArchiveInfo> getRemoteArchives_NoGUI(boolean includeAll) {
-    refreshSources(true);
-    getPackageLoader().loadRemoteAddonsList(new NullTaskMonitor(getSdkLog()));
-
-    List<ArchiveInfo> archives;
-    SdkUpdaterLogic ul = new SdkUpdaterLogic(this);
-
-    if (includeAll) {
-      archives = ul.getAllRemoteArchives(getSources(), getLocalSdkParser().getPackages(), includeAll);
-
-    }
-    else {
-      archives = ul.computeUpdates(null /*selectedArchives*/, getSources(), getLocalSdkParser().getPackages(), includeAll);
-
-      ul.addNewPlatforms(archives, getSources(), getLocalSdkParser().getPackages(), includeAll);
-    }
-
-    Collections.sort(archives);
-    return archives;
-  }
-
-  /**
-   * Lists remote packages available for install using
-   * {@link updateOrInstallAll_NoGUI}.
-   *
-   * @param includeAll     True to list and install all packages, including obsolete ones.
-   * @param extendedOutput True to display more details on each package.
-   */
-  public void listRemotePackages_NoGUI(boolean includeAll, boolean extendedOutput) {
-
-    List<ArchiveInfo> archives = getRemoteArchives_NoGUI(includeAll);
-
-    mSdkLog.info("Packages available for installation or update: %1$d\n", archives.size());
-
-    int index = 1;
-    for (ArchiveInfo ai : archives) {
-      Archive a = ai.getNewArchive();
-      if (a != null) {
-        Package p = a.getParentPackage();
-        if (p != null) {
-          if (extendedOutput) {
-            mSdkLog.info("----------\n");
-            mSdkLog.info("id: %1$d or \"%2$s\"\n", index, p.installId());
-            mSdkLog.info("     Type: %1$s\n", p.getClass().getSimpleName().replaceAll("Package", "")); //$NON-NLS-1$ //$NON-NLS-2$
-            String desc = LineUtil.reformatLine("     Desc: %s\n", p.getLongDescription());
-            mSdkLog.info("%s", desc); //$NON-NLS-1$
-          }
-          else {
-            mSdkLog.info("%1$ 4d- %2$s\n", index, p.getShortDescription());
-          }
-          index++;
-        }
-      }
-    }
-  }
-
-  /**
-   * Tries to update all the *existing* local packages.
-   * This version *requires* to be run with a GUI.
-   * <p/>
-   * There are two modes of operation:
-   * <ul>
-   * <li>If selectedArchives is null, refreshes all sources, compares the available remote
-   * packages with the current local ones and suggest updates to be done to the user (including
-   * new platforms that the users doesn't have yet).
-   * <li>If selectedArchives is not null, this represents a list of archives/packages that
-   * the user wants to install or update, so just process these.
-   * </ul>
-   *
-   * @param selectedArchives The list of remote archives to consider for the update.
-   *                         This can be null, in which case a list of remote archive is fetched from all
-   *                         available sources.
-   * @param includeObsoletes True if obsolete packages should be used when resolving what
-   *                         to update.
-   * @param flags            Optional flags for the installer, such as {@link #NO_TOOLS_MSG}.
-   * @return A list of archives that have been installed. Can be null if nothing was done.
-   */
-  public List<Archive> updateOrInstallAll_WithGUI(Collection<Archive> selectedArchives, boolean includeObsoletes, int flags) {
-    // FIXME revisit this logic. This is just an transitional implementation
-    // while I refactor the way the sdk manager works internally.
-
-    SdkUpdaterLogic ul = new SdkUpdaterLogic(this);
-    List<ArchiveInfo> archives = ul.computeUpdates(selectedArchives, getSources(), getLocalSdkParser().getPackages(), includeObsoletes);
-
-    if (selectedArchives == null) {
-      getPackageLoader().loadRemoteAddonsList(new NullTaskMonitor(getSdkLog()));
-      ul.addNewPlatforms(archives, getSources(), getLocalSdkParser().getPackages(), includeObsoletes);
-    }
-
-    Collections.sort(archives);
-
-    if (archives.size() > 0) {
-      return installArchives(archives, flags);
-    }
-    return null;
-  }
-
-  /**
-   * Tries to update all the *existing* local packages.
-   * This version is intended to run without a GUI and
-   * only outputs to the current {@link ILogger}.
-   *
-   * @param pkgFilter     A list of {@link SdkRepoConstants#NODES} or {@link Package#installId()}
-   *                      or package indexes to limit the packages we can update or install.
-   *                      A null or empty list means to update everything possible.
-   * @param includeAll    True to list and install all packages, including obsolete ones.
-   * @param dryMode       True to check what would be updated/installed but do not actually
-   *                      download or install anything.
-   * @param acceptLicense SDK licenses to automatically accept.
-   * @return A list of archives that have been installed. Can be null if nothing was done.
-   * @deprecated Use {@link #updateOrInstallAll_NoGUI(Collection, boolean, boolean, String, boolean)}
-   * instead
-   */
-  @Deprecated
-  public List<Archive> updateOrInstallAll_NoGUI(Collection<String> pkgFilter, boolean includeAll, boolean dryMode, String acceptLicense) {
-    return updateOrInstallAll_NoGUI(pkgFilter, includeAll, dryMode, acceptLicense, false);
-  }
-
-  /**
    * Tries to update all the *existing* local packages.
    * This version is intended to run without a GUI and
    * only outputs to the current {@link ILogger}.
@@ -715,27 +512,20 @@ public class UpdaterData implements IUpdaterData {
                                                 String acceptLicense,
                                                 boolean includeDependencies) {
 
-    List<ArchiveInfo> archives = getRemoteArchives_NoGUI(includeAll);
+    List<ArchiveInfo> archives = getRemoteArchives(includeAll);
 
     // Filter the selected archives to only keep the ones matching the filter
     if (pkgFilter != null && pkgFilter.size() > 0 && archives != null && archives.size() > 0) {
-      // Map filter types to an SdkRepository Package type,
-      // e.g. create a map "platform" => PlatformPackage.class
-      HashMap<String, Class<? extends Package>> pkgMap = new HashMap<String, Class<? extends Package>>();
-
-      mapFilterToPackageClass(pkgMap, SdkRepoConstants.NODES);
-      mapFilterToPackageClass(pkgMap, SdkAddonConstants.NODES);
-
       // Prepare a map install-id => package instance
-      HashMap<String, Package> installIdMap = new HashMap<String, Package>();
+      HashSet<String> installIds = new HashSet<String>();
       for (ArchiveInfo ai : archives) {
         Archive a = ai.getNewArchive();
         if (a != null) {
           Package p = a.getParentPackage();
           if (p != null) {
             String iid = p.installId().toLowerCase(Locale.US);
-            if (iid != null && iid.length() > 0 && !installIdMap.containsKey(iid)) {
-              installIdMap.put(iid, p);
+            if (iid.length() > 0 && !installIds.contains(iid)) {
+              installIds.add(iid);
             }
           }
         }
@@ -746,26 +536,14 @@ public class UpdaterData implements IUpdaterData {
       // We also create a set with the package indices requested by the user
       // and a set of install-ids requested by the user.
 
-      HashSet<Class<? extends Package>> userFilteredClasses = new HashSet<Class<? extends Package>>();
-      SparseIntArray userFilteredIndices = new SparseIntArray();
       Set<String> userFilteredInstallIds = new HashSet<String>();
 
       for (String iid : pkgFilter) {
         // The install-id is not case-sensitive.
         iid = iid.toLowerCase(Locale.US);
 
-        if (installIdMap.containsKey(iid)) {
+        if (installIds.contains(iid)) {
           userFilteredInstallIds.add(iid);
-
-        }
-        else if (iid.replaceAll("[0-9]+", "").length() == 0) {//$NON-NLS-1$ //$NON-NLS-2$
-          // An all-digit number is a package index requested by the user.
-          int index = Integer.parseInt(iid);
-          userFilteredIndices.put(index, index);
-
-        }
-        else if (pkgMap.containsKey(iid)) {
-          userFilteredClasses.add(pkgMap.get(iid));
 
         }
         else {
@@ -774,16 +552,11 @@ public class UpdaterData implements IUpdaterData {
         }
       }
 
-      // we don't need the maps anymore
-      pkgMap = null;
-      installIdMap = null;
-
       // Now filter the remote archives list to keep:
       // - any package which class matches userFilteredClasses
       // - any package index which matches userFilteredIndices
       // - any package install id which matches userFilteredInstallIds
 
-      int index = 1;
       for (Iterator<ArchiveInfo> it = archives.iterator(); it.hasNext(); ) {
         boolean keep = false;
         ArchiveInfo ai = it.next();
@@ -791,13 +564,9 @@ public class UpdaterData implements IUpdaterData {
         if (a != null) {
           Package p = a.getParentPackage();
           if (p != null) {
-            if (userFilteredInstallIds.contains(p.installId().toLowerCase(Locale.US)) ||
-                userFilteredClasses.contains(p.getClass()) ||
-                userFilteredIndices.get(index) > 0) {
+            if (userFilteredInstallIds.contains(p.installId().toLowerCase(Locale.US))) {
               keep = true;
             }
-
-            index++;
           }
         }
 
@@ -847,6 +616,22 @@ public class UpdaterData implements IUpdaterData {
     }
 
     return null;
+  }
+
+  private List<ArchiveInfo> getRemoteArchives(boolean includeAll) {
+    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
+    List<ArchiveInfo> result = Lists.newArrayList();
+    for (RemotePkgInfo remote : state.getRemotePkgInfos().values()) {
+      if (includeAll || !remote.getPackage().isObsolete()) {
+        for (Archive archive : remote.getPackage().getArchives()) {
+          if (archive.isCompatible()) {
+            result.add(new ArchiveInfo(archive, null, null));
+          }
+        }
+      }
+    }
+    return result;
   }
 
   /**
@@ -1035,107 +820,6 @@ public class UpdaterData implements IUpdaterData {
   private String getLicenseId(License lic) {
     return String.format("%1$s-%2$08x",       //$NON-NLS-1$
                          lic.getLicenseRef(), lic.getLicense().hashCode());
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mapFilterToPackageClass(HashMap<String, Class<? extends Package>> inOutPkgMap, String[] nodes) {
-
-    // Automatically find the classes matching the node names
-    ClassLoader classLoader = getClass().getClassLoader();
-    String basePackage = Package.class.getPackage().getName();
-
-    for (String node : nodes) {
-      // Capitalize the name
-      String name = node.substring(0, 1).toUpperCase() + node.substring(1);
-
-      // We can have one dash at most in a name. If it's present, we'll try
-      // with the dash or with the next letter capitalized.
-      int dash = name.indexOf('-');
-      if (dash > 0) {
-        name = name.replaceFirst("-", "");
-      }
-
-      for (int alternatives = 0; alternatives < 2; alternatives++) {
-
-        String fqcn = basePackage + '.' + name + "Package";  //$NON-NLS-1$
-        try {
-          Class<? extends Package> clazz = (Class<? extends Package>)classLoader.loadClass(fqcn);
-          if (clazz != null) {
-            inOutPkgMap.put(node, clazz);
-            continue;
-          }
-        }
-        catch (Throwable ignore) {
-        }
-
-        if (alternatives == 0 && dash > 0) {
-          // Try an alternative where the next letter after the dash
-          // is converted to an upper case.
-          name = name.substring(0, dash) +
-                 name.substring(dash, dash + 1).toUpperCase() +
-                 name.substring(dash + 1);
-        }
-        else {
-          break;
-        }
-      }
-    }
-  }
-
-  /**
-   * Refresh all sources. This is invoked either internally (reusing an existing monitor)
-   * or as a UI callback on the remote page "Refresh" button (in which case the monitor is
-   * null and a new task should be created.)
-   *
-   * @param forceFetching When true, load sources that haven't been loaded yet.
-   *                      When false, only refresh sources that have been loaded yet.
-   */
-  public void refreshSources(final boolean forceFetching) {
-    assert mTaskFactory != null;
-
-    final boolean forceHttp = getSettingsController().getSettings().getForceHttp();
-
-    mTaskFactory.start("Refresh Sources", new ITask() {
-      @Override
-      public void run(ITaskMonitor monitor) {
-
-        getPackageLoader().loadRemoteAddonsList(monitor);
-
-        SdkSource[] sources = getSources().getAllSources();
-        monitor.setDescription("Refresh Sources");
-        monitor.setProgressMax(monitor.getProgress() + sources.length);
-        for (SdkSource source : sources) {
-          if (forceFetching ||
-              source.getPackages() != null ||
-              source.getFetchError() != null) {
-            source.load(getDownloadCache(), monitor.createSubMonitor(1), forceHttp);
-          }
-          monitor.incProgress(1);
-        }
-      }
-    });
-  }
-
-  /**
-   * Safely invoke all the registered {@link ISdkChangeListener#onSdkLoaded()}.
-   * This can be called from any thread.
-   */
-  public void broadcastOnSdkLoaded() {
-    if (mListeners.size() > 0) {
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          for (ISdkChangeListener listener : mListeners) {
-            try {
-              listener.onSdkLoaded();
-            }
-            catch (Throwable t) {
-              mSdkLog.error(t, null);
-            }
-          }
-        }
-      });
-    }
   }
 
   /**

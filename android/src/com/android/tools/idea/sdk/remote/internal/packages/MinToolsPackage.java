@@ -47,35 +47,6 @@ public abstract class MinToolsPackage extends MajorRevisionPackage implements IM
     }
 
     /**
-     * Manually create a new package with one archive and the given attributes.
-     * This is used to create packages from local directories in which case there must be
-     * one archive which URL is the actual target location.
-     * <p/>
-     * Properties from props are used first when possible, e.g. if props is non null.
-     * <p/>
-     * By design, this creates a package with one and only one archive.
-     */
-    public MinToolsPackage(
-            SdkSource source,
-            Properties props,
-            int revision,
-            String license,
-            String description,
-            String descUrl,
-            String archiveOsPath) {
-        super(source, props, revision, license, description, descUrl, archiveOsPath);
-
-        mMinToolsMixin = new com.android.tools.idea.sdk.remote.internal.packages.MinToolsMixin(
-                source,
-                props,
-                revision,
-                license,
-                description,
-                descUrl,
-                archiveOsPath);
-    }
-
-    /**
      * The minimal revision of the tools package required by this extra package, if > 0,
      * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
      */
