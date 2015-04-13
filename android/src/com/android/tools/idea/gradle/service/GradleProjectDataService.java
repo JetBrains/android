@@ -37,6 +37,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.util.Projects.setGradleVersionUsed;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 /**
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
@@ -77,6 +80,10 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
             }
             else {
+              String gradleVersion = gradleProject.getGradleVersion();
+              if (isNotEmpty(gradleVersion)) {
+                setGradleVersionUsed(project, gradleVersion);
+              }
               customizeModule(module, gradleProject);
             }
           }
