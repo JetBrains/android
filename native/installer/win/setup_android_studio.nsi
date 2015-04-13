@@ -17,15 +17,16 @@
 # This script relies on the Unicode install of NSIS. If you use vanilla NSIS,
 # this script won't compile. http://www.scratchpaper.com/
 
-# IMPORTANT: to run this script, the defines DIR_SRC and DIR_SDK (if BUNDLE_SDK
-# is set) must exist and point to the absolute path where those components can
-# be found.
+# IMPORTANT: to run this script, the define DIR_SRC must exist and point to an
+# absolute path where a build of Android Studio can be found. This should look
+# like the following:
 #
-# This should look like the following:
 #   $DIR_SRC\android-studio\
-#   $DIR_SDK\android-sdk.7z
 #
-# DIR_SRC and DIR_SDK can be set to the same location.
+# You may also optionally define BUNDLED_SDK, which, if set, must point at a
+# 7-zip file, e.g. C:\data\sdk\android-sdk.7z
+#
+# Keep in mind: If included, an SDK adds ~500MB to the installer's size.
 
 # If uncommented, DRY_RUN visits every page but doesn't actually install
 # anything.
@@ -38,10 +39,6 @@
 # that contains this script so the final uninstaller is put in the right
 # location.
 #!define UNINSTALL_BUILDER
-
-# If uncommented, bundle the SDK with the installer. This adds ~500MB to the
-# installer's size.
-#!define BUNDLE_SDK
 
 # If uncommented, bundle the Microsoft redistributables with the installer.
 # This is a dependency we hope to remove, eventually, after we rebuild all tool
@@ -66,13 +63,6 @@ Name "${APP_NAME}"
     !ifndef DIR_SRC
         !warning "DIR_SRC should be defined! This script won't work without it."
         CompileErrorOnPurpose
-    !endif
-
-    !ifdef BUNDLE_SDK
-        !ifndef DIR_SDK
-            !warning "DIR_SDK should be defined! This script won't work without it."
-            CompileErrorOnPurpose
-        !endif
     !endif
 !endif
 
@@ -383,7 +373,7 @@ Section "Android Studio" SectionStudio
     !endif # DRY_RUN && UNINSTALL_BUILDER
 SectionEnd
 
-!ifdef BUNDLE_SDK
+!ifdef BUNDLED_SDK
 Section "Android SDK" SectionSdk
     # Final size on disk: 2.2+GB. Add size until components page shows 2.3GB
     AddSize 1930000
@@ -394,7 +384,7 @@ Section "Android SDK" SectionSdk
     SetOverwrite on
 
     SetCompress off
-    File "${DIR_SDK}\android-sdk.7z"
+    File "${BUNDLED_SDK}"
     SetCompress auto
 
     ${If} $s_InstallSdk != 0
@@ -413,7 +403,7 @@ Section "Android SDK" SectionSdk
 
     !endif # DRY_RUN && UNINSTALL_BUILDER
 SectionEnd
-!endif # BUNDLE_SDK
+!endif # BUNDLED_SDK
 
 Section "Android Virtual Device" SectionAvd
     # Dummy section for AVD creation. We actually don't do anything here but
@@ -616,7 +606,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionStudio} \
     "The Android developer environment to design and develop your app for \
     Android."
-!ifdef BUNDLE_SDK
+!ifdef BUNDLED_SDK
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionSdk} \
     "The collection of Android platform APIs, tools and utilities that enables \
     you to debug, profile, and compile your app."
@@ -807,9 +797,9 @@ Function .onInit
     !endif # DRY_RUN
 
     StrCpy $s_StudioPath "${DEFAULT_STUDIO_PATH}"
-    !ifdef BUNDLE_SDK
+    !ifdef BUNDLED_SDK
         StrCpy $s_SdkPath $s_DefaultSdkPath
-    !endif # BUNDLE_SDK
+    !endif # BUNDLED_SDK
 
     # HACK: NSIS always defaults to "Program Files (x86)". However, we provide
     # both 32-bit and 64-bit .exes, so we always want to install into
@@ -1098,7 +1088,7 @@ Function fnc_FindJavaPage_Leave
 FunctionEnd
 
 Function fnc_AndroidSdkPage_ShowIfNecessary
-    !ifndef BUNDLE_SDK
+    !ifndef BUNDLED_SDK
         Abort # Skip this page if this installer doesn't bundle an SDK
     !endif
 
@@ -1189,7 +1179,7 @@ FunctionEnd
 
 # Called when entering the Components page.
 Function s_ComponentsPagePre
-!ifdef BUNDLE_SDK
+!ifdef BUNDLED_SDK
     # Restore the SDK section selection if the user previously expressed
     # interest in installing it (and are now coming back to this page).
     # See also s_ComponentsPageLeave, which sets the flag.
@@ -1198,14 +1188,14 @@ Function s_ComponentsPagePre
     ${Else}
         ${UnselectSection} ${SectionSdk}
     ${EndIf}
-!endif # BUNDLE_SDK
+!endif # BUNDLED_SDK
 FunctionEnd
 
 
 # Called when leaving the Components page.
 Function s_ComponentsPageLeave
 
-!ifdef BUNDLE_SDK
+!ifdef BUNDLED_SDK
     # Minor hack alert: We ALWAYS want to install this installer's SDK, either
     # to the directory the user specified, or to a temporary location that
     # Android Studio's first run experience can make use of. Therefore, even
@@ -1218,7 +1208,7 @@ Function s_ComponentsPageLeave
     ${SelectSection} ${SectionSdk}
 !else
     StrCpy $s_InstallSdk 0
-!endif # BUNDLE_SDK
+!endif # BUNDLED_SDK
 
     SectionGetFlags ${SectionHaxm} $R0
     IntOp $s_InstallHaxm  $R0 & ${SF_SELECTED}
@@ -1227,9 +1217,9 @@ FunctionEnd
 
 # Called when entering the Android License page.
 Function s_AndroidLicensePagePre
-    !ifndef BUNDLE_SDK
+    !ifndef BUNDLED_SDK
         Abort
-    !endif # BUNDLE_SDK
+    !endif # BUNDLED_SDK
 
     ${If} $s_SkipAndroidLicense == 1
         Abort
