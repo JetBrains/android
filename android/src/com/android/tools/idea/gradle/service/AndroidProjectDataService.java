@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.gradle.service;
 
+import com.android.builder.model.AndroidProject;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
+import com.android.tools.idea.gradle.messages.CommonMessageGroupNames;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -59,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -119,11 +125,24 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         boolean hasExtraGeneratedFolders = false;
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
+
+        FullRevision gradleVersion = getGradleVersion(project);
+        AndroidModelVersionCompatibilityCheck compatibilityCheck = new AndroidModelVersionCompatibilityCheck(gradleVersion);
+        String incompatibleVersionFound = null;
+
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
+
           customizeModule(module, project, androidProject);
           if (androidProject != null) {
+            if (incompatibleVersionFound == null) {
+              AndroidProject delegate = androidProject.getDelegate();
+              if (!compatibilityCheck.isAndroidModelVersionCompatible(delegate)) {
+                incompatibleVersionFound = delegate.getModelVersion();
+              }
+            }
+
             if (javaLangVersion == null) {
               javaLangVersion = androidProject.getJavaLanguageLevel();
             }
@@ -139,6 +158,17 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
               messages.add(new Message(EXTRA_GENERATED_SOURCES, Message.Type.WARNING, text));
             }
           }
+        }
+
+        if (incompatibleVersionFound != null) {
+          String modelVersion = "1.2.0";
+          FixGradleModelVersionHyperlink quickFix = new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", modelVersion, false);
+          String[] text = {
+            String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", incompatibleVersionFound),
+            "Please use Android plugin version 1.2 or newer."
+          };
+          messages.add(new Message(CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE, Message.Type.ERROR, text),
+                       quickFix);
         }
 
         if (hasExtraGeneratedFolders) {
@@ -200,5 +230,32 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   @Override
   public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
+  }
+
+  @VisibleForTesting
+  static class AndroidModelVersionCompatibilityCheck {
+
+    private final boolean myCheckGradleVersion;
+    @Nullable final FullRevision myMinimumPluginVersion;
+
+    AndroidModelVersionCompatibilityCheck(@Nullable FullRevision gradleVersion) {
+      // If Gradle version is 2.4.x, we need to check that the Android plugin version is not older than 1.2.
+      if (gradleVersion != null) {
+        myCheckGradleVersion = gradleVersion.compareTo(PreciseRevision.parseRevision("2.4.0"), FullRevision.PreviewComparison.IGNORE) >= 0;
+      }
+      else {
+        myCheckGradleVersion = false;
+      }
+      myMinimumPluginVersion = myCheckGradleVersion ? PreciseRevision.parseRevision("1.2.0") : null;
+    }
+
+    boolean isAndroidModelVersionCompatible(@NotNull AndroidProject model) {
+      if (myCheckGradleVersion) {
+        // The project is using Gradle 2.4.x. The model version should be 1.2 or newer.
+        FullRevision pluginVersion = PreciseRevision.parseRevision(model.getModelVersion());
+        return pluginVersion.compareTo(myMinimumPluginVersion, FullRevision.PreviewComparison.IGNORE) >= 0;
+      }
+      return true;
+    }
   }
 }

@@ -27,7 +27,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
@@ -38,11 +37,14 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   private static final Logger LOG = Logger.getInstance(FixGradleModelVersionHyperlink.class);
 
+  @NotNull private final String myModelVersion;
   private final boolean myOpenMigrationGuide;
 
   public FixGradleModelVersionHyperlink() {
@@ -50,7 +52,12 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   }
 
   public FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
+    this(text, GRADLE_PLUGIN_RECOMMENDED_VERSION, openMigrationGuide);
+  }
+
+  public FixGradleModelVersionHyperlink(@NotNull String text, @NotNull String modelVersion, boolean openMigrationGuide) {
     super("fixGradleElements", text);
+    myModelVersion = modelVersion;
     myOpenMigrationGuide = openMigrationGuide;
   }
 
@@ -71,7 +78,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     AndroidGradleNotification.getInstance(project).showBalloon(ERROR_MSG_TITLE, msg, ERROR, hyperlink);
   }
 
-  private static boolean updateGradlePluginVersion(@NotNull final Project project) {
+  private boolean updateGradlePluginVersion(@NotNull final Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // Unlikely to happen: this is default project.
@@ -89,7 +96,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
             boolean updated = GradleUtil.updateGradleDependencyVersion(project, document, GRADLE_PLUGIN_NAME, new Computable<String>() {
               @Override
               public String compute() {
-                return GRADLE_PLUGIN_RECOMMENDED_VERSION;
+                return myModelVersion;
               }
             });
             if (updated) {
@@ -103,14 +110,17 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
 
     boolean updated = atLeastOneUpdated.get();
     if (updated) {
-      File wrapperPropertiesFilePath = GradleUtil.getGradleWrapperPropertiesFilePath(new File(project.getBasePath()));
-      FullRevision current = getGradleWrapperVersion(wrapperPropertiesFilePath);
-      if (current != null && !GradleUtil.isSupportedGradleVersion(current)) {
-        try {
-          GradleUtil.updateGradleDistributionUrl(GRADLE_LATEST_VERSION, wrapperPropertiesFilePath);
-        }
-        catch (IOException e) {
-          LOG.warn("Failed to update Gradle version in wrapper", e);
+      String basePath = project.getBasePath();
+      if (basePath != null) {
+        File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
+        FullRevision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
+        if (current != null && !isSupportedGradleVersion(current)) {
+          try {
+            updateGradleDistributionUrl(GRADLE_LATEST_VERSION, wrapperPropertiesFilePath);
+          }
+          catch (IOException e) {
+            LOG.warn("Failed to update Gradle version in wrapper", e);
+          }
         }
       }
     }
@@ -118,15 +128,15 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   }
 
   @Nullable
-  private static FullRevision getGradleWrapperVersion(File wrapperPropertiesFilePath) {
+  private static FullRevision getGradleVersionInWrapper(File wrapperPropertiesFilePath) {
     String version = null;
     try {
-      version = GradleUtil.getGradleWrapperVersion(wrapperPropertiesFilePath);
+      version = getGradleWrapperVersion(wrapperPropertiesFilePath);
     }
     catch (IOException e) {
       LOG.warn("Failed to obtain Gradle version in wrapper", e);
     }
-    if (StringUtil.isNotEmpty(version)) {
+    if (isNotEmpty(version)) {
       try {
         return FullRevision.parseRevision(version);
       }
