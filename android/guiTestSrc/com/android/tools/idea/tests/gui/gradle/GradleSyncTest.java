@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
@@ -31,7 +30,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.AbstractContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -75,6 +76,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
@@ -83,6 +86,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.google.common.io.Files.write;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.INFO;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -271,7 +275,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSyncDoesNotChangeDependenciesInBuildFiles() throws IOException {
     File projectPath = setUpProject("MultiModule", true, true, null);
-    File appBuildFilePath = new File(projectPath, FileUtil.join("app", SdkConstants.FN_BUILD_GRADLE));
+    File appBuildFilePath = new File(projectPath, FileUtil.join("app", FN_BUILD_GRADLE));
     assertThat(appBuildFilePath).isFile();
     long lastModified = appBuildFilePath.lastModified();
     openProject(projectPath);
@@ -352,7 +356,7 @@ public class GradleSyncTest extends GuiTestCase {
     final Project project = projectFrame.getProject();
 
     // Use old, unsupported plugin version.
-    File buildFilePath = new File(project.getBasePath(), SdkConstants.FN_BUILD_GRADLE);
+    File buildFilePath = new File(project.getBasePath(), FN_BUILD_GRADLE);
     final VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
     assertNotNull(buildFile);
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
@@ -913,17 +917,49 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(moduleDependency.getModuleName()).isEqualTo("library");
   }
 
+  @Test @IdeGuiTest
+  public void testAndroidPluginAndGradleVersionCompatibility() throws IOException {
+    String gradleTwoDotFourHome = getGradleHomeFromSystemProperty("gradle.2.4.home", "2.4");
+
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    File projectPath = projectFrame.getProjectPath();
+    File buildFile = new File(projectPath, FN_BUILD_GRADLE);
+    assertThat(buildFile).isFile();
+
+    // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
+    // We expect the IDE to warn the user about this incompatibility.
+    String contents = Files.toString(buildFile, Charsets.UTF_8);
+    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
+    Matcher matcher = pattern.matcher(contents);
+    if (matcher.find()) {
+      contents = contents.substring(0, matcher.start(1)) + "1.0.0" + contents.substring(matcher.end(1));
+      write(contents, buildFile, Charsets.UTF_8);
+    }
+    else {
+      fail("Cannot find declaration of Android plugin");
+    }
+
+    projectFrame.useLocalGradleDistribution(gradleTwoDotFourHome)
+                .requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
+
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(ERROR, firstLineStartingWith("Android plugin version 1.0.0 is not compatible with Gradle version 2.4"));
+  }
+
   @NotNull
   private static String getUnsupportedGradleHome() {
-    String unsupportedGradleHome = System.getProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY);
-    if (isEmpty(unsupportedGradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.1 distribution using the system property "
-           + quote(UNSUPPORTED_GRADLE_HOME_PROPERTY));
+    return getGradleHomeFromSystemProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY, "2.1");
+  }
+
+  @NotNull
+  private static String getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
+    String gradleHome = System.getProperty(propertyName);
+    if (isEmpty(gradleHome)) {
+      fail("Please specify the path of a Gradle " + gradleVersion + " distribution using the system property " + quote(propertyName));
     }
-    File path = new File(unsupportedGradleHome);
-    if (!path.isDirectory()) {
-      fail(String.format("The path '%1$s' does not belong to a directory", unsupportedGradleHome));
-    }
-    return unsupportedGradleHome;
+    assertThat(new File(gradleHome)).isDirectory();
+    return gradleHome;
   }
 }
