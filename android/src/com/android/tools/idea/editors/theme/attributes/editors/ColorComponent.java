@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,126 +17,131 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.swing.util.GraphicsUtil;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.image.ColorModel;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.MatteBorder;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.event.ActionListener;
+import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.util.ui.GraphicsUtil.setupAntialiasing;
+public class ColorComponent extends JPanel {
+  private static final int PADDING = 5;
 
-public class ColorComponent extends JButton {
-  private static final Logger LOG = Logger.getInstance(ColorComponent.class);
+  private final ColorChooserButton myColorChooserButton;
+  private final JLabel myNameLabel;
+  private final JLabel myValueLabel;
 
-  private static final int PADDING = 2;
-  private static final int TEXT_PADDING = PADDING + 3;
-  private static final int STATES_PADDING = 5;
+  public ColorComponent(@NotNull final Color backgroundColor) {
+    super(new BorderLayout(0, PADDING));
 
-  private String myName;
-  private String myValue;
-  private List<Color> myColors;
-  private Color myDrawnColor;
-  private boolean myIsPublic;
+    MatteBorder matteBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, getBackground());
+    setBorder(matteBorder);
 
-  private final Color myBackgroundColor;
+    myNameLabel = new JLabel("Name");
+    myValueLabel = new JLabel("Value");
+    myValueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
-  public static Border getBorder(final Color borderColor) {
-    return BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, borderColor);
-  }
+    final JPanel innerPanel = new JPanel(new BorderLayout());
+    innerPanel.add(myNameLabel, BorderLayout.WEST);
+    innerPanel.add(myValueLabel, BorderLayout.EAST);
 
-  public ColorComponent(@NotNull final Color backgroundColor, @NotNull Font labelFont) {
-    myBackgroundColor = backgroundColor;
-    setFont(labelFont);
-  }
+    add(innerPanel, BorderLayout.NORTH);
 
-  private static Color blendColors(final Color color1, final @Nullable Color color2) {
-    if (color2 == null) {
-      return color1;
-    }
-
-    double k = color2.getAlpha() / ((double) 255);
-    return UIUtil.mix(color1, color2, k);
-  }
-
-  public void configure(final EditedStyleItem resValue, final List<Color> color) {
-    this.myName = resValue.getQualifiedName();
-    this.myValue = resValue.getValue();
-    myIsPublic = resValue.isPublicAttribute();
-    setColors(color);
-  }
-
-  public String getValue() {
-    return myValue;
+    myColorChooserButton = new ColorChooserButton();
+    myColorChooserButton.setBackground(backgroundColor);
+    myColorChooserButton.setBorder(null);
+    add(myColorChooserButton, BorderLayout.CENTER);
   }
 
   @Override
-  protected void paintComponent(Graphics g) {
-    if (myName == null || myValue == null) {
-      LOG.error("Trying to draw ColorComponent in inconsistent state (either name or value is null)!");
-      return;
+  public void setFont(final Font font) {
+    super.setFont(font);
+    if (myColorChooserButton != null) {
+      myColorChooserButton.setFont(font);
+    }
+  }
+
+  public void configure(final EditedStyleItem resValue, final List<Color> color) {
+    myNameLabel.setText(resValue.getQualifiedName());
+    myValueLabel.setText(color.isEmpty() ? "" : '#' + ColorUtil.toHex(color.get(0)));
+    myColorChooserButton.configure(resValue, color);
+  }
+
+  public String getValue() {
+    return myValueLabel.getText();
+  }
+
+  public void addActionListener(final ActionListener listener) {
+    myColorChooserButton.addActionListener(listener);
+  }
+
+  private static class ColorChooserButton extends JButton {
+    private static final Logger LOG = Logger.getInstance(ColorChooserButton.class);
+
+    private static final int TEXT_PADDING = 3;
+    private static final int STATES_PADDING = 5;
+
+    private String myValue;
+    private @NotNull List<Color> myColors = Collections.emptyList();
+    private boolean myIsPublic;
+
+    public void configure(final EditedStyleItem resValue, final List<Color> color) {
+      myValue = resValue.getValue();
+      myIsPublic = resValue.isPublicAttribute();
+      setColors(color);
     }
 
-    setupAntialiasing(g);
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
 
-    final int width = getWidth();
-    final int height = getHeight();
+      if (myValue == null) {
+        LOG.error("Trying to draw ColorChooserButton in inconsistent state (either name or value is null)!");
+        return;
+      }
 
-    if (myColors.isEmpty()) {
-      // No colors
-      g.setColor(JBColor.WHITE);
-      g.fillRect(PADDING, PADDING, width - PADDING, height - PADDING);
-      g.setColor(JBColor.LIGHT_GRAY);
-      g.drawLine(PADDING, PADDING, width - PADDING, height - PADDING);
-      g.drawLine(width - PADDING, PADDING, PADDING, height - PADDING);
-    } else if (myColors.size() == 1) {
-      // Single color: fill the whole cell with it
-      g.setColor(myDrawnColor);
-      g.fillRect(PADDING, PADDING, width - PADDING, height - PADDING);
-    } else {
-      // Multiple colors: draw empty cell and several colored squares
-      g.setColor(myBackgroundColor);
-      g.fillRect(PADDING, PADDING, width - PADDING, height - PADDING);
+      final int width = getWidth();
+      final int height = getHeight();
 
-      final int cellSize = height - 2 * (PADDING + STATES_PADDING);
-      int offset = PADDING + STATES_PADDING;
+      final int cellSize = height - 2 * STATES_PADDING;
+      int xOffset = STATES_PADDING;
       for (final Color color : myColors) {
         g.setColor(color);
-        g.fillRect(width - offset - cellSize, PADDING + STATES_PADDING, cellSize, cellSize);
+        g.fillRect(xOffset, STATES_PADDING, cellSize, cellSize);
 
         g.setColor(JBColor.BLACK);
-        g.drawRect(width - offset - cellSize, PADDING + STATES_PADDING, cellSize, cellSize);
+        g.drawRect(xOffset, STATES_PADDING, cellSize, cellSize);
 
-        offset += cellSize + STATES_PADDING;
+        xOffset += cellSize + STATES_PADDING;
+      }
+
+      FontMetrics fm = g.getFontMetrics();
+      g.setColor(JBColor.BLACK);
+      g.drawString(myValue, xOffset, height - TEXT_PADDING - fm.getDescent());
+
+      // If the attribute is private or there are no colors, draw a cross on attribute cell.
+      if (!myIsPublic || myColors.isEmpty()) {
+        GraphicsUtil.drawCross(g, new Rectangle(0, 0, width, height), 0.5f);
       }
     }
 
-    Color cellBackground = myDrawnColor != null ? myDrawnColor : myBackgroundColor;
-
-    //noinspection UseJBColor
-    Color cellForeground = ColorUtil.isDark(cellBackground) ? Color.WHITE : Color.BLACK;
-
-    g.setColor(cellForeground);
-    // If the attribute is private, draw a cross on it
-    if (!myIsPublic) {
-      GraphicsUtil.drawCross(g, new Rectangle(PADDING, PADDING, width - PADDING, height - PADDING), 0.5f);
+    public void setColors(@NotNull List<Color> colors) {
+      myColors = ImmutableList.copyOf(colors);
     }
-
-    FontMetrics fm = g.getFontMetrics();
-    g.drawString(myName, TEXT_PADDING, fm.getHeight() + TEXT_PADDING);
-    g.drawString(myValue, TEXT_PADDING, height - TEXT_PADDING - fm.getDescent());
-  }
-
-  public void setColors(@NotNull List<Color> colors) {
-    myColors = colors;
-    myDrawnColor = (colors.size() == 1) ? blendColors(myBackgroundColor, myColors.get(0)) : null;
   }
 }
