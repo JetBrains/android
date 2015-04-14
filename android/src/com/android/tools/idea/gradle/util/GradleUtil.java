@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -81,7 +82,10 @@ import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,6 +94,7 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createAnd
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
+import static com.android.tools.idea.gradle.util.Projects.getGradleVersionUsed;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
@@ -110,6 +115,8 @@ import static java.util.Collections.sort;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.gradle.wrapper.WrapperExecutor.forWrapperPropertiesFile;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 
 /**
@@ -608,6 +615,47 @@ public final class GradleUtil {
     }
   }
 
+  @Nullable
+  public static FullRevision getGradleVersion(@NotNull Project project) {
+    String gradleVersion = getGradleVersionUsed(project);
+    if (isNotEmpty(gradleVersion)) {
+      // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
+      // settings.
+      FullRevision revision = parseRevision(removeTimestampFromGradleVersion(gradleVersion));
+      if (revision != null) {
+        return revision;
+      }
+
+    }
+
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    if (gradleSettings != null) {
+      DistributionType distributionType = gradleSettings.getDistributionType();
+      if (distributionType == DEFAULT_WRAPPED) {
+        File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+        if (wrapperPropertiesFile != null) {
+          try {
+            String wrapperVersion = getGradleWrapperVersion(wrapperPropertiesFile);
+            if (wrapperVersion != null) {
+              return parseRevision(removeTimestampFromGradleVersion(wrapperVersion));
+            }
+          }
+          catch (IOException e) {
+            LOG.info("Failed to read Gradle version in wrapper", e);
+          }
+        }
+      }
+      else if (distributionType == LOCAL) {
+        String gradleHome = gradleSettings.getGradleHome();
+        if (isNotEmpty(gradleHome)) {
+          File gradleHomePath = new File(gradleHome);
+          return getGradleVersion(gradleHomePath);
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Attempts to figure out the Gradle version of the given distribution.
    *
@@ -637,13 +685,23 @@ public final class GradleUtil {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
       String version = matcher.group(2);
       try {
-        return FullRevision.parseRevision(version);
+        return FullRevision.parseRevision(removeTimestampFromGradleVersion(version));
       }
       catch (NumberFormatException e) {
         LOG.warn(String.format("Unable to parse version '%1$s' (obtained from file '%2$s')", version, fileName));
       }
     }
     return null;
+  }
+
+  @NotNull
+  private static String removeTimestampFromGradleVersion(@NotNull String gradleVersion) {
+    int dashIndex = gradleVersion.indexOf('-');
+    if (dashIndex != -1) {
+      // in case this is a nightly (e.g. "2.4-20150409092851+0000").
+      return gradleVersion.substring(0, dashIndex);
+    }
+    return gradleVersion;
   }
 
   /**
@@ -653,7 +711,7 @@ public final class GradleUtil {
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
-   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   public static boolean createGradleWrapper(@NotNull File projectDirPath) throws IOException {
     return createGradleWrapper(projectDirPath, GRADLE_LATEST_VERSION);
@@ -667,7 +725,7 @@ public final class GradleUtil {
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
-   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @VisibleForTesting
   public static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
@@ -751,12 +809,19 @@ public final class GradleUtil {
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);
       if (isNotEmpty(revision)) {
-        try {
-          return FullRevision.parseRevision(revision);
-        }
-        catch (NumberFormatException ignored) {
-        }
+        return parseRevision(revision);
       }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static FullRevision parseRevision(@NotNull String revision) {
+    try {
+      return PreciseRevision.parseRevision(revision);
+    }
+    catch (NumberFormatException e) {
+      LOG.info("Failed to parse revision '" + revision + "'", e);
     }
     return null;
   }
@@ -1037,7 +1102,7 @@ public final class GradleUtil {
           if (embeddedGradlePath != null) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
-              gradleSettings.setDistributionType(DistributionType.LOCAL);
+              gradleSettings.setDistributionType(LOCAL);
               gradleSettings.setGradleHome(embeddedGradlePath.getPath());
             }
           }
@@ -1117,12 +1182,12 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the given project depends on the given artifact, which consists of
-   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   * Returns {@code true} if the given project depends on the given artifact, which consists of a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param project  the Gradle project to check
    * @param artifact the artifact
-   * @return true if the project depends on the given artifact (including transitively)
+   * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
     Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
@@ -1130,12 +1195,12 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the given dependencies include the given artifact, which consists of
-   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   * Returns {@code true} if the given dependencies include the given artifact, which consists of a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param dependencies the Gradle dependencies object to check
    * @param artifact     the artifact
-   * @return true if the dependencies include the given artifact (including transitively)
+   * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
   private static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
     for (AndroidLibrary library : dependencies.getLibraries()) {
@@ -1147,13 +1212,13 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the given library depends on the given artifact, which consists of
-   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param library      the Gradle library to check
    * @param artifact     the artifact
    * @param transitively if false, checks only direct dependencies, otherwise checks transitively
-   * @return true if the project depends on the given artifact
+   * @return {@code true} if the project depends on the given artifact
    */
   public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
     MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
