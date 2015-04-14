@@ -161,8 +161,9 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         }
 
         if (incompatibleVersionFound != null) {
-          String modelVersion = "1.2.0";
-          FixGradleModelVersionHyperlink quickFix = new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", modelVersion, false);
+          FixGradleModelVersionHyperlink quickFix =
+            new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", "1.2.0",
+                                               null /* do not update Gradle version */, false);
           String[] text = {
             String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", incompatibleVersionFound),
             "Please use Android plugin version 1.2 or newer."
@@ -234,23 +235,19 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   @VisibleForTesting
   static class AndroidModelVersionCompatibilityCheck {
-
-    private final boolean myCheckGradleVersion;
-    @Nullable final FullRevision myMinimumPluginVersion;
+    @Nullable private final FullRevision myMinimumPluginVersion;
 
     AndroidModelVersionCompatibilityCheck(@Nullable FullRevision gradleVersion) {
       // If Gradle version is 2.4.x, we need to check that the Android plugin version is not older than 1.2.
+      boolean checkGradleVersion = false;
       if (gradleVersion != null) {
-        myCheckGradleVersion = gradleVersion.compareTo(PreciseRevision.parseRevision("2.4.0"), FullRevision.PreviewComparison.IGNORE) >= 0;
+        checkGradleVersion = gradleVersion.compareTo(PreciseRevision.parseRevision("2.4.0"), FullRevision.PreviewComparison.IGNORE) >= 0;
       }
-      else {
-        myCheckGradleVersion = false;
-      }
-      myMinimumPluginVersion = myCheckGradleVersion ? PreciseRevision.parseRevision("1.2.0") : null;
+      myMinimumPluginVersion = checkGradleVersion ? PreciseRevision.parseRevision("1.2.0") : null;
     }
 
     boolean isAndroidModelVersionCompatible(@NotNull AndroidProject model) {
-      if (myCheckGradleVersion) {
+      if (myMinimumPluginVersion != null) {
         // The project is using Gradle 2.4.x. The model version should be 1.2 or newer.
         FullRevision pluginVersion = PreciseRevision.parseRevision(model.getModelVersion());
         return pluginVersion.compareTo(myMinimumPluginVersion, FullRevision.PreviewComparison.IGNORE) >= 0;
