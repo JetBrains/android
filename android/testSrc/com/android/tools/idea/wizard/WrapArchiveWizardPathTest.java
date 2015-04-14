@@ -343,7 +343,8 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
                                                               "compile");
           IdeaGradleProject ideaGradleProject = IdeaGradleProject.newIdeaGradleProject(myModuleName,
                                                                                        gradleProject,
-                                                                                       VfsUtilCore.virtualToIoFile(moduleBuildGradle));
+                                                                                       VfsUtilCore.virtualToIoFile(moduleBuildGradle),
+                                                                                       "2.2.1");
           facet.setGradleProject(ideaGradleProject);
           modifiableModel.addFacet(facet);
           modifiableModel.commit();

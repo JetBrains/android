@@ -254,6 +254,7 @@ public class GradleProjectImporter {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
+      setGradleVersionUsed(project, null);
       doImport(project, false /* existing project */, progressExecutionMode, options, listener);
     }
     else {
