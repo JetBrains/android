@@ -19,15 +19,12 @@ import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
@@ -38,33 +35,62 @@ import java.io.IOException;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
 
 public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   private static final Logger LOG = Logger.getInstance(FixGradleModelVersionHyperlink.class);
 
   @NotNull private final String myModelVersion;
+  @Nullable private final String myGradleVersion;
   private final boolean myOpenMigrationGuide;
 
+  /**
+   * Creates a new {@link FixGradleModelVersionHyperlink}. This constructor updates the Gradle model to the version in
+   * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
+   * This constructor also opens the migration to the Android Gradle model version 1.0 (from an older version) in the browser.
+   */
   public FixGradleModelVersionHyperlink() {
     this("Open migration guide, fix plug-in version and sync project", true);
   }
 
+  /**
+   * Creates a new {@link FixGradleModelVersionHyperlink}. This constructor updates the Gradle model to the version in
+   * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
+   *
+   * @param text               the text of the URL.
+   * @param openMigrationGuide indicates whether the migration guide to the Android Gradle model version 1.0 (from an older version) should
+   *                           be opened in the browser.
+   */
   public FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
-    this(text, GRADLE_PLUGIN_RECOMMENDED_VERSION, openMigrationGuide);
+    this(text, GRADLE_PLUGIN_RECOMMENDED_VERSION, GRADLE_LATEST_VERSION, openMigrationGuide);
   }
 
-  public FixGradleModelVersionHyperlink(@NotNull String text, @NotNull String modelVersion, boolean openMigrationGuide) {
+  /**
+   * Creates a new {@link FixGradleModelVersionHyperlink}.
+   *
+   * @param text               the text of the URL.
+   * @param modelVersion       the version to update the Android Gradle model to.
+   * @param gradleVersion      the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
+   * @param openMigrationGuide indicates whether the migration guide to the Android Gradle model version 1.0 (from an older version) should
+   *                           be opened in the browser.
+   */
+  public FixGradleModelVersionHyperlink(@NotNull String text,
+                                        @NotNull String modelVersion,
+                                        @Nullable String gradleVersion,
+                                        boolean openMigrationGuide) {
     super("fixGradleElements", text);
     myModelVersion = modelVersion;
+    myGradleVersion = gradleVersion;
     myOpenMigrationGuide = openMigrationGuide;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     if (myOpenMigrationGuide) {
-      BrowserUtil.browse("http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0");
+      browse("http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0");
     }
 
     if (updateGradlePluginVersion(project)) {
@@ -87,13 +113,13 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
 
     final Ref<Boolean> atLeastOneUpdated = new Ref<Boolean>(false);
 
-    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile virtualFile) {
-        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
           final Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
           if (document != null) {
-            boolean updated = GradleUtil.updateGradleDependencyVersion(project, document, GRADLE_PLUGIN_NAME, new Computable<String>() {
+            boolean updated = updateGradleDependencyVersion(project, document, GRADLE_PLUGIN_NAME, new Computable<String>() {
               @Override
               public String compute() {
                 return myModelVersion;
@@ -109,14 +135,14 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     });
 
     boolean updated = atLeastOneUpdated.get();
-    if (updated) {
+    if (updated && isNotEmpty(myGradleVersion)) {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
         FullRevision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
         if (current != null && !isSupportedGradleVersion(current)) {
           try {
-            updateGradleDistributionUrl(GRADLE_LATEST_VERSION, wrapperPropertiesFilePath);
+            updateGradleDistributionUrl(myGradleVersion, wrapperPropertiesFilePath);
           }
           catch (IOException e) {
             LOG.warn("Failed to update Gradle version in wrapper", e);
@@ -128,7 +154,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   }
 
   @Nullable
-  private static FullRevision getGradleVersionInWrapper(File wrapperPropertiesFilePath) {
+  private static FullRevision getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
     String version = null;
     try {
       version = getGradleWrapperVersion(wrapperPropertiesFilePath);
