@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.intellij.openapi.module.Module;
 import spantable.CellSpanModel;
 
@@ -57,18 +58,29 @@ public class DelegatingCellEditor implements TableCellEditor {
     final CellSpanModel model = (CellSpanModel)table.getModel();
 
     final String tooltipText;
+
+    final Font font;
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
       tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, myConfiguration);
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
+
+      // Displays in bold attributes that are overriding their inherited value
+      font = (item.getSourceStyle().equals(((AttributesTableModel)table.getModel()).getSelectedStyle())) ? table.getFont()
+        .deriveFont(Font.BOLD) : table.getFont();
     }
     else {
+      // Not an EditedStyleItem for theme name and theme parent.
       stringValue = value;
       tooltipText = null;
+      font = table.getFont();
     }
 
     final Component returnedComponent =
       myDelegate.getTableCellEditorComponent(table, myConvertValueToString ? stringValue : value, isSelected, row, column);
+
+    returnedComponent.setFont(font);
+
     if (returnedComponent instanceof JComponent) {
       ((JComponent) returnedComponent).setToolTipText(tooltipText);
     }
