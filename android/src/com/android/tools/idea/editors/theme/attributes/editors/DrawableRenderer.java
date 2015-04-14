@@ -36,8 +36,8 @@ public class DrawableRenderer implements TableCellRenderer {
     myRenderTask = renderTask;
 
     myComponent = new DrawableComponent();
-    mySelectedBorder = ColorComponent.getBorder(table.getSelectionBackground());
-    myUnselectedBorder = ColorComponent.getBorder(table.getBackground());
+    mySelectedBorder = DrawableComponent.getBorder(table.getSelectionBackground());
+    myUnselectedBorder = DrawableComponent.getBorder(table.getBackground());
   }
 
   @Override
