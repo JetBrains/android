@@ -86,6 +86,10 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
+    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
+      throw new RuntimeConfigurationError(INVALID_CLOUD_DEVICE_SELECTION_ERROR);
+    }
+
     final boolean packageContainMavenProperty = doesPackageContainMavenProperty(facet);
     final JavaRunConfigurationModule configurationModule = getConfigurationModule();
     Module module = facet.getModule();

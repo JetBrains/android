@@ -328,7 +328,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
-    myCloudProjectIdLabel = new CloudProjectIdLabel();
+    myCloudProjectIdLabel = new CloudProjectIdLabel(MATRIX);
 
     AnAction action = new AnAction() {
       @Override
