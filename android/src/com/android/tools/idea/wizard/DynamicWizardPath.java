@@ -197,11 +197,14 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   private void update() {
     if (myIsInitialized && !myUpdateInProgress) {
-      myUpdateInProgress = true;
-      deriveValues(myState.getRecentUpdates());
-      myIsValid = validate();
-      myUpdateInProgress = false;
-      updateButtons();
+      try {
+        myUpdateInProgress = true;
+        deriveValues(myState.getRecentUpdates());
+        myIsValid = validate();
+      } finally {
+        myUpdateInProgress = false;
+        updateButtons();
+      }
     }
   }
 

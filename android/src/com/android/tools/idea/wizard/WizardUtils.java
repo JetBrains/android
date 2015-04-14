@@ -238,6 +238,9 @@ public class WizardUtils {
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
       return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
     }
+    if (file.exists() && !file.canWrite()) {
+      return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, file.getPath());
+    }
 
     String installLocation = PathManager.getHomePathFor(Application.class);
     if (installLocation != null && FileUtil.isAncestor(new File(installLocation), file, false)) {
