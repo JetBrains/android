@@ -22,10 +22,12 @@ import org.apache.http.entity.ContentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.JEditorPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,7 +107,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
     }
 
     final AtomicInteger id = new AtomicInteger(myItemStack.size() - 1);
-    String text = Joiner.on(" > ").join(Iterators.transform(myItemStack.descendingIterator(), new Function<T, String>() {
+    String text = Joiner.on(" &gt; ").join(Iterators.transform(myItemStack.descendingIterator(), new Function<T, String>() {
       @Override
       public String apply(T input) {
         // Do not display link for the last element.
@@ -124,6 +126,17 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
     setText(text);
   }
 
+  @Override
+  public Dimension getMinimumSize() {
+    if (isMinimumSizeSet()) {
+      return super.getMinimumSize();
+    }
+
+    // The height of the JEditorPane on MacOS doesn't not update correctly when setting text if the height was previously 0.
+    // This makes sure that we use our own calculated minimum size in that situation so it works in every platform.
+    boolean hasContentToDisplay = myDisplaySingleRoot ? hasRootItem :  myItemStack.size() > 1;
+    return hasContentToDisplay ? new Dimension(0, getFontMetrics(getFont()).getHeight()) : super.getMinimumSize();
+  }
 
   /**
    * Sets whether the component should display the root component if it's the only one in the navigation stack.
