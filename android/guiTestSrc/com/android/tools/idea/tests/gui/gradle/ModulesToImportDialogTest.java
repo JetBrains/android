@@ -93,7 +93,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     DataNode<ModuleData> module = new DataNode<ModuleData>(MODULE, data, null);
     if (isGradleProject) {
       List<String> taskNames = Collections.emptyList();
-      module.createChild(IDE_GRADLE_PROJECT, new IdeaGradleProject("app", taskNames, ":" + name, null));
+      module.createChild(IDE_GRADLE_PROJECT, new IdeaGradleProject("app", taskNames, ":" + name, null, null));
     }
     return module;
   }

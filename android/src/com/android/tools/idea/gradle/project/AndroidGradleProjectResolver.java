@@ -38,11 +38,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.containers.ContainerUtil;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -114,9 +116,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     ImportedModule importedModule = new ImportedModule(gradleModule);
     ideModule.createChild(AndroidProjectKeys.IMPORTED_MODULE, importedModule);
 
+    GradleProject gradleProject = gradleModule.getGradleProject();
     GradleScript buildScript = null;
     try {
-      buildScript = gradleModule.getGradleProject().getBuildScript();
+      buildScript = gradleProject.getBuildScript();
     } catch (UnsupportedOperationException ignore) {}
 
     if (buildScript == null || !inAndroidGradleProject(gradleModule)) {
@@ -149,9 +152,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
+    BuildScriptClasspathModel buildScriptModel = resolverCtx.getExtraProject(BuildScriptClasspathModel.class);
+    String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
+
     File buildFilePath = buildScript.getSourceFile();
-    IdeaGradleProject gradleProject = newIdeaGradleProject(gradleModule.getName(), gradleModule.getGradleProject(), buildFilePath);
-    ideModule.createChild(IDE_GRADLE_PROJECT, gradleProject);
+    IdeaGradleProject ideaGradleProject = newIdeaGradleProject(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
+    ideModule.createChild(IDE_GRADLE_PROJECT, ideaGradleProject);
 
     if (androidProject == null) {
       // This is a Java lib module.
