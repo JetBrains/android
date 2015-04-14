@@ -393,9 +393,8 @@ public class AppResourceRepository extends MultiResourceRepository {
   /** Map of (int[], name) for styleable resources coming from R.java */
   private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
 
-  private final TObjectIntHashMap<String> myName2DynamicIdMap = new TObjectIntHashMap<String>();
-  private final TIntObjectHashMap<Pair<ResourceType, String>> myDynamicId2ResourceMap =
-    new TIntObjectHashMap<Pair<ResourceType, String>>();
+  private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<TypedResourceName>();
+  private final TIntObjectHashMap<TypedResourceName> myDynamicId2ResourceMap = new TIntObjectHashMap<TypedResourceName>();
   private int myDynamicSeed = DYNAMIC_ID_SEED_START;
   private final IntArrayWrapper myWrapper = new IntArrayWrapper(null);
 
@@ -408,9 +407,9 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
 
     if (result == null) {
-      final Pair<ResourceType, String> pair = myDynamicId2ResourceMap.get(id);
+      final TypedResourceName pair = myDynamicId2ResourceMap.get(id);
       if (pair != null) {
-        result = pair;
+        result = pair.toPair();
       }
     }
 
@@ -441,13 +440,14 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private int getDynamicId(ResourceType type, String name) {
+    TypedResourceName key = new TypedResourceName(type, name);
     synchronized (myName2DynamicIdMap) {
-      if (myName2DynamicIdMap.containsKey(name)) {
-        return myName2DynamicIdMap.get(name);
+      if (myName2DynamicIdMap.containsKey(key)) {
+        return myName2DynamicIdMap.get(key);
       }
       final int value = ++myDynamicSeed;
-      myName2DynamicIdMap.put(name, value);
-      myDynamicId2ResourceMap.put(value, Pair.of(type, name));
+      myName2DynamicIdMap.put(key, value);
+      myDynamicId2ResourceMap.put(value, key);
       return value;
     }
   }
@@ -467,5 +467,50 @@ public class AppResourceRepository extends MultiResourceRepository {
     myStyleableValueToNameMap = styleableId2name;
 
 //    AarResourceClassRegistry.get().clear();
+  }
+
+  private static final class TypedResourceName {
+    @Nullable
+    final ResourceType myType;
+    @NotNull
+    final String myName;
+    Pair<ResourceType, String> myPair;
+
+    public TypedResourceName(@Nullable ResourceType type, @NotNull String name) {
+      myType = type;
+      myName = name;
+    }
+
+    public Pair<ResourceType, String> toPair() {
+      if (myPair == null) {
+        myPair = Pair.of(myType, myName);
+      }
+      return myPair;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      TypedResourceName that = (TypedResourceName)o;
+
+      if (myType != that.myType) return false;
+      if (!myName.equals(that.myName)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = myType != null ? myType.hashCode() : 0;
+      result = 31 * result + (myName.hashCode());
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("Type=%1$s, value=%2$s", myType, myName);
+    }
   }
 }
