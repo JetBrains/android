@@ -24,6 +24,8 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.io.FileOp;
 import com.android.sdklib.io.IFileOp;
 import com.android.sdklib.repository.RepoConstants;
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
@@ -87,15 +89,9 @@ public class ArchiveInstaller {
                          ITaskMonitor monitor) {
 
     Archive newArchive = archiveInfo.getNewArchive();
-    com.android.tools.idea.sdk.remote.internal.packages.Package pkg = newArchive.getParentPackage();
+    RemotePkgInfo pkg = newArchive.getParentPackage();
 
     String name = pkg.getShortDescription();
-
-    if (newArchive.isLocal()) {
-      // This should never happen.
-      monitor.log("Skipping already installed archive: %1$s for %2$s", name, newArchive.getOsDescription());
-      return false;
-    }
 
     // In detail mode, give us a way to force install of incompatible archives.
     boolean checkIsCompatible = System.getenv(ENV_VAR_IGNORE_COMPAT) == null;
@@ -138,7 +134,7 @@ public class ArchiveInstaller {
         && !link.startsWith("https://")                  //$NON-NLS-1$
         && !link.startsWith("ftp://")) {                 //$NON-NLS-1$
       // Make the URL absolute by prepending the source
-      com.android.tools.idea.sdk.remote.internal.packages.Package pkg = archive.getParentPackage();
+      RemotePkgInfo pkg = archive.getParentPackage();
       SdkSource src = pkg.getParentSource();
       if (src == null) {
         monitor.logError("Internal error: no source for archive %1$s", pkgName);
@@ -565,7 +561,7 @@ public class ArchiveInstaller {
                             ITaskMonitor monitor) {
     boolean success = false;
     Archive newArchive = archiveInfo.getNewArchive();
-    com.android.tools.idea.sdk.remote.internal.packages.Package pkg = newArchive.getParentPackage();
+    RemotePkgInfo pkg = newArchive.getParentPackage();
     String pkgName = pkg.getShortDescription();
     monitor.setDescription("Installing %1$s", pkgName);
     monitor.log("Installing %1$s", pkgName);
@@ -674,14 +670,10 @@ public class ArchiveInstaller {
 
       // In case of success, if we were replacing an archive
       // and the older one had a different path, remove it now.
-      Archive oldArchive = archiveInfo.getReplaced();
-      if (oldArchive != null && oldArchive.isLocal()) {
-        String oldPath = oldArchive.getLocalOsPath();
-        File oldFolder = oldPath == null ? null : new File(oldPath);
-        if (oldFolder == null && oldArchive.getParentPackage() != null) {
-          oldFolder = oldArchive.getParentPackage().getInstallFolder(osSdkRoot, sdkManager);
-        }
-        if (oldFolder != null && mFileOp.exists(oldFolder) &&
+      LocalPkgInfo oldArchive = archiveInfo.getReplaced();
+      if (oldArchive != null) {
+        File oldFolder = oldArchive.getLocalDir();
+        if (mFileOp.exists(oldFolder) &&
             !oldFolder.equals(destFolder)) {
           monitor.logVerbose("Removing old archive at %1$s", oldFolder.getAbsolutePath());
           mFileOp.deleteFileOrFolder(oldFolder);
@@ -836,7 +828,7 @@ public class ArchiveInstaller {
   protected boolean unzipFolder(ArchiveReplacement archiveInfo, File archiveFile, File unzipDestFolder, ITaskMonitor monitor) {
 
     Archive newArchive = archiveInfo.getNewArchive();
-    com.android.tools.idea.sdk.remote.internal.packages.Package pkg = newArchive.getParentPackage();
+    RemotePkgInfo pkg = newArchive.getParentPackage();
     String pkgName = pkg.getShortDescription();
     long compressedSize = newArchive.getSize();
 
@@ -1061,7 +1053,7 @@ public class ArchiveInstaller {
 
     archive.saveProperties(props);
 
-    com.android.tools.idea.sdk.remote.internal.packages.Package pkg = archive.getParentPackage();
+    RemotePkgInfo pkg = archive.getParentPackage();
     if (pkg != null) {
       pkg.saveProperties(props);
     }

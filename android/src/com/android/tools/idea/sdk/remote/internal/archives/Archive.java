@@ -18,14 +18,10 @@ package com.android.tools.idea.sdk.remote.internal.archives;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
-import com.android.sdklib.io.FileOp;
 import com.android.sdklib.repository.IDescription;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 
-import java.io.File;
 import java.util.Properties;
 
 
@@ -45,9 +41,7 @@ public class Archive implements IDescription, Comparable<Archive> {
   private final long mSize;
   private final String mChecksum;
   private final ChecksumType mChecksumType = ChecksumType.SHA1;
-  private final Package mPackage;
-  private final String mLocalOsPath;
-  private final boolean mIsLocal;
+  private final RemotePkgInfo mPackage;
   private final ArchFilter mArchFilter;
 
   /**
@@ -62,36 +56,12 @@ public class Archive implements IDescription, Comparable<Archive> {
    * @param checksum   The expected checksum string of the archive. Currently only the
    *                   {@link ChecksumType#SHA1} format is supported.
    */
-  public Archive(@Nullable Package pkg, @Nullable ArchFilter archFilter, @Nullable String url, long size, @NonNull String checksum) {
+  public Archive(@Nullable RemotePkgInfo pkg, @Nullable ArchFilter archFilter, @Nullable String url, long size, @NonNull String checksum) {
     mPackage = pkg;
     mArchFilter = archFilter != null ? archFilter : new ArchFilter(null);
     mUrl = url == null ? null : url.trim();
-    mLocalOsPath = null;
     mSize = size;
     mChecksum = checksum;
-    mIsLocal = false;
-  }
-
-  /**
-   * Creates a new local archive.
-   * This is typically called when inflating a local-package info by reading a local
-   * source.properties file. In this case a few properties like the URL, checksum and
-   * size are not defined.
-   *
-   * @param pkg         The package that contains this archive. Cannot be null.
-   * @param props       A set of properties. Can be null.
-   * @param localOsPath The OS path where the archive is installed if this represents a
-   *                    local package. Null for a remote package.
-   */
-  @VisibleForTesting(visibility = Visibility.PACKAGE)
-  public Archive(@NonNull Package pkg, @Nullable Properties props, @Nullable String localOsPath) {
-    mPackage = pkg;
-    mArchFilter = new ArchFilter(props);
-    mUrl = null;
-    mLocalOsPath = localOsPath;
-    mSize = 0;
-    mChecksum = "";
-    mIsLocal = localOsPath != null;
   }
 
   /**
@@ -103,19 +73,11 @@ public class Archive implements IDescription, Comparable<Archive> {
   }
 
   /**
-   * Returns true if this is a locally installed archive.
-   * Returns false if this is a remote archive that needs to be downloaded.
-   */
-  public boolean isLocal() {
-    return mIsLocal;
-  }
-
-  /**
    * Returns the package that created and owns this archive.
    * It should generally not be null.
    */
   @Nullable
-  public Package getParentPackage() {
+  public RemotePkgInfo getParentPackage() {
     return mPackage;
   }
 
@@ -153,17 +115,6 @@ public class Archive implements IDescription, Comparable<Archive> {
   @Nullable
   public String getUrl() {
     return mUrl;
-  }
-
-  /**
-   * Returns the local OS folder where a local archive is installed.
-   * Always return null for remote archives.
-   *
-   * @see #getUrl()
-   */
-  @Nullable
-  public String getLocalOsPath() {
-    return mLocalOsPath;
   }
 
   /**
@@ -261,15 +212,6 @@ public class Archive implements IDescription, Comparable<Archive> {
   }
 
   /**
-   * Delete the archive folder if this is a local archive.
-   */
-  public void deleteLocal() {
-    if (isLocal()) {
-      new FileOp().deleteFileOrFolder(new File(getLocalOsPath()));
-    }
-  }
-
-  /**
    * Archives are compared using their {@link Package} ordering.
    *
    * @see Package#compareTo(Package)
@@ -294,8 +236,6 @@ public class Archive implements IDescription, Comparable<Archive> {
     result = prime * result + ((mArchFilter == null) ? 0 : mArchFilter.hashCode());
     result = prime * result + ((mChecksum == null) ? 0 : mChecksum.hashCode());
     result = prime * result + ((mChecksumType == null) ? 0 : mChecksumType.hashCode());
-    result = prime * result + (mIsLocal ? 1231 : 1237);
-    result = prime * result + ((mLocalOsPath == null) ? 0 : mLocalOsPath.hashCode());
     result = prime * result + (int)(mSize ^ (mSize >>> 32));
     result = prime * result + ((mUrl == null) ? 0 : mUrl.hashCode());
     return result;
@@ -330,17 +270,6 @@ public class Archive implements IDescription, Comparable<Archive> {
       }
     }
     else if (!mChecksumType.equals(other.mChecksumType)) {
-      return false;
-    }
-    if (mIsLocal != other.mIsLocal) {
-      return false;
-    }
-    if (mLocalOsPath == null) {
-      if (other.mLocalOsPath != null) {
-        return false;
-      }
-    }
-    else if (!mLocalOsPath.equals(other.mLocalOsPath)) {
       return false;
     }
     if (mSize != other.mSize) {

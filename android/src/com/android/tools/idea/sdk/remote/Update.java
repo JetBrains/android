@@ -55,7 +55,7 @@ public abstract class Update {
         // if package is already a known update, it's not new.
         continue nextRemote;
       }
-      IPkgDesc remoteDesc = remote.getDesc();
+      IPkgDesc remoteDesc = remote.getPkgDesc();
       for (UpdatablePkgInfo info : updatablePkgInfos) {
         IPkgDesc localDesc = info.getLocalInfo().getDesc();
         if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc)) {
@@ -79,7 +79,7 @@ public abstract class Update {
     IPkgDesc localDesc = info.getLocalInfo().getDesc();
 
     for (RemotePkgInfo remote: remotePkgs.get(localDesc.getType())) {
-      IPkgDesc remoteDesc = remote.getDesc();
+      IPkgDesc remoteDesc = remote.getPkgDesc();
       if ((currUpdateDesc == null && remoteDesc.isUpdateFor(localDesc)) ||
           (currUpdateDesc != null && remoteDesc.isUpdateFor(currUpdateDesc))) {
         currUpdatePkg = remote;

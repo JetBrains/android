@@ -64,7 +64,7 @@ public final class AndroidSdk extends InstallableComponent {
     if (packages != null) {
       Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
       for (RemotePkgInfo tool : tools) {
-        FullRevision fullRevision = tool.getDesc().getFullRevision();
+        FullRevision fullRevision = tool.getPkgDesc().getFullRevision();
         if (fullRevision != null && fullRevision.getMajor() == FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION.getMajor() &&
             fullRevision.compareTo(revision) > 0) {
           revision = fullRevision;
