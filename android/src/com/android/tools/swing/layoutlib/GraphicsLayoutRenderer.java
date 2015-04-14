@@ -270,10 +270,15 @@ public class GraphicsLayoutRenderer {
     setSize(new Dimension(myHardwareConfig.getScreenWidth(), myHardwareConfig.getScreenHeight()));
   }
 
-  public void setSize(@NotNull Dimension dimen) {
-    dimen = viewToModel(dimen);
+
+  public void setSize(int width, int height) {
+    Dimension dimen = viewToModel(width, height);
     myHardwareConfig.setScreenSize(dimen.width, dimen.height);
     myInvalidate = true;
+  }
+
+  public void setSize(Dimension dimen) {
+    setSize(dimen.width, dimen.height);
   }
 
   /**
