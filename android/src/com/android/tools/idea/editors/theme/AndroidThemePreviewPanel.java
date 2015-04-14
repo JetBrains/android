@@ -72,12 +72,17 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * Component that renders a theme preview.
- * Implements RenderContext to support Configuration toolbar in Theme Editor
+ * Component that renders a theme preview. The preview size is independent of the selected device DPI so controls size will remain constant
+ * for all devices.
+ * Implements RenderContext to support Configuration toolbar in Theme Editor.
  */
 public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
+  // The scaling factor is based on how we want the preview to look for different devices. 300 means that a device with 300 DPI would look
+  // exactly as GraphicsLayoutRenderer would render it. A device with 600 DPI would usually look smaller but because we apply this scaling
+  // factor, it would be scaled 2x to look exactly as the 300 DPI version would look.
+  private static final double DEFAULT_SCALING_FACTOR = 300.0;
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
     ImmutableMap.of(
@@ -116,6 +121,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       return (breadcrumb == null || breadcrumb.myGroup == null || breadcrumb.myGroup.equals(input.group));
     }
   };
+  private double myConstantScalingFactor = DEFAULT_SCALING_FACTOR;
 
   static class Breadcrumb extends NavigationComponent.Item {
     private final ThemePreviewBuilder.ComponentGroup myGroup;
@@ -348,6 +354,22 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   public void updateConfiguration(@NotNull Configuration configuration) {
     myAndroidPreviewPanel.updateConfiguration(configuration);
+    // We want the preview to remain the same size even when the device being used to render is different.
+    // Adjust the scale to the current config.
+    if (myConfiguration.getDeviceState() != null) {
+      double scale = myConstantScalingFactor / myConfiguration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
+      myAndroidPreviewPanel.setScale(scale);
+    } else {
+      LOG.error("Configuration getDeviceState returned null. Unable to set preview scale.");
+    }
+  }
+
+  /**
+   * Sets the preview scale to allow zooming in and out. Even when zoom (scale != 1.0) is set, different devices will still render to the
+   * same size as the theme preview renderer is DPI independent.
+   */
+  public void setScale(double scale) {
+    myConstantScalingFactor = DEFAULT_SCALING_FACTOR * scale;
   }
 
   // Implements RenderContext
