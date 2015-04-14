@@ -22,7 +22,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.List;
@@ -33,15 +32,11 @@ public class ColorRenderer implements TableCellRenderer {
   private final Configuration myConfiguration;
 
   private final ColorComponent myComponent;
-  private final Border mySelectedBorder;
-  private final Border myUnselectedBorder;
 
   public ColorRenderer(@NotNull Configuration configuration, @NotNull JTable table) {
     myConfiguration = configuration;
-
-    myComponent = new ColorComponent(table.getBackground(), table.getFont());
-    mySelectedBorder = ColorComponent.getBorder(table.getSelectionBackground());
-    myUnselectedBorder = ColorComponent.getBorder(table.getBackground());
+    myComponent = new ColorComponent(table.getBackground());
+    myComponent.setFont(table.getFont());
   }
 
   @Override
@@ -49,9 +44,7 @@ public class ColorRenderer implements TableCellRenderer {
     if (obj instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) obj;
       final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
-
       myComponent.configure(item, colors);
-      myComponent.setBorder(isSelected ? mySelectedBorder : myUnselectedBorder);
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", obj.getClass().getName()));
     }
