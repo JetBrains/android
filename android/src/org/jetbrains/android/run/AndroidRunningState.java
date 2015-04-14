@@ -669,6 +669,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myAdditionalFacet2PackageName = depFacet2PackageName;
 
     if (chooseTargetDevice) {
+      //TODO: Why this message sometimes does not show up when a not yet booted device is picked?
       message("Waiting for device.", STDOUT);
 
       if (myTargetDevices.length == 0 && !chooseOrLaunchDevice()) {
@@ -865,20 +866,28 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   @Nullable
   private MyDeviceChangeListener prepareAndStartAppWhenDeviceIsOnline() {
     if (myTargetDevices.length > 0) {
+      boolean allDevicesOnline = true;
       for (IDevice targetDevice : myTargetDevices) {
         if (targetDevice.isOnline()) {
           if (!prepareAndStartApp(targetDevice) && !myStopped) {
             // todo: check: it may be we don't need to assign it directly
+            // TODO: Why stop completely for a problem potentially affecting only a single device?
             myStopped = true;
             getProcessHandler().destroyProcess();
             break;
           }
         }
+        else {
+          allDevicesOnline = false;
+        }
       }
-      if (!myDebugMode && !myStopped) {
-        getProcessHandler().destroyProcess();
+      // If all target devices are online, we are done.
+      if (allDevicesOnline) {
+        if (!myDebugMode && !myStopped) {
+          getProcessHandler().destroyProcess();
+        }
+        return null;
       }
-      return null;
     }
     final MyDeviceChangeListener deviceListener = new MyDeviceChangeListener();
     AndroidDebugBridge.addDeviceChangeListener(deviceListener);
