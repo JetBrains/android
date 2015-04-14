@@ -176,18 +176,13 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myMinApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
     rebuild(false/*forceRepaint*/);
 
-    JBScrollPane scrollPanel = new JBScrollPane(myAndroidPreviewPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+    JBScrollPane scrollPanel = new JBScrollPane(myAndroidPreviewPanel,
+                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    /*
-     * Set a preferred size for the preview panel. Since we are using HORIZONTAL_SCROLLBAR_NEVER, the width will be ignored and the panel
-     * size used.
-     * The height should be set according to a reasonable space to display the preview layout.
-     *
-     * TODO: Check the height value.
-     */
-    myAndroidPreviewPanel.setPreferredSize(new Dimension(64, 2000));
-
+    scrollPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     mySearchTextField = new SearchTextField(true);
+    // Avoid search box stretching more than 1 line.
+    mySearchTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, mySearchTextField.getPreferredSize().height));
     final Runnable delayedUpdate = new Runnable() {
       @Override
       public void run() {

@@ -213,4 +213,14 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
       }
     }
   }
+
+  @Override
+  public Dimension getMaximumSize() {
+    if (isMaximumSizeSet()) {
+      return super.getMaximumSize();
+    }
+
+    // By default, allow only one line.
+    return new Dimension(Integer.MAX_VALUE, getFontMetrics(getFont()).getHeight());
+  }
 }

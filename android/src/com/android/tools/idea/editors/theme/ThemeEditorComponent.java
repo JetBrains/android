@@ -125,6 +125,7 @@ public class ThemeEditorComponent extends Splitter {
     myStyleResolver = new StyleResolver(myConfiguration);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration);
+    myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     // Setup Javadoc handler.
     ActionManager actionManager = ActionManager.getInstance();
