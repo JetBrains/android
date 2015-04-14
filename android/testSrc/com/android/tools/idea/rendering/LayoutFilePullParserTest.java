@@ -38,7 +38,7 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
     assertNotNull(virtualFile);
     File file = VfsUtilCore.virtualToIoFile(virtualFile);
 
-    IProjectCallback callback = new DummyCallback();
+    LayoutlibCallback callback = new DummyCallback();
     LayoutFilePullParser parser = LayoutFilePullParser.create(callback, file);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
@@ -65,7 +65,7 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
   }
 
   @SuppressWarnings({"deprecation", "ConstantConditions"})
-  private static class DummyCallback implements IProjectCallback {
+  private static class DummyCallback extends LayoutlibCallback {
 
     @Override
     public Object loadView(String name, Class[] constructorSignature, Object[] constructorArgs) throws Exception {
@@ -133,6 +133,12 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
     @Override
     public ActionBarCallback getActionBarCallback() {
       return new ActionBarCallback();
+    }
+
+    @Override
+    public boolean supports(int ideFeature) {
+      fail("Should not be used by unit test");
+      return false;
     }
   }
 }
