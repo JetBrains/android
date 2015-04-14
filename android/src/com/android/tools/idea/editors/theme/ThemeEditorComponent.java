@@ -231,7 +231,7 @@ public class ThemeEditorComponent extends Splitter {
         myPanel.getPalette().clearSelection();
         myAttributesFilter.setFilterEnabled(!myPanel.isAdvancedMode());
 
-        myAttributesFilter.setAttributesFilter(myPreviewPanel.getUsedAttrs());
+        myAttributesFilter.setAttributesFilter(myAttributesFilter.ATTRIBUTES_DEFAULT_FILTER);
 
         ((TableRowSorter)myAttributesTable.getRowSorter()).sort();
       }
@@ -650,9 +650,16 @@ public class ThemeEditorComponent extends Splitter {
   class StyleAttributesFilter extends RowFilter<AttributesTableModel, Integer> {
     // TODO: This is just a random list of attributes. Replace with a possibly dynamic list of simple attributes.
     public final Set<String> ATTRIBUTES_DEFAULT_FILTER = ImmutableSet
-      .of("android:background", "android:colorAccent", "android:colorBackground", "android:colorForegroundInverse", "android:colorPrimary",
-          "android:editTextColor", "spinnerStyle", "android:textColorHighlight", "android:textColorLinkInverse", "android:textColorPrimary",
-          "windowTitleStyle", "android:windowFullscreen");
+      .of("android:colorPrimary",
+          "android:colorPrimaryDark",
+          "android:colorAccent",
+          "android:textColorPrimary",
+          "android:textColorSecondary",
+          "android:textColorPrimaryInverse",
+          "android:textColorSecondaryInverse",
+          "android:colorBackground",
+          "android:windowBackground",
+          "android:navigationBarColor");
     private boolean myIsFilterEnabled = true;
     private Set<String> filterAttributes = ATTRIBUTES_DEFAULT_FILTER;
 
