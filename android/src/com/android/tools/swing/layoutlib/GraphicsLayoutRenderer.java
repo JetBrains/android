@@ -42,10 +42,18 @@ import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class to render layouts to a {@link Graphics} instance. This renderer does not allow for much customization of the device and does not
@@ -79,6 +87,8 @@ public class GraphicsLayoutRenderer {
    * instance to launch it.
    */
   private RenderSession myRenderSession;
+
+  private double myScale = 1.0;
 
   private GraphicsLayoutRenderer(@NotNull LayoutLibrary layoutLib,
                                  @NotNull SessionParams sessionParams,
@@ -209,7 +219,59 @@ public class GraphicsLayoutRenderer {
     return create(facet, platform, target, module.getProject(), configuration, parser, renderingMode);
   }
 
-  public void setSize(Dimension dimen) {
+  /**
+   * Converts a dimension from model coordinates to view coordinates (possibly scaled).
+   */
+  @NotNull
+  private Dimension modelToView(int width, int height) {
+    return new Dimension((int)(width * myScale), (int)(height * myScale));
+  }
+
+  /**
+   * Converts a dimension from model coordinates to view coordinates (possibly scaled).
+   */
+  @NotNull
+  private Dimension modelToView(@NotNull Dimension d) {
+    return modelToView(d.width, d.height);
+  }
+
+  /**
+   * Converts a dimension from view coordinates (possibly scaled) to model coordinates.
+   */
+  @NotNull
+  private Dimension viewToModel(int width, int height) {
+    return new Dimension((int)(width / myScale), (int)(height / myScale));
+  }
+
+  /**
+   * Converts a point from view coordinates (possibly scaled) to model coordinates.
+   */
+  @NotNull
+  private Dimension viewToModel(@NotNull Dimension d) {
+    return viewToModel(d.width, d.height);
+  }
+
+  /**
+   * Converts a point from view coordinates (possibly scaled) to model coordinates.
+   */
+  @NotNull
+  private Point viewToModel(@NotNull Point p) {
+    return new Point((int)(p.x / myScale), (int)(p.y / myScale));
+  }
+
+  /**
+   * Sets the rendering scale. If scale is greater than 1.0, the rendered result will be bigger, while if it's less than 1.0 it will be
+   * smaller. The scale does not affect the size set in {@link #setSize} so the resulting image will have the same width and height.
+   */
+  public void setScale(double scale) {
+    myScale = scale;
+
+    // Adjust screen size to new scale.
+    setSize(new Dimension(myHardwareConfig.getScreenWidth(), myHardwareConfig.getScreenHeight()));
+  }
+
+  public void setSize(@NotNull Dimension dimen) {
+    dimen = viewToModel(dimen);
     myHardwareConfig.setScreenSize(dimen.width, dimen.height);
     myInvalidate = true;
   }
@@ -221,7 +283,17 @@ public class GraphicsLayoutRenderer {
    * the access to it.
    */
   public boolean render(@NotNull final Graphics2D graphics) {
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
     myImageFactory.setGraphics(graphics);
+
+    AffineTransform oldTransform = graphics.getTransform();
+    if (myScale != 1.0) {
+      graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      AffineTransform scaleTransform = new AffineTransform(oldTransform);
+      scaleTransform.scale(myScale, myScale);
+      graphics.setTransform(scaleTransform);
+    }
 
     Result result = null;
     mySecurityManager.setActive(true, myCredential);
@@ -237,6 +309,10 @@ public class GraphicsLayoutRenderer {
     }
     finally {
       mySecurityManager.setActive(false, myCredential);
+    }
+
+    if (myScale != 1.0) {
+      graphics.setTransform(oldTransform);
     }
 
     // We need to log the errors after disabling the security manager since the logger will cause a security exception when trying to
@@ -325,6 +401,8 @@ public class GraphicsLayoutRenderer {
       return null;
     }
 
+    p = viewToModel(p);
+
     Point base = new Point();
     for (ViewInfo view : myRenderSession.getRootViews()) {
       ViewInfo hitView = viewAtPoint(base, view, p);
@@ -337,7 +415,7 @@ public class GraphicsLayoutRenderer {
   }
 
   public Dimension getPreferredSize() {
-    return new Dimension(myImageFactory.getRequestedWidth(), myImageFactory.getRequestedHeight());
+    return modelToView(myImageFactory.getRequestedWidth(), myImageFactory.getRequestedHeight());
   }
 
   public void dispose() {

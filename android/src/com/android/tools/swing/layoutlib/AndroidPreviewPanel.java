@@ -38,6 +38,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private Configuration myConfiguration;
   private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
+  private double myScale = 1.0;
 
   public AndroidPreviewPanel(@NotNull Configuration configuration) {
     myConfiguration = configuration;
@@ -58,6 +59,13 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
       myGraphicsLayoutRenderer.setSize(currentSize);
     } else {
       setPreferredSize(currentSize);
+    }
+  }
+
+  public void setScale(double scale) {
+    myScale = scale;
+    if (myGraphicsLayoutRenderer != null) {
+      myGraphicsLayoutRenderer.setScale(scale);
     }
   }
 
@@ -107,6 +115,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
       try {
         myGraphicsLayoutRenderer =
           GraphicsLayoutRenderer.create(myConfiguration, parser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+        myGraphicsLayoutRenderer.setScale(myScale);
         myGraphicsLayoutRenderer.setSize(getSize());
       }
       catch (InitializationException e) {
