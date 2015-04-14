@@ -398,8 +398,9 @@ Section "Android SDK" SectionSdk
     ${EndIf}
 
     SetOutPath "$s_SdkReferencePath"
-    Nsis7z::ExtractWithDetails "$TEMP\android-sdk.7z" "$R0"
-    Delete "$TEMP\android-sdk.7z"
+    ${GetFileName} "${BUNDLED_SDK}" $R1
+    Nsis7z::ExtractWithDetails "$TEMP\$R1" "$R0"
+    Delete "$TEMP\$R1"
 
     !endif # DRY_RUN && UNINSTALL_BUILDER
 SectionEnd
