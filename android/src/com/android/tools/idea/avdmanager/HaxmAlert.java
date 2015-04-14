@@ -65,7 +65,7 @@ public class HaxmAlert extends JPanel {
   private JBLabel myWarningMessage;
   private HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkListener myErrorLinkListener;
-  AvdWizardConstants.SystemImageDescription myImageDescription;
+  SystemImageDescription myImageDescription;
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
@@ -97,7 +97,7 @@ public class HaxmAlert extends JPanel {
                                                       BorderFactory.createEmptyBorder(0, 5, 3, 5)));
   }
 
-  public void setSystemImageDescription(AvdWizardConstants.SystemImageDescription description) {
+  public void setSystemImageDescription(SystemImageDescription description) {
     myImageDescription = description;
     refresh();
   }

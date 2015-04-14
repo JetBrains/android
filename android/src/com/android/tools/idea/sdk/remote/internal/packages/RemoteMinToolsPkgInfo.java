@@ -17,6 +17,7 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
@@ -26,9 +27,9 @@ import java.util.Properties;
 /**
  * Represents an XML node in an SDK repository that has a min-tools-rev requirement.
  */
-public abstract class MinToolsPackage extends MajorRevisionPackage implements IMinToolsDependency {
+public abstract class RemoteMinToolsPkgInfo extends RemotePkgInfo implements IMinToolsDependency {
 
-    private final com.android.tools.idea.sdk.remote.internal.packages.MinToolsMixin mMinToolsMixin;
+    private final MinToolsMixin mMinToolsMixin;
 
     /**
      * Creates a new package from the attributes and elements of the given XML node.
@@ -40,10 +41,10 @@ public abstract class MinToolsPackage extends MajorRevisionPackage implements IM
      *          parameters that vary according to the originating XML schema.
      * @param licenses The licenses loaded from the XML originating document.
      */
-    MinToolsPackage(SdkSource source, Node packageNode, String nsUri, Map<String,String> licenses) {
+    RemoteMinToolsPkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
         super(source, packageNode, nsUri, licenses);
 
-        mMinToolsMixin = new com.android.tools.idea.sdk.remote.internal.packages.MinToolsMixin(packageNode);
+        mMinToolsMixin = new MinToolsMixin(packageNode);
     }
 
     /**
@@ -74,7 +75,7 @@ public abstract class MinToolsPackage extends MajorRevisionPackage implements IM
         if (!super.equals(obj)) {
             return false;
         }
-        if (!(obj instanceof com.android.tools.idea.sdk.remote.internal.packages.MinToolsPackage)) {
+        if (!(obj instanceof RemoteMinToolsPkgInfo)) {
             return false;
         }
         return mMinToolsMixin.equals(obj);

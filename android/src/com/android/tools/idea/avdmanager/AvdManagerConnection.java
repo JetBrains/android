@@ -387,7 +387,7 @@ public class AvdManagerConnection {
   public AvdInfo createOrUpdateAvd(@Nullable AvdInfo currentInfo,
                                           @NotNull String avdName,
                                           @NotNull Device device,
-                                          @NotNull AvdWizardConstants.SystemImageDescription systemImageDescription,
+                                          @NotNull SystemImageDescription systemImageDescription,
                                           @NotNull ScreenOrientation orientation,
                                           boolean isCircular,
                                           @Nullable String sdCard,
@@ -451,7 +451,7 @@ public class AvdManagerConnection {
   }
 
   @Nullable
-  private static File getRoundSkin(AvdWizardConstants.SystemImageDescription systemImageDescription) {
+  private static File getRoundSkin(SystemImageDescription systemImageDescription) {
     File[] skins = systemImageDescription.getSkins();
     for (File skin : skins) {
       if (skin.getName().contains("Round")) {

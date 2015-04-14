@@ -17,9 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
@@ -27,12 +24,9 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
@@ -149,112 +143,26 @@ public class AvdWizardConstants {
 
   public static final File NO_SKIN = new File("_no_skin");
 
-  public static final class SystemImageDescription {
-    private IAndroidTarget target;
-    private ISystemImage systemImage;
-    private IPkgDesc remotePackage;
+  /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
+  private static final int MAX_RAM_MB = 1536;
 
-    public SystemImageDescription(IAndroidTarget target, ISystemImage systemImage) {
-      this.target = target;
-      this.systemImage = systemImage;
+  /**
+   * Get the default amount of ram to use for the given hardware in an AVD. This is typically
+   * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
+   * is usually detrimental to development system performance and most likely not needed by the
+   * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
+   * apps running simultaneously)
+   *
+   * @param hardware the hardware to look up the default amount of RAM on
+   * @return the amount of RAM to default an AVD to for the given hardware
+   */
+  @NotNull
+  public static Storage getDefaultRam(@NotNull Hardware hardware) {
+    Storage ram = hardware.getRam();
+    if (ram.getSizeAsUnit(Storage.Unit.MiB) >= MAX_RAM_MB) {
+      return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
     }
 
-    public SystemImageDescription(IPkgDesc remotePackage, IAndroidTarget target) {
-      this.remotePackage = remotePackage;
-      this.target = target;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(target, systemImage, remotePackage);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof SystemImageDescription)) {
-        return false;
-      }
-      SystemImageDescription other = (SystemImageDescription) obj;
-      return Objects.equal(target, other.target) && Objects.equal(systemImage, other.systemImage) &&
-             Objects.equal(remotePackage, other.remotePackage);
-    }
-
-    @Nullable
-    public AndroidVersion getVersion() {
-      if (target != null) {
-        return target.getVersion();
-      } else {
-        return remotePackage.getAndroidVersion();
-      }
-    }
-
-    public IPkgDesc getRemotePackage() {
-      return remotePackage;
-    }
-
-    public boolean isRemote() {
-      return remotePackage != null;
-    }
-
-    @Nullable
-    public String getAbiType() {
-      if (systemImage != null) {
-        return systemImage.getAbiType();
-      } else if (remotePackage.getType() == PkgType.PKG_SYS_IMAGE
-              || remotePackage.getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
-        return remotePackage.getPath();
-      } else {
-        return "";
-      }
-    }
-
-    @Nullable
-    public IdDisplay getTag() {
-      if (systemImage != null) {
-        return systemImage.getTag();
-      }
-      return remotePackage.getTag();
-    }
-
-    public String getName() {
-      if (target != null) {
-        return target.getFullName();
-      }
-      if (remotePackage != null) {
-        return String.format("%s not installed", remotePackage.getAndroidVersion());
-      }
-      return "Unknown platform";
-    }
-
-    public String getVendor() {
-      if (target != null) {
-        return target.getVendor();
-      }
-      if (remotePackage != null) {
-        IdDisplay vendor = remotePackage.getVendor();
-        if (vendor != null) {
-          return vendor.getDisplay();
-        }
-      }
-      return "";
-    }
-
-    public String getVersionName() {
-      if (target != null) {
-        return target.getVersionName();
-      }
-      return "";
-    }
-
-    public IAndroidTarget getTarget() {
-      return target;
-    }
-
-    public File[] getSkins() {
-      if (target != null) {
-        return target.getSkins();
-      }
-      return new File[0];
-    }
+    return ram;
   }
 }

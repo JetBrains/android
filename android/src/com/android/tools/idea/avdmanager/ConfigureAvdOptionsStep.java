@@ -554,7 +554,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         @Nullable
         @Override
         protected Storage getStorage(@NotNull Device device) {
-          return AvdBuilder.getDefaultRam(device.getDefaultHardware());
+          return AvdWizardConstants.getDefaultRam(device.getDefaultHardware());
         }
       });
 

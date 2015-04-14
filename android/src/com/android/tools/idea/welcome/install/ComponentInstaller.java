@@ -132,7 +132,7 @@ public final class ComponentInstaller {
           .copyOf(new ComponentInstaller(myRemotePackages).getPackagesToInstall(sdkManager, components, true));
         Set<RemotePkgInfo> remotePackages = Sets.newHashSetWithExpectedSize(packagesToInstall.size());
         for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
-          if (packagesToInstall.contains(remotePkgInfo.getDesc().getInstallId())) {
+          if (packagesToInstall.contains(remotePkgInfo.getPkgDesc().getInstallId())) {
             remotePackages.add(remotePkgInfo);
           }
         }

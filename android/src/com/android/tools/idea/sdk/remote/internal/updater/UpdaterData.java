@@ -16,11 +16,9 @@
 
 package com.android.tools.idea.sdk.remote.internal.updater;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
-import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.ISdkChangeListener;
@@ -32,10 +30,9 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.*;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.archives.ArchiveInstaller;
-import com.android.tools.idea.sdk.remote.internal.packages.AddonPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.tools.idea.sdk.remote.internal.packages.PlatformToolPackage;
-import com.android.tools.idea.sdk.remote.internal.packages.ToolPackage;
+import com.android.tools.idea.sdk.remote.internal.packages.RemoteAddonPkgInfo;
+import com.android.tools.idea.sdk.remote.internal.packages.PlatformToolRemotePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.packages.RemoteToolPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSourceCategory;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
@@ -78,11 +75,6 @@ public class UpdaterData implements IUpdaterData {
   private ITaskFactory mTaskFactory;
 
   private SdkManager mSdkManager;
-  /**
-   * The current {@link PackageLoader} to use.
-   * Lazily created in {@link #getPackageLoader()}.
-   */
-  private PackageLoader mPackageLoader;
   /**
    * The current {@link DownloadCache} to use.
    * Lazily created in {@link #getDownloadCache()}.
@@ -151,14 +143,6 @@ public class UpdaterData implements IUpdaterData {
    */
   public void removeListener(ISdkChangeListener listener) {
     mListeners.remove(listener);
-  }
-
-  public PackageLoader getPackageLoader() {
-    // The package loader is lazily initialized here.
-    if (mPackageLoader == null) {
-      mPackageLoader = new PackageLoader(this);
-    }
-    return mPackageLoader;
   }
 
   protected void displayInitError(String error) {
@@ -321,13 +305,13 @@ public class UpdaterData implements IUpdaterData {
               numInstalled++;
 
               // Check if we successfully installed a platform-tool or add-on package.
-              if (archive.getParentPackage() instanceof AddonPackage) {
+              if (archive.getParentPackage() instanceof RemoteAddonPkgInfo) {
                 installedAddon = true;
               }
-              else if (archive.getParentPackage() instanceof ToolPackage) {
+              else if (archive.getParentPackage() instanceof RemoteToolPkgInfo) {
                 installedTools = true;
               }
-              else if (archive.getParentPackage() instanceof PlatformToolPackage) {
+              else if (archive.getParentPackage() instanceof PlatformToolRemotePkgInfo) {
                 installedPlatformTools = true;
               }
             }
@@ -521,7 +505,7 @@ public class UpdaterData implements IUpdaterData {
       for (ArchiveInfo ai : archives) {
         Archive a = ai.getNewArchive();
         if (a != null) {
-          Package p = a.getParentPackage();
+          RemotePkgInfo p = a.getParentPackage();
           if (p != null) {
             String iid = p.installId().toLowerCase(Locale.US);
             if (iid.length() > 0 && !installIds.contains(iid)) {
@@ -562,7 +546,7 @@ public class UpdaterData implements IUpdaterData {
         ArchiveInfo ai = it.next();
         Archive a = ai.getNewArchive();
         if (a != null) {
-          Package p = a.getParentPackage();
+          RemotePkgInfo p = a.getParentPackage();
           if (p != null) {
             if (userFilteredInstallIds.contains(p.installId().toLowerCase(Locale.US))) {
               keep = true;
@@ -597,7 +581,7 @@ public class UpdaterData implements IUpdaterData {
         for (ArchiveInfo ai : archives) {
           Archive a = ai.getNewArchive();
           if (a != null) {
-            Package p = a.getParentPackage();
+            RemotePkgInfo p = a.getParentPackage();
             if (p != null) {
               mSdkLog.info("- %1$s\n", p.getShortDescription());
             }
@@ -623,8 +607,8 @@ public class UpdaterData implements IUpdaterData {
     state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
     List<ArchiveInfo> result = Lists.newArrayList();
     for (RemotePkgInfo remote : state.getRemotePkgInfos().values()) {
-      if (includeAll || !remote.getPackage().isObsolete()) {
-        for (Archive archive : remote.getPackage().getArchives()) {
+      if (includeAll || !remote.isObsolete()) {
+        for (Archive archive : remote.getArchives()) {
           if (archive.isCompatible()) {
             result.add(new ArchiveInfo(archive, null, null));
           }
@@ -801,7 +785,7 @@ public class UpdaterData implements IUpdaterData {
   private License getArchiveInfoLicense(ArchiveInfo ai) {
     Archive a = ai.getNewArchive();
     if (a != null) {
-      Package p = a.getParentPackage();
+      RemotePkgInfo p = a.getParentPackage();
       if (p != null) {
         License lic = p.getLicense();
         if (lic != null &&
