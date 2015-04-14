@@ -31,7 +31,6 @@ public class AttributesPanel {
 
   private JComboBox myThemeCombo;
   private JCheckBox myAdvancedFilterCheckBox;
-  private JButton myNewThemeButton;
   private JButton myBackButton;
   private JBLabel mySubStyleLabel;
   private ThemeEditorTable myAttributesTable;
@@ -43,10 +42,7 @@ public class AttributesPanel {
   private JBScrollPane myPaletteScrollPane;
 
   public AttributesPanel() {
-    myNewThemeButton.setIcon(AllIcons.General.Add);
     myBackButton.setIcon(AllIcons.Actions.Back);
-
-    myNewThemeButton.setBorder(BORDER);
     myBackButton.setBorder(BORDER);
 
     // We have our own custom renderer that it's not based on the default one.
@@ -78,8 +74,16 @@ public class AttributesPanel {
     myThemeCombo.setSelectedItem(style);
   }
 
+  public boolean isCreateNewThemeSelected() {
+    return ThemesListModel.CREATE_NEW_THEME.equals(myThemeCombo.getSelectedItem());
+  }
+
   public ThemeEditorStyle getSelectedTheme() {
-    return (ThemeEditorStyle) myThemeCombo.getSelectedItem();
+    Object item = myThemeCombo.getSelectedItem();
+    if (item != null && !(item instanceof ThemeEditorStyle)) {
+      throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
+    }
+    return (ThemeEditorStyle)item;
   }
 
   public void setAdvancedMode(final boolean isAdvanced) {
@@ -115,10 +119,6 @@ public class AttributesPanel {
 
   public JButton getBackButton() {
     return myBackButton;
-  }
-
-  public JButton getNewThemeButton() {
-    return myNewThemeButton;
   }
 
   public JCheckBox getAdvancedFilterCheckBox() {

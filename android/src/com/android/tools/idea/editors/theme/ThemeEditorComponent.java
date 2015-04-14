@@ -116,6 +116,7 @@ public class ThemeEditorComponent extends Splitter {
       return true;
     }
   };
+  private ThemeEditorStyle mySelectedTheme;
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
     this.myConfiguration = configuration;
@@ -238,23 +239,16 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    JButton newThemeButton = myPanel.getNewThemeButton();
-    newThemeButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ThemeEditorStyle selectedTheme = getSelectedStyle();
-        String selectedThemeName = selectedTheme == null ? null : selectedTheme.getName();
-
-        String newThemeName = createNewStyle(selectedThemeName, null/*message*/, null/*newAttributeName*/, null/*newAttributeValue*/);
-        if (newThemeName != null) {
-          reload(newThemeName);
-        }
-      }
-    });
-
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
+        if (myPanel.isCreateNewThemeSelected()) {
+          if (!createNewTheme()) {
+            // User clicked "cancel", restore previously selected item in themes combo.
+            myPanel.getThemeCombo().setSelectedItem(mySelectedTheme);
+          }
+          return;
+        }
         saveCurrentSelectedTheme();
         myCurrentSubStyle = null;
         mySubStyleSourceAttribute = null;
@@ -286,6 +280,22 @@ public class ThemeEditorComponent extends Splitter {
     setFirstComponent(myPreviewPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
+  }
+
+  /**
+   * Launches dialog to create a new theme based on selected one.
+   * @return whether creation of new theme succeeded.
+   */
+  private boolean createNewTheme() {
+    ThemeEditorStyle selectedTheme = getSelectedStyle();
+    String selectedThemeName = selectedTheme == null ? null : selectedTheme.getName();
+
+    String newThemeName = createNewStyle(selectedThemeName, null/*message*/, null/*newAttributeName*/, null/*newAttributeValue*/);
+    if (newThemeName != null) {
+      reload(newThemeName);
+      return true;
+    }
+    return false;
   }
 
   public void goToParent() {
@@ -385,7 +395,7 @@ public class ThemeEditorComponent extends Splitter {
 
   @Nullable
   ThemeEditorStyle getSelectedTheme() {
-    return myPanel.getSelectedTheme();
+    return mySelectedTheme;
   }
 
   //Never null, because DefaultComboBoxModel and fixed list of items rendered
@@ -505,6 +515,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    mySelectedTheme = myPanel.getSelectedTheme();
     saveCurrentSelectedTheme();
   }
 
@@ -512,6 +523,7 @@ public class ThemeEditorComponent extends Splitter {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
+    mySelectedTheme = myPanel.getSelectedTheme();
     final ThemeEditorStyle selectedTheme = getSelectedTheme();
     final ThemeEditorStyle selectedStyle = getSelectedStyle();
 
