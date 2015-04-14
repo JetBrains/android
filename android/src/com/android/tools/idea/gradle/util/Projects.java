@@ -72,11 +72,21 @@ import static java.lang.Boolean.TRUE;
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
+  private static final Key<String> GRADLE_VERSION = Key.create("project.gradle.version");
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
 
   private Projects() {
+  }
+
+  public static void setGradleVersionUsed(@NotNull Project project, @Nullable String gradleVersion) {
+    project.putUserData(GRADLE_VERSION, gradleVersion);
+  }
+
+  @Nullable
+  public static String getGradleVersionUsed(@NotNull Project project) {
+    return project.getUserData(GRADLE_VERSION);
   }
 
   public static void removeAllModuleCompiledArtifacts(@NotNull Project project) {
