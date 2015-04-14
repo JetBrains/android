@@ -39,6 +39,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private Document myDocument;
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
   private double myScale = 1.0;
+  private Dimension myLastRenderedSize;
 
   public AndroidPreviewPanel(@NotNull Configuration configuration) {
     myConfiguration = configuration;
@@ -56,9 +57,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     // this runs before the paintComponent saving an extra paint cycle.
     Dimension currentSize = getSize();
     if (myGraphicsLayoutRenderer != null && !currentSize.equals(previousSize)) {
-      myGraphicsLayoutRenderer.setSize(currentSize);
-    } else {
-      setPreferredSize(currentSize);
+      // Because we use GraphicsLayoutRender in vertical scroll mode, the height passed it's only a minimum. If the actual rendering results
+      // in a bigger size, the GraphicsLayoutRenderer.getPreferredSize() call will return the correct size.
+      myGraphicsLayoutRenderer.setSize(width, 1);
     }
   }
 
@@ -115,8 +116,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
       try {
         myGraphicsLayoutRenderer =
           GraphicsLayoutRenderer.create(myConfiguration, parser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+
         myGraphicsLayoutRenderer.setScale(myScale);
-        myGraphicsLayoutRenderer.setSize(getSize());
+        myGraphicsLayoutRenderer.setSize(getSize().width, 1);
       }
       catch (InitializationException e) {
         LOG.error(e);
@@ -125,14 +127,28 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
 
     if (myGraphicsLayoutRenderer != null) {
       myGraphicsLayoutRenderer.render((Graphics2D)graphics);
-      // We only know the size of the layout after the render call.
-      setPreferredSize(myGraphicsLayoutRenderer.getPreferredSize());
+      Dimension renderSize = myGraphicsLayoutRenderer.getPreferredSize();
+
+      // We will only call revalidate (to adjust the scrollbars) if the size of the output has actually changed.
+      if (!renderSize.equals(myLastRenderedSize)) {
+        myLastRenderedSize = renderSize;
+        revalidate();
+      }
     }
   }
 
   @Override
   public Dimension getPreferredScrollableViewportSize() {
     return getPreferredSize();
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    if (isPreferredSizeSet() || myGraphicsLayoutRenderer == null) {
+       return super.getPreferredSize();
+    }
+
+    return myGraphicsLayoutRenderer.getPreferredSize();
   }
 
   @Override
