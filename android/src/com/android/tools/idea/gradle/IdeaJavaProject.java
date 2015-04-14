@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.util.ProxyUtil;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -25,8 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -36,17 +37,19 @@ import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_T
 import static java.util.Collections.emptyList;
 
 public class IdeaJavaProject implements Serializable {
-  private static final long serialVersionUID = 1L;
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 2L;
 
-  @NotNull private final String myModuleName;
-  @NotNull private final Collection<? extends IdeaContentRoot> myContentRoots;
-  @NotNull private final List<? extends IdeaDependency> myDependencies;
+  @NotNull private String myModuleName;
+  @NotNull private Collection<? extends IdeaContentRoot> myContentRoots;
+  @NotNull private List<? extends IdeaDependency> myDependencies;
+  @NotNull private List<? extends IdeaDependency> myDependencyProxies;
 
-  @Nullable private final Map<String, Set<File>> myArtifactsByConfiguration;
-  @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
-  @Nullable private final File myBuildFolderPath;
+  @Nullable private Map<String, Set<File>> myArtifactsByConfiguration;
+  @Nullable private ExtIdeaCompilerOutput myCompilerOutput;
+  @Nullable private File myBuildFolderPath;
 
-  private final boolean myBuildable;
+  private boolean myBuildable;
 
   @NotNull
   public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
@@ -104,6 +107,14 @@ public class IdeaJavaProject implements Serializable {
     myModuleName = name;
     myContentRoots = contentRoots;
     myDependencies = dependencies;
+    List<IdeaDependency> proxies = Lists.newArrayListWithExpectedSize(dependencies.size());
+    for (IdeaDependency dependency : dependencies) {
+      // IdeaDependency cannot be serialized/deserialized as it is. This is a workaround.
+      // See https://code.google.com/p/android/issues/detail?id=165576
+      IdeaDependency proxy = ProxyUtil.reproxy(IdeaDependency.class, dependency);
+      proxies.add(proxy);
+    }
+    myDependencyProxies = proxies;
     myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
@@ -142,5 +153,27 @@ public class IdeaJavaProject implements Serializable {
 
   public boolean isBuildable() {
     return myBuildable;
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.writeObject(myModuleName);
+    out.writeObject(myContentRoots);
+    out.writeObject(myArtifactsByConfiguration);
+    out.writeObject(myCompilerOutput);
+    out.writeObject(myBuildFolderPath);
+    out.writeObject(myBuildable);
+    out.writeObject(myDependencyProxies);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    myModuleName = (String)in.readObject();
+    myContentRoots = (Collection<? extends IdeaContentRoot>)in.readObject();
+    myArtifactsByConfiguration = (Map<String, Set<File>>)in.readObject();
+    myCompilerOutput = (ExtIdeaCompilerOutput)in.readObject();
+    myBuildFolderPath = (File)in.readObject();
+    myBuildable = (Boolean)in.readObject();
+    myDependencies = (List<? extends IdeaDependency>)in.readObject();
+    myDependencyProxies = myDependencies;
   }
 }
