@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Pair;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -30,13 +32,16 @@ import java.util.Map;
 public class CloudProjectIdLabel extends JBLabel {
   private static final String CLOUD_PROJECT_PROMPT = "Please select a project...";
 
+  private final Kind myConfigurationKind;
   private Module myCurrentModule;
 
-  // a cache of configuration selected by module, so that if the module selection changes back and forth, we retain
-  // the appropriate selected project id
-  private static Map<Module, String> myProjectByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  /** A cache of project ids selected by <kind, module>, so that if the module selection changes back and forth, we retain
+   * the appropriate selected project id.
+   */
+  private static Map<Pair<Kind, Module>, String> myProjectByModuleCache = Maps.newHashMapWithExpectedSize(5);
 
-  public CloudProjectIdLabel() {
+  public CloudProjectIdLabel(@NotNull Kind configurationKind) {
+    myConfigurationKind = configurationKind;
     updateCloudProjectId(CLOUD_PROJECT_PROMPT);
   }
 
@@ -69,7 +74,7 @@ public class CloudProjectIdLabel extends JBLabel {
       return;
     }
 
-    myProjectByModuleCache.put(myCurrentModule, getText());
+    myProjectByModuleCache.put(Pair.create(myConfigurationKind, myCurrentModule), getText());
   }
 
   private void restoreChosenProjectId() {
@@ -77,7 +82,7 @@ public class CloudProjectIdLabel extends JBLabel {
       return;
     }
 
-    String projectId = myProjectByModuleCache.get(myCurrentModule);
+    String projectId = myProjectByModuleCache.get(Pair.create(myConfigurationKind, myCurrentModule));
     if (projectId != null) {
       updateCloudProjectId(projectId);
     }

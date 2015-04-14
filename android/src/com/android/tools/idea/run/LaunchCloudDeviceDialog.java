@@ -97,7 +97,7 @@ public class LaunchCloudDeviceDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
-    myCloudProjectIdLabel = new CloudProjectIdLabel();
+    myCloudProjectIdLabel = new CloudProjectIdLabel(SINGLE_DEVICE);
 
     AnAction action = new AnAction() {
       @Override

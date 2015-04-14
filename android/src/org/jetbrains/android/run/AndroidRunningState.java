@@ -126,6 +126,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
+import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
@@ -234,7 +235,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     }
 
-    CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
+    final CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
     boolean debugMatrixOnCloud = myTargetChooser instanceof CloudTargetChooser &&
                                  ((CloudTargetChooser)myTargetChooser).getConfigurationKind() == MATRIX &&
                                  executor instanceof DefaultDebugExecutor;
@@ -296,9 +297,21 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     } else if (myTargetChooser instanceof CloudTargetChooser) {
       assert provider != null;
-      CloudTargetChooser cloudTargetChooser = (CloudTargetChooser)myTargetChooser;
-      return provider.executeCloudMatrixTests(cloudTargetChooser.getCloudConfigurationId(), cloudTargetChooser.getCloudProjectId(), this,
-                                              executor);
+      final CloudTargetChooser cloudTargetChooser = (CloudTargetChooser)myTargetChooser;
+      if (cloudTargetChooser.getConfigurationKind() == MATRIX) {
+        return provider
+          .executeCloudMatrixTests(cloudTargetChooser.getCloudConfigurationId(), cloudTargetChooser.getCloudProjectId(), this, executor);
+      }
+      else {
+        assert cloudTargetChooser.getConfigurationKind() == SINGLE_DEVICE;
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+          @Override
+          public void run() {
+            provider.launchCloudDevice(cloudTargetChooser.getCloudConfigurationId(), cloudTargetChooser.getCloudProjectId(), myFacet);
+          }
+        });
+        return new DefaultExecutionResult(console, myProcessHandler);
+      }
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {

@@ -59,6 +59,9 @@ public abstract class CloudConfigurationProvider {
   @Nullable
   public abstract String openCloudProjectConfigurationDialog(@NotNull Project project, @Nullable String currentProject);
 
+  /**
+   * A long running operation - returns only after the cloud device is ready (or launching has failed).
+   */
   public abstract void launchCloudDevice(int selectedConfigurationId,
                                          @NotNull String cloudProjectId,
                                          @NotNull AndroidFacet facet);
