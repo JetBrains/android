@@ -362,7 +362,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       try {
         final Pair<File, String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
         manifestCopy = pair != null ? pair.getFirst() : null;
-        VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
+        VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifestCopy) : null;
         if (manifestVFile != null) {
           manifestVFile.refresh(false, false);
           manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
