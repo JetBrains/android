@@ -43,6 +43,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
       return o1.isProjectStyle() ? -1 : 1;
     }
   };
+  public static final String CREATE_NEW_THEME = "Create New Theme";
 
   private ImmutableList<ThemeEditorStyle> myThemeList;
   private Object mySelectedObject;
@@ -89,12 +90,15 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Override
   public int getSize() {
-    return myThemeList.size();
+    return myThemeList.size() + 1;
   }
 
   @NotNull
   @Override
-  public ThemeEditorStyle getElementAt(int index) {
+  public Object getElementAt(int index) {
+    if (index == myThemeList.size()) {
+      return CREATE_NEW_THEME;
+    }
     return myThemeList.get(index);
   }
 
