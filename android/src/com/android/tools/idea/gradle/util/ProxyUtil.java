@@ -65,7 +65,7 @@ public final class ProxyUtil {
    */
   @SuppressWarnings("unchecked")
   @Nullable
-  public static <T> T reproxy(Type type, T object) {
+  public static <T> T reproxy(@NotNull Type type, @Nullable T object) {
     if (object == null) {
       return null;
     }

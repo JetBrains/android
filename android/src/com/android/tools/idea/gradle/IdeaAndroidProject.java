@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -36,12 +35,14 @@ import java.util.*;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
+import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
   @NotNull private ProjectSystemId myProjectSystemId;
@@ -87,7 +88,7 @@ public class IdeaAndroidProject implements Serializable {
     myDelegate = delegate;
 
     // Compute the proxy object to avoid reproxying the model during every serialization operation
-    myProxyDelegate = ProxyUtil.reproxy(AndroidProject.class, myDelegate);
+    myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
