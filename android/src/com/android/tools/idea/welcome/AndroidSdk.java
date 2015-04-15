@@ -38,7 +38,7 @@ import java.util.Collection;
  */
 public final class AndroidSdk extends InstallableComponent {
   public static final long SIZE = 265 * Storage.Unit.MiB.getNumberOfBytes();
-
+  
   public AndroidSdk(@NotNull ScopedStateStore store) {
     super(store, "Android SDK", SIZE, "The collection of Android platform APIs, " +
                                "tools and utilities that enables you to debug, " +
@@ -47,28 +47,17 @@ public final class AndroidSdk extends InstallableComponent {
                                "installation (if necessary) or install a new version.");
   }
 
-  private static Collection<IPkgDesc> createAll(PkgDesc.Builder... builders) {
-    ArrayList<IPkgDesc> list = Lists.newArrayListWithCapacity(builders.length + SdkMavenRepository.values().length);
-    for (PkgDesc.Builder builder : builders) {
-      list.add(builder.create());
-    }
-    return list;
-  }
-
   /**
-   * Find latest build tools revision with compatible major version number.
+   * Find latest build tools revision. Versions compatible with the selected platforms will be installed by the platform components.
    */
   @NotNull
-  private static FullRevision getLatestCompatibleBuildToolsRevision(@Nullable Multimap<PkgType, RemotePkgInfo> packages) {
-    FullRevision revision = FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION;
-    if (packages != null) {
-      Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
-      for (RemotePkgInfo tool : tools) {
-        FullRevision fullRevision = tool.getDesc().getFullRevision();
-        if (fullRevision != null && fullRevision.getMajor() == FirstRunWizardDefaults.MIN_BUILD_TOOLS_REVSION.getMajor() &&
-            fullRevision.compareTo(revision) > 0) {
-          revision = fullRevision;
-        }
+  private static FullRevision getLatestCompatibleBuildToolsRevision(@NotNull Multimap<PkgType, RemotePkgInfo> packages) {
+    FullRevision revision = null;
+    Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
+    for (RemotePkgInfo tool : tools) {
+      FullRevision fullRevision = tool.getDesc().getFullRevision();
+      if (revision == null || (fullRevision != null && fullRevision.compareTo(revision) > 0)) {
+        revision = fullRevision;
       }
     }
     return revision;
@@ -77,16 +66,17 @@ public final class AndroidSdk extends InstallableComponent {
   @NotNull
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    PkgDesc.Builder androidSdkTools = PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder androidSdkPlatformTools = PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder androidSdkBuildTools = PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages));
-    Collection<IPkgDesc> packages =
-      createAll(androidSdkTools, androidSdkPlatformTools, androidSdkBuildTools);
+    Collection<IPkgDesc> result = Lists.newArrayList();
+    result.add(PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED).create());
+    result.add(PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED).create());
+    if (remotePackages != null) {
+      result.add(PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages)).create());
+    }
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
-      packages.add(repository.getPackageDescription());
+      result.add(repository.getPackageDescription());
     }
-    return packages;
+    return result;
   }
 
   @Override

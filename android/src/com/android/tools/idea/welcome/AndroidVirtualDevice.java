@@ -78,7 +78,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   public AndroidVirtualDevice(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)");
-    myLatestVersion = InstallComponentsPath.findLatest(remotePackages, false).getDesc().getAndroidVersion();
+    myLatestVersion = InstallComponentsPath.findLatestPlatform(remotePackages, false).getDesc().getAndroidVersion();
   }
 
   @NotNull

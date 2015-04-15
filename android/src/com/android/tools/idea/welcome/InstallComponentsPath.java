@@ -294,7 +294,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
-  public static RemotePkgInfo findLatest(Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
+  public static RemotePkgInfo findLatestPlatform(Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
     List<RemotePkgInfo> packages = Lists.newArrayList(remotePackages.get(PkgType.PKG_PLATFORM));
     Collections.sort(packages);
     Collections.reverse(packages);

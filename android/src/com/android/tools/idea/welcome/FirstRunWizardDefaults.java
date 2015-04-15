@@ -39,7 +39,6 @@ import java.util.List;
  */
 public class FirstRunWizardDefaults {
   public static final String HAXM_DOCUMENTATION_URL = "http://www.intel.com/software/android/";
-  public static final FullRevision MIN_BUILD_TOOLS_REVSION = new FullRevision(21, 1, 1); // Current for Android Studio 1.0
   public static final JavaSdkVersion MIN_JDK_VERSION = JavaSdkVersion.JDK_1_7;
 
   private FirstRunWizardDefaults() {
