@@ -491,13 +491,13 @@ public class ThemeEditorComponent extends Splitter {
     // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
     // fails to find the local themes.
     myConfiguration.setTheme(null);
+    myStyleResolver = new StyleResolver(myConfiguration);
     myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
     mySubStyleSourceAttribute = null;
 
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
-        myStyleResolver = new StyleResolver(myConfiguration);
         final ThemeResolver themeResolver = new ThemeResolver(myConfiguration, myStyleResolver);
         myPanel.getThemeCombo().setModel(new ThemesListModel(themeResolver, defaultThemeName));
 
