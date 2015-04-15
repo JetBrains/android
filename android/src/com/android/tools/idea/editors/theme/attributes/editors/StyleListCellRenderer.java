@@ -48,10 +48,6 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
   @Override
   @Nullable
   public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-    if (!(value instanceof ThemeEditorStyle)) {
-      return null;
-    }
-
     if (isSelected) {
       setBackground(list.getSelectionBackground());
       myStyleNameLabel.setForeground(list.getSelectionForeground());
@@ -60,6 +56,15 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
       setBackground(list.getBackground());
       myStyleNameLabel.setForeground(list.getForeground());
       myReadOnlyLabel.setForeground(list.getForeground());
+    }
+
+    if (value instanceof String) {
+      myStyleNameLabel.setText((String) value);
+      myReadOnlyLabel.setVisible(false);
+      return this;
+    }
+    if (!(value instanceof ThemeEditorStyle)) {
+      return null;
     }
 
     ThemeEditorStyle style = (ThemeEditorStyle)value;
