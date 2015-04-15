@@ -654,6 +654,7 @@ public class ThemeEditorComponent extends Splitter {
       .of("android:colorPrimary",
           "android:colorPrimaryDark",
           "android:colorAccent",
+          "android:colorForeground",
           "android:textColorPrimary",
           "android:textColorSecondary",
           "android:textColorPrimaryInverse",
