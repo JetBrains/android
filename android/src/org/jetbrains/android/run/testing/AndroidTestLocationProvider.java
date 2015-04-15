@@ -2,6 +2,7 @@ package org.jetbrains.android.run.testing;
 
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
+import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -10,8 +11,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.testIntegration.TestLocationProvider;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,19 +20,21 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidTestLocationProvider implements TestLocationProvider {
-  @NonNls public static final String PROTOCOL_ID = "android";
+public class AndroidTestLocationProvider implements SMTestLocator {
+  public static final String PROTOCOL_ID = "android";
+
+  public static final AndroidTestLocationProvider INSTANCE = new AndroidTestLocationProvider();
 
   @NotNull
   @Override
-  public List<Location> getLocation(@NotNull String protocolId, @NotNull String locationData, Project project) {
-    if (PROTOCOL_ID.equals(protocolId)) {
-      final PsiElement element = findElement(locationData, project);
-
+  public List<Location> getLocation(@NotNull String protocol, @NotNull String path, @NotNull Project project, @NotNull GlobalSearchScope scope) {
+    if (PROTOCOL_ID.equals(protocol)) {
+      PsiElement element = findElement(path, project);
       if (element != null) {
         return Collections.singletonList((Location)new PsiLocation<PsiElement>(project, element));
       }
     }
+
     return Collections.emptyList();
   }
 

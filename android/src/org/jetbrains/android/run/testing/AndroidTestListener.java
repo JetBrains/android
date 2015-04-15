@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.run.testing;
 
 import com.android.ddmlib.testrunner.ITestRunListener;
@@ -36,15 +35,15 @@ public class AndroidTestListener implements ITestRunListener {
   private String myTestClassName = null;
   private ProcessHandler myProcessHandler;
 
+  public AndroidTestListener(AndroidRunningState runningState) {
+    myRunningState = runningState;
+  }
+
   public ProcessHandler getProcessHandler() {
     if (myProcessHandler == null) {
       myProcessHandler = myRunningState.getProcessHandler();
     }
     return myProcessHandler;
-  }
-
-  public AndroidTestListener(AndroidRunningState runningState) {
-    myRunningState = runningState;
   }
 
   @Override
