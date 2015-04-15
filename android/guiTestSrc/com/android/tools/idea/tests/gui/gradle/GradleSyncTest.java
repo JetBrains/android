@@ -44,6 +44,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -53,6 +54,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -946,6 +948,31 @@ public class GradleSyncTest extends GuiTestCase {
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Android plugin version 1.0.0 is not compatible with Gradle version 2.4"));
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=165576
+  @Test @IdeGuiTest
+  public void testJavaModelSerialization() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    final File projectPath = projectFrame.getProjectPath();
+
+    projectFrame.requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
+    projectFrame.closeProject();
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+        projectManager.loadAndOpenProject(projectPath.getPath());
+      }
+    });
+
+    projectFrame = findIdeFrame(projectPath);
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(projectFrame.getProject());
+    // When serialization of Java model fails, libraries are not set up.
+    // Here we confirm that serialization works, because the Java module has the dependency declared in its build.gradle file.
+    assertThat(libraryTable.getLibraries()).hasSize(1);
   }
 
   @NotNull

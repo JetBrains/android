@@ -28,6 +28,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,6 +50,7 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ThreeState;
@@ -85,6 +87,7 @@ import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecut
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -779,6 +782,28 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     Project project = target.getProject();
     assertNotNull(project);
     return project;
+  }
+
+  public void closeProject() {
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        closeAndDispose(getProject());
+        RecentProjectsManager.getInstance().updateLastProjectPath();
+        WelcomeFrame.showIfNoProjectOpened();
+      }
+    });
+    pause(new Condition("Waiting for 'Welcome' page to show up") {
+      @Override
+      public boolean test() {
+        for (Frame frame : Frame.getFrames()) {
+          if (frame instanceof WelcomeFrame && frame.isShowing()) {
+            return true;
+          }
+        }
+        return false;
+      }
+    });
   }
 
   private static class NoOpDisposable implements Disposable {
