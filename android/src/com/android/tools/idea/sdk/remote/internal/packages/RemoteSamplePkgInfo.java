@@ -19,15 +19,10 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersion.AndroidVersionException;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.SdkRepoConstants;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.*;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
@@ -44,20 +39,13 @@ import java.util.Properties;
 /**
  * Represents a sample XML node in an SDK repository.
  */
-public class SamplePackage extends MinToolsPackage implements IAndroidVersionProvider, IMinApiLevelDependency {
-
-  /**
-   * The matching platform version.
-   */
-  private final AndroidVersion mVersion;
+public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndroidVersionProvider, IMinApiLevelDependency {
 
   /**
    * The minimal API level required by this extra package, if > 0,
    * or {@link #MIN_API_LEVEL_NOT_SPECIFIED} if there is no such requirement.
    */
   private final int mMinApiLevel;
-
-  private final IPkgDesc mPkgDesc;
 
   /**
    * Creates a new sample package from the attributes and elements of the given XML node.
@@ -69,25 +57,25 @@ public class SamplePackage extends MinToolsPackage implements IAndroidVersionPro
    *                    parameters that vary according to the originating XML schema.
    * @param licenses    The licenses loaded from the XML originating document.
    */
-  public SamplePackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+  public RemoteSamplePkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
     super(source, packageNode, nsUri, licenses);
 
-    int apiLevel = PackageParserUtils.getXmlInt(packageNode, SdkRepoConstants.NODE_API_LEVEL, 0);
-    String codeName = PackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_CODENAME);
+    int apiLevel = RemotePackageParserUtils.getXmlInt(packageNode, SdkRepoConstants.NODE_API_LEVEL, 0);
+    String codeName = RemotePackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_CODENAME);
     if (codeName.length() == 0) {
       codeName = null;
     }
-    mVersion = new AndroidVersion(apiLevel, codeName);
+    AndroidVersion version = new AndroidVersion(apiLevel, codeName);
 
-    mMinApiLevel = PackageParserUtils.getXmlInt(packageNode, SdkRepoConstants.NODE_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
+    mMinApiLevel = RemotePackageParserUtils.getXmlInt(packageNode, SdkRepoConstants.NODE_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
 
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newSample(mVersion, (MajorRevision)getRevision(), getMinToolsRevision())).create();
-  }
-
-  @Override
-  @NonNull
-  public IPkgDesc getPkgDesc() {
-    return mPkgDesc;
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSample(version, new MajorRevision(getRevision()), getMinToolsRevision());
+    pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
+    pkgDescBuilder.setDescriptionUrl(getDescUrl());
+    pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
+    pkgDescBuilder.setIsObsolete(isObsolete());
+    pkgDescBuilder.setLicense(getLicense());
+    mPkgDesc = pkgDescBuilder.create();
   }
 
   /**
@@ -98,7 +86,7 @@ public class SamplePackage extends MinToolsPackage implements IAndroidVersionPro
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    mVersion.saveProperties(props);
+    getAndroidVersion().saveProperties(props);
 
     if (getMinApiLevel() != MIN_API_LEVEL_NOT_SPECIFIED) {
       props.setProperty(PkgProps.SAMPLE_MIN_API_LEVEL, Integer.toString(getMinApiLevel()));
@@ -120,7 +108,7 @@ public class SamplePackage extends MinToolsPackage implements IAndroidVersionPro
   @Override
   @NonNull
   public AndroidVersion getAndroidVersion() {
-    return mVersion;
+    return getPkgDesc().getAndroidVersion();
   }
 
   /**
@@ -131,59 +119,35 @@ public class SamplePackage extends MinToolsPackage implements IAndroidVersionPro
    */
   @Override
   public String installId() {
-    return "sample-" + mVersion.getApiString();    //$NON-NLS-1$
+    return "sample-" + getAndroidVersion().getApiString();    //$NON-NLS-1$
   }
 
   /**
    * Returns a description of this package that is suitable for a list display.
    * <p/>
-   * {@inheritDoc}
    */
-  @Override
-  public String getListDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s%2$s", ld, isObsolete() ? " (Obsolete)" : "");
+  private static String createListDescription(String listDisplay, AndroidVersion version, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    String s = String.format("Samples for SDK API %1$s%2$s%3$s", mVersion.getApiString(), mVersion.isPreview() ? " Preview" : "",
-                             isObsolete() ? " (Obsolete)" : "");
+    String s = String
+      .format("Samples for SDK API %1$s%2$s%3$s", version.getApiString(), version.isPreview() ? " Preview" : "",
+              obsolete ? " (Obsolete)" : "");
     return s;
   }
 
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  @Override
-  public String getShortDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s, revision %2$s%3$s", ld, getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
+  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
     String s = String
-      .format("Samples for SDK API %1$s%2$s, revision %3$s%4$s", mVersion.getApiString(), mVersion.isPreview() ? " Preview" : "",
-              getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-    return s;
-  }
-
-  /**
-   * Returns a long description for an {@link IDescription}.
-   * <p/>
-   * The long description is whatever the XML contains for the &lt;description&gt; field,
-   * or the short description if the former is empty.
-   */
-  @Override
-  public String getLongDescription() {
-    String s = getDescription();
-    if (s == null || s.length() == 0) {
-      s = getShortDescription();
-    }
-
-    if (s.indexOf("revision") == -1) {
-      s += String.format("\nRevision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-    }
-
+      .format("Samples for SDK API %1$s%2$s, revision %3$s%4$s", version.getApiString(), version.isPreview() ? " Preview" : "",
+              revision.toShortString(), obsolete ? " (Obsolete)" : "");
     return s;
   }
 
@@ -207,7 +171,7 @@ public class SamplePackage extends MinToolsPackage implements IAndroidVersionPro
 
     // First find if this sample is already installed. If so, reuse the same directory.
     for (IAndroidTarget target : sdkManager.getTargets()) {
-      if (target.isPlatform() && target.getVersion().equals(mVersion)) {
+      if (target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
         String p = target.getPath(IAndroidTarget.SAMPLES);
         File f = new File(p);
         if (f.isDirectory()) {
@@ -230,18 +194,6 @@ public class SamplePackage extends MinToolsPackage implements IAndroidVersionPro
     }
 
     return folder;
-  }
-
-  @Override
-  public boolean sameItemAs(Package pkg) {
-    if (pkg instanceof SamplePackage) {
-      SamplePackage newPkg = (SamplePackage)pkg;
-
-      // check they are the same version.
-      return newPkg.getAndroidVersion().equals(this.getAndroidVersion());
-    }
-
-    return false;
   }
 
   /**

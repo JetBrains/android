@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk.remote.internal.updater;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.archives.ArchiveReplacement;
 
@@ -65,7 +66,7 @@ public class ArchiveInfo extends ArchiveReplacement implements Comparable<Archiv
    *                   means we need to install the dependency first. Can be null or empty.
    *                   However it cannot contain nulls.
    */
-  public ArchiveInfo(@Nullable Archive newArchive, @Nullable Archive replaced, @Nullable ArchiveInfo[] dependsOn) {
+  public ArchiveInfo(@Nullable Archive newArchive, @Nullable LocalPkgInfo replaced, @Nullable ArchiveInfo[] dependsOn) {
     super(newArchive, replaced);
     mDependsOn = dependsOn;
   }

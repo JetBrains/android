@@ -27,7 +27,7 @@ import java.util.Properties;
 /**
  * Misc utilities to help extracting elements and attributes out of a repository XML document.
  */
-public class PackageParserUtils {
+public class RemotePackageParserUtils {
 
   /**
    * Parse the {@link ArchFilter} of an &lt;archive&gt; element..
@@ -83,73 +83,42 @@ public class PackageParserUtils {
    * @return A new {@link FullRevision}. If parsing failed, major is set to
    * {@link FullRevision#MISSING_MAJOR_REV}.
    */
-  public static FullRevision parseFullRevisionElement(Node revisionNode) {
+  public static PreciseRevision parsePreciseRevisionElement(Node revisionNode) {
     // This needs to support two modes:
     // - For repository XSD >= 7, <revision> contains sub-elements such as <major> or <minor>.
     // - Otherwise for repository XSD < 7, <revision> contains an integer.
     // The <major> element is mandatory, so it's easy to distinguish between both cases.
-    int major = FullRevision.MISSING_MAJOR_REV,
-      minor = FullRevision.IMPLICIT_MINOR_REV,
-      micro = FullRevision.IMPLICIT_MICRO_REV,
-      preview = FullRevision.NOT_A_PREVIEW;
+    int major, minor, micro, preview;
 
     if (revisionNode != null) {
       if (findChildElement(revisionNode, SdkRepoConstants.NODE_MAJOR_REV) != null) {
         // <revision> has a <major> sub-element, so it's a repository XSD >= 7.
-        major = getXmlInt(revisionNode, SdkRepoConstants.NODE_MAJOR_REV, FullRevision.MISSING_MAJOR_REV);
-        minor = getXmlInt(revisionNode, SdkRepoConstants.NODE_MINOR_REV, FullRevision.IMPLICIT_MINOR_REV);
-        micro = getXmlInt(revisionNode, SdkRepoConstants.NODE_MICRO_REV, FullRevision.IMPLICIT_MICRO_REV);
-        preview = getXmlInt(revisionNode, SdkRepoConstants.NODE_PREVIEW, FullRevision.NOT_A_PREVIEW);
+        major = getXmlInt(revisionNode, SdkRepoConstants.NODE_MAJOR_REV, -1);
+        minor = getXmlInt(revisionNode, SdkRepoConstants.NODE_MINOR_REV, -1);
+        if (minor == -1) {
+          return new PreciseRevision(major);
+        }
+        micro = getXmlInt(revisionNode, SdkRepoConstants.NODE_MICRO_REV, -1);
+        if (micro == -1) {
+          return new PreciseRevision(major, minor);
+        }
+        preview = getXmlInt(revisionNode, SdkRepoConstants.NODE_PREVIEW, -1);
+        if (preview == -1) {
+          return new PreciseRevision(major, minor, micro);
+        }
+        return new PreciseRevision(major, minor, micro, preview);
       }
       else {
         try {
           String majorStr = revisionNode.getTextContent().trim();
           major = Integer.parseInt(majorStr);
+          return new PreciseRevision(major);
         }
         catch (Exception e) {
         }
       }
     }
-
-    return new FullRevision(major, minor, micro, preview);
-  }
-
-  /**
-   * Parses a no-preview revision element such as <revision>>.
-   * This supports both the single-integer format as well as the full revision
-   * format with major/minor/micro sub-elements.
-   *
-   * @param revisionNode The node to parse.
-   * @return A new {@link NoPreviewRevision}. If parsing failed, major is set to
-   * {@link FullRevision#MISSING_MAJOR_REV}.
-   */
-  public static NoPreviewRevision parseNoPreviewRevisionElement(Node revisionNode) {
-    // This needs to support two modes:
-    // - For addon XSD >= 6, <revision> contains sub-elements such as <major> or <minor>.
-    // - Otherwise for addon XSD < 6, <revision> contains an integer.
-    // The <major> element is mandatory, so it's easy to distinguish between both cases.
-    int major = FullRevision.MISSING_MAJOR_REV,
-      minor = FullRevision.IMPLICIT_MINOR_REV,
-      micro = FullRevision.IMPLICIT_MICRO_REV;
-
-    if (revisionNode != null) {
-      if (findChildElement(revisionNode, SdkRepoConstants.NODE_MAJOR_REV) != null) {
-        // <revision> has a <major> sub-element, so it's a repository XSD >= 7.
-        major = getXmlInt(revisionNode, SdkRepoConstants.NODE_MAJOR_REV, FullRevision.MISSING_MAJOR_REV);
-        minor = getXmlInt(revisionNode, SdkRepoConstants.NODE_MINOR_REV, FullRevision.IMPLICIT_MINOR_REV);
-        micro = getXmlInt(revisionNode, SdkRepoConstants.NODE_MICRO_REV, FullRevision.IMPLICIT_MICRO_REV);
-      }
-      else {
-        try {
-          String majorStr = revisionNode.getTextContent().trim();
-          major = Integer.parseInt(majorStr);
-        }
-        catch (Exception e) {
-        }
-      }
-    }
-
-    return new NoPreviewRevision(major, minor, micro);
+    return new PreciseRevision(FullRevision.MISSING_MAJOR_REV);
   }
 
   /**
@@ -276,122 +245,4 @@ public class PackageParserUtils {
 
     return defaultValue;
   }
-
-  /**
-   * Utility method that returns a property from a {@link Properties} object.
-   * Returns the default value if props is null or if the property is not defined.
-   *
-   * @param props        The {@link Properties} to search into.
-   *                     If null, the default value is returned.
-   * @param propKey      The name of the property. Must not be null.
-   * @param defaultValue The default value to return if {@code props} is null or if the
-   *                     key is not found. Can be null.
-   * @return The string value of the given key in the properties, or null if the key
-   * isn't found or if {@code props} is null.
-   */
-  @Nullable
-  public static String getProperty(@Nullable Properties props, @NonNull String propKey, @Nullable String defaultValue) {
-    if (props == null) {
-      return defaultValue;
-    }
-    return props.getProperty(propKey, defaultValue);
-  }
-
-  /**
-   * Utility method that returns an integer property from a {@link Properties} object.
-   * Returns the default value if props is null or if the property is not defined or
-   * cannot be parsed to an integer.
-   *
-   * @param props        The {@link Properties} to search into.
-   *                     If null, the default value is returned.
-   * @param propKey      The name of the property. Must not be null.
-   * @param defaultValue The default value to return if {@code props} is null or if the
-   *                     key is not found. Can be null.
-   * @return The integer value of the given key in the properties, or the {@code defaultValue}.
-   */
-  public static int getPropertyInt(@Nullable Properties props, @NonNull String propKey, int defaultValue) {
-    String s = props != null ? props.getProperty(propKey, null) : null;
-    if (s != null) {
-      try {
-        return Integer.parseInt(s);
-      }
-      catch (Exception ignore) {
-      }
-    }
-    return defaultValue;
-  }
-
-  /**
-   * Utility method to parse the {@link PkgProps#PKG_REVISION} property as a full
-   * revision (major.minor.micro.preview).
-   *
-   * @param props   The properties to parse.
-   * @param propKey The name of the property. Must not be null.
-   * @return A {@link FullRevision} or null if there is no such property or it couldn't be parsed.
-   */
-  @Nullable
-  public static FullRevision getPropertyFull(@Nullable Properties props, @NonNull String propKey) {
-    String revStr = getProperty(props, propKey, null);
-
-    FullRevision rev = null;
-    if (revStr != null) {
-      try {
-        rev = FullRevision.parseRevision(revStr);
-      }
-      catch (NumberFormatException ignore) {
-      }
-    }
-
-    return rev;
-  }
-
-  /**
-   * Utility method to parse the {@link PkgProps#PKG_REVISION} property as a major
-   * revision (major integer, no minor/micro/preview parts.)
-   *
-   * @param props   The properties to parse.
-   * @param propKey The name of the property. Must not be null.
-   * @return A {@link MajorRevision} or null if there is no such property or it couldn't be parsed.
-   */
-  @Nullable
-  public static MajorRevision getPropertyMajor(@Nullable Properties props, @NonNull String propKey) {
-    String revStr = getProperty(props, propKey, null);
-
-    MajorRevision rev = null;
-    if (revStr != null) {
-      try {
-        rev = MajorRevision.parseRevision(revStr);
-      }
-      catch (NumberFormatException ignore) {
-      }
-    }
-
-    return rev;
-  }
-
-  /**
-   * Utility method to parse the {@link PkgProps#PKG_REVISION} property as a no-preview
-   * revision (major.minor.micro integers but no preview part.)
-   *
-   * @param props   The properties to parse.
-   * @param propKey The name of the property. Must not be null.
-   * @return A {@link NoPreviewRevision} or
-   * null if there is no such property or it couldn't be parsed.
-   */
-  @Nullable
-  public static NoPreviewRevision getPropertyNoPreview(@Nullable Properties props, @NonNull String propKey) {
-    String revStr = getProperty(props, propKey, null);
-
-    NoPreviewRevision rev = null;
-    if (revStr != null) {
-      try {
-        rev = NoPreviewRevision.parseRevision(revStr);
-      }
-      catch (NumberFormatException ignore) {
-      }
-    }
-
-    return rev;
-  }
-
 }

@@ -17,21 +17,14 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.RepoConstants;
+import com.android.sdklib.repository.*;
 import com.android.sdklib.repository.descriptors.*;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
@@ -40,12 +33,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 /**
  * Represents a extra XML node in an SDK repository.
  */
-public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLevelDependency, IMinToolsDependency {
+public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDependency, IMinToolsDependency {
 
   /**
    * Mixin handling the min-tools dependency.
@@ -56,13 +48,6 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
    * The extra display name. Used in the UI to represent the package. It can be anything.
    */
   private final String mDisplayName;
-
-  /**
-   * The vendor id + name.
-   * The id is a simple alphanumeric string [a-zA-Z0-9_-].
-   * The display name is used in the UI to represent the vendor. It can be anything.
-   */
-  private final IdDisplay mVendor;
 
   /**
    * The sub-folder name. It must be a non-empty single-segment path.
@@ -87,8 +72,6 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
    */
   private final String[] mProjectFiles;
 
-  private final IPkgDescExtra mPkgDesc;
-
   /**
    * Creates a new tool package from the attributes and elements of the given XML node.
    * This constructor should throw an exception if the package cannot be created.
@@ -99,27 +82,27 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
    *                    parameters that vary according to the originating XML schema.
    * @param licenses    The licenses loaded from the XML originating document.
    */
-  public ExtraPackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+  public RemoteExtraPkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
     super(source, packageNode, nsUri, licenses);
 
     mMinToolsMixin = new MinToolsMixin(packageNode);
 
-    mPath = PackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_PATH);
+    mPath = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_PATH);
 
     // Read name-display, vendor-display and vendor-id, introduced in addon-4.xsd.
     // These are not optional, they are mandatory in addon-4 but we still treat them
     // as optional so that we can fallback on using <vendor> which was the only one
     // defined in addon-3.xsd.
-    String name = PackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_NAME_DISPLAY);
-    String vname = PackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_VENDOR_DISPLAY);
-    String vid = PackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_VENDOR_ID);
+    String name = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_NAME_DISPLAY);
+    String vname = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_VENDOR_DISPLAY);
+    String vid = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_VENDOR_ID);
 
     if (vid.length() == 0) {
       // If vid is missing, use the old <vendor> attribute.
       // Note that in a valid XML, vendor-id cannot be an empty string.
       // The only reason vid can be empty is when <vendor-id> is missing, which
       // happens in an addon-3 schema, in which case the old <vendor> needs to be used.
-      String vendor = PackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_VENDOR);
+      String vendor = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_VENDOR);
       vid = sanitizeLegacyVendor(vendor);
       if (vname.length() == 0) {
         vname = vendor;
@@ -129,22 +112,30 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
       // The vendor-display name can be empty, in which case we use the vendor-id.
       vname = vid;
     }
-    mVendor = new IdDisplay(vid.trim(), vname.trim());
+    IdDisplay vendor = new IdDisplay(vid.trim(), vname.trim());
 
     if (name.length() == 0) {
       // If name is missing, use the <path> attribute as done in an addon-3 schema.
-      name = LocalExtraPkgInfo.getPrettyName(mVendor, mPath);
+      name = LocalExtraPkgInfo.getPrettyName(vendor, mPath);
     }
     mDisplayName = name.trim();
 
-    mMinApiLevel = PackageParserUtils.getXmlInt(packageNode, RepoConstants.NODE_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
+    mMinApiLevel = RemotePackageParserUtils.getXmlInt(packageNode, RepoConstants.NODE_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
 
-    mProjectFiles = parseProjectFiles(PackageParserUtils.findChildElement(packageNode, RepoConstants.NODE_PROJECT_FILES));
+    mProjectFiles = parseProjectFiles(RemotePackageParserUtils.findChildElement(packageNode, RepoConstants.NODE_PROJECT_FILES));
 
-    mOldPaths = PackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_OLD_PATHS);
+    mOldPaths = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_OLD_PATHS);
 
-    mPkgDesc =
-      (IPkgDescExtra)setDescriptions(PkgDesc.Builder.newExtra(mVendor, mPath, mDisplayName, getOldPaths(), getRevision())).create();
+    FullRevision revision = getRevision();
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newExtra(vendor, mPath, mDisplayName, getOldPaths(),
+                                                              new NoPreviewRevision(revision.getMajor(), revision.getMinor(),
+                                                                                    revision.getMicro()));
+    pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), mDisplayName, isObsolete()));
+    pkgDescBuilder.setDescriptionUrl(getDescUrl());
+    pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, mDisplayName, isObsolete()));
+    pkgDescBuilder.setIsObsolete(isObsolete());
+    pkgDescBuilder.setLicense(getLicense());
+    mPkgDesc = pkgDescBuilder.create();
   }
 
   private String[] parseProjectFiles(Node projectFilesNode) {
@@ -171,12 +162,6 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     return paths.toArray(new String[paths.size()]);
   }
 
-  @Override
-  @NonNull
-  public IPkgDescExtra getPkgDesc() {
-    return mPkgDesc;
-  }
-
   /**
    * Save the properties of the current packages in the given {@link Properties} object.
    * These properties will later be give the constructor that takes a {@link Properties} object.
@@ -188,8 +173,8 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
 
     props.setProperty(PkgProps.EXTRA_PATH, mPath);
     props.setProperty(PkgProps.EXTRA_NAME_DISPLAY, mDisplayName);
-    props.setProperty(PkgProps.EXTRA_VENDOR_DISPLAY, mVendor.getDisplay());
-    props.setProperty(PkgProps.EXTRA_VENDOR_ID, mVendor.getId());
+    props.setProperty(PkgProps.EXTRA_VENDOR_DISPLAY, getPkgDesc().getVendor().getDisplay());
+    props.setProperty(PkgProps.EXTRA_VENDOR_ID, getPkgDesc().getVendor().getId());
 
     if (getMinApiLevel() != MIN_API_LEVEL_NOT_SPECIFIED) {
       props.setProperty(PkgProps.EXTRA_MIN_API_LEVEL, Integer.toString(getMinApiLevel()));
@@ -282,17 +267,6 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     return path;
   }
 
-  /**
-   * Returns the vendor id.
-   */
-  public String getVendorId() {
-    return mVendor.getId();
-  }
-
-  public String getVendorDisplay() {
-    return mVendor.getDisplay();
-  }
-
   public String getDisplayName() {
     return mDisplayName;
   }
@@ -330,22 +304,19 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
   @Override
   public String installId() {
     return String.format("extra-%1$s-%2$s",     //$NON-NLS-1$
-                         getVendorId(), getPath());
+                         getPkgDesc().getVendor().getId(), getPath());
   }
 
   /**
    * Returns a description of this package that is suitable for a list display.
    * <p/>
-   * {@inheritDoc}
    */
-  @Override
-  public String getListDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s%2$s", ld, isObsolete() ? " (Obsolete)" : "");
+  private static String createListDescription(String listDisplay, String displayName, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    String s = String.format("%1$s%2$s", getDisplayName(), isObsolete() ? " (Obsolete)" : "");  //$NON-NLS-2$
+    String s = String.format("%1$s%2$s", displayName, obsolete ? " (Obsolete)" : "");  //$NON-NLS-2$
 
     return s;
   }
@@ -353,55 +324,13 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  @Override
-  public String getShortDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s, revision %2$s%3$s", ld, getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
+  private static String createShortDescription(String listDisplay, FullRevision revision, String displayName, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
-    String s = String
-      .format("%1$s, revision %2$s%3$s", getDisplayName(), getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");  //$NON-NLS-2$
-
-    return s;
-  }
-
-  /**
-   * Returns a long description for an {@link IDescription}.
-   * <p/>
-   * The long description is whatever the XML contains for the &lt;description&gt; field,
-   * or the short description if the former is empty.
-   */
-  @Override
-  public String getLongDescription() {
-    String s = String
-      .format("%1$s, revision %2$s%3$s\nBy %4$s", getDisplayName(), getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "",
-              //$NON-NLS-2$
-              getVendorDisplay());
-
-    String d = getDescription();
-    if (d != null && d.length() > 0) {
-      s += '\n' + d;
-    }
-
-    if (!getMinToolsRevision().equals(MIN_TOOLS_REV_NOT_SPECIFIED)) {
-      s += String.format("\nRequires tools revision %1$s", getMinToolsRevision().toShortString());
-    }
-
-    if (getMinApiLevel() != MIN_API_LEVEL_NOT_SPECIFIED) {
-      s += String.format("\nRequires SDK Platform Android API %1$s", getMinApiLevel());
-    }
-
-    File localPath = getLocalArchivePath();
-    if (localPath != null) {
-      // For a local archive, also put the install path in the long description.
-      // This should help users locate the extra on their drive.
-      s += String.format("\nLocation: %1$s", localPath.getAbsolutePath());
-    }
-    else {
-      // For a non-installed archive, indicate where it would be installed.
-      s += String.format("\nInstall path: %1$s", getInstallSubFolder(null/*sdk root*/).getPath());
-    }
+    String s =
+      String.format("%1$s, revision %2$s%3$s", displayName, revision.toShortString(), obsolete ? " (Obsolete)" : "");  //$NON-NLS-2$
 
     return s;
   }
@@ -422,7 +351,7 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     // First find if this extra is already installed. If so, reuse the same directory.
     LocalSdk sdk = sdkManager.getLocalSdk();
     for (LocalPkgInfo info : sdk.getPkgsInfos(PkgType.PKG_EXTRA)) {
-      if (PkgDescExtra.compatibleVendorAndPath(mPkgDesc, (IPkgDescExtra)info.getDesc())) {
+      if (PkgDescExtra.compatibleVendorAndPath((IPkgDescExtra)mPkgDesc, (IPkgDescExtra)info.getDesc())) {
         return info.getLocalDir();
       }
     }
@@ -442,7 +371,7 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     // The /extras dir at the root of the SDK
     File path = new File(osSdkRoot, SdkConstants.FD_EXTRAS);
 
-    String vendor = getVendorId();
+    String vendor = getPkgDesc().getVendor().getId();
     if (vendor != null && vendor.length() > 0) {
       path = new File(path, vendor);
     }
@@ -455,52 +384,7 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     return path;
   }
 
-  @Override
-  public boolean sameItemAs(Package pkg) {
-    // Extra packages are similar if they have the same path and vendor
-    if (pkg instanceof ExtraPackage) {
-      ExtraPackage ep = (ExtraPackage)pkg;
-      return PkgDescExtra.compatibleVendorAndPath(mPkgDesc, ep.mPkgDesc);
-    }
-
-    return false;
-  }
-
-  /**
-   * For extra packages, we want to add vendor|path to the sorting key
-   * <em>before<em/> the revision number.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  protected String comparisonKey() {
-    String s = super.comparisonKey();
-    int pos = s.indexOf("|r:");         //$NON-NLS-1$
-    assert pos > 0;
-    s = s.substring(0, pos) +
-        "|ve:" + getVendorId() +        //$NON-NLS-1$
-        "|pa:" + getPath() +            //$NON-NLS-1$
-        s.substring(pos);
-    return s;
-  }
-
   // ---
-
-  /**
-   * If this package is installed, returns the install path of the archive if valid.
-   * Returns null if not installed or if the path does not exist.
-   */
-  private File getLocalArchivePath() {
-    Archive[] archives = getArchives();
-    if (archives.length == 1 && archives[0].isLocal()) {
-      File path = new File(archives[0].getLocalOsPath());
-      if (path.isDirectory()) {
-        return path;
-      }
-    }
-
-    return null;
-  }
 
   @Override
   public int hashCode() {
@@ -509,7 +393,6 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     result = prime * result + mMinApiLevel;
     result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
     result = prime * result + Arrays.hashCode(mProjectFiles);
-    result = prime * result + ((mVendor == null) ? 0 : mVendor.hashCode());
     return result;
   }
 
@@ -521,10 +404,10 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     if (!super.equals(obj)) {
       return false;
     }
-    if (!(obj instanceof ExtraPackage)) {
+    if (!(obj instanceof RemoteExtraPkgInfo)) {
       return false;
     }
-    ExtraPackage other = (ExtraPackage)obj;
+    RemoteExtraPkgInfo other = (RemoteExtraPkgInfo)obj;
     if (mMinApiLevel != other.mMinApiLevel) {
       return false;
     }
@@ -539,14 +422,17 @@ public class ExtraPackage extends NoPreviewRevisionPackage implements IMinApiLev
     if (!Arrays.equals(mProjectFiles, other.mProjectFiles)) {
       return false;
     }
-    if (mVendor == null) {
-      if (other.mVendor != null) {
-        return false;
-      }
-    }
-    else if (!mVendor.equals(other.mVendor)) {
-      return false;
-    }
     return mMinToolsMixin.equals(obj);
+  }
+
+  @Override
+  public boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison previewComparison) {
+    // Extra packages are similar if they have the same path and vendor
+    if (pkg instanceof LocalExtraPkgInfo) {
+      LocalExtraPkgInfo ep = (LocalExtraPkgInfo)pkg;
+      return PkgDescExtra.compatibleVendorAndPath((IPkgDescExtra)mPkgDesc, (IPkgDescExtra)ep.getDesc());
+    }
+
+    return false;
   }
 }

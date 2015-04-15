@@ -21,11 +21,6 @@ import com.android.sdklib.AndroidVersion;
 
 /**
  * Interface for packages that provide an {@link AndroidVersion}.
- * <p/>
- * Note that {@link IPlatformDependency} is a similar interface, but with a different semantic.
- * The {@link IPlatformDependency} denotes that a given package can only be installed if the
- * requested platform is present, whereas this interface denotes that the given package simply
- * has a version, which is not necessarily a dependency.
  */
 public interface IAndroidVersionProvider {
 
@@ -34,5 +29,5 @@ public interface IAndroidVersionProvider {
      * Can be 0 if this is a local package of unknown api-level.
      */
     @NonNull
-    public abstract AndroidVersion getAndroidVersion();
+    AndroidVersion getAndroidVersion();
 }

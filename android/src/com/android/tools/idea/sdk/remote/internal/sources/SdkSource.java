@@ -25,11 +25,12 @@ import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.RepoConstants;
 import com.android.sdklib.repository.SdkAddonConstants;
 import com.android.sdklib.repository.SdkRepoConstants;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.packages.*;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
+import com.intellij.openapi.diagnostic.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -67,7 +68,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
 
   private String mUrl;
 
-  private Package[] mPackages;
+  private RemotePkgInfo[] mPackages;
   private String mDescription;
   private String mFetchError;
   private final String mUiName;
@@ -218,12 +219,12 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
    * This is null when the source hasn't been loaded yet -- caller should
    * then call {@link #load} to load the packages.
    */
-  public Package[] getPackages() {
+  public RemotePkgInfo[] getPackages() {
     return mPackages;
   }
 
   @VisibleForTesting(visibility = Visibility.PRIVATE)
-  protected void setPackages(Package[] packages) {
+  protected void setPackages(RemotePkgInfo[] packages) {
     mPackages = packages;
 
     if (mPackages != null) {
@@ -329,16 +330,18 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
    * Callers can get the package list using {@link #getPackages()} after this. It will be
    * null in case of error, in which case {@link #getFetchError()} can be used to an
    * error message.
+   *
+   * TODO(jbakermalone): clean up below once validation in UI can match most restrictive case.
    */
-  public void load(DownloadCache cache, ITaskMonitor monitor, boolean forceHttp) {
+  public void load(DownloadCache cache, ITaskMonitor logger, boolean forceHttp) {
 
     setDefaultDescription();
-    monitor.setProgressMax(7);
+    logger.setProgressMax(7);
 
     if (!isEnabled()) {
-      setPackages(new Package[0]);
+      setPackages(new RemotePkgInfo[0]);
       mDescription += "\nSource is disabled.";
-      monitor.incProgress(7);
+      logger.incProgress(7);
       return;
     }
 
@@ -347,8 +350,8 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
       url = url.replaceAll("https://", "http://");  //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    monitor.setDescription("Fetching URL: %1$s", url);
-    monitor.incProgress(1);
+    logger.setDescription("Fetching URL: %1$s", url);
+    logger.incProgress(1);
 
     mFetchError = null;
     Boolean[] validatorFound = new Boolean[]{Boolean.FALSE};
@@ -362,7 +365,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     String[] defaultNames = getDefaultXmlFileUrls();
     String firstDefaultName = defaultNames.length > 0 ? defaultNames[0] : "";
 
-    InputStream xml = fetchXmlUrl(url, cache, monitor.createSubMonitor(1), exception);
+    InputStream xml = fetchXmlUrl(url, cache, logger.createSubMonitor(1), exception);
     if (xml != null) {
       int version = getXmlSchemaVersion(xml);
       if (version == 0) {
@@ -374,7 +377,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     // FIXME: this is a quick fix to support an alternate upgrade path.
     // The whole logic below needs to be updated.
     if (xml == null && defaultNames.length > 0) {
-      ITaskMonitor subMonitor = monitor.createSubMonitor(1);
+      ITaskMonitor subMonitor = logger.createSubMonitor(1);
       subMonitor.setProgressMax(defaultNames.length);
 
       String baseUrl = url;
@@ -406,7 +409,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
       }
     }
     else {
-      monitor.incProgress(1);
+      logger.incProgress(1);
     }
 
     // If the original URL can't be fetched
@@ -419,18 +422,18 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
       }
       url += firstDefaultName;
 
-      xml = fetchXmlUrl(url, cache, monitor.createSubMonitor(1), exception);
+      xml = fetchXmlUrl(url, cache, logger.createSubMonitor(1), exception);
       usingAlternateUrl = true;
     }
     else {
-      monitor.incProgress(1);
+      logger.incProgress(1);
     }
 
     // FIXME this needs to revisited.
     if (xml != null) {
-      monitor.setDescription("Validate XML: %1$s", url);
+      logger.setDescription("Validate XML: %1$s", url);
 
-      ITaskMonitor subMonitor = monitor.createSubMonitor(2);
+      ITaskMonitor subMonitor = logger.createSubMonitor(2);
       subMonitor.setProgressMax(2);
       for (int tryOtherUrl = 0; tryOtherUrl < 2; tryOtherUrl++) {
         // Explore the XML to find the potential XML schema version
@@ -443,13 +446,13 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
           String uri = validateXml(xml, url, version, validationError, validatorFound);
           if (uri != null) {
             // Validation was successful
-            validatedDoc = getDocument(xml, monitor);
+            validatedDoc = getDocument(xml, logger);
             validatedUri = uri;
 
             if (usingAlternateUrl && validatedDoc != null) {
               // If the second tentative succeeded, indicate it in the console
               // with the URL that worked.
-              monitor.log("Repository found at %1$s", url);
+              logger.log("Repository found at %1$s", url);
 
               // Keep the modified URL
               mUrl = url;
@@ -540,11 +543,11 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
         reason = exception[0].toString();
       }
 
-      monitor.logError("Failed to fetch URL %1$s, reason: %2$s", url, reason);
+      logger.logError("Failed to fetch URL %1$s, reason: %2$s", url, reason);
     }
 
     if (validationError[0] != null) {
-      monitor.logError("%s", validationError[0]);  //$NON-NLS-1$
+      logger.logError("%s", validationError[0]);  //$NON-NLS-1$
     }
 
     // Stop here if we failed to validate the XML. We don't want to load it.
@@ -585,12 +588,12 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
       mFetchError = mFetchError == null ? info : mFetchError + ". " + info;
     }
 
-    monitor.incProgress(1);
+    logger.incProgress(1);
 
     if (xml != null) {
-      monitor.setDescription("Parse XML:    %1$s", url);
-      monitor.incProgress(1);
-      parsePackages(validatedDoc, validatedUri, monitor);
+      logger.setDescription("Parse XML:    %1$s", url);
+      logger.incProgress(1);
+      parsePackages(validatedDoc, validatedUri, logger);
       if (mPackages == null || mPackages.length == 0) {
         mDescription += "\nNo packages found.";
       }
@@ -603,7 +606,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     }
 
     // done
-    monitor.incProgress(1);
+    logger.incProgress(1);
     closeStream(xml);
   }
 
@@ -879,7 +882,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     Node root = getFirstChild(doc, nsUri, getRootElementName());
     if (root != null) {
 
-      ArrayList<Package> packages = new ArrayList<Package>();
+      ArrayList<RemotePkgInfo> packages = new ArrayList<RemotePkgInfo>();
 
       // Parse license definitions
       HashMap<String, String> licenses = new HashMap<String, String>();
@@ -898,45 +901,45 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
       for (Node child = root.getFirstChild(); child != null; child = child.getNextSibling()) {
         if (child.getNodeType() == Node.ELEMENT_NODE && nsUri.equals(child.getNamespaceURI())) {
           String name = child.getLocalName();
-          Package p = null;
+          RemotePkgInfo p = null;
 
           try {
             // We can load add-on and extra packages from all sources, either
             // internal or user sources.
             if (SdkAddonConstants.NODE_ADD_ON.equals(name)) {
-              p = new AddonPackage(this, child, nsUri, licenses);
+              p = new RemoteAddonPkgInfo(this, child, nsUri, licenses);
 
             }
             else if (SdkAddonConstants.NODE_EXTRA.equals(name)) {
-              p = new ExtraPackage(this, child, nsUri, licenses);
+              p = new RemoteExtraPkgInfo(this, child, nsUri, licenses);
 
             }
             else if (!isAddonSource()) {
               // We only load platform, doc and tool packages from internal
               // sources, never from user sources.
               if (SdkRepoConstants.NODE_PLATFORM.equals(name)) {
-                p = new PlatformPackage(this, child, nsUri, licenses);
+                p = new RemotePlatformPkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_DOC.equals(name)) {
-                p = new DocPackage(this, child, nsUri, licenses);
+                p = new RemoteDocPkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_TOOL.equals(name)) {
-                p = new ToolPackage(this, child, nsUri, licenses);
+                p = new RemoteToolPkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_PLATFORM_TOOL.equals(name)) {
-                p = new PlatformToolPackage(this, child, nsUri, licenses);
+                p = new PlatformToolRemotePkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_BUILD_TOOL.equals(name)) {
-                p = new BuildToolPackage(this, child, nsUri, licenses);
+                p = new RemoteBuildToolPkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_SAMPLE.equals(name)) {
-                p = new SamplePackage(this, child, nsUri, licenses);
+                p = new RemoteSamplePkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_SYSTEM_IMAGE.equals(name)) {
-                p = new SystemImagePackage(this, child, nsUri, licenses);
+                p = new RemoteSystemImagePkgInfo(this, child, nsUri, licenses);
               }
               else if (SdkRepoConstants.NODE_SOURCE.equals(name)) {
-                p = new SourcePackage(this, child, nsUri, licenses);
+                p = new RemoteSourcePkgInfo(this, child, nsUri, licenses);
               }
             }
 
@@ -947,12 +950,14 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
           }
           catch (Exception e) {
             // Ignore invalid packages
-            monitor.logError("Ignoring invalid %1$s element: %2$s", name, e.toString());
+            String msg = String.format("Ignoring invalid %1$s element: %2$s", name, e.toString());
+            monitor.logError(msg);
+            Logger.getInstance(getClass()).error(msg, e);
           }
         }
       }
 
-      setPackages(packages.toArray(new Package[packages.size()]));
+      setPackages(packages.toArray(new RemotePkgInfo[packages.size()]));
 
       return true;
     }

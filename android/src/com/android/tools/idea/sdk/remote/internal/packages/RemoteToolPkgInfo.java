@@ -17,18 +17,14 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.SdkRepoConstants;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
@@ -44,14 +40,14 @@ import java.util.Properties;
 /**
  * Represents a tool XML node in an SDK repository.
  */
-public class ToolPackage extends FullRevisionPackage implements IMinPlatformToolsDependency {
+public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformToolsDependency {
 
   /**
-   * The value returned by {@link ToolPackage#installId()}.
+   * The value returned by {@link RemoteToolPkgInfo#installId()}.
    */
   public static final String INSTALL_ID = "tools";                             //$NON-NLS-1$
   /**
-   * The value returned by {@link ToolPackage#installId()}.
+   * The value returned by {@link RemoteToolPkgInfo#installId()}.
    */
   private static final String INSTALL_ID_PREVIEW = "tools-preview";            //$NON-NLS-1$
 
@@ -60,8 +56,6 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
    * or {@link #MIN_PLATFORM_TOOLS_REV_INVALID} if the value was missing.
    */
   private final FullRevision mMinPlatformToolsRevision;
-
-  private final IPkgDesc mPkgDesc;
 
   /**
    * Creates a new tool package from the attributes and elements of the given XML node.
@@ -73,11 +67,11 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
    *                    parameters that vary according to the originating XML schema.
    * @param licenses    The licenses loaded from the XML originating document.
    */
-  public ToolPackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+  public RemoteToolPkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
     super(source, packageNode, nsUri, licenses);
 
-    mMinPlatformToolsRevision = PackageParserUtils
-      .parseFullRevisionElement(PackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_PLATFORM_TOOLS_REV));
+    mMinPlatformToolsRevision = RemotePackageParserUtils
+      .parsePreciseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_PLATFORM_TOOLS_REV));
 
     if (mMinPlatformToolsRevision.equals(MIN_PLATFORM_TOOLS_REV_INVALID)) {
       // This revision number is mandatory starting with sdk-repository-3.xsd
@@ -89,13 +83,13 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
       }
     }
 
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newTool(getRevision(), mMinPlatformToolsRevision)).create();
-  }
-
-  @Override
-  @NonNull
-  public IPkgDesc getPkgDesc() {
-    return mPkgDesc;
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newTool(getRevision(), mMinPlatformToolsRevision);
+    pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), isObsolete()));
+    pkgDescBuilder.setDescriptionUrl(getDescUrl());
+    pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, isObsolete()));
+    pkgDescBuilder.setIsObsolete(isObsolete());
+    pkgDescBuilder.setLicense(getLicense());
+    mPkgDesc = pkgDescBuilder.create();
   }
 
   @Override
@@ -124,40 +118,19 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
    * <p/>
    * {@inheritDoc}
    */
-  @Override
-  public String getListDescription() {
-    String ld = getListDisplay();
-    return String.format("%1$s%2$s", ld.isEmpty() ? "Android SDK Tools" : ld, isObsolete() ? " (Obsolete)" : "");
+  private static String createListDescription(String listDisplay, boolean obsolete) {
+    return String.format("%1$s%2$s", listDisplay.isEmpty() ? "Android SDK Tools" : listDisplay, obsolete ? " (Obsolete)" : "");
   }
 
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  @Override
-  public String getShortDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s, revision %2$s%3$s", ld, getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
+  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Tools, revision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Returns a long description for an {@link IDescription}.
-   */
-  @Override
-  public String getLongDescription() {
-    String s = getDescription();
-    if (s == null || s.length() == 0) {
-      s = getShortDescription();
-    }
-
-    if (s.indexOf("revision") == -1) {
-      s += String.format("\nRevision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-    }
-
-    return s;
+    return String.format("Android SDK Tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
   }
 
   /**
@@ -173,35 +146,6 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
   @Override
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
     return new File(osSdkRoot, SdkConstants.FD_TOOLS);
-  }
-
-  /**
-   * Check whether 2 tool packages are the same <em>and</em> have the
-   * same preview bit.
-   */
-  @Override
-  public boolean sameItemAs(Package pkg) {
-    return sameItemAs(pkg, PreviewComparison.COMPARE_TYPE);
-  }
-
-  @Override
-  public boolean sameItemAs(Package pkg, PreviewComparison comparePreview) {
-    // only one tool package so any platform-tool package is the same item.
-    if (pkg instanceof ToolPackage) {
-      switch (comparePreview) {
-        case IGNORE:
-          return true;
-
-        case COMPARE_NUMBER:
-          // Voluntary break-through.
-        case COMPARE_TYPE:
-          // There's only one tool so the preview number doesn't matter;
-          // however previews can only match previews by default so both cases
-          // are treated the same.
-          return pkg.getRevision().isPreview() == getRevision().isPreview();
-      }
-    }
-    return false;
   }
 
   @Override
@@ -296,10 +240,10 @@ public class ToolPackage extends FullRevisionPackage implements IMinPlatformTool
     if (!super.equals(obj)) {
       return false;
     }
-    if (!(obj instanceof ToolPackage)) {
+    if (!(obj instanceof RemoteToolPkgInfo)) {
       return false;
     }
-    ToolPackage other = (ToolPackage)obj;
+    RemoteToolPkgInfo other = (RemoteToolPkgInfo)obj;
     if (mMinPlatformToolsRevision == null) {
       if (other.mMinPlatformToolsRevision != null) {
         return false;
