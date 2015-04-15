@@ -33,10 +33,9 @@ public class ColorRenderer implements TableCellRenderer {
 
   private final ColorComponent myComponent;
 
-  public ColorRenderer(@NotNull Configuration configuration, @NotNull JTable table) {
+  public ColorRenderer(@NotNull Configuration configuration) {
     myConfiguration = configuration;
-    myComponent = new ColorComponent(table.getBackground());
-    myComponent.setFont(table.getFont());
+    myComponent = new ColorComponent();
   }
 
   @Override
@@ -45,6 +44,7 @@ public class ColorRenderer implements TableCellRenderer {
       final EditedStyleItem item = (EditedStyleItem) obj;
       final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
       myComponent.configure(item, colors);
+      myComponent.setButtonBackground(table.getBackground());
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", obj.getClass().getName()));
     }
