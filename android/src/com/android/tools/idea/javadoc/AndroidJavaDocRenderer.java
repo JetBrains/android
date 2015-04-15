@@ -110,7 +110,7 @@ public class AndroidJavaDocRenderer {
     builder.addHtml("<br/>");
 
     if (!StringUtil.isEmpty(doc)) {
-      builder.add(doc);
+      builder.addHtml(doc);
       builder.addHtml("<br/>");
     }
     builder.addHtml("<hr/>");
