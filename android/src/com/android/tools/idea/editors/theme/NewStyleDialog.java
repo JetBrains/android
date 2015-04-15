@@ -22,7 +22,6 @@ import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Strings;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +32,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class NewStyleDialog extends DialogWrapper {
+  private static final String OTHER = "Other ...";
+  private static final String DARK = "@android:style/Theme.Material.NoActionBar";
+  private static final String LIGHT = "@android:style/Theme.Material.Light.NoActionBar";
+  private static final String[] DEFAULT_COMBOBOX_OPTIONS = {DARK, LIGHT, OTHER};
+
   private final ResourceNameValidator myResourceNameValidator;
   private JPanel contentPane;
   private JTextField myStyleNameTextField;
-  private TextFieldWithBrowseButton myParentStyleTextField;
   private JLabel myMessageLabel;
   private JLabel myParentStyleLabel;
   private JLabel myStyleNameLabel;
+  private JComboBox myParentStyleComboBox;
   /** Message displayed when the style name is empty */
   private final String myEmptyStyleValidationText;
 
@@ -74,16 +78,35 @@ public class NewStyleDialog extends DialogWrapper {
     myParentStyleLabel.setText(String.format("Parent %1$s name:", styleTypeString));
     myEmptyStyleValidationText = String.format("You must specify a %1$s name", styleTypeString);
 
-    myParentStyleTextField.setText(defaultParentStyle);
     myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentStyle, currentThemeName));
-    myParentStyleTextField.addActionListener(new ActionListener() {
+
+    final DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel(DEFAULT_COMBOBOX_OPTIONS);
+    if (!(DARK.equals(defaultParentStyle) || LIGHT.equals(defaultParentStyle))) {
+      comboBoxModel.insertElementAt(defaultParentStyle, 0);
+    }
+    myParentStyleComboBox.setModel(comboBoxModel);
+    myParentStyleComboBox.setSelectedItem(defaultParentStyle);
+    myParentStyleComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ThemeSelectionDialog themeSelectionDialog = new ThemeSelectionDialog(configuration);
-        if (themeSelectionDialog.showAndGet()) {
-          myParentStyleTextField.setText(themeSelectionDialog.getTheme());
-          myStyleNameTextField.setText(getNewStyleNameSuggestion(themeSelectionDialog.getTheme(), currentThemeName));
+        String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
+        if (OTHER.equals(selectedValue)) {
+          final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
+
+          dialog.show();
+
+          if (dialog.isOK()) {
+            String myStyleParentName = dialog.getTheme();
+            if (myStyleParentName != null) {
+              if (comboBoxModel.getIndexOf(myStyleParentName) != -1) {
+                comboBoxModel.removeElement(myStyleParentName);
+              }
+              comboBoxModel.insertElementAt(myStyleParentName, 0);
+            }
+          }
+          myParentStyleComboBox.setSelectedItem(comboBoxModel.getElementAt(0));
         }
+        myStyleNameTextField.setText(getNewStyleNameSuggestion((String)myParentStyleComboBox.getSelectedItem(), currentThemeName));
       }
     });
 
@@ -124,7 +147,7 @@ public class NewStyleDialog extends DialogWrapper {
   }
 
   public String getStyleParentName() {
-    return myParentStyleTextField.getText();
+    return (String)myParentStyleComboBox.getSelectedItem();
   }
 
   static String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
