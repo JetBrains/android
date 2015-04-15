@@ -16,6 +16,11 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -25,20 +30,20 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -70,23 +75,26 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidHomes;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -526,23 +534,19 @@ public class GradleProjectImporter {
     setHasWrongJdk(project, false);
 
     if (alwaysSyncWithCachedProjectData || options.useCachedProjectData) {
-      GradleProjectSyncData gradleProjectSyncData = GradleProjectSyncData.getInstance((project));
-      if (gradleProjectSyncData != null && gradleProjectSyncData.canUseCachedProjectData()) {
-        ExternalProjectInfo externalProjectData =
-          ProjectDataManager.getInstance().getExternalProjectData(project, SYSTEM_ID, getProjectBasePath(project));
-        if (externalProjectData != null) {
-          DataNode<ProjectData> externalProjectStructure = externalProjectData.getExternalProjectStructure();
-          if (externalProjectStructure != null) {
-            PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
-            executor.setGenerateSourcesAfterSync(false);
-            executor.setUsingCachedProjectData(true);
-            executor.setLastSyncTimestamp(gradleProjectSyncData.getLastGradleSyncTimestamp());
+      GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
+      if (syncData != null && syncData.canUseCachedProjectData()) {
+        DataNode<ProjectData> cache = getCachedProjectData(project);
+        if (cache != null) {
+          PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
+          executor.setGenerateSourcesAfterSync(false);
+          executor.setUsingCachedProjectData(true);
+          executor.setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
 
+          if (!isCacheMissingModels(cache, project)) {
             ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
-            setUpTask.onSuccess(externalProjectStructure);
-            if (!isGradleProjectWithoutModel(project)) {
-              return;
-            }
+            setUpTask.onSuccess(cache);
+            return;
           }
         }
       }
@@ -562,6 +566,64 @@ public class GradleProjectImporter {
     String projectBasePath = toCanonicalPath(project.getBasePath());
     assert projectBasePath != null;
     return projectBasePath;
+  }
+
+  @VisibleForTesting
+  static boolean isCacheMissingModels(@NotNull DataNode<ProjectData> cache, @NotNull Project project) {
+    Collection<DataNode<ModuleData>> moduleDataNodes = findAll(cache, MODULE);
+    if (!moduleDataNodes.isEmpty()) {
+      Map<String, DataNode<ModuleData>> moduleDataNodesByName = indexByModuleName(moduleDataNodes);
+
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      for (Module module : moduleManager.getModules()) {
+        DataNode<ModuleData> moduleDataNode = moduleDataNodesByName.get(module.getName());
+        if (moduleDataNode != null) {
+          if (isCacheMissingModels(moduleDataNode, module)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  @NotNull
+  private static Map<String, DataNode<ModuleData>> indexByModuleName(@NotNull Collection<DataNode<ModuleData>> moduleDataNodes) {
+    Map<String, DataNode<ModuleData>> mapping = Maps.newHashMap();
+    for (DataNode<ModuleData> moduleDataNode : moduleDataNodes) {
+      ModuleData data = moduleDataNode.getData();
+      mapping.put(data.getExternalName(), moduleDataNode);
+    }
+    return mapping;
+  }
+
+  private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
+    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    if (gradleFacet != null) {
+      DataNode<IdeaGradleProject> gradleDataNode = find(cache, IDE_GRADLE_PROJECT);
+      if (gradleDataNode == null) {
+        return true;
+      }
+
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null) {
+        DataNode<IdeaAndroidProject> androidDataNode = find(cache, IDE_ANDROID_PROJECT);
+        if (androidDataNode == null) {
+          return true;
+        }
+      }
+      else {
+        JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+        if (javaFacet != null) {
+          DataNode<IdeaJavaProject> javaProjectDataNode = find(cache, IDE_JAVA_PROJECT);
+          if (javaProjectDataNode == null) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
