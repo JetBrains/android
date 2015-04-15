@@ -85,12 +85,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private static final double DEFAULT_SCALING_FACTOR = 300.0;
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
-    ImmutableMap.of(
-      "android.support.design.widget.FloatingActionButton",
-      new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.BUTTONS, "android.support.design.widget.FloatingActionButton")
-        .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
-        .set("clickable", "true")
-    );
+    ImmutableMap.of("android.support.design.widget.FloatingActionButton",
+                    new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
+                                            "android.support.design.widget.FloatingActionButton")
+                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
+                      .set("clickable", "true"));
 
   /** Min API level to use for filtering. */
   private int myMinApiLevel;
@@ -261,7 +260,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         viewClasses.forEach(new Processor<PsiClass>() {
           @Override
           public boolean process(PsiClass psiClass) {
-            String description = psiClass.getName(); // We use the "simple" name as description on the preview.
             String className = psiClass.getQualifiedName();
 
             ComponentDefinition component = SUPPORT_LIBRARY_COMPONENTS.get(className);
@@ -325,6 +323,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private void rebuild(boolean forceRepaint) {
     try {
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
+        .setSeparatorColor(UIUtil.getPanelBackground()) // Separator to give the appearance of cards
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(myMinApiLevel))
