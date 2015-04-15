@@ -28,10 +28,8 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -39,19 +37,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -355,22 +352,9 @@ public final class ProjectSubset {
 
   @Nullable
   public Collection<DataNode<ModuleData>> getCachedModuleData() {
-    DataNode<ProjectData> projectData = getCachedProjectData();
+    DataNode<ProjectData> projectData = getCachedProjectData(myProject);
     if (projectData != null) {
       return findAll(projectData, MODULE);
-    }
-    return null;
-  }
-
-  @Nullable
-  private DataNode<ProjectData> getCachedProjectData() {
-    ProjectDataManager dataManager = ProjectDataManager.getInstance();
-    Collection<ExternalProjectInfo> projectsData = dataManager.getExternalProjectsData(myProject, GradleConstants.SYSTEM_ID);
-    for (ExternalProjectInfo projectInfo : projectsData) {
-      String projectPath = toSystemDependentName(projectInfo.getExternalProjectPath());
-      if (projectPath.equals(myProject.getBasePath())) {
-        return projectInfo.getExternalProjectStructure();
-      }
     }
     return null;
   }
