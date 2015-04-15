@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.IProjectCallback;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -35,18 +35,18 @@ import java.util.Map;
 import static com.android.SdkConstants.*;
 
 /**
- * Modified {@link org.kxml2.io.KXmlParser} that adds the methods of {@link com.android.ide.common.rendering.api.ILayoutPullParser}, and
+ * Modified {@link KXmlParser} that adds the methods of {@link ILayoutPullParser}, and
  * performs other layout-specific parser behavior like translating fragment tags into
  * include tags.
  * <p/>
  * It will return a given parser when queried for one through
- * {@link com.android.ide.common.rendering.api.ILayoutPullParser#getParser(String)} for a given name.
+ * {@link ILayoutPullParser#getParser(String)} for a given name.
  */
 public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParser {
   /**
    * The callback to request parsers from
    */
-  private final IProjectCallback myProjectCallback;
+  private final LayoutlibCallback myLayoutlibCallback;
   /**
    * The layout to be shown for the current {@code <fragment>} tag. Usually null.
    */
@@ -55,9 +55,9 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
   /**
    * Crates a new {@link LayoutFilePullParser
    */
-  public static LayoutFilePullParser create(@NotNull IProjectCallback projectCallback,
+  public static LayoutFilePullParser create(@NotNull LayoutlibCallback layoutlibCallback,
                                             @NotNull File xml) throws XmlPullParserException, IOException {
-    LayoutFilePullParser parser = new LayoutFilePullParser(projectCallback);
+    LayoutFilePullParser parser = new LayoutFilePullParser(layoutlibCallback);
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     String xmlText = Files.toString(xml, Charsets.UTF_8);
     parser.setInput(new StringReader(xmlText));
@@ -67,23 +67,23 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
   /**
    * Creates a new {@link LayoutFilePullParser}
    *
-   * @param projectCallback the associated callback
+   * @param layoutlibCallback the associated callback
    */
-  private LayoutFilePullParser(IProjectCallback projectCallback) {
+  private LayoutFilePullParser(LayoutlibCallback layoutlibCallback) {
     super();
-    myProjectCallback = projectCallback;
+    myLayoutlibCallback = layoutlibCallback;
   }
   // --- Layout lib API methods
 
-  @SuppressWarnings("deprecation") // Required to support older layoutlib versions
-  @Override
   /**
    * this is deprecated but must still be implemented for older layout libraries.
-   * @deprecated use {@link com.android.ide.common.rendering.api.IProjectCallback#getParser(String)}.
+   * @deprecated use {@link LayoutlibCallback#getParser(String)}.
    */
+  @Override
   @Deprecated
+  @SuppressWarnings("deprecation") // Required to support older layoutlib versions
   public ILayoutPullParser getParser(String layoutName) {
-    return myProjectCallback.getParser(layoutName);
+    return myLayoutlibCallback.getParser(layoutName);
   }
 
   @Override
