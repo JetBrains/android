@@ -91,6 +91,7 @@ public class NewStyleDialog extends DialogWrapper {
       public void actionPerformed(ActionEvent e) {
         String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
         if (OTHER.equals(selectedValue)) {
+          myParentStyleComboBox.hidePopup();
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
           dialog.show();
