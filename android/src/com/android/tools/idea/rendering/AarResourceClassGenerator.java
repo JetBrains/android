@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -182,13 +184,23 @@ public class AarResourceClassGenerator {
         mv.visitInsn(RETURN);
         mv.visitMaxs(4, 0);
         mv.visitEnd();
-      } else {
-        Collection<String> keys = myAarResources.getItemsOfType(type);
-        for (String key : keys) {
-          Integer initialValue = myAppResources.getResourceId(type, key);
-          cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, AndroidResourceUtil.getFieldNameByResourceName(key), "I",
-                        null, initialValue).visitEnd();
+      } else if (type == ResourceType.ID) {
+        File rDotTxt = null;
+        if (myAarResources instanceof FileResourceRepository) {
+          File resourceDirectory = ((FileResourceRepository)myAarResources).getResourceDirectory();
+          rDotTxt = new File(resourceDirectory.getParentFile(), SdkConstants.FN_RESOURCE_TEXT);
         }
+        Collection<String> keys = null;
+        if (rDotTxt != null && rDotTxt.isFile()) {
+          keys = RDotTxtParser.parseFile(rDotTxt);
+        }
+        if (keys == null) {
+          // No R.txt found or there was error reading it.
+          keys = myAarResources.getItemsOfType(type);
+        }
+        generateFields(cw, type, keys);
+      } else {
+        generateFields(cw, type, myAarResources.getItemsOfType(type));
       }
     } else {
       // Default R class
@@ -207,5 +219,13 @@ public class AarResourceClassGenerator {
 
     cw.visitEnd();
     return cw.toByteArray();
+  }
+
+  private void generateFields(ClassWriter cw, ResourceType type, Collection<String> keys) {
+    for (String key : keys) {
+      Integer initialValue = myAppResources.getResourceId(type, key);
+      cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, AndroidResourceUtil.getFieldNameByResourceName(key), "I", null, initialValue)
+        .visitEnd();
+    }
   }
 }
