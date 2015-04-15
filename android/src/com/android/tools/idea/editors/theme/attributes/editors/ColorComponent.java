@@ -46,7 +46,7 @@ public class ColorComponent extends JPanel {
   private final JLabel myNameLabel;
   private final JLabel myValueLabel;
 
-  public ColorComponent(@NotNull final Color backgroundColor) {
+  public ColorComponent() {
     super(new BorderLayout(0, PADDING));
 
     MatteBorder matteBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, getBackground());
@@ -63,7 +63,6 @@ public class ColorComponent extends JPanel {
     add(innerPanel, BorderLayout.NORTH);
 
     myColorChooserButton = new ColorChooserButton();
-    myColorChooserButton.setBackground(backgroundColor);
     myColorChooserButton.setBorder(null);
     add(myColorChooserButton, BorderLayout.CENTER);
   }
@@ -74,6 +73,10 @@ public class ColorComponent extends JPanel {
     if (myColorChooserButton != null) {
       myColorChooserButton.setFont(font);
     }
+  }
+
+  public void setButtonBackground(@NotNull final Color color) {
+    myColorChooserButton.setBackground(color);
   }
 
   public void configure(final EditedStyleItem resValue, final List<Color> color) {
@@ -108,7 +111,10 @@ public class ColorComponent extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
+      // Background is filled manually here instead of calling super.paintComponent()
+      // because some L'n'Fs (e.g. GTK+) paint additional decoration even with null border.
+      g.setColor(getBackground());
+      g.fillRect(0, 0, getWidth(), getHeight());
 
       if (myValue == null) {
         LOG.error("Trying to draw ColorChooserButton in inconsistent state (either name or value is null)!");
