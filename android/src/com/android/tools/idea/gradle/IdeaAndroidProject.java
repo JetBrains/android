@@ -48,6 +48,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private static final Logger LOG = Logger.getInstance("#" + IdeaAndroidProject.class.getName());
 
@@ -95,7 +96,7 @@ public class IdeaAndroidProject implements Serializable {
     myRootDirPath = rootDirPath;
     myDelegate = delegate;
 
-    // Compute the proxy object to avoid reproxying the model during every serialization operation and also schedule it to run
+    // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for reproxying to complete.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
