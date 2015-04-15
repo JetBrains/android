@@ -18,10 +18,13 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -31,10 +34,13 @@ import org.w3c.dom.ls.LSSerializer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
+import java.awt.Color;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
@@ -42,8 +48,14 @@ import static com.android.SdkConstants.*;
 public class ThemePreviewBuilder {
   /** Namespace schema to use for attributes specific to the preview builder. */
   public static final String BUILDER_URI = "http://schemas.android.com/tools/preview/builder";
+  public static final String BUILDER_NS_NAME = "builder";
   /** Attribute to use to specify the ComponentGroup that a specific item in the preview belongs to. */
   public static final String BUILDER_ATTR_GROUP = "group";
+
+  private static final Map<String, String> NAMESPACE_TO_URI = ImmutableMap.of(
+    ANDROID_NS_NAME, ANDROID_URI,
+    BUILDER_NS_NAME, BUILDER_URI
+  );
 
   private final ArrayList<Predicate<ComponentDefinition>> myComponentFilters = new ArrayList<Predicate<ComponentDefinition>>();
 
@@ -52,14 +64,19 @@ public class ThemePreviewBuilder {
    */
   public enum ComponentGroup {
     // The order of the groups is important since it will be the one used to display the preview.
-    TOOLBAR("Toolbar", VALUE_VERTICAL),
-    BUTTONS("Buttons", VALUE_HORIZONTAL),
-    PROGRESS("Progress & activity", VALUE_HORIZONTAL),
-    SLIDERS("Sliders/Seekbar", VALUE_HORIZONTAL),
-    SWTICHES("Switches/toggle", VALUE_HORIZONTAL),
-    TEXT("Text", VALUE_HORIZONTAL),
+    TOOLBAR("App bar", VALUE_VERTICAL),
+    RAISED_BUTTON("Raised button", VALUE_VERTICAL),
+    FLAT_BUTTON("Flat button", VALUE_VERTICAL),
+    FAB_BUTTON("Fab button", VALUE_HORIZONTAL),
+    HORIZONTAL_PROGRESSBAR("Horizontal Progressbar", VALUE_HORIZONTAL),
+    INDETERMINATE_PROGRESSBAR("Progressbar (indeterminate)", VALUE_HORIZONTAL),
+    SLIDERS("Seekbar", VALUE_HORIZONTAL),
+    RADIO_BUTTON("Radiobutton", VALUE_HORIZONTAL),
+    CHECKBOX("Checkbox", VALUE_HORIZONTAL),
+    SWITCH("Switch", VALUE_HORIZONTAL),
+    TEXT("TextView", VALUE_VERTICAL),
     OTHER("Misc", VALUE_VERTICAL),
-    CUSTOM("Custom", VALUE_VERTICAL);
+    CUSTOM("Custom", VALUE_VERTICAL),;
 
     final String name;
     final String orientation;
@@ -101,23 +118,33 @@ public class ThemePreviewBuilder {
     }
 
     public ComponentDefinition(String description, ComponentGroup group, String name) {
-      this.id = ourCounter.incrementAndGet();
-
-      this.description = description;
-      this.name = name;
-      this.group = group;
-      this.weight = 1;
+      this(description, group, name, 0);
     }
 
     /**
      * Set a component attribute. Most of the possible keys are defined in the {@link SdkConstants} class and they are of the form
      * ATTR_*.
+     * @param ns the key namespace.
      * @param key the attribute name.
      * @param value the attribute value.
      */
     @NotNull
+    public ComponentDefinition set(@Nullable String ns, @NotNull String key, @NotNull String value) {
+      String prefix = (ns != null ? (ns + ":") : "");
+      attributes.put(prefix + key, value);
+
+      return this;
+    }
+
+    /**
+     * Set a component attribute. Most of the possible keys are defined in the {@link SdkConstants} class and they are of the form
+     * ATTR_*.
+     * @param key the attribute name. The key namespace will default to "android:"
+     * @param value the attribute value.
+     */
+    @NotNull
     public ComponentDefinition set(@NotNull String key, @NotNull String value) {
-      attributes.put(key, value);
+      set(ANDROID_NS_NAME, key, value);
 
       return this;
     }
@@ -206,60 +233,72 @@ public class ThemePreviewBuilder {
   // List containing all the pre-defined components that are displayed in the preview.
   public static final List<ComponentDefinition> AVAILABLE_BASE_COMPONENTS = ImmutableList.of(
     // Toolbar
-    new ComponentDefinition("Toolbar",        ComponentGroup.TOOLBAR, "Toolbar")
+    new ComponentDefinition("Toolbar", ComponentGroup.TOOLBAR, "Toolbar")
       .setApiLevel(21)
       .set(ATTR_TITLE, "Toolbar")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
-      .set("minHeight", "?attr/actionBarSize")
-      .set(ATTR_BACKGROUND, "?attr/colorPrimary")
+      .set("minHeight", "?attr/actionBarSize").set(ATTR_BACKGROUND, "?attr/colorPrimary")
       .addAlias("Actionbar"),
 
     // Buttons
-    new ComponentDefinition("Button",         ComponentGroup.BUTTONS, BUTTON, 5),
-    new ComponentDefinition("Small button",   ComponentGroup.BUTTONS, BUTTON)
-      .set(ATTR_STYLE, "?android:attr/buttonStyleSmall"),
+    new ComponentDefinition("Normal", ComponentGroup.RAISED_BUTTON, BUTTON),
+    /*new ComponentDefinition("Pressed",   ComponentGroup.RAISED_BUTTON, BUTTON)
+      .set(ATTR_BACKGROUND, "@drawable/abc_btn_default_mtrl_shape"),*/
+    new ComponentDefinition("Disabled", ComponentGroup.RAISED_BUTTON, BUTTON)
+      .set(ATTR_ENABLED, VALUE_FALSE),
 
-    new ComponentDefinition("Radio button",   ComponentGroup.SWTICHES, RADIO_BUTTON, 4)
+    new ComponentDefinition("Normal", ComponentGroup.FLAT_BUTTON, BUTTON)
+      .set(null, ATTR_STYLE, "?android:attr/borderlessButtonStyle"),
+    /*new ComponentDefinition("Pressed",   ComponentGroup.FLAT_BUTTON, BUTTON)
+      .set(ATTR_BACKGROUND, "@drawable/abc_btn_default_mtrl_shape"),*/
+    new ComponentDefinition("Disabled", ComponentGroup.FLAT_BUTTON, BUTTON)
+      .set(null, ATTR_STYLE, "?android:attr/borderlessButtonStyle")
+      .set(ATTR_ENABLED, VALUE_FALSE),
+
+    new ComponentDefinition("Radio button", ComponentGroup.RADIO_BUTTON, RADIO_BUTTON)
       .setText(""),
-    new ComponentDefinition("Checkbox",       ComponentGroup.SWTICHES, CHECK_BOX, 4)
+    new ComponentDefinition("Pressed Radio button", ComponentGroup.RADIO_BUTTON, RADIO_BUTTON)
+      .set(ATTR_CHECKED, VALUE_TRUE).setText(""),
+
+    new ComponentDefinition("Checkbox", ComponentGroup.CHECKBOX, CHECK_BOX)
       .setText(""),
-    new ComponentDefinition("Toggle button",  ComponentGroup.SWTICHES, TOGGLE_BUTTON)
+    new ComponentDefinition("Pressed Checkbox", ComponentGroup.CHECKBOX, CHECK_BOX)
+      .set(ATTR_CHECKED, VALUE_TRUE).setText(""),
+
+
+    new ComponentDefinition("Switch", ComponentGroup.SWITCH, SWITCH)
+      .setApiLevel(14)
       .setText(""),
+    new ComponentDefinition("On Switch", ComponentGroup.SWITCH, SWITCH)
+      .setApiLevel(14)
+      .set(ATTR_CHECKED, VALUE_TRUE).setText(""),
 
     // Text,
-    new ComponentDefinition("Small text",     ComponentGroup.TEXT, TEXT_VIEW)
-      .set("textAppearance", "?android:attr/textAppearanceSmall"),
-    new ComponentDefinition("Medium text",    ComponentGroup.TEXT, TEXT_VIEW)
-      .set("textAppearance", "?android:attr/textAppearanceMedium"),
-    new ComponentDefinition("Large text",     ComponentGroup.TEXT, TEXT_VIEW)
-      .set("textAppearance", "?android:attr/textAppearanceLarge"),
-
-    // Edit
-    /*new ComponentDefinition("Input text",     ComponentGroup.EDIT, EDIT_TEXT),
-    new ComponentDefinition("Long text",      ComponentGroup.EDIT, EDIT_TEXT)
-      .set(ATTR_INPUT_TYPE, "textLongMessage").setText(ourLoremGenerator.generate(50, true)),
-    new ComponentDefinition("Long text",      ComponentGroup.EDIT, EDIT_TEXT)
-      .set(ATTR_INPUT_TYPE, "textMultiLine").setText(ourLoremGenerator.generate(50, true)),*/
+    new ComponentDefinition("Large text", ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceLarge"),
+    new ComponentDefinition("Medium text", ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceMedium"),
+    new ComponentDefinition("Small text", ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceSmall"),
 
     // Misc
-    new ComponentDefinition("ProgressBar",    ComponentGroup.PROGRESS, PROGRESS_BAR),
-    new ComponentDefinition("ProgressBar",    ComponentGroup.PROGRESS, PROGRESS_BAR)
+    new ComponentDefinition("ProgressBar", ComponentGroup.INDETERMINATE_PROGRESSBAR, PROGRESS_BAR)
+      .set("progress", "50")
+      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
+    new ComponentDefinition("ProgressBar", ComponentGroup.HORIZONTAL_PROGRESSBAR, PROGRESS_BAR)
+      .set("progress", "50")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
-      .set(ATTR_STYLE, "?android:attr/progressBarStyleSmall"),
-    new ComponentDefinition("ProgressBar",    ComponentGroup.PROGRESS, PROGRESS_BAR)
-      .set(ATTR_STYLE, "?android:attr/progressBarStyleHorizontal"),
-    new ComponentDefinition("SeekBar",        ComponentGroup.SLIDERS, SEEK_BAR)
-      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
-  );
+      .set(null, ATTR_STYLE, "?android:attr/progressBarStyleHorizontal"),
+    new ComponentDefinition("SeekBar", ComponentGroup.SLIDERS, SEEK_BAR)
+      .set(ATTR_VALUE, "50")
+      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT));
 
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
   private static final int VERTICAL_GROUP_PADDING = 15;
   private static final int LINE_PADDING = 5;
   private static final int GROUP_TITLE_FONT_SIZE = 9;
-  private static final int GROUP_PADDING = 45;
 
   private List<ComponentDefinition> myAdditionalComponents;
   private String myGroupHeaderColor = "@android:color/darker_gray";
+  private String mySeparatorColor = "@android:color/darker_gray";
+  private int mySeparatorHeight = 5;
   private PrintStream myDebugPrintStream;
 
   @NotNull
@@ -277,7 +316,13 @@ public class ThemePreviewBuilder {
     Element component = document.createElement(def.name);
 
     for (Map.Entry<String, String> entry : def.attributes.entrySet()) {
-      component.setAttributeNS(ANDROID_URI, entry.getKey(), entry.getValue());
+      List<String> keyComponents = Splitter.on(":").limit(2).splitToList(entry.getKey());
+
+      if (keyComponents.size() != 1) {
+        component.setAttributeNS(NAMESPACE_TO_URI.get(keyComponents.get(0)), keyComponents.get(1), entry.getValue());
+      } else {
+        component.setAttribute(entry.getKey(), entry.getValue());
+      }
     }
 
     if (!component.hasAttributeNS(ANDROID_URI, ATTR_ID)) {
@@ -294,14 +339,16 @@ public class ThemePreviewBuilder {
       component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     }
 
+    if (def.weight != 0 && !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT)) {
+      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT, Integer.toString(def.weight));
+    }
     if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY)) {
       component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER);
     }
-
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT, Integer.toString(def.weight));
+    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN)) {
+      // Default box around every component.
+      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, toDp(5));
     }
-    component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, "5dp");
 
     component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, def.group.name());
 
@@ -313,14 +360,13 @@ public class ThemePreviewBuilder {
     Element elementGroup = document.createElement(LINEAR_LAYOUT);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER_VERTICAL);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_ORIENTATION, group.orientation);
+    elementGroup.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER);
 
     elementGroup.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     if (VALUE_VERTICAL.equals(group.orientation)) {
-      elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, verticalPadding);
-      elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, verticalPadding);
+      elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, verticalPadding);
     }
 
     return elementGroup;
@@ -348,9 +394,8 @@ public class ThemePreviewBuilder {
 
   @NotNull
   private List<ComponentDefinition> getComponentsByGroup(@NotNull final ComponentGroup group) {
-    Iterable<ComponentDefinition> components = Iterables.concat(AVAILABLE_BASE_COMPONENTS, myAdditionalComponents != null
-                                                                                           ? myAdditionalComponents
-                                                                                           : Collections.<ComponentDefinition>emptyList());
+    Iterable<ComponentDefinition> components =
+      Iterables.concat(AVAILABLE_BASE_COMPONENTS, myAdditionalComponents != null ? myAdditionalComponents : Collections.<ComponentDefinition>emptyList());
     return ImmutableList.copyOf(Iterables.filter(components, new Predicate<ComponentDefinition>() {
       @Override
       public boolean apply(ComponentDefinition input) {
@@ -415,8 +460,25 @@ public class ThemePreviewBuilder {
 
   @NotNull
   public ThemePreviewBuilder setGroupHeaderColor(@NotNull Color color) {
-    myGroupHeaderColor = '#' + Integer.toHexString(color.getRGB());
+    setGroupHeaderColor('#' + Integer.toHexString(color.getRGB()));
 
+    return this;
+  }
+
+  public ThemePreviewBuilder setSeparatorColor(@NotNull String color) {
+    mySeparatorColor = color;
+
+    return this;
+  }
+
+  public ThemePreviewBuilder setSeparatorColor(@NotNull Color color) {
+    setSeparatorColor('#' + Integer.toHexString(color.getRGB()));
+
+    return this;
+  }
+
+  public ThemePreviewBuilder setSeparatorHeight(int height) {
+    mySeparatorHeight = height;
     return this;
   }
 
@@ -432,7 +494,6 @@ public class ThemePreviewBuilder {
     Document document = documentBuilder.newDocument();
 
     Element layout = buildMainLayoutElement(document);
-    layout.setAttributeNS(ANDROID_URI, ATTR_PADDING, toDp(LINE_PADDING));
     document.appendChild(layout);
 
     // Iterate over all the possible classes.
@@ -444,20 +505,17 @@ public class ThemePreviewBuilder {
       }
 
       if (!isFirstGroup) {
-        Element padding = document.createElement(VIEW);
-        padding.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-        padding.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toDp(GROUP_PADDING));
-        layout.appendChild(padding);
+        Element separator = document.createElement(VIEW);
+        separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+        separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toDp(mySeparatorHeight));
+        separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, toDp(LINE_PADDING));
+        separator.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, mySeparatorColor);
+        separator.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
+
+        layout.appendChild(separator);
       } else {
         isFirstGroup = false;
       }
-
-      Element separator = document.createElement(VIEW);
-      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toDp(1));
-      separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, toDp(LINE_PADDING));
-      separator.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, myGroupHeaderColor);
-      separator.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
       Element groupTitle = document.createElement(TEXT_VIEW);
       groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
@@ -467,23 +525,15 @@ public class ThemePreviewBuilder {
       groupTitle.setAttributeNS(ANDROID_URI, "textColor", myGroupHeaderColor);
       groupTitle.setAttributeNS(ANDROID_URI, "text", group.name.toUpperCase());
       groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
+      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, toDp(LINE_PADDING));
 
       Element elementGroup = buildElementGroup(document, group, toDp(VERTICAL_GROUP_PADDING));
 
-      layout.appendChild(separator);
-      layout.appendChild(groupTitle);
       layout.appendChild(elementGroup);
+      layout.appendChild(groupTitle);
 
-      int elementCounter = 1;
       for (ComponentDefinition definition : components) {
         elementGroup.appendChild(buildComponent(document, definition));
-
-        // Break layout for big groups.
-        // TODO: Make the number of elements per row configurable.
-        if (elementCounter++ % 3 == 0) {
-          elementGroup = buildElementGroup(document, group, toDp(VERTICAL_GROUP_PADDING));
-          layout.appendChild(elementGroup);
-        }
       }
     }
 
