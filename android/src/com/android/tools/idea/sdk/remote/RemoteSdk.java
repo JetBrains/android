@@ -28,8 +28,6 @@ import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher.Site;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.NullTaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import com.android.tools.idea.sdk.remote.internal.sources.*;
 import com.android.tools.idea.sdk.remote.internal.updater.SettingsController;
 import com.android.utils.ILogger;
@@ -88,25 +86,13 @@ public class RemoteSdk {
     // the fetch logic here. Eventually my goal is to get rid of them
     // and include the logic directly here instead but for right now lets
     // just start with what we have to avoid implementing it all at once.
-    // It does mean however that this code needs to convert the old Package
-    // type into the new RemotePkgInfo type.
 
     for (SdkSource source : sources.getAllSources()) {
       source.load(getDownloadCache(), new NullTaskMonitor(logger), forceHttp);
-      Package[] pkgs = source.getPackages();
-      if (pkgs == null || pkgs.length == 0) {
-        continue;
-      }
+      RemotePkgInfo[] pkgs = source.getPackages();
 
-      // Adapt the legacy Package instances into the new RemotePkgInfo
-      for (Package p : pkgs) {
-        IPkgDesc d = p.getPkgDesc();
-        long size = 0;
-        for (Archive archive : p.getArchives()) {
-          size += archive.getSize();
-        }
-        RemotePkgInfo r = new RemotePkgInfo(d, source, size, p);
-        remotes.put(d.getType(), r);
+      for (RemotePkgInfo p : pkgs) {
+        remotes.put(p.getPkgDesc().getType(), p);
       }
     }
 

@@ -53,7 +53,7 @@ public class SystemImagePreview {
   private JPanel myMainPanel;
   private JSeparator mySeparator;
   private HaxmAlert myHaxmAlert;
-  private AvdWizardConstants.SystemImageDescription myImageDescription;
+  private SystemImageDescription myImageDescription;
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
 
@@ -87,7 +87,7 @@ public class SystemImagePreview {
   /**
    * Set the image to display.
    */
-  public void setImage(@Nullable AvdWizardConstants.SystemImageDescription image) {
+  public void setImage(@Nullable SystemImageDescription image) {
     myImageDescription = image;
     myHaxmAlert.setSystemImageDescription(image);
     ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
@@ -123,7 +123,7 @@ public class SystemImagePreview {
    * @return the codename for the given System Image's API level
    */
   @Nullable
-  public static String getCodeName(@NotNull AvdWizardConstants.SystemImageDescription description) {
+  public static String getCodeName(@NotNull SystemImageDescription description) {
     return SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
   }
 

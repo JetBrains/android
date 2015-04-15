@@ -18,19 +18,19 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.IAndroidTarget.IOptionalLibrary;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.*;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalAddonPkgInfo;
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.utils.Pair;
+import com.google.common.base.Objects;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -39,15 +39,7 @@ import java.util.*;
 /**
  * Represents an add-on XML node in an SDK repository.
  */
-public class AddonPackage extends MajorRevisionPackage
-  implements IAndroidVersionProvider, IPlatformDependency, IExactApiLevelDependency, ILayoutlibVersion {
-
-  private final String mVendorId;
-  private final String mVendorDisplay;
-  private final String mNameId;
-  private final String mDisplayName;
-  private final AndroidVersion mVersion;
-  private final IPkgDesc mPkgDesc;
+public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
 
   /**
    * The helper handling the layoutlib version.
@@ -127,7 +119,7 @@ public class AddonPackage extends MajorRevisionPackage
    *                    parameters that vary according to the originating XML schema.
    * @param licenses    The licenses loaded from the XML originating document.
    */
-  public AddonPackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+  public RemoteAddonPkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
     super(source, packageNode, nsUri, licenses);
 
     // --- name id/display ---
@@ -136,9 +128,9 @@ public class AddonPackage extends MajorRevisionPackage
     // that only provide name and vendor. If the addon provides neither set of fields,
     // it will simply not work as expected.
 
-    String nameId = PackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_NAME_ID);
-    String nameDisp = PackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_NAME_DISPLAY);
-    String name = PackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_NAME);
+    String nameId = RemotePackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_NAME_ID).trim();
+    String nameDisp = RemotePackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_NAME_DISPLAY).trim();
+    String name = RemotePackageParserUtils.getXmlString(packageNode, SdkRepoConstants.NODE_NAME).trim();
 
     // The old <name> is equivalent to the new <name-display>
     if (nameDisp.length() == 0) {
@@ -153,15 +145,12 @@ public class AddonPackage extends MajorRevisionPackage
     assert nameId.length() > 0;
     assert nameDisp.length() > 0;
 
-    mNameId = nameId.trim();
-    mDisplayName = nameDisp.trim();
-
     // --- vendor id/display ---
     // Same processing for vendor id vs display
 
-    String vendorId = PackageParserUtils.getXmlString(packageNode, SdkAddonConstants.NODE_VENDOR_ID);
-    String vendorDisp = PackageParserUtils.getXmlString(packageNode, SdkAddonConstants.NODE_VENDOR_DISPLAY);
-    String vendor = PackageParserUtils.getXmlString(packageNode, SdkAddonConstants.NODE_VENDOR);
+    String vendorId = RemotePackageParserUtils.getXmlString(packageNode, SdkAddonConstants.NODE_VENDOR_ID).trim();
+    String vendorDisp = RemotePackageParserUtils.getXmlString(packageNode, SdkAddonConstants.NODE_VENDOR_DISPLAY).trim();
+    String vendor = RemotePackageParserUtils.getXmlString(packageNode, SdkAddonConstants.NODE_VENDOR).trim();
 
     // The old <vendor> is equivalent to the new <vendor-display>
     if (vendorDisp.length() == 0) {
@@ -177,31 +166,24 @@ public class AddonPackage extends MajorRevisionPackage
     assert vendorId.length() > 0;
     assert vendorDisp.length() > 0;
 
-    mVendorId = vendorId.trim();
-    mVendorDisplay = vendorDisp.trim();
-
     // --- other attributes
 
-    int apiLevel = PackageParserUtils.getXmlInt(packageNode, SdkAddonConstants.NODE_API_LEVEL, 0);
-    mVersion = new AndroidVersion(apiLevel, null /*codeName*/);
+    int apiLevel = RemotePackageParserUtils.getXmlInt(packageNode, SdkAddonConstants.NODE_API_LEVEL, 0);
+    AndroidVersion androidVersion = new AndroidVersion(apiLevel, null /*codeName*/);
 
-    mLibs = parseLibs(PackageParserUtils.findChildElement(packageNode, SdkAddonConstants.NODE_LIBS));
+    mLibs = parseLibs(RemotePackageParserUtils.findChildElement(packageNode, SdkAddonConstants.NODE_LIBS));
 
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newAddon(mVersion, (MajorRevision)getRevision(), new IdDisplay(mVendorId, mVendorDisplay),
-                                                        new IdDisplay(mNameId, mDisplayName))).create();
-  }
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder
+      .newAddon(androidVersion, new MajorRevision(getRevision()), new IdDisplay(vendorId, vendorDisp), new IdDisplay(nameId, nameDisp));
+    pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), nameDisp, androidVersion, isObsolete()));
+    pkgDescBuilder.setDescriptionUrl(getDescUrl());
+    pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, nameDisp, isObsolete()));
+    pkgDescBuilder.setIsObsolete(isObsolete());
+    pkgDescBuilder.setLicense(getLicense());
+    mPkgDesc = pkgDescBuilder.create();
 
-  @Override
-  @NonNull
-  public IPkgDesc getPkgDesc() {
-    return mPkgDesc;
-  }
-
-  @Override
-  public int getExactApiLevel() {
-    return mVersion.getApiLevel();
   }
 
   /**
@@ -212,13 +194,13 @@ public class AddonPackage extends MajorRevisionPackage
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    mVersion.saveProperties(props);
+    getAndroidVersion().saveProperties(props);
     mLayoutlibVersion.saveProperties(props);
 
-    props.setProperty(PkgProps.ADDON_NAME_ID, mNameId);
-    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, mDisplayName);
-    props.setProperty(PkgProps.ADDON_VENDOR_ID, mVendorId);
-    props.setProperty(PkgProps.ADDON_VENDOR_DISPLAY, mVendorDisplay);
+    props.setProperty(PkgProps.ADDON_NAME_ID, ((IPkgDescAddon)getPkgDesc()).getName().getId());
+    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, ((IPkgDescAddon)getPkgDesc()).getName().getDisplay());
+    props.setProperty(PkgProps.ADDON_VENDOR_ID, getPkgDesc().getVendor().getId());
+    props.setProperty(PkgProps.ADDON_VENDOR_DISPLAY, getPkgDesc().getVendor().getDisplay());
   }
 
   /**
@@ -246,40 +228,8 @@ public class AddonPackage extends MajorRevisionPackage
    * Parses a <lib> element from a <libs> container.
    */
   private Lib parseLib(Node libNode) {
-    return new Lib(PackageParserUtils.getXmlString(libNode, SdkRepoConstants.NODE_NAME),
-                   PackageParserUtils.getXmlString(libNode, SdkRepoConstants.NODE_DESCRIPTION));
-  }
-
-  /**
-   * Returns the vendor id, a string, for add-on packages.
-   */
-  @NonNull
-  public String getVendorId() {
-    return mVendorId;
-  }
-
-  /**
-   * Returns the vendor, a string for display purposes.
-   */
-  @NonNull
-  public String getDisplayVendor() {
-    return mVendorDisplay;
-  }
-
-  /**
-   * Returns the name id, a string, for add-on packages or for libraries.
-   */
-  @NonNull
-  public String getNameId() {
-    return mNameId;
-  }
-
-  /**
-   * Returns the name, a string for display purposes.
-   */
-  @NonNull
-  public String getDisplayName() {
-    return mDisplayName;
+    return new Lib(RemotePackageParserUtils.getXmlString(libNode, SdkRepoConstants.NODE_NAME),
+                   RemotePackageParserUtils.getXmlString(libNode, SdkRepoConstants.NODE_DESCRIPTION));
   }
 
   /**
@@ -290,7 +240,7 @@ public class AddonPackage extends MajorRevisionPackage
   @Override
   @NonNull
   public AndroidVersion getAndroidVersion() {
-    return mVersion;
+    return getPkgDesc().getAndroidVersion();
   }
 
   /**
@@ -302,24 +252,6 @@ public class AddonPackage extends MajorRevisionPackage
   }
 
   /**
-   * Returns the layoutlib version.
-   * <p/>
-   * The first integer is the API of layoublib, which should be > 0.
-   * It will be equal to {@link ILayoutlibVersion#LAYOUTLIB_API_NOT_SPECIFIED} (0)
-   * if the layoutlib version isn't specified.
-   * <p/>
-   * The second integer is the revision for that given API. It is >= 0
-   * and works as a minor revision number, incremented for the same API level.
-   *
-   * @since sdk-addon-2.xsd
-   */
-  @NonNull
-  @Override
-  public Pair<Integer, Integer> getLayoutlibVersion() {
-    return mLayoutlibVersion.getLayoutlibVersion();
-  }
-
-  /**
    * Returns a string identifier to install this package from the command line.
    * For add-ons, we use "addon-vendor-name-N" where N is the base platform API.
    * <p/>
@@ -328,58 +260,35 @@ public class AddonPackage extends MajorRevisionPackage
   @NonNull
   @Override
   public String installId() {
-    return encodeAddonName();
+    return encodeAddonName(((IPkgDescAddon)getPkgDesc()).getName().getId(), getPkgDesc().getVendor().getId(), getAndroidVersion());
   }
 
   /**
    * Returns a description of this package that is suitable for a list display.
    * <p/>
-   * {@inheritDoc}
    */
-  @Override
-  public String getListDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s%2$s", ld, isObsolete() ? " (Obsolete)" : "");
+  private static String createListDescription(String listDisplay, String displayName, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("%1$s%2$s", getDisplayName(), isObsolete() ? " (Obsolete)" : "");
+    return String.format("%1$s%2$s", displayName, obsolete ? " (Obsolete)" : "");
   }
 
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  @Override
-  public String getShortDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s, revision %2$s%3$s", ld, getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
+  private static String createShortDescription(String listDisplay,
+                                               FullRevision revision,
+                                               String displayName,
+                                               AndroidVersion version,
+                                               boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
-    return String
-      .format("%1$s, Android API %2$s, revision %3$s%4$s", getDisplayName(), mVersion.getApiString(), getRevision().toShortString(),
-              isObsolete() ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Returns a long description for an {@link IDescription}.
-   * <p/>
-   * The long description is whatever the XML contains for the &lt;description&gt; field,
-   * or the short description if the former is empty.
-   */
-  @Override
-  public String getLongDescription() {
-    String s = String.format("%1$s, Android API %2$s, revision %3$s%4$s\nBy %5$s", getDisplayName(), mVersion.getApiString(),
-                             getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "",  //$NON-NLS-2$
-                             getDisplayVendor());
-
-    String d = getDescription();
-    if (d != null && d.length() > 0) {
-      s += '\n' + d;
-    }
-
-    s += String.format("\nRequires SDK Platform Android API %1$s", mVersion.getApiString());
-    return s;
+    return String.format("%1$s, Android API %2$s, revision %3$s%4$s", displayName, version.getApiString(), revision.toShortString(),
+                         obsolete ? " (Obsolete)" : "");
   }
 
   /**
@@ -399,26 +308,29 @@ public class AddonPackage extends MajorRevisionPackage
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
     File addons = new File(osSdkRoot, SdkConstants.FD_ADDONS);
 
+    IdDisplay name = ((IPkgDescAddon)getPkgDesc()).getName();
+    IdDisplay vendor = getPkgDesc().getVendor();
+
     // First find if this add-on is already installed. If so, reuse the same directory.
     for (IAndroidTarget target : sdkManager.getTargets()) {
-      if (!target.isPlatform() && target.getVersion().equals(mVersion)) {
+      if (!target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
         // Starting with addon-4.xsd, the addon source.properties differentiate
         // between ids and display strings. However the addon target which relies
         // on the manifest.ini does not so we need to cover both cases.
         // TODO fix when we get rid of manifest.ini for addons
-        if ((target.getName().equals(getNameId()) && target.getVendor().equals(getVendorId())) ||
-            (target.getName().equals(getDisplayName()) && target.getVendor().equals(getDisplayVendor()))) {
+        if ((target.getName().equals(name.getId()) && target.getVendor().equals(vendor.getId())) ||
+            (target.getName().equals(name.getDisplay()) && target.getVendor().equals(vendor.getDisplay()))) {
           return new File(target.getLocation());
         }
       }
     }
 
     // Compute a folder directory using the addon declared name and vendor strings.
-    String name = encodeAddonName();
+    String dir = encodeAddonName(name.getId(), vendor.getId(), getAndroidVersion());
 
     for (int i = 0; i < 100; i++) {
-      String name2 = i == 0 ? name : String.format("%s-%d", name, i); //$NON-NLS-1$
-      File folder = new File(addons, name2);
+      String dir2 = i == 0 ? dir : String.format("%s-%d", dir, i); //$NON-NLS-1$
+      File folder = new File(addons, dir2);
       if (!folder.exists()) {
         return folder;
       }
@@ -428,9 +340,9 @@ public class AddonPackage extends MajorRevisionPackage
     return null;
   }
 
-  private String encodeAddonName() {
+  private static String encodeAddonName(String nameId, String vendorId, AndroidVersion version) {
     String name = String.format("addon-%s-%s-%s",     //$NON-NLS-1$
-                                getNameId(), getVendorId(), mVersion.getApiString());
+                                nameId, vendorId, version.getApiString());
     name = name.toLowerCase(Locale.US);
     name = name.replaceAll("[^a-z0-9_-]+", "_");      //$NON-NLS-1$ //$NON-NLS-2$
     name = name.replaceAll("_+", "_");                //$NON-NLS-1$ //$NON-NLS-2$
@@ -438,23 +350,19 @@ public class AddonPackage extends MajorRevisionPackage
   }
 
   @Override
-  public boolean sameItemAs(Package pkg) {
-    if (pkg instanceof AddonPackage) {
-      AddonPackage newPkg = (AddonPackage)pkg;
+  public boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison previewComparison) {
+    if (pkg instanceof LocalAddonPkgInfo) {
+      LocalAddonPkgInfo localPkg = (LocalAddonPkgInfo)pkg;
+
+      String nameId = ((IPkgDescAddon)getPkgDesc()).getName().getId();
 
       // check they are the same add-on.
-      if (getNameId().equals(newPkg.getNameId()) && getAndroidVersion().equals(newPkg.getAndroidVersion())) {
+      if (Objects.equal(nameId, ((IPkgDescAddon)localPkg.getDesc()).getName()) &&
+          getAndroidVersion().equals(localPkg.getDesc().getAndroidVersion())) {
         // Check the vendor-id field.
-        if (getVendorId().equals(newPkg.getVendorId())) {
+        if (getPkgDesc().getVendor().equals(localPkg.getDesc().getVendor())) {
           return true;
         }
-
-        // When loading addons from the v3 schema that only had a <vendor>
-        // field, the vendor field has been converted to vendor-display so
-        // as a transition mechanism we should test this also.
-        // TODO: in a couple iterations of the SDK Manager, remove this check
-        // and only compare using the vendor-id field.
-        return getDisplayVendor().equals(newPkg.getDisplayVendor());
       }
     }
 
@@ -467,9 +375,10 @@ public class AddonPackage extends MajorRevisionPackage
     int result = super.hashCode();
     result = prime * result + ((mLayoutlibVersion == null) ? 0 : mLayoutlibVersion.hashCode());
     result = prime * result + Arrays.hashCode(mLibs);
-    result = prime * result + ((mDisplayName == null) ? 0 : mDisplayName.hashCode());
-    result = prime * result + ((mVendorDisplay == null) ? 0 : mVendorDisplay.hashCode());
-    result = prime * result + ((mVersion == null) ? 0 : mVersion.hashCode());
+    String name = ((IPkgDescAddon)getPkgDesc()).getName().getDisplay();
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + (getPkgDesc().hasVendor() ? 0 : getPkgDesc().getVendor().hashCode());
+    result = prime * result + getAndroidVersion().hashCode();
     return result;
   }
 
@@ -481,10 +390,10 @@ public class AddonPackage extends MajorRevisionPackage
     if (!super.equals(obj)) {
       return false;
     }
-    if (!(obj instanceof AddonPackage)) {
+    if (!(obj instanceof RemoteAddonPkgInfo)) {
       return false;
     }
-    AddonPackage other = (AddonPackage)obj;
+    RemoteAddonPkgInfo other = (RemoteAddonPkgInfo)obj;
     if (mLayoutlibVersion == null) {
       if (other.mLayoutlibVersion != null) {
         return false;
@@ -496,48 +405,6 @@ public class AddonPackage extends MajorRevisionPackage
     if (!Arrays.equals(mLibs, other.mLibs)) {
       return false;
     }
-    if (mNameId == null) {
-      if (other.mNameId != null) {
-        return false;
-      }
-    }
-    else if (!mNameId.equals(other.mNameId)) {
-      return false;
-    }
-    if (mVendorId == null) {
-      if (other.mVendorId != null) {
-        return false;
-      }
-    }
-    else if (!mVendorId.equals(other.mVendorId)) {
-      return false;
-    }
-    if (mVersion == null) {
-      if (other.mVersion != null) {
-        return false;
-      }
-    }
-    else if (!mVersion.equals(other.mVersion)) {
-      return false;
-    }
     return true;
-  }
-
-  /**
-   * For addon packages, we want to add vendor|name to the sorting key
-   * <em>before<em/> the revision number.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  protected String comparisonKey() {
-    String s = super.comparisonKey();
-    int pos = s.indexOf("|r:");         //$NON-NLS-1$
-    assert pos > 0;
-    s = s.substring(0, pos) +
-        "|vid:" + getVendorId() +          //$NON-NLS-1$
-        "|nid:" + getNameId() +            //$NON-NLS-1$
-        s.substring(pos);
-    return s;
   }
 }

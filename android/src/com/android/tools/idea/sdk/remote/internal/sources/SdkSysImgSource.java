@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.remote.internal.sources;
 
 import com.android.annotations.Nullable;
 import com.android.sdklib.repository.SdkSysImgConstants;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
 import org.w3c.dom.Document;
 
 import java.io.InputStream;
@@ -26,7 +25,7 @@ import java.io.InputStream;
 
 /**
  * An sdk-sys-img source, i.e. a download site for system-image packages.
- * A repository describes one or more {@link Package}s available for download.
+ * A repository describes one or more {@link RemotePkgInfo}s available for download.
  */
 public class SdkSysImgSource extends SdkSource {
 
