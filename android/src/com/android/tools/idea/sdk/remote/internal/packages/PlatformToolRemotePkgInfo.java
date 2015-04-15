@@ -19,10 +19,12 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.AdbWrapper;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
@@ -35,18 +37,16 @@ import java.util.Map;
 /**
  * Represents a platform-tool XML node in an SDK repository.
  */
-public class PlatformToolPackage extends FullRevisionPackage {
+public class PlatformToolRemotePkgInfo extends RemotePkgInfo {
 
   /**
-   * The value returned by {@link PlatformToolPackage#installId()}.
+   * The value returned by {@link PlatformToolRemotePkgInfo#installId()}.
    */
   public static final String INSTALL_ID = "platform-tools";                       //$NON-NLS-1$
   /**
-   * The value returned by {@link PlatformToolPackage#installId()}.
+   * The value returned by {@link PlatformToolRemotePkgInfo#installId()}.
    */
   public static final String INSTALL_ID_PREVIEW = "platform-tools-preview";       //$NON-NLS-1$
-
-  private final IPkgDesc mPkgDesc;
 
   /**
    * Creates a new platform-tool package from the attributes and elements of the given XML node.
@@ -58,16 +58,16 @@ public class PlatformToolPackage extends FullRevisionPackage {
    *                    parameters that vary according to the originating XML schema.
    * @param licenses    The licenses loaded from the XML originating document.
    */
-  public PlatformToolPackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+  public PlatformToolRemotePkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
     super(source, packageNode, nsUri, licenses);
 
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newPlatformTool(getRevision())).create();
-  }
-
-  @Override
-  @NonNull
-  public IPkgDesc getPkgDesc() {
-    return mPkgDesc;
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatformTool(getRevision());
+    pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), isObsolete()));
+    pkgDescBuilder.setDescriptionUrl(getDescUrl());
+    pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, isObsolete()));
+    pkgDescBuilder.setIsObsolete(isObsolete());
+    pkgDescBuilder.setLicense(getLicense());
+    mPkgDesc = pkgDescBuilder.create();
   }
 
   /**
@@ -92,44 +92,23 @@ public class PlatformToolPackage extends FullRevisionPackage {
    * <p/>
    * {@inheritDoc}
    */
-  @Override
-  public String getListDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s%2$s", ld, isObsolete() ? " (Obsolete)" : "");
+  private static String createListDescription(String listDisplay, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Platform-tools%1$s", isObsolete() ? " (Obsolete)" : "");
+    return String.format("Android SDK Platform-tools%1$s", obsolete ? " (Obsolete)" : "");
   }
 
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  @Override
-  public String getShortDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s, revision %2$s%3$s", ld, getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
+  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Platform-tools, revision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Returns a long description for an {@link IDescription}.
-   */
-  @Override
-  public String getLongDescription() {
-    String s = getDescription();
-    if (s == null || s.length() == 0) {
-      s = getShortDescription();
-    }
-
-    if (s.indexOf("revision") == -1) {
-      s += String.format("\nRevision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-    }
-
-    return s;
+    return String.format("Android SDK Platform-tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
   }
 
   /**
@@ -146,35 +125,6 @@ public class PlatformToolPackage extends FullRevisionPackage {
   @Override
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
     return new File(osSdkRoot, SdkConstants.FD_PLATFORM_TOOLS);
-  }
-
-  /**
-   * Check whether 2 platform-tool packages are the same <em>and</em> have the
-   * same preview bit.
-   */
-  @Override
-  public boolean sameItemAs(Package pkg) {
-    return sameItemAs(pkg, PreviewComparison.COMPARE_TYPE);
-  }
-
-  @Override
-  public boolean sameItemAs(Package pkg, PreviewComparison comparePreview) {
-    // only one platform-tool package so any platform-tool package is the same item.
-    if (pkg instanceof PlatformToolPackage) {
-      switch (comparePreview) {
-        case IGNORE:
-          return true;
-
-        case COMPARE_NUMBER:
-          // Voluntary break-through.
-        case COMPARE_TYPE:
-          // There's only one platform-tools so the preview number doesn't matter;
-          // however previews can only match previews by default so both cases
-          // are treated the same.
-          return pkg.getRevision().isPreview() == getRevision().isPreview();
-      }
-    }
-    return false;
   }
 
   /**

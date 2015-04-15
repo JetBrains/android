@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
@@ -74,10 +75,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private final Project myProject;
   private final JPanel myRemoteStatusPanel = new JPanel(new CardLayout());
   private final SdkState mySdkState;
-  private TableView<AvdWizardConstants.SystemImageDescription> myTable = new TableView<AvdWizardConstants.SystemImageDescription>();
-  private ListTableModel<AvdWizardConstants.SystemImageDescription> myModel = new ListTableModel<AvdWizardConstants.SystemImageDescription>();
+  private TableView<SystemImageDescription> myTable = new TableView<SystemImageDescription>();
+  private ListTableModel<SystemImageDescription> myModel = new ListTableModel<SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
-  private Predicate<AvdWizardConstants.SystemImageDescription> myFilter;
+  private Predicate<SystemImageDescription> myFilter;
   private static final String ERROR_KEY = "error";
   private static final String LOADING_KEY = "loading";
 
@@ -86,7 +87,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * table must implement this interface and register themselves through {@link #addSelectionListener(SystemImageSelectionListener)}
    */
   public interface SystemImageSelectionListener {
-    void onSystemImageSelected(@Nullable AvdWizardConstants.SystemImageDescription systemImage);
+    void onSystemImageSelected(@Nullable SystemImageDescription systemImage);
   }
 
   public SystemImageList(@Nullable Project project) {
@@ -156,8 +157,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     });
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
-    TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>> sorter =
-      new TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>>(myModel) {
+    TableRowSorter<ListTableModel<SystemImageDescription>> sorter =
+      new TableRowSorter<ListTableModel<SystemImageDescription>>(myModel) {
         @Override
         public Comparator<?> getComparator(int column) {
           if (column == 1) {
@@ -171,9 +172,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         }
       };
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
-    sorter.setRowFilter(new RowFilter<ListTableModel<AvdWizardConstants.SystemImageDescription>, Integer>() {
+    sorter.setRowFilter(new RowFilter<ListTableModel<SystemImageDescription>, Integer>() {
       @Override
-      public boolean include(Entry<? extends ListTableModel<AvdWizardConstants.SystemImageDescription>, ? extends Integer> entry) {
+      public boolean include(Entry<? extends ListTableModel<SystemImageDescription>, ? extends Integer> entry) {
         return !myModel.getRowValue(entry.getIdentifier()).isRemote() || myShowRemoteCheckbox.isSelected();
       }
     });
@@ -221,50 +222,67 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     ((CardLayout)myRemoteStatusPanel.getLayout()).show(myRemoteStatusPanel, LOADING_KEY);
     myRemoteStatusPanel.setVisible(true);
     myRefreshButton.setEnabled(false);
-    final List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
+    final List<SystemImageDescription> items = Lists.newArrayList();
     Runnable localComplete = new Runnable() {
       @Override
       public void run() {
-        items.addAll(getLocalImages());
-        // Update list in the UI immediately with the locally available system images
-        updateListModel(items);
-        if (items.isEmpty()) {
-          myShowRemoteCheckbox.setSelected(true);
-        }
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+
+            items.addAll(getLocalImages());
+            // Update list in the UI immediately with the locally available system images
+            updateListModel(items);
+            if (items.isEmpty()) {
+              myShowRemoteCheckbox.setSelected(true);
+            }
+          }
+        });
       }
     };
     Runnable remoteComplete = new Runnable() {
       @Override
       public void run() {
-        List<AvdWizardConstants.SystemImageDescription> remotes = getRemoteImages();
-        if (remotes != null) {
-          items.addAll(remotes);
-          updateListModel(items);
-          myRemoteStatusPanel.setVisible(false);
-          myRefreshButton.setEnabled(true);
-        }
-        else {
-          myShowRemoteCheckbox.setEnabled(false);
-          myShowRemoteCheckbox.setSelected(false);
-        }
-
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            List<SystemImageDescription> remotes = getRemoteImages();
+            if (remotes != null) {
+              items.addAll(remotes);
+              updateListModel(items);
+              myRemoteStatusPanel.setVisible(false);
+              myRefreshButton.setEnabled(true);
+            }
+            else {
+              myShowRemoteCheckbox.setEnabled(false);
+              myShowRemoteCheckbox.setSelected(false);
+              myRemoteStatusPanel.setVisible(false);
+            }
+          }
+        });
       }
     };
     Runnable error = new Runnable() {
       @Override
       public void run() {
-        ((CardLayout)myRemoteStatusPanel.getLayout()).show(myRemoteStatusPanel, ERROR_KEY);
-        myRefreshButton.setEnabled(true);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+
+            ((CardLayout)myRemoteStatusPanel.getLayout()).show(myRemoteStatusPanel, ERROR_KEY);
+            myRefreshButton.setEnabled(true);
+          }
+        });
       }
     };
 
     mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false,
-                         localComplete, remoteComplete, error, true);
+                         localComplete, remoteComplete, error, forceRefresh);
   }
 
   @Nullable
-  private List<AvdWizardConstants.SystemImageDescription> getRemoteImages() {
-    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
+  private List<SystemImageDescription> getRemoteImages() {
+    List<SystemImageDescription> items = Lists.newArrayList();
     Set<RemotePkgInfo> infos = mySdkState.getUpdates().getNewPkgs();
 
     if (infos.isEmpty()) {
@@ -272,9 +290,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
     else {
       for (RemotePkgInfo info : infos) {
-        if (info.getDesc().getType().equals(PkgType.PKG_SYS_IMAGE)) {
+        if (info.getPkgDesc().getType().equals(PkgType.PKG_SYS_IMAGE)) {
           IAndroidTarget target = findTarget(info);
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(info.getDesc(), target);
+          SystemImageDescription desc = new SystemImageDescription(info.getPkgDesc(), target);
           if (myFilter == null || myFilter.apply(desc)) {
             items.add(desc);
           }
@@ -289,10 +307,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     assert data != null; // we shouldn't be able to get here without local data being set
     IAndroidTarget[] targets = data.getLocalSdk().getTargets();
     for (IAndroidTarget target : targets) {
-      IdDisplay imageVendor = info.getDesc().getVendor();
+      IdDisplay imageVendor = info.getPkgDesc().getVendor();
       if ((imageVendor == null && target.isPlatform() ||
           imageVendor != null && imageVendor.getId().equals(target.getVendor())) &&
-          info.getDesc().getAndroidVersion().equals(target.getVersion()))
+          info.getPkgDesc().getAndroidVersion().equals(target.getVersion()))
         return target;
     }
     return null;
@@ -302,8 +320,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myModel.setItems(getLocalImages());
   }
 
-  private List<AvdWizardConstants.SystemImageDescription> getLocalImages() {
-    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
+  private List<SystemImageDescription> getLocalImages() {
+    List<SystemImageDescription> items = Lists.newArrayList();
 
     AndroidSdkData data = mySdkState.getSdkData();
     assert data != null; // we shouldn't be able to get here without local data being set
@@ -314,7 +332,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       if (systemImages != null) {
         for (ISystemImage image : systemImages) {
           // If we don't have a filter or this image passes the filter
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          SystemImageDescription desc = new SystemImageDescription(target, image);
           if (myFilter == null || myFilter.apply(desc)) {
             items.add(desc);
           }
@@ -328,8 +346,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * Shows the given items. May be called from the background thread but will ensure
    * that the updates are applied in the UI thread.
    */
-  private void updateListModel(@NotNull final List<AvdWizardConstants.SystemImageDescription> items) {
-    AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
+  private void updateListModel(@NotNull final List<SystemImageDescription> items) {
+    SystemImageDescription selected = myTable.getSelectedObject();
     myModel.setItems(items);
     if (selected == null || !items.contains(selected)) {
       selectDefaultImage();
@@ -339,7 +357,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
   }
 
-  public void setFilter(Predicate<AvdWizardConstants.SystemImageDescription> filter) {
+  public void setFilter(Predicate<SystemImageDescription> filter) {
     myFilter = filter;
   }
 
@@ -349,8 +367,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   public void selectDefaultImage() {
     AndroidVersion maxVersion = null;
-    AvdWizardConstants.SystemImageDescription best = null;
-    for (AvdWizardConstants.SystemImageDescription desc : myModel.getItems()) {
+    SystemImageDescription best = null;
+    for (SystemImageDescription desc : myModel.getItems()) {
       if (!desc.isRemote() && ((maxVersion == null || desc.getVersion().compareTo(maxVersion) > 0) || (desc.getVersion().equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))) {
         best = desc;
         maxVersion = best.getVersion();
@@ -359,9 +377,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     setSelectedImage(best);
   }
 
-  public void setSelectedImage(@Nullable AvdWizardConstants.SystemImageDescription selectedImage) {
+  public void setSelectedImage(@Nullable SystemImageDescription selectedImage) {
     if (selectedImage != null) {
-      for (AvdWizardConstants.SystemImageDescription listItem : myModel.getItems()) {
+      for (SystemImageDescription listItem : myModel.getItems()) {
         if (selectedImage.getVersion().equals(listItem.getVersion()) &&
             selectedImage.getAbiType().equals(listItem.getAbiType())) {
           myTable.setSelection(ImmutableSet.of(listItem));
@@ -394,7 +412,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    */
   @Override
   public void valueChanged(ListSelectionEvent e) {
-    AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
+    SystemImageDescription selected = myTable.getSelectedObject();
     for (SystemImageSelectionListener listener : myListeners) {
       listener.onSystemImageSelected(selected);
     }
@@ -408,7 +426,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     new SystemImageColumnInfo("Release Name") {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
+      public String valueOf(SystemImageDescription systemImage) {
         String codeName = SdkVersionInfo.getCodeName(systemImage.getVersion().getApiLevel());
         String maybeDeprecated = systemImage.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ?
                                  " (Deprecated)" : "";
@@ -418,16 +436,16 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     new SystemImageColumnInfo("API Level", 100) {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
+      public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
 
       @Nullable
       @Override
-      public Comparator<AvdWizardConstants.SystemImageDescription> getComparator() {
-        return new Comparator<AvdWizardConstants.SystemImageDescription>() {
+      public Comparator<SystemImageDescription> getComparator() {
+        return new Comparator<SystemImageDescription>() {
           @Override
-          public int compare(AvdWizardConstants.SystemImageDescription o1, AvdWizardConstants.SystemImageDescription o2) {
+          public int compare(SystemImageDescription o1, SystemImageDescription o2) {
             return o1.getVersion().getApiLevel() - o2.getVersion().getApiLevel();
           }
         };
@@ -436,14 +454,14 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     new SystemImageColumnInfo("ABI", 100) {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
+      public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getAbiType();
       }
     },
     new SystemImageColumnInfo("Target") {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
+      public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
         return tag == null || tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag);
@@ -453,13 +471,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   /**
    * This class extends {@link com.intellij.util.ui.ColumnInfo} in order to pull a string value from a given
-   * {@link com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDescription}.
+   * {@link SystemImageDescription}.
    * This is the column info used for most of our table, including the Name, Resolution, and API level columns.
    * It uses the text field renderer ({@link #myRenderer}) and allows for sorting by the lexicographical value
    * of the string displayed by the {@link com.intellij.ui.components.JBLabel} rendered as the cell component. An explicit width may be used
    * by calling the overloaded constructor, otherwise the column will auto-scale to fill available space.
    */
-  public abstract class SystemImageColumnInfo extends ColumnInfo<AvdWizardConstants.SystemImageDescription, String> {
+  public abstract class SystemImageColumnInfo extends ColumnInfo<SystemImageDescription, String> {
     private final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
 
     private final int myWidth;
@@ -474,26 +492,26 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
 
     @Override
-    public boolean isCellEditable(AvdWizardConstants.SystemImageDescription systemImageDescription) {
+    public boolean isCellEditable(SystemImageDescription systemImageDescription) {
       return systemImageDescription.isRemote();
     }
 
     @Nullable
     @Override
-    public TableCellEditor getEditor(AvdWizardConstants.SystemImageDescription o) {
+    public TableCellEditor getEditor(SystemImageDescription o) {
       return new SystemImageDescriptionRenderer(o);
     }
 
     @Nullable
     @Override
-    public TableCellRenderer getRenderer(final AvdWizardConstants.SystemImageDescription o) {
+    public TableCellRenderer getRenderer(final SystemImageDescription o) {
       return new SystemImageDescriptionRenderer(o);
     }
 
     private class SystemImageDescriptionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
-      private AvdWizardConstants.SystemImageDescription image;
+      private SystemImageDescription image;
 
-      SystemImageDescriptionRenderer(AvdWizardConstants.SystemImageDescription o) {
+      SystemImageDescriptionRenderer(SystemImageDescription o) {
         image = o;
       }
 
@@ -582,7 +600,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     }
 
-    private void downloadImage(AvdWizardConstants.SystemImageDescription image) {
+    private void downloadImage(SystemImageDescription image) {
       IPkgDesc request = image.getRemotePackage();
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
       SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
@@ -594,10 +612,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     @Nullable
     @Override
-    public Comparator<AvdWizardConstants.SystemImageDescription> getComparator() {
-      return new Comparator<AvdWizardConstants.SystemImageDescription>() {
+    public Comparator<SystemImageDescription> getComparator() {
+      return new Comparator<SystemImageDescription>() {
         @Override
-        public int compare(AvdWizardConstants.SystemImageDescription o1, AvdWizardConstants.SystemImageDescription o2) {
+        public int compare(SystemImageDescription o1, SystemImageDescription o2) {
           String s1 = valueOf(o1);
           String s2 = valueOf(o2);
           return Comparing.compare(s1, s2);

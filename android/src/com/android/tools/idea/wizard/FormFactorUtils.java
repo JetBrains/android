@@ -206,8 +206,8 @@ public class FormFactorUtils {
         if (input == null) {
           return false;
         }
-        if (input.getDesc().getType() == PkgType.PKG_ADDON) {
-          IPkgDescAddon addon = (IPkgDescAddon)input.getDesc();
+        if (input.getPkgDesc().getType() == PkgType.PKG_ADDON) {
+          IPkgDescAddon addon = (IPkgDescAddon)input.getPkgDesc();
           return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
         }
         // TODO: add other package types

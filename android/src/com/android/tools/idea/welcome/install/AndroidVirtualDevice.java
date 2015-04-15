@@ -32,6 +32,7 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
+import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;

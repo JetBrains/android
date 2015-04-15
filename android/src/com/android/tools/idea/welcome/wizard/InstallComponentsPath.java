@@ -259,7 +259,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), myComponentTree.getChildrenToInstall());
     ImmutableList.Builder<IPkgDesc> packages = ImmutableList.builder();
     for (RemotePkgInfo remotePackage : installIds) {
-      packages.add(remotePackage.getDesc());
+      packages.add(remotePackage.getPkgDesc());
     }
     return packages.build();
   }

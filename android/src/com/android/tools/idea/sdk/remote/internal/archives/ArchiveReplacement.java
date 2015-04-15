@@ -17,17 +17,17 @@
 package com.android.tools.idea.sdk.remote.internal.archives;
 
 import com.android.sdklib.repository.IDescription;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 
 /**
  * Represents an archive that we want to install and the archive that it is
  * going to replace, if any.
  */
-public class ArchiveReplacement implements IDescription {
+public class ArchiveReplacement {
 
   private final Archive mNewArchive;
-  private final Archive mReplaced;
+  private final LocalPkgInfo mReplaced;
 
   /**
    * Creates a new replacement where the {@code newArchive} will replace the
@@ -41,7 +41,7 @@ public class ArchiveReplacement implements IDescription {
    * @param replaced   An optional local archive that the new one will replace.
    *                   Can be null if this archive does not replace anything.
    */
-  public ArchiveReplacement(Archive newArchive, Archive replaced) {
+  public ArchiveReplacement(Archive newArchive, LocalPkgInfo replaced) {
     mNewArchive = newArchive;
     mReplaced = replaced;
   }
@@ -58,33 +58,17 @@ public class ArchiveReplacement implements IDescription {
    * Returns an optional local archive that the new one will replace.
    * Can be null if this archive does not replace anything.
    */
-  public Archive getReplaced() {
+  public LocalPkgInfo getReplaced() {
     return mReplaced;
-  }
-
-  /**
-   * Returns the long description of the parent package of the new archive, if not null.
-   * Otherwise returns an empty string.
-   */
-  @Override
-  public String getLongDescription() {
-    if (mNewArchive != null) {
-      Package p = mNewArchive.getParentPackage();
-      if (p != null) {
-        return p.getLongDescription();
-      }
-    }
-    return "";
   }
 
   /**
    * Returns the short description of the parent package of the new archive, if not null.
    * Otherwise returns an empty string.
    */
-  @Override
   public String getShortDescription() {
     if (mNewArchive != null) {
-      Package p = mNewArchive.getParentPackage();
+      RemotePkgInfo p = mNewArchive.getParentPackage();
       if (p != null) {
         return p.getShortDescription();
       }
@@ -102,7 +86,7 @@ public class ArchiveReplacement implements IDescription {
   @Override
   public String toString() {
     if (mNewArchive != null) {
-      Package p = mNewArchive.getParentPackage();
+      RemotePkgInfo p = mNewArchive.getParentPackage();
       if (p != null) {
         return p.getShortDescription();
       }

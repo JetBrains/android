@@ -41,6 +41,7 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.concurrency.FutureResult;
+import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.android.sdk.AndroidSdkData;
 
 import java.util.HashSet;
@@ -150,10 +151,11 @@ public class SdkState {
       }
 
       myTask = new LoadTask(canBeCancelled, onLocalComplete, onSuccess, onError, forceRefresh, sync);
-      ProgressWindow progress = new BackgroundableProcessIndicator(myTask);
-      myTask.setProgress(progress);
-      ProgressManager.getInstance().runProcessWithProgressAsynchronously(myTask, progress);
     }
+    ProgressWindow progress = new BackgroundableProcessIndicator(myTask);
+    myTask.setProgress(progress);
+    ProgressManager.getInstance().run(myTask);
+
     return true;
   }
 
@@ -163,11 +165,12 @@ public class SdkState {
                                    @Nullable Runnable onSuccess,
                                    @Nullable final Runnable onError,
                                    boolean forceRefresh) {
-    final FutureResult<Boolean> completed = new FutureResult<Boolean>();
+    final Semaphore completed = new Semaphore();
+    completed.down();
     Runnable complete = new Runnable() {
       @Override
       public void run() {
-        completed.set(true);
+        completed.up();
       }
     };
 
@@ -177,28 +180,29 @@ public class SdkState {
     onSuccesses.add(complete);
     onErrors.add(complete);
     boolean result = load(timeoutMs, canBeCancelled, onLocalCompletes, onSuccesses, onErrors, forceRefresh, true);
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+    ProgressManager pm = ProgressManager.getInstance();
+    ProgressIndicator indicator = pm.getProgressIndicator();
+    indicator = indicator == null ? new ProgressWindow(false, false, null) : indicator;
+    pm.executeProcessUnderProgress(new Runnable() {
       @Override
       public void run() {
         boolean success = false;
+        ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
         try {
-          ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
-          completed.get();
+          completed.waitForUnsafe();
           success = true;
         }
         catch (InterruptedException e) {
           LOG.warn(e);
         }
-        catch (ExecutionException e) {
-          LOG.warn(e);
-        }
+
         if (!success) {
           if (onError != null) {
             onError.run();
           }
         }
       }
-    }, "Loading SDK", false, null);
+    }, indicator);
     return result;
   }
 
@@ -246,13 +250,12 @@ public class SdkState {
   }
 
 
-  private class LoadTask extends Task.Backgroundable {
+  private class LoadTask extends Task.ConditionalModal {
 
     private final List<Runnable> myOnSuccesses = Lists.newArrayList();
     private final List<Runnable> myOnErrors = Lists.newArrayList();
     private final List<Runnable> myOnLocalCompletes = Lists.newArrayList();
     private final boolean myForceRefresh;
-    private final boolean myModal;
     private ProgressWindow myProgress;
 
     public LoadTask(boolean canBeCancelled,
@@ -265,7 +268,6 @@ public class SdkState {
             modal ? PerformInBackgroundOption.DEAF : PerformInBackgroundOption.ALWAYS_BACKGROUND);
       addCallbacks(onLocalComplete, onSuccess, onError);
       myForceRefresh = forceRefresh;
-      myModal = modal;
     }
 
     public void setProgress(ProgressWindow progress) {
@@ -281,11 +283,6 @@ public class SdkState {
 
     public ProgressWindow getProgress() {
       return myProgress;
-    }
-
-    @Override
-    public boolean isConditionalModal() {
-      return myModal;
     }
 
     @Override
@@ -314,7 +311,7 @@ public class SdkState {
         }
         synchronized (myTaskLock) {
           for (Runnable onLocalComplete : myOnLocalCompletes) {
-            ApplicationManager.getApplication().invokeLater(onLocalComplete, ModalityState.any());
+            onLocalComplete.run();
           }
           myOnLocalCompletes.clear();
         }
@@ -338,7 +335,6 @@ public class SdkState {
         if (indicator.isCanceled()) {
           return;
         }
-
         // compute updates
         indicator.setText("Compute SDK updates...");
         indicator.setText2("");
@@ -359,15 +355,15 @@ public class SdkState {
           myTask = null;
           if (success) {
             for (Runnable onLocalComplete : myOnLocalCompletes) {  // in case some were added by another call in the interim.
-              ApplicationManager.getApplication().invokeLater(onLocalComplete, ModalityState.any());
+              onLocalComplete.run();
             }
             for (Runnable onSuccess : myOnSuccesses) {
-              ApplicationManager.getApplication().invokeLater(onSuccess, ModalityState.any());
+              onSuccess.run();
             }
           }
           else {
             for (Runnable onError : myOnErrors) {
-              ApplicationManager.getApplication().invokeLater(onError, ModalityState.any());
+              onError.run();
             }
           }
         }
