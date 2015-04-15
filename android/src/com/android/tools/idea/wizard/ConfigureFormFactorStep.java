@@ -258,23 +258,34 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     Runnable onComplete = new Runnable() {
       @Override
       public void run() {
-        List<RemotePkgInfo> packageList = Lists.newArrayList(state.getUpdates().getNewPkgs());
-        Collections.sort(packageList);
-        Iterator<RemotePkgInfo> result =
-          Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel)).iterator();
-        if (result.hasNext()) {
-          showDownloadLink(link, result.next(), cardPanel);
-        }
-        else {
-          cardPanel.setVisible(false);
-        }
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+
+            List<RemotePkgInfo> packageList = Lists.newArrayList(state.getUpdates().getNewPkgs());
+            Collections.sort(packageList);
+            Iterator<RemotePkgInfo> result =
+              Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel)).iterator();
+            if (result.hasNext()) {
+              showDownloadLink(link, result.next(), cardPanel);
+            }
+            else {
+              cardPanel.setVisible(false);
+            }
+          }
+        });
       }
     };
 
     Runnable onError = new Runnable() {
       @Override
       public void run() {
-        cardPanel.setVisible(false);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            cardPanel.setVisible(false);
+          }
+        });
       }
     };
 
@@ -285,7 +296,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     link.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        showDownloadWizard(remote.getDesc());
+        showDownloadWizard(remote.getPkgDesc());
         populateAdditionalFormFactors();
         myFormFactorPanel.validate();
       }

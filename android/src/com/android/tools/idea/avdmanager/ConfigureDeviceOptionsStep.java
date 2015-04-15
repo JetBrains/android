@@ -193,7 +193,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
     myState.put(DIAGONAL_SCREENSIZE_KEY, screen.getDiagonalLength());
     myState.put(RESOLUTION_WIDTH_KEY, screen.getXDimension());
     myState.put(RESOLUTION_HEIGHT_KEY, screen.getYDimension());
-    myState.put(RAM_STORAGE_KEY, AvdBuilder.getDefaultRam(defaultHardware));
+    myState.put(RAM_STORAGE_KEY, AvdWizardConstants.getDefaultRam(defaultHardware));
 
     myState.put(HAS_HARDWARE_BUTTONS_KEY, defaultHardware.getButtonType() == ButtonType.HARD);
     myState.put(HAS_HARDWARE_KEYBOARD_KEY, defaultHardware.getKeyboard() != Keyboard.NOKEY);

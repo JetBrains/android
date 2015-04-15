@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.RepoConstants;
 import com.android.utils.Pair;
@@ -26,7 +28,9 @@ import java.util.Properties;
 /**
  * Helper class to handle the layoutlib version provided by a package.
  */
-public class LayoutlibVersionMixin implements ILayoutlibVersion {
+public class LayoutlibVersionMixin {
+  public static final int LAYOUTLIB_API_NOT_SPECIFIED = 0;
+  public static final int LAYOUTLIB_REV_NOT_SPECIFIED = 0;
 
   /**
    * The layoutlib version.
@@ -49,23 +53,14 @@ public class LayoutlibVersionMixin implements ILayoutlibVersion {
     int api = LAYOUTLIB_API_NOT_SPECIFIED;
     int rev = LAYOUTLIB_REV_NOT_SPECIFIED;
 
-    Node layoutlibNode = PackageParserUtils.findChildElement(pkgNode, RepoConstants.NODE_LAYOUT_LIB);
+    Node layoutlibNode = RemotePackageParserUtils.findChildElement(pkgNode, RepoConstants.NODE_LAYOUT_LIB);
 
     if (layoutlibNode != null) {
-      api = PackageParserUtils.getXmlInt(layoutlibNode, RepoConstants.NODE_API, 0);
-      rev = PackageParserUtils.getXmlInt(layoutlibNode, RepoConstants.NODE_REVISION, 0);
+      api = RemotePackageParserUtils.getXmlInt(layoutlibNode, RepoConstants.NODE_API, 0);
+      rev = RemotePackageParserUtils.getXmlInt(layoutlibNode, RepoConstants.NODE_REVISION, 0);
     }
 
     mLayoutlibVersion = Pair.of(api, rev);
-  }
-
-  /**
-   * Parses the layoutlib version optionally available in the given {@link Properties}.
-   */
-  public LayoutlibVersionMixin(Properties props) {
-    int layoutlibApi = Package.getPropertyInt(props, PkgProps.LAYOUTLIB_API, LAYOUTLIB_API_NOT_SPECIFIED);
-    int layoutlibRev = Package.getPropertyInt(props, PkgProps.LAYOUTLIB_REV, LAYOUTLIB_REV_NOT_SPECIFIED);
-    mLayoutlibVersion = Pair.of(layoutlibApi, layoutlibRev);
   }
 
   /**
@@ -76,23 +71,6 @@ public class LayoutlibVersionMixin implements ILayoutlibVersion {
       props.setProperty(PkgProps.LAYOUTLIB_API, mLayoutlibVersion.getFirst().toString());
       props.setProperty(PkgProps.LAYOUTLIB_REV, mLayoutlibVersion.getSecond().toString());
     }
-  }
-
-  /**
-   * Returns the layoutlib version.
-   * <p/>
-   * The first integer is the API of layoublib, which should be > 0.
-   * It will be equal to {@link #LAYOUTLIB_API_NOT_SPECIFIED} (0) if the layoutlib
-   * version isn't specified.
-   * <p/>
-   * The second integer is the revision for that given API. It is >= 0
-   * and works as a minor revision number, incremented for the same API level.
-   *
-   * @since sdk-repository-4.xsd and sdk-addon-2.xsd
-   */
-  @Override
-  public Pair<Integer, Integer> getLayoutlibVersion() {
-    return mLayoutlibVersion;
   }
 
   @Override

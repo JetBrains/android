@@ -17,36 +17,29 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 /**
  * Represents a build-tool XML node in an SDK repository.
  */
-public class BuildToolPackage extends FullRevisionPackage {
+public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
 
   /**
-   * The base value returned by {@link BuildToolPackage#installId()}.
+   * The base value returned by {@link RemoteBuildToolPkgInfo#installId()}.
    */
   private static final String INSTALL_ID_BASE = SdkConstants.FD_BUILD_TOOLS + '-';
-
-  private final IPkgDesc mPkgDesc;
 
   /**
    * Creates a new build-tool package from the attributes and elements of the given XML node.
@@ -58,16 +51,15 @@ public class BuildToolPackage extends FullRevisionPackage {
    *                    parameters that vary according to the originating XML schema.
    * @param licenses    The licenses loaded from the XML originating document.
    */
-  public BuildToolPackage(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
+  public RemoteBuildToolPkgInfo(SdkSource source, Node packageNode, String nsUri, Map<String, String> licenses) {
     super(source, packageNode, nsUri, licenses);
-
-    mPkgDesc = setDescriptions(PkgDesc.Builder.newBuildTool(getRevision())).create();
-  }
-
-  @Override
-  @NonNull
-  public IPkgDesc getPkgDesc() {
-    return mPkgDesc;
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newBuildTool(getRevision());
+    pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), isObsolete()));
+    pkgDescBuilder.setDescriptionUrl(getDescUrl());
+    pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, isObsolete()));
+    pkgDescBuilder.setIsObsolete(isObsolete());
+    pkgDescBuilder.setLicense(getLicense());
+    mPkgDesc = pkgDescBuilder.create();
   }
 
   /**
@@ -85,46 +77,24 @@ public class BuildToolPackage extends FullRevisionPackage {
   /**
    * Returns a description of this package that is suitable for a list display.
    * <p/>
-   * {@inheritDoc}
    */
-  @Override
-  public String getListDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s%2$s", ld, isObsolete() ? " (Obsolete)" : "");
+  private static String createListDescription(String listDisplay, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Build-tools%1$s", isObsolete() ? " (Obsolete)" : "");
+    return String.format("Android SDK Build-tools%1$s", obsolete ? " (Obsolete)" : "");
   }
 
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  @Override
-  public String getShortDescription() {
-    String ld = getListDisplay();
-    if (!ld.isEmpty()) {
-      return String.format("%1$s, revision %2$s%3$s", ld, getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
+  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+    if (!listDisplay.isEmpty()) {
+      return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Build-tools, revision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Returns a long description for an {@link IDescription}.
-   */
-  @Override
-  public String getLongDescription() {
-    String s = getDescription();
-    if (s == null || s.length() == 0) {
-      s = getShortDescription();
-    }
-
-    if (s.indexOf("revision") == -1) {
-      s += String.format("\nRevision %1$s%2$s", getRevision().toShortString(), isObsolete() ? " (Obsolete)" : "");
-    }
-
-    return s;
+    return String.format("Android SDK Build-tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
   }
 
   /**
@@ -145,50 +115,14 @@ public class BuildToolPackage extends FullRevisionPackage {
     return folder;
   }
 
-  /**
-   * Check whether 2 platform-tool packages are the same <em>and</em> have the
-   * same preview bit.
-   */
   @Override
-  public boolean sameItemAs(Package pkg) {
-    // Implementation note: here we don't want to care about the preview number
-    // so we ignore the preview when calling sameItemAs(); however we do care
-    // about both packages being either previews or not previews (i.e. the type
-    // must match but the preview number doesn't need to.)
-    // The end result is that a package such as "1.2 rc 4" will be an update for "1.2 rc 3".
-    return sameItemAs(pkg, PreviewComparison.COMPARE_TYPE);
-  }
-
-  @Override
-  public boolean sameItemAs(Package pkg, PreviewComparison comparePreview) {
+  public boolean sameItemAs(LocalPkgInfo pkg, PreviewComparison comparePreview) {
     // Contrary to other package types, build-tools do not "update themselves"
     // so 2 build tools with 2 different revisions are not the same item.
-    if (pkg instanceof BuildToolPackage) {
-      BuildToolPackage rhs = (BuildToolPackage)pkg;
-      return rhs.getRevision().compareTo(getRevision(), comparePreview) == 0;
+    if (pkg instanceof LocalBuildToolPkgInfo) {
+      LocalBuildToolPkgInfo rhs = (LocalBuildToolPkgInfo)pkg;
+      return rhs.getDesc().getFullRevision().compareTo(getRevision(), comparePreview) == 0;
     }
     return false;
   }
-
-  /**
-   * For build-tool package use their revision number like version numbers and
-   * we want them sorted from higher to lower. To do that, insert a fake revision
-   * number using 9999-value into the sorting key.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  protected String comparisonKey() {
-    String s = super.comparisonKey();
-    int pos = s.indexOf("|r:");         //$NON-NLS-1$
-    assert pos > 0;
-
-    FullRevision rev = getRevision();
-    String reverseSort = String.format("|rr:%1$04d.%2$04d.%3$04d.",         //$NON-NLS-1$
-                                       9999 - rev.getMajor(), 9999 - rev.getMinor(), 9999 - rev.getMicro());
-
-    s = s.substring(0, pos) + reverseSort + s.substring(pos);
-    return s;
-  }
-
 }

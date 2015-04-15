@@ -19,7 +19,6 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.SdkRepoConstants;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
 import java.util.Properties;
@@ -44,38 +43,8 @@ class MinToolsMixin implements IMinToolsDependency {
   MinToolsMixin(Node packageNode) {
 
     mMinToolsRevision =
-      PackageParserUtils.parseFullRevisionElement(PackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_TOOLS_REV));
-  }
-
-  /**
-   * Manually create a new mixin with one archive and the given attributes.
-   * This is used to create packages from local directories in which case there must be
-   * one archive which URL is the actual target location.
-   * <p/>
-   * Properties from props are used first when possible, e.g. if props is non null.
-   * <p/>
-   * By design, this creates a package with one and only one archive.
-   */
-  public MinToolsMixin(SdkSource source,
-                       Properties props,
-                       int revision,
-                       String license,
-                       String description,
-                       String descUrl,
-                       String archiveOsPath) {
-
-    String revStr = Package.getProperty(props, PkgProps.MIN_TOOLS_REV, null);
-
-    FullRevision rev = MIN_TOOLS_REV_NOT_SPECIFIED;
-    if (revStr != null) {
-      try {
-        rev = FullRevision.parseRevision(revStr);
-      }
-      catch (NumberFormatException ignore) {
-      }
-    }
-
-    mMinToolsRevision = rev;
+      RemotePackageParserUtils
+        .parsePreciseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_TOOLS_REV));
   }
 
   /**

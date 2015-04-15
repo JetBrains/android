@@ -19,12 +19,12 @@ package com.android.tools.idea.sdk.remote.internal.updater;
 import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.IDescription;
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.IAndroidVersionProvider;
-import com.android.tools.idea.sdk.remote.internal.packages.Package;
-import com.android.tools.idea.sdk.remote.internal.packages.Package.UpdateInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import com.google.common.base.Objects;
 
 /**
  * A {@link PkgItem} represents one main {@link Package} combined with its state
@@ -35,8 +35,8 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
  */
 public class PkgItem implements Comparable<PkgItem> {
   private final PkgState mState;
-  private final Package mMainPkg;
-  private Package mUpdatePkg;
+  private final LocalPkgInfo mMainPkg;
+  private RemotePkgInfo mUpdatePkg;
   private boolean mChecked;
 
   /**
@@ -63,14 +63,14 @@ public class PkgItem implements Comparable<PkgItem> {
    * The main package is final and cannot change since it's what "defines" this PkgItem.
    * The state or update package can change later.
    */
-  public PkgItem(Package mainPkg, PkgState state) {
+  public PkgItem(LocalPkgInfo mainPkg, PkgState state) {
     mMainPkg = mainPkg;
     mState = state;
     assert mMainPkg != null;
   }
 
   public boolean isObsolete() {
-    return mMainPkg.isObsolete();
+    return mMainPkg.getDesc().isObsolete();
   }
 
   public boolean isChecked() {
@@ -81,7 +81,7 @@ public class PkgItem implements Comparable<PkgItem> {
     mChecked = checked;
   }
 
-  public Package getUpdatePkg() {
+  public RemotePkgInfo getUpdatePkg() {
     return mUpdatePkg;
   }
 
@@ -94,18 +94,10 @@ public class PkgItem implements Comparable<PkgItem> {
   }
 
   public FullRevision getRevision() {
-    return mMainPkg.getRevision();
+    return mMainPkg.getDesc().getFullRevision();
   }
 
-  /**
-   * @deprecated Use {@link #getMainPackage()} with the {@link IDescription} interface instead.
-   */
-  @Deprecated
-  public String getDescription() {
-    return mMainPkg.getLongDescription();
-  }
-
-  public Package getMainPackage() {
+  public LocalPkgInfo getMainPackage() {
     return mMainPkg;
   }
 
@@ -113,8 +105,9 @@ public class PkgItem implements Comparable<PkgItem> {
     return mState;
   }
 
+  @Nullable
   public SdkSource getSource() {
-    return mMainPkg.getParentSource();
+    return mUpdatePkg == null ? null : mUpdatePkg.getParentSource();
   }
 
   @Nullable
@@ -122,8 +115,9 @@ public class PkgItem implements Comparable<PkgItem> {
     return mMainPkg instanceof IAndroidVersionProvider ? ((IAndroidVersionProvider)mMainPkg).getAndroidVersion() : null;
   }
 
+  @Nullable
   public Archive[] getArchives() {
-    return mMainPkg.getArchives();
+    return mUpdatePkg == null ? null : mUpdatePkg.getArchives();
   }
 
   @Override
@@ -132,87 +126,18 @@ public class PkgItem implements Comparable<PkgItem> {
   }
 
   /**
-   * Returns true if this package or its updating packages contains
-   * the exact given archive.
-   * Important: This compares object references, not object equality.
-   */
-  public boolean hasArchive(Archive archive) {
-    if (mMainPkg.hasArchive(archive)) {
-      return true;
-    }
-    if (mUpdatePkg != null && mUpdatePkg.hasArchive(archive)) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Returns true if the main package has at least one archive
-   * compatible with the current platform.
-   */
-  public boolean hasCompatibleArchive() {
-    return mMainPkg.hasCompatibleArchive();
-  }
-
-  /**
-   * Checks whether the main packages are of the same type and are
-   * not an update of each other and have the same revision number.
-   */
-  public boolean isSameMainPackageAs(Package pkg) {
-    if (mMainPkg.canBeUpdatedBy(pkg) == UpdateInfo.NOT_UPDATE) {
-      // package revision numbers must match
-      return mMainPkg.getRevision().equals(pkg.getRevision());
-    }
-    return false;
-  }
-
-  /**
-   * Checks whether the update packages are of the same type and are
-   * not an update of each other and have the same revision numbers.
-   */
-  public boolean isSameUpdatePackageAs(Package pkg) {
-    if (mUpdatePkg != null && mUpdatePkg.canBeUpdatedBy(pkg) == UpdateInfo.NOT_UPDATE) {
-      // package revision numbers must match
-      return mUpdatePkg.getRevision().equals(pkg.getRevision());
-    }
-    return false;
-  }
-
-  /**
-   * Checks whether too {@link PkgItem} are the same.
-   * This checks both items have the same state, both main package are similar
-   * and that they have the same updating packages.
-   */
-  public boolean isSameItemAs(PkgItem item) {
-    if (this == item) {
-      return true;
-    }
-    boolean same = this.mState == item.mState;
-    if (same) {
-      same = isSameMainPackageAs(item.getMainPackage());
-    }
-
-    if (same) {
-      // check updating packages are the same
-      Package p1 = this.mUpdatePkg;
-      Package p2 = item.getUpdatePkg();
-      same = (p1 == p2) || (p1 == null && p2 == null) || (p1 != null && p2 != null);
-
-      if (same && p1 != null) {
-        same = p1.canBeUpdatedBy(p2) == UpdateInfo.NOT_UPDATE;
-      }
-    }
-
-    return same;
-  }
-
-  /**
    * Equality is defined as {@link #isSameItemAs(PkgItem)}: state, main package
    * and update package must be the similar.
    */
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof PkgItem) && this.isSameItemAs((PkgItem)obj);
+    if (!(obj instanceof PkgItem)) {
+      return false;
+    }
+    PkgItem other = (PkgItem)obj;
+    return mMainPkg.equals(other.mMainPkg)
+      && Objects.equal(mUpdatePkg, other.mUpdatePkg)
+      && mState.equals(other.mState);
   }
 
   @Override
@@ -234,16 +159,12 @@ public class PkgItem implements Comparable<PkgItem> {
    * <p/>
    * This should only be used for installed packages.
    */
-  public boolean mergeUpdate(Package pkg) {
+  public boolean mergeUpdate(RemotePkgInfo pkg) {
     if (mUpdatePkg == pkg) {
       return true;
     }
-    if (mMainPkg.canBeUpdatedBy(pkg) == UpdateInfo.UPDATE) {
+    if (pkg.canUpdate(mMainPkg) == RemotePkgInfo.UpdateInfo.UPDATE) {
       if (mUpdatePkg == null) {
-        mUpdatePkg = pkg;
-      }
-      else if (mUpdatePkg.canBeUpdatedBy(pkg) == UpdateInfo.UPDATE) {
-        // If we have more than one, keep only the most recent update
         mUpdatePkg = pkg;
       }
       return true;
