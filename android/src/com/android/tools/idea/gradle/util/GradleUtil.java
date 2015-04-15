@@ -40,7 +40,11 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -1258,5 +1262,19 @@ public final class GradleUtil {
       return null;
     }
     return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
+  }
+
+  @Nullable
+  public static DataNode<ProjectData> getCachedProjectData(@NotNull Project project) {
+    ProjectDataManager dataManager = ProjectDataManager.getInstance();
+    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, SYSTEM_ID, getProjectBasePath(project));
+    return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
+  }
+
+  @NotNull
+  private static String getProjectBasePath(@NotNull Project project) {
+    String projectBasePath = toCanonicalPath(project.getBasePath());
+    assert projectBasePath != null;
+    return projectBasePath;
   }
 }

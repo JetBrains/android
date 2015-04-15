@@ -35,6 +35,9 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * Contains Gradle related state necessary for building an IDEA module using Gradle.
  */
 public class IdeaGradleProject implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
