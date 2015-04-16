@@ -27,10 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class ProxyUtil {
   /*
@@ -39,7 +36,7 @@ public final class ProxyUtil {
    * ProxyUtilTest#testSupportedTypes needs to be updated to keep checking the applicability of reproxying to that class.
    */
   @SuppressWarnings("unchecked") private static final Set<Class<?>> SUPPORTED_TYPES =
-    ImmutableSet.of(File.class, Boolean.class, String.class, Integer.class, Collection.class, Map.class, Set.class);
+    ImmutableSet.of(File.class, Boolean.class, String.class, Integer.class, Collection.class, Set.class, List.class, Map.class);
 
   private ProxyUtil() {
   }
@@ -83,7 +80,7 @@ public final class ProxyUtil {
           if (genericClass.isAssignableFrom(ArrayList.class)) {
             newCollection = Lists.newArrayListWithCapacity(collection.size());
           }
-          else if (genericClass.isAssignableFrom(Set.class)) {
+          else if (genericClass.isAssignableFrom(LinkedHashSet.class)) {
             newCollection = Sets.newLinkedHashSet();
           }
           else {
