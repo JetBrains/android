@@ -29,15 +29,12 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * <p>Install Android SDK components for developing apps targeting Lollipop
@@ -65,8 +62,10 @@ public class Platform extends InstallableComponent {
     myIsDefaultPlatform = isDefaultPlatform;
   }
 
-  private static Platform getLatestPlatform(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
-    RemotePkgInfo latest = InstallComponentsPath.findLatest(remotePackages, preview);
+  private static Platform getLatestPlatform(@NotNull ScopedStateStore store,
+                                            Multimap<PkgType, RemotePkgInfo> remotePackages,
+                                            boolean preview) {
+    RemotePkgInfo latest = InstallComponentsPath.findLatestPlatform(remotePackages, preview);
     if (latest != null) {
       AndroidVersion version = latest.getPkgDesc().getAndroidVersion();
       String versionName = SdkVersionInfo.getAndroidName(version.getApiLevel());
@@ -110,7 +109,23 @@ public class Platform extends InstallableComponent {
     MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder platform = PkgDesc.Builder.newPlatform(myVersion, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
     PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(myVersion, unspecifiedRevision);
-    return ImmutableList.of(platform.create(), platformSources.create());
+    PkgDesc.Builder buildTool = PkgDesc.Builder.newBuildTool(findLatestCompatibleBuildTool(remotePackages, myVersion));
+    return ImmutableList.of(platform.create(), platformSources.create(), buildTool.create());
+  }
+
+  private static FullRevision findLatestCompatibleBuildTool(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                                                            AndroidVersion version) {
+    FullRevision revision = null;
+    if (remotePackages != null) {
+      for (RemotePkgInfo remotePkgInfo : remotePackages.get(PkgType.PKG_BUILD_TOOLS)) {
+        FullRevision testRevision = remotePkgInfo.getPkgDesc().getFullRevision();
+        if (testRevision != null &&
+            testRevision.getMajor() == version.getApiLevel() && (revision == null || testRevision.compareTo(revision) > 0)) {
+          revision = testRevision;
+        }
+      }
+    }
+    return revision;
   }
 
   @Override
