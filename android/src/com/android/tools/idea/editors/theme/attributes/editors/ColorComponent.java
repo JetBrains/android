@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,7 +81,7 @@ public class ColorComponent extends JPanel {
 
   public void configure(final EditedStyleItem resValue, final List<Color> color) {
     myNameLabel.setText(resValue.getQualifiedName());
-    myValueLabel.setText(color.isEmpty() ? "" : '#' + ColorUtil.toHex(color.get(0)));
+    myValueLabel.setText(color.isEmpty() ? "" : ResourceHelper.colorToString(color.get(0)));
     myColorChooserButton.configure(resValue, color);
   }
 
