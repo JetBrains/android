@@ -17,12 +17,14 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.intellij.openapi.ui.JBPopupMenu;
+import spantable.CellSpanModel;
 import spantable.CellSpanTable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.Map;
 
 public class ThemeEditorTable extends CellSpanTable {
   private final JBPopupMenu myPopupMenu;
@@ -30,6 +32,7 @@ public class ThemeEditorTable extends CellSpanTable {
   private ActionListener myLastResetActionListener;
   private final JMenuItem myGoToDefinitionItem;
   private final JMenuItem myResetItem;
+  private Map<Class<?>, Integer> myClassHeights;
 
   public ThemeEditorTable() {
     myPopupMenu = new JBPopupMenu();
@@ -43,6 +46,39 @@ public class ThemeEditorTable extends CellSpanTable {
   public JPopupMenu getComponentPopupMenu() {
     final Point point = getMousePosition();
     return point != null ? getPopupMenuAtCell(rowAtPoint(point), columnAtPoint(point)) : null;
+  }
+
+  @Override
+  public void setRowSorter(RowSorter<? extends TableModel> sorter) {
+    super.setRowSorter(sorter);
+    updateRowHeights();
+  }
+
+  public void updateRowHeights() {
+    TableModel rawModel = getModel();
+    if (!(rawModel instanceof CellSpanModel)) {
+      return;
+    }
+
+    CellSpanModel myModel = (CellSpanModel)rawModel;
+
+    setRowHeight(myClassHeights.get(Object.class));
+    for (int row = 0; row < myModel.getRowCount(); row++) {
+      final Class<?> cellClass = myModel.getCellClass(row, 0);
+      final Integer rowHeight = myClassHeights.get(cellClass);
+      if (rowHeight != null) {
+        int viewRow = convertRowIndexToView(row);
+
+        if (viewRow != -1) {
+          setRowHeight(viewRow, rowHeight);
+        }
+      }
+    }
+  }
+
+  public void setClassHeights(Map<Class<?>, Integer> classHeights) {
+    myClassHeights = classHeights;
+    updateRowHeights();
   }
 
   private JPopupMenu getPopupMenuAtCell(final int row, final int column) {
