@@ -32,6 +32,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
         "Theme.Material.Light.NoActionBar",
         "Theme.AppCompat.NoActionBar",
         "Theme.AppCompat.Light.NoActionBar");
+  private static final JSeparator SEPARATOR = new JSeparator(SwingConstants.HORIZONTAL);
 
   public static final Comparator<ThemeEditorStyle> STYLE_COMPARATOR = new Comparator<ThemeEditorStyle>() {
     @Override
@@ -47,6 +48,8 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   private ImmutableList<ThemeEditorStyle> myThemeList;
   private Object mySelectedObject;
+  private int myNumberProjectThemes;
+  private int myNumberSeparators;
 
   public ThemesListModel(@NotNull ThemeResolver themeResolver) {
     this(themeResolver, null);
@@ -66,12 +69,22 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     // alphabetically right below the project themes.
     Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(STYLE_COMPARATOR);
     for (ThemeEditorStyle style : themeResolver.getThemes()) {
-      if (style.isProjectStyle() || THEME_WHITELIST.contains(style.getSimpleName())) {
+      if (style.isProjectStyle()) {
+        myNumberProjectThemes++;
+        temporarySet.add(style);
+      }
+      else if (THEME_WHITELIST.contains(style.getSimpleName())) {
         temporarySet.add(style);
       }
     }
 
     myThemeList = ImmutableList.copyOf(temporarySet);
+    if (myNumberProjectThemes > 0) {
+      myNumberSeparators++;
+    }
+    if (myNumberProjectThemes < myThemeList.size()) {
+      myNumberSeparators++;
+    }
 
     // Set the default selection to the first element.
     if (defaultThemeName != null && themeResolver.getTheme(defaultThemeName) != null) {
@@ -90,14 +103,25 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Override
   public int getSize() {
-    return myThemeList.size() + 1;
+    return myThemeList.size() + myNumberSeparators + 1;
   }
 
   @NotNull
   @Override
   public Object getElementAt(int index) {
-    if (index == myThemeList.size()) {
+    if (index == getSize() - 1) {
       return CREATE_NEW_THEME;
+    }
+    if (index == getSize() - 2) {
+      return SEPARATOR;
+    }
+    if (myNumberProjectThemes > 0) {
+      if (index == myNumberProjectThemes) {
+        return SEPARATOR;
+      }
+      else if (index > myNumberProjectThemes) {
+        return myThemeList.get(index - 1);
+      }
     }
     return myThemeList.get(index);
   }
