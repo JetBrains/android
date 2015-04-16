@@ -160,7 +160,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     "    private Simple(Parcel in) {\n" +
     "        name = in.readString();\n" +
     "        age = in.readInt();\n" +
-    "        manager = Simple.CREATOR.createFromParcel(in);\n" +
+    "        manager = in.readParcelable(Simple.class.getClassLoader());\n" +
     "    }\n" +
     "\n" +
     "    public static final Creator<Simple> CREATOR = new Creator<Simple>() {\n" +
@@ -184,7 +184,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     "    public void writeToParcel(Parcel dest, int flags) {\n" +
     "        dest.writeString(name);\n" +
     "        dest.writeInt(age);\n" +
-    "        manager.writeToParcel(dest, flags);\n" +
+    "        dest.writeParcelable(manager, flags);\n" +
     "    }\n" +
     "}\n";
 
@@ -336,9 +336,8 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     "        myStringArrayList = in.createStringArrayList();\n" +
     "        mySize = in.readSize();\n" +
     "        mySizeF = in.readSizeF();\n" +
-    "        myReference = AllTypes.CREATOR.createFromParcel(in);\n" +
-    "        myReferences = AllTypes.CREATOR.newArray(in.readInt());\n" +
-    "        in.readTypedArray(myReferences, AllTypes.CREATOR);\n" +
+    "        myReference = in.readParcelable(AllTypes.class.getClassLoader());\n" +
+    "        myReferences = in.createTypedArray(AllTypes.CREATOR);\n" +
     "        myReferenceList = in.createTypedArrayList(AllTypes.CREATOR);\n" +
     "        myReferenceArrayList = in.createTypedArrayList(AllTypes.CREATOR);\n" +
     "        myBundle = in.readBundle();\n" +
@@ -370,8 +369,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     "        dest.writeStringList(myStringArrayList);\n" +
     "        dest.writeSize(mySize);\n" +
     "        dest.writeSizeF(mySizeF);\n" +
-    "        myReference.writeToParcel(dest, flags);\n" +
-    "        dest.writeInt(myReferences == null ? 0 : myReferences.length);\n" +
+    "        dest.writeParcelable(myReference, flags);\n" +
     "        dest.writeTypedArray(myReferences, flags);\n" +
     "        dest.writeTypedList(myReferenceList);\n" +
     "        dest.writeTypedList(myReferenceArrayList);\n" +
@@ -443,17 +441,15 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     "    private static class Simple{}\n" +
     "\n" +
     "    private LongClassNames(android.os.Parcel in) {\n" +
-    "        simple = com.example.Simple.CREATOR.createFromParcel(in);\n" +
-    "        simples = com.example.Simple.CREATOR.newArray(in.readInt());\n" +
-    "        in.readTypedArray(simples, com.example.Simple.CREATOR);\n" +
+    "        simple = in.readParcelable(com.example.Simple.class.getClassLoader());\n" +
+    "        simples = in.createTypedArray(com.example.Simple.CREATOR);\n" +
     "        simpleList = in.createTypedArrayList(com.example.Simple.CREATOR);\n" +
     "        simpleArrayList = in.createTypedArrayList(com.example.Simple.CREATOR);\n" +
     "    }\n" +
     "\n" +
     "    @Override\n" +
     "    public void writeToParcel(android.os.Parcel dest, int flags) {\n" +
-    "        simple.writeToParcel(dest, flags);\n" +
-    "        dest.writeInt(simples == null ? 0 : simples.length);\n" +
+    "        dest.writeParcelable(simple, flags);\n" +
     "        dest.writeTypedArray(simples, flags);\n" +
     "        dest.writeTypedList(simpleList);\n" +
     "        dest.writeTypedList(simpleArrayList);\n" +
@@ -622,14 +618,14 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     "    private Redo(Parcel in) {\n" +
     "        name = in.readString();\n" +
     "        age = in.readInt();\n" +
-    "        manager = Redo.CREATOR.createFromParcel(in);\n" +
+    "        manager = in.readParcelable(Redo.class.getClassLoader());\n" +
     "    }\n" +
     "\n" +
     "    @Override\n" +
     "    public void writeToParcel(Parcel dest, int flags) {\n" +
     "        dest.writeString(name);\n" +
     "        dest.writeInt(age);\n" +
-    "        manager.writeToParcel(dest, flags);\n" +
+    "        dest.writeParcelable(manager, flags);\n" +
     "    }\n" +
     "\n" +
     "    @Override\n" +
