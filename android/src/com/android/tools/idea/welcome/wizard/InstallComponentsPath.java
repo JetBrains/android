@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.*;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -68,6 +69,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull private final File mySdkLocation;
   private SdkComponentsStep mySdkComponentsStep;
   private ComponentTreeNode myComponentTree;
+  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
 
   public InstallComponentsPath(@NotNull ProgressStep progressStep,
                                @NotNull FirstRunWizardMode mode,
@@ -76,18 +78,22 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
+    myRemotePackages = remotePackages;
     myComponentInstaller = new ComponentInstaller(remotePackages);
   }
 
-  private static ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
+  private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
     List<ComponentTreeNode> components = Lists.newArrayList();
     components.add(new AndroidSdk(stateStore));
-    components.add(Platform.createSubtree(stateStore));
+    ComponentTreeNode platforms = Platform.createSubtree(stateStore, myRemotePackages);
+    if (platforms != null) {
+      components.add(platforms);
+    }
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
       components.add(new Haxm(stateStore, KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(stateStore));
+      components.add(new AndroidVirtualDevice(stateStore, myRemotePackages));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
@@ -292,6 +298,28 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     catch (InstallationCancelledException e) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
     }
+  }
+
+  public static RemotePkgInfo findLatest(Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
+    List<RemotePkgInfo> packages = Lists.newArrayList(remotePackages.get(PkgType.PKG_PLATFORM));
+    Collections.sort(packages);
+    Collections.reverse(packages);
+    RemotePkgInfo latest = null;
+    for (RemotePkgInfo pkg : packages) {
+      boolean isPreview = pkg.getPkgDesc().getAndroidVersion().isPreview();
+      if (preview) {
+        if (isPreview) {
+          latest = pkg;
+        }
+        // if it's not a preview, there isn't a preview more recent than the latest non-preview. return null.
+        break;
+      }
+      else if (!isPreview) {
+        latest = pkg;
+        break;
+      }
+    }
+    return latest;
   }
 
   @NotNull
