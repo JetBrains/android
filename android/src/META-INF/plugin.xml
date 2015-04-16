@@ -760,6 +760,9 @@
     <component>
       <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.rendering.AarResourceClassRegistry</implementation-class>
+    </component>
   </project-components>
 
   <extensions defaultExtensionNs="org.jetbrains.android">
