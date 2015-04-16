@@ -326,7 +326,14 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       getOKAction().setEnabled(isValidGoogleCloudSelection());
     }
     else {
-      getOKAction().setEnabled(getSelectedDevices().length > 0);
+      boolean isActionableSelection = false;
+      for (IDevice selectedDevice : getSelectedDevices()) {
+        if (!CloudConfigurationProvider.isCloudDevice(selectedDevice) || selectedDevice.isOnline()) {
+          isActionableSelection = true;
+          break;
+        }
+      }
+      getOKAction().setEnabled(isActionableSelection);
     }
   }
 
