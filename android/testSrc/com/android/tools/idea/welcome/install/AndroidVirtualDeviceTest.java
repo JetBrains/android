@@ -19,15 +19,16 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.repository.IDescription;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.utils.StdLogger;
 import com.google.common.collect.HashMultimap;
@@ -119,19 +120,6 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     SdkManager manager = SdkManager.createManager(myAndroidSdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assertNotNull(manager);
     LocalSdk localSdk = manager.getLocalSdk();
-    Multimap<PkgType, RemotePkgInfo> remotes = HashMultimap.create();
-    remotes.put(PkgType.PKG_PLATFORM, new RemotePkgInfo(
-      PkgDesc.Builder.newPlatform(new AndroidVersion(21, null), new MajorRevision(1), new FullRevision(1)).create(), new IDescription() {
-      @Override
-      public String getShortDescription() {
-        return null;
-      }
-
-      @Override
-      public String getLongDescription() {
-        return null;
-      }
-    }, 0));
     AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), null);
     final AvdInfo avdInfo = avd.createAvd(connection, localSdk);
     assertNotNull(avdInfo);
