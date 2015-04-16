@@ -17,10 +17,8 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,14 +58,49 @@ public class StyleListCellRenderer extends SimpleColoredComponent implements Lis
     String styleName = style.getSimpleName();
     String parentName = parent != null ? parent.getSimpleName() : null;
 
-    if (!isSelected && style.isProjectStyle() && parentName != null && styleName.startsWith(parentName)) {
+    if (!style.isProjectStyle()) {
+      String simplifiedName = simplifyName(styleName);
+      if (StringUtil.isEmpty(simplifiedName)) {
+        append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      }
+      else {
+        append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        append(" ");
+        append("[", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        append(styleName, SimpleTextAttributes.GRAY_ATTRIBUTES);
+        append("]", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      }
+    }
+    else if (!isSelected && parentName != null && styleName.startsWith(parentName + ".")) {
       append(parentName, SimpleTextAttributes.GRAY_ATTRIBUTES);
       append(".", SimpleTextAttributes.GRAY_ATTRIBUTES);
       append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    } else {
+    }
+    else {
       append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
 
     return this;
+  }
+
+  /**
+   * Returns a more user-friendly version of a given themeName.
+   * Aimed at framework themes with names of the form Theme.*.Light.*
+   * or Theme.*.*
+   */
+  @NotNull
+  private static String simplifyName(String themeName) {
+    StringBuilder result = new StringBuilder();
+    String[] pieces = themeName.split("\\.");
+    if (pieces.length > 1) {
+      result.append(pieces[1]);
+      if (pieces.length > 2 && pieces[2].equals("Light")) {
+        result.append(' ').append("Light");
+      }
+      else {
+        result.append(' ').append("Dark");
+      }
+    }
+    return result.toString();
   }
 }
