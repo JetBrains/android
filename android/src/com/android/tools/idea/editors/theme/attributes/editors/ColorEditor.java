@@ -39,12 +39,11 @@ public class ColorEditor extends AbstractTableCellEditor {
   private final ColorComponent myComponent;
   private Object myEditorValue = null;
 
-  public ColorEditor(@NotNull Module module, @NotNull Configuration configuration, @NotNull JTable table) {
+  public ColorEditor(@NotNull Module module, @NotNull Configuration configuration) {
     myModule = module;
     myConfiguration = configuration;
 
-    myComponent = new ColorComponent(table.getBackground());
-    myComponent.setFont(table.getFont());
+    myComponent = new ColorComponent();
     myComponent.addActionListener(new ColorEditorActionListener());
   }
 
@@ -54,6 +53,7 @@ public class ColorEditor extends AbstractTableCellEditor {
       final EditedStyleItem item = (EditedStyleItem) value;
       final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
       myComponent.configure(item, colors);
+      myComponent.setButtonBackground(table.getBackground());
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", value.getClass().getName()));
     }
