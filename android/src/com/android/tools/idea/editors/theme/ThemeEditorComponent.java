@@ -81,7 +81,6 @@ public class ThemeEditorComponent extends Splitter {
   public static final int REGULAR_CELL_PADDING = 4;
   public static final int LARGE_CELL_PADDING = 10;
 
-  private Map<Class<?>, Integer> myRowHeights;
   private Font myHeaderFont;
 
   private StyleResolver myStyleResolver;
@@ -211,6 +210,7 @@ public class ThemeEditorComponent extends Splitter {
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, module, configuration));
     myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myModule, myAttributesTable, renderTask), module, configuration));
+    updateUiParameters();
 
     myAttributesFilter = new StyleAttributesFilter();
 
@@ -236,6 +236,7 @@ public class ThemeEditorComponent extends Splitter {
         myAttributesFilter.setAttributesFilter(myAttributesFilter.ATTRIBUTES_DEFAULT_FILTER);
 
         ((TableRowSorter)myAttributesTable.getRowSorter()).sort();
+        myAttributesTable.updateRowHeights();
       }
     });
 
@@ -534,8 +535,6 @@ public class ThemeEditorComponent extends Splitter {
 
     myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getName());
 
-    // Disabling the filter here is a required workaround until we fix the hack to set the cell height below.
-    myAttributesFilter.setFilterEnabled(false);
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
     myPanel.getPalette().setVisible(myCurrentSubStyle == null);
     myConfiguration.setTheme(selectedTheme.getName());
@@ -570,19 +569,7 @@ public class ThemeEditorComponent extends Splitter {
             reload(model.getThemeNameInXml());
           }
           else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
-            myAttributesTable.setRowHeight(myRowHeights.get(Object.class));
-            for (int row = 0; row < model.getRowCount(); row++) {
-              final Class<?> cellClass = model.getCellClass(row, 0);
-              final Integer rowHeight = myRowHeights.get(cellClass);
-              if (rowHeight != null) {
-                // TODO important colors should be taller then less important colors.
-                int viewRow = myAttributesTable.convertRowIndexToView(row);
-
-                if (viewRow != -1) {
-                  myAttributesTable.setRowHeight(viewRow, rowHeight);
-                }
-              }
-            }
+            myAttributesTable.updateRowHeights();
           }
           else {
             reload(myPreviousSelectedTheme);
@@ -619,6 +606,7 @@ public class ThemeEditorComponent extends Splitter {
     };
 
     myAttributesTable.setModel(model);
+    myAttributesTable.updateRowHeights();
     model.parentAttribute.setGotoDefinitionCallback(listener);
 
     myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(myConfiguration, model));
@@ -721,22 +709,29 @@ public class ThemeEditorComponent extends Splitter {
   @Override
   public void setUI(PanelUI ui) {
     super.setUI(ui);
+    updateUiParameters();
+  }
 
+  private void updateUiParameters() {
     Font regularFont = UIUtil.getLabelFont();
 
     int regularFontSize = getFontMetrics(regularFont).getHeight();
     myHeaderFont = regularFont.deriveFont(regularFontSize * HEADER_FONT_SCALE);
+    if (myAttributesTable == null) {
+      return;
+    }
+
     int headerFontSize = getFontMetrics(myHeaderFont).getHeight();
 
     // Big cells contain two lines of text, and we want some space between them
     // (thus multiplier is 2.8 rather than 2). Also, we need some padding on top and bottom.
     int bigCellSize = (int) Math.floor(2.8f * regularFontSize) + LARGE_CELL_PADDING;
 
-    myRowHeights = ImmutableMap.of(
+    myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
       Color.class, bigCellSize,
       DrawableDomElement.class, bigCellSize,
       TableLabel.class, headerFontSize + LARGE_CELL_PADDING
-    );
+    ));
   }
 }
