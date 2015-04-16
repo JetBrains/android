@@ -1037,12 +1037,18 @@
   </item>
   <item name="android.content.SharedPreferences java.lang.String getString(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="&quot;_,!null-&gt;!null&quot;" />
+    </annotation>
   </item>
   <item name="android.content.SharedPreferences java.lang.String getString(java.lang.String, java.lang.String) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.SharedPreferences java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;)">
     <annotation name="android.support.annotation.Nullable" />
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="&quot;_,!null-&gt;!null&quot;" />
+    </annotation>
   </item>
   <item name="android.content.SharedPreferences java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
