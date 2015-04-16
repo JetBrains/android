@@ -90,6 +90,7 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
     public void actionPerformed(ActionEvent e) {
       String selectedValue = (String)myComboBox.getSelectedItem();
       if (OTHER.equals(selectedValue)) {
+        myComboBox.hidePopup();
         final ThemeSelectionDialog dialog = new ThemeSelectionDialog(myConfiguration);
 
         dialog.show();
