@@ -230,6 +230,10 @@ public class RenderLogger extends LayoutLog {
         return;
       }
 
+      if (checkForIssue164378(throwable)) {
+        return;
+      }
+
       if (throwable instanceof NoSuchMethodError && "java.lang.System.arraycopy([CI[CII)V".equals(message)) {
         addMessage(getProblemForIssue73732(throwable));
         return;
@@ -723,6 +727,33 @@ public class RenderLogger extends LayoutLog {
       }
     }));
     return problem;
+  }
+
+  /**
+   * Check if this is possibly an instance of http://b.android.com/164378. If likely, this adds a message with the recommended workaround.
+   */
+  private boolean checkForIssue164378(@Nullable Throwable throwable) {
+    if (throwable instanceof NoSuchFieldError) {
+      StackTraceElement[] stackTrace = throwable.getStackTrace();
+      if (stackTrace.length >= 1 && stackTrace[0].getClassName().startsWith("android.support")) {
+        RenderProblem.Html problem = RenderProblem.create(ERROR);
+        HtmlBuilder builder = problem.getHtmlBuilder();
+        builder.add("Rendering failed with a known bug. ");
+        if (myModule == null) {
+          // Unlikely, but just in case.
+          builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.");
+          return true;
+        }
+        HtmlLinkManager linkManager = getLinkManager();
+        builder.addLink("Please try a ", "rebuild", ".", linkManager.createCompileModuleUrl());
+        builder.newline().newline();
+        ShowExceptionFix showExceptionFix = new ShowExceptionFix(myModule.getProject(), throwable);
+        builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
+        addMessage(problem);
+        return true;
+      }
+    }
+    return false;
   }
 
   static boolean isLoggingAllErrors() {
