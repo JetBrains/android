@@ -172,7 +172,7 @@ public class ThemeEditorComponent extends Splitter {
       renderTask = service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
     }
 
-    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRenderer(myConfiguration, myAttributesTable)));
+    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRenderer(myConfiguration)));
     myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
     myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myAttributesTable.getDefaultRenderer(String.class)));
@@ -196,9 +196,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myAttributesTable.setDefaultEditor(Color.class,
-                                       new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration, myAttributesTable),
-                                                                module, configuration));
+    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myModule, myConfiguration), module, configuration));
     myAttributesTable.setDefaultEditor(EditedStyleItem.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider), module, configuration));
     myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, myAttributesTable.getDefaultEditor(String.class), module, configuration));
     myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), module, configuration));
