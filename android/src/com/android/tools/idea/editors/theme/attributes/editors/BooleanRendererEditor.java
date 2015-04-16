@@ -98,6 +98,7 @@ public class BooleanRendererEditor extends AbstractTableCellEditor implements Ta
     public void actionPerformed(ActionEvent e) {
       String selectedValue = (String) myComboBox.getSelectedItem();
       if (USE_REFERENCE.equals(selectedValue)) {
+        myComboBox.hidePopup();
         final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, BOOLEAN_TYPE, myEditedItemValue, null);
 
         dialog.show();
