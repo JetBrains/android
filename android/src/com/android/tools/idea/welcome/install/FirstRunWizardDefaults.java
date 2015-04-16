@@ -47,7 +47,6 @@ public class FirstRunWizardDefaults {
     "https://software.intel.com/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x";
   public static final String KVM_LINUX_INSTALL_URL =
     "https://software.intel.com/blogs/2012/03/12/how-to-start-intel-hardware-assisted-virtualization-hypervisor-on-linux-to-speed-up-intel-android-x86-emulator";
-  public static final FullRevision MIN_BUILD_TOOLS_REVSION = new FullRevision(21, 1, 1); // Current for Android Studio 1.0
   public static final JavaSdkVersion MIN_JDK_VERSION = JavaSdkVersion.JDK_1_7;
 
   private FirstRunWizardDefaults() {
