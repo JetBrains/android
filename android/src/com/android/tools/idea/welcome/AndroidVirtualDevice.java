@@ -38,8 +38,8 @@ import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -61,24 +61,24 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
  */
 public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
-  @VisibleForTesting static final String DEVICE_DISPLAY_NAME = "Nexus 5 API 21 x86";
   private static final String ID_DEVICE_NEXUS_5 = "Nexus 5";
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = new IdDisplay("google_apis", "Google APIs");
   private static final IdDisplay ID_VENDOR_GOOGLE = new IdDisplay("google", "Google Inc.");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
   private static final Storage DEFAULT_HEAP_SIZE = new Storage(64, Storage.Unit.MiB);
 
-  private static final Set<String> ENABLED_HARDWARE = ImmutableSet.of(HW_ACCELEROMETER, HW_AUDIO_INPUT, HW_BATTERY, HW_GPS, HW_KEYBOARD,
-                                                                      HW_ORIENTATION_SENSOR, HW_PROXIMITY_SENSOR, HW_SDCARD,
-                                                                      AVD_INI_GPU_EMULATION);
-  private static final Set<String> DISABLED_HARDWARE = ImmutableSet.of(HW_DPAD, HW_MAINKEYS, HW_TRACKBALL,
-                                                                       AVD_INI_SNAPSHOT_PRESENT,
-                                                                       AVD_INI_SKIN_DYNAMIC);
+  private static final Set<String> ENABLED_HARDWARE = ImmutableSet
+    .of(HW_ACCELEROMETER, HW_AUDIO_INPUT, HW_BATTERY, HW_GPS, HW_KEYBOARD, HW_ORIENTATION_SENSOR, HW_PROXIMITY_SENSOR, HW_SDCARD,
+        AVD_INI_GPU_EMULATION);
+  private static final Set<String> DISABLED_HARDWARE =
+    ImmutableSet.of(HW_DPAD, HW_MAINKEYS, HW_TRACKBALL, AVD_INI_SNAPSHOT_PRESENT, AVD_INI_SKIN_DYNAMIC);
   private ProgressStep myProgressStep;
+  private final AndroidVersion myLatestVersion;
 
-  public AndroidVirtualDevice(@NotNull ScopedStateStore store) {
+  public AndroidVirtualDevice(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)");
+    myLatestVersion = InstallComponentsPath.findLatest(remotePackages, false).getDesc().getAndroidVersion();
   }
 
   @NotNull
@@ -92,14 +92,14 @@ public class AndroidVirtualDevice extends InstallableComponent {
     throw new WizardException(String.format("No device definition with \"%s\" ID found", ID_DEVICE_NEXUS_5));
   }
 
-  private static SystemImageDescription getSystemImageDescription(String sdkPath) throws WizardException {
+  private SystemImageDescription getSystemImageDescription(String sdkPath) throws WizardException {
     SdkManager manager = SdkManager.createManager(sdkPath, new LogWrapper(LOG));
     if (manager == null) {
       throw new IllegalStateException();
     }
     LocalSdk sdk = manager.getLocalSdk();
-    String platformHash = AndroidTargetHash
-      .getAddonHashString(ID_VENDOR_GOOGLE.getDisplay(), ID_ADDON_GOOGLE_API_IMG.getDisplay(), InstallComponentsPath.LATEST_ANDROID_VERSION);
+    String platformHash =
+      AndroidTargetHash.getAddonHashString(ID_VENDOR_GOOGLE.getDisplay(), ID_ADDON_GOOGLE_API_IMG.getDisplay(), myLatestVersion);
     IAndroidTarget target = sdk.getTargetFromHashString(platformHash);
     if (target == null) {
       throw new WizardException("Missing platform target SDK component required for an AVD setup");
@@ -113,22 +113,26 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @Nullable
   @VisibleForTesting
-  static AvdInfo createAvd(@NotNull AvdManagerConnection connection, @NotNull LocalSdk sdk) throws WizardException {
+  AvdInfo createAvd(@NotNull AvdManagerConnection connection, @NotNull LocalSdk sdk) throws WizardException {
     Device d = getDevice(sdk);
     File location = sdk.getLocation();
     assert location != null;
     SystemImageDescription systemImageDescription = getSystemImageDescription(location.getAbsolutePath());
+
     String cardSize = AvdEditWizard.toIniString(DEFAULT_INTERNAL_STORAGE, false);
     File hardwareSkinPath = AvdEditWizard.resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription);
-    String internalName = AvdEditWizard.cleanAvdName(connection, DEVICE_DISPLAY_NAME, true);
+    String displayName =
+      String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
+    String internalName = AvdEditWizard.cleanAvdName(connection, displayName, true);
+    Map<String, String> settings = getAvdSettings(internalName, d);
+    settings.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, displayName);
     return connection
       .createOrUpdateAvd(null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath,
-                         getAvdSettings(internalName, d), false);
+                         settings, false);
   }
 
   private static Map<String, String> getAvdSettings(@NotNull String internalName, @NotNull Device device) {
-    ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
-    result.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, DEVICE_DISPLAY_NAME);
+    Map<String, String> result = Maps.newHashMap();
     for (String key : ENABLED_HARDWARE) {
       result.put(key, BOOLEAN_YES);
     }
@@ -151,24 +155,20 @@ public class AndroidVirtualDevice extends InstallableComponent {
     setStorageSizeKey(result, AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true);
     setStorageSizeKey(result, AVD_INI_DATA_PARTITION_SIZE, DEFAULT_INTERNAL_STORAGE, false);
 
-    return result.build();
+    return result;
   }
 
-  private static ImmutableMap.Builder<String, String> setStorageSizeKey(ImmutableMap.Builder<String, String> result,
-                                                                        String key,
-                                                                        Storage size,
-                                                                        boolean convertToMb) {
-    return result.put(key, AvdEditWizard.toIniString(size, convertToMb));
+  private static void setStorageSizeKey(Map<String, String> result, String key, Storage size, boolean convertToMb) {
+    result.put(key, AvdEditWizard.toIniString(size, convertToMb));
   }
 
   @NotNull
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    AndroidVersion lVersion = new AndroidVersion(21, null);
     MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder googleApis = PkgDesc.Builder.newAddon(lVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG);
-    PkgDesc.Builder sysImg =
-      PkgDesc.Builder.newAddonSysImg(lVersion, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM, unspecifiedRevision);
+    PkgDesc.Builder googleApis = PkgDesc.Builder.newAddon(myLatestVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG);
+    PkgDesc.Builder sysImg = PkgDesc.Builder
+      .newAddonSysImg(myLatestVersion, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM, unspecifiedRevision);
     return ImmutableList.of(googleApis.create(), sysImg.create());
   }
 

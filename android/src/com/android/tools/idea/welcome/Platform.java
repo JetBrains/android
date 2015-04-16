@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.devices.Storage;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -28,12 +28,15 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * <p>Install Android SDK components for developing apps targeting Lollipop
@@ -47,26 +50,29 @@ import java.util.Collection;
  * </ol></p>
  */
 public class Platform extends InstallableComponent {
-  private static final long SIZE = 305 * Storage.Unit.MiB.getNumberOfBytes();
   private final AndroidVersion myVersion;
   private final boolean myIsDefaultPlatform;
 
-  public Platform(@NotNull ScopedStateStore store, @NotNull String name, long size, @NotNull String description, AndroidVersion version, boolean isDefaultPlatform) {
+  public Platform(@NotNull ScopedStateStore store,
+                  @NotNull String name,
+                  long size,
+                  @NotNull String description,
+                  AndroidVersion version,
+                  boolean isDefaultPlatform) {
     super(store, name, size, description);
     myVersion = version;
     myIsDefaultPlatform = isDefaultPlatform;
   }
 
-  private static Platform lollipop(@NotNull ScopedStateStore store) {
-    final String NAME = "Lollipop - Android 5.0 (API 21)";
-    final String DESCRIPTION = "Android platform libraries for targeting Android 5.0.1 (Lollipop) platform";
-    return new Platform(store, NAME, SIZE, DESCRIPTION, InstallComponentsPath.LATEST_ANDROID_VERSION, true);
-  }
-
-  private static Platform kitkat(@NotNull ScopedStateStore store) {
-    final String NAME = "KitKat - Android 4.4 (API 19)";
-    final String DESCRIPTION = "Android platform libraries for targeting Android 4.4.2 (KitKat) platform";
-    return new Platform(store, NAME, SIZE, DESCRIPTION, new AndroidVersion(19, null), false);
+  private static Platform getLatestPlatform(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
+    RemotePkgInfo latest = InstallComponentsPath.findLatest(remotePackages, preview);
+    if (latest != null) {
+      AndroidVersion version = latest.getDesc().getAndroidVersion();
+      String versionName = SdkVersionInfo.getAndroidName(version.getApiLevel());
+      final String description = "Android platform libraries for targeting " + versionName + " platform";
+      return new Platform(store, versionName, latest.getDownloadSize(), description, version, !version.isPreview());
+    }
+    return null;
   }
 
   @NotNull
@@ -80,9 +86,21 @@ public class Platform extends InstallableComponent {
     }
   }
 
-  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store) {
-    return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
-                                 kitkat(store), lollipop(store));
+  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
+    ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, false);
+    ComponentTreeNode previewPlatform = getLatestPlatform(store, remotePackages, true);
+    if (previewPlatform != null) {
+      if (latestPlatform != null) {
+        return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
+                                     latestPlatform, previewPlatform);
+      }
+      latestPlatform = previewPlatform;  // in case somehow we have a preview but no non-preview
+    }
+    if (latestPlatform != null) {
+      return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
+                                   latestPlatform);
+    }
+    return null;
   }
 
   @NotNull
