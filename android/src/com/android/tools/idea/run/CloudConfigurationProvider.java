@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -28,6 +29,7 @@ import org.jetbrains.android.run.AndroidRunningState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -74,6 +76,13 @@ public abstract class CloudConfigurationProvider {
 
   public static boolean isEnabled() {
     return CloudTestingConfigurable.getPersistedEnableProperty();
+  }
+
+  @NotNull
+  public abstract Collection<IDevice> getLaunchingCloudDevices();
+
+  public static boolean isCloudDevice(IDevice device) {
+    return device.getName().startsWith("Cloud device:");
   }
 
   @Nullable
