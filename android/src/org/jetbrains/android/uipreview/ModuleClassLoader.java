@@ -86,7 +86,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
       if (!myInsideJarClassLoader) {
         int index = name.lastIndexOf('.');
         if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
-          byte[] data = AarResourceClassRegistry.get().findClassDefinition(name);
+          byte[] data = AarResourceClassRegistry.get(myModule.getProject()).findClassDefinition(name);
           if (data != null) {
             data = convertClass(data);
             if (DEBUG_CLASS_LOADING) {
@@ -313,7 +313,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               parentFile.getPath().contains(EXPLODED_AAR))) {
               AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
               if (appResources != null) {
-                AarResourceClassRegistry.get().addLibrary(appResources, parentFile);
+                AarResourceClassRegistry.get(myModule.getProject()).addLibrary(appResources, parentFile);
               }
             }
           }
