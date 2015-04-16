@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.run.CloudConfigurationProvider;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
@@ -63,14 +64,21 @@ public class DeviceRenderer {
       name = String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
     }
 
-    component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    component.append(name.trim(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
     if (d.getState() != IDevice.DeviceState.ONLINE) {
-      String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
-      component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      if (CloudConfigurationProvider.isCloudDevice(d)) {
+        component.append("Launching a cloud device...", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      }
+      else {
+        String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
+        component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      }
     }
 
-    component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    if (!CloudConfigurationProvider.isCloudDevice(d)) {
+      component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
   }
 
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
