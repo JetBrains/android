@@ -75,6 +75,8 @@ public class ThemePreviewBuilder {
     CHECKBOX("Checkbox", VALUE_HORIZONTAL),
     SWITCH("Switch", VALUE_HORIZONTAL),
     TEXT("TextView", VALUE_VERTICAL),
+    NAVIGATION_BAR("Navigation bar", VALUE_HORIZONTAL),
+    STATUS_BAR("Status bar", VALUE_HORIZONTAL),
     OTHER("Misc", VALUE_VERTICAL),
     CUSTOM("Custom", VALUE_VERTICAL),;
 
@@ -277,6 +279,12 @@ public class ThemePreviewBuilder {
     new ComponentDefinition("Large text", ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceLarge"),
     new ComponentDefinition("Medium text", ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceMedium"),
     new ComponentDefinition("Small text", ComponentGroup.TEXT, TEXT_VIEW).set("textAppearance", "?android:attr/textAppearanceSmall"),
+
+    // Bars
+    new ComponentDefinition("Status bar", ComponentGroup.STATUS_BAR, "com.android.layoutlib.bridge.bars.StatusBar")
+      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
+    new ComponentDefinition("Navigation bar", ComponentGroup.NAVIGATION_BAR, "com.android.layoutlib.bridge.bars.NavigationBar")
+      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
 
     // Misc
     new ComponentDefinition("ProgressBar", ComponentGroup.INDETERMINATE_PROGRESSBAR, PROGRESS_BAR)
