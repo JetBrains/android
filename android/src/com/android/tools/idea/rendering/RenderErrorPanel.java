@@ -1263,7 +1263,7 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private static class HtmlBuilderHelper {
+  public static class HtmlBuilderHelper {
     @Nullable
     private static String getIconPath(String relative) {
       // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
