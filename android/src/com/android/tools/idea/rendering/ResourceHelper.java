@@ -360,6 +360,14 @@ public class ResourceHelper {
   }
 
   /**
+   * Converts a color to hex-string representation, including alpha channel.
+   */
+  public static String colorToString(Color color) {
+    long longColor = ((long)color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
+    return String.format("#%08x", longColor);
+  }
+
+  /**
    * Configurable breadth-first traversal of resources through state-lists
    * (can be configured to traverse either all options or only default one)
    */
