@@ -128,6 +128,9 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Override
   public void setSelectedItem(@Nullable Object anItem) {
+    if (anItem instanceof JSeparator) {
+      return;
+    }
     if (!Objects.equal(mySelectedObject, anItem)) {
       mySelectedObject = anItem;
       fireContentsChanged(this, -1, -1);
