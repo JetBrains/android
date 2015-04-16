@@ -158,7 +158,7 @@ public class GraphicsLayoutRenderer {
     ResourceResolver resourceResolver = configuration.getResourceResolver().createRecorder(resourceLookupChain);
     final SessionParams params =
       new SessionParams(parser, renderingMode, module, hardwareConfig, resourceResolver,
-                        layoutlibCallback, moduleInfo.getTargetSdkVersion().getApiLevel(), moduleInfo.getMinSdkVersion().getApiLevel(),
+                        layoutlibCallback, moduleInfo.getMinSdkVersion().getApiLevel(), moduleInfo.getTargetSdkVersion().getApiLevel(),
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
     params.setAssetRepository(new AssetRepositoryImpl(facet));
@@ -273,7 +273,8 @@ public class GraphicsLayoutRenderer {
 
   public void setSize(int width, int height) {
     Dimension dimen = viewToModel(width, height);
-    myHardwareConfig.setScreenSize(dimen.width, dimen.height);
+    // The minimum render size we allow is 1,1 since 0,0 wouldn't render anything.
+    myHardwareConfig.setScreenSize(Math.max(dimen.width, 1), Math.max(dimen.height, 1));
     myInvalidate = true;
   }
 

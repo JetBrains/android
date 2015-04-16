@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 
+import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
@@ -297,10 +298,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
         mySearchTextField.setText("");
 
-        if (view.getCookie() == null) {
+        Object cookie = view.getCookie();
+        if (cookie instanceof MergeCookie) {
+          cookie = ((MergeCookie)cookie).getCookie();
+        }
+
+        if (!(cookie instanceof Element)) {
           return;
         }
-        NamedNodeMap attributes = ((Element)view.getCookie()).getAttributes();
+
+        NamedNodeMap attributes = ((Element)cookie).getAttributes();
         Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
 
         if (group != null) {
