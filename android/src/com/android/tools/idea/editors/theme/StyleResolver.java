@@ -49,19 +49,10 @@ public class StyleResolver {
   @SuppressWarnings("ConstantNamingConvention") private static final Logger LOG = Logger.getInstance(StyleResolver.class);
 
   private final Cache<String, ThemeEditorStyle> myStylesCache = CacheBuilder.newBuilder().build();
-  private final LocalResourceRepository myResourceResolver;
-  private final Project myProject;
   private final Configuration myConfiguration;
 
   public StyleResolver(@NotNull Configuration configuration) {
     myConfiguration = configuration;
-    myProject = configuration.getModule().getProject();
-
-    myResourceResolver = AppResourceRepository.getAppResources(configuration.getModule(), true);
-    if (myResourceResolver == null) {
-      LOG.error("Unable to get AppResourceRepository.");
-      return;
-    }
 
     IAndroidTarget target = configuration.getTarget();
     if (target == null) {
@@ -116,23 +107,27 @@ public class StyleResolver {
       return myStylesCache.get(qualifiedStyleName, new Callable<ThemeEditorStyle>() {
         @Override
         public ThemeEditorStyle call() throws Exception {
+          LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
+          assert repository != null;
+          Project project = myConfiguration.getModule().getProject();
+
           if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
             ResourceValue value = resolveFrameworkStyle(qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length()));
             if (value == null) {
               throw new ExecutionException("Resource not found for framework style " + qualifiedStyleName, null);
             }
 
-            return new ThemeEditorStyle(StyleResolver.this, myProject, myConfiguration, (StyleResourceValue)value, null);
+            return new ThemeEditorStyle(StyleResolver.this, project, myConfiguration, (StyleResourceValue)value, null);
           }
 
           List<ResourceItem> resources;
           if (qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-            resources = myResourceResolver
-              .getResourceItem(ResourceType.STYLE, qualifiedStyleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length()));
+            resources = repository.getResourceItem(ResourceType.STYLE,
+                                                   qualifiedStyleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length()));
 
           }
           else {
-            resources = myResourceResolver.getResourceItem(ResourceType.STYLE, qualifiedStyleName);
+            resources = repository.getResourceItem(ResourceType.STYLE, qualifiedStyleName);
           }
 
           if (resources == null || resources.isEmpty()) {
@@ -144,8 +139,8 @@ public class StyleResolver {
             throw new ExecutionException("Resource not a style for " + qualifiedStyleName, null);
           }
 
-          XmlTag xmlTag = LocalResourceRepository.getItemTag(myProject, resources.get(0));
-          return new ThemeEditorStyle(StyleResolver.this, myProject, myConfiguration, (StyleResourceValue)value, xmlTag);
+          XmlTag xmlTag = LocalResourceRepository.getItemTag(project, resources.get(0));
+          return new ThemeEditorStyle(StyleResolver.this, project, myConfiguration, (StyleResourceValue)value, xmlTag);
         }
       });
     }
