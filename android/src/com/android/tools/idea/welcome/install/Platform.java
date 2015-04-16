@@ -68,7 +68,7 @@ public class Platform extends InstallableComponent {
   private static Platform getLatestPlatform(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
     RemotePkgInfo latest = InstallComponentsPath.findLatest(remotePackages, preview);
     if (latest != null) {
-      AndroidVersion version = latest.getDesc().getAndroidVersion();
+      AndroidVersion version = latest.getPkgDesc().getAndroidVersion();
       String versionName = SdkVersionInfo.getAndroidName(version.getApiLevel());
       final String description = "Android platform libraries for targeting " + versionName + " platform";
       return new Platform(store, versionName, latest.getDownloadSize(), description, version, !version.isPreview());
