@@ -52,6 +52,7 @@ public class DeviceRendererTest extends TestCase {
     EasyMock.expect(d.getProperty(PROP_BUILD_API_LEVEL)).andStubReturn(apiLevel);
     EasyMock.expect(d.getSerialNumber()).andStubReturn(serial);
     EasyMock.expect(d.getState()).andStubReturn(state);
+    EasyMock.expect(d.getName()).andStubReturn(manufacturer + model);
     EasyMock.replay(d);
     return d;
   }
