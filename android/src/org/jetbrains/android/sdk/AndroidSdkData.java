@@ -25,7 +25,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +36,7 @@ import java.util.concurrent.ConcurrentMap;
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
 import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;
 
@@ -192,12 +190,12 @@ public class AndroidSdkData {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return FileUtil.filesEqual(getLocation(), sdkData.getLocation());
+    return filesEqual(getLocation(), sdkData.getLocation());
   }
 
   @Override
   public int hashCode() {
-    return FileUtil.fileHashCode(getLocation());
+    return fileHashCode(getLocation());
   }
 
   @NotNull
