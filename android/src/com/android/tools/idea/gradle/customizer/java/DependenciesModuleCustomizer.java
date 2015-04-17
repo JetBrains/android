@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
+import com.android.tools.idea.gradle.SimpleIdeaModuleDependency;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -30,7 +31,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import org.gradle.tooling.model.idea.*;
+import org.gradle.tooling.model.idea.IdeaDependency;
+import org.gradle.tooling.model.idea.IdeaDependencyScope;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
 
@@ -54,8 +56,8 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     List<String> unresolved = Lists.newArrayList();
     List<? extends IdeaDependency> dependencies = javaProject.getDependencies();
     for (IdeaDependency dependency : dependencies) {
-      if (dependency instanceof IdeaModuleDependency) {
-        updateModuleDependency(moduleModel, (IdeaModuleDependency)dependency);
+      if (dependency instanceof SimpleIdeaModuleDependency) {
+        updateModuleDependency(moduleModel, (SimpleIdeaModuleDependency)dependency);
         continue;
       }
       if (dependency instanceof IdeaSingleEntryLibraryDependency) {
@@ -109,15 +111,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     return binaryPath != null ? binaryPath.getName() : null;
   }
 
-  private void updateModuleDependency(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaModuleDependency dependency) {
+  private void updateModuleDependency(@NotNull ModifiableRootModel moduleModel, @NotNull SimpleIdeaModuleDependency dependency) {
     DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
-
-    IdeaModule dependencyModule = dependency.getDependencyModule();
-    if (dependencyModule == null || isNullOrEmpty(dependencyModule.getName())) {
-      setupErrors.addMissingName(moduleModel.getModule().getName());
-      return;
-    }
-    String moduleName = dependencyModule.getName();
+    String moduleName = dependency.getModuleName();
     ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module found = null;
     for (Module module : moduleManager.getModules()) {
@@ -189,5 +185,4 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
     return facet;
   }
-
 }

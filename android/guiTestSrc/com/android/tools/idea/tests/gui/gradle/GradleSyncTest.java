@@ -975,6 +975,29 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(libraryTable.getLibraries()).hasSize(1);
   }
 
+  // See https://code.google.com/p/android/issues/detail?id=167378
+  @Test @IdeGuiTest
+  public void testInterJavaModuleDependencies() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    projectFrame.requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
+
+    Module library = projectFrame.getModule("library");
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(library);
+
+    // Verify that the module "library" depends on module "library2"
+    ModuleOrderEntry moduleDependency = null;
+    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
+      if (orderEntry instanceof ModuleOrderEntry) {
+        moduleDependency = (ModuleOrderEntry)orderEntry;
+        break;
+      }
+    }
+
+    assertNotNull(moduleDependency);
+    assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
+  }
+
   @NotNull
   private static String getUnsupportedGradleHome() {
     return getGradleHomeFromSystemProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY, "2.1");
