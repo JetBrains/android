@@ -593,7 +593,6 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
     TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
     sorter.setRowFilter(myAttributesFilter);
-    myAttributesTable.setRowSorter(sorter);
     myPanel.setAdvancedMode(!myAttributesFilter.myIsFilterEnabled);
 
     ActionListener listener = new ActionListener() {
@@ -604,6 +603,7 @@ public class ThemeEditorComponent extends Splitter {
     };
 
     myAttributesTable.setModel(model);
+    myAttributesTable.setRowSorter(sorter);
     myAttributesTable.updateRowHeights();
     model.parentAttribute.setGotoDefinitionCallback(listener);
 
