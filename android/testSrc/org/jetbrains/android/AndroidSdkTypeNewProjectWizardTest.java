@@ -34,7 +34,7 @@ import javax.swing.*;
  * @author Dmitry Avdeev
  *         Date: 12/5/12
  */
-public class AndroidSdkTypeTest extends NewProjectWizardTestCase {
+public class AndroidSdkTypeNewProjectWizardTest extends NewProjectWizardTestCase {
 
   public void testUnsatisfied() throws Exception {
     ProjectSdksModel model = new ProjectSdksModel();

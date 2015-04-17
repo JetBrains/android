@@ -29,6 +29,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,8 +38,10 @@ import java.io.IOException;
 
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static org.jetbrains.android.sdk.AndroidSdkType.validateAndroidSdk;
 
 public final class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
@@ -57,27 +60,31 @@ public final class SdkSync {
       return;
     }
 
-    final File androidHomePath = IdeSdks.getAndroidSdkPath();
+    final File ideAndroidSdkPath = IdeSdks.getAndroidSdkPath();
     final File projectAndroidSdkPath = localProperties.getAndroidSdkPath();
 
-    if (androidHomePath != null) {
+    if (ideAndroidSdkPath != null) {
       if (projectAndroidSdkPath == null) {
         // If we have the IDE default SDK and we don't have a project SDK, update local.properties with default SDK path and exit.
-        setProjectSdk(localProperties, androidHomePath);
+        setProjectSdk(localProperties, ideAndroidSdkPath);
         return;
       }
-      if (!isValidAndroidSdkPath(projectAndroidSdkPath)) {
+      final AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
+      if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
         invokeAndWaitIfNeeded(new Runnable() {
           @Override
           public void run() {
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
+              String error = validationResult.message;
+              if (isEmpty(error)) {
+                error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
+              }
               String format =
-                "The path\n'%1$s'\ndoes not refer to an Android SDK.\n\nAndroid Studio will use its own Android SDK instead:\n'%2$s'\n" +
-                "and will modify the project's local.properties file.";
-              Messages.showErrorDialog(String.format(format, projectAndroidSdkPath, androidHomePath.getPath()), ERROR_DIALOG_TITLE);
+                "%1$s\n\nAndroid Studio will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
+              Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath()), ERROR_DIALOG_TITLE);
             }
-            setProjectSdk(localProperties, androidHomePath);
+            setProjectSdk(localProperties, ideAndroidSdkPath);
           }
         });
         return;
@@ -99,21 +106,21 @@ public final class SdkSync {
       return;
     }
 
-    if (!filesEqual(androidHomePath, projectAndroidSdkPath)) {
+    if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath)) {
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
           // Prompt the user to choose between the SDK in the Studio and the one in local.properties.
-          ChooseSdkPathDialog dialog = new ChooseSdkPathDialog(androidHomePath, projectAndroidSdkPath);
+          ChooseSdkPathDialog dialog = new ChooseSdkPathDialog(ideAndroidSdkPath, projectAndroidSdkPath);
           dialog.show();
           switch (dialog.getExitCode()) {
             case ChooseSdkPathDialog.USE_IDE_SDK_PATH:
-              setProjectSdk(localProperties, androidHomePath);
-              mergeIfNeeded(projectAndroidSdkPath, androidHomePath);
+              setProjectSdk(localProperties, ideAndroidSdkPath);
+              mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
               break;
             case ChooseSdkPathDialog.USE_PROJECT_SDK_PATH:
               setIdeSdk(localProperties, projectAndroidSdkPath);
-              mergeIfNeeded(androidHomePath, projectAndroidSdkPath);
+              mergeIfNeeded(ideAndroidSdkPath, projectAndroidSdkPath);
           }
         }
       });
