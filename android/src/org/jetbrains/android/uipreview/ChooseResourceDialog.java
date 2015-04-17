@@ -34,6 +34,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.ColorPickerListener;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
@@ -103,6 +104,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private final ResourcePanel mySystemPanel;
   private ColorPicker myColorPicker;
 
+  private ResourcePickerListener myResourcePickerListener;
+
   private boolean myAllowCreateResource = true;
   private final Action myNewResourceAction = new AbstractAction("New Resource", AllIcons.General.ComboArrowDown) {
     @Override
@@ -137,6 +140,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   public static ResourceType[] COLOR_TYPES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
 
+  public interface ResourcePickerListener {
+    void resourceChanged(String resource);
+  }
+
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
     super(module.getProject());
     myModule = module;
@@ -160,7 +167,15 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     if (types == COLOR_TYPES) {
       Color color = ResourceHelper.parseColor(value);
-      myColorPicker = new ColorPicker(myDisposable, color, true);
+      myColorPicker = new ColorPicker(myDisposable, color, true, new ColorPickerListener() {
+        @Override
+        public void colorChanged(Color color) {
+          notifyResourcePickerListeners(ResourceHelper.colorToString(color));
+        }
+
+        @Override
+        public void closed(@Nullable Color color) { }
+      });
       myColorPicker.pickARGB();
       myContentPanel.addTab("Color", myColorPicker);
       if (color != null) {
@@ -197,6 +212,16 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     valueChanged(null);
     init();
+  }
+
+  public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
+    myResourcePickerListener = resourcePickerListener;
+  }
+
+  protected void notifyResourcePickerListeners(String resource) {
+    if (myResourcePickerListener != null) {
+      myResourcePickerListener.resourceChanged(resource);
+    }
   }
 
   private ActionPopupMenu createNewResourcePopupMenu() {
@@ -338,8 +363,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       Color color = myColorPicker.getColor();
       setOKActionEnabled(color != null);
       myNewResourceAction.setEnabled(false);
-      myResultResourceName = color == null ? null :
-                             "#" + toHex(color.getAlpha()) + toHex(color.getRed()) + toHex(color.getGreen()) + toHex(color.getBlue());
+      myResultResourceName = ResourceHelper.colorToString(color);
     }
     else {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
@@ -358,11 +382,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
       panel.showPreview(element);
     }
-  }
-
-  private static String toHex(int value) {
-    String hex = Integer.toString(value, 16);
-    return hex.length() == 1 ? "0" + hex : hex;
+    notifyResourcePickerListeners(myResultResourceName);
   }
 
   private class ResourcePanel {
