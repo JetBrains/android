@@ -45,11 +45,13 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
   };
   public static final String CREATE_NEW_THEME = "Create New Theme";
+  public static final String SHOW_ALL_THEMES = "Show all themes";
+  private static final Object[] EXTRA_OPTIONS = {SHOW_ALL_THEMES, SEPARATOR, CREATE_NEW_THEME};
 
   private ImmutableList<ThemeEditorStyle> myThemeList;
   private Object mySelectedObject;
   private int myNumberProjectThemes;
-  private int myNumberSeparators;
+  private int mySizeBeforeExtraOptions;
 
   public ThemesListModel(@NotNull ThemeResolver themeResolver) {
     this(themeResolver, null);
@@ -79,11 +81,9 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
 
     myThemeList = ImmutableList.copyOf(temporarySet);
+    mySizeBeforeExtraOptions = myThemeList.size();
     if (myNumberProjectThemes > 0) {
-      myNumberSeparators++;
-    }
-    if (myNumberProjectThemes < myThemeList.size()) {
-      myNumberSeparators++;
+      mySizeBeforeExtraOptions++;
     }
 
     // Set the default selection to the first element.
@@ -103,17 +103,14 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Override
   public int getSize() {
-    return myThemeList.size() + myNumberSeparators + 1;
+    return mySizeBeforeExtraOptions + EXTRA_OPTIONS.length;
   }
 
   @NotNull
   @Override
   public Object getElementAt(int index) {
-    if (index == getSize() - 1) {
-      return CREATE_NEW_THEME;
-    }
-    if (index == getSize() - 2) {
-      return SEPARATOR;
+    if (index >= mySizeBeforeExtraOptions) {
+      return EXTRA_OPTIONS[index - mySizeBeforeExtraOptions];
     }
     if (myNumberProjectThemes > 0) {
       if (index == myNumberProjectThemes) {
