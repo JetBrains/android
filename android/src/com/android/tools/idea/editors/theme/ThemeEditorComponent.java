@@ -45,7 +45,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -71,7 +70,6 @@ import java.awt.event.ItemListener;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -557,7 +555,7 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getName());
 
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
-    myPanel.getPalette().setVisible(myCurrentSubStyle == null);
+    myPanel.getPaletteScrollPane().setVisible(myCurrentSubStyle == null);
     myConfiguration.setTheme(selectedTheme.getName());
 
     assert myConfiguration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
