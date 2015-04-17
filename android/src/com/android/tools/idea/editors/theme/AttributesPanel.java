@@ -78,6 +78,10 @@ public class AttributesPanel {
     return ThemesListModel.CREATE_NEW_THEME.equals(myThemeCombo.getSelectedItem());
   }
 
+  public boolean isShowAllThemesSelected() {
+    return ThemesListModel.SHOW_ALL_THEMES.equals(myThemeCombo.getSelectedItem());
+  }
+
   public ThemeEditorStyle getSelectedTheme() {
     Object item = myThemeCombo.getSelectedItem();
     if (item != null && !(item instanceof ThemeEditorStyle)) {

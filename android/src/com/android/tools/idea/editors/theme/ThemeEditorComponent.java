@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
 import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
@@ -244,7 +245,13 @@ public class ThemeEditorComponent extends Splitter {
         if (myPanel.isCreateNewThemeSelected()) {
           if (!createNewTheme()) {
             // User clicked "cancel", restore previously selected item in themes combo.
-            myPanel.getThemeCombo().setSelectedItem(mySelectedTheme);
+            myPanel.getThemeCombo().getModel().setSelectedItem(mySelectedTheme);
+          }
+          return;
+        }
+        if (myPanel.isShowAllThemesSelected()) {
+          if (!selectNewTheme()) {
+            myPanel.getThemeCombo().getModel().setSelectedItem(mySelectedTheme);
           }
           return;
         }
@@ -293,6 +300,22 @@ public class ThemeEditorComponent extends Splitter {
     if (newThemeName != null) {
       reload(newThemeName);
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * Launches dialog to choose a theme among all existing ones
+   * @return whether the choice is valid
+   */
+  private boolean selectNewTheme() {
+    ThemeSelectionDialog dialog = new ThemeSelectionDialog(myConfiguration);
+    if (dialog.showAndGet()) {
+      String newThemeName = dialog.getTheme();
+      if (newThemeName != null) {
+        reload(newThemeName);
+        return true;
+      }
     }
     return false;
   }
