@@ -317,12 +317,7 @@ public abstract class GuiTestCase {
       updateGradleVersions(projectPath);
     }
 
-    File androidHomePath = IdeSdks.getAndroidSdkPath();
-    assertNotNull(androidHomePath);
-
-    LocalProperties localProperties = new LocalProperties(projectPath);
-    localProperties.setAndroidSdkPath(androidHomePath);
-    localProperties.save();
+    updateLocalProperties(projectPath);
 
     if (forOpen) {
       File toDotIdea = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
@@ -360,6 +355,15 @@ public abstract class GuiTestCase {
     delete(projectPath);
     copyDir(masterProjectPath, projectPath);
     return projectPath;
+  }
+
+  protected void updateLocalProperties(File projectPath) throws IOException {
+    File androidHomePath = IdeSdks.getAndroidSdkPath();
+    assertNotNull(androidHomePath);
+
+    LocalProperties localProperties = new LocalProperties(projectPath);
+    localProperties.setAndroidSdkPath(androidHomePath);
+    localProperties.save();
   }
 
   @NotNull
