@@ -73,6 +73,14 @@ public class ColorEditor extends AbstractTableCellEditor {
       final ChooseResourceDialog dialog =
         new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null);
 
+      dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
+        @Override
+        public void resourceChanged(String resource) {
+          // TODO(yura): update the theme editor preview
+          System.out.println("Color " + resource);
+        }
+      });
+
       dialog.show();
 
       if (dialog.isOK()) {
