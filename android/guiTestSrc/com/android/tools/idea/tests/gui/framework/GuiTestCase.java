@@ -367,7 +367,7 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  private static File getMasterProjectDirPath(@NotNull String projectDirName) {
+  protected File getMasterProjectDirPath(@NotNull String projectDirName) {
     return new File(getTestProjectsRootDirPath(), projectDirName);
   }
 
