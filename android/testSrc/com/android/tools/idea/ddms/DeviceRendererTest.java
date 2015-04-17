@@ -64,12 +64,11 @@ public class DeviceRendererTest extends TestCase {
     DeviceRenderer.renderDeviceName(d, target);
 
     String name = target.toString();
-    assertTrue(StringUtil.containsIgnoreCase(name, "Nexus 4"));
+    assertTrue(StringUtil.containsIgnoreCase(name, "Nexus 4 Android 4.2 (API 17)"));
     // status should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, IDevice.DeviceState.ONLINE.toString()));
     // serial should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, serial));
-    assertTrue(StringUtil.containsIgnoreCase(name, "API 17"));
   }
 
   public void testDeviceNameRendering2() throws Exception {

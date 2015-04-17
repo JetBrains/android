@@ -46,6 +46,11 @@ public class DeviceRenderer {
   static void renderDeviceName(IDevice d, ColoredTextContainer component, AvdManager avdManager) {
     component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
 
+    if (CloudConfigurationProvider.isCloudDevice(d) && d.getState() != IDevice.DeviceState.ONLINE) {
+      component.append("Launching a cloud device...", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      return;
+    }
+
     String name;
     if (d.isEmulator()) {
       String avdName = d.getAvdName();
@@ -64,21 +69,14 @@ public class DeviceRenderer {
       name = String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
     }
 
-    component.append(name.trim(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
     if (d.getState() != IDevice.DeviceState.ONLINE) {
-      if (CloudConfigurationProvider.isCloudDevice(d)) {
-        component.append("Launching a cloud device...", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      }
-      else {
-        String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
-        component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      }
+      String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
+      component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
     }
 
-    if (!CloudConfigurationProvider.isCloudDevice(d)) {
-      component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
-    }
+    component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
