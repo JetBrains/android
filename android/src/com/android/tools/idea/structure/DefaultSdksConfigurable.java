@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.options.BaseConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -30,15 +29,12 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.Function;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +47,11 @@ import java.io.File;
 import java.util.List;
 
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.sdk.AndroidSdkType.validateAndroidSdk;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
@@ -119,8 +120,13 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose Android SDK Location", new Function<File, Void>() {
       @Override
       public Void fun(File file) {
-        if (!IdeSdks.isValidAndroidSdkPath(file)) {
-          throw new IllegalArgumentException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
+        AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(file, false);
+        if (!validationResult.success) {
+          String msg = validationResult.message;
+          if (isEmpty(msg)) {
+            msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
+          }
+          throw new IllegalArgumentException(msg);
         }
         return null;
       }
@@ -133,11 +139,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
         VirtualFile suggestedDir = null;
         File sdkLocation = getSdkLocation();
         if (sdkLocation.isDirectory()) {
-          suggestedDir = VfsUtil.findFileByIoFile(sdkLocation, false);
+          suggestedDir = findFileByIoFile(sdkLocation, false);
         }
         VirtualFile chosen = FileChooser.chooseFile(descriptor, null, suggestedDir);
         if (chosen != null) {
-          File f = VfsUtilCore.virtualToIoFile(chosen);
+          File f = virtualToIoFile(chosen);
           mySdkLocationTextField.setText(f.getPath());
         }
       }
@@ -162,7 +168,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     VirtualFile suggestedDir = null;
     File jdkLocation = getJdkLocation();
     if (jdkLocation.isDirectory()) {
-      suggestedDir = VfsUtil.findFileByIoFile(jdkLocation, false);
+      suggestedDir = findFileByIoFile(jdkLocation, false);
     }
     VirtualFile chosen = FileChooser.chooseFile(createSingleFolderDescriptor("Choose JDK Location", new Function<File, Void>() {
       @Override
@@ -174,7 +180,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       }
     }), null, suggestedDir);
     if (chosen != null) {
-      File f = VfsUtilCore.virtualToIoFile(chosen);
+      File f = virtualToIoFile(chosen);
       myJdkLocationTextField.setText(f.getPath());
     }
   }
@@ -196,13 +202,13 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       @Override
       public void validateSelectedFiles(VirtualFile[] files) throws Exception {
         for (VirtualFile virtualFile : files) {
-          File file = VfsUtilCore.virtualToIoFile(virtualFile);
+          File file = virtualToIoFile(virtualFile);
           validation.fun(file);
         }
       }
     };
     if (SystemInfo.isMac) {
-      descriptor.putUserData(PathChooserDialog.NATIVE_MAC_CHOOSER_SHOW_HIDDEN_FILES, Boolean.TRUE);
+      descriptor.withShowHiddenFiles(true);
     }
     descriptor.setTitle(title);
     return descriptor;
@@ -250,7 +256,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (!create) {
       return null;
     }
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = tryToChooseAndroidSdk();
     if (sdkData == null) {
       return null;
     }
@@ -271,7 +277,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (sdk != null) {
       String sdkHome = sdk.getHomePath();
       if (sdkHome != null) {
-        return FileUtil.toSystemDependentName(sdkHome);
+        return toSystemDependentName(sdkHome);
       }
     }
     return "";
@@ -299,8 +305,13 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   public boolean validate() throws ConfigurationException {
-    if (!IdeSdks.isValidAndroidSdkPath(getSdkLocation())) {
-      throw new ConfigurationException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
+    AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
+    if (!validationResult.success) {
+      String msg = validationResult.message;
+      if (isEmpty(msg)) {
+        msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
+      }
+      throw new ConfigurationException(msg);
     }
 
     if (!validateAndUpdateJdkPath(getJdkLocation())) {
@@ -313,9 +324,13 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   public List<ProjectConfigurationError> validateState() {
     List<ProjectConfigurationError> errors = Lists.newArrayList();
 
-    if (!IdeSdks.isValidAndroidSdkPath(getSdkLocation())) {
-      ProjectConfigurationError error =
-        new ProjectConfigurationError(CHOOSE_VALID_SDK_DIRECTORY_ERR, mySdkLocationTextField.getTextField());
+    AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
+    if (!validationResult.success) {
+      String msg = validationResult.message;
+      if (isEmpty(msg)) {
+        msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
+      }
+      ProjectConfigurationError error = new ProjectConfigurationError(msg, mySdkLocationTextField.getTextField());
       errors.add(error);
     }
 

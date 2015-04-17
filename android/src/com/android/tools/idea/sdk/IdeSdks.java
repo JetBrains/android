@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,7 +35,6 @@ import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -237,7 +236,7 @@ public final class IdeSdks {
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdkUtils will still use the old SDK until all SDKs are properly deleted.
       AndroidSdkData oldSdkData = getSdkData(path);
-      AndroidSdkUtils.setSdkData(oldSdkData);
+      setSdkData(oldSdkData);
 
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
       List<Sdk> sdksToDelete = Lists.newArrayList();
@@ -272,7 +271,7 @@ public final class IdeSdks {
    * @return {@code true} if the given Android SDK path points to a valid Android SDK.
    */
   public static boolean isValidAndroidSdkPath(@NotNull File path) {
-    return validateAndroidSdk(path.getPath()).getFirst();
+    return validateAndroidSdk(path, false).success;
   }
 
   @NotNull
@@ -342,7 +341,7 @@ public final class IdeSdks {
     List<Pair<Project, LocalProperties>> localPropertiesToUpdate = Lists.newArrayList();
 
     for (Project project : openProjects) {
-      if (!Projects.isGradleProject(project)) {
+      if (!isGradleProject(project)) {
         continue;
       }
       try {
@@ -489,7 +488,7 @@ public final class IdeSdks {
   @NotNull
   private static List<File> getPotentialJdkPaths() {
     JavaSdk javaSdk = JavaSdk.getInstance();
-    final List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
+    List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
     jdkPaths.add(SystemProperties.getJavaHome());
     List<File> virtualFiles = Lists.newArrayListWithCapacity(jdkPaths.size());
     for (String jdkPath : jdkPaths) {
