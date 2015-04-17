@@ -24,7 +24,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HintHint;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -189,7 +188,7 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
       @Override
       protected void processMouseMotionEvent(MouseEvent e) {
         super.processMouseMotionEvent(e);
-        if (!myTooltipHint.isRealPopup()) {
+        if (myTooltipHint != null && !myTooltipHint.isRealPopup()) {
           showTooltip(e);
         }
       }
