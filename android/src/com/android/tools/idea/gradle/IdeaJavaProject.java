@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
@@ -106,15 +104,30 @@ public class IdeaJavaProject implements Serializable {
                          boolean buildable) {
     myModuleName = name;
     myContentRoots = contentRoots;
-    myDependencies = dependencies;
+
+    List<IdeaDependency> filteredDependencies = Lists.newArrayList();
+
     List<IdeaDependency> proxies = Lists.newArrayListWithExpectedSize(dependencies.size());
     for (IdeaDependency dependency : dependencies) {
       // IdeaDependency cannot be serialized/deserialized as it is. This is a workaround.
       // See https://code.google.com/p/android/issues/detail?id=165576
-      IdeaDependency proxy = reproxy(IdeaDependency.class, dependency);
-      proxies.add(proxy);
+      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+        IdeaDependency proxy = reproxy(IdeaDependency.class, dependency);
+        proxies.add(proxy);
+        filteredDependencies.add(dependency);
+      }
+      else if (dependency instanceof IdeaModuleDependency) {
+        SimpleIdeaModuleDependency simpleDependency = SimpleIdeaModuleDependency.copy((IdeaModuleDependency)dependency);
+        if (simpleDependency != null) {
+          IdeaDependency proxy = reproxy(IdeaDependency.class, simpleDependency);
+          proxies.add(proxy);
+          filteredDependencies.add(simpleDependency);
+        }
+      }
     }
     myDependencyProxies = proxies;
+    myDependencies = filteredDependencies;
+
     myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
