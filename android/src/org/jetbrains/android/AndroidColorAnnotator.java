@@ -77,6 +77,8 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * <p>
  * TODO: Use {@link com.android.ide.common.resources.ResourceItemResolver} when possible!
  *
+ * TODO: Add test. Unfortunately, it looks like none of the existing Annotator classes
+ * in IntelliJ have unit tests, so there doesn't appear to be fixture support for this.
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
