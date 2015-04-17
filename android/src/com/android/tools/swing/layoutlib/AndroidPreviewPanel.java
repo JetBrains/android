@@ -70,7 +70,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  private void invalidateGraphicsRenderer() {
+  public void invalidateGraphicsRenderer() {
     if (myGraphicsLayoutRenderer == null) {
       return;
     }

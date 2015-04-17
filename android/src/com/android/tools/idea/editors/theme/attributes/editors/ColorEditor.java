@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.diagnostic.Logger;
@@ -23,6 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,20 +41,26 @@ public class ColorEditor extends AbstractTableCellEditor {
   private final ColorComponent myComponent;
   private Object myEditorValue = null;
 
-  public ColorEditor(@NotNull Module module, @NotNull Configuration configuration) {
+  private final AndroidThemePreviewPanel myPreviewPanel;
+
+  private EditedStyleItem myItem;
+
+  public ColorEditor(@NotNull Module module, @NotNull Configuration configuration, AndroidThemePreviewPanel previewPanel) {
     myModule = module;
     myConfiguration = configuration;
 
     myComponent = new ColorComponent();
     myComponent.addActionListener(new ColorEditorActionListener());
+
+    myPreviewPanel = previewPanel;
   }
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     if (value instanceof EditedStyleItem) {
-      final EditedStyleItem item = (EditedStyleItem) value;
-      final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
-      myComponent.configure(item, colors);
+      myItem = (EditedStyleItem) value;
+      final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), myItem.getItemResourceValue());
+      myComponent.configure(myItem, colors);
       myComponent.setButtonBackground(table.getBackground());
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", value.getClass().getName()));
@@ -73,15 +81,21 @@ public class ColorEditor extends AbstractTableCellEditor {
       final ChooseResourceDialog dialog =
         new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null);
 
+      final String oldValue = myItem.getItemResourceValue().getValue();
+
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
         @Override
-        public void resourceChanged(String resource) {
-          // TODO(yura): update the theme editor preview
-          System.out.println("Color " + resource);
+        public void resourceChanged(@Nullable String resource) {
+          myItem.getItemResourceValue().setValue(resource == null ? oldValue : resource);
+          myPreviewPanel.invalidateGraphicsRenderer();
         }
       });
 
       dialog.show();
+
+      // Dialog has been closed, clean up
+      myItem.getItemResourceValue().setValue(oldValue);
+      myPreviewPanel.invalidateGraphicsRenderer();
 
       if (dialog.isOK()) {
         myEditorValue = dialog.getResourceName();
