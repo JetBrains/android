@@ -360,14 +360,6 @@ public class ResourceHelper {
   }
 
   /**
-   * Converts a color to hex-string representation, including alpha channel.
-   */
-  public static String colorToString(Color color) {
-    long longColor = ((long)color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
-    return String.format("#%08x", longColor);
-  }
-
-  /**
    * Configurable breadth-first traversal of resources through state-lists
    * (can be configured to traverse either all options or only default one)
    */
@@ -615,6 +607,21 @@ public class ResourceHelper {
     }
 
     return null;
+  }
+
+  /**
+   * Converts a color to hex-string representation, including alpha channel.
+   * If alpha is FF then the output is #RRGGBB with no alpha component.
+   */
+  public static String colorToString(Color color) {
+    long longColor = (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
+    if (color.getAlpha() != 0xFF) {
+      longColor |= (long)color.getAlpha() << 24;
+      return String.format("#%08x", longColor);
+    }
+    else {
+      return String.format("#%06x", longColor);
+    }
   }
 
   private static long extend(long nibble) {

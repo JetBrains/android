@@ -116,7 +116,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("#0fff0000", ResourceHelper.colorToString(c));
 
     c = new Color(0x00ff00);
-    assertEquals("#ff00ff00", ResourceHelper.colorToString(c));
+    assertEquals("#00ff00", ResourceHelper.colorToString(c));
 
     c = new Color(0x00000000, true);
     assertEquals("#00000000", ResourceHelper.colorToString(c));
