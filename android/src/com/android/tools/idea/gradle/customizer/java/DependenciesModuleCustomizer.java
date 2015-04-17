@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
+import com.android.tools.idea.gradle.SimpleIdeaModuleDependency;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -32,7 +32,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import org.gradle.tooling.model.idea.*;
+import org.gradle.tooling.model.idea.IdeaDependency;
+import org.gradle.tooling.model.idea.IdeaDependencyScope;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,8 +62,8 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     List<String> unresolved = Lists.newArrayList();
     List<? extends IdeaDependency> dependencies = javaProject.getDependencies();
     for (IdeaDependency dependency : dependencies) {
-      if (dependency instanceof IdeaModuleDependency) {
-        updateDependency(model, (IdeaModuleDependency)dependency, errorsFound);
+      if (dependency instanceof SimpleIdeaModuleDependency) {
+        updateDependency(model, (SimpleIdeaModuleDependency)dependency, errorsFound);
         continue;
       }
       if (dependency instanceof IdeaSingleEntryLibraryDependency) {
@@ -116,16 +118,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   }
 
   private static void updateDependency(@NotNull ModifiableRootModel model,
-                                       @NotNull IdeaModuleDependency dependency,
+                                       @NotNull SimpleIdeaModuleDependency dependency,
                                        @NotNull List<Message> errorsFound) {
-    IdeaModule dependencyModule = dependency.getDependencyModule();
-    if (dependencyModule == null || Strings.isNullOrEmpty(dependencyModule.getName())) {
-      String msg = "Found a module dependency without name: " + dependency;
-      LOG.info(msg);
-      errorsFound.add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
-      return;
-    }
-    String moduleName = dependencyModule.getName();
+    String moduleName = dependency.getModuleName();
     ModuleManager moduleManager = ModuleManager.getInstance(model.getProject());
     Module found = null;
     for (Module module : moduleManager.getModules()) {
@@ -143,9 +138,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     errorsFound.add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
   }
 
-  private void updateDependency(@NotNull ModifiableRootModel model,
-                                @NotNull IdeaSingleEntryLibraryDependency dependency,
-                                @NotNull List<Message> errorsFound) {
+  private static void updateDependency(@NotNull ModifiableRootModel model,
+                                       @NotNull IdeaSingleEntryLibraryDependency dependency,
+                                       @NotNull List<Message> errorsFound) {
     DependencyScope scope = parseScope(dependency.getScope());
     File binaryPath = dependency.getFile();
     if (binaryPath == null) {
