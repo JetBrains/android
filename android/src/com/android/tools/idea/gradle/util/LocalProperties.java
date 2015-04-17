@@ -27,8 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
-import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -93,7 +92,23 @@ public final class LocalProperties {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    String path = getProperty(SDK_DIR_PROPERTY);
+    return getPath(SDK_DIR_PROPERTY);
+  }
+
+  /**
+   * @return the path of the Android NDK specified in this local.properties file; or {@code null} if such property is not specified.
+   */
+  @Nullable
+  public File getAndroidNdkPath() {
+    return getPath(NDK_DIR_PROPERTY);
+  }
+
+  /**
+   * @return the path for the given propery name specified in this local.properties file; or {@code null} if such property is not specified.
+   */
+  @Nullable
+  private File getPath(String property) {
+    String path = getProperty(property);
     if (isNotEmpty(path)) {
       if (!isAbsolute(path)) {
         String canonicalPath = toCanonicalPath(new File(myProjectDirPath, toSystemDependentName(path)).getPath());
@@ -129,6 +144,20 @@ public final class LocalProperties {
   @VisibleForTesting
   void doSetAndroidSdkPath(@NotNull String path) {
     myProperties.setProperty(SDK_DIR_PROPERTY, path);
+  }
+
+  public void setAndroidNdkPath(@NotNull String androidNdkPath) {
+    doSetAndroidNdkPath(toSystemDependentName(androidNdkPath));
+  }
+
+  public void setAndroidNdkPath(@NotNull File androidNdkPath) {
+    doSetAndroidNdkPath(androidNdkPath.getPath());
+  }
+
+  // Sets the path as it is given. When invoked from production code, the path is assumed to be "system dependent".
+  @VisibleForTesting
+  void doSetAndroidNdkPath(@NotNull String path) {
+    myProperties.setProperty(NDK_DIR_PROPERTY, path);
   }
 
   public boolean hasAndroidDirProperty() {
