@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
-import com.google.common.collect.Multimap;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -73,10 +72,6 @@ public final class Projects {
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
-
-  // Key: library name, Values: URLs of files containing the library sources.
-  private static final Key<Multimap<String, String>> LIBRARY_SOURCES = Key.create("project.library.sources");
-
   private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
 
   private Projects() {
@@ -430,15 +425,6 @@ public final class Projects {
       }
     }
     return null;
-  }
-
-  @Nullable
-  public static Multimap<String, String> getLibrarySources(@NotNull Project project) {
-    return project.getUserData(LIBRARY_SOURCES);
-  }
-
-  public static void setLibrarySources(@NotNull Project project, @Nullable Multimap<String, String> librarySources) {
-    project.putUserData(LIBRARY_SOURCES, librarySources);
   }
 
   @Nullable

@@ -301,8 +301,7 @@ public final class GuiTests {
   }
 
   /**
-   * Returns a full path to the user's AOSP source tree (e.g. the directory expected to
-   * contain tools/adt/idea etc including the GUI tests
+   * @return a full path to the user's AOSP source tree (e.g. the directory expected to contain tools/adt/idea etc including the GUI tests.
    */
   @Nullable
   public static File getAospSourceDir() {
