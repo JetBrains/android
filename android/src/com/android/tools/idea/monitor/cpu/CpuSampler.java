@@ -106,7 +106,7 @@ public class CpuSampler extends DeviceSampler {
           kernelPercentUsage = Math.max(Math.min(kernelPercentUsage, 100.0f), 0.0f);
           float userPercentUsage = (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff;
           userPercentUsage = Math.max(Math.min(userPercentUsage, 100.0f), 0.0f);
-          myData.add(System.currentTimeMillis(), type, 0, kernelPercentUsage, userPercentUsage);
+          myData.add(System.currentTimeMillis(), type, kernelPercentUsage, userPercentUsage);
         }
       }
       previousKernelUsage = kernelCpuUsage;
@@ -117,7 +117,7 @@ public class CpuSampler extends DeviceSampler {
       synchronized (myData) {
         if (myData.size() > 0) {
           TimelineData.Sample lastSample = myData.get(myData.size() - 1);
-          myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, 0, lastSample.values[0], lastSample.values[1]);
+          myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, lastSample.values[0], lastSample.values[1]);
         }
       }
     }

@@ -18,36 +18,15 @@ package com.android.tools.idea.monitor.memory;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.TimelineEvent;
-import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.chartlib.TimelineData;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.idea.monitor.DeviceSampler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class MemorySampler extends DeviceSampler implements ClientData.IHprofDumpHandler, AndroidDebugBridge.IClientChangeListener {
-  /**
-   * A sample that marks the beginning of an HPROF request.
-   */
-  public static final int TYPE_HPROF_REQUEST = INHERITED_TYPE_START;
-  /**
-   * A sample flagging that an HPROF dump has been received.
-   */
-  public static final int TYPE_HPROF_RESULT = INHERITED_TYPE_START + 1;
-  private static final Logger LOG = Logger.getInstance(MemorySampler.class);
-  private static int ourLastHprofRequestId = 0;
-  private int myPendingHprofId;
+public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.IClientChangeListener {
   private boolean myRequestPending;
 
   MemorySampler(@NotNull TimelineData data, int sampleFrequencyMs) {
     super(data, sampleFrequencyMs);
-    myPendingHprofId = 0;
-  }
-
-  private static int getNextHprofId() {
-    return ++ourLastHprofRequestId;
   }
 
   @Override
@@ -80,7 +59,7 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
   }
 
   @SuppressWarnings("ConstantConditions")
-  protected void recordSample(int type, int id) {
+  protected void recordSample(int type) {
     float freeMb = 0.0f;
     float allocMb = 0.0f;
     if (myClient != null) {
@@ -94,7 +73,7 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
       type = TYPE_UNREACHABLE;
     }
     // We cannot use the timeStamp in HeapInfo because it's based on the current time of the attached device.
-    myData.add(System.currentTimeMillis(), type, id, allocMb, freeMb);
+    myData.add(System.currentTimeMillis(), type, allocMb, freeMb);
   }
 
   protected void requestSample() {
@@ -108,63 +87,14 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
   protected void sample(boolean forced) throws InterruptedException {
     if (forced) {
       myRequestPending = false;
-      recordSample(TYPE_DATA, 0);
+      recordSample(TYPE_DATA);
     }
     else {
       if (myRequestPending) {
-        recordSample(TYPE_TIMEOUT, 0);
+        recordSample(TYPE_TIMEOUT);
       }
       requestSample();
       myRequestPending = true;
-    }
-  }
-
-  @Override
-  public void onSuccess(String remoteFilePath, Client client) {
-    LOG.warn("Unexpected HPROF dump in remote file path.");
-  }
-
-  @Override
-  public void onSuccess(final byte[] data, final Client client) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (myPendingHprofId == 0) {
-          // We are not waiting for any dumps. We ignore it.
-          return;
-        }
-        recordSample(TYPE_HPROF_RESULT, myPendingHprofId);
-        myPendingHprofId = 0;
-        for (TimelineEventListener listener : myListeners) {
-          listener.onEvent(new HprofDumpCompletedEvent(data));
-        }
-      }
-    });
-  }
-
-  @Override
-  public void onEndFailure(Client client, String message) {
-    LOG.error("Error getting the HPROF dump.");
-  }
-
-  public boolean canRequestHeapDump() {
-    return myPendingHprofId == 0;
-  }
-
-  @SuppressWarnings("ConstantConditions")
-  public void requestHeapDump() {
-    if (myClient != null) {
-      ClientData.setHprofDumpHandler(this);
-      myClient.dumpHprof();
-      myPendingHprofId = getNextHprofId();
-      recordSample(TYPE_HPROF_REQUEST, myPendingHprofId);
-    }
-  }
-
-  @SuppressWarnings("ConstantConditions")
-  public void requestGc() {
-    if (myClient != null) {
-      myClient.executeGarbageCollector();
     }
   }
 
@@ -174,20 +104,6 @@ public class MemorySampler extends DeviceSampler implements ClientData.IHprofDum
       if ((changeMask & Client.CHANGE_HEAP_DATA) != 0) {
         forceSample();
       }
-    }
-  }
-
-  public static class HprofDumpCompletedEvent implements TimelineEvent {
-    private byte[] myData;
-
-    private HprofDumpCompletedEvent(@NotNull byte[] data) {
-      myData = data;
-    }
-
-    @Nullable
-    @Override
-    public byte[] getData() {
-      return myData;
     }
   }
 }
