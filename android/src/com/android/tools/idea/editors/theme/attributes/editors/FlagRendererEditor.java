@@ -206,7 +206,6 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
           if (mySelectedFlags.contains(flagName)) {
             flag.setSelected(true);
           }
-          flag.addActionListener(new CheckBoxListener());
           box.add(flag);
         }
       }
