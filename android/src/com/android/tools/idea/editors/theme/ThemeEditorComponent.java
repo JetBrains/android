@@ -255,6 +255,7 @@ public class ThemeEditorComponent extends Splitter {
           }
           return;
         }
+        mySelectedTheme = myPanel.getSelectedTheme();
         saveCurrentSelectedTheme();
         myCurrentSubStyle = null;
         mySubStyleSourceAttribute = null;
