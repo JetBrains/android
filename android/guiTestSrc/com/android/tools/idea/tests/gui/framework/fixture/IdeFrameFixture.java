@@ -87,6 +87,7 @@ import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecut
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -804,6 +805,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
         return false;
       }
     });
+  }
+
+  @NotNull
+  public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
+    return showPropertiesDialog(robot, libraryName, getProject());
   }
 
   private static class NoOpDisposable implements Disposable {
