@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Supplier;
@@ -33,15 +32,12 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
  * Provides an explanation of changes the wizard will perform.
  */
 public final class InstallSummaryStep extends FirstRunWizardStep {
-  private static final Key<String> KEY_SUMMARY = ScopedStateStore.createKey("wizard.summary", ScopedStateStore.Scope.STEP, String.class);
-
   private final Key<Boolean> myKeyCustomInstall;
   private final Key<String> myKeySdkInstallLocation;
   private final Supplier<? extends Collection<RemotePkgInfo>> myPackagesProvider;
@@ -92,23 +88,19 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   }
 
   @Override
-  public void init() {
-    register(KEY_SUMMARY, mySummaryText, new ComponentBinding<String, JTextPane>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull JTextPane component) {
-        component.setText(StringUtil.notNullize(newValue));
-        component.setCaretPosition(0);
-      }
-    });
+  public void onEnterStep() {
+    super.onEnterStep();
+    generateSummary();
   }
 
   @Override
-  public void deriveValues(Set<Key> modified) {
-    super.deriveValues(modified);
+  public void init() {
+  }
 
+  private void generateSummary() {
     Collection<RemotePkgInfo> remotePackages = myPackagesProvider.get();
     StringBuilder builder = new StringBuilder("<html><head>");
-    builder.append(UIUtil.getCssFontDeclaration(UIUtil.getLabelFont())).append("</head><body>");
+    builder.append(UIUtil.getCssFontDeclaration(UIUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
     Collection<Section> sections = ImmutableList.of(getSetupTypeSection(), getDestinationFolderSection(),
                                                     getDownloadSizeSection(remotePackages), getPackagesSection(remotePackages));
     for (Section section : sections) {
@@ -117,7 +109,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
       }
     }
     builder.append("</body></html>");
-    myState.put(KEY_SUMMARY, builder.toString());
+    mySummaryText.setText(builder.toString());
   }
 
   private Section getDestinationFolderSection() {
