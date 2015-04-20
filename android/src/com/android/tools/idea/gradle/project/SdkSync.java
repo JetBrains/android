@@ -23,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -164,20 +163,16 @@ public final class SdkSync {
 
   private static void mergeIfNeeded(@NotNull final File sourceSdk, @NotNull final File destSdk) {
     if (SdkMerger.hasMergeableContent(sourceSdk, destSdk)) {
-      String msg = "The Android SDK at\n\n%1s\n\nhas packages not in your project's SDK at\n\n%2s\n\n" +
-                   "Would you like to copy into the project SDK?";
-      int result = MessageDialogBuilder.yesNo("Merge SDKs", String.format(msg, sourceSdk.getPath(), destSdk.getPath()))
-        .yesText("Copy")
-        .noText("Do not copy")
-        .show();
+      String msg = String.format("The Android SDK at\n\n%1$s\n\nhas packages not in your project's SDK at\n\n%2$s\n\n" +
+                                 "Would you like to copy into the project SDK?", sourceSdk.getPath(), destSdk.getPath());
+      int result = MessageDialogBuilder.yesNo("Merge SDKs", msg).yesText("Copy").noText("Do not copy").show();
       if (result == Messages.YES) {
-        Task.Backgroundable task = new Task.Backgroundable(null, "Merging Android SDKs") {
+        new Task.Backgroundable(null, "Merging Android SDKs", false) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
             SdkMerger.mergeSdks(sourceSdk, destSdk, indicator);
           }
-        };
-        ProgressManager.getInstance().run(task);
+        }.queue();
       }
     }
   }
