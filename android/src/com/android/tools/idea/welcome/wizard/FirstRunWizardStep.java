@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.wizard.DynamicWizardStep;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.intellij.util.IJSwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
   @NotNull private final String myName;
   @Nullable private final String myDescription;
   private JComponent myComponent;
+  private boolean myComponentUpdated;
 
   public FirstRunWizardStep(@Nullable String name) {
     this(name == null ? SETUP_WIZARD : name, null);
@@ -40,6 +42,18 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
   public FirstRunWizardStep(@NotNull String name, @Nullable String description) {
     myName = name;
     myDescription = description;
+  }
+
+  @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    if (!myComponentUpdated) {
+      // Update the UI after a potential color theme change.
+      // If this is missing and a user selects the darcula color theme, the colors
+      // in all subsequent pages will be wrong (a mix of darcula and default).
+      IJSwingUtilities.updateComponentTreeUI(myComponent);
+      myComponentUpdated = true;
+    }
   }
 
   @NotNull
