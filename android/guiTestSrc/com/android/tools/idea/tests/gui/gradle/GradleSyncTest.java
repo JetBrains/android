@@ -606,7 +606,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest @Ignore
+  @Test @IdeGuiTest
   public void testCreateWrapperWhenLocalDistributionPathIsNotSet() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
@@ -621,7 +621,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest @Ignore
+  @Test @IdeGuiTest
   public void testCreateWrapperWhenLocalDistributionPathDoesNotExist() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
