@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.IdeTooltipManager;
@@ -88,7 +89,7 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
     myItem = (EditedStyleItem)value;
     final Component component;
     if (column == 0) {
-      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, myItem.getQualifiedName(), isSelected, hasFocus, row, column);
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(myItem), isSelected, hasFocus, row, column);
     } else {
       myLabel.setText(myItem.getValue());
       component = myLabel;
