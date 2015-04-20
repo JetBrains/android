@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -104,9 +105,20 @@ final class PreSyncChecks {
       else {
         File gradleHomePath = new File(toSystemDependentName(gradleHome));
         if (!gradleHomePath.isDirectory()) {
-          String reason = String.format("The path\n'%1$s'\n, set as a local Gradle distribution, does not belong to an existing directory",
+          String reason = String.format("The path\n'%1$s'\n, set as a local Gradle distribution, does not belong to an existing directory.",
                                         gradleHomePath.getPath());
           msg = createUseWrapperQuestion(reason);
+        }
+        else {
+          FullRevision gradleVersion = getGradleVersion(gradleHomePath);
+          if (gradleVersion == null) {
+            String reason = String.format("The path\n'%1$s'\n, does not belong to a Gradle distribution.", gradleHomePath.getPath());
+            msg = createUseWrapperQuestion(reason);
+          }
+          else if (!isSupportedGradleVersion(gradleVersion)) {
+            String reason = String.format("Gradle version %1$s is not supported.", gradleHomePath.getPath());
+            msg = createUseWrapperQuestion(reason);
+          }
         }
       }
       if (msg != null) {

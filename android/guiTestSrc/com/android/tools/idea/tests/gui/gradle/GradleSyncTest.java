@@ -565,21 +565,22 @@ public class GradleSyncTest extends GuiTestCase {
     message.findHyperlink("Open JDK Settings");
   }
 
-  @Test @IdeGuiTest @Ignore // We don't perform check for Gradle version in the IDE.
+  @Test @IdeGuiTest
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-
-    projectFrame.useLocalGradleDistribution(getUnsupportedGradleHome())
-                .requestProjectSync();
-
-    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog(projectFrame.target).clickCancel();
-
     String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
       fail("Please specify the path of a local, Gradle 2.2.1 distribution using the system property "
            + quote(SUPPORTED_GRADLE_HOME_PROPERTY));
     }
+
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    projectFrame.deleteGradleWrapper()
+                .useLocalGradleDistribution(getUnsupportedGradleHome())
+                .requestProjectSync();
+
+    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
+    findGradleSyncMessageDialog(projectFrame.target).clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome))
