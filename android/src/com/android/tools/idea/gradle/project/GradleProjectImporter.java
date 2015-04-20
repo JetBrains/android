@@ -26,10 +26,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -52,10 +50,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -75,6 +69,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.LibraryAttachments.removeLibrariesAndStoreAttachments;
 import static com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
@@ -300,25 +295,7 @@ public class GradleProjectImporter {
     executeProjectChanges(project, new Runnable() {
       @Override
       public void run() {
-        LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-        LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
-        try {
-          Multimap<String, String> librarySources = ArrayListMultimap.create();
-          for (Library library : model.getLibraries()) {
-            String name = library.getName();
-            if (name != null) {
-              String[] urls = library.getUrls(OrderRootType.SOURCES);
-              for (String url : urls) {
-                librarySources.put(name, url);
-              }
-            }
-            model.removeLibrary(library);
-          }
-          setLibrarySources(project, librarySources);
-        }
-        finally {
-          model.commit();
-        }
+        removeLibrariesAndStoreAttachments(project);
 
         // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
         // failure.
