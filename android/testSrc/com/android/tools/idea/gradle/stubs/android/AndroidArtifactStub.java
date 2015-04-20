@@ -131,6 +131,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override
   @NotNull
+  public File getJavaResourcesFolder() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public DependenciesStub getDependencies() {
     return myDependencies;
   }

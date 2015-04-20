@@ -21,6 +21,12 @@ import org.jetbrains.annotations.NotNull;
 public class JavaCompileOptionsStub implements JavaCompileOptions {
   @Override
   @NotNull
+  public String getEncoding() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public String getSourceCompatibility() {
     return "1.6";
   }
