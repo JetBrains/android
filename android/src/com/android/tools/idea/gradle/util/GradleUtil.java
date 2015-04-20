@@ -45,7 +45,6 @@ import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
@@ -55,9 +54,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.*;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
@@ -103,12 +99,14 @@ import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
@@ -345,7 +343,7 @@ public final class GradleUtil {
       String format = "Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'";
       String basePath = project.getBasePath();
       assert basePath != null;
-      String msg = String.format(format, project.getName(), FileUtil.toSystemDependentName(basePath));
+      String msg = String.format(format, project.getName(), toSystemDependentName(basePath));
       LOG.info(msg);
       return null;
     }
@@ -385,7 +383,7 @@ public final class GradleUtil {
 
   @Nullable
   public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
-    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
+    GradleSettings settings = (GradleSettings)getSettings(project, SYSTEM_ID);
 
     GradleSettings.MyState state = settings.getState();
     assert state != null;
@@ -483,7 +481,7 @@ public final class GradleUtil {
       String enteredPath = chooseGradleHomeDialog.getEnteredGradleHomePath();
       File gradleHomePath = new File(enteredPath);
       if (isValidGradleHome(gradleHomePath)) {
-        chooseGradleHomeDialog.storeLastUsedGradleHome();
+        chooseGradleHomeDialog.storeLastUsedGradleHomePath();
         return gradleHomePath;
       }
     }
@@ -689,7 +687,7 @@ public final class GradleUtil {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
       String version = matcher.group(2);
       try {
-        return FullRevision.parseRevision(removeTimestampFromGradleVersion(version));
+        return PreciseRevision.parseRevision(removeTimestampFromGradleVersion(version));
       }
       catch (NumberFormatException e) {
         LOG.warn(String.format("Unable to parse version '%1$s' (obtained from file '%2$s')", version, fileName));
@@ -782,13 +780,13 @@ public final class GradleUtil {
       return null;
     }
     final Ref<FullRevision> modelVersionRef = new Ref<FullRevision>();
-    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile virtualFile) {
         if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
           File fileToCheck = virtualToIoFile(virtualFile);
           try {
-            String contents = FileUtil.loadFile(fileToCheck);
+            String contents = loadFile(fileToCheck);
             FullRevision version = getResolvedAndroidGradleModelVersion(contents, project);
             if (version != null) {
               modelVersionRef.set(version);
@@ -901,7 +899,7 @@ public final class GradleUtil {
     while (lexer.getTokenType() != null) {
       IElementType type = lexer.getTokenType();
       if (type == GroovyTokenTypes.mSTRING_LITERAL) {
-        String text = StringUtil.unquoteString(lexer.getTokenText());
+        String text = unquoteString(lexer.getTokenText());
         if (text.startsWith(textToSearchPrefix)) {
           return consumer.fun(Pair.create(text, lexer));
         }
@@ -967,7 +965,7 @@ public final class GradleUtil {
     while (lexer.getTokenType() != null) {
       IElementType type = lexer.getTokenType();
       if (type == GroovyTokenTypes.mSTRING_LITERAL) {
-        String text = StringUtil.unquoteString(lexer.getTokenText());
+        String text = unquoteString(lexer.getTokenText());
         if (text.startsWith(pluginName)) {
           return consumer.fun(Pair.create(text, lexer));
         }
