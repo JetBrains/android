@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -30,6 +32,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,4 +174,33 @@ public class ThemeEditorUtils {
     return attrDefByName.getFormats().contains(want);
   }
 
+  public static boolean createColor(@NotNull final Module module, @NotNull final String colorName, @NotNull final String colorValue) {
+    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.COLOR);
+    if (fileName == null) {
+      return false;
+    }
+    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
+
+    return AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, colorValue);
+  }
+
+  public static boolean changeColor(@NotNull final Module module, @NotNull final String colorName, @NotNull final String colorValue) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return false;
+    }
+
+    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.COLOR);
+    if (fileName == null) {
+      return false;
+    }
+    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
+
+    try {
+      return AndroidResourceUtil.changeColorResource(facet, colorName, colorValue, fileName, dirNames);
+    }
+    catch (Exception e) {
+      return false;
+    }
+  }
 }
