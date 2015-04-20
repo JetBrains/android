@@ -589,11 +589,13 @@ public class ThemeEditorComponent extends Splitter {
           if (e.getLastRow() == 0) { // Indicates a change in the theme name
             reload(model.getThemeNameInXml());
           }
-          else if (e.getLastRow() == TableModelEvent.HEADER_ROW) {
+          else if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
             myAttributesTable.updateRowHeights();
           }
-          else {
-            reload(myPreviousSelectedTheme);
+          else { // Indicates a change of any attribute
+            ThemeEditorStyle selectedTheme = getSelectedTheme();
+            ThemeEditorStyle currentSubStyle = getCurrentSubStyle();
+            reload((selectedTheme == null) ? null : selectedTheme.getName(), (currentSubStyle == null) ? null : currentSubStyle.getName());
           }
         }
 
