@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +31,25 @@ import java.awt.*;
 /**
  * A {@link ListCellRenderer} to render {@link com.android.tools.idea.editors.theme.ThemeEditorStyle} elements.
  */
-public class StyleListCellRenderer extends SimpleColoredComponent implements ListCellRenderer {
+public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
+  private final AndroidFacet myFacet;
+  private final SimpleColoredComponent myStyleNameLabel = new SimpleColoredComponent();
+  private final SimpleColoredComponent myDefaultLabel = new SimpleColoredComponent();
+
+  public StyleListCellRenderer(AndroidFacet facet) {
+    myFacet = facet;
+
+    setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+
+    myStyleNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    myDefaultLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    myDefaultLabel.append("DEFAULT", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    myDefaultLabel.setTextAlign(SwingConstants.RIGHT);
+
+    add(myStyleNameLabel);
+    add(Box.createHorizontalGlue());
+    add(myDefaultLabel);
+  }
 
   @Override
   @Nullable
@@ -36,17 +57,22 @@ public class StyleListCellRenderer extends SimpleColoredComponent implements Lis
     if (value instanceof JSeparator) {
       return (JSeparator)value;
     }
-    clear();
+
     if (isSelected) {
       setBackground(list.getSelectionBackground());
-      setForeground(list.getSelectionForeground());
+      myStyleNameLabel.setForeground(list.getSelectionForeground());
+      myDefaultLabel.setForeground(list.getSelectionForeground());
     } else {
       setBackground(list.getBackground());
-      setForeground(list.getForeground());
+      myStyleNameLabel.setForeground(list.getForeground());
+      myDefaultLabel.setForeground(list.getForeground());
     }
 
+    myStyleNameLabel.clear();
+
     if (value instanceof String) {
-      append((String)value);
+      myStyleNameLabel.append((String)value);
+      myDefaultLabel.setVisible(false);
       return this;
     }
     if (!(value instanceof ThemeEditorStyle)) {
@@ -58,27 +84,34 @@ public class StyleListCellRenderer extends SimpleColoredComponent implements Lis
     String styleName = style.getSimpleName();
     String parentName = parent != null ? parent.getSimpleName() : null;
 
+    String defaultAppTheme = null;
+    if (myFacet != null) {
+      Manifest manifest = myFacet.getManifest();
+      if (manifest != null) {
+        defaultAppTheme = manifest.getApplication()
+          .getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
+      }
+    }
+
     if (!style.isProjectStyle()) {
       String simplifiedName = simplifyName(styleName);
       if (StringUtil.isEmpty(simplifiedName)) {
-        append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
       }
       else {
-        append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        append(" ");
-        append("[", SimpleTextAttributes.GRAY_ATTRIBUTES);
-        append(styleName, SimpleTextAttributes.GRAY_ATTRIBUTES);
-        append("]", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        myStyleNameLabel.append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        myStyleNameLabel.append(" [" + styleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES);
       }
     }
     else if (!isSelected && parentName != null && styleName.startsWith(parentName + ".")) {
-      append(parentName, SimpleTextAttributes.GRAY_ATTRIBUTES);
-      append(".", SimpleTextAttributes.GRAY_ATTRIBUTES);
-      append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      myStyleNameLabel.append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      myStyleNameLabel.append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
     else {
-      append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
+
+    myDefaultLabel.setVisible(style.getName().equals(defaultAppTheme));
 
     return this;
   }
