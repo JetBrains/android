@@ -194,7 +194,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   @Override
   public int getRowCount() {
-    return myAttributes.size() + myLabels.size() + 1;
+    return myAttributes.size() + myLabels.size() + mySpecialRows.size();
   }
 
   @Override
