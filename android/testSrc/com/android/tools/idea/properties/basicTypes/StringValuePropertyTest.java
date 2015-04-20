@@ -44,6 +44,13 @@ public final class StringValuePropertyTest {
   }
 
   @Test
+  public void testClearValue() {
+    StringValueProperty stringValue = new StringValueProperty("Dummy text");
+    stringValue.clear();
+    assertThat(stringValue.get()).isEqualTo("");
+  }
+
+  @Test
   public void testInvalidationListenerFiredOnValueChange() {
     StringValueProperty stringValue = new StringValueProperty();
     CountListener listener = new CountListener();
