@@ -82,6 +82,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -998,6 +999,36 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
   }
 
+  // See https://code.google.com/p/android/issues/detail?id=73087
+  @Test @IdeGuiTest
+  public void testUserDefinedLibraryAttachments() throws IOException {
+    String javadocJarPathProperty = "guava.javadoc.jar.path";
+    String javadocJarPath = System.getProperty(javadocJarPathProperty);
+    if (isEmpty(javadocJarPath)) {
+      fail("Please specify the path of the Javadoc jar file for Guava, using the system property " + quote(javadocJarPathProperty));
+    }
+    File attachmentPath = new File(javadocJarPath);
+    assertThat(attachmentPath).isFile();
+
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    LibraryPropertiesDialogFixture propertiesDialog = projectFrame.showPropertiesForLibrary("guava");
+    propertiesDialog.addAttachment(attachmentPath)
+                    .clickOk();
+
+    String javadocJarUrl = pathToUrl(javadocJarPath);
+
+    // Verify that the library has the Javadoc attachment we just added.
+    LibraryFixture library = propertiesDialog.getLibrary();
+    library.requireJavadocUrls(javadocJarUrl);
+
+    projectFrame.requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
+
+    // Verify that the library still has the Javadoc attachment after sync.
+    library = propertiesDialog.getLibrary();
+    library.requireJavadocUrls(javadocJarUrl);
+  }
+
   @NotNull
   private static String getUnsupportedGradleHome() {
     return getGradleHomeFromSystemProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY, "2.1");
@@ -1007,7 +1038,7 @@ public class GradleSyncTest extends GuiTestCase {
   private static String getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
     String gradleHome = System.getProperty(propertyName);
     if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a Gradle " + gradleVersion + " distribution using the system property " + quote(propertyName));
+      fail("Please specify the path of a Gradle " + gradleVersion + " distribution, using the system property " + quote(propertyName));
     }
     assertThat(new File(gradleHome)).isDirectory();
     return gradleHome;

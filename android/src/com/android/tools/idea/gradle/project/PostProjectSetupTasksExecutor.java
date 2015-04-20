@@ -48,7 +48,6 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -61,7 +60,6 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -84,6 +82,7 @@ import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
@@ -93,6 +92,8 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.util.ArrayUtil.toStringArray;
@@ -266,58 +267,52 @@ public class PostProjectSetupTasksExecutor {
   // not found in editors. Removing and adding the libraries effectively refreshes the contents of the IDEA SDK, and references in editors
   // work again.
   private static void refreshLibrariesIn(@NotNull Sdk sdk) {
-    VirtualFile[] libraries = sdk.getRootProvider().getFiles(OrderRootType.CLASSES);
+    VirtualFile[] libraries = sdk.getRootProvider().getFiles(CLASSES);
 
     SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.removeRoots(OrderRootType.CLASSES);
+    sdkModificator.removeRoots(CLASSES);
     sdkModificator.commitChanges();
 
     sdkModificator = sdk.getSdkModificator();
     for (VirtualFile library : libraries) {
-      sdkModificator.addRoot(library, OrderRootType.CLASSES);
+      sdkModificator.addRoot(library, CLASSES);
     }
     sdkModificator.commitChanges();
   }
 
   private void attachSourcesToLibraries() {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
-    Multimap<String, String> librarySources = getLibrarySources(myProject);
+    LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
 
     for (Library library : libraryTable.getLibraries()) {
       Set<String> sourcePaths = Sets.newHashSet();
 
-      for (VirtualFile file : library.getFiles(OrderRootType.SOURCES)) {
+      for (VirtualFile file : library.getFiles(SOURCES)) {
         sourcePaths.add(file.getUrl());
       }
 
       Library.ModifiableModel libraryModel = library.getModifiableModel();
 
-      for (VirtualFile classFile : library.getFiles(OrderRootType.CLASSES)) {
+      // Find the source attachment based on the location of the library jar file.
+      for (VirtualFile classFile : library.getFiles(CLASSES)) {
         VirtualFile sourceJar = findSourceJarForJar(classFile);
         if (sourceJar != null) {
           String url = pathToUrl(sourceJar.getPath());
           if (!sourcePaths.contains(url)) {
-            libraryModel.addRoot(url, OrderRootType.SOURCES);
+            libraryModel.addRoot(url, SOURCES);
             sourcePaths.add(url);
           }
         }
       }
 
-      // If the default path does not exist and we have a user-defined one that exists, we take the user-defined one.
-      if (librarySources != null) {
-        Collection<String> urls = librarySources.get(library.getName());
-        if (urls != null) {
-          for (String url : urls) {
-            if (!sourcePaths.contains(url)) {
-              libraryModel.addRoot(url, OrderRootType.SOURCES);
-              sourcePaths.add(url);
-            }
-          }
-        }
+      if (storedLibraryAttachments != null) {
+        storedLibraryAttachments.addUrlsTo(libraryModel);
       }
       libraryModel.commit();
     }
-    setLibrarySources(myProject, null);
+    if (storedLibraryAttachments != null) {
+      storedLibraryAttachments.removeFromProject();
+    }
   }
 
   @Nullable
@@ -570,7 +565,7 @@ public class PostProjectSetupTasksExecutor {
 
   private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
     if (isAndroidSdk(sdk)) {
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(CLASSES)) {
         // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
         // annotations.jar and res folder.
         if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
@@ -602,7 +597,7 @@ public class PostProjectSetupTasksExecutor {
           needsAnnotationsJar = needsAnnotationsJarInClasspath(target);
         }
       }
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(CLASSES)) {
         // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
         // annotations.jar and res folder.
         if (library.getName().equals(FN_ANNOTATIONS_JAR) && library.exists() && !needsAnnotationsJar) {
