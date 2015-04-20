@@ -181,6 +181,10 @@ public class ResourceNameValidator implements InputValidatorEx {
     }
   }
 
+  public boolean doesResourceExist(@NotNull final String resourceName) {
+    return myExisting != null && myExisting.contains(resourceName);
+  }
+
   /**
    * Creates a new {@link ResourceNameValidator}
    *

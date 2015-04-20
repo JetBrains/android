@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public class ColorEditor extends AbstractTableCellEditor {
   private final Configuration myConfiguration;
 
   private final ColorComponent myComponent;
-  private Object myEditorValue = null;
+  private ColorInfo myEditorValue = null;
 
   private final AndroidThemePreviewPanel myPreviewPanel;
 
@@ -53,6 +54,29 @@ public class ColorEditor extends AbstractTableCellEditor {
     myComponent.addActionListener(new ColorEditorActionListener());
 
     myPreviewPanel = previewPanel;
+  }
+
+  public static class ColorInfo {
+    private final @NotNull String myResourceValue;
+    private final boolean myForceReload;
+
+    @NotNull
+    public String getResourceValue() {
+      return myResourceValue;
+    }
+
+    public boolean isForceReload() {
+      return myForceReload;
+    }
+
+    public ColorInfo(@NotNull String resourceValue, boolean forceReload) {
+      myResourceValue = resourceValue;
+      myForceReload = forceReload;
+    }
+
+    public static ColorInfo of(@NotNull String resourceValue, boolean forceReload) {
+      return new ColorInfo(resourceValue, forceReload);
+    }
   }
 
   @Override
@@ -79,7 +103,7 @@ public class ColorEditor extends AbstractTableCellEditor {
     @Override
     public void actionPerformed(final ActionEvent e) {
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null);
+        new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null, ChooseResourceDialog.ResourceNameVisibility.FORCE);
 
       final String oldValue = myItem.getItemResourceValue().getValue();
 
@@ -97,12 +121,18 @@ public class ColorEditor extends AbstractTableCellEditor {
       myItem.getItemResourceValue().setValue(oldValue);
       myPreviewPanel.invalidateGraphicsRenderer();
 
+      myEditorValue = null;
       if (dialog.isOK()) {
-        myEditorValue = dialog.getResourceName();
-        ColorEditor.this.stopCellEditing();
-      } else {
-        myEditorValue = null;
+        String value = dialog.getResourceName();
+        if (value != null) {
+          myEditorValue = ColorInfo.of(dialog.getResourceName(), dialog.overwriteResource());
+        }
+      }
+
+      if (myEditorValue == null) {
         ColorEditor.this.cancelCellEditing();
+      } else {
+        ColorEditor.this.stopCellEditing();
       }
     }
   }
