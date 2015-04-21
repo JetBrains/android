@@ -24,6 +24,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.*;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
