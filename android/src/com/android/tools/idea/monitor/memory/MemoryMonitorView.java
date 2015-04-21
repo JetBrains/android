@@ -15,38 +15,31 @@
  */
 package com.android.tools.idea.monitor.memory;
 
-import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.chartlib.EventData;
+import com.android.tools.chartlib.TimelineComponent;
+import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;
 import com.android.tools.idea.ddms.actions.ToggleAllocationTrackingAction;
 import com.android.tools.idea.ddms.hprof.DumpHprofAction;
-import com.android.tools.idea.monitor.*;
+import com.android.tools.idea.monitor.BaseMonitorView;
+import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.idea.monitor.memory.actions.MemorySnapshotAction;
 import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
-import com.android.tools.chartlib.TimelineComponent;
-import com.android.tools.chartlib.TimelineData;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.HierarchyListener;
-import java.io.File;
-import java.io.IOException;
 
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
@@ -73,14 +66,15 @@ public class MemoryMonitorView extends BaseMonitorView
     float initialMarker = 2.0f;
 
     TimelineData data = new TimelineData(2, SAMPLES);
-    myTimelineComponent = new TimelineComponent(data, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
+    EventData events = new EventData();
+    myTimelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
 
     myTimelineComponent.configureUnits("MB");
     myTimelineComponent.configureStream(0, "Allocated", new JBColor(0x78abd9, 0x78abd9));
     myTimelineComponent.configureStream(1, "Free", new JBColor(0xbaccdc, 0x51585c));
-    myTimelineComponent
-      .configureEvent(MemorySampler.TYPE_HPROF_REQUEST, MemorySampler.TYPE_HPROF_RESULT, 0, AndroidIcons.Ddms.ScreenCapture,
-                      new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF));
+    //myTimelineComponent
+    //  .configureEvent(MemorySampler.TYPE_HPROF_REQUEST, MemorySampler.TYPE_HPROF_RESULT, 0, AndroidIcons.Ddms.ScreenCapture,
+    //                  new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF));
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
     setComponent(myTimelineComponent);
@@ -99,7 +93,6 @@ public class MemoryMonitorView extends BaseMonitorView
 
     if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
       group.add(new RecordingAction(myMemorySampler));
-      group.add(new MemorySnapshotAction(myMemorySampler));
     }
     group.add(new GcAction(myDeviceContext));
     group.add(new DumpHprofAction(myDeviceContext));
@@ -139,26 +132,6 @@ public class MemoryMonitorView extends BaseMonitorView
 
   @Override
   public void onStop() {
-  }
-
-  @Override
-  public void onEvent(@NotNull TimelineEvent event) {
-    if (event instanceof MemorySampler.HprofDumpCompletedEvent && event.getData() != null) {
-      File f;
-      try {
-        f = FileUtil.createTempFile("ddms", "." + SdkConstants.EXT_HPROF);
-        FileUtil.writeToFile(f, event.getData());
-      }
-      catch (IOException e) {
-        return;
-      }
-      final VirtualFile vf = VfsUtil.findFileByIoFile(f, true);
-      if (vf == null) {
-        return;
-      }
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
-      FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
-    }
   }
 
   @Override
