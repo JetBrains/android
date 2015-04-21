@@ -129,6 +129,12 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   @NotNull
+  public Collection<File> getTestProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public Map<String, Object> getManifestPlaceholders() {
     throw new UnsupportedOperationException();
   }
