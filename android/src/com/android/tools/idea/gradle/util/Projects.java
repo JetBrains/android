@@ -77,6 +77,13 @@ public final class Projects {
   private Projects() {
   }
 
+  @NotNull
+  public static File getBaseDirPath(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    assert basePath != null;
+    return new File(toCanonicalPath(basePath));
+  }
+
   public static void setGradleVersionUsed(@NotNull Project project, @Nullable String gradleVersion) {
     project.putUserData(GRADLE_VERSION, gradleVersion);
   }

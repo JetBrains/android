@@ -20,10 +20,11 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class ProductFlavorContainerStub implements ProductFlavorContainer {
   @NotNull private final ProductFlavorStub myFlavor;
@@ -59,7 +60,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     mySourceProvider.addResourcesDirectory("src/" + flavorName + "/resources");
     mySourceProvider.setManifestFile("src/" + flavorName + "/manifest.xml");
 
-    String nameSuffix = flavorName.equals("main") ? "" : StringUtil.capitalize(flavorName);
+    String nameSuffix = flavorName.equals("main") ? "" : capitalize(flavorName);
 
     myInstrumentationTestSourceProvider.addAidlDirectory("src/instrumentTest" + nameSuffix + "/aidl");
     myInstrumentationTestSourceProvider.addAssetsDirectory("src/instrumentTest" + nameSuffix + "/assets");

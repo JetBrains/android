@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.ui.Messages.getQuestionIcon;
 import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.delete;
@@ -129,9 +130,7 @@ final class PreSyncChecks {
     }
 
     if (createWrapper) {
-      String basePath = project.getBasePath();
-      assert basePath != null;
-      File projectDirPath = new File(basePath);
+      File projectDirPath = getBaseDirPath(project);
 
       // attempt to delete the whole gradle wrapper folder.
       File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);

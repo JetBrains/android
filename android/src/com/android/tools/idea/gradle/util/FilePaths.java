@@ -70,7 +70,7 @@ public final class FilePaths {
    * Converts the given path to an URL. The underlying implementation "cheats": it doesn't encode spaces and it just adds the "file"
    * protocol at the beginning of this path. We use this method when creating URLs for file paths that will be included in a module's
    * content root, because converting a URL back to a path expects the path to be constructed the way this method does. To obtain a real
-   * URL from a file path, use {@link com.android.utils.SdkUtils#fileToUrl(java.io.File)}.
+   * URL from a file path, use {@link com.android.utils.SdkUtils#fileToUrl(File)}.
    *
    * @param path the given path.
    * @return the created URL.

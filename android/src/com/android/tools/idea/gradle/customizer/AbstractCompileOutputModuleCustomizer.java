@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.tools.idea.gradle.util.FilePaths;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -23,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
 public abstract class AbstractCompileOutputModuleCustomizer<T> implements ModuleCustomizer<T> {
   private static final Logger LOG = Logger.getInstance(AbstractCompileOutputModuleCustomizer.class);
@@ -34,9 +35,9 @@ public abstract class AbstractCompileOutputModuleCustomizer<T> implements Module
       return;
     }
     compilerSettings.inheritCompilerOutputPath(false);
-    compilerSettings.setCompilerOutputPath(FilePaths.pathToIdeaUrl(mainDirPath));
+    compilerSettings.setCompilerOutputPath(pathToIdeaUrl(mainDirPath));
     if (testDirPath != null) {
-      compilerSettings.setCompilerOutputPathForTests(FilePaths.pathToIdeaUrl(testDirPath));
+      compilerSettings.setCompilerOutputPathForTests(pathToIdeaUrl(testDirPath));
     }
   }
 }

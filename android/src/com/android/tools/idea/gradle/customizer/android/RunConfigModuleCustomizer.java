@@ -27,11 +27,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfiguration;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 
 /**
  * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
@@ -57,7 +58,7 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidPr
             }
           }
         }
-        AndroidUtils.addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
+        addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
       }
     }
   }

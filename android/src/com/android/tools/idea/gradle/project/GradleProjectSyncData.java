@@ -19,11 +19,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
-import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -39,10 +37,11 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
-import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.sdk.IdeSdks.getAndroidSdkPath;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.google.common.io.Closeables.close;
 import static com.google.common.io.Files.toByteArray;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -122,7 +121,7 @@ public class GradleProjectSyncData implements Serializable {
   private static GradleProjectSyncData doLoadFromDisk(@NotNull Project project) throws IOException, ClassNotFoundException {
     FileInputStream fin = null;
     try {
-      File rootDirPath = new File(toSystemDependentName(getProjectBasePath(project)));
+      File rootDirPath = getBaseDirPath(project);
       File dataFile = getProjectStateFile(project);
       if (!dataFile.exists()) {
         return null;
@@ -135,19 +134,12 @@ public class GradleProjectSyncData implements Serializable {
         return data;
       }
       finally {
-        Closeables.close(ois, false);
+        close(ois, false);
       }
     }
     finally {
-      Closeables.close(fin, false);
+      close(fin, false);
     }
-  }
-
-  @NotNull
-  private static String getProjectBasePath(Project project) {
-    String projectBasePath = toCanonicalPath(project.getBasePath());
-    assert projectBasePath != null;
-    return projectBasePath;
   }
 
   /**
@@ -182,7 +174,7 @@ public class GradleProjectSyncData implements Serializable {
   @VisibleForTesting
   static GradleProjectSyncData createFrom(@NotNull Project project) throws IOException {
     GradleProjectSyncData data = new GradleProjectSyncData();
-    File rootDirPath = new File(getProjectBasePath(project));
+    File rootDirPath = getBaseDirPath(project);
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
@@ -198,11 +190,11 @@ public class GradleProjectSyncData implements Serializable {
       }
 
       if (isGradleProjectModule(module)) {
-        data.addFileChecksum(rootDirPath, GradleUtil.getGradleBuildFile(module));
-        data.addFileChecksum(rootDirPath, GradleUtil.getGradleSettingsFile(rootDirPath));
+        data.addFileChecksum(rootDirPath, getGradleBuildFile(module));
+        data.addFileChecksum(rootDirPath, getGradleSettingsFile(rootDirPath));
         data.addFileChecksum(rootDirPath, new File(rootDirPath, FN_GRADLE_PROPERTIES));
         data.addFileChecksum(rootDirPath, new File(rootDirPath, FN_LOCAL_PROPERTIES));
-        data.addFileChecksum(rootDirPath, GradleUtil.getGradleUserSettingsFile());
+        data.addFileChecksum(rootDirPath, getGradleUserSettingsFile());
       }
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
@@ -271,11 +263,11 @@ public class GradleProjectSyncData implements Serializable {
         oos.writeObject(this);
       }
       finally {
-        Closeables.close(oos, false);
+        close(oos, false);
       }
     }
     finally {
-      Closeables.close(fos, false);
+      close(fos, false);
     }
   }
 
