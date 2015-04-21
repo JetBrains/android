@@ -17,6 +17,7 @@ package com.android.tools.idea.monitor.cpu;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.*;
@@ -56,7 +57,8 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
     float initialMarker = 10.0f;
 
     TimelineData data = new TimelineData(2, SAMPLES);
-    TimelineComponent timelineComponent = new TimelineComponent(data, bufferTimeInSeconds, initialMax, 100, initialMarker);
+    EventData events = new EventData();
+    TimelineComponent timelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, initialMax, 100, initialMarker);
 
     timelineComponent.configureUnits("%");
     timelineComponent.configureStream(0, "Kernel", new JBColor(0xd73f3f, 0xd73f3f));
@@ -111,10 +113,6 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
 
   @Override
   public void onStop() {
-  }
-
-  @Override
-  public void onEvent(@NotNull TimelineEvent event) {
   }
 
   @Override
