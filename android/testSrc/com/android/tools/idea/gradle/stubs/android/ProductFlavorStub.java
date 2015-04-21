@@ -48,6 +48,12 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @Nullable
+  public String getDimension() {
+    return null;
+  }
+
+  @Override
+  @Nullable
   public String getApplicationId() {
     throw new UnsupportedOperationException();
   }
@@ -175,6 +181,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public List<File> getConsumerProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<File> getTestProguardFiles() {
     throw new UnsupportedOperationException();
   }
 }
