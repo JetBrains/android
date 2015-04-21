@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
@@ -31,6 +30,8 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.FilePaths.*;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
@@ -49,7 +50,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
 
     for (RootSourceFolder orphan : orphans) {
       File path = orphan.getPath();
-      ContentEntry contentEntry = ideaModuleModel.addContentEntry(FilePaths.pathToIdeaUrl(path));
+      ContentEntry contentEntry = ideaModuleModel.addContentEntry(pathToIdeaUrl(path));
       addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
   }
@@ -68,7 +69,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
                                  @NotNull JpsModuleSourceRootType type,
                                  boolean generated,
                                  @NotNull List<RootSourceFolder> orphans) {
-    ContentEntry parent = FilePaths.findParentContentEntry(folderPath, contentEntries);
+    ContentEntry parent = findParentContentEntry(folderPath, contentEntries);
     if (parent == null) {
       orphans.add(new RootSourceFolder(folderPath, type, generated));
       return;
@@ -81,8 +82,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
                                       @NotNull File folderPath,
                                       @NotNull JpsModuleSourceRootType type,
                                       boolean generated) {
-    String url = FilePaths.pathToIdeaUrl(folderPath);
-
+    String url = pathToIdeaUrl(folderPath);
     SourceFolder sourceFolder = contentEntry.addSourceFolder(url, type);
 
     if (generated) {
@@ -95,10 +95,10 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   }
 
   protected boolean addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
-    if (!FilePaths.isPathInContentEntry(dirPath, contentEntry)) {
+    if (!isPathInContentEntry(dirPath, contentEntry)) {
       return false;
     }
-    contentEntry.addExcludeFolder(FilePaths.pathToIdeaUrl(dirPath));
+    contentEntry.addExcludeFolder(pathToIdeaUrl(dirPath));
     return true;
   }
 

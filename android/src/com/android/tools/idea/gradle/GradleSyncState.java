@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,9 +33,6 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.EditorNotifications;
@@ -50,6 +44,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
+
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
@@ -187,7 +190,7 @@ public class GradleSyncState {
             notifications.updateNotifications(file);
           }
           catch (Throwable e) {
-            String filePath = FileUtil.toSystemDependentName(file.getPath());
+            String filePath = toSystemDependentName(file.getPath());
             String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
             LOG.info(msg, e);
           }
@@ -250,9 +253,9 @@ public class GradleSyncState {
     }
 
     FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-    File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
+    File settingsFilePath = new File(getBaseDirPath(myProject), FN_SETTINGS_GRADLE);
     if (settingsFilePath.exists()) {
-      VirtualFile settingsFile = VfsUtil.findFileByIoFile(settingsFilePath, true);
+      VirtualFile settingsFile = findFileByIoFile(settingsFilePath, true);
       if (settingsFile != null && fileDocumentManager.isFileModified(settingsFile)) {
         return true;
       }
@@ -263,13 +266,13 @@ public class GradleSyncState {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+      VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         if (fileDocumentManager.isFileModified(buildFile)) {
           return true;
         }
 
-        File buildFilePath = VfsUtilCore.virtualToIoFile(buildFile);
+        File buildFilePath = virtualToIoFile(buildFile);
         if (buildFilePath.lastModified() > referenceTimeInMillis) {
           return true;
         }
@@ -283,10 +286,10 @@ public class GradleSyncState {
       return;
     }
     try {
-      ExtensionPoint<ConfigurableEP<Configurable>>
-        projectConfigurable = Extensions.getArea(myProject).getExtensionPoint(Configurable.PROJECT_CONFIGURABLE);
+      ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable =
+        Extensions.getArea(myProject).getExtensionPoint(PROJECT_CONFIGURABLE);
 
-      GradleUtil.cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
+      cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
     }
     catch (Throwable e) {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
@@ -328,10 +331,5 @@ public class GradleSyncState {
         }
       }
     }
-  }
-
-  @VisibleForTesting
-  public void resetTimestamp() {
-    setLastGradleSyncTimestamp(-1L);
   }
 }
