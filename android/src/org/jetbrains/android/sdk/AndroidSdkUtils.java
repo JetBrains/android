@@ -19,6 +19,7 @@ package org.jetbrains.android.sdk;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.ddms.adb.AdbService;
@@ -131,13 +132,11 @@ public final class AndroidSdkUtils {
       result.add(androidJarRoot);
     }
 
-    IAndroidTarget.IOptionalLibrary[] libs = target.getOptionalLibraries();
-    if (libs != null) {
-      for (IAndroidTarget.IOptionalLibrary lib : libs) {
-        VirtualFile libRoot = findFileInJarFileSystem(lib.getJarPath());
-        if (libRoot != null) {
-          result.add(libRoot);
-        }
+    List<OptionalLibrary> libs = target.getAdditionalLibraries();
+    for (OptionalLibrary lib : libs) {
+      VirtualFile libRoot = findFileInJarFileSystem(lib.getJar().getAbsolutePath());
+      if (libRoot != null) {
+        result.add(libRoot);
       }
     }
     return result;

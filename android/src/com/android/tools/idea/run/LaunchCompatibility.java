@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.List;
 
 public class LaunchCompatibility {
   @NonNls private static final String GOOGLE_APIS_TARGET_NAME = "Google APIs";
@@ -121,8 +122,8 @@ public class LaunchCompatibility {
 
     // Add-ons specify a list of libraries. We need to check that the required libraries are available on the device.
     // See AddOnTarget#canRunOn
-    IAndroidTarget.IOptionalLibrary[] optionalLibs = projectTarget.getOptionalLibraries();
-    if (optionalLibs == null || optionalLibs.length == 0) {
+    List<IAndroidTarget.OptionalLibrary> additionaLibs = projectTarget.getAdditionalLibraries();
+    if (additionaLibs.isEmpty()) {
       return YES;
     }
 
