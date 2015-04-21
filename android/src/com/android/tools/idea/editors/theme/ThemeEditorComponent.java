@@ -237,6 +237,9 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    // We have our own custom renderer that it's not based on the default one.
+    //noinspection GtkPreferredJComboBoxRenderer
+    myPanel.getThemeCombo().setRenderer(new StyleListCellRenderer(facet));
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
