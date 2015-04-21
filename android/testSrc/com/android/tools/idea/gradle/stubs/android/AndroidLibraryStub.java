@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.google.common.collect.Lists;
@@ -146,26 +145,26 @@ public class AndroidLibraryStub implements AndroidLibrary {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getExternalAnnotations() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getPublicResources() {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public MavenCoordinates getRequestedCoordinates() {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public MavenCoordinates getResolvedCoordinates() {
     return null;
   }
