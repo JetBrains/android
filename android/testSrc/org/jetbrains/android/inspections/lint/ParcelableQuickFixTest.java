@@ -34,20 +34,26 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class ImplementParcelableQuickFixTest extends AndroidTestCase {
+import static org.jetbrains.android.inspections.lint.ParcelableQuickFix.Operation.IMPLEMENT;
+import static org.jetbrains.android.inspections.lint.ParcelableQuickFix.Operation.REIMPLEMENT;
+import static org.jetbrains.android.inspections.lint.ParcelableQuickFix.Operation.REMOVE;
+
+public class ParcelableQuickFixTest extends AndroidTestCase {
   private static DumbProgressIndicator INDICATOR = DumbProgressIndicator.INSTANCE;
   private static ComparisonManager myComparisonManager = new ComparisonManagerImpl();
-  private ImplementParcelableQuickFix fix;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    fix = new ImplementParcelableQuickFix("Fix Parcelable");
   }
 
-  private void doTestApply(@NotNull String source, @NotNull String expected, @NotNull String className) {
+  private void doTestApply(@NotNull ParcelableQuickFix.Operation operation,
+                           @NotNull String source,
+                           @NotNull String expected,
+                           @NotNull String className) {
     PsiFile file = myFixture.addFileToProject(String.format("src/com/example/%s.java", className), source);
     final PsiIdentifier identifier = findClassIdentifier(file, className);
+    final ParcelableQuickFix fix = new ParcelableQuickFix("Fix Parcelable", operation);
     assertTrue(fix.isApplicable(identifier, identifier, AndroidQuickfixContexts.DesignerContext.TYPE));
     new WriteCommandAction(getProject()) {
       @Override
@@ -93,6 +99,8 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
   }
 
   public void testIsApplicable() throws Exception {
+    ParcelableQuickFix fix = new ParcelableQuickFix("Fix Parcelable", IMPLEMENT);
+
     PsiFile file = myFixture.addFileToProject("src/com/example/Simple.java", SIMPLE_SOURCE);
     PsiIdentifier identifier = findClassIdentifier(file, "Simple");
     assertTrue(fix.isApplicable(identifier, identifier, AndroidQuickfixContexts.DesignerContext.TYPE));
@@ -156,10 +164,12 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
     "    }\n" +
     "\n" +
     "    public static final Creator<Simple> CREATOR = new Creator<Simple>() {\n" +
+    "        @Override\n" +
     "        public Simple createFromParcel(Parcel in) {\n" +
     "            return new Simple(in);\n" +
     "        }\n" +
     "\n" +
+    "        @Override\n" +
     "        public Simple[] newArray(int size) {\n" +
     "            return new Simple[size];\n" +
     "        }\n" +
@@ -179,7 +189,7 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
     "}\n";
 
   public void testSimple() throws Exception {
-    doTestApply(SIMPLE_SOURCE, SIMPLE_EXPECTED, "Simple");
+    doTestApply(IMPLEMENT, SIMPLE_SOURCE, SIMPLE_EXPECTED, "Simple");
   }
 
   // ------------------------------------------------------------------------------ //
@@ -379,10 +389,12 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
     "    }\n" +
     "\n" +
     "    public static final Creator<AllTypes> CREATOR = new Creator<AllTypes>() {\n" +
+    "        @Override\n" +
     "        public AllTypes createFromParcel(Parcel in) {\n" +
     "            return new AllTypes(in);\n" +
     "        }\n" +
     "\n" +
+    "        @Override\n" +
     "        public AllTypes[] newArray(int size) {\n" +
     "            return new AllTypes[size];\n" +
     "        }\n" +
@@ -390,7 +402,7 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
     "}\n";
 
   public void testAllTypes() throws Exception {
-    doTestApply(ALLTYPES_SOURCE, ALLTYPES_EXPECTED, "AllTypes");
+    doTestApply(IMPLEMENT, ALLTYPES_SOURCE, ALLTYPES_EXPECTED, "AllTypes");
   }
 
   // ------------------------------------------------------------------------------ //
@@ -453,10 +465,12 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
     "    }\n" +
     "\n" +
     "    public static final android.os.Parcelable.Creator<LongClassNames> CREATOR = new android.os.Parcelable.Creator<LongClassNames>() {\n" +
+    "        @Override\n" +
     "        public LongClassNames createFromParcel(android.os.Parcel in) {\n" +
     "            return new LongClassNames(in);\n" +
     "        }\n" +
     "\n" +
+    "        @Override\n" +
     "        public LongClassNames[] newArray(int size) {\n" +
     "            return new LongClassNames[size];\n" +
     "        }\n" +
@@ -464,7 +478,180 @@ public class ImplementParcelableQuickFixTest extends AndroidTestCase {
     "}";
 
   public void testLongClassNames() throws Exception {
-    myFixture.addFileToProject(String.format("src/com/example/Simple.java"), SIMPLE_SOURCE);
-    doTestApply(LONG_CLASS_NAMES_SOURCE, LONG_CLASS_NAMES_EXPECTED, "LongClassNames");
+    myFixture.addFileToProject("src/com/example/Simple.java", SIMPLE_SOURCE);
+    doTestApply(IMPLEMENT, LONG_CLASS_NAMES_SOURCE, LONG_CLASS_NAMES_EXPECTED, "LongClassNames");
+  }
+
+  // ------------------------------------------------------------------------------ //
+
+  @Language("JAVA")
+  private static final String REMOVAL_SOURCE =
+    "package com.example;\n" +
+    "\n" +
+    "import android.os.Parcel;\n" +
+    "import android.os.Parcelable;\n" +
+    "\n" +
+    "public class Removal implements Parcelable {\n" +
+    "    private final String name;\n" +
+    "    private final int age;\n" +
+    "    private Removal manager;\n" +
+    "\n" +
+    "    public Removal(String name, int age) {\n" +
+    "        this.name = name;\n" +
+    "        this.age = age;\n" +
+    "    }\n" +
+    "\n" +
+    "    private Removal(Parcel in) {\n" +
+    "        name = in.readString();\n" +
+    "        age = in.readInt();\n" +
+    "        manager = Removal.CREATOR.createFromParcel(in);\n" +
+    "    }\n" +
+    "\n" +
+    "    public static final Creator<Removal> CREATOR = new Creator<Removal>() {\n" +
+    "        @Override\n" +
+    "        public Removal createFromParcel(Parcel in) {\n" +
+    "            Removal s = new Removal(in);\n" +
+    "        }\n" +
+    "\n" +
+    "        @Override\n" +
+    "        public Removal[] newArray(int size) {\n" +
+    "            return new Simple[size];\n" +
+    "        }\n" +
+    "    };\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public int describeContents() {\n" +
+    "        return 0;\n" +
+    "    }\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public void writeToParcel(Parcel dest, int flags) {\n" +
+    "        dest.writeString(name);\n" +
+    "        dest.writeInt(age);\n" +
+    "        manager.writeToParcel(dest, flags);\n" +
+    "    }\n" +
+    "}\n";
+
+  @Language("JAVA")
+  private static final String REMOVAL_EXPECTED =
+    "package com.example;\n" +
+    "\n" +
+    "public class Removal {\n" +
+    "    private final String name;\n" +
+    "    private final int age;\n" +
+    "    private Removal manager;\n" +
+    "\n" +
+    "    public Removal(String name, int age) {\n" +
+    "        this.name = name;\n" +
+    "        this.age = age;\n" +
+    "    }\n" +
+    "\n" +
+    "}\n";
+
+  public void testRemoval() throws Exception {
+    doTestApply(REMOVE, REMOVAL_SOURCE, REMOVAL_EXPECTED, "Removal");
+  }
+
+  // ------------------------------------------------------------------------------ //
+
+  @Language("JAVA")
+  private static final String REDO_SOURCE =
+    "package com.example;\n" +
+    "\n" +
+    "import android.os.Parcel;\n" +
+    "import android.os.Parcelable;\n" +
+    "\n" +
+    "public class Redo implements Parcelable {\n" +
+    "    private final String name;\n" +
+    "    private final int age;\n" +
+    "    private Redo manager;\n" +
+    "\n" +
+    "    public Redo(String name, int age) {\n" +
+    "        this.name = name;\n" +
+    "        this.age = age;\n" +
+    "    }\n" +
+    "\n" +
+    "    private Redo(Parcel in) {\n" +
+    "        // not used \n" +
+    "        name = \"Wrong\";\n" +
+    "        age = in.readInt();\n" +
+    "        manager = Redo.CREATOR.createFromParcel(in);\n" +
+    "    }\n" +
+    "\n" +
+    "    public static final Creator<Redo> CREATOR = new Creator<Redo>() {\n" +
+    "        public Redo createFromParcel(Parcel in) {\n" +
+    "            int age = in.readInt();\n" +
+    "            String name = in.readValue().toString();\n" +
+    "            Redo s = new Redo(name, age);\n" +
+    "        }\n" +
+    "\n" +
+    "        public Redo[] newArray(int size) {\n" +
+    "            return new Redo[size];\n" +
+    "        }\n" +
+    "    };\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public int describeContents() {\n" +
+    "        return 0;\n" +
+    "    }\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public void writeToParcel(Parcel dest, int flags) {\n" +
+    "        dest.writeString(name);\n" +
+    "        dest.writeInt(age);\n" +
+    "    }\n" +
+    "}\n";
+
+  @Language("JAVA")
+  private static final String REDO_EXPECTED =
+    "package com.example;\n" +
+    "\n" +
+    "import android.os.Parcel;\n" +
+    "import android.os.Parcelable;\n" +
+    "\n" +
+    "public class Redo implements Parcelable {\n" +
+    "    private final String name;\n" +
+    "    private final int age;\n" +
+    "    private Redo manager;\n" +
+    "\n" +
+    "    public Redo(String name, int age) {\n" +
+    "        this.name = name;\n" +
+    "        this.age = age;\n" +
+    "    }\n" +
+    "\n" +
+    "    private Redo(Parcel in) {\n" +
+    "        name = in.readString();\n" +
+    "        age = in.readInt();\n" +
+    "        manager = Redo.CREATOR.createFromParcel(in);\n" +
+    "    }\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public void writeToParcel(Parcel dest, int flags) {\n" +
+    "        dest.writeString(name);\n" +
+    "        dest.writeInt(age);\n" +
+    "        manager.writeToParcel(dest, flags);\n" +
+    "    }\n" +
+    "\n" +
+    "    @Override\n" +
+    "    public int describeContents() {\n" +
+    "        return 0;\n" +
+    "    }\n" +
+    "\n" +
+    "    public static final Creator<Redo> CREATOR = new Creator<Redo>() {\n" +
+    "        @Override\n" +
+    "        public Redo createFromParcel(Parcel in) {\n" +
+    "            return new Redo(in);\n" +
+    "        }\n" +
+    "\n" +
+    "        @Override\n" +
+    "        public Redo[] newArray(int size) {\n" +
+    "            return new Redo[size];\n" +
+    "        }\n" +
+    "    };\n" +
+    "}\n";
+
+  public void testRedo() throws Exception {
+    doTestApply(REIMPLEMENT, REDO_SOURCE, REDO_EXPECTED, "Redo");
   }
 }
+
