@@ -16,38 +16,71 @@
 package com.android.tools.idea.sdk.remote;
 
 import com.android.annotations.NonNull;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Created by jbakermalone on 4/3/15.
+ * Represents a (revisionless) package, either local, remote, or both. If both a local and remote package are specified,
+ * they should represent exactly the same package, excepting the revision. That is, the result of installing the remote package
+ * should be (a possibly updated version of) the local package.
  */
 public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
-  private final LocalPkgInfo myLocalInfo;
-  private RemotePkgInfo myUpdate;
+  private LocalPkgInfo myLocalInfo;
+  private RemotePkgInfo myRemoteInfo;
 
-  public UpdatablePkgInfo(@NonNull LocalPkgInfo localPkg, @Nullable RemotePkgInfo update) {
+  public UpdatablePkgInfo(@NonNull LocalPkgInfo localInfo) {
+    init(localInfo, null);
+  }
+
+  public UpdatablePkgInfo(@NonNull RemotePkgInfo remoteInfo) {
+    init(null, remoteInfo);
+  }
+
+  public UpdatablePkgInfo(@NonNull LocalPkgInfo localInfo, @NonNull RemotePkgInfo remoteInfo) {
+    init(localInfo, remoteInfo);
+  }
+
+  private void init(@Nullable LocalPkgInfo localPkg, @Nullable RemotePkgInfo remotePkg) {
+    assert localPkg != null || remotePkg != null;
     myLocalInfo = localPkg;
-    myUpdate = update;
+    myRemoteInfo = remotePkg;
   }
 
-  public void setUpdate(@NonNull RemotePkgInfo update) {
-    assert myUpdate == null;
-    myUpdate = update;
+  public void setRemote(@NonNull RemotePkgInfo remote) {
+    assert myRemoteInfo == null;
+    myRemoteInfo = remote;
   }
 
-  @NonNull
+  @Nullable
   public LocalPkgInfo getLocalInfo() {
     return myLocalInfo;
   }
 
   @Nullable
-  public RemotePkgInfo getUpdate() {
-    return myUpdate;
+  public RemotePkgInfo getRemote() {
+    return myRemoteInfo;
+  }
+
+  public boolean hasRemote() {
+    return myRemoteInfo != null;
+  }
+
+  public boolean hasLocal() {
+    return myLocalInfo != null;
   }
 
   @Override
   public int compareTo(UpdatablePkgInfo o) {
-    return getLocalInfo().compareTo(o.getLocalInfo());
+    return getPkgDesc().compareTo(o.getPkgDesc());
+  }
+
+  public IPkgDesc getPkgDesc() {
+    return myLocalInfo == null ? myRemoteInfo.getPkgDesc() : myLocalInfo.getDesc();
+  }
+
+  public boolean isUpdate() {
+    return myLocalInfo != null && myRemoteInfo != null &&
+           myRemoteInfo.getPkgDesc().getPreciseRevision().compareTo(myLocalInfo.getDesc().getPreciseRevision()) > 0;
   }
 }

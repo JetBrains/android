@@ -56,7 +56,7 @@ public class Archive implements IDescription, Comparable<Archive> {
    * @param checksum   The expected checksum string of the archive. Currently only the
    *                   {@link ChecksumType#SHA1} format is supported.
    */
-  public Archive(@Nullable RemotePkgInfo pkg, @Nullable ArchFilter archFilter, @Nullable String url, long size, @NonNull String checksum) {
+  public Archive(@NonNull RemotePkgInfo pkg, @Nullable ArchFilter archFilter, @Nullable String url, long size, @NonNull String checksum) {
     mPackage = pkg;
     mArchFilter = archFilter != null ? archFilter : new ArchFilter(null);
     mUrl = url == null ? null : url.trim();
@@ -76,7 +76,7 @@ public class Archive implements IDescription, Comparable<Archive> {
    * Returns the package that created and owns this archive.
    * It should generally not be null.
    */
-  @Nullable
+  @NonNull
   public RemotePkgInfo getParentPackage() {
     return mPackage;
   }

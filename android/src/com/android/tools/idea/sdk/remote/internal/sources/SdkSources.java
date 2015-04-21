@@ -16,20 +16,19 @@
 
 package com.android.tools.idea.sdk.remote.internal.sources;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.repository.SdkSysImgConstants;
 import com.android.utils.ILogger;
+import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * A list of sdk-repository and sdk-addon sources, sorted by {@link SdkSourceCategory}.
@@ -39,10 +38,12 @@ public class SdkSources {
   private static final String KEY_COUNT = "count";
 
   private static final String KEY_SRC = "src";
+  private static final String KEY_DISPLAY = "disp";
 
   private static final String SRC_FILENAME = "repositories.cfg"; //$NON-NLS-1$
 
-  private final EnumMap<SdkSourceCategory, ArrayList<SdkSource>> mSources =
+  @GuardedBy("itself")
+  private final EnumMap<SdkSourceCategory, ArrayList<SdkSource>> mySources =
     new EnumMap<SdkSourceCategory, ArrayList<SdkSource>>(SdkSourceCategory.class);
 
   public SdkSources() {
@@ -57,14 +58,28 @@ public class SdkSources {
    * at the end, not for every single addition.
    */
   public void add(SdkSourceCategory category, SdkSource source) {
-    synchronized (mSources) {
-      ArrayList<SdkSource> list = mSources.get(category);
+    synchronized (mySources) {
+      ArrayList<SdkSource> list = mySources.get(category);
       if (list == null) {
         list = new ArrayList<SdkSource>();
-        mSources.put(category, list);
+        mySources.put(category, list);
       }
 
       list.add(source);
+    }
+  }
+
+  /**
+   * Replaces the current collection of sources corresponding to a particular category with the given collection.
+   * <p/>
+   * Implementation detail: {@link SdkSources} doesn't invoke {@link #notifyChangeListeners()}
+   * directly. Callers who use {@code set()} are responsible for notifying the listeners once
+   * they are done modifying the sources list. The intent is to notify the listeners only once
+   * at the end, not for every single addition.
+   */
+  public void set(SdkSourceCategory category, Collection<SdkSource> sources) {
+    synchronized (mySources) {
+      mySources.put(category, Lists.newArrayList(sources));
     }
   }
 
@@ -75,8 +90,8 @@ public class SdkSources {
    * {@link #notifyChangeListeners()} once they are done modifying the sources list.
    */
   public void remove(SdkSource source) {
-    synchronized (mSources) {
-      Iterator<Entry<SdkSourceCategory, ArrayList<SdkSource>>> it = mSources.entrySet().iterator();
+    synchronized (mySources) {
+      Iterator<Entry<SdkSourceCategory, ArrayList<SdkSource>>> it = mySources.entrySet().iterator();
       while (it.hasNext()) {
         Entry<SdkSourceCategory, ArrayList<SdkSource>> entry = it.next();
         ArrayList<SdkSource> list = entry.getValue();
@@ -98,8 +113,8 @@ public class SdkSources {
    * {@link #notifyChangeListeners()} once they are done modifying the sources list.
    */
   public void removeAll(SdkSourceCategory category) {
-    synchronized (mSources) {
-      mSources.remove(category);
+    synchronized (mySources) {
+      mySources.remove(category);
     }
   }
 
@@ -117,8 +132,8 @@ public class SdkSources {
         cats.add(cat);
       }
       else {
-        synchronized (mSources) {
-          ArrayList<SdkSource> list = mSources.get(cat);
+        synchronized (mySources) {
+          ArrayList<SdkSource> list = mySources.get(cat);
           if (list != null && !list.isEmpty()) {
             cats.add(cat);
           }
@@ -134,8 +149,8 @@ public class SdkSources {
    * Might return an empty array, but never returns null.
    */
   public SdkSource[] getSources(SdkSourceCategory category) {
-    synchronized (mSources) {
-      ArrayList<SdkSource> list = mSources.get(category);
+    synchronized (mySources) {
+      ArrayList<SdkSource> list = mySources.get(category);
       if (list == null) {
         return new SdkSource[0];
       }
@@ -149,8 +164,8 @@ public class SdkSources {
    * Returns true if there are sources for the given category.
    */
   public boolean hasSources(SdkSourceCategory category) {
-    synchronized (mSources) {
-      ArrayList<SdkSource> list = mSources.get(category);
+    synchronized (mySources) {
+      ArrayList<SdkSource> list = mySources.get(category);
       return list != null && !list.isEmpty();
     }
   }
@@ -159,17 +174,17 @@ public class SdkSources {
    * Returns an array of the sources across all categories. This is never null.
    */
   public SdkSource[] getAllSources() {
-    synchronized (mSources) {
+    synchronized (mySources) {
       int n = 0;
 
-      for (ArrayList<SdkSource> list : mSources.values()) {
+      for (ArrayList<SdkSource> list : mySources.values()) {
         n += list.size();
       }
 
       SdkSource[] sources = new SdkSource[n];
 
       int i = 0;
-      for (ArrayList<SdkSource> list : mSources.values()) {
+      for (ArrayList<SdkSource> list : mySources.values()) {
         for (SdkSource source : list) {
           sources[i++] = source;
         }
@@ -186,8 +201,8 @@ public class SdkSources {
    * the remote package list.
    */
   public void clearAllPackages() {
-    synchronized (mSources) {
-      for (ArrayList<SdkSource> list : mSources.values()) {
+    synchronized (mySources) {
+      for (ArrayList<SdkSource> list : mySources.values()) {
         for (SdkSource source : list) {
           source.clearPackages();
         }
@@ -205,8 +220,8 @@ public class SdkSources {
    */
   public SdkSourceCategory getCategory(SdkSource source) {
     if (source != null) {
-      synchronized (mSources) {
-        for (Entry<SdkSourceCategory, ArrayList<SdkSource>> entry : mSources.entrySet()) {
+      synchronized (mySources) {
+        for (Entry<SdkSourceCategory, ArrayList<SdkSource>> entry : mySources.entrySet()) {
           if (entry.getValue().contains(source)) {
             return entry.getKey();
           }
@@ -227,8 +242,8 @@ public class SdkSources {
    * The search is O(N), which should be acceptable on the expectedly small source list.
    */
   public boolean hasSourceUrl(SdkSource source) {
-    synchronized (mSources) {
-      for (ArrayList<SdkSource> list : mSources.values()) {
+    synchronized (mySources) {
+      for (ArrayList<SdkSource> list : mySources.values()) {
         for (SdkSource s : list) {
           if (s.equals(source)) {
             return true;
@@ -250,8 +265,8 @@ public class SdkSources {
    * The search is O(N), which should be acceptable on the expectedly small source list.
    */
   public boolean hasSourceUrl(SdkSourceCategory category, SdkSource source) {
-    synchronized (mSources) {
-      ArrayList<SdkSource> list = mSources.get(category);
+    synchronized (mySources) {
+      ArrayList<SdkSource> list = mySources.get(category);
       if (list != null) {
         for (SdkSource s : list) {
           if (s.equals(source)) {
@@ -276,7 +291,7 @@ public class SdkSources {
     // In most cases we do these operation from the UI thread so it's not really
     // that necessary. This is more a protection in case of someone calls this
     // from a worker thread by mistake.
-    synchronized (mSources) {
+    synchronized (mySources) {
       // Remove all existing user sources
       removeAll(SdkSourceCategory.USER_ADDONS);
 
@@ -295,6 +310,7 @@ public class SdkSources {
 
           for (int i = 0; i < count; i++) {
             String url = props.getProperty(String.format("%s%02d", KEY_SRC, i));  //$NON-NLS-1$
+            String disp = props.getProperty(String.format("%s%02d", KEY_DISPLAY, i));  //$NON-NLS-1$
             if (url != null) {
               // FIXME: this code originally only dealt with add-on XML sources.
               // Now we'd like it to deal with system-image sources too, but we
@@ -307,10 +323,10 @@ public class SdkSources {
               // the URI has been fetched.
               SdkSource s;
               if (url.endsWith(SdkSysImgConstants.URL_DEFAULT_FILENAME)) {
-                s = new SdkSysImgSource(url, null/*uiName*/);
+                s = new SdkSysImgSource(url, disp);
               }
               else {
-                s = new SdkAddonSource(url, null/*uiName*/);
+                s = new SdkAddonSource(url, disp);
               }
               if (!hasSourceUrl(s)) {
                 add(SdkSourceCategory.USER_ADDONS, s);
@@ -351,7 +367,7 @@ public class SdkSources {
    */
   public void saveUserAddons(ILogger log) {
     // See the implementation detail note in loadUserAddons() about the synchronization.
-    synchronized (mSources) {
+    synchronized (mySources) {
       FileOutputStream fos = null;
       try {
         String folder = AndroidLocation.getFolder();
@@ -365,6 +381,10 @@ public class SdkSources {
         for (SdkSource s : getSources(SdkSourceCategory.USER_ADDONS)) {
           props.setProperty(String.format("%s%02d", KEY_SRC, count), //$NON-NLS-1$
                             s.getUrl());
+          if (s.getUiName() != null) {
+            props.setProperty(String.format("%s%02d", KEY_DISPLAY, count), //$NON-NLS-1$
+                              s.getUiName());
+          }
           count++;
         }
         props.setProperty(KEY_COUNT, Integer.toString(count));

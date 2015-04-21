@@ -283,7 +283,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   @Nullable
   private List<SystemImageDescription> getRemoteImages() {
     List<SystemImageDescription> items = Lists.newArrayList();
-    Set<RemotePkgInfo> infos = mySdkState.getUpdates().getNewPkgs();
+    Set<RemotePkgInfo> infos = mySdkState.getPackages().getNewPkgs();
 
     if (infos.isEmpty()) {
       return null;
