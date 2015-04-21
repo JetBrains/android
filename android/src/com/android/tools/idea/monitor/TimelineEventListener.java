@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.monitor;
 
-import org.jetbrains.annotations.NotNull;
-
 public interface TimelineEventListener {
+
   void onStart();
 
   void onStop();
-
-  void onEvent(@NotNull TimelineEvent event);
 }
