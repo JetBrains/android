@@ -261,8 +261,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-
-            List<RemotePkgInfo> packageList = Lists.newArrayList(state.getUpdates().getNewPkgs());
+            List<RemotePkgInfo> packageList = Lists.newArrayList(state.getPackages().getNewPkgs());
             Collections.sort(packageList);
             Iterator<RemotePkgInfo> result =
               Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel)).iterator();
