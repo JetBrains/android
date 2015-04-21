@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
@@ -65,8 +64,8 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
     return mySourceProvider;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return ImmutableSet.of();
   }

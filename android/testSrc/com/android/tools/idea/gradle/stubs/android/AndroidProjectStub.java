@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
@@ -159,6 +158,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
+  public Collection<String> getFlavorDimensions() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public Collection<ArtifactMetaData> getExtraArtifacts() {
     throw new UnsupportedOperationException();
   }
@@ -198,8 +203,8 @@ public class AndroidProjectStub implements AndroidProject {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public LintOptions getLintOptions() {
     throw new UnsupportedOperationException();
   }
@@ -228,8 +233,8 @@ public class AndroidProjectStub implements AndroidProject {
     return myBuildFolder;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getResourcePrefix() {
     return null;
   }
