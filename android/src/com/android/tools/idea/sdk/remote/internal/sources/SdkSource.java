@@ -543,7 +543,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
         reason = exception[0].toString();
       }
 
-      logger.logError("Failed to fetch URL %1$s, reason: %2$s", url, reason);
+      logger.warning("Failed to fetch URL %1$s, reason: %2$s", url, reason);
     }
 
     if (validationError[0] != null) {
