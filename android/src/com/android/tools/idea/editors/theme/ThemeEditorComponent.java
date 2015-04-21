@@ -521,26 +521,28 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName) {
-    // This is required since the configuration could have a link to a non existent theme (if it was removed).
-    // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
-    // fails to find the local themes.
-    myConfiguration.setTheme(null);
-    myStyleResolver = new StyleResolver(myConfiguration);
-    myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
-    mySubStyleSourceAttribute = null;
 
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
+    // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
+    // If we don't use invokeLater, it will still work with the previous cached PSI file value.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
+        // This is required since the configuration could have a link to a non existent theme (if it was removed).
+        // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
+        // fails to find the local themes.
+        myConfiguration.setTheme(null);
+
+        myStyleResolver = new StyleResolver(myConfiguration);
+        myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
+        mySubStyleSourceAttribute = null;
+
         final ThemeResolver themeResolver = new ThemeResolver(myConfiguration, myStyleResolver);
         myPanel.getThemeCombo().setModel(new ThemesListModel(themeResolver, defaultThemeName));
-
         loadStyleAttributes();
+        mySelectedTheme = myPanel.getSelectedTheme();
+        saveCurrentSelectedTheme();
       }
     });
-
-    mySelectedTheme = myPanel.getSelectedTheme();
-    saveCurrentSelectedTheme();
   }
 
   /**
@@ -583,11 +585,6 @@ public class ThemeEditorComponent extends Splitter {
       public void tableChanged(TableModelEvent e) {
         if (e.getType() == TableModelEvent.UPDATE) {
 
-          AndroidFacet facet = AndroidFacet.getInstance(myModule);
-          if (facet != null) {
-            facet.refreshResources();
-          }
-
           if (e.getLastRow() == 0) { // Indicates a change in the theme name
             reload(model.getThemeNameInXml());
           }
@@ -602,18 +599,11 @@ public class ThemeEditorComponent extends Splitter {
         }
 
         if (myPreviewPanel != null) {
-          // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
-          // If we don't use invokeLater, the repaint will still see the previous cached PSI file value.
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myPreviewPanel.updateConfiguration(myConfiguration);
-              myPreviewPanel.revalidate();
-              myPreviewPanel.repaint();
-              myAttributesTable.repaint();
-            }
-          });
+          myPreviewPanel.updateConfiguration(myConfiguration);
+          myPreviewPanel.revalidate();
+          myPreviewPanel.repaint();
         }
+        myAttributesTable.repaint();
       }
     });
 
