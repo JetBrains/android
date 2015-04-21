@@ -107,7 +107,7 @@ public class Message {
     }
 
     /**
-     * @see com.intellij.util.ui.MessageCategory
+     * @see MessageCategory
      */
     public int getValue() {
       return myValue;
