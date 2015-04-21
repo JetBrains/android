@@ -58,6 +58,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -85,6 +88,8 @@ public final class GuiTests {
   public static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
   /** AOSP-relative path to directory containing GUI test data */
   public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android/testData/guiTests".replace('/', File.separatorChar);
+  /** Environment variable pointing to the JDK to be used for tests */
+  public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
@@ -95,6 +100,13 @@ public final class GuiTests {
     setUpDefaultProjectCreationLocationPath();
 
     final File androidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+
+    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
+    if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
+      fail("Please specify the path to a valid JDK using system property " + JDK_HOME_FOR_TESTS);
+    }
+    final File jdkPath = new File(jdkHome);
+
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -102,6 +114,7 @@ public final class GuiTests {
           @Override
           public void run() {
             IdeSdks.setAndroidSdkPath(androidSdkPath, null);
+            IdeSdks.setJdkPath(jdkPath);
           }
         });
       }
