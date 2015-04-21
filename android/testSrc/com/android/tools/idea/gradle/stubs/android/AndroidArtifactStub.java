@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
@@ -45,8 +44,8 @@ public class AndroidArtifactStub implements AndroidArtifact {
     myFileStructure = fileStructure;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<AndroidArtifactOutput> getOutputs() {
     throw new UnsupportedOperationException();
   }
@@ -129,8 +128,8 @@ public class AndroidArtifactStub implements AndroidArtifact {
     return new File(myFileStructure.getRootDir(), path);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getJavaResourcesFolder() {
     throw new UnsupportedOperationException();
   }
@@ -153,7 +152,8 @@ public class AndroidArtifactStub implements AndroidArtifact {
     return null;
   }
 
-  @Override@NotNull
+  @Override
+  @NotNull
   public Set<String> getIdeSetupTaskNames() {
     return Collections.emptySet();
   }
