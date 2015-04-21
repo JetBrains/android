@@ -18,9 +18,6 @@ package com.android.tools.idea.gradle.compiler;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -29,7 +26,6 @@ import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.KeyValue;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -41,6 +37,15 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
+import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Adds extra Android-Gradle related configuration options.
@@ -55,7 +60,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @Override
   @NotNull
   public List<String> getVMArguments() {
-    if (!Projects.isBuildWithGradle(myProject)) {
+    if (!isBuildWithGradle(myProject)) {
       return Collections.emptyList();
     }
     List<String> jvmArgs = Lists.newArrayList();
@@ -63,7 +68,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
     populateJvmArgs(buildConfiguration, jvmArgs, myProject);
 
-    GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
+    GradleExecutionSettings executionSettings = getGradleExecutionSettings(myProject);
     if (executionSettings != null) {
       populateJvmArgs(executionSettings, jvmArgs);
     }
@@ -97,13 +102,13 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   void populateJvmArgs(@NotNull GradleExecutionSettings executionSettings, @NotNull List<String> jvmArgs) {
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
-      gradleHome = FileUtil.toSystemDependentName(gradleHome);
+      gradleHome = toSystemDependentName(gradleHome);
       jvmArgs.add(createJvmArg(GRADLE_HOME_DIR_PATH, gradleHome));
     }
 
     String serviceDirectory = executionSettings.getServiceDirectory();
     if (serviceDirectory != null && !serviceDirectory.isEmpty()) {
-      serviceDirectory = FileUtil.toSystemDependentName(serviceDirectory);
+      serviceDirectory = toSystemDependentName(serviceDirectory);
       jvmArgs.add(createJvmArg(GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
@@ -112,8 +117,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       jvmArgs.add(createJvmArg(GRADLE_JAVA_HOME_DIR_PATH, javaHome.getPath()));
     }
 
-    String basePath = FileUtil.toSystemDependentName(myProject.getBasePath());
-    jvmArgs.add(createJvmArg(PROJECT_DIR_PATH, basePath));
+    jvmArgs.add(createJvmArg(PROJECT_DIR_PATH, getBaseDirPath(myProject).getPath()));
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
     jvmArgs.add(createJvmArg(USE_GRADLE_VERBOSE_LOGGING, verboseProcessing));
@@ -156,15 +160,15 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @VisibleForTesting
   void populateGradleTasksToInvoke(@NotNull BuildMode buildMode, @NotNull List<String> jvmArgs) {
-    if (buildMode == BuildMode.ASSEMBLE_TRANSLATE) {
-      jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME));
+    if (buildMode == ASSEMBLE_TRANSLATE) {
+      jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, ASSEMBLE_TRANSLATE_TASK_NAME));
       return;
     }
     BuildSettings buildSettings = BuildSettings.getInstance(myProject);
     Module[] modulesToBuild = buildSettings.getModulesToBuild();
 
-    if (modulesToBuild == null || (buildMode == BuildMode.ASSEMBLE && Projects.lastGradleSyncFailed(myProject))) {
-      jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME));
+    if (modulesToBuild == null || (buildMode == ASSEMBLE && lastGradleSyncFailed(myProject))) {
+      jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, DEFAULT_ASSEMBLE_TASK_NAME));
       return;
     }
 
@@ -180,6 +184,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @Override
   public boolean isProcessPreloadingEnabled() {
-    return !Projects.isBuildWithGradle(myProject);
+    return !isBuildWithGradle(myProject);
   }
 }
