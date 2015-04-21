@@ -45,9 +45,6 @@ public class AttributesPanel {
     myBackButton.setIcon(AllIcons.Actions.Back);
     myBackButton.setBorder(BORDER);
 
-    // We have our own custom renderer that it's not based on the default one.
-    //noinspection GtkPreferredJComboBoxRenderer
-    myThemeCombo.setRenderer(new StyleListCellRenderer());
     new ComboboxSpeedSearch(myThemeCombo);
 
     myBackButton.setToolTipText("Back to the theme");
