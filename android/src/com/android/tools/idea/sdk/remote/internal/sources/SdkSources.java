@@ -16,12 +16,13 @@
 
 package com.android.tools.idea.sdk.remote.internal.sources;
 
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.repository.SdkSysImgConstants;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
+import net.jcip.annotations.GuardedBy;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,9 +43,10 @@ public class SdkSources {
 
   private static final String SRC_FILENAME = "repositories.cfg"; //$NON-NLS-1$
 
-  @GuardedBy("itself")
-  private final EnumMap<SdkSourceCategory, ArrayList<SdkSource>> mySources =
+  @GuardedBy("itself") private final EnumMap<SdkSourceCategory, ArrayList<SdkSource>> mySources =
     new EnumMap<SdkSourceCategory, ArrayList<SdkSource>>(SdkSourceCategory.class);
+
+  private final ArrayList<Runnable> mChangeListeners = new ArrayList<Runnable>();
 
   public SdkSources() {
   }
@@ -358,6 +360,7 @@ public class SdkSources {
         }
       }
     }
+    notifyChangeListeners();
   }
 
   /**
@@ -407,6 +410,50 @@ public class SdkSources {
           }
           catch (IOException e) {
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds a listener that will be notified when the sources list has changed.
+   *
+   * @param changeListener A non-null listener to add. Ignored if already present.
+   * @see SdkSources#notifyChangeListeners()
+   */
+  public void addChangeListener(@NotNull Runnable changeListener) {
+    synchronized (mChangeListeners) {
+      if (!mChangeListeners.contains(changeListener)) {
+        mChangeListeners.add(changeListener);
+      }
+    }
+  }
+
+  /**
+   * Removes a listener from the list of listeners to notify when the sources change.
+   *
+   * @param changeListener A listener to remove. Ignored if not previously added.
+   */
+  public void removeChangeListener(@NotNull Runnable changeListener) {
+    synchronized (mChangeListeners) {
+      mChangeListeners.remove(changeListener);
+    }
+  }
+
+  /**
+   * Invoke all the registered change listeners, if any.
+   * <p/>
+   * This <em>may</em> be called from a worker thread, in which case the runnable
+   * should take care of only updating UI from a main thread.
+   */
+  public void notifyChangeListeners() {
+    synchronized (mChangeListeners) {
+      for (Runnable runnable : mChangeListeners) {
+        try {
+          runnable.run();
+        }
+        catch (Throwable ignore) {
+          assert false : "A SdkSource.ChangeListener failed with an exception: " + ignore.toString();
         }
       }
     }
