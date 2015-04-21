@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -50,7 +49,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
@@ -393,7 +391,7 @@ public class GradleProjectImporter {
       if (librariesDir.exists()) {
         // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
         // created with Studio 0.4.3 or earlier.)
-        boolean librariesDirDeleted = FileUtil.delete(librariesDir);
+        boolean librariesDirDeleted = delete(librariesDir);
         if (!librariesDirDeleted) {
           LOG.info(String.format("Failed to delete %1$s'", librariesDir.getPath()));
         }
@@ -430,7 +428,7 @@ public class GradleProjectImporter {
 
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
-            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join(GradleUtil.BUILD_DIR_DEFAULT_NAME, "classes"));
+            File compilerOutputDir = new File(getBaseDirPath(newProject), join(BUILD_DIR_DEFAULT_NAME, "classes"));
             String compilerOutputDirUrl = pathToIdeaUrl(compilerOutputDir);
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
@@ -535,13 +533,6 @@ public class GradleProjectImporter {
     myDelegate.importProject(project, setUpTask, progressExecutionMode);
   }
 
-  @NotNull
-  private static String getProjectBasePath(Project project) {
-    String projectBasePath = toCanonicalPath(project.getBasePath());
-    assert projectBasePath != null;
-    return projectBasePath;
-  }
-
   @VisibleForTesting
   static boolean isCacheMissingModels(@NotNull DataNode<ProjectData> cache, @NotNull Project project) {
     Collection<DataNode<ModuleData>> moduleDataNodes = findAll(cache, MODULE);
@@ -606,8 +597,8 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        refreshProject(project, SYSTEM_ID, getProjectBasePath(project), callback, false /* resolve dependencies */, progressExecutionMode,
-                       true /* always report import errors */);
+        refreshProject(project, SYSTEM_ID, getBaseDirPath(project).getPath(), callback, false /* resolve dependencies */,
+                       progressExecutionMode, true /* always report import errors */);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();

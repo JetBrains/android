@@ -94,15 +94,13 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createAnd
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
-import static com.android.tools.idea.gradle.util.Projects.getGradleVersionUsed;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -340,10 +338,9 @@ public final class GradleUtil {
   public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
     GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
-      String format = "Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'";
-      String basePath = project.getBasePath();
-      assert basePath != null;
-      String msg = String.format(format, project.getName(), toSystemDependentName(basePath));
+      File baseDirPath = getBaseDirPath(project);
+      String msg = String.format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(),
+                                 baseDirPath.getPath());
       LOG.info(msg);
       return null;
     }
@@ -519,7 +516,7 @@ public final class GradleUtil {
   private static File getGradleHome(@NotNull Project project, @NotNull WrapperConfiguration configuration) {
     File systemHomePath = StartParameter.DEFAULT_GRADLE_USER_HOME;
     if ("PROJECT".equals(configuration.getDistributionBase())) {
-      systemHomePath = new File(project.getBasePath(), DOT_GRADLE);
+      systemHomePath = new File(getBaseDirPath(project), DOT_GRADLE);
     }
     if (!systemHomePath.isDirectory()) {
       return null;
@@ -1265,14 +1262,7 @@ public final class GradleUtil {
   @Nullable
   public static DataNode<ProjectData> getCachedProjectData(@NotNull Project project) {
     ProjectDataManager dataManager = ProjectDataManager.getInstance();
-    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, SYSTEM_ID, getProjectBasePath(project));
+    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, SYSTEM_ID, getBaseDirPath(project).getPath());
     return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
-  }
-
-  @NotNull
-  private static String getProjectBasePath(@NotNull Project project) {
-    String projectBasePath = toCanonicalPath(project.getBasePath());
-    assert projectBasePath != null;
-    return projectBasePath;
   }
 }

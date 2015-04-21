@@ -19,13 +19,14 @@ import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
+
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -46,8 +47,8 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     if (compilerOutput == null) {
       File buildFolderPath = javaProject.getBuildFolderPath();
       if (buildFolderPath != null) {
-        mainClassesFolder = new File(buildFolderPath, FileUtil.join(CLASSES_FOLDER_NAME, "main"));
-        testClassesFolder = new File(buildFolderPath, FileUtil.join(CLASSES_FOLDER_NAME, "test"));
+        mainClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "main"));
+        testClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "test"));
       }
     }
     else {

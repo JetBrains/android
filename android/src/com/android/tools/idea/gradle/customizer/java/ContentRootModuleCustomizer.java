@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +34,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
@@ -81,11 +82,11 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
       for (File excluded : contentRoot.getExcludeDirectories()) {
         if (excluded != null) {
-          ContentEntry contentEntry = FilePaths.findParentContentEntry(excluded, contentEntries);
+          ContentEntry contentEntry = findParentContentEntry(excluded, contentEntries);
           if (contentEntry != null) {
             if (isTopLevelJavaModule && !buildFolderUnexcluded) {
               // We need to "undo" the implicit exclusion of "build" folder for top-level module.
-              if (FileUtil.filesEqual(excluded, buildFolderPath)) {
+              if (filesEqual(excluded, buildFolderPath)) {
                 buildFolderUnexcluded = true;
                 continue;
               }
