@@ -78,11 +78,14 @@ public class ArrayMapRenderer extends NodeRendererImpl {
     }
 
     for (int i = 0, n = Math.min(size, MAX_CHILDREN); i < n; i++) {
-      // For each entry, display the key and value inside an object array
-      // Note that this results in an object creation inside the target VM while evaluating the expression.
-      String expression = String.format("new Object[] {this.keyAt(%1$d), this.valueAt(%2$d)}", i, i);
+      // For each entry, display the value at that entry. TODO: we need to show the key corresponding to this as well.
+      // We used to show the key and value by using the following expression:
+      // String expression = String.format("new Object[] {this.keyAt(%1$d), this.valueAt(%2$d)}", i, i);
+      // But it turns out that this throws "java.lang.ClassNotFoundException: [LObject;"
+      // Until we find an alternate scheme, just show the value.
+      String expression = String.format("this.valueAt(%1$d)", i);
       UserExpressionData descriptorData =
-        new UserExpressionData((ValueDescriptorImpl)builder.getParentDescriptor(), myFqn, "{key, value}",
+        new UserExpressionData((ValueDescriptorImpl)builder.getParentDescriptor(), myFqn, String.format("value[%1$d]", i),
                                new TextWithImportsImpl(CodeFragmentKind.EXPRESSION,
                                                        expression,
                                                        "",
