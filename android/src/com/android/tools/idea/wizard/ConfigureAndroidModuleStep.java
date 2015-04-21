@@ -338,9 +338,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
 
     for (IAndroidTarget target : targets) {
-      if (!target.isPlatform() &&
-          (target.getOptionalLibraries() == null ||
-           target.getOptionalLibraries().length == 0)) {
+      if (!target.isPlatform() && target.getAdditionalLibraries().isEmpty()) {
         continue;
       }
       list.add(target);
