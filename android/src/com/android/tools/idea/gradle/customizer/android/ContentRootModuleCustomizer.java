@@ -25,8 +25,6 @@ import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.model.java.JavaResourceRootType;
-import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -34,13 +32,18 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
 /**
- * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
+ * Sets the content roots of an IDEA module imported from an {@link AndroidProject}.
  */
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject>
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
@@ -180,12 +183,12 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   @NotNull
   private static JpsModuleSourceRootType getResourceSourceType(boolean isTest) {
-    return isTest ? JavaResourceRootType.TEST_RESOURCE : JavaResourceRootType.RESOURCE;
+    return isTest ? TEST_RESOURCE : RESOURCE;
   }
 
   @NotNull
   private static JpsModuleSourceRootType getSourceType(boolean isTest) {
-    return isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
+    return isTest ? TEST_SOURCE : SOURCE;
   }
 
   private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
@@ -203,7 +206,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private static boolean isGeneratedAtCorrectLocation(@NotNull File folderPath, @NotNull AndroidProject project) {
-    File generatedFolderPath = new File(project.getBuildFolder(), AndroidProject.FD_GENERATED);
+    File generatedFolderPath = new File(project.getBuildFolder(), FD_GENERATED);
     return isAncestor(generatedFolderPath, folderPath, false);
   }
 

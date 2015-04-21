@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;

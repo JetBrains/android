@@ -21,12 +21,13 @@ import com.android.builder.model.ClassField;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
@@ -70,7 +71,7 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @Override
   @NotNull
   public String getSourceGenTaskName() {
-    return "generate" + StringUtil.capitalize(myBuildType) + "Sources";
+    return "generate" + capitalize(myBuildType) + "Sources";
   }
 
   @Override
@@ -82,13 +83,13 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @Override
   @NotNull
   public String getCompileTaskName() {
-    return "compile" + StringUtil.capitalize(myBuildType);
+    return "compile" + capitalize(myBuildType);
   }
 
   @Override
   @NotNull
   public String getAssembleTaskName() {
-    return "assemble" + StringUtil.capitalize(myBuildType);
+    return "assemble" + capitalize(myBuildType);
   }
 
   @Override

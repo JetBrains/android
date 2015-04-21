@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.openapi.project.Project;
@@ -31,6 +30,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.SdkConstants.DOT_JAR;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -47,7 +47,7 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
           Set<File> artifacts = entry.getValue();
           if (artifacts != null && !artifacts.isEmpty()) {
             for (File artifact : artifacts) {
-              if (!artifact.isFile() || !endsWithIgnoreCase(artifact.getName(), SdkConstants.DOT_JAR)) {
+              if (!artifact.isFile() || !endsWithIgnoreCase(artifact.getName(), DOT_JAR)) {
                 // We only expose artifacts that are jar files.
                 continue;
               }

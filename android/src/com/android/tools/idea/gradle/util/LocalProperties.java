@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -69,8 +70,7 @@ public final class LocalProperties {
    * @throws IllegalArgumentException if there is already a directory called "local.properties" in the given project.
    */
   public LocalProperties(@NotNull Project project) throws IOException {
-    //noinspection ConstantConditions
-    this(new File(project.getBasePath()));
+    this(getBaseDirPath(project));
   }
 
   /**

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.eclipse;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,16 +32,19 @@ import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
 import icons.EclipseIcons;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.templates.TemplateUtils.openEditor;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
 /**
  * Importer which can import an ADT project as a Gradle project (it will first
@@ -67,7 +69,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
   public void setSelectedProject(@NotNull File selectedProject) {
     mySelectedProject = selectedProject;
-    List<File> projects = Arrays.asList(mySelectedProject);
+    List<File> projects = Collections.singletonList(mySelectedProject);
     myImporter = createImporter(projects);
   }
 
@@ -80,7 +82,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         File wrapper = TemplateManager.getWrapperLocation(templates);
         if (wrapper.exists()) {
           importer.setGradleWrapperLocation(wrapper);
-          AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+          AndroidSdkData sdkData = tryToChooseAndroidSdk();
           if (sdkData != null) {
             importer.setSdkLocation(sdkData.getLocation());
           }
@@ -131,7 +133,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
                              @Nullable ModifiableModuleModel model,
                              ModulesProvider modulesProvider,
                              @Nullable ModifiableArtifactModel artifactModel) {
-    File destDir = new File(project.getBasePath());
+    File destDir = getBaseDirPath(project);
     try {
       if (!destDir.exists()) {
         boolean ok = destDir.mkdirs();
@@ -197,7 +199,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
   public void readProjects() {
     try {
-      myImporter.importProjects(Arrays.asList(mySelectedProject));
+      myImporter.importProjects(Collections.singletonList(mySelectedProject));
     }
     catch (IOException e) {
       // Ignore I/O warnings; they are also logged to the warnings panel we display
@@ -211,9 +213,9 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   private static void openSummary(Project project) {
-    VirtualFile summary = project.getBaseDir().findChild(GradleImport.IMPORT_SUMMARY_TXT);
+    VirtualFile summary = project.getBaseDir().findChild(IMPORT_SUMMARY_TXT);
     if (summary != null) {
-      TemplateUtils.openEditor(project, summary);
+      openEditor(project, summary);
     }
   }
 

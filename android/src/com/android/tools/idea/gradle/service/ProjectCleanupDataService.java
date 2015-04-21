@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ImportedModule;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,13 +27,16 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Removes modules from the project that where not created by the "Sync with Gradle" action.
@@ -48,11 +50,12 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
 
   @Override
   public void importData(@NotNull Collection<DataNode<ImportedModule>> toImport, @NotNull Project project, boolean synchronous) {
-    // IntelliJ supports several gradle projects linked to one IDEA project
-    // it will be separate processes for these gradle projects importing
-    // also IntelliJ does not prevent to mix gradle projects with non-gradle
-    // see original issue at https://youtrack.jetbrains.com/issue/IDEA-137433
-    if(!AndroidStudioSpecificInitializer.isAndroidStudio()) return;
+    // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
+    // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
+    // See https://youtrack.jetbrains.com/issue/IDEA-137433
+    if(!isAndroidStudio()) {
+      return;
+    }
 
     final ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
@@ -73,7 +76,7 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
             ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
             try {
               for (Module module : modulesByName.values()) {
-                File imlFile = new File(FileUtil.toSystemDependentName(module.getModuleFilePath()));
+                File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
                 imlFilesToRemove.add(imlFile);
                 moduleModel.disposeModule(module);
               }
@@ -83,7 +86,7 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
             }
             for (File imlFile : imlFilesToRemove) {
               if (imlFile.isFile()) {
-                FileUtil.delete(imlFile);
+                delete(imlFile);
               }
             }
           }
