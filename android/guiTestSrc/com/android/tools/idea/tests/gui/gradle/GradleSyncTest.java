@@ -50,7 +50,6 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -220,12 +219,12 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
-    File androidRepoPath = new File(IdeSdks.getAndroidSdkPath(), FileUtil.join("extras", "android", "m2repository"));
+    File androidRepoPath = new File(IdeSdks.getAndroidSdkPath(), join("extras", "android", "m2repository"));
     assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test").isDirectory();
 
     IdeFrameFixture projectFrame = importSimpleApplication();
 
-    assertTrue("Android Support Repository deleted", FileUtil.delete(androidRepoPath));
+    assertTrue("Android Support Repository deleted", delete(androidRepoPath));
 
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -277,11 +276,12 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSyncDoesNotChangeDependenciesInBuildFiles() throws IOException {
-    File projectPath = setUpProject("MultiModule", true, true, null);
-    File appBuildFilePath = new File(projectPath, FileUtil.join("app", FN_BUILD_GRADLE));
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    File appBuildFilePath = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertThat(appBuildFilePath).isFile();
     long lastModified = appBuildFilePath.lastModified();
-    openProject(projectPath);
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
     // See https://code.google.com/p/android/issues/detail?id=78628
     assertEquals(lastModified, appBuildFilePath.lastModified());
   }
@@ -671,7 +671,7 @@ public class GradleSyncTest extends GuiTestCase {
     File projectPath = new File(getProjectCreationDirPath(), projectDirName);
 
     // The bug appears only when the central build folder does not exist.
-    final File centralBuildDirPath = new File(projectPath, FileUtil.join("central", "build"));
+    final File centralBuildDirPath = new File(projectPath, join("central", "build"));
     File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
