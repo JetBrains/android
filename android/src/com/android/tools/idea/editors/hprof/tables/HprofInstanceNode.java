@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables.instancestable;
+package com.android.tools.idea.editors.hprof.tables;
 
-import com.android.tools.idea.editors.hprof.tables.HprofTable;
-import com.android.tools.perflib.heap.Heap;
+import com.android.tools.perflib.heap.Field;
 import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+public interface HprofInstanceNode {
+  @Nullable
+  Instance getInstance();
 
-public class InstancesTable extends HprofTable {
-  public InstancesTable(@NotNull InstancesTableModel model) {
-    super(model);
-  }
+  @NotNull
+  Object getValue();
 
-  public void setInstances(@Nullable Heap heap, @Nullable Collection<Instance> entries) {
-    ((InstancesTableModel)getModel()).setInstances(heap, entries);
-  }
+  @NotNull
+  Field getField();
+
+  boolean isPrimitive();
 }

@@ -50,20 +50,6 @@ public class GcRootTableModel extends HprofTableModel {
   }
 
   @Override
-  public void enableAllColumns() {
-    for (TableColumn column : myColumns) {
-      column.setEnabled(true);
-    }
-
-    fireTableDataChanged();
-  }
-
-  @Override
-  protected boolean isColumnEnabled(int unmappedIndex) {
-    return myColumns.get(unmappedIndex).getEnabled();
-  }
-
-  @Override
   public int getRowCount() {
     return myRoots.size();
   }
@@ -73,9 +59,10 @@ public class GcRootTableModel extends HprofTableModel {
     return myColumns.size();
   }
 
+  @NotNull
   @Override
-  protected TableColumn getColumn(int uiIndex) {
-    return remapUiColumnIndexToColumn(uiIndex);
+  protected TableColumn getColumn(int index) {
+    return myColumns.get(index);
   }
 
   @NotNull
@@ -101,10 +88,5 @@ public class GcRootTableModel extends HprofTableModel {
     });
 
     return columns;
-  }
-
-  @NotNull
-  private TableColumn<GcRootTableModel, ?> remapUiColumnIndexToColumn(int uiIndex) {
-    return myColumns.get(uiIndex);
   }
 }

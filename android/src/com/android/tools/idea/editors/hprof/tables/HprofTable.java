@@ -28,7 +28,7 @@ public abstract class HprofTable extends JBTable {
   public HprofTable(@NotNull TableModel model) {
     super(model);
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    setRowHeight(19);
+    setRowHeight(18);
     setUpdateSelectionOnSort(true);
     setAutoCreateRowSorter(true);
     setDefaultSort();
