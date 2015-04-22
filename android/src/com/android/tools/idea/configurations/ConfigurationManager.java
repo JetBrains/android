@@ -119,6 +119,7 @@ public class ConfigurationManager implements Disposable {
   private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
+    assert file.getParent() != null : file;
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
