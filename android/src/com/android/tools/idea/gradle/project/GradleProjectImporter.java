@@ -313,7 +313,7 @@ public class GradleProjectImporter {
    * validation before importing the project (assuming that the wizard properly created the new project.)
    *
    * @param projectName          name of the project.
-   * @param projectRootDir       root directory of the project.
+   * @param projectRootDirPath   the path of the project's root directory.
    * @param listener             called after the project has been imported.
    * @param project              the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
@@ -323,18 +323,18 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void importNewlyCreatedProject(@NotNull String projectName,
-                                        @NotNull File projectRootDir,
+                                        @NotNull File projectRootDirPath,
                                         @Nullable GradleSyncListener listener,
                                         @Nullable Project project,
                                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDir, new ImportOptions(true, false, false), listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDirPath, new ImportOptions(true, false, false), listener, project, initialLanguageLevel);
   }
 
   /**
    * Imports and opens an Android project.
    *
    * @param projectName              name of the project.
-   * @param projectRootDir           root directory of the project.
+   * @param projectRootDirPath       path of the projects' root directory.
    * @param generateSourcesOnSuccess whether to generate sources after sync.
    * @param listener                 called after the project has been imported.
    * @param project                  the given project. This method does nothing if the project is not an Android-Gradle project.
@@ -345,24 +345,25 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void importProject(@NotNull String projectName,
-                            @NotNull File projectRootDir,
+                            @NotNull File projectRootDirPath,
                             boolean generateSourcesOnSuccess,
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDir, new ImportOptions(generateSourcesOnSuccess, true, false), listener, project, initialLanguageLevel);
+    ImportOptions options = new ImportOptions(generateSourcesOnSuccess, true, false);
+    doImport(projectName, projectRootDirPath, options, listener, project, initialLanguageLevel);
   }
 
   private void doImport(@NotNull String projectName,
-                        @NotNull File projectRootDir,
+                        @NotNull File projectRootDirPath,
                         @NotNull ImportOptions options,
                         @Nullable GradleSyncListener listener,
                         @Nullable Project project,
                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    createTopLevelBuildFileIfNotExisting(projectRootDir);
-    createIdeaProjectDir(projectRootDir);
+    createTopLevelBuildFileIfNotExisting(projectRootDirPath);
+    createIdeaProjectDir(projectRootDirPath);
 
-    Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
+    Project newProject = project == null ? createProject(projectName, projectRootDirPath.getPath()) : project;
     setUpProject(newProject, initialLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -372,8 +373,8 @@ public class GradleProjectImporter {
     doImport(newProject, true /* new project */, MODAL_SYNC /* synchronous import */, options, listener);
   }
 
-  private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
-    File projectFile = getGradleBuildFilePath(projectRootDir);
+  private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDirPath) throws IOException {
+    File projectFile = getGradleBuildFilePath(projectRootDirPath);
     if (projectFile.isFile()) {
       return;
     }
@@ -383,11 +384,11 @@ public class GradleProjectImporter {
     writeToFile(projectFile, contents);
   }
 
-  private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
-    File ideaDir = new File(projectRootDir, Project.DIRECTORY_STORE_FOLDER);
-    if (ideaDir.isDirectory()) {
+  private static void createIdeaProjectDir(@NotNull File projectRootDirPath) throws IOException {
+    File ideaDirPath = new File(projectRootDirPath, Project.DIRECTORY_STORE_FOLDER);
+    if (ideaDirPath.isDirectory()) {
       // "libraries" is hard-coded in com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable
-      File librariesDir = new File(ideaDir, "libraries");
+      File librariesDir = new File(ideaDirPath, "libraries");
       if (librariesDir.exists()) {
         // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
         // created with Studio 0.4.3 or earlier.)
@@ -398,7 +399,7 @@ public class GradleProjectImporter {
       }
     }
     else {
-      ensureExists(ideaDir);
+      ensureExists(ideaDirPath);
     }
   }
 
@@ -428,8 +429,8 @@ public class GradleProjectImporter {
 
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
-            File compilerOutputDir = new File(getBaseDirPath(newProject), join(BUILD_DIR_DEFAULT_NAME, "classes"));
-            String compilerOutputDirUrl = pathToIdeaUrl(compilerOutputDir);
+            File compilerOutputDirPath = new File(getBaseDirPath(newProject), join(BUILD_DIR_DEFAULT_NAME, "classes"));
+            String compilerOutputDirUrl = pathToIdeaUrl(compilerOutputDirPath);
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
             compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
