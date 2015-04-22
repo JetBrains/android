@@ -28,7 +28,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -89,6 +88,10 @@ public class ThemeEditorUtils {
       public void run() {
         ThemeEditorVirtualFile file = null;
         final Project project = module.getProject();
+        if (module.getModuleFile() == null) {
+          // Saving the project makes sure the module virtual file is created
+          project.save();
+        }
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
 
         for (final FileEditor editor : fileEditorManager.getAllEditors()) {
@@ -113,11 +116,6 @@ public class ThemeEditorUtils {
         fileEditorManager.openEditor(descriptor, true);
       }
     });
-  }
-
-  public static boolean isModuleInitialized(final Module module) {
-    VirtualFile moduleFile = module.getModuleFile();
-    return moduleFile != null && moduleFile.getParent() != null;
   }
 
   public static List<EditedStyleItem> resolveAllAttributes(final ThemeEditorStyle style) {

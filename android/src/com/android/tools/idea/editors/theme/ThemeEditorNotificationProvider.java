@@ -58,9 +58,6 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     if (!ThemeEditorProvider.isAndroidTheme(psiFile) || module == null) {
       return null;
     }
-    if (!ThemeEditorUtils.isModuleInitialized(module)) {
-      return null;
-    }
 
     final InfoPanel panel = new InfoPanel();
     panel.setText("Edit all themes in the project in the theme editor.");
