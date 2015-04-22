@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.properties.basicTypes;
 
+import com.android.tools.idea.properties.CountListener;
 import com.android.tools.idea.properties.InvalidationListener;
 import com.android.tools.idea.properties.ObservableValue;
 import org.jetbrains.annotations.NotNull;
@@ -56,20 +57,10 @@ public final class IntValuePropertyTest {
     CountListener listener = new CountListener();
     intValue.addListener(listener);
 
-    assertThat(listener.myCount).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
     intValue.set(10);
-    assertThat(listener.myCount).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
     intValue.set(10);
-    assertThat(listener.myCount).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
   }
-
-  private static class CountListener extends InvalidationListener<Integer> {
-    public int myCount;
-
-    @Override
-    protected void onInvalidated(@NotNull ObservableValue<Integer> sender) {
-      myCount++;
-    }
-  }
-
 }

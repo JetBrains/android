@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.properties.InvalidationListener;
-import com.android.tools.idea.properties.ObservableValue;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.properties.CountListener;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -34,23 +32,14 @@ public final class EditablePropertyTest {
     editableProperty.addListener(listener);
 
     assertThat(editableProperty.get()).isTrue();
-    assertThat(listener.count).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
 
     field.setEditable(false);
     assertThat(editableProperty.get()).isFalse();
-    assertThat(listener.count).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
 
     editableProperty.set(true);
     assertThat(field.isEditable()).isTrue();
-    assertThat(listener.count).isEqualTo(2);
-  }
-
-  private static class CountListener extends InvalidationListener<Boolean> {
-    public int count;
-
-    @Override
-    protected void onInvalidated(@NotNull ObservableValue<Boolean> sender) {
-      count++;
-    }
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 }
