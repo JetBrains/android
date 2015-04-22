@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class EditedStyleItem {
   private final static Logger LOG = Logger.getInstance(EditedStyleItem.class);
+  private final static String DEPRECATED = "deprecated";
 
   private final ThemeEditorStyle mySourceTheme;
   private ItemResourceValue myItemResourceValue;
@@ -168,6 +170,12 @@ public class EditedStyleItem {
     return (getValue().startsWith(SdkConstants.ANDROID_THEME_PREFIX) ?
       SdkConstants.PREFIX_ANDROID :
       "") + propertyName;
+  }
+
+  public boolean isDeprecated() {
+    AttributeDefinition def = StyleResolver.getAttributeDefinition(mySourceTheme.getConfiguration(), myItemResourceValue);
+    String doc = (def == null) ? null : def.getDocValue(null);
+    return (doc != null && StringUtil.containsIgnoreCase(doc, DEPRECATED));
   }
 
   public boolean isPublicAttribute() {
