@@ -120,20 +120,6 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @Override
   public void init() {
     register(myPathKey, myJdkPath);
-    autoDetectJdkPath();
-  }
-
-  private void autoDetectJdkPath() {
-    JdkDetection.start(new JdkDetection.JdkDetectionResult() {
-      @Override
-      public void onSuccess(String newJdkPath) {
-        myJdkPath.setText(newJdkPath);
-      }
-
-      @Override
-      public void onCancel() {
-      }
-    });
   }
 
   @Override
