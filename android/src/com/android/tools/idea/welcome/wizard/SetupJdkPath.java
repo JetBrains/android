@@ -17,18 +17,17 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.config.JdkDetection;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.ScopedStateStore.Scope;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Guides the user through setting up the JDK location.
@@ -36,24 +35,12 @@ import java.util.List;
 public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
   @NotNull private final FirstRunWizardMode myMode;
-  private final boolean myHasCompatibleJdk;
+  private boolean myHasCompatibleJdk;
   private JdkLocationStep myJdkLocationStep;
 
   public SetupJdkPath(@NotNull FirstRunWizardMode mode) {
     myMode = mode;
     myJdkLocationStep = new JdkLocationStep(KEY_JDK_LOCATION, myMode);
-    myHasCompatibleJdk = hasCompatibleJdk();
-  }
-
-  private static boolean hasCompatibleJdk() {
-    JavaSdk sdkType = JavaSdk.getInstance();
-    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(sdkType);
-    for (Sdk jdk : jdks) {
-      if (sdkType.isOfVersionOrHigher(jdk, FirstRunWizardDefaults.MIN_JDK_VERSION)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @Override
@@ -63,19 +50,42 @@ public class SetupJdkPath extends DynamicWizardPath {
 
   @Override
   protected void init() {
+    if (myHasCompatibleJdk) {
+      return;
+    }
     String path = null;
     File javaDir = myMode.getJavaDir();
     if (javaDir != null) {
       path = javaDir.getAbsolutePath();
     }
-    else {
+    if (StringUtil.isEmpty(path)) {
       Sdk jdk = IdeSdks.getJdk(FirstRunWizardDefaults.MIN_JDK_VERSION);
       if (jdk != null) {
         path = jdk.getHomePath();
       }
     }
-    myState.put(KEY_JDK_LOCATION, path);
-    addStep(myJdkLocationStep);
+    if (StringUtil.isEmpty(path)) {
+      final StringBuilder result = new StringBuilder();
+      JdkDetection.start(new JdkDetection.JdkDetectionResult() {
+        @Override
+        public void onSuccess(String newJdkPath) {
+          result.append(newJdkPath);
+        }
+
+        @Override
+        public void onCancel() {
+        }
+      });
+      path = result.toString();
+    }
+
+    if (StringUtil.isEmpty(path)) {
+      addStep(myJdkLocationStep);
+    }
+    else {
+      myState.put(KEY_JDK_LOCATION, path);
+      myHasCompatibleJdk = true;
+    }
   }
 
   @NotNull
