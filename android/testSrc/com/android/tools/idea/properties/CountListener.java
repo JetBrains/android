@@ -13,32 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.expressions.string;
+package com.android.tools.idea.properties;
 
+import com.android.tools.idea.properties.InvalidationListener;
 import com.android.tools.idea.properties.Observable;
-import com.android.tools.idea.properties.ObservableValue;
-import com.android.tools.idea.properties.expressions.Expression;
-import com.android.tools.idea.properties.expressions.bool.BooleanExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class for String expressions, providing a default implementation for the {@link StringExpression} interface.
+ * {@link InvalidationListener} that counts how many times it was triggered - useful for testing.
  */
-public abstract class AbstractStringExpression extends Expression implements StringExpression {
+public final class CountListener extends InvalidationListener {
+  private int count;
 
-  protected AbstractStringExpression(Observable... values) {
-    super(values);
+  public int getCount() {
+    return count;
   }
 
-  @NotNull
   @Override
-  public BooleanExpression isEmpty() {
-    return new IsEmptyExpression(this);
-  }
-
-  @NotNull
-  @Override
-  public StringExpression trim() {
-    return new TrimExpression(this);
+  protected void onInvalidated(@NotNull Observable sender) {
+    count++;
   }
 }

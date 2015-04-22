@@ -22,26 +22,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Implementation for {@link ObservableValue}, providing the logic for adding/removing listeners.
+ * Implementation for {@link Observable}, providing the logic for adding/removing listeners.
  */
-public abstract class AbstractObservable<T> implements ObservableValue<T> {
-  private final List<InvalidationListener<T>> myListeners = Lists.newArrayListWithCapacity(0);
-  private final UnsafeWeakList<InvalidationListener<T>> myWeakListeners = new UnsafeWeakList<InvalidationListener<T>>(0);
+public abstract class AbstractObservable implements Observable {
+  private final List<InvalidationListener> myListeners = Lists.newArrayListWithCapacity(0);
+  private final UnsafeWeakList<InvalidationListener> myWeakListeners = new UnsafeWeakList<InvalidationListener>(0);
   private boolean myNotificationsEnabled = true;
 
   @Override
-  public final void addListener(@NotNull InvalidationListener<T> listener) {
+  public final void addListener(@NotNull InvalidationListener listener) {
     myListeners.add(listener);
   }
 
   @Override
-  public final void removeListener(@NotNull InvalidationListener<T> listener) {
+  public final void removeListener(@NotNull InvalidationListener listener) {
     myListeners.remove(listener);
     myWeakListeners.remove(listener);
   }
 
   @Override
-  public final void addWeakListener(@NotNull InvalidationListener<T> listener) {
+  public final void addWeakListener(@NotNull InvalidationListener listener) {
     myWeakListeners.add(listener);
   }
 
@@ -54,11 +54,11 @@ public abstract class AbstractObservable<T> implements ObservableValue<T> {
       return;
     }
 
-    for (InvalidationListener<T> listener : myListeners) {
+    for (InvalidationListener listener : myListeners) {
       listener.onInvalidated(this);
     }
 
-    for (InvalidationListener<T> listener : myWeakListeners) {
+    for (InvalidationListener listener : myWeakListeners) {
       listener.onInvalidated(this);
     }
   }
