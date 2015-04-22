@@ -230,13 +230,13 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
+  private IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, true, true, null);
     return openProject(projectPath);
   }
 
   @NotNull
-  protected IdeFrameFixture openProject(@NotNull final File projectPath) {
+  private IdeFrameFixture openProject(@NotNull final File projectPath) {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
@@ -295,10 +295,10 @@ public abstract class GuiTestCase {
    * @throws IOException if an unexpected I/O error occurs.
    */
   @NotNull
-  protected File setUpProject(@NotNull String projectDirName,
-                              boolean forOpen,
-                              boolean updateAndroidPluginVersion,
-                              @Nullable String gradleVersion) throws IOException {
+  private File setUpProject(@NotNull String projectDirName,
+                            boolean forOpen,
+                            boolean updateAndroidPluginVersion,
+                            @Nullable String gradleVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
     File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);

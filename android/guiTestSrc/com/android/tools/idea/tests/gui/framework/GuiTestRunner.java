@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ArrayUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -37,6 +36,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.List;
 
+import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 
@@ -138,7 +138,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
         if (annotation != null && Proxy.isProxyClass(annotation.getClass())) {
           InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
           Method closeProjectBeforeExecutionMethod = ideGuiTestClass.getDeclaredMethod("closeProjectBeforeExecution");
-          Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, ArrayUtil.EMPTY_OBJECT_ARRAY);
+          Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, EMPTY_OBJECT_ARRAY);
           assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
           if ((Boolean)result) {
             method("closeAllProjects").in(test).invoke();
