@@ -39,7 +39,7 @@ public class IntegerRenderer extends DefaultTableCellRenderer {
     if (column == 0) {
       component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
     } else {
-      component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+      component = super.getTableCellRendererComponent(table, item.getValue(), isSelected, hasFocus, row, column);
     }
 
     return component;
