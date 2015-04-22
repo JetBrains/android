@@ -484,6 +484,11 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         @NotNull ImportOptions options,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
+    if (isAndroidStudio()) {
+      // See https://code.google.com/p/android/issues/detail?id=169743
+      clearStoredGradleJvmArgs(project);
+    }
+
     PreSyncChecks.PreSyncCheckResult preSyncCheckResult = PreSyncChecks.canSync(project);
     if (!preSyncCheckResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
