@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.blame.SourceFragmentPositionRange;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.output.GradleMessage;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
@@ -92,7 +92,7 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals("No resource identifier found for attribute 'a' in package 'android'", message.getText());
     assertEquals(GradleMessage.Kind.ERROR, message.getKind());
     assertEquals("/usr/local/google/home/cmw/udacity/Sunshine/app/src/main/res/menu/detail.xml", message.getSourcePath());
-    assertEquals(new SourceFragmentPositionRange(5, -1, -1), message.getPosition());
+    assertEquals(new SourcePosition(5, -1, -1), message.getPosition());
   }
 
   public void testParseAaptOutputWithRange1() throws IOException {
