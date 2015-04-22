@@ -124,8 +124,6 @@ public class LayoutPullParserFactory {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
 
-    // IntelliJ bug: Claims that folderType can be null below. Suppressed.
-    //noinspection ConstantConditions
     switch (folderType) {
       case LAYOUT: {
         RenderLogger logger = renderTask.getLogger();
