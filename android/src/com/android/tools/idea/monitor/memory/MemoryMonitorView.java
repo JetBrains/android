@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +56,7 @@ public class MemoryMonitorView extends BaseMonitorView
   @NotNull private final DeviceContext myDeviceContext;
   @NotNull private TimelineComponent myTimelineComponent;
   @NotNull private MemorySampler myMemorySampler;
+  private final EventData myEvents;
 
   public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project);
@@ -66,15 +68,16 @@ public class MemoryMonitorView extends BaseMonitorView
     float initialMarker = 2.0f;
 
     TimelineData data = new TimelineData(2, SAMPLES);
-    EventData events = new EventData();
-    myTimelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
+    myEvents = new EventData();
+    myTimelineComponent = new TimelineComponent(data, myEvents, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
 
     myTimelineComponent.configureUnits("MB");
     myTimelineComponent.configureStream(0, "Allocated", new JBColor(0x78abd9, 0x78abd9));
     myTimelineComponent.configureStream(1, "Free", new JBColor(0xbaccdc, 0x51585c));
-    //myTimelineComponent
-    //  .configureEvent(MemorySampler.TYPE_HPROF_REQUEST, MemorySampler.TYPE_HPROF_RESULT, 0, AndroidIcons.Ddms.ScreenCapture,
-    //                  new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF));
+    myTimelineComponent.configureEvent(1, 0, AndroidIcons.Ddms.DumpHprof, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
+
+    myTimelineComponent.configureType(DeviceSampler.TYPE_DATA, TimelineComponent.Style.SOLID);
+    myTimelineComponent.configureType(DeviceSampler.TYPE_TIMEOUT, TimelineComponent.Style.DASHED);
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
     setComponent(myTimelineComponent);
@@ -95,7 +98,7 @@ public class MemoryMonitorView extends BaseMonitorView
       group.add(new RecordingAction(myMemorySampler));
     }
     group.add(new GcAction(myDeviceContext));
-    group.add(new DumpHprofAction(myDeviceContext));
+    group.add(new DumpHprofAction(myProject, myDeviceContext, myEvents));
     group.add(new ToggleAllocationTrackingAction(myDeviceContext));
 
     if (Boolean.getBoolean("studio.profiling.debug")) {
