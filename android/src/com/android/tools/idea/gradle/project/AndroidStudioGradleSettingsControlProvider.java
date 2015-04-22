@@ -1,10 +1,9 @@
 package com.android.tools.idea.gradle.project;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.service.settings.GradleProjectSettingsControlBuilder;
-import org.jetbrains.plugins.gradle.service.settings.GradleSettingsControlProvider;
-import org.jetbrains.plugins.gradle.service.settings.IdeaGradleProjectSettingsControlBuilder;
+import org.jetbrains.plugins.gradle.service.settings.*;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * @author Vladislav.Soroka
@@ -14,6 +13,11 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
   @Override
   public String getPlatformPrefix() {
     return "AndroidStudio";
+  }
+
+  @Override
+  public GradleSystemSettingsControlBuilder getSystemSettingsControlBuilder(@NotNull GradleSettings initialSettings) {
+    return new IdeaGradleSystemSettingsControlBuilder(initialSettings).dropVmOptions();
   }
 
   @Override
