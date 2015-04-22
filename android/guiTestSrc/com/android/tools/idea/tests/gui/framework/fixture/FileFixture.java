@@ -30,7 +30,6 @@ import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -121,7 +120,7 @@ public class FileFixture {
     final Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
     assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
 
-    Pause.pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {
+    pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {
       @Override
       public boolean test() {
         Collection<HighlightInfo> highlightInfos = GuiActionRunner.execute(new GuiQuery<Collection<HighlightInfo>>() {
@@ -134,7 +133,7 @@ public class FileFixture {
         });
         return highlightInfos.size() == expected;
       }
-    });
+    }, SHORT_TIMEOUT);
 
     return this;
   }

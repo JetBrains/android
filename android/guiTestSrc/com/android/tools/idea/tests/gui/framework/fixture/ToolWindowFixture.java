@@ -25,7 +25,6 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,7 @@ public abstract class ToolWindowFixture {
     myToolWindowId = toolWindowId;
     myProject = project;
     final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
-    Pause.pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
+    pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
       @Override
       public boolean test() {
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
@@ -63,7 +62,7 @@ public abstract class ToolWindowFixture {
     waitUntilIsVisible();
     final AtomicReference<Content> contentRef = new AtomicReference<Content>();
 
-    Pause.pause(new Condition("finding content '" + displayName + "'") {
+    pause(new Condition("finding content '" + displayName + "'") {
       @Override
       public boolean test() {
         Content[] contents = myToolWindow.getContentManager().getContents();
