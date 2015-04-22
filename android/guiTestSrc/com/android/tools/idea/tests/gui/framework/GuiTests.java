@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
@@ -44,9 +42,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +54,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
+import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
@@ -71,6 +69,7 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
+import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -94,12 +93,12 @@ public final class GuiTests {
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void setUpDefaultGeneralSettings() {
-    AndroidPlugin.setGuiTestingMode(true);
+    setGuiTestingMode(true);
 
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
     setUpDefaultProjectCreationLocationPath();
 
-    final File androidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    final File androidSdkPath = getAndroidSdkPath();
 
     String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
     if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
@@ -277,7 +276,7 @@ public final class GuiTests {
     if (items.isEmpty()) {
       fail("Could not find any menu items in popup");
     }
-    fail("Did not find menu item with prefix '" + labelPrefix + "' among " + Joiner.on(", ").join(items));
+    fail("Did not find menu item with prefix '" + labelPrefix + "' among " + on(", ").join(items));
   }
 
   /** Returns the root container containing the given component */
@@ -355,7 +354,7 @@ public final class GuiTests {
                                                        @Nullable final Container root,
                                                        @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
-    Pause.pause(new Condition("Find component using " + matcher.toString()) {
+    pause(new Condition("Find component using " + matcher.toString()) {
       @Override
       public boolean test() {
         ComponentFinder finder = robot.finder();
@@ -363,7 +362,8 @@ public final class GuiTests {
         boolean found = allFound.size() == 1;
         if (found) {
           reference.set(getFirstItem(allFound));
-        } else if (allFound.size() > 1) {
+        }
+        else if (allFound.size() > 1) {
           // Only allow a single component to be found, otherwise you can get some really confusing
           // test failures; the matcher should pick a specific enough instance
           fail("Found more than one " + matcher.supportedType().getSimpleName() + " which matches the criteria: " + allFound);
@@ -379,7 +379,7 @@ public final class GuiTests {
   public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
                                                          @NotNull final Container root,
                                                          @NotNull final GenericTypeMatcher<T> matcher) {
-    Pause.pause(new Condition("Find component using " + matcher.toString()) {
+    pause(new Condition("Find component using " + matcher.toString()) {
       @Override
       public boolean test() {
         Collection<T> allFound = robot.finder().findAll(root, matcher);

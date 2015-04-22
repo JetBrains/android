@@ -29,8 +29,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -90,14 +88,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createAndroidHomeJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
+import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.google.common.base.Splitter.on;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -253,7 +256,7 @@ public final class GradleUtil {
 
   @NotNull
   public static List<String> getPathSegments(@NotNull String gradlePath) {
-    return Lists.newArrayList(Splitter.on(SdkConstants.GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
+    return Lists.newArrayList(on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
   }
 
   @Nullable
@@ -275,7 +278,7 @@ public final class GradleUtil {
 
   @NotNull
   public static File getGradleBuildFilePath(@NotNull File rootDir) {
-    return new File(rootDir, SdkConstants.FN_BUILD_GRADLE);
+    return new File(rootDir, FN_BUILD_GRADLE);
   }
 
   @Nullable
@@ -286,7 +289,7 @@ public final class GradleUtil {
 
   @NotNull
   public static File getGradleSettingsFilePath(@NotNull File rootDir) {
-    return new File(rootDir, SdkConstants.FN_SETTINGS_GRADLE);
+    return new File(rootDir, FN_SETTINGS_GRADLE);
   }
 
   @NotNull
@@ -311,7 +314,7 @@ public final class GradleUtil {
       return false;
     }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistributionUrl);
-    PropertiesUtil.savePropertiesToFile(properties, propertiesFile, null);
+    savePropertiesToFile(properties, propertiesFile, null);
     return true;
   }
 
@@ -429,8 +432,8 @@ public final class GradleUtil {
   @VisibleForTesting
   @Nullable
   static String getGradleInvocationJvmArg(@Nullable BuildMode buildMode) {
-    if (BuildMode.ASSEMBLE_TRANSLATE == buildMode) {
-      return AndroidGradleSettings.createJvmArg(GradleBuilds.ENABLE_TRANSLATION_JVM_ARG, true);
+    if (ASSEMBLE_TRANSLATE == buildMode) {
+      return AndroidGradleSettings.createJvmArg(ENABLE_TRANSLATION_JVM_ARG, true);
     }
     return null;
   }
@@ -491,7 +494,7 @@ public final class GradleUtil {
     GradleExecutionSettings settings = getGradleExecutionSettings(project);
     if (settings != null) {
       String gradleHome = settings.getGradleHome();
-      if (!Strings.isNullOrEmpty(gradleHome)) {
+      if (isNotEmpty(gradleHome)) {
         File path = new File(gradleHome);
         if (isValidGradleHome(path)) {
           return path;
@@ -780,7 +783,7 @@ public final class GradleUtil {
     processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile virtualFile) {
-        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
           File fileToCheck = virtualToIoFile(virtualFile);
           try {
             String contents = loadFile(fileToCheck);
@@ -804,7 +807,7 @@ public final class GradleUtil {
   @VisibleForTesting
   @Nullable
   static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
-    GradleCoordinate found = getPluginDefinition(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
+    GradleCoordinate found = getPluginDefinition(fileContents, GRADLE_PLUGIN_NAME);
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);
       if (isNotEmpty(revision)) {
@@ -840,7 +843,7 @@ public final class GradleUtil {
         return pair.getFirst();
       }
     });
-    return isNotEmpty(definition) ? GradleCoordinate.parseCoordinateString(definition) : null;
+    return isNotEmpty(definition) ? parseCoordinateString(definition) : null;
   }
 
   /**
@@ -1031,7 +1034,7 @@ public final class GradleUtil {
           for (File version : notNullize(versionDir.listFiles())) {
             String name = version.getName();
             if ((filter == null || name.startsWith(filter)) && !name.isEmpty() && Character.isDigit(name.charAt(0))) {
-              GradleCoordinate found = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + name);
+              GradleCoordinate found = parseCoordinateString(groupId + ":" + artifactId + ":" + name);
               if (found != null) {
                 coordinates.add(found);
               }
@@ -1137,7 +1140,7 @@ public final class GradleUtil {
 
   // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
   private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
-    return gradleVersion.equals(SdkConstants.GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
+    return gradleVersion.equals(GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
   }
 
   private static boolean isWrapperInGradleCache(@NotNull Project project, @NotNull String gradleVersion) {
@@ -1216,7 +1219,7 @@ public final class GradleUtil {
    *
    * @param library      the Gradle library to check
    * @param artifact     the artifact
-   * @param transitively if false, checks only direct dependencies, otherwise checks transitively
+   * @param transitively if {@code false}, checks only direct dependencies, otherwise checks transitively
    * @return {@code true} if the project depends on the given artifact
    */
   public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {

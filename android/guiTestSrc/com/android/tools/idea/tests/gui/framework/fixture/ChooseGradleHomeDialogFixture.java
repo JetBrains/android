@@ -28,7 +28,6 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,6 +41,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static junit.framework.Assert.*;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.query.ComponentShowingQuery.isShowing;
+import static org.fest.swing.timing.Pause.pause;
 
 public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
   @NotNull
@@ -107,7 +107,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
 
   @NotNull
   public ChooseGradleHomeDialogFixture requireValidationError(@NotNull final String errorText) {
-    Pause.pause(new Condition(String.format("Find error message '%1$s'", errorText)) {
+    pause(new Condition(String.format("Find error message '%1$s'", errorText)) {
       @Override
       public boolean test() {
         ComponentFinder finder = robot.finder();

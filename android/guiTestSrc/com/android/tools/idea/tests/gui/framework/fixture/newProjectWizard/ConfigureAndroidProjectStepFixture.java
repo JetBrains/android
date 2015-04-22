@@ -23,13 +23,13 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.timing.Pause.pause;
 
 public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture {
   protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
@@ -63,7 +63,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     robot.click(editLabel);
 
     final JTextField textField = robot.finder().findByType(link, JTextField.class);
-    Pause.pause(new Condition("'Package name' field is visible") {
+    pause(new Condition("'Package name' field is visible") {
       @Override
       public boolean test() {
         return textField.isShowing();
