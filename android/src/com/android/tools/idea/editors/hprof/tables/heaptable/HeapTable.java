@@ -16,12 +16,20 @@
 package com.android.tools.idea.editors.hprof.tables.heaptable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTable;
+import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class HeapTable extends HprofTable {
-  public HeapTable(@NotNull HeapTableModel model) {
+  @NotNull private InstancesTreeTable myInstancesTreeTable;
+
+  public HeapTable(@NotNull HeapTableModel model, @NotNull InstancesTreeTable instancesTreeTable) {
     super(model);
+    myInstancesTreeTable = instancesTreeTable;
+  }
+
+  @Override
+  public void notifyDominatorsComputed() {
+    super.notifyDominatorsComputed();
+    myInstancesTreeTable.notifyDominatorsComputed();
   }
 }
