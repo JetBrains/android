@@ -74,6 +74,15 @@ public class ThemeEditorUtils {
     return tooltipContents;
   }
 
+  /**
+   * Returns html that will be displayed in attributes table for a given item.
+   * For example: deprecated attrs will be with a strike through
+   */
+  @NotNull
+  public static String getDisplayHtml(EditedStyleItem item) {
+    return item.isDeprecated() ? "<html><body><strike>" + item.getQualifiedName() + "</strike></body></html>" : item.getQualifiedName();
+  }
+
   public static void openThemeEditor(@NotNull final Module module) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
