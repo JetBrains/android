@@ -99,6 +99,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAN
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.io.Closeables.close;
 import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
@@ -181,6 +182,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
+    if (isAndroidStudio()) {
+      // See https://code.google.com/p/android/issues/detail?id=169743
+      clearStoredGradleJvmArgs(getNotNullProject());
+    }
+
     myIndicator = indicator;
 
     ProjectManager projectManager = ProjectManager.getInstance();
