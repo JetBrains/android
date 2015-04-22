@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.hprof.tables;
 
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.RootObj;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,47 +26,6 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public abstract class HprofColumnInfo<Item, Aspect> extends ColumnInfo<Item, Aspect> {
-  public static final HprofColumnInfo<DefaultMutableTreeNode, String> INSTANCE_ID_INFO =
-    new HprofColumnInfo<DefaultMutableTreeNode, String>("Instance ID", String.class, SwingConstants.LEFT, 400, true) {
-      @Override
-      @NotNull
-      public String valueOf(@NotNull DefaultMutableTreeNode node) {
-        Instance instance = getUserInstance(node);
-        return String.format("%s @ 0x%x16", instance.getClassObj().getClassName(), instance.getId());
-      }
-    };
-
-  public static final HprofColumnInfo<DefaultMutableTreeNode, Integer> INSTANCE_SIZE_INFO =
-    new HprofColumnInfo<DefaultMutableTreeNode, Integer>("Sizeof", Integer.class, SwingConstants.RIGHT, 80, true) {
-      @Override
-      @NotNull
-      public Integer valueOf(@NotNull DefaultMutableTreeNode node) {
-        return getUserInstance(node).getCompositeSize();
-      }
-
-      @Override
-      @NotNull
-      public Class<?> getColumnClass() {
-        return Integer.class;
-      }
-    };
-
-  public static final HprofColumnInfo<DefaultMutableTreeNode, ClassObj> INSTANCE_DOMINATOR_INFO =
-    new HprofColumnInfo<DefaultMutableTreeNode, ClassObj>("Dominator Class", ClassObj.class, SwingConstants.LEFT, 400, false) {
-      @Override
-      @Nullable
-      public ClassObj valueOf(@NotNull DefaultMutableTreeNode node) {
-        Instance dominator = getUserInstance(node).getImmediateDominator();
-        return dominator == null ? null : dominator.getClassObj();
-      }
-
-      @Override
-      @NotNull
-      public Class<?> getColumnClass() {
-        return ClassObj.class;
-      }
-    };
-
   @NotNull private Class<Aspect> myClass;
   private int myHeaderJustification;
   private int myWidth;
@@ -79,9 +39,66 @@ public abstract class HprofColumnInfo<Item, Aspect> extends ColumnInfo<Item, Asp
     myEnabled = enabled;
   }
 
-  @NotNull
+  @Nullable
   public static Instance getUserInstance(@NotNull Object row) {
     return (Instance)((DefaultMutableTreeNode)row).getUserObject();
+  }
+
+  @NotNull
+  public static HprofColumnInfo<HprofInstanceNode, Instance> getInstanceIdInfo() {
+    return new HprofColumnInfo<HprofInstanceNode, Instance>("Instance ID", Instance.class, SwingConstants.LEFT, 400, true) {
+      @Override
+      @Nullable
+      public Instance valueOf(@NotNull HprofInstanceNode node) {
+        return node.getInstance();
+      }
+    };
+  }
+
+  @NotNull
+  public static HprofColumnInfo<HprofInstanceNode, Integer> getInstanceSizeInfo() {
+    return new HprofColumnInfo<HprofInstanceNode, Integer>("Sizeof", Integer.class, SwingConstants.RIGHT, 80, true) {
+      @Override
+      @Nullable
+      public Integer valueOf(@NotNull HprofInstanceNode node) {
+        if (node.isPrimitive()) {
+          return null;
+        }
+        Instance instance = node.getInstance();
+        return instance == null ? null : instance.getSize();
+      }
+
+      @Override
+      @NotNull
+      public Class<?> getColumnClass() {
+        return Integer.class;
+      }
+    };
+  }
+
+  @NotNull
+  public static HprofColumnInfo<HprofInstanceNode, ClassObj> getInstanceDominatorInfo() {
+    return new HprofColumnInfo<HprofInstanceNode, ClassObj>("Dominator Class", ClassObj.class, SwingConstants.LEFT, 400, false) {
+      @Override
+      @Nullable
+      public ClassObj valueOf(@NotNull HprofInstanceNode node) {
+        if (node.isPrimitive()) {
+          return null;
+        }
+        Instance instance = node.getInstance();
+        if (instance == null) {
+          return null;
+        }
+        Instance dominator = instance.getImmediateDominator();
+        return dominator == null || dominator instanceof RootObj ? null : dominator.getClassObj();
+      }
+
+      @Override
+      @NotNull
+      public Class<?> getColumnClass() {
+        return ClassObj.class;
+      }
+    };
   }
 
   @Override

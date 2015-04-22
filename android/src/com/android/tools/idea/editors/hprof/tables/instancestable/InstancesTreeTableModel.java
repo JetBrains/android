@@ -16,17 +16,15 @@
 package com.android.tools.idea.editors.hprof.tables.instancestable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofColumnInfo;
+import com.android.tools.idea.editors.hprof.tables.HprofTreeNode;
 import com.android.tools.idea.editors.hprof.tables.HprofTreeTableModel;
-import com.android.tools.perflib.heap.Heap;
-import com.android.tools.perflib.heap.Instance;
-import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.*;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeModelListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.util.Collection;
 import java.util.HashSet;
@@ -34,12 +32,13 @@ import java.util.Set;
 
 public class InstancesTreeTableModel extends HprofTreeTableModel {
   @NotNull private Heap myHeap;
-  protected final HprofColumnInfo<DefaultMutableTreeNode, Long> myRetainedSizeInfo =
-    new HprofColumnInfo<DefaultMutableTreeNode, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 100, false) {
+  protected final HprofColumnInfo<HprofTreeNode, Long> myRetainedSizeInfo =
+    new HprofColumnInfo<HprofTreeNode, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 100, false) {
       @Nullable
       @Override
-      public Long valueOf(DefaultMutableTreeNode node) {
-        return HprofColumnInfo.getUserInstance(node).getRetainedSize(mySnapshot.getHeapIndex(myHeap));
+      public Long valueOf(@NotNull HprofTreeNode node) {
+        Instance instance = node.getInstance();
+        return instance == null ? null : instance.getRetainedSize(mySnapshot.getHeapIndex(myHeap));
       }
 
       @Override
@@ -54,9 +53,9 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
                                  @NotNull Heap heap,
                                  @NotNull Collection<Instance> entries,
                                  boolean allColumnsEnabled) {
-    super(snapshot, new DefaultMutableTreeNode(), null);
+    super(snapshot, null, null);
     setColumns(createColumnInfo());
-    setRoot(new DefaultMutableTreeNode());
+    setRoot(new HprofTreeNode(new Integer(0), new Field(Type.OBJECT, "HiddenRootNode")));
     myTreeModelListeners = new HashSet<TreeModelListener>();
     myHeap = heap;
 
@@ -66,7 +65,7 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
 
     for (Instance instance : entries) {
       if (instance.getHeap() == myHeap) {
-        getMutableRoot().add(new DefaultMutableTreeNode(instance));
+        getMutableRoot().add(new HprofTreeNode(instance, new Field(Type.OBJECT, instance.getClassObj().getClassName())));
       }
     }
   }
@@ -86,12 +85,12 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
 
   @NotNull
   protected ColumnInfo[] createColumnInfo() {
-    return new ColumnInfo[]{HprofColumnInfo.INSTANCE_ID_INFO, HprofColumnInfo.INSTANCE_SIZE_INFO, HprofColumnInfo.INSTANCE_DOMINATOR_INFO,
-      myRetainedSizeInfo,};
+    return new ColumnInfo[]{HprofColumnInfo.getInstanceIdInfo(), HprofColumnInfo.getInstanceSizeInfo(),
+      HprofColumnInfo.getInstanceDominatorInfo(), myRetainedSizeInfo};
   }
 
-  public DefaultMutableTreeNode getMutableRoot() {
-    return (DefaultMutableTreeNode)getRoot();
+  public HprofTreeNode getMutableRoot() {
+    return (HprofTreeNode)getRoot();
   }
 
   @Override
@@ -100,7 +99,16 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
       return getMutableRoot().getChildAt(childIndex);
     }
     else {
-      return new DefaultMutableTreeNode(HprofColumnInfo.getUserInstance(node).getReferences().get(childIndex));
+      HprofTreeNode hprofTreeNode = (HprofTreeNode)node;
+      if (hprofTreeNode.isPrimitive()) {
+        return null;
+      }
+      else {
+        Instance instance = hprofTreeNode.getInstance();
+        assert (instance != null);
+        Instance parentInstance = instance.getReferences().get(childIndex);
+        return new HprofTreeNode(parentInstance, new Field(Type.OBJECT, parentInstance.getClassObj().getClassName()));
+      }
     }
   }
 
@@ -110,7 +118,14 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
       return getMutableRoot().getChildCount();
     }
     else {
-      return HprofColumnInfo.getUserInstance(node).getReferences().size();
+      HprofTreeNode hprofTreeNode = (HprofTreeNode)node;
+      if (hprofTreeNode.isPrimitive()) {
+        return 0;
+      }
+      else {
+        Instance instance = hprofTreeNode.getInstance();
+        return instance == null ? 0 : instance.getReferences().size();
+      }
     }
   }
 
@@ -122,16 +137,6 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
   @Override
   public void valueForPathChanged(@NotNull TreePath treePath, @NotNull Object child) {
 
-  }
-
-  @Override
-  public int getIndexOfChild(@NotNull Object parent, @NotNull Object child) {
-    if (parent == getMutableRoot()) {
-      return getMutableRoot().getIndex((DefaultMutableTreeNode)child);
-    }
-    else {
-      return HprofColumnInfo.getUserInstance(parent).getReferences().indexOf(child);
-    }
   }
 
   @Override

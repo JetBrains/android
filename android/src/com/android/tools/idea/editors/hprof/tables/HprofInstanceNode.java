@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables.heaptable;
+package com.android.tools.idea.editors.hprof.tables;
 
-import com.android.tools.idea.editors.hprof.tables.HprofTable;
-import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
+import com.android.tools.perflib.heap.Field;
+import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class HeapTable extends HprofTable {
-  @NotNull private InstancesTreeTable myInstancesTreeTable;
+public interface HprofInstanceNode {
+  @Nullable
+  Instance getInstance();
 
-  public HeapTable(@NotNull HeapTableModel model, @NotNull InstancesTreeTable instancesTreeTable) {
-    super(model);
-    myInstancesTreeTable = instancesTreeTable;
-  }
+  @NotNull
+  Object getValue();
 
-  @Override
-  public void notifyDominatorsComputed() {
-    super.notifyDominatorsComputed();
-    myInstancesTreeTable.notifyDominatorsComputed();
-  }
+  @NotNull
+  Field getField();
+
+  boolean isPrimitive();
 }
