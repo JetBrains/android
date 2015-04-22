@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +81,7 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
     final Component component;
     if (column == 0) {
       component = table.getDefaultRenderer(String.class)
-        .getTableCellRendererComponent(table, item.getQualifiedName(), isSelected, hasFocus, row, column);
+        .getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
     }
     else {
       myLabel.setFont(table.getFont());

@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.openapi.diagnostic.Logger;
@@ -65,7 +66,7 @@ public class DrawableComponent extends JButton {
    * Populate text fields shown in a cell from EditedStyleItem value
    */
   public void configure(final @NotNull EditedStyleItem item, final @Nullable RenderTask renderTask) {
-    myName = item.getName();
+    myName = ThemeEditorUtils.getDisplayHtml(item);
     myValue = item.getValue();
     myIsPublic = item.isPublicAttribute();
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.diagnostic.Logger;
 
 import javax.swing.JTable;
@@ -36,7 +37,7 @@ public class IntegerRenderer extends DefaultTableCellRenderer {
     final Component component;
 
     if (column == 0) {
-      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, item.getQualifiedName(), isSelected, hasFocus, row, column);
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
     } else {
       component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }
