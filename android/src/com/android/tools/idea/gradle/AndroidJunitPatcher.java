@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BaseArtifact;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
@@ -25,6 +26,7 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 /**
- * Implementation of {@link com.intellij.execution.JUnitPatcher} that removes android.jar from the class path. It's only applicable to
+ * Implementation of {@link JUnitPatcher} that removes android.jar from the class path. It's only applicable to
  * JUnit run configurations if the selected test artifact is "unit tests". In this case, the mockable android.jar is already in the
  * dependencies (taken from the model).
  */
@@ -78,6 +80,15 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
+    handlePlatformJar(classPath, platform);
+    handleJavaResources(ideaAndroidProject, classPath);
+  }
+
+  /**
+   * Removes real android.jar from the classpath and puts the mockable one at the end.
+   */
+  private static void handlePlatformJar(@NotNull PathsList classPath,
+                                        @NotNull AndroidPlatform platform) {
     classPath.remove(platform.getTarget().getPath(IAndroidTarget.ANDROID_JAR));
 
     // Move the mockable android jar to the end. This is to make sure "empty" classes from android.jar don't end up shadowing real
@@ -94,6 +105,25 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     if (mockableJarPath != null) {
       classPath.remove(mockableJarPath);
       classPath.addTail(mockableJarPath);
+    }
+  }
+
+  /**
+   * Puts folders with merged java resources for the given variant on the classpath.
+   */
+  private static void handleJavaResources(@NotNull IdeaAndroidProject ideaAndroidProject,
+                                          @NotNull PathsList classPath) {
+    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+    if (testArtifact == null) {
+      return;
+    }
+
+    try {
+      classPath.add(ideaAndroidProject.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
+      classPath.add(testArtifact.getJavaResourcesFolder());
+    }
+    catch (UnsupportedMethodException e) {
+      // Java resources were not in older versions of the gradle plugin.
     }
   }
 }

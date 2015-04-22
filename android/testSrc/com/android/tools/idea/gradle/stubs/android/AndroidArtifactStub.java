@@ -18,31 +18,24 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
-public class AndroidArtifactStub implements AndroidArtifact {
+public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
-  @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
 
-  @NotNull private final String myName;
-  @NotNull private final DependenciesStub myDependencies;
-  @NotNull private final String myBuildType;
-  @NotNull private final FileStructure myFileStructure;
-
-  AndroidArtifactStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
-    myName = name;
-    myDependencies = new DependenciesStub();
-    myBuildType = buildType;
-    myFileStructure = fileStructure;
+  AndroidArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+    super(name, dirName, new DependenciesStub(), buildType, fileStructure);
   }
 
   @Override
@@ -76,30 +69,6 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override
   @NotNull
-  public String getName() {
-    return myName;
-  }
-
-  @Override
-  @NotNull
-  public String getCompileTaskName() {
-    return "compile" + capitalize(myBuildType);
-  }
-
-  @Override
-  @NotNull
-  public String getAssembleTaskName() {
-    return "assemble" + capitalize(myBuildType);
-  }
-
-  @Override
-  @NotNull
-  public List<File> getGeneratedSourceFolders() {
-    return myGeneratedSourceFolders;
-  }
-
-  @Override
-  @NotNull
   public List<File> getGeneratedResourceFolders() {
     return myGeneratedResourceFolders;
   }
@@ -120,53 +89,6 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull
   public Map<String, ClassField> getResValues() {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @NotNull
-  public File getClassesFolder() {
-    String path = "build/classes/" + myBuildType;
-    return new File(myFileStructure.getRootDir(), path);
-  }
-
-  @Override
-  @NotNull
-  public File getJavaResourcesFolder() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @NotNull
-  public DependenciesStub getDependencies() {
-    return myDependencies;
-  }
-
-  @Override
-  @Nullable
-  public SourceProvider getVariantSourceProvider() {
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public SourceProvider getMultiFlavorSourceProvider() {
-    return null;
-  }
-
-  @Override
-  @NotNull
-  public Set<String> getIdeSetupTaskNames() {
-    return Collections.emptySet();
-  }
-
-  /**
-   * Adds the given path to the list of generated source directories. It also creates the directory in the file system.
-   *
-   * @param path path of the generated source directory to add, relative to the root directory of the Android project.
-   */
-  public void addGeneratedSourceFolder(@NotNull String path) {
-    File directory = myFileStructure.createProjectDir(path);
-    myGeneratedSourceFolders.add(directory);
   }
 
   /**
