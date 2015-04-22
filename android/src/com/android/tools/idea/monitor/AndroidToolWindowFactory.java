@@ -22,7 +22,7 @@ import com.android.ddmlib.Log;
 import com.android.tools.idea.ddms.*;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
+import com.android.tools.idea.ddms.hprof.HprofListener;
 import com.android.tools.idea.monitor.cpu.CpuMonitorView;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.google.common.util.concurrent.FutureCallback;
@@ -107,7 +107,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     DeviceContext deviceContext = new DeviceContext();
 
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
-    ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
+    AndroidDebugBridge.addClientChangeListener(new HprofListener(project));
     ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
