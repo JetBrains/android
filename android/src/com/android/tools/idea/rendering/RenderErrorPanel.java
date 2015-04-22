@@ -301,7 +301,7 @@ public class RenderErrorPanel extends JPanel {
     if (missingClasses != null && !missingClasses.isEmpty()) {
       if (missingClasses.contains("CalendarView")) {
         builder.add("The ").addBold("CalendarView").add(" widget does not work correctly with this render target. " +
-            "As a workaround, try using the API 5 (Android 4.0.3) render target library by selecting it from the " +
+            "As a workaround, try using the API 15 (Android 4.0.3) render target library by selecting it from the " +
             "toolbar menu above.");
         if (missingClasses.size() == 1) {
           return;
