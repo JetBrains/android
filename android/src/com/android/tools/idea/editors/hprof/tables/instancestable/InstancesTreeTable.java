@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables;
+package com.android.tools.idea.editors.hprof.tables.instancestable;
 
+import com.android.tools.idea.editors.hprof.tables.HprofTreeTable;
+import com.intellij.ui.treeStructure.treetable.TreeTableModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class TableColumn<MT, T> extends AbstractColumn<T> {
-  public TableColumn(@NotNull String columnName, @NotNull Class<T> classType, int headerJustification, int relativeWidth, boolean enabled) {
-    super(columnName, classType, headerJustification, relativeWidth, enabled);
+public class InstancesTreeTable extends HprofTreeTable {
+  public InstancesTreeTable(@NotNull InstancesTreeTableModel model) {
+    super(model);
   }
 
-  @Nullable
-  public abstract T getValue(@NotNull MT modelType, int row);
+  @Override
+  public void setModel(@NotNull TreeTableModel model) {
+    super.setModel(model);
+    assert (model instanceof InstancesTreeTableModel);
+    prettifyTable();
+  }
 }

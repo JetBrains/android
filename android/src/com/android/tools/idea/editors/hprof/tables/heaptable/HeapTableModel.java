@@ -21,6 +21,7 @@ import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -36,45 +37,6 @@ public class HeapTableModel extends HprofTableModel {
     myHeap = heap;
     myColumns = columns;
     myEntries = new ArrayList<ClassObj>(heap.getClasses());
-  }
-
-  @NotNull
-  public ClassObj getEntry(int row) {
-    return myEntries.get(row);
-  }
-
-  @Override
-  public void enableAllColumns() {
-    for (TableColumn column : myColumns) {
-      column.setEnabled(true);
-    }
-    fireTableDataChanged();
-  }
-
-  @Override
-  protected boolean isColumnEnabled(int unmappedIndex) {
-    return myColumns.get(unmappedIndex).getEnabled();
-  }
-
-  @Override
-  public int getRowCount() {
-    return myEntries.size();
-  }
-
-  @Override
-  public int getColumnCount() {
-    return myColumns.size();
-  }
-
-  @NotNull
-  public String getHeapName() {
-    return myHeap.getName();
-  }
-
-  @Override
-  @NotNull
-  protected TableColumn getColumn(int uiIndex) {
-    return myColumns.get(uiIndex);
   }
 
   @NotNull
@@ -101,6 +63,14 @@ public class HeapTableModel extends HprofTableModel {
         return model.getEntry(row).getInstanceSize();
       }
     });
+    columns.add(new TableColumn<HeapTableModel, Integer>("Shallow Size", Integer.class, SwingConstants.RIGHT, 100, true) {
+      @Nullable
+      @Override
+      public Integer getValue(@NotNull HeapTableModel model, int row) {
+        ClassObj classObj = model.getEntry(row);
+        return classObj.getInstances().size() * classObj.getInstanceSize();
+      }
+    });
     columns.add(new TableColumn<HeapTableModel, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 120, false) {
       @Override
       @NotNull
@@ -114,5 +84,31 @@ public class HeapTableModel extends HprofTableModel {
     });
 
     return columns;
+  }
+
+  @NotNull
+  public ClassObj getEntry(int row) {
+    return myEntries.get(row);
+  }
+
+  @Override
+  public int getRowCount() {
+    return myEntries.size();
+  }
+
+  @Override
+  public int getColumnCount() {
+    return myColumns.size();
+  }
+
+  @NotNull
+  public String getHeapName() {
+    return myHeap.getName();
+  }
+
+  @Override
+  @NotNull
+  protected TableColumn getColumn(int index) {
+    return myColumns.get(index);
   }
 }
