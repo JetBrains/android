@@ -18,9 +18,9 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 
@@ -61,7 +61,7 @@ public class BooleanRendererEditor extends AbstractTableCellEditor implements Ta
 
     final Component component;
     if (column == 0) {
-      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, item.getQualifiedName(), isSelected, hasFocus, row, column);
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
     } else {
       myComboBox.removeAllItems();
       myComboBox.addItem(item.getValue());
