@@ -26,7 +26,7 @@ import javax.swing.tree.TreeNode;
 public abstract class HprofTreeTableModel extends ListTreeTableModelOnColumns {
   @NotNull protected Snapshot mySnapshot;
 
-  protected HprofTreeTableModel(@NotNull Snapshot snapshot, @NotNull TreeNode root, @Nullable ColumnInfo[] columns) {
+  protected HprofTreeTableModel(@NotNull Snapshot snapshot, @Nullable TreeNode root, @Nullable ColumnInfo[] columns) {
     super(root, columns);
     mySnapshot = snapshot;
   }

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.hprof.tables.heaptable;
 
+import com.android.tools.idea.editors.hprof.HprofViewPanel;
+import com.android.tools.idea.editors.hprof.tables.instancestable.InstanceDetailModel;
+import com.android.tools.idea.editors.hprof.tables.instancestable.InstanceDetailView;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTableModel;
 import com.android.tools.perflib.heap.ClassObj;
@@ -22,33 +25,39 @@ import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
-import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 public class HeapTableManager {
   private static final int DIVIDER_WIDTH = 4;
 
-  @NotNull private List<Pair<HeapTable, InstancesTreeTable>> myHeapTables = new ArrayList<Pair<HeapTable, InstancesTreeTable>>();
-  @NotNull private JBRunnerTabs myTabs;
+  @NotNull private Set<HeapTable> myHeapTables = new HashSet<HeapTable>();
+  @NotNull private Project myProject;
+  @NotNull HprofViewPanel myRootPanel;
+  @NotNull private JBRunnerTabs myParentContainer;
   private Snapshot mySnapshot;
   private boolean myDominatorsComputed;
 
-  public HeapTableManager(@NotNull JBRunnerTabs tabs) {
-    myTabs = tabs;
+  public HeapTableManager(@NotNull Project project, @NotNull HprofViewPanel rootPanel, @NotNull JBRunnerTabs parentContainer) {
+    myProject = project;
+    myParentContainer = parentContainer;
+    myRootPanel = rootPanel;
   }
 
   @NotNull
@@ -85,9 +94,8 @@ public class HeapTableManager {
   }
 
   public void notifyDominatorsComputed() {
-    for (Pair<HeapTable, InstancesTreeTable> tablePair : myHeapTables) {
-      tablePair.first.notifyDominatorsComputed();
-      tablePair.second.notifyDominatorsComputed();
+    for (HeapTable heapTable : myHeapTables) {
+      heapTable.notifyDominatorsComputed();
     }
     myDominatorsComputed = true;
   }
@@ -100,14 +108,14 @@ public class HeapTableManager {
         continue;
       }
 
-      HeapTableModel model = new HeapTableModel(HeapTableModel.createHeapTableColumns(), heap);
-      final HeapTable heapTable = new HeapTable(model);
-
       // Use dummy data, since ListTreeTableModelOnColumns serves as both the column spec as well as the model for the table.
       final InstancesTreeTable instancesTreeTable =
         new InstancesTreeTable(new InstancesTreeTableModel(mySnapshot, heap, new ArrayList<Instance>(), myDominatorsComputed));
 
-      myHeapTables.add(Pair.create(heapTable, instancesTreeTable));
+      HeapTableModel model = new HeapTableModel(HeapTableModel.createHeapTableColumns(), heap);
+      final HeapTable heapTable = new HeapTable(model, instancesTreeTable);
+
+      myHeapTables.add(heapTable);
 
       heapTable.addMouseListener(new MouseAdapter() {
         @Override
@@ -122,8 +130,35 @@ public class HeapTableManager {
         }
       });
 
+      instancesTreeTable.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          super.mouseReleased(e);
+
+          if (e.getClickCount() < 2) {
+            return;
+          }
+
+          int row = instancesTreeTable.getSelectedRow();
+          if (row >= 0) {
+            RowSorter<? extends TableModel> sorter = instancesTreeTable.getRowSorter();
+            int modelRow = sorter == null ? row : sorter.convertRowIndexToModel(row);
+            Instance detailsRoot = (Instance)instancesTreeTable.getModel().getValueAt(modelRow, 0);
+
+            String idString = Long.toHexString(detailsRoot.getId());
+            if (myRootPanel.findDetailPanel(idString) != null) {
+              return;
+            }
+
+            InstanceDetailView detailTree =
+              new InstanceDetailView(new InstanceDetailModel(mySnapshot, heap, detailsRoot, myDominatorsComputed));
+            myRootPanel.createDetailPanel(idString, detailTree, new JPanel());
+          }
+        }
+      });
+
       JBSplitter splitter = createNavigationSplitter(heapTable, instancesTreeTable);
-      myTabs.addTab(new TabInfo(splitter).setText(model.getHeapName()).setSideComponent(new JPanel()));
+      myParentContainer.addTab(new TabInfo(splitter).setText(model.getHeapName()).setSideComponent(new JPanel()));
     }
   }
 }
