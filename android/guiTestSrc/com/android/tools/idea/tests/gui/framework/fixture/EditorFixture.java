@@ -890,11 +890,10 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    Pause.pause(new Condition("Preview window is visible") {
+    pause(new Condition("Preview window is visible") {
       @Override
       public boolean test() {
-        AndroidLayoutPreviewToolWindowManager manager =
-          AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
+        AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
         return manager.getToolWindowForm() != null;
       }
     }, SHORT_TIMEOUT);

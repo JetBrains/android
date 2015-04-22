@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.GradleToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.PatternTextMatcher;
 import org.fest.swing.util.TextMatcher;
@@ -40,7 +37,10 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -77,7 +77,7 @@ public class GradleTasksTest extends GuiTestCase {
           runContent.waitForOutput(matcher("output entry " + i), timeout);
           assertTrue(runContent.isExecutionInProgress());
         }
-        Pause.pause(new Condition("task execution is successfully finished") {
+        pause(new Condition("task execution is successfully finished") {
           @Override
           public boolean test() {
             return !runContent.isExecutionInProgress();
@@ -103,7 +103,7 @@ public class GradleTasksTest extends GuiTestCase {
     runTask(projectFrame, "build", new Consumer<ExecutionToolWindowFixture.ContentFixture>() {
       @Override
       public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
-        Pause.pause(new Condition("normal 'build' task execution") {
+        pause(new Condition("normal 'build' task execution") {
           @Override
           public boolean test() {
             runContent.waitForOutput(matcher(successfulTaskCompletionMarker), SHORT_TIMEOUT);
@@ -118,7 +118,7 @@ public class GradleTasksTest extends GuiTestCase {
       public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
         boolean askedToStop = runContent.stop();
         assertTrue(askedToStop);
-        Pause.pause(new Condition("stopping 'build' task") {
+        pause(new Condition("stopping 'build' task") {
           @Override
           public boolean test() {
             if (runContent.isExecutionInProgress()) {
@@ -137,11 +137,11 @@ public class GradleTasksTest extends GuiTestCase {
     Module module = projectFrame.getModule("app");
 
     // Add a long-running task and refresh the project.
-    VirtualFile vFile = GradleUtil.getGradleBuildFile(module);
+    VirtualFile vFile = getGradleBuildFile(module);
     assertNotNull(vFile);
     final Document document = FileDocumentManager.getInstance().getDocument(vFile);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
+    runWriteCommandAction(projectFrame.getProject(), new Runnable() {
       @Override
       public void run() {
         document.insertString(document.getTextLength(), textToAdd);

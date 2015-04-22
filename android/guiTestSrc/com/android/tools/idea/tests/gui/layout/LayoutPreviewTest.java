@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -404,8 +403,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     // checks that the layout rendering is updated after a Gradle sync.
 
     @SuppressWarnings("ConstantConditions")
-    File projectPath = setUpProject("LayoutTest", true, true, null);
-    IdeFrameFixture projectFrame = openProject(projectPath);
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     IdeaAndroidProject project = projectFrame.getGradleProject("app");
     String modelVersion = project.getDelegate().getModelVersion();

@@ -37,7 +37,6 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +48,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -108,7 +108,7 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     robot.waitForIdle();
 
-    Pause.pause(new Condition("Render is pending") {
+    pause(new Condition("Render is pending") {
       @Override
       public boolean test() {
         return !myPanel.isRenderPending() && myPanel.getLastResult() != null && myPanel.getLastResult() != previous;
