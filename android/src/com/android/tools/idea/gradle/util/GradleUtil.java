@@ -51,19 +51,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
-import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,8 +90,6 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createAndroidHomeJvmArg;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
@@ -101,7 +100,8 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesTo
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -113,11 +113,9 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.addAll;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.gradle.wrapper.WrapperExecutor.forWrapperPropertiesFile;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
@@ -127,13 +125,7 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome
  */
 public final class GradleUtil {
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
-
-  /** The name of the gradle wrapper executable associated with the current OS. */
-  @NonNls public static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
-
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
-
-  @NonNls private static final String GRADLE_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WIN : FN_GRADLE_UNIX;
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
@@ -142,8 +134,7 @@ public final class GradleUtil {
   /**
    * Finds characters that shouldn't be used in the Gradle path.
    * <p/>
-   * I was unable to find any specification for Gradle paths. In my
-   * experiments, Gradle only failed with slashes. This list may grow if
+   * I was unable to find any specification for Gradle paths. In my experiments, Gradle only failed with slashes. This list may grow if
    * we find any other unsupported characters.
    */
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
@@ -404,31 +395,6 @@ public final class GradleUtil {
     return null;
   }
 
-  @NotNull
-  public static List<String> getGradleInvocationJvmArgs(@NotNull File projectDir, @Nullable BuildMode buildMode) {
-    if (isInProcessMode(SYSTEM_ID)) {
-      List<String> args = Lists.newArrayList();
-      if (!isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        AndroidSdkData sdkData = tryToChooseAndroidSdk();
-        if (sdkData != null) {
-          String arg = createAndroidHomeJvmArg(sdkData.getLocation().getPath());
-          args.add(arg);
-        }
-      }
-      List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
-      for (KeyValue<String, String> proxyProperty : proxyProperties) {
-        String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
-        args.add(arg);
-      }
-      String arg = getGradleInvocationJvmArg(buildMode);
-      if (arg != null) {
-        args.add(arg);
-      }
-      return args;
-    }
-    return emptyList();
-  }
-
   @VisibleForTesting
   @Nullable
   static String getGradleInvocationJvmArg(@Nullable BuildMode buildMode) {
@@ -443,7 +409,7 @@ public final class GradleUtil {
     if (gradleHome == null) {
       throw new FileNotFoundException("Unable to find path to Gradle home directory");
     }
-    File gradleExecutable = new File(gradleHome, "bin" + File.separatorChar + GRADLE_EXECUTABLE_NAME);
+    File gradleExecutable = new File(gradleHome, join("bin", isWindows ? FN_GRADLE_WIN : FN_GRADLE_UNIX));
     if (!gradleExecutable.isFile()) {
       throw new FileNotFoundException("Unable to find Gradle executable: " + gradleExecutable.getPath());
     }

@@ -26,10 +26,8 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -112,6 +110,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.android.AndroidPlugin.*;
+import static org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper.prepare;
 
 /**
  * Invokes Gradle tasks as a IDEA task in the background.
@@ -268,12 +267,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myContext.getGradleTasks()), null);
 
-        final ExternalSystemTaskId id = myContext.getTaskId();
-        BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
-
-        List<String> jvmArgs = getGradleInvocationJvmArgs(projectDirPath, buildMode);
-        LOG.info("Build JVM args: " + jvmArgs);
-
         String executingTasksText =
           "Executing tasks: " + myContext.getGradleTasks() + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
         consoleView.print(executingTasksText, NORMAL_OUTPUT);
@@ -281,6 +274,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
         BuildException buildError = null;
+        final ExternalSystemTaskId id = myContext.getTaskId();
         CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -302,8 +296,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           LOG.info("Build command line options: " + commandLineArgs);
 
+          List<String> jvmArgs = Collections.emptyList();
           BuildLauncher launcher = connection.newBuild();
-          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
+          prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
 
           File javaHome = IdeSdks.getJdkPath();
           if (javaHome != null) {
