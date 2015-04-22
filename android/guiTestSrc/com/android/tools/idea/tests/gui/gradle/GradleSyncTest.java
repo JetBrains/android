@@ -64,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -1028,6 +1029,24 @@ public class GradleSyncTest extends GuiTestCase {
     // Verify that the library still has the Javadoc attachment after sync.
     library = propertiesDialog.getLibrary();
     library.requireJavadocUrls(javadocJarUrl);
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=169743
+  // JVM settings for Gradle should be cleared before any invocation to Gradle.
+  @Test @IdeGuiTest
+  public void testClearJvmArgsOnSyncAndBuild() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    Project project = projectFrame.getProject();
+
+    GradleSettings settings = GradleSettings.getInstance(project);
+    settings.setGradleVmOptions("-Xmx2048m");
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    assertEquals("", settings.getGradleVmOptions());
+
+    settings.setGradleVmOptions("-Xmx2048m");
+    projectFrame.invokeProjectMake();
+    assertEquals("", settings.getGradleVmOptions());
   }
 
   @NotNull

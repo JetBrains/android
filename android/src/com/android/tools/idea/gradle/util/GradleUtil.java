@@ -143,6 +143,10 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
+  public static void clearStoredGradleJvmArgs(@NotNull Project project) {
+    GradleSettings.getInstance(project).setGradleVmOptions("");
+  }
+
   public static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
     FullRevision supported = FullRevision.parseRevision(GRADLE_MINIMUM_VERSION);
     return supported.compareTo(gradleVersion) <= 0;
