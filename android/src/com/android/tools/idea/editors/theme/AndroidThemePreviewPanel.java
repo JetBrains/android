@@ -174,7 +174,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
 
     myMinApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
-    rebuild(false/*forceRepaint*/);
 
     JBScrollPane scrollPanel = new JBScrollPane(myAndroidPreviewPanel,
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
@@ -221,11 +220,61 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     add(mySearchTextField);
     add(scrollPanel);
 
-    // Find custom controls
+    reloadComponents();
+
+    myBreadcrumbs.addItemListener(new NavigationComponent.ItemListener<Breadcrumb>() {
+      @Override
+      public void itemSelected(@NotNull Breadcrumb item) {
+        myBreadcrumbs.goTo(item);
+        rebuild();
+      }
+    });
+
+    myAndroidPreviewPanel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        ViewInfo view = myAndroidPreviewPanel.findViewAtPoint(e.getPoint());
+
+        if (view == null) {
+          return;
+        }
+
+        mySearchTextField.setText("");
+
+        Object cookie = view.getCookie();
+        if (cookie instanceof MergeCookie) {
+          cookie = ((MergeCookie)cookie).getCookie();
+        }
+
+        if (!(cookie instanceof Element)) {
+          return;
+        }
+
+        NamedNodeMap attributes = ((Element)cookie).getAttributes();
+        Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
+
+        if (group != null) {
+          myBreadcrumbs.push(new Breadcrumb(ThemePreviewBuilder.ComponentGroup.valueOf(group.getNodeValue())));
+          rebuild();
+        }
+      }
+    });
+  }
+
+  @NotNull
+  public Set<String> getUsedAttrs() {
+    return myAndroidPreviewPanel.getUsedAttrs();
+  }
+
+  /**
+   * Searches the PSI for both custom components and support library classes. Call this method when you
+   * want to refresh the components displayed on the preview.
+   */
+  public void reloadComponents() {
     myDumbService.runWhenSmart(new Runnable() {
       @Override
       public void run() {
-        Project project = configuration.getModule().getProject();
+        Project project = myConfiguration.getModule().getProject();
         if (!project.isOpen()) {
           return;
         }
@@ -279,48 +328,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       }
     });
 
-    myBreadcrumbs.addItemListener(new NavigationComponent.ItemListener<Breadcrumb>() {
-      @Override
-      public void itemSelected(@NotNull Breadcrumb item) {
-        myBreadcrumbs.goTo(item);
-        rebuild();
-      }
-    });
-
-    myAndroidPreviewPanel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        ViewInfo view = myAndroidPreviewPanel.findViewAtPoint(e.getPoint());
-
-        if (view == null) {
-          return;
-        }
-
-        mySearchTextField.setText("");
-
-        Object cookie = view.getCookie();
-        if (cookie instanceof MergeCookie) {
-          cookie = ((MergeCookie)cookie).getCookie();
-        }
-
-        if (!(cookie instanceof Element)) {
-          return;
-        }
-
-        NamedNodeMap attributes = ((Element)cookie).getAttributes();
-        Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
-
-        if (group != null) {
-          myBreadcrumbs.push(new Breadcrumb(ThemePreviewBuilder.ComponentGroup.valueOf(group.getNodeValue())));
-          rebuild();
-        }
-      }
-    });
-  }
-
-  @NotNull
-  public Set<String> getUsedAttrs() {
-    return myAndroidPreviewPanel.getUsedAttrs();
+    rebuild(false);
   }
 
   /**
