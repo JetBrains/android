@@ -23,7 +23,9 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +62,11 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
       return;
+    }
+
+    LanguageLevel languageLevel = androidProject.getJavaLanguageLevel();
+    if (languageLevel != null) {
+      ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
     }
 
     String compileTarget = androidProject.getDelegate().getCompileTarget();
