@@ -38,7 +38,7 @@ public class AndroidShowThemeEditor extends AnAction {
       e.getPresentation().setVisible(false);
     }
     Module module = getModuleFromAction(e);
-    e.getPresentation().setEnabled(module != null && ThemeEditorUtils.isModuleInitialized(module));
+    e.getPresentation().setEnabled(module != null);
   }
 
   @Override
