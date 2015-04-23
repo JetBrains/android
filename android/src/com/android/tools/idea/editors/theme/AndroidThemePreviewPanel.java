@@ -374,6 +374,14 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myConstantScalingFactor = DEFAULT_SCALING_FACTOR * scale;
   }
 
+  /**
+   * Tells the panel that it needs to reload its android content and repaint it.
+   */
+  public void invalidateGraphicsRenderer() {
+    myAndroidPreviewPanel.invalidateGraphicsRenderer();
+    myAndroidPreviewPanel.repaint();
+  }
+
   // Implements RenderContext
   // Only methods relevant to the configuration selection have been implemented
 
