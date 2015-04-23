@@ -54,8 +54,6 @@ public class FirstRunWizard extends DynamicWizard {
   private final SetupJdkPath myJdkPath;
   private InstallComponentsPath myComponentsPath;
 
-  private boolean mySetupFailed;
-
   public FirstRunWizard(@NotNull DynamicWizardHost host, @NotNull FirstRunWizardMode mode,
                         @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(null, null, WIZARD_TITLE, host);
@@ -103,10 +101,6 @@ public class FirstRunWizard extends DynamicWizard {
   // We need to show progress page before proceeding closing the wizard.
   @Override
   public void doFinishAction() {
-    if (mySetupFailed) {
-      myHost.close(DynamicWizardHost.CloseAction.EXIT);
-      return;
-    }
     if (myFinishClicks.incrementAndGet() == 1) {
       doNextAction();
     }
@@ -161,7 +155,6 @@ public class FirstRunWizard extends DynamicWizard {
           catch (WizardException e) {
             Logger.getInstance(getClass()).error(e);
             showConsole();
-            mySetupFailed = true;
             print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
           }
           finally {
