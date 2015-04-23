@@ -17,10 +17,8 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -38,6 +36,7 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -84,24 +83,6 @@ public class StyleResolver {
   }
 
   @Nullable
-  private StyleResourceValue resolveFrameworkStyle(String styleName) {
-    ResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
-    if (frameworkResources == null) {
-      return null;
-    }
-
-    ResourceValue value =
-      frameworkResources.getConfiguredResources(myConfiguration.getFullConfig()).get(ResourceType.STYLE)
-        .get(styleName);
-
-    if (value instanceof StyleResourceValue) {
-      return (StyleResourceValue)value;
-    }
-
-    return null;
-  }
-
-  @Nullable
   public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
     try {
       return myStylesCache.get(qualifiedStyleName, new Callable<ThemeEditorStyle>() {
@@ -112,35 +93,20 @@ public class StyleResolver {
           Project project = myConfiguration.getModule().getProject();
 
           if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
-            ResourceValue value = resolveFrameworkStyle(qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length()));
-            if (value == null) {
-              throw new ExecutionException("Resource not found for framework style " + qualifiedStyleName, null);
-            }
-
-            return new ThemeEditorStyle(StyleResolver.this, project, myConfiguration, (StyleResourceValue)value, null);
+            String styleName = qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
+            return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, null);
           }
 
-          List<ResourceItem> resources;
+          String styleName = qualifiedStyleName;
           if (qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-            resources = repository.getResourceItem(ResourceType.STYLE,
-                                                   qualifiedStyleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length()));
-
+            styleName = qualifiedStyleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
           }
-          else {
-            resources = repository.getResourceItem(ResourceType.STYLE, qualifiedStyleName);
+          List<ResourceItem> resources = repository.getResourceItem(ResourceType.STYLE, styleName);
+          List<XmlTag> xmlTags = new ArrayList<XmlTag>();
+          for (ResourceItem resource : resources) {
+            xmlTags.add(LocalResourceRepository.getItemTag(project, resource));
           }
-
-          if (resources == null || resources.isEmpty()) {
-            throw new ExecutionException("Resource not found for " + qualifiedStyleName, null);
-          }
-
-          ResourceValue value = resources.get(0).getResourceValue(false);
-          if (!(value instanceof StyleResourceValue)) {
-            throw new ExecutionException("Resource not a style for " + qualifiedStyleName, null);
-          }
-
-          XmlTag xmlTag = LocalResourceRepository.getItemTag(project, resources.get(0));
-          return new ThemeEditorStyle(StyleResolver.this, project, myConfiguration, (StyleResourceValue)value, xmlTag);
+          return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, xmlTags);
         }
       });
     }
