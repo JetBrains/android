@@ -192,6 +192,13 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return new AttributeContents(rowIndex - offset);
   }
 
+  /**
+   * returns true if this row is not a attribute or a label and is the Theme name or Theme parent.
+   */
+  public boolean isSpecialRow(int row) {
+    return row < mySpecialRows.size();
+  }
+
   @Override
   public int getRowCount() {
     return myAttributes.size() + myLabels.size() + mySpecialRows.size();

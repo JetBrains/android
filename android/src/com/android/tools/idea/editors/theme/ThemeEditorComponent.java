@@ -696,19 +696,23 @@ public class ThemeEditorComponent extends Splitter {
       if (!myIsFilterEnabled) {
         return true;
       }
+      int row = entry.getIdentifier().intValue();
+      if (entry.getModel().isSpecialRow(row)) {
+        return true;
+      }
 
       // We use the column 1 because it's the one that contains the ItemResourceValueWrapper.
-      Object value = entry.getModel().getValueAt(entry.getIdentifier().intValue(), 1);
-      String attributeName;
-
+      Object value = entry.getModel().getValueAt(row, 1);
       if (value instanceof TableLabel) {
         return false;
       }
+
+      String attributeName;
       if (value instanceof EditedStyleItem) {
         attributeName = ((EditedStyleItem)value).getQualifiedName();
       }
       else {
-       attributeName = value.toString();
+        attributeName = value.toString();
       }
 
       ThemeEditorStyle selectedTheme = getSelectedStyle();
