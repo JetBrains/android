@@ -435,7 +435,12 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
 
     // First check to see if the new name is conflicting with an existing resource
-    newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
+    if (element instanceof PsiFile) {
+      // The name of a file resource is the name of the file without the extension.
+      // So when dealing with a file, we must first remove the extension in the name
+      // before checking if it is already used.
+      newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
+    }
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
     if (appResources.hasResourceItem(type, newName)) {
       boolean foundElements = false;
