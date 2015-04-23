@@ -219,6 +219,10 @@ public class AndroidRenameTest extends AndroidTestCase {
     doTestStyleInheritance("styles9.xml", "styles9_after.xml");
   }
 
+  public void testStyleInheritance9() throws Throwable {
+    doTestStyleInheritance("styles10.xml", "styles10_after.xml");
+  }
+
   private void doTestStyleInheritance(String before, String after) throws IOException {
     doTestStyleInheritance(before, after, "newStyle");
   }
