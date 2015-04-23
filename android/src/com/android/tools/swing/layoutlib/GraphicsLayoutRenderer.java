@@ -150,6 +150,8 @@ public class GraphicsLayoutRenderer {
         }
       };
 
+    // Load the local project R identifiers.
+    layoutlibCallback.loadAndParseRClass();
 
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(configuration.getDevice());
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
