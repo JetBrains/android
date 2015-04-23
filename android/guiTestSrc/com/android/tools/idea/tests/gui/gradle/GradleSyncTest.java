@@ -52,6 +52,7 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -86,6 +87,7 @@ import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModul
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
@@ -93,6 +95,7 @@ import static com.google.common.io.Files.write;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.INFO;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -1047,6 +1050,38 @@ public class GradleSyncTest extends GuiTestCase {
     settings.setGradleVmOptions("-Xmx2048m");
     projectFrame.invokeProjectMake();
     assertEquals("", settings.getGradleVmOptions());
+  }
+
+  // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
+  // See https://code.google.com/p/android/issues/detail?id=65325
+  @Test @IdeGuiTest
+  public void testWithIdeProxySettings() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    File gradlePropertiesPath = new File(projectFrame.getProjectPath(), "gradle.properties");
+    createIfNotExists(gradlePropertiesPath);
+
+    String host = "myproxy.test.com";
+    int port = 443;
+
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = true;
+    ideSettings.PROXY_HOST = host;
+    ideSettings.PROXY_PORT = port;
+
+    projectFrame.requestProjectSync();
+
+    // Expect IDE to ask user to copy proxy settings.
+    MessagesFixture message = MessagesFixture.findByTitle(myRobot, projectFrame.target, "Proxy Settings");
+    message.clickYes();
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // Verify gradle.properties has proxy settings.
+    assertThat(gradlePropertiesPath).isFile();
+
+    Properties gradleProperties = getProperties(gradlePropertiesPath);
+    assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
+    assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
   }
 
   @NotNull
