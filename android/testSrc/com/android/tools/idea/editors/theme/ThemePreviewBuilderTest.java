@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import junit.framework.TestCase;
 import org.w3c.dom.Document;
@@ -29,10 +30,28 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.util.HashSet;
+import java.util.List;
 
 public class ThemePreviewBuilderTest extends TestCase {
-  public void testBasic() throws ParserConfigurationException, XPathExpressionException {
+  public void testEmptyPreview() throws ParserConfigurationException, XPathExpressionException {
     Document document = new ThemePreviewBuilder().build();
+
+    XPath xPath = XPathFactory.newInstance().newXPath();
+
+    assertEquals("One root layout expected", 1, document.getChildNodes().getLength());
+    Node rootNode = document.getChildNodes().item(0);
+    assertEquals(SdkConstants.LINEAR_LAYOUT, rootNode.getNodeName());
+    assertNotNull(rootNode.getAttributes().getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH));
+    assertNotNull(rootNode.getAttributes().getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT));
+    assertEquals(SdkConstants.VALUE_VERTICAL,
+                 rootNode.getAttributes().getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION).getNodeValue());
+
+    NodeList nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
+    assertEquals(0, nodeList.getLength());
+  }
+
+  public void testBasicComponentList() throws ParserConfigurationException, XPathExpressionException {
+    Document document = new ThemePreviewBuilder().addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS).build();
 
     XPath xPath = XPathFactory.newInstance().newXPath();
 
@@ -54,7 +73,7 @@ public class ThemePreviewBuilderTest extends TestCase {
   }
 
   public void testComponentList() throws ParserConfigurationException, XPathExpressionException {
-    Document document = new ThemePreviewBuilder().build();
+    Document document = new ThemePreviewBuilder().addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS).build();
 
     XPath xPath = XPathFactory.newInstance().newXPath();
 
@@ -62,6 +81,7 @@ public class ThemePreviewBuilderTest extends TestCase {
     assertEquals(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS.size(), nodeList.getLength());
 
     ThemePreviewBuilder customComponentBuilder = new ThemePreviewBuilder()
+      .addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
       .addComponent(new ThemePreviewBuilder.ComponentDefinition("Test", ThemePreviewBuilder.ComponentGroup.CUSTOM, "Test").setApiLevel(15));
     document = customComponentBuilder.build();
     nodeList = (NodeList)xPath.evaluate("/LinearLayout/LinearLayout/*", document.getDocumentElement(), XPathConstants.NODESET);
@@ -105,7 +125,7 @@ public class ThemePreviewBuilderTest extends TestCase {
   }
 
   public void testGroupHeaders() throws ParserConfigurationException, XPathExpressionException {
-    Document document = new ThemePreviewBuilder().build();
+    Document document = new ThemePreviewBuilder().addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS).build();
 
     XPath xPath = XPathFactory.newInstance().newXPath();
 
@@ -120,9 +140,8 @@ public class ThemePreviewBuilderTest extends TestCase {
 
       headerTitles.add(title);
     }
-    assertFalse("'Custom' header shouldn't be present when there are no custom components",
-                headerTitles.contains(ThemePreviewBuilder.ComponentGroup.CUSTOM.name()));
-    assertEquals(ThemePreviewBuilder.ComponentGroup.values().length - 1, nodeList.getLength()); // All but custom
+    assertFalse(headerTitles.isEmpty());
+    assertFalse("'Custom' header shouldn't be present when there are no custom components", headerTitles.contains(ThemePreviewBuilder.ComponentGroup.CUSTOM.name()));
 
     // Add custom component
     document = new ThemePreviewBuilder()
@@ -133,19 +152,21 @@ public class ThemePreviewBuilderTest extends TestCase {
     for (int i = 0; i < nodeList.getLength(); i++) {
       headerTitles.add(nodeList.item(i).getNodeValue());
     }
+    assertFalse(headerTitles.isEmpty());
     assertTrue("'Custom' header should be present", headerTitles.contains(ThemePreviewBuilder.ComponentGroup.CUSTOM.name()));
-    assertEquals(ThemePreviewBuilder.ComponentGroup.values().length, nodeList.getLength());
   }
 
   public void testSearchFilter() throws ParserConfigurationException, XPathExpressionException {
-    ThemePreviewBuilder.ComponentDefinition customComponent =
+    List<ThemePreviewBuilder.ComponentDefinition> componentDefinitionList = ImmutableList.of(
+      new ThemePreviewBuilder.ComponentDefinition("Spinner", ThemePreviewBuilder.ComponentGroup.TEXT, "Spinner"),
       new ThemePreviewBuilder.ComponentDefinition("Custom_Component", ThemePreviewBuilder.ComponentGroup.CUSTOM, "CustomComponent")
         .addAlias("Spinner")
         .addAlias("ABC")
-        .addAlias("DEF");
+        .addAlias("DEF")
+    );
 
     XPath xPath = XPathFactory.newInstance().newXPath();
-    ThemePreviewBuilder customComponentBuilder = new ThemePreviewBuilder().addComponent(customComponent);
+    ThemePreviewBuilder customComponentBuilder = new ThemePreviewBuilder().addAllComponents(componentDefinitionList);
 
     // Check the search "spinner" returns both the actual spinner control and the custom component with the alias
     Document document = customComponentBuilder.addComponentFilter(new ThemePreviewBuilder.SearchFilter("SPINNER")).build();

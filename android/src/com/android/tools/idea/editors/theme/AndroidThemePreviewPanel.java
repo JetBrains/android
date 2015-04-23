@@ -331,6 +331,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     try {
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
         .setSeparatorColor(UIUtil.getPanelBackground()) // Separator to give the appearance of cards
+        .addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(myMinApiLevel))
