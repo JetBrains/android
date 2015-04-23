@@ -65,6 +65,7 @@ public class ColorComponent extends JPanel {
 
     myColorChooserButton = new ColorChooserButton();
     myColorChooserButton.setBorder(null);
+    myColorChooserButton.setBackground(JBColor.WHITE);
     add(myColorChooserButton, BorderLayout.CENTER);
   }
 
@@ -74,10 +75,6 @@ public class ColorComponent extends JPanel {
     if (myColorChooserButton != null) {
       myColorChooserButton.setFont(font);
     }
-  }
-
-  public void setButtonBackground(@NotNull final Color color) {
-    myColorChooserButton.setBackground(color);
   }
 
   public void configure(final EditedStyleItem resValue, final List<Color> color) {
