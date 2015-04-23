@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
@@ -62,7 +61,6 @@ import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.junit.After;
@@ -88,6 +86,7 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.io.Files.write;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
@@ -107,6 +106,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -117,7 +117,7 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   @After
-  public void resetExperimentalSettings() {
+  public void resetSettings() {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
   }
 
@@ -149,7 +149,6 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testNonExistingInterModuleDependencies() throws IOException {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
-    projectFrame.waitForGradleProjectSyncToFinish();
 
     Module appModule = projectFrame.getModule("app");
     final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
@@ -375,9 +374,9 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(wrapperPropertiesFile);
     updateGradleDistributionUrl("1.12", wrapperPropertiesFile);
 
-    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
+    GradleProjectSettings settings = getGradleProjectSettings(project);
     assertNotNull(settings);
-    settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
+    settings.setDistributionType(DEFAULT_WRAPPED);
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
@@ -597,13 +596,10 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.deleteGradleWrapper()
                 .useLocalGradleDistribution(getUnsupportedGradleHome())
-                .requestProjectSync()
-                .waitForGradleProjectSyncToFail();
+                .requestProjectSync();
 
-    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    MessagesToolWindowFixture.MessageFixture msg =
-      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle version 2.2 is required."));
-    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click(true);
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    findGradleSyncMessageDialog(projectFrame.target).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -756,7 +752,7 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    projectFrame.requestProjectSync();
+    projectFrame.requestProjectSyncAndExpectFailure();
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
@@ -787,7 +783,7 @@ public class GradleSyncTest extends GuiTestCase {
     // Import project
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
     welcomeFrame.clickImportProjectButton();
-    FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
+    FileChooserDialogFixture importProjectDialog = findImportProjectDialog(myRobot);
 
     VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
     assertNotNull(toSelect);
@@ -811,12 +807,12 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=74341
   @Test @IdeGuiTest
   public void testEditorFindsAppCompatStyle() throws IOException {
-    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("AarDependency");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("AarDependency");
 
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    ideFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
+    projectFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
 
-    FileFixture file = ideFrame.findExistingFileByRelativePath(stringsXmlPath);
+    FileFixture file = projectFrame.findExistingFileByRelativePath(stringsXmlPath);
     file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
