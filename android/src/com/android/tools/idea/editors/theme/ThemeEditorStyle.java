@@ -37,7 +37,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
 * Wrapper for style configurations that allows modifying attributes directly in the XML file.
@@ -46,26 +49,35 @@ public class ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
 
   private final StyleResolver myThemeResolver;
-  private final Project myProject;
-  private final WeakReference<XmlTag> mySourceXml;
+  private final List<WeakReference<XmlTag>> mySourceXmls;
   private final boolean isProjectStyle;
   private final boolean isFrameworkStyle;
-  private final StyleResourceValue myStyleData;
+  private final String myStyleName;
   private final Configuration myConfiguration;
-
+  private final Project myProject;
   ThemeEditorStyle(@NotNull StyleResolver resolver,
-                   @NotNull Project project,
                    @NotNull Configuration configuration,
-                   @NotNull StyleResourceValue styleValue,
-                   @Nullable XmlTag sourceXml) {
+                   @NotNull  String styleName,
+                   @Nullable List<XmlTag> sourceXmls) {
     myThemeResolver = resolver;
-    myProject = project;
     myConfiguration = configuration;
-    mySourceXml = new WeakReference<XmlTag>(sourceXml);
-    myStyleData = styleValue;
 
-    if (sourceXml != null && sourceXml.isValid()) {
+    if (sourceXmls != null) {
+      mySourceXmls = new ArrayList<WeakReference<XmlTag>>(sourceXmls.size());
+
+      for (XmlTag sourceXml : sourceXmls) {
+        mySourceXmls.add(new WeakReference<XmlTag>(sourceXml));
+      }
+    } else {
+      mySourceXmls = Collections.EMPTY_LIST;
+    }
+
+    myStyleName = styleName;
+    myProject = configuration.getModule().getProject();
+
+    if (!mySourceXmls.isEmpty()) {
       isFrameworkStyle = false;
+      XmlTag sourceXml = sourceXmls.get(0);
       /*
        * Find if the file is contained in the resources folder. If the source file is not contained in the source folder this might be
        * coming from a library that we can not actually edit.
@@ -74,11 +86,15 @@ public class ThemeEditorStyle {
                            sourceXml.getContainingFile().getVirtualFile().getParent() :
                            null;
       isProjectStyle =
-        parent != null && parent.getParent() != null && AndroidResourceUtil.isLocalResourceDirectory(parent.getParent(), project);
+        parent != null && parent.getParent() != null && AndroidResourceUtil.isLocalResourceDirectory(parent.getParent(), myProject);
     } else {
       isFrameworkStyle = true;
       isProjectStyle = false;
     }
+  }
+
+  private StyleResourceValue getStyleResourceValue() {
+    return myConfiguration.getResourceResolver().getStyle(myStyleName, isFrameworkStyle);
   }
 
   public boolean isFrameworkStyle() {
@@ -105,7 +121,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getName() {
-    return StyleResolver.getQualifiedStyleName(myStyleData);
+    return StyleResolver.getQualifiedStyleName(getStyleResourceValue());
   }
 
   /**
@@ -113,7 +129,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getSimpleName() {
-    return myStyleData.getName();
+    return getStyleResourceValue().getName();
   }
 
   /**
@@ -121,7 +137,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public Collection<ItemResourceValue> getValues() {
-    return myStyleData.getValues();
+    return getStyleResourceValue().getValues();
   }
 
   /**
@@ -129,7 +145,7 @@ public class ThemeEditorStyle {
    */
   @Nullable
   public ThemeEditorStyle getParent() {
-    StyleResourceValue parent = myConfiguration.getResourceResolver().getParent(myStyleData);
+    StyleResourceValue parent = myConfiguration.getResourceResolver().getParent(getStyleResourceValue());
     if (parent == null) {
       return null;
     }
@@ -143,13 +159,12 @@ public class ThemeEditorStyle {
    * @return The {@link XmlTag} or null if the attribute does not exist in this theme.
    */
   @Nullable
-  protected XmlTag getValueTag(@NotNull final String attribute) {
+  private XmlTag getValueTag(@NotNull XmlTag sourceTag, @NotNull final String attribute) {
     if (!isProjectStyle()) {
       // Non project styles do not contain local values.
       return null;
     }
 
-    XmlTag sourceTag = mySourceXml.get();
     if (sourceTag == null || !sourceTag.isValid()) {
       LOG.error("Xml source is gone");
       return null;
@@ -181,7 +196,7 @@ public class ThemeEditorStyle {
    * @param attribute The style attribute name.
    */
   public boolean isAttributeDefined(@NotNull String attribute) {
-    return myStyleData.getNames().contains(attribute);
+    return getStyleResourceValue().getNames().contains(attribute);
   }
 
   @Nullable
@@ -199,36 +214,36 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
-    // TODO: Check if the current value is defined by one of the parents and remove the attribute.
-    final XmlTag tag = getValueTag(attribute);
-    if (tag != null) {
-      // Update the value.
-      new WriteCommandAction.Simple(myProject, "Setting value of " + tag.getName(), tag.getContainingFile()) {
+    for (WeakReference<XmlTag> sourceXml : mySourceXmls) {
+      // TODO: Check if the current value is defined by one of the parents and remove the attribute.
+      final XmlTag tag = getValueTag(sourceXml.get(), attribute);
+      if (tag != null) {
+        // Update the value.
+        new WriteCommandAction.Simple(myProject, "Setting value of " + tag.getName(), tag.getContainingFile()) {
+          @Override
+          public void run() {
+            tag.getValue().setEscapedText(value);
+          }
+        }.execute();
+        continue;
+      }
+
+      final XmlTag sourceTag = sourceXml.get();
+      if (sourceTag == null) {
+        LOG.error("Xml source is gone");
+        continue;
+      }
+
+      // The value didn't exist, add it.
+      final XmlTag child = sourceTag.createChildTag(SdkConstants.TAG_ITEM, sourceTag.getNamespace(), value, false);
+      child.setAttribute(SdkConstants.ATTR_NAME, attribute);
+      new WriteCommandAction.Simple(myProject, "Adding value of " + child.getName(), child.getContainingFile()) {
         @Override
         public void run() {
-          tag.getValue().setEscapedText(value);
+          sourceTag.addSubTag(child, false);
         }
       }.execute();
-
-      return true;
     }
-
-    final XmlTag sourceTag = mySourceXml.get();
-    if (sourceTag == null) {
-      LOG.error("Xml source is gone");
-      return false;
-    }
-
-    // The value didn't exist, add it.
-    final XmlTag child = sourceTag.createChildTag(SdkConstants.TAG_ITEM, sourceTag.getNamespace(), value, false);
-    child.setAttribute(SdkConstants.ATTR_NAME, attribute);
-    new WriteCommandAction.Simple(myProject, "Adding value of " + child.getName(), child.getContainingFile()) {
-      @Override
-      public void run() {
-        sourceTag.addSubTag(child, false);
-      }
-    }.execute();
-
     return true;
   }
 
@@ -242,18 +257,20 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
-    final XmlTag tag = mySourceXml.get();
-    if (tag == null) {
-      LOG.warn("Unable to set parent, tag is null");
-      return;
-    }
-
-    new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent) {
-      @Override
-      protected void run() throws Throwable {
-        tag.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+    for (WeakReference<XmlTag> sourceXml : mySourceXmls) {
+      final XmlTag tag = sourceXml.get();
+      if (tag == null) {
+        LOG.warn("Unable to set parent, tag is null");
+        return;
       }
-    }.execute();
+
+      new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent) {
+        @Override
+        protected void run() throws Throwable {
+          tag.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+        }
+      }.execute();
+    }
   }
 
   /**
@@ -270,24 +287,26 @@ public class ThemeEditorStyle {
       return;
     }
 
-    final XmlTag tag = mySourceXml.get();
-    if (tag == null) {
-      LOG.warn("Unable to set name, tag is null");
-      return;
-    }
+    for (WeakReference<XmlTag> sourceXml : mySourceXmls) {
+      final XmlTag tag = sourceXml.get();
+      if (tag == null) {
+        LOG.warn("Unable to set name, tag is null");
+        return;
+      }
 
-    final XmlAttribute nameAttribute = tag.getAttribute("name");
-    if (nameAttribute == null) {
-      return;
-    }
+      final XmlAttribute nameAttribute = tag.getAttribute("name");
+      if (nameAttribute == null) {
+        return;
+      }
 
-    final XmlAttributeValue attributeValue = nameAttribute.getValueElement();
-    if (attributeValue == null) {
-      return;
-    }
+      final XmlAttributeValue attributeValue = nameAttribute.getValueElement();
+      if (attributeValue == null) {
+        return;
+      }
 
-    RenameProcessor processor = new RenameProcessor(myProject, new ValueResourceElementWrapper(attributeValue), newName, false, false);
-    processor.run();
+      RenameProcessor processor = new RenameProcessor(myProject, new ValueResourceElementWrapper(attributeValue), newName, false, false);
+      processor.run();
+    }
   }
 
   @NotNull
@@ -331,14 +350,17 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
-    final XmlTag tag = getValueTag(attribute);
-    if (tag != null) {
-      new WriteCommandAction.Simple(myProject, "Removing " + tag.getName(), tag.getContainingFile()) {
-        @Override
-        public void run() {
-          tag.delete();
-        }
-      }.execute();
+    for (WeakReference<XmlTag> sourceXml : mySourceXmls) {
+      final XmlTag tag = getValueTag(sourceXml.get(), attribute);
+      if (tag != null) {
+        new WriteCommandAction.Simple(myProject, "Removing " + tag.getName(), tag.getContainingFile()) {
+          @Override
+          public void run() {
+            tag.delete();
+          }
+        }.execute();
+      }
     }
   }
+
 }
