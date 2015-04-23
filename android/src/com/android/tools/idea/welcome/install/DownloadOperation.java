@@ -130,10 +130,16 @@ public final class DownloadOperation extends InstallOperation<File, File> {
       String details = StringUtil.isEmpty(e.getMessage()) ? "Unable to download Android Studio components." : e.getMessage();
       prompt(details, e);
     }
+    catch (RuntimeException e) {
+      // "Proxy Vole" is a network layer used by Intellij.
+      // This layer will throw a RuntimeException instead of an IOException on certain proxy misconfigurations.
+      String details = StringUtil.isEmpty(e.getMessage()) ? "Unable to download Android Studio components." : e.getMessage();
+      prompt(details, e);
+    }
     return false;
   }
 
-  private void prompt(String details, IOException e) throws WizardException {
+  private void prompt(String details, Exception e) throws WizardException {
     promptToRetry(details + "\n\nPlease check your Internet connection and retry.", details, e);
   }
 
