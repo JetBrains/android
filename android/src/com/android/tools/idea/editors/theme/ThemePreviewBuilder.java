@@ -37,7 +37,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.awt.Color;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +76,6 @@ public class ThemePreviewBuilder {
     TEXT("TextView", VALUE_VERTICAL),
     NAVIGATION_BAR("Navigation bar", VALUE_HORIZONTAL),
     STATUS_BAR("Status bar", VALUE_HORIZONTAL),
-    OTHER("Misc", VALUE_VERTICAL),
     CUSTOM("Custom", VALUE_VERTICAL),;
 
     final String name;
@@ -303,7 +301,7 @@ public class ThemePreviewBuilder {
   private static final int LINE_PADDING = 5;
   private static final int GROUP_TITLE_FONT_SIZE = 9;
 
-  private List<ComponentDefinition> myAdditionalComponents;
+  private List<ComponentDefinition> myComponents = new ArrayList<ComponentDefinition>();
   private String myGroupHeaderColor = "@android:color/darker_gray";
   private String mySeparatorColor = "@android:color/darker_gray";
   private int mySeparatorHeight = 5;
@@ -402,9 +400,7 @@ public class ThemePreviewBuilder {
 
   @NotNull
   private List<ComponentDefinition> getComponentsByGroup(@NotNull final ComponentGroup group) {
-    Iterable<ComponentDefinition> components =
-      Iterables.concat(AVAILABLE_BASE_COMPONENTS, myAdditionalComponents != null ? myAdditionalComponents : Collections.<ComponentDefinition>emptyList());
-    return ImmutableList.copyOf(Iterables.filter(components, new Predicate<ComponentDefinition>() {
+    return ImmutableList.copyOf(Iterables.filter(myComponents, new Predicate<ComponentDefinition>() {
       @Override
       public boolean apply(ComponentDefinition input) {
         if (group != input.group) {
@@ -444,10 +440,7 @@ public class ThemePreviewBuilder {
 
   @NotNull
   public ThemePreviewBuilder addAllComponents(@NotNull List<ComponentDefinition> definitions) {
-    if (myAdditionalComponents == null) {
-      myAdditionalComponents = new ArrayList<ComponentDefinition>(definitions.size());
-    }
-    myAdditionalComponents.addAll(definitions);
+    myComponents.addAll(definitions);
 
     return this;
   }
