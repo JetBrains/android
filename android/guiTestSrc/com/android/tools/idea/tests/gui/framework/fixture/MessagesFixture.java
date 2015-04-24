@@ -30,8 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static org.fest.assertions.Assertions.assertThat;
@@ -60,6 +59,12 @@ public class MessagesFixture {
   }
 
   @NotNull
+  public MessagesFixture clickYes() {
+    findAndClickButton(myDelegate, "Yes");
+    return this;
+  }
+
+  @NotNull
   public MessagesFixture requireMessageContains(@NotNull String message) {
     String actual = ((Delegate)myDelegate).getMessage();
     assertThat(actual).contains(message);
@@ -72,7 +77,7 @@ public class MessagesFixture {
 
   @NotNull
   static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
-    JPanel sheetPanel = robot.finder().find(root, new GenericTypeMatcher<JPanel>(JPanel.class) {
+    JPanel sheetPanel = waitUntilFound(robot, root, new GenericTypeMatcher<JPanel>(JPanel.class) {
       @Override
       protected boolean isMatching(JPanel panel) {
         if (panel.getClass().getName().startsWith(SheetController.class.getName()) && panel.isShowing()) {
