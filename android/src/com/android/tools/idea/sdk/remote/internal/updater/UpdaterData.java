@@ -606,7 +606,7 @@ public class UpdaterData implements IUpdaterData {
     SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
     state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
     List<ArchiveInfo> result = Lists.newArrayList();
-    for (RemotePkgInfo remote : state.getRemotePkgInfos().values()) {
+    for (RemotePkgInfo remote : state.getPackages().getRemotePkgInfos().values()) {
       if (includeAll || !remote.isObsolete()) {
         for (Archive archive : remote.getArchives()) {
           if (archive.isCompatible()) {
