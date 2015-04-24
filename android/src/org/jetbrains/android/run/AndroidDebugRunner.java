@@ -123,7 +123,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
-    if (DefaultRunExecutor.EXECUTOR_ID.equals(environment.getExecutor().getId())) {
+    if (!(environment.getExecutor() instanceof DefaultDebugExecutor)) {
       final RunContentDescriptor descriptor = super.doExecute(state, environment);
 
       if (descriptor != null) {
