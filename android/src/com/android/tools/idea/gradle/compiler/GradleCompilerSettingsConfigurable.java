@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +58,8 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JCheckBox myConfigureOnDemandCheckBox;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
+  private JBLabel myUseInProcessBuildSpacing;
+
   private final String myDisplayName;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
@@ -64,9 +67,11 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
 
-    if (!isAndroidStudio()) {
+    boolean isInternal = SystemProperties.getBooleanProperty("idea.is.internal", false);
+    if (!isAndroidStudio() || !isInternal) {
       myUseInProcessBuildLabel.setVisible(false);
       myUseInProcessBuildCheckBox.setVisible(false);
+      myUseInProcessBuildSpacing.setVisible(false);
     }
   }
 
