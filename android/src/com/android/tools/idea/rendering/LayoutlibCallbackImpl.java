@@ -45,9 +45,11 @@ import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -679,5 +681,25 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private String getPackage() {
     AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
     return info == null ? null : info.getPackage();
+  }
+
+  @NotNull
+  @Override
+  public XmlPullParser createParser(@Nullable String displayName) throws XmlPullParserException {
+    return new NamedParser(displayName);
+  }
+
+  private static class NamedParser extends KXmlParser {
+    @Nullable
+    private final String myName;
+
+    public NamedParser(@Nullable String name) {
+      myName = name;
+    }
+
+    @Override
+    public String toString() {
+      return myName != null ? myName : super.toString();
+    }
   }
 }
