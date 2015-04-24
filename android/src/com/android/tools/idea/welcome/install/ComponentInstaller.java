@@ -22,8 +22,7 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.remote.Update;
-import com.android.tools.idea.sdk.remote.UpdateResult;
+import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
@@ -69,7 +68,7 @@ public final class ComponentInstaller {
   private Iterable<LocalPkgInfo> getOldPackages(Collection<LocalPkgInfo> installed) {
     if (myRemotePackages != null) {
       LocalPkgInfo[] packagesArray = ArrayUtil.toObjectArray(installed, LocalPkgInfo.class);
-      UpdateResult result = Update.computeUpdates(packagesArray, myRemotePackages);
+      SdkPackages result = new SdkPackages(packagesArray, myRemotePackages);
       return Iterables.transform(result.getUpdatedPkgs(), new Function<UpdatablePkgInfo, LocalPkgInfo>() {
         @Override
         public LocalPkgInfo apply(@Nullable UpdatablePkgInfo input) {
@@ -100,7 +99,7 @@ public final class ComponentInstaller {
    *
    * @param manager SDK manager instance or <code>null</code> if this is a new install.
    * @param defaultUpdateAvailable If true, and if remote package information is not available, assume each package may have an update and
-        *                          try to reinstall. If false and remote package information not available, assume no updates are available.
+   *                               try to reinstall. If false and remote package information not available, assume no updates are available.
    */
   public ArrayList<String> getPackagesToInstall(@Nullable SdkManager manager, @NotNull Iterable<? extends InstallableComponent> components,
                                                 boolean defaultUpdateAvailable) {
