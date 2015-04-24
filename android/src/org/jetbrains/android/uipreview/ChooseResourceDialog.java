@@ -15,8 +15,12 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
@@ -34,11 +38,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ColorPickerListener;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
@@ -58,10 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
@@ -86,6 +83,8 @@ import java.util.List;
  * </ul>
  */
 public class ChooseResourceDialog extends DialogWrapper implements TreeSelectionListener {
+  private static final String RESOURCE_NAME_DEFAULT_TEXT = "Enter the resource name";
+  private static final String RESOURCE_NAME_REQUIRED = "The resource name is required for this attribute";
   private static final String ANDROID = "@android:";
   private static final String TYPE_KEY = "ResourceType";
 
@@ -139,15 +138,29 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private String myResultResourceName;
 
   public static ResourceType[] COLOR_TYPES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
+  private boolean myOverwriteResource = false;
+  private JTextField myResourceNameField;
+  private JLabel myResourceNameMessage;
+  private ResourceNameValidator myValidator;
+  private ResourceNameVisibility myResourceNameVisibility;
+
+  public boolean overwriteResource() {
+    return myOverwriteResource;
+  }
 
   public interface ResourcePickerListener {
     void resourceChanged(String resource);
   }
 
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
+    this(module, types, value, tag, ResourceNameVisibility.HIDE);
+  }
+
+  public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag, ResourceNameVisibility resourceNameVisibility) {
     super(module.getProject());
     myModule = module;
     myTag = tag;
+    myResourceNameVisibility = resourceNameVisibility;
 
     setTitle("Resources");
 
@@ -182,6 +195,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         myContentPanel.setSelectedIndex(2);
         doSelection = false;
       }
+      myValidator = ResourceNameValidator.create(false, AppResourceRepository.getAppResources(module, true), ResourceType.COLOR);
     }
     if (doSelection && value.startsWith("@")) {
       value = StringUtil.replace(value, "+", "");
@@ -206,12 +220,103 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     myContentPanel.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
+        boolean inColorPicker = myContentPanel.getSelectedComponent() == myColorPicker;
+        myResourceNameField.setVisible(inColorPicker);
+        myResourceNameMessage.setVisible(inColorPicker);
+        if (inColorPicker) {
+          updateResourceNameStatus();
+        }
         valueChanged(null);
       }
     });
 
     valueChanged(null);
     init();
+  }
+
+  public enum ResourceNameVisibility {
+    /**
+     * Don't show field with resource name at all.
+     */
+    HIDE,
+
+    /**
+     * Force creation of named color.
+     */
+    FORCE
+  }
+
+  private String getErrorString() {
+    myOverwriteResource = false;
+    String result = null;
+    if (myValidator != null && myResourceNameField != null) {
+      String enteredName = myResourceNameField.getText();
+      if (myValidator.doesResourceExist(enteredName)) {
+        result = String.format("Saving this color will override existing resource %1$s.", enteredName);
+        myOverwriteResource = true;
+      } else {
+        result = myValidator.getErrorText(enteredName);
+      }
+    }
+
+    return result;
+  }
+
+  @NotNull
+  private String getResourceNameMessage() {
+    if (myResourceNameVisibility == ResourceNameVisibility.FORCE) {
+      return RESOURCE_NAME_REQUIRED;
+    } else {
+      return RESOURCE_NAME_DEFAULT_TEXT;
+    }
+  }
+
+  public void updateResourceNameStatus() {
+    final String errorText = getErrorString();
+    if (errorText == null) {
+      myResourceNameMessage.setText(getResourceNameMessage());
+      myResourceNameMessage.setForeground(JBColor.BLACK);
+      setOKActionEnabled(true);
+    } else {
+      myResourceNameMessage.setText(errorText);
+      myResourceNameMessage.setForeground(myOverwriteResource ? JBColor.ORANGE : JBColor.RED);
+      setOKActionEnabled(myOverwriteResource);
+    }
+  }
+
+  private class ValidatingDocumentListener implements DocumentListener {
+    @Override
+    public void insertUpdate(DocumentEvent e) { check(); }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) { check(); }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) { check(); }
+
+    private void check() {
+      if (myValidator == null) {
+        return;
+      }
+
+      updateResourceNameStatus();
+    }
+  }
+
+  @Nullable
+  @Override
+  protected JComponent createSouthPanel() {
+    JPanel panel = new JPanel();
+    BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+    panel.setLayout(layout);
+    myResourceNameField = new JTextField();
+    myResourceNameField.getDocument().addDocumentListener(new ValidatingDocumentListener());
+    myResourceNameMessage = new JLabel("Dummy error message");
+    updateResourceNameStatus();
+    panel.add(myResourceNameField);
+    panel.add(myResourceNameMessage);
+    panel.add(super.createSouthPanel());
+    return panel;
   }
 
   public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
@@ -346,6 +451,17 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   @Override
   protected void doOKAction() {
     valueChanged(null);
+    if (myContentPanel.getSelectedComponent() == myColorPicker) {
+      String colorName = myResourceNameField.getText();
+
+      if (myOverwriteResource) {
+        ThemeEditorUtils.changeColor(myModule, colorName, myResultResourceName);
+      } else {
+        ThemeEditorUtils.createColor(myModule, colorName, myResultResourceName);
+      }
+
+      myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + colorName;
+    }
     super.doOKAction();
   }
 
@@ -361,7 +477,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     if (selectedComponent == myColorPicker) {
       Color color = myColorPicker.getColor();
-      setOKActionEnabled(color != null);
       myNewResourceAction.setEnabled(false);
       myResultResourceName = ResourceHelper.colorToString(color);
     }
