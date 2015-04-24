@@ -532,6 +532,10 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       final boolean succeeded;
+      // Color editing may return reference value, which can be the same as previous value
+      // in this cell, but updating table is still required because value that reference points
+      // to was changed. To preserve this information, ColorEditor returns ColorInfo data
+      // structure with value and boolean flag which shows whether reload should be forced.
       if (value instanceof ColorInfo) {
         ColorInfo info = (ColorInfo) value;
         succeeded = setAttributeValue(info.getResourceValue(), info.isForceReload());
