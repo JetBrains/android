@@ -45,6 +45,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.psi.PsiElement;
+import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.util.Processor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
@@ -262,6 +264,12 @@ public class ThemeEditorComponent extends Splitter {
           }
           return;
         }
+        if (myPanel.isRenameSelected()) {
+          if (!renameTheme()) {
+            myPanel.getThemeCombo().getModel().setSelectedItem(mySelectedTheme);
+          }
+          return;
+        }
         mySelectedTheme = myPanel.getSelectedTheme();
         saveCurrentSelectedTheme();
         myCurrentSubStyle = null;
@@ -339,6 +347,27 @@ public class ThemeEditorComponent extends Splitter {
         reload(newThemeName);
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Uses Android Studio refactoring to rename the current theme
+   * @return Whether the renaming is successful
+   */
+  private boolean renameTheme() {
+    assert mySelectedTheme.isProjectStyle();
+    PsiElement namePsiElement = mySelectedTheme.getNamePsiElement();
+    if (namePsiElement == null) {
+      return false;
+    }
+    RenameDialog renameDialog = new RenameDialog(myModule.getProject(), namePsiElement, null, null);
+    renameDialog.show();
+    if (renameDialog.isOK()) {
+      String newName = renameDialog.getNewName();
+      String newQualifiedName = mySelectedTheme.getName().replace(mySelectedTheme.getSimpleName(), newName);
+      reload(newQualifiedName);
+      return true;
     }
     return false;
   }
@@ -605,11 +634,7 @@ public class ThemeEditorComponent extends Splitter {
       @Override
       public void tableChanged(TableModelEvent e) {
         if (e.getType() == TableModelEvent.UPDATE) {
-
-          if (e.getLastRow() == 0) { // Indicates a change in the theme name
-            reload(model.getThemeNameInXml());
-          }
-          else if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
+          if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
             myAttributesTable.updateRowHeights();
           }
         }
@@ -715,7 +740,7 @@ public class ThemeEditorComponent extends Splitter {
         return true;
       }
       int row = entry.getIdentifier().intValue();
-      if (entry.getModel().isSpecialRow(row)) {
+      if (entry.getModel().isThemeParentRow(row)) {
         return true;
       }
 

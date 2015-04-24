@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -26,7 +25,6 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor.ColorInfo;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -42,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 import com.intellij.openapi.diagnostic.Logger;
 
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -65,11 +62,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private final Configuration myConfiguration;
   private List<TableLabel> myLabels;
   /**
-   * Used to store the name of the theme as it is in the styles.xml file
-   * May be different from the name of mySelectedStyle as a reloading of the theme may be necessary
-   */
-  private String myThemeNameInXml;
-  /**
    * Used to store the name of the theme parent as it is in the styles.xml file
    * May be different from the name of mySelectedStyle.getParent() as a reloading of the theme may be necessary
    */
@@ -83,10 +75,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
   public final ParentAttribute parentAttribute = new ParentAttribute();
-  private final List<RowContents> mySpecialRows = ImmutableList.of(
-    new ThemeNameAttribute(),
-    parentAttribute
-  );
 
   private AttributeReferenceRendererEditor.ClickListener myGoToDefinitionListener;
 
@@ -143,10 +131,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     myThemePropertyChangedListeners.add(listener);
   }
 
-  public String getThemeNameInXml() {
-    return myThemeNameInXml;
-  }
-
   public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
                               @NotNull AttributesGrouper.GroupBy groupBy,
                               @NotNull Configuration configuration,
@@ -156,7 +140,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
     myGroupBy = groupBy;
-    myThemeNameInXml = mySelectedStyle.getName();
     myResourceResolver = configuration.getResourceResolver();
     myConfiguration = configuration;
 
@@ -173,11 +156,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   public RowContents getRowContents(final int rowIndex) {
-    if (rowIndex < mySpecialRows.size()) {
-      return mySpecialRows.get(rowIndex);
+    if (rowIndex == 0) {
+      return parentAttribute;
     }
 
-    int offset = mySpecialRows.size();
+    int offset = 1;
     for (final TableLabel label : myLabels) {
       final int labelRowIndex = label.getRowPosition() + offset;
 
@@ -196,15 +179,15 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   /**
-   * returns true if this row is not a attribute or a label and is the Theme name or Theme parent.
+   * returns true if this row is not a attribute or a label and is the Theme parent.
    */
-  public boolean isSpecialRow(int row) {
-    return row < mySpecialRows.size();
+  public boolean isThemeParentRow(int row) {
+    return row == 0;
   }
 
   @Override
   public int getRowCount() {
-    return myAttributes.size() + myLabels.size() + mySpecialRows.size();
+    return myAttributes.size() + myLabels.size() + 1;
   }
 
   @Override
@@ -252,7 +235,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   /**
-   * Basically a union type, RowContents = LabelContents | AttributeContents | ParentAttribute | ThemeNameAttribute
+   * Basically a union type, RowContents = LabelContents | AttributeContents | ParentAttribute
    */
   public interface RowContents {
     int getColumnSpan(int column);
@@ -277,60 +260,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     ActionListener getGoToDefinitionCallback();
 
     ActionListener getResetCallback();
-  }
-
-  /**
-   * Deals with setting up the theme name as an attribute that can be changed
-   */
-  private class ThemeNameAttribute implements RowContents {
-    @Override
-    public int getColumnSpan(int column) {
-      return 1;
-    }
-
-    @Override
-    public Object getValueAt(int column) {
-      if (column == 0) {
-        return "Theme Name";
-      }
-      else {
-        return mySelectedStyle.getSimpleName();
-      }
-    }
-
-    @Override
-    public void setValueAt(int column, Object value) {
-      if (column == 0) {
-        throw new RuntimeException("Tried to setValue at parent attribute label");
-      }
-      else {
-        String newName = (String) value;
-        mySelectedStyle.setName(newName);
-        myThemeNameInXml = SdkConstants.STYLE_RESOURCE_PREFIX + newName;
-
-        fireTableChanged(new TableModelEvent(AttributesTableModel.this, 0));
-      }
-    }
-
-    @Override
-    public Class<?> getCellClass(int column) {
-      return String.class;
-    }
-
-    @Override
-    public boolean isCellEditable(int column) {
-      return (column == 1 && !mySelectedStyle.isReadOnly());
-    }
-
-    @Override
-    public ActionListener getGoToDefinitionCallback() {
-      return null;
-    }
-
-    @Override
-    public ActionListener getResetCallback() {
-      return null;
-    }
   }
 
   public class ParentAttribute implements RowContents {
