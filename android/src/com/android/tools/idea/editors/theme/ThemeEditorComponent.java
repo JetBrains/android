@@ -582,7 +582,7 @@ public class ThemeEditorComponent extends Splitter {
     myConfiguration.setTheme(selectedTheme.getName());
 
     assert myConfiguration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
-    final AttributesTableModel model = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration.getResourceResolver(), myModule.getProject());
+    final AttributesTableModel model = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration, myModule.getProject());
     model.setGoToDefinitionListener(myClickListener);
 
     model.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
