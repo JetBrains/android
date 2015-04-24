@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
 import static com.android.tools.idea.wizard.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.wizard.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
@@ -260,7 +261,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       File projectRoot = new File(projectLocation);
       File moduleRoot = new File(projectRoot, myState.get(myModuleNameKey));
       try {
-        Template.checkedCreateDirectoryIfMissing(moduleRoot);
+        checkedCreateDirectoryIfMissing(moduleRoot);
       }
       catch (IOException e) {
         LOG.error(e);
