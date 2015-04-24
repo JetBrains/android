@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.intellij.ProjectTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;

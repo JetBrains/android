@@ -17,13 +17,12 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.AndroidThemePreviewPanel;
-import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
