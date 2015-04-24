@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -109,6 +110,10 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     Runnable onSdkAvailable = new Runnable() {
       @Override
       public void run() {
+        if (!ApplicationManager.getApplication().isDispatchThread()) {
+          ApplicationManager.getApplication().invokeLater(this);
+          return;
+        }
         // TODO: since the local SDK has been parsed, this is now a good time
         // to filter requestedPackages to remove current installed packages.
         // That's because on Windows trying to update some of the packages in-place
