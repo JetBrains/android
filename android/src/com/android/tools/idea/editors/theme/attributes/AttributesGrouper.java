@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
-import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.util.text.StringUtil;
 
 import java.util.*;

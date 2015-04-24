@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;

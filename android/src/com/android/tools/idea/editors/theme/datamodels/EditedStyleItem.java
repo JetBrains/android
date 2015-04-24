@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.StyleResolver;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;

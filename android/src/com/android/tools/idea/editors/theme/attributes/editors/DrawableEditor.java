@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.ui.AbstractTableCellEditor;
