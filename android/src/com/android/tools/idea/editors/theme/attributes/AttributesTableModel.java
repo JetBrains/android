@@ -19,12 +19,13 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor.ColorInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,6 +39,7 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import spantable.CellSpanModel;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -61,6 +63,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
 
   protected final List<EditedStyleItem> myAttributes;
+  private final Configuration myConfiguration;
   private List<TableLabel> myLabels;
   /**
    * Used to store the name of the theme as it is in the styles.xml file
@@ -147,7 +150,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
                               @NotNull AttributesGrouper.GroupBy groupBy,
-                              @NotNull ResourceResolver resourceResolver,
+                              @NotNull Configuration configuration,
                               Project project) {
     myProject = project;
     myAttributes = new ArrayList<EditedStyleItem>();
@@ -155,7 +158,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     mySelectedStyle = selectedStyle;
     myGroupBy = groupBy;
     myThemeNameInXml = mySelectedStyle.getName();
-    myResourceResolver = resourceResolver;
+    myResourceResolver = configuration.getResourceResolver();
+    myConfiguration = configuration;
 
     ThemeEditorStyle parent = selectedStyle.getParent();
     myParentNameInXml = (parent != null) ? parent.getName() : null;
@@ -521,15 +525,28 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return;
       }
 
-      String strValue = value.toString();
+      final boolean succeeded;
+      if (value instanceof ColorInfo) {
+        ColorInfo info = (ColorInfo) value;
+        succeeded = setAttributeValue(info.getResourceValue(), info.isForceReload());
+      } else {
+        succeeded = setAttributeValue(value.toString(), false);
+      }
+
+      if (succeeded) {
+        fireTableCellUpdated(myRowIndex, column);
+      }
+    }
+
+    private boolean setAttributeValue(@NotNull String strValue, boolean forceReload) {
       EditedStyleItem rv = myAttributes.get(myRowIndex);
-      if (strValue.equals(rv.getRawXmlValue())) {
-        return;
+      if (strValue.equals(rv.getRawXmlValue()) && !forceReload) {
+        return false;
       }
       String propertyName = rv.getQualifiedName();
       rv.setValue(strValue);
       mySelectedStyle.setValue(propertyName, strValue);
-      fireTableCellUpdated(myRowIndex, column);
+      return true;
     }
 
     @Override

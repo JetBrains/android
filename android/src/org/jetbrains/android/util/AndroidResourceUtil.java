@@ -58,6 +58,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.android.dom.resources.ScalarResourceElement;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -888,6 +889,82 @@ public class AndroidResourceUtil {
     return true;
   }
 
+  public static boolean changeColorResource(@NotNull AndroidFacet facet,
+                                            @NotNull final String colorName,
+                                            @NotNull final String newValue,
+                                            @NotNull String fileName,
+                                            @NotNull List<String> dirNames) {
+    if (dirNames.isEmpty()) {
+      return false;
+    }
+    ArrayList<VirtualFile> resFiles = Lists.newArrayListWithExpectedSize(dirNames.size());
+
+    for (String dirName : dirNames) {
+      final VirtualFile resFile = findResourceFile(facet, fileName, dirName);
+      if (resFile != null) {
+        resFiles.add(resFile);
+      }
+    }
+
+    if (!ensureFilesWritable(facet.getModule().getProject(), resFiles)) {
+      return false;
+    }
+    final Resources[] resourcesElements = new Resources[resFiles.size()];
+
+    for (int i = 0; i < resFiles.size(); i++) {
+      final Resources resources = AndroidUtils.loadDomElement(facet.getModule(), resFiles.get(i), Resources.class);
+      if (resources == null) {
+        AndroidUtils.reportError(facet.getModule().getProject(), AndroidBundle.message("not.resource.file.error", fileName));
+        return false;
+      }
+      resourcesElements[i] = resources;
+    }
+
+    List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.size());
+    Project project = facet.getModule().getProject();
+    PsiManager manager = PsiManager.getInstance(project);
+    for (VirtualFile file : resFiles) {
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+    PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Change Color Resource", files) {
+      @Override
+      protected void run(@NotNull Result<Void> result) {
+        for (Resources resources : resourcesElements) {
+          for (ScalarResourceElement colorElement : resources.getColors()) {
+            String colorValue = colorElement.getName().getStringValue();
+            if (StringUtil.equalsIgnoreCase(colorValue, colorName)) {
+              colorElement.setStringValue(newValue);
+            }
+          }
+        }
+      }
+    };
+    action.execute();
+
+    return true;
+  }
+
+  @Nullable
+  private static VirtualFile findResourceFile(@NotNull AndroidFacet facet,
+                                              @NotNull final String fileName,
+                                              @NotNull String dirName) {
+    final VirtualFile resDir = facet.getPrimaryResourceDir();
+
+    if (resDir == null) {
+      return null;
+    }
+    VirtualFile dir = resDir.findChild(dirName);
+
+    if (dir == null) {
+      return null;
+    }
+    return dir.findChild(fileName);
+  }
+
   @Nullable
   private static VirtualFile findOrCreateResourceFile(@NotNull AndroidFacet facet,
                                                       @NotNull final String fileName,
@@ -1052,6 +1129,10 @@ public class AndroidResourceUtil {
     }
 
     return 0;
+  }
+
+  public static boolean ensureFilesWritable(@NotNull Project project, @NotNull Collection<VirtualFile> files) {
+    return !ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(files).hasReadonlyFiles();
   }
 
   public static class MyReferredResourceFieldInfo {
