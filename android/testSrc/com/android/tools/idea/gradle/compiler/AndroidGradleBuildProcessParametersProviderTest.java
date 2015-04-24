@@ -19,15 +19,15 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -53,14 +55,20 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    // For this test we don't care about checking for settings damage.
+    return new CompositeException();
+  }
+
   public void testPopulateJvmArgsWithGradleExecutionSettings() {
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
       @Override
       public void execute() {
         removeAllKnownJdks();
         String jdkHome = myJdk.getHomePath();
         assertNotNull(jdkHome);
-        File jdkHomePath = new File(FileUtil.toSystemDependentName(jdkHome));
+        File jdkHomePath = new File(toSystemDependentName(jdkHome));
         IdeSdks.setJdkPath(jdkHomePath);
       }
     });
@@ -80,7 +88,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
 
     verify(settings);
 
-    String projectDirPath = FileUtil.toSystemDependentName(myProject.getBasePath());
+    String projectDirPath = Projects.getBaseDirPath(myProject).getPath();
     assertEquals(projectDirPath, jvmArgs.get("-Dcom.android.studio.gradle.project.path"));
     assertEquals("~" + File.separatorChar + "gradle-1.6", jvmArgs.get("-Dcom.android.studio.gradle.home.path"));
     assertEquals("true", jvmArgs.get("-Dcom.android.studio.gradle.use.verbose.logging"));
@@ -89,7 +97,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertEquals("-XX:MaxPermSize=512m", jvmArgs.get("-Dcom.android.studio.gradle.daemon.jvm.option.1"));
     String javaHomeDirPath = myJdk.getHomePath();
     assertNotNull(javaHomeDirPath);
-    javaHomeDirPath = FileUtil.toSystemDependentName(javaHomeDirPath);
+    javaHomeDirPath = toSystemDependentName(javaHomeDirPath);
     assertEquals(javaHomeDirPath, jvmArgs.get("-Dcom.android.studio.gradle.java.home.path"));
   }
 
