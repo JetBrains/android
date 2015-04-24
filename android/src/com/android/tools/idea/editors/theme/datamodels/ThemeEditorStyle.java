@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.StyleResolver;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -55,7 +56,7 @@ public class ThemeEditorStyle {
   private final String myStyleName;
   private final Configuration myConfiguration;
   private final Project myProject;
-  ThemeEditorStyle(@NotNull StyleResolver resolver,
+  public ThemeEditorStyle(@NotNull StyleResolver resolver,
                    @NotNull Configuration configuration,
                    @NotNull  String styleName,
                    @Nullable List<XmlTag> sourceXmls) {

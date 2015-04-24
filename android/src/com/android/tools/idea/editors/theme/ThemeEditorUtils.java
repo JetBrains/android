@@ -19,6 +19,8 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;

@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.theme.attributes;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ColorPalette;
-import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
