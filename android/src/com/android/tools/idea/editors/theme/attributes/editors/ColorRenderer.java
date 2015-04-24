@@ -44,7 +44,6 @@ public class ColorRenderer implements TableCellRenderer {
       final EditedStyleItem item = (EditedStyleItem) obj;
       final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
       myComponent.configure(item, colors);
-      myComponent.setButtonBackground(table.getBackground());
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", obj.getClass().getName()));
     }
