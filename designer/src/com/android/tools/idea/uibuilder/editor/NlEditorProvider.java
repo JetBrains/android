@@ -60,7 +60,7 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   public FileEditor createEditor(@NonNull Project project, @NonNull VirtualFile file) {
     AndroidFacet facet = getFacet(project, file);
     assert facet != null; // checked by acceptLayout
-    return new NlEditor(facet, file);
+    return new NlEditor(facet, file, project);
   }
 
   @Override

@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
+import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -30,6 +31,8 @@ import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -42,8 +45,9 @@ import java.awt.*;
 /**
  * Assembles a designer editor from various components
  */
-public class NlEditorPanel extends JPanel implements DataProvider {
+public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, DataProvider {
   private final DesignSurface mySurface;
+  private final ThreeComponentsSplitter myContentSplitter;
 
   public NlEditorPanel(@NonNull NlEditor editor, @NonNull AndroidFacet facet, @NonNull VirtualFile file) {
     super(new BorderLayout());
@@ -54,7 +58,13 @@ public class NlEditorPanel extends JPanel implements DataProvider {
     NlModel model = NlModel.create(editor, facet, xmlFile);
 
     mySurface = new DesignSurface(model);
-    add(mySurface, BorderLayout.CENTER);
+
+    myContentSplitter = new ThreeComponentsSplitter();
+    myContentSplitter.setDividerWidth(0);
+    myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
+    myContentSplitter.setInnerComponent(mySurface);
+    add(myContentSplitter, BorderLayout.CENTER);
+
     model.requestRender();
   }
 
@@ -87,6 +97,11 @@ public class NlEditorPanel extends JPanel implements DataProvider {
       return new ActionHandler(this);
     }
     return null;
+  }
+
+  @Override
+  public ThreeComponentsSplitter getContentSplitter() {
+    return myContentSplitter;
   }
 
   private static class ActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
