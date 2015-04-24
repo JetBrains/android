@@ -85,7 +85,6 @@ public class ColorEditor extends AbstractTableCellEditor {
       myItem = (EditedStyleItem) value;
       final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), myItem.getItemResourceValue());
       myComponent.configure(myItem, colors);
-      myComponent.setButtonBackground(table.getBackground());
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", value.getClass().getName()));
     }
