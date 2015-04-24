@@ -23,12 +23,11 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
-import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
-import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
-import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
-import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
-import com.android.tools.idea.editors.theme.attributes.TableLabel;
+import com.android.tools.idea.editors.theme.attributes.*;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.GradleBuildListener;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -45,6 +44,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.util.Processor;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -115,6 +116,7 @@ public class ThemeEditorComponent extends Splitter {
     }
   };
   private ThemeEditorStyle mySelectedTheme;
+  private MessageBusConnection myMessageBusConnection;
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
     this.myConfiguration = configuration;
@@ -288,6 +290,21 @@ public class ThemeEditorComponent extends Splitter {
     setFirstComponent(myPreviewPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
+
+    myMessageBusConnection = project.getMessageBus().connect(project);
+    myMessageBusConnection.subscribe(PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC, new GradleBuildListener() {
+      @Override
+      public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
+        if (project != myModule.getProject()) {
+          return;
+        }
+
+        // Classes probably have changed so reload the custom components and support library classes.
+        myPreviewPanel.reloadComponents();
+        myPreviewPanel.revalidate();
+        myPreviewPanel.repaint();
+      }
+    });
   }
 
   /**
@@ -655,6 +672,8 @@ public class ThemeEditorComponent extends Splitter {
   @Override
   public void dispose() {
     myConfiguration.removeListener(myConfigListener);
+    myMessageBusConnection.disconnect();
+    myMessageBusConnection = null;
     super.dispose();
   }
 
