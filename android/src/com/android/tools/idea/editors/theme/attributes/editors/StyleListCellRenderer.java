@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.editors.theme.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -29,7 +29,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * A {@link ListCellRenderer} to render {@link com.android.tools.idea.editors.theme.ThemeEditorStyle} elements.
+ * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
  */
 public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
   private final AndroidFacet myFacet;
