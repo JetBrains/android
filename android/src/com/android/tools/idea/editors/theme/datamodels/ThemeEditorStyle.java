@@ -35,7 +35,6 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.refactoring.rename.RenameProcessor;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -258,36 +257,6 @@ public class ThemeEditorStyle {
     }
   }
 
-  /**
-   * Uses refactor to change the name of the themes in all the xml files
-   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
-   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getName()
-   */
-  public void setName(@NotNull final String newName) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
-
-    if (newName.equals(getSimpleName())) {
-      return;
-    }
-
-    for (XmlTag sourceXml : getSourceXmls()) {
-      final XmlAttribute nameAttribute = sourceXml.getAttribute("name");
-      if (nameAttribute == null) {
-        return;
-      }
-
-      final XmlAttributeValue attributeValue = nameAttribute.getValueElement();
-      if (attributeValue == null) {
-        return;
-      }
-
-      RenameProcessor processor = new RenameProcessor(myProject, new ValueResourceElementWrapper(attributeValue), newName, false, false);
-      processor.run();
-    }
-  }
-
   @NotNull
   public StyleResolver getResolver() {
     return myThemeResolver;
@@ -342,4 +311,27 @@ public class ThemeEditorStyle {
     }
   }
 
+  /**
+   * Returns a PsiElement of the name attribute for this theme
+   * made from a RANDOM sourceXml
+   */
+  @Nullable
+  public PsiElement getNamePsiElement() {
+    List<XmlTag> sourceXmls = getSourceXmls();
+    if (sourceXmls.isEmpty()){
+      return null;
+    }
+    // Any sourceXml will do to get the name attribute from
+    final XmlAttribute nameAttribute = sourceXmls.get(0).getAttribute("name");
+    if (nameAttribute == null) {
+      return null;
+    }
+
+    XmlAttributeValue attributeValue = nameAttribute.getValueElement();
+    if (attributeValue == null) {
+      return null;
+    }
+
+    return new ValueResourceElementWrapper(attributeValue);
+  }
 }
