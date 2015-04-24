@@ -17,7 +17,15 @@ package com.android.tools.idea.editors.hprof.tables.heaptable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTable;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
+import com.android.tools.perflib.heap.ClassObj;
+import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class HeapTable extends HprofTable {
   @NotNull private InstancesTreeTable myInstancesTreeTable;
@@ -25,6 +33,29 @@ public class HeapTable extends HprofTable {
   public HeapTable(@NotNull HeapTableModel model, @NotNull InstancesTreeTable instancesTreeTable) {
     super(model);
     myInstancesTreeTable = instancesTreeTable;
+    setShowGrid(false);
+
+    getColumnModel().getColumn(0).setCellRenderer(new ColoredTableCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+        if (value instanceof ClassObj) {
+          ClassObj clazz = (ClassObj)value;
+          String name = clazz.getClassName();
+          String pkg = null;
+          int i = name.lastIndexOf(".");
+          if (i != -1) {
+            pkg = name.substring(0, i);
+            name = name.substring(i + 1);
+          }
+          append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          if (pkg != null) {
+            append(" (" + pkg + ")", new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
+          }
+          setIcon(PlatformIcons.CLASS_ICON);
+          // TODO reformat anonymous classes (ANONYMOUS_CLASS_ICON) to match IJ.
+        }
+      }
+    });
   }
 
   @Override
