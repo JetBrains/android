@@ -42,9 +42,8 @@ import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
+import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
@@ -75,7 +74,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     populateJvmArgs(BuildSettings.getInstance(myProject), jvmArgs);
 
-    addHttpProxySettings(jvmArgs);
+    if (!isAndroidStudio()) {
+      // See https://code.google.com/p/android/issues/detail?id=169743
+      addHttpProxySettings(jvmArgs);
+    }
     return jvmArgs;
   }
 
@@ -122,13 +124,16 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
     jvmArgs.add(createJvmArg(USE_GRADLE_VERBOSE_LOGGING, verboseProcessing));
 
-    String jvmOptions = executionSettings.getDaemonVmOptions();
-    int jvmOptionCount = 0;
-    if (jvmOptions != null && !jvmOptions.isEmpty()) {
-      CommandLineTokenizer tokenizer = new CommandLineTokenizer(jvmOptions);
-      while(tokenizer.hasMoreTokens()) {
-        String name = GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount++;
-        jvmArgs.add(createJvmArg(name, tokenizer.nextToken()));
+    if (!isAndroidStudio()) {
+      // See https://code.google.com/p/android/issues/detail?id=169743
+      String jvmOptions = executionSettings.getDaemonVmOptions();
+      int jvmOptionCount = 0;
+      if (jvmOptions != null && !jvmOptions.isEmpty()) {
+        CommandLineTokenizer tokenizer = new CommandLineTokenizer(jvmOptions);
+        while(tokenizer.hasMoreTokens()) {
+          String name = GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount++;
+          jvmArgs.add(createJvmArg(name, tokenizer.nextToken()));
+        }
       }
     }
   }

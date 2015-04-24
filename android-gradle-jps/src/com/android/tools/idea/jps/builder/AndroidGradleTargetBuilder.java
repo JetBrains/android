@@ -66,6 +66,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleBuilds.*;
+import static com.intellij.util.ArrayUtil.toStringArray;
 
 /**
  * Builds Gradle-based Android project using Gradle.
@@ -193,7 +194,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
     try {
       BuildLauncher launcher = connection.newBuild();
-      launcher.forTasks(ArrayUtil.toStringArray(buildTasks));
+      launcher.forTasks(toStringArray(buildTasks));
 
       List<String> jvmArgs = Lists.newArrayList();
       BuildMode buildMode = executionSettings.getBuildMode();
@@ -211,7 +212,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       LOG.info("Build JVM args: " + jvmArgs);
       if (!jvmArgs.isEmpty()) {
-        launcher.setJvmArguments(ArrayUtil.toStringArray(jvmArgs));
+        launcher.setJvmArguments(toStringArray(jvmArgs));
       }
 
       List<String> commandLineArgs = Lists.newArrayList();
@@ -232,7 +233,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       LOG.info("Build command line args: " + commandLineArgs);
       if (!commandLineArgs.isEmpty()) {
-        launcher.withArguments(ArrayUtil.toStringArray(commandLineArgs));
+        launcher.withArguments(toStringArray(commandLineArgs));
       }
 
       File javaHomeDir = executionSettings.getJavaHomeDir();
