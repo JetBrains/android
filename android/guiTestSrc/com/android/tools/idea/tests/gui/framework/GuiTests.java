@@ -35,7 +35,6 @@ import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -299,9 +298,18 @@ public final class GuiTests {
     findAndClickButton(container, "Cancel");
   }
 
-  public static void findAndClickButton(@NotNull ComponentFixture<? extends Container> container, @NotNull String text) {
+  public static void findAndClickButton(@NotNull ComponentFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot;
-    JButton button = robot.finder().find(container.target, JButtonMatcher.withText(text).andShowing());
+    JButton button = robot.finder().find(container.target, new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(JButton button) {
+        String buttonText = button.getText();
+        if (buttonText != null) {
+          return buttonText.trim().equals(text) && button.isShowing();
+        }
+        return false;
+      }
+    });
     robot.click(button);
   }
 
