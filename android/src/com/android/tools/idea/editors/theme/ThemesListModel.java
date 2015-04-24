@@ -53,12 +53,14 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   };
   public static final String CREATE_NEW_THEME = "Create New Theme";
   public static final String SHOW_ALL_THEMES = "Show all themes";
+  public static final String RENAME = "Rename ";
   private static final Object[] EXTRA_OPTIONS = {SHOW_ALL_THEMES, SEPARATOR, CREATE_NEW_THEME};
 
   private ImmutableList<ThemeEditorStyle> myThemeList;
   private Object mySelectedObject;
   private int myNumberProjectThemes;
   private int mySizeBeforeExtraOptions;
+  private boolean isRenameAllowed;
 
   public ThemesListModel(@NotNull ThemeResolver themeResolver) {
     this(themeResolver, null);
@@ -134,12 +136,15 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Override
   public int getSize() {
-    return mySizeBeforeExtraOptions + EXTRA_OPTIONS.length;
+    return mySizeBeforeExtraOptions + EXTRA_OPTIONS.length + (isRenameAllowed ? 1 : 0);
   }
 
   @NotNull
   @Override
   public Object getElementAt(int index) {
+    if (isRenameAllowed && index == getSize() - 1) {
+      return renameOption();
+    }
     if (index >= mySizeBeforeExtraOptions) {
       return EXTRA_OPTIONS[index - mySizeBeforeExtraOptions];
     }
@@ -161,6 +166,12 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
     if (!Objects.equal(mySelectedObject, anItem)) {
       mySelectedObject = anItem;
+      if (mySelectedObject instanceof ThemeEditorStyle) {
+        isRenameAllowed = ((ThemeEditorStyle)mySelectedObject).isProjectStyle();
+      }
+      else {
+        isRenameAllowed = false;
+      }
       fireContentsChanged(this, -1, -1);
     }
   }
@@ -169,5 +180,13 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   @Override
   public Object getSelectedItem() {
     return mySelectedObject;
+  }
+
+  @NotNull
+  private String renameOption() {
+    assert mySelectedObject instanceof ThemeEditorStyle;
+    ThemeEditorStyle theme = (ThemeEditorStyle)mySelectedObject;
+    assert theme.isProjectStyle();
+    return RENAME + theme.getSimpleName();
   }
 }

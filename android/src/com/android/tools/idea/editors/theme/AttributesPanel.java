@@ -79,6 +79,16 @@ public class AttributesPanel {
     return ThemesListModel.SHOW_ALL_THEMES.equals(myThemeCombo.getSelectedItem());
   }
 
+  public boolean isRenameSelected() {
+    Object selectedItem = myThemeCombo.getSelectedItem();
+    if (!(selectedItem instanceof String)) {
+      // Selected themes are instances of EditedStyleItem
+      // So this method will return false on selecting a theme
+      return false;
+    }
+    return ((String)selectedItem).startsWith(ThemesListModel.RENAME);
+  }
+
   public ThemeEditorStyle getSelectedTheme() {
     Object item = myThemeCombo.getSelectedItem();
     if (item != null && !(item instanceof ThemeEditorStyle)) {
