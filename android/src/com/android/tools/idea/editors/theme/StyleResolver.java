@@ -18,18 +18,12 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,8 +31,6 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -89,25 +81,16 @@ public class StyleResolver {
       return myStylesCache.get(qualifiedStyleName, new Callable<ThemeEditorStyle>() {
         @Override
         public ThemeEditorStyle call() throws Exception {
-          LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
-          assert repository != null;
-          Project project = myConfiguration.getModule().getProject();
-
           if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
             String styleName = qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
-            return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, null);
+            return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, true);
           }
 
           String styleName = qualifiedStyleName;
           if (qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
             styleName = qualifiedStyleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
           }
-          List<ResourceItem> resources = repository.getResourceItem(ResourceType.STYLE, styleName);
-          List<XmlTag> xmlTags = new ArrayList<XmlTag>();
-          for (ResourceItem resource : resources) {
-            xmlTags.add(LocalResourceRepository.getItemTag(project, resource));
-          }
-          return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, xmlTags);
+          return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, false);
         }
       });
     }
