@@ -19,28 +19,20 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
-import com.android.tools.idea.sdk.remote.Update;
-import com.android.tools.idea.sdk.remote.UpdateResult;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.concurrency.FutureResult;
 import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.android.sdk.AndroidSdkData;
 
@@ -48,25 +40,19 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class SdkState {
 
-  /** Default expiration delay is 24 hours. */
-  public final static long DEFAULT_EXPIRATION_PERIOD_MS = 24 * 3600 * 1000;
+  public final static long DEFAULT_EXPIRATION_PERIOD_MS = TimeUnit.DAYS.toMillis(1);
 
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.sdk.SdkState");
 
-  @GuardedBy(value = "sSdkStates")
-  private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
+  @GuardedBy(value = "sSdkStates") private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
 
-  @Nullable
-  private final AndroidSdkData mySdkData;
+  @Nullable private final AndroidSdkData mySdkData;
   private final RemoteSdk myRemoteSdk;
-  private LocalPkgInfo[] myLocalPkgInfos = new LocalPkgInfo[0];
-  private SdkSources mySources;
-  private UpdateResult myUpdates;
-  private Multimap<PkgType, RemotePkgInfo> myRemotePkgs;
+  private SdkPackages myPackages = null;
 
   private long myLastRefreshMs;
   private LoadTask myTask;
@@ -76,6 +62,16 @@ public class SdkState {
   private SdkState(@Nullable AndroidSdkData sdkData) {
     mySdkData = sdkData;
     myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(SdkState.class)));
+  }
+
+  /**
+   * This shouldn't be needed unless interacting with the internals of the remote sdk.
+   *
+   * @return
+   */
+  @NonNull
+  public RemoteSdk getRemoteSdk() {
+    return myRemoteSdk;
   }
 
   @NonNull
@@ -106,17 +102,9 @@ public class SdkState {
   }
 
   @NonNull
-  public LocalPkgInfo[] getLocalPkgInfos() {
-    return myLocalPkgInfos;
-  }
-
-  public Multimap<PkgType, RemotePkgInfo> getRemotePkgInfos() {
-    return myRemotePkgs;
-  }
-
-  @Nullable
-  public UpdateResult getUpdates() {
-    return myUpdates;
+  public SdkPackages getPackages() {
+    assert myPackages != null;
+    return myPackages;
   }
 
   public boolean loadAsync(long timeoutMs,
@@ -152,8 +140,12 @@ public class SdkState {
 
       myTask = new LoadTask(canBeCancelled, onLocalComplete, onSuccess, onError, forceRefresh, sync);
     }
-    ProgressWindow progress = new BackgroundableProcessIndicator(myTask);
-    myTask.setProgress(progress);
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      // not dispatch thread, assume progress is being handled elsewhere. Just run the task.
+      myTask.run(new EmptyProgressIndicator());
+      return true;
+    }
+
     ProgressManager.getInstance().run(myTask);
 
     return true;
@@ -180,6 +172,10 @@ public class SdkState {
     onSuccesses.add(complete);
     onErrors.add(complete);
     boolean result = load(timeoutMs, canBeCancelled, onLocalCompletes, onSuccesses, onErrors, forceRefresh, true);
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      // not dispatch thread, assume progress is being handled elsewhere. We don't have to wait since load() ran in-thread.
+      return result;
+    }
     ProgressManager pm = ProgressManager.getInstance();
     ProgressIndicator indicator = pm.getProgressIndicator();
     indicator = indicator == null ? new ProgressWindow(false, false, null) : indicator;
@@ -228,7 +224,8 @@ public class SdkState {
     public void error(@Nullable Throwable t, @Nullable String msgFormat, Object... args) {
       if (msgFormat == null && t != null) {
         myIndicator.setText2(t.toString());
-      } else if (msgFormat != null) {
+      }
+      else if (msgFormat != null) {
         myIndicator.setText2(String.format(msgFormat, args));
       }
     }
@@ -287,14 +284,11 @@ public class SdkState {
 
     @Override
     public void run(@NonNull ProgressIndicator indicator) {
-      assert myProgress != null;
       boolean success = false;
       try {
         IndicatorLogger logger = new IndicatorLogger(indicator);
 
-        ApplicationEx app = ApplicationManagerEx.getApplicationEx();
-        SdkLifecycleListener notifier = app.getMessageBus().syncPublisher(SdkLifecycleListener.TOPIC);
-
+        myPackages = new SdkPackages();
         if (mySdkData != null) {
           // fetch local sdk
           indicator.setText("Loading local SDK...");
@@ -302,8 +296,7 @@ public class SdkState {
           if (myForceRefresh) {
             mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
           }
-          myLocalPkgInfos = mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL);
-          notifier.localSdkLoaded(mySdkData);
+          myPackages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
           indicator.setFraction(0.25);
         }
         if (indicator.isCanceled()) {
@@ -315,11 +308,10 @@ public class SdkState {
           }
           myOnLocalCompletes.clear();
         }
-
         // fetch sdk repository sources.
         indicator.setText("Find SDK Repository...");
         indicator.setText2("");
-        mySources = myRemoteSdk.fetchSources(myForceRefresh ? 0 : RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
+        SdkSources sources = myRemoteSdk.fetchSources(myForceRefresh ? 0 : RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
         indicator.setFraction(0.50);
 
         if (indicator.isCanceled()) {
@@ -328,18 +320,15 @@ public class SdkState {
         // fetch remote sdk
         indicator.setText("Check SDK Repository...");
         indicator.setText2("");
-        myRemotePkgs = myRemoteSdk.fetch(mySources, logger);
-        notifier.remoteSdkLoaded(mySdkData);
+        Multimap<PkgType, RemotePkgInfo> remotes = myRemoteSdk.fetch(sources, logger);
+        // compute updates
+        indicator.setText("Compute SDK updates...");
         indicator.setFraction(0.75);
-
+        myPackages.setRemotePkgInfos(remotes);
         if (indicator.isCanceled()) {
           return;
         }
-        // compute updates
-        indicator.setText("Compute SDK updates...");
         indicator.setText2("");
-        myUpdates = Update.computeUpdates(myLocalPkgInfos, myRemotePkgs);
-        notifier.updatesComputed(mySdkData);
         indicator.setFraction(1.0);
 
         if (indicator.isCanceled()) {
