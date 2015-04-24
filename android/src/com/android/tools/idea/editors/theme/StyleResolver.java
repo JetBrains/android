@@ -22,6 +22,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.google.common.cache.Cache;
@@ -70,7 +71,7 @@ public class StyleResolver {
    * Returns the style name, including the appropriate namespace.
    */
   @NotNull
-  static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
+  public static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
     return (style.isFramework() ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX : SdkConstants.STYLE_RESOURCE_PREFIX) + style.getName();
   }
 

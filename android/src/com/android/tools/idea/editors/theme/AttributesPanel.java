@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.editors.theme.attributes.editors.*;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;

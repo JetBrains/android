@@ -16,12 +16,10 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.codeInsight.documentation.DocumentationComponent;
 import com.intellij.codeInsight.documentation.DocumentationManager;
-import com.intellij.lang.Language;
-import com.intellij.lang.LanguageDocumentation;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;

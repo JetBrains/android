@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
