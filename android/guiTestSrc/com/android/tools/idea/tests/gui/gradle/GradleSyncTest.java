@@ -50,6 +50,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -1078,6 +1079,28 @@ public class GradleSyncTest extends GuiTestCase {
     Properties gradleProperties = getProperties(gradlePropertiesPath);
     assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
     assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
+  }
+
+  @Test @IdeGuiTest
+  public void testMismatchingEncodings() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    final Project project = projectFrame.getProject();
+
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        EncodingProjectManager encodings = EncodingProjectManager.getInstance(project);
+        encodings.setDefaultCharsetName("ISO-8859-1");
+      }
+    });
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    String expectedMessage = "The project encoding (ISO-8859-1) has been reset to the encoding specified in the Gradle build files (UTF-8).";
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(INFO, firstLineStartingWith(expectedMessage));
+
+    assertEquals("UTF-8", EncodingProjectManager.getInstance(project).getDefaultCharsetName());
   }
 
   @NotNull
