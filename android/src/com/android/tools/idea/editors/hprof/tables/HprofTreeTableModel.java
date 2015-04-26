@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
-import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
@@ -24,11 +23,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.tree.TreeNode;
 
 public abstract class HprofTreeTableModel extends ListTreeTableModelOnColumns {
-  @NotNull protected Snapshot mySnapshot;
 
-  protected HprofTreeTableModel(@NotNull Snapshot snapshot, @Nullable TreeNode root, @Nullable ColumnInfo[] columns) {
+  protected HprofTreeTableModel(@Nullable TreeNode root, @Nullable ColumnInfo[] columns) {
     super(root, columns);
-    mySnapshot = snapshot;
   }
 
   public int getColumnWidth(int column) {

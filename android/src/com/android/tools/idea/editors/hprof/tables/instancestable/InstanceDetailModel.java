@@ -28,7 +28,6 @@ import javax.swing.*;
 
 public class InstanceDetailModel extends HprofTreeTableModel {
   @NotNull private InstanceDetailTreeBuilder myTreeBuilder;
-  @NotNull private Heap myHeap;
 
   protected final HprofColumnInfo<InstanceDetailTreeNode, String> myInstanceData =
     new HprofColumnInfo<InstanceDetailTreeNode, String>("Instance Data", String.class, SwingConstants.LEFT, 200, true) {
@@ -50,7 +49,7 @@ public class InstanceDetailModel extends HprofTreeTableModel {
       @Nullable
       @Override
       public Long valueOf(@NotNull InstanceDetailTreeNode node) {
-        return node.getRetainedSize(mySnapshot.getHeapIndex(myHeap));
+        return node.getRetainedSize();
       }
 
       @Override
@@ -60,14 +59,11 @@ public class InstanceDetailModel extends HprofTreeTableModel {
       }
     };
 
-  public InstanceDetailModel(@NotNull Snapshot snapshot, @NotNull Heap heap, @NotNull Instance root, boolean allColumnsEnabled) {
-    super(snapshot, null, null);
-    myHeap = heap;
+  public InstanceDetailModel(@NotNull Instance root) {
+    super(null, null);
     setRoot(new InstanceDetailTreeNode(this, new Field(Type.OBJECT, "HiddenRootNode"), root));
     setColumns(createColumnInfo());
-    if (allColumnsEnabled) {
-      enableAllColumns();
-    }
+    enableAllColumns();
     myTreeBuilder = new InstanceDetailTreeBuilder(this);
   }
 

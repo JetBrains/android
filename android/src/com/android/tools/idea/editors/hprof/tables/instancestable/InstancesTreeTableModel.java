@@ -31,14 +31,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class InstancesTreeTableModel extends HprofTreeTableModel {
-  @NotNull private Heap myHeap;
   protected final HprofColumnInfo<HprofTreeNode, Long> myRetainedSizeInfo =
     new HprofColumnInfo<HprofTreeNode, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 100, false) {
       @Nullable
       @Override
       public Long valueOf(@NotNull HprofTreeNode node) {
         Instance instance = node.getInstance();
-        return instance == null ? null : instance.getRetainedSize(mySnapshot.getHeapIndex(myHeap));
+        return instance == null ? null : instance.getTotalRetainedSize();
       }
 
       @Override
@@ -49,22 +48,19 @@ public class InstancesTreeTableModel extends HprofTreeTableModel {
     };
   @NotNull private Set<TreeModelListener> myTreeModelListeners;
 
-  public InstancesTreeTableModel(@NotNull Snapshot snapshot,
-                                 @NotNull Heap heap,
-                                 @NotNull Collection<Instance> entries,
+  public InstancesTreeTableModel(@Nullable Collection<Instance> entries,
                                  boolean allColumnsEnabled) {
-    super(snapshot, null, null);
+    super(null, null);
     setColumns(createColumnInfo());
     setRoot(new HprofTreeNode(new Integer(0), new Field(Type.OBJECT, "HiddenRootNode")));
     myTreeModelListeners = new HashSet<TreeModelListener>();
-    myHeap = heap;
 
     if (allColumnsEnabled) {
       enableAllColumns();
     }
 
-    for (Instance instance : entries) {
-      if (instance.getHeap() == myHeap) {
+    if (entries != null) {
+      for (Instance instance : entries) {
         getMutableRoot().add(new HprofTreeNode(instance, new Field(Type.OBJECT, instance.getClassObj().getClassName())));
       }
     }

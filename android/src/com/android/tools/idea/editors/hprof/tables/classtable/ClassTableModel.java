@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables.heaptable;
+package com.android.tools.idea.editors.hprof.tables.classtable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTableModel;
 import com.android.tools.idea.editors.hprof.tables.TableColumn;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.Snapshot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,53 +28,54 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HeapTableModel extends HprofTableModel {
-  @NotNull private Heap myHeap;
-  @NotNull private List<TableColumn<HeapTableModel, ?>> myColumns;
+public class ClassTableModel extends HprofTableModel {
+  @NotNull private List<TableColumn<ClassTableModel, ?>> myColumns;
   @NotNull private ArrayList<ClassObj> myEntries;
 
-  public HeapTableModel(@NotNull List<TableColumn<HeapTableModel, ?>> columns, @NotNull Heap heap) {
+  public ClassTableModel(@NotNull Snapshot snapshot) {
     super();
-    myHeap = heap;
-    myColumns = columns;
-    myEntries = new ArrayList<ClassObj>(heap.getClasses());
+    myColumns = createHeapTableColumns();
+    myEntries = new ArrayList<ClassObj>();
+    for (Heap heap : snapshot.getHeaps()) {
+      myEntries.addAll(heap.getClasses());
+    }
   }
 
   @NotNull
-  protected static List<TableColumn<HeapTableModel, ?>> createHeapTableColumns() {
-    List<TableColumn<HeapTableModel, ?>> columns = new ArrayList<TableColumn<HeapTableModel, ?>>();
-    columns.add(new TableColumn<HeapTableModel, ClassObj>("Class Name", ClassObj.class, SwingConstants.LEFT, 800, true) {
+  protected static List<TableColumn<ClassTableModel, ?>> createHeapTableColumns() {
+    List<TableColumn<ClassTableModel, ?>> columns = new ArrayList<TableColumn<ClassTableModel, ?>>();
+    columns.add(new TableColumn<ClassTableModel, ClassObj>("Class Name", ClassObj.class, SwingConstants.LEFT, 800, true) {
       @Override
       @NotNull
-      public ClassObj getValue(@NotNull HeapTableModel model, int row) {
+      public ClassObj getValue(@NotNull ClassTableModel model, int row) {
         return model.getEntry(row);
       }
     });
-    columns.add(new TableColumn<HeapTableModel, Integer>("Count", Integer.class, SwingConstants.RIGHT, 100, true) {
+    columns.add(new TableColumn<ClassTableModel, Integer>("Count", Integer.class, SwingConstants.RIGHT, 100, true) {
       @Override
       @NotNull
-      public Integer getValue(@NotNull HeapTableModel model, int row) {
+      public Integer getValue(@NotNull ClassTableModel model, int row) {
         return model.getEntry(row).getInstances().size();
       }
     });
-    columns.add(new TableColumn<HeapTableModel, Integer>("Sizeof", Integer.class, SwingConstants.RIGHT, 80, true) {
+    columns.add(new TableColumn<ClassTableModel, Integer>("Sizeof", Integer.class, SwingConstants.RIGHT, 80, true) {
       @Override
       @NotNull
-      public Integer getValue(@NotNull HeapTableModel model, int row) {
+      public Integer getValue(@NotNull ClassTableModel model, int row) {
         return model.getEntry(row).getInstanceSize();
       }
     });
-    columns.add(new TableColumn<HeapTableModel, Integer>("Shallow Size", Integer.class, SwingConstants.RIGHT, 100, true) {
+    columns.add(new TableColumn<ClassTableModel, Integer>("Shallow Size", Integer.class, SwingConstants.RIGHT, 100, true) {
       @Nullable
       @Override
-      public Integer getValue(@NotNull HeapTableModel model, int row) {
+      public Integer getValue(@NotNull ClassTableModel model, int row) {
         return model.getEntry(row).getShalowSize();
       }
     });
-    columns.add(new TableColumn<HeapTableModel, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 120, false) {
+    columns.add(new TableColumn<ClassTableModel, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 120, false) {
       @Override
       @NotNull
-      public Long getValue(@NotNull HeapTableModel model, int row) {
+      public Long getValue(@NotNull ClassTableModel model, int row) {
         long totalSize = 0;
         for (Instance i : model.getEntry(row).getInstances()) {
           totalSize += i.getTotalRetainedSize();
@@ -98,11 +100,6 @@ public class HeapTableModel extends HprofTableModel {
   @Override
   public int getColumnCount() {
     return myColumns.size();
-  }
-
-  @NotNull
-  public String getHeapName() {
-    return myHeap.getName();
   }
 
   @Override
