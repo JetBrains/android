@@ -66,9 +66,9 @@ public class InstanceDetailTreeNode extends TreeBuilderNode implements HprofInst
   }
 
   @Nullable
-  public Long getRetainedSize(int heapIndex) {
+  public Long getRetainedSize() {
     Instance instance = getInstance();
-    return instance != null ? instance.getRetainedSize(heapIndex) : null;
+    return instance != null ? instance.getTotalRetainedSize() : null;
   }
 
   @Override

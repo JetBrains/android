@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables.heaptable;
+package com.android.tools.idea.editors.hprof.tables.classtable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTable;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
@@ -27,12 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public class HeapTable extends HprofTable {
-  @NotNull private InstancesTreeTable myInstancesTreeTable;
+public class ClassTable extends HprofTable {
 
-  public HeapTable(@NotNull HeapTableModel model, @NotNull InstancesTreeTable instancesTreeTable) {
+  public ClassTable(@NotNull ClassTableModel model) {
     super(model);
-    myInstancesTreeTable = instancesTreeTable;
     setShowGrid(false);
 
     getColumnModel().getColumn(0).setCellRenderer(new ColoredTableCellRenderer() {
@@ -56,11 +54,5 @@ public class HeapTable extends HprofTable {
         }
       }
     });
-  }
-
-  @Override
-  public void notifyDominatorsComputed() {
-    super.notifyDominatorsComputed();
-    myInstancesTreeTable.notifyDominatorsComputed();
   }
 }
