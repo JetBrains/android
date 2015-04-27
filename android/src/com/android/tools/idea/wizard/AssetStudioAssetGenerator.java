@@ -16,7 +16,11 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.assetstudiolib.*;
+import com.android.assetstudiolib.vectordrawable.Svg2Vector;
+import com.android.assetstudiolib.vectordrawable.VdPreview;
+import com.android.resources.Density;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -31,10 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -70,6 +71,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
   private AssetStudioContext myContext;
 
+  public static final int SVG_PREVIEW_WIDTH = 256;
   /**
    * This is needed to migrate between "old" and "new" wizard frameworks
    */
@@ -150,7 +152,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
    * Types of sources that the asset studio can use to generate icons from
    */
   public enum SourceType {
-    IMAGE, CLIPART, TEXT
+    IMAGE, CLIPART, TEXT, SVG
   }
 
 
@@ -351,6 +353,25 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     BufferedImage sourceImage = null;
     switch (sourceType) {
+      case SVG:  {
+        // So here we should only generate one dpi image.
+        String path = myContext.getImagePath();
+        if (path == null || path.isEmpty()) {
+          throw new ImageGeneratorException("Path to image is empty.");
+        }
+
+        try {
+          sourceImage = getSvgImage(path);
+        }
+        catch (FileNotFoundException e) {
+          throw new ImageGeneratorException("Image file not found: " + path);
+        }
+        catch (IOException e) {
+          throw new ImageGeneratorException("Unable to load image file: " + path);
+        }
+        break;
+      }
+
       case IMAGE: {
         String path = myContext.getImagePath();
         if (path == null || path.isEmpty()) {
@@ -457,6 +478,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     }
 
     options.sourceImage = sourceImage;
+    if (sourceType == SourceType.SVG) {
+      options.density = Density.ANYDPI;
+    }
     generator.generate(null, categoryMap, this, options, baseName);
   }
 
@@ -503,6 +527,53 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     File directory = new File(contentRoot, OUTPUT_DIRECTORY);
     outputImagesIntoVariantRoot(directory);
   }
+
+  @NotNull
+  private static BufferedImage getSvgImage(@NotNull String path) throws IOException {
+    String xmlFileContent = generateVectorXml(new File(path));
+    BufferedImage image = VdPreview.getPreviewFromVectorXml(SVG_PREVIEW_WIDTH, xmlFileContent);
+
+    if (image == null) {
+      //noinspection UndesirableClassUsage
+      image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    }
+    return image;
+  }
+
+  public void outputXmlToRes(File targetResDir) {
+    String currentFilePath = myContext.getImagePath();
+    String xmlFileContent = generateVectorXml(new File(currentFilePath));
+
+    String xmlFileName = myContext.getAssetName();
+    // Here get the XML file content, and write into targetResDir / drawable / ***.xml
+    File file = new File(targetResDir, SdkConstants.FD_RES_DRAWABLE + File.separator +
+                                       xmlFileName + SdkConstants.DOT_XML);
+    try {
+      VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+      VirtualFile xmlFile = directory.findChild(file.getName());
+      if (xmlFile == null || !xmlFile.exists()) {
+        xmlFile = directory.createChildData(this, file.getName());
+      }
+
+      VfsUtil.saveText(xmlFile, xmlFileContent);
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
+  }
+
+  @Nullable
+  private static String generateVectorXml(@NotNull File inputSvgFile) {
+    OutputStream outStream = new ByteArrayOutputStream();
+    try {
+      Svg2Vector.parseSvgToXml(inputSvgFile, outStream);
+    }
+    catch (Exception e) {
+      LOG.error(e);
+    }
+    return outStream.toString();
+  }
+
 
   @NotNull
   protected static BufferedImage getImage(@NotNull String path, boolean isPluginRelative) throws IOException {
