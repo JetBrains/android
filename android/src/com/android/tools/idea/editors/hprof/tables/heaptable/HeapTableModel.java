@@ -67,8 +67,7 @@ public class HeapTableModel extends HprofTableModel {
       @Nullable
       @Override
       public Integer getValue(@NotNull HeapTableModel model, int row) {
-        ClassObj classObj = model.getEntry(row);
-        return classObj.getInstances().size() * classObj.getInstanceSize();
+        return model.getEntry(row).getShalowSize();
       }
     });
     columns.add(new TableColumn<HeapTableModel, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 120, false) {
