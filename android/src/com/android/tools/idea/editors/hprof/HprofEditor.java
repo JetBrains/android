@@ -38,14 +38,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 
 public class HprofEditor extends UserDataHolderBase implements FileEditor {
-  private final HprofViewPanel myHprofViewPanel;
+  private final JPanel myPanel;
 
   public HprofEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
-    myHprofViewPanel = new HprofViewPanel(project);
+    myPanel = new JPanel(new BorderLayout());
     parseHprofFileInBackground(project, file);
   }
 
@@ -60,9 +61,6 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
 
         final File hprofFile = VfsUtilCore.virtualToIoFile(file);
         try {
-          // Currently HprofParser takes too much memory and cripples the IDE.]
-          // new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
-          // TODO: Use HprofParser
           mySnapshot = new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
         }
         catch (Throwable throwable) {
@@ -75,7 +73,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
 
       @Override
       public void onSuccess() {
-        myHprofViewPanel.setSnapshot(mySnapshot);
+        myPanel.add(new HprofViewPanel(project, mySnapshot).getComponent(), BorderLayout.CENTER);
       }
 
       @Override
@@ -94,7 +92,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myHprofViewPanel.getComponent();
+    return myPanel;
   }
 
   @Nullable
