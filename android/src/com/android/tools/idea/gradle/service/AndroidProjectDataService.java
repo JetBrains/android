@@ -25,15 +25,12 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
-import com.android.tools.idea.gradle.messages.CommonMessageGroupNames;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -49,14 +46,12 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationSour
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import com.intellij.openapi.vfs.encoding.FileEncodingConfigurable;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,7 +66,12 @@ import java.util.Map;
 
 import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
+import static com.android.tools.idea.gradle.messages.Message.Type.INFO;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
+import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -145,8 +145,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
         FullRevision oneDotTwoModelVersion = new PreciseRevision(1, 2, 0);
 
-        String incompatibleVersionFound = null;
-        String nonMatchingEncodingFound = null;
+        String incompatibleModelVersionFound = null;
+        String nonMatchingModelEncodingFound = null;
 
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
@@ -156,12 +156,15 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           if (androidProject != null) {
             AndroidProject delegate = androidProject.getDelegate();
 
+            // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
             FullRevision modelVersion = parseRevision(delegate.getModelVersion());
             boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, PreviewComparison.IGNORE) >= 0;
 
-            if (checkGradleCompatibility && incompatibleVersionFound == null && !isModelVersionOneDotTwoOrNewer) {
-              incompatibleVersionFound = delegate.getModelVersion();
+            if (checkGradleCompatibility && incompatibleModelVersionFound == null && !isModelVersionOneDotTwoOrNewer) {
+              incompatibleModelVersionFound = delegate.getModelVersion();
             }
+
+            // Verify that the encoding in the model is the same as the encoding in the IDE's project settings.
             Charset modelEncoding = null;
             if (isModelVersionOneDotTwoOrNewer) {
               try {
@@ -171,10 +174,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
                 // It's not going to happen.
               }
             }
-            if (nonMatchingEncodingFound == null && modelEncoding != null && ideEncoding.compareTo(modelEncoding) != 0) {
-              nonMatchingEncodingFound = modelEncoding.displayName();
+            if (nonMatchingModelEncodingFound == null && modelEncoding != null && ideEncoding.compareTo(modelEncoding) != 0) {
+              nonMatchingModelEncodingFound = modelEncoding.displayName();
             }
 
+            // Get the Java language version from the model.
             if (javaLangVersion == null) {
               javaLangVersion = androidProject.getJavaLanguageLevel();
             }
@@ -192,45 +196,21 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           }
         }
 
-        if (incompatibleVersionFound != null) {
-          FixGradleModelVersionHyperlink quickFix =
-            new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", "1.2.0", null /* do not update Gradle version */,
-                                               false);
-          String[] text = {
-            String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", incompatibleVersionFound),
-            "Please use Android plugin version 1.2 or newer."
-          };
-          messages.add(new Message(CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE, Message.Type.ERROR, text),
-                       quickFix);
+        if (incompatibleModelVersionFound != null) {
+          addModelVersionIncompatibilityMessage(incompatibleModelVersionFound, project);
         }
 
-        if (nonMatchingEncodingFound != null) {
-          OpenUrlHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
-          NotificationHyperlink openEncodingSettingsHyperlink =
-            new NotificationHyperlink("open.encodings.settings", "Open File Encoding Settings") {
-              @Override
-              protected void execute(@NotNull Project project) {
-                FileEncodingConfigurable configurable = new FileEncodingConfigurable(project);
-                ShowSettingsUtil.getInstance().editConfigurable(project, configurable);
-              }
-            };
-
-          String[] text = {
-            String.format("The project encoding (%1$s) does not match the encoding specified in the Gradle build files (%2$s).",
-                          ideEncoding.displayName(), nonMatchingEncodingFound),
-            "This can lead to serious bugs."
-          };
-          messages.add(new Message(CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE, Message.Type.WARNING, text), openDocHyperlink,
-                       openEncodingSettingsHyperlink);
+        if (nonMatchingModelEncodingFound != null) {
+          setIdeEncodingAndAddEncodingMismatchMessage(nonMatchingModelEncodingFound, project);
         }
 
         if (hasExtraGeneratedFolders) {
-          messages.add(new Message(EXTRA_GENERATED_SOURCES, Message.Type.INFO, "3rd-party Gradle plug-ins may be the cause"));
+          messages.add(new Message(EXTRA_GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
         }
 
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
-        if (jdk == null || (!AndroidStudioSpecificInitializer.isAndroidStudio() && !Jdks.isApplicableJdk(jdk, javaLangVersion))) {
+        if (jdk == null || (!isAndroidStudio() && !isApplicableJdk(jdk, javaLangVersion))) {
           jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
         }
         if (jdk == null) {
@@ -256,6 +236,29 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     if (error != null) {
       throw error;
     }
+  }
+
+  private static void addModelVersionIncompatibilityMessage(@NotNull String incompatibleModelVersionFound, @NotNull Project project) {
+    FixGradleModelVersionHyperlink quickFix =
+      new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", "1.2.0", null /* do not update Gradle version */,
+                                         false);
+    String[] text = {
+      String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", incompatibleModelVersionFound),
+      "Please use Android plugin version 1.2 or newer."
+    };
+    ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text), quickFix);
+  }
+
+  private static void setIdeEncodingAndAddEncodingMismatchMessage(@NotNull String newEncoding, @NotNull Project project) {
+    EncodingProjectManager encodings = EncodingProjectManager.getInstance(project);
+    String[] text = {
+      String.format("The project encoding (%1$s) has been reset to the encoding specified in the Gradle build files (%2$s).",
+                    encodings.getDefaultCharset().displayName(), newEncoding),
+      "Mismatching encodings can lead to serious bugs."
+    };
+    encodings.setDefaultCharsetName(newEncoding);
+    OpenUrlHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
+    ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text), openDocHyperlink);
   }
 
   @NotNull
