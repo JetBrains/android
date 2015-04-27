@@ -24,19 +24,18 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,37 +50,29 @@ public class ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
 
   private final StyleResolver myThemeResolver;
-  private final boolean myIsProjectStyle;
   private final boolean myIsFrameworkStyle;
   private final String myStyleName;
   private final Configuration myConfiguration;
   private final Project myProject;
+
   public ThemeEditorStyle(@NotNull StyleResolver resolver,
-                   @NotNull Configuration configuration,
-                   @NotNull  String styleName,
-                   boolean isFrameworkStyle) {
+                          @NotNull Configuration configuration,
+                          @NotNull String styleName,
+                          boolean isFrameworkStyle) {
     myIsFrameworkStyle = isFrameworkStyle;
     myThemeResolver = resolver;
     myConfiguration = configuration;
-
     myStyleName = styleName;
     myProject = configuration.getModule().getProject();
+  }
 
-    if (!myIsFrameworkStyle) {
-      //TODO: Do it Better
-      XmlTag sourceXml = getSourceXmls().get(0);
-      /*
-       * Find if the file is contained in the resources folder. If the source file is not contained in the source folder this might be
-       * coming from a library that we can not actually edit.
-       */
-      VirtualFile parent = sourceXml.getContainingFile() != null && sourceXml.getContainingFile().getVirtualFile() != null ?
-                           sourceXml.getContainingFile().getVirtualFile().getParent() :
-                           null;
-      myIsProjectStyle =
-        parent != null && parent.getParent() != null && AndroidResourceUtil.isLocalResourceDirectory(parent.getParent(), myProject);
-    } else {
-      myIsProjectStyle = false;
+  public boolean isProjectStyle() {
+    if (myIsFrameworkStyle) {
+      return false;
     }
+    ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myConfiguration.getModule(), true);
+    assert repository != null : myConfiguration.getModule().getName();
+    return repository.hasResourceItem(ResourceType.STYLE, myStyleName);
   }
 
   private StyleResourceValue getStyleResourceValue() {
@@ -100,14 +91,6 @@ public class ThemeEditorStyle {
       xmlTags.add(tag);
     }
     return xmlTags;
-  }
-
-  /**
-   * Returns whether this is a project style and therefore editable. If the style is not part of the project, it can be part or the framework
-   * or a library.
-   */
-  public boolean isProjectStyle() {
-    return myIsProjectStyle;
   }
 
   /**
