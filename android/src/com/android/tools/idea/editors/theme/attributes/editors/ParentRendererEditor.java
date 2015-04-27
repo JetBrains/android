@@ -18,15 +18,21 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.editors.theme.ParentThemesListModel;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.util.ui.AbstractTableCellEditor;
 
 import java.awt.Component;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,11 +41,6 @@ import org.jetbrains.annotations.NotNull;
  * Deals with Other through a separate dialog window.
  */
 public class ParentRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
-  private static final String OTHER = "Other ...";
-  private static final String DARK = "@android:style/Theme.Material.NoActionBar";
-  private static final String LIGHT = "@android:style/Theme.Material.Light.NoActionBar";
-  private static final String[] COMBOBOX_OPTIONS = {DARK, LIGHT, OTHER};
-
   private final ComboBox myComboBox;
   private String myResultValue;
   private final Configuration myConfiguration;
@@ -47,6 +48,8 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
   public ParentRendererEditor(@NotNull Configuration configuration) {
     myConfiguration = configuration;
     myComboBox = new ComboBox();
+    //noinspection GtkPreferredJComboBoxRenderer
+    myComboBox.setRenderer(new StyleListCellRenderer(AndroidFacet.getInstance(configuration.getModule())));
     myComboBox.addActionListener(new ParentChoiceListener());
   }
 
@@ -65,17 +68,13 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    if (!(value instanceof String)) {
+    if (!(value instanceof ThemeEditorStyle)) {
       return null;
     }
 
-    String stringValue = (String)value;
-    DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel(COMBOBOX_OPTIONS);
-    if (!(stringValue.equals(DARK) || stringValue.equals(LIGHT))) {
-      comboBoxModel.insertElementAt(stringValue, 0);
-    }
-    myComboBox.setModel(comboBoxModel);
-    myComboBox.setSelectedItem(stringValue);
+    ThemeEditorStyle parent = (ThemeEditorStyle)value;
+    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myConfiguration));
+    myComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
     return myComboBox;
   }
 
@@ -88,8 +87,8 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      String selectedValue = (String)myComboBox.getSelectedItem();
-      if (OTHER.equals(selectedValue)) {
+      Object selectedValue = myComboBox.getSelectedItem();
+      if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
         myComboBox.hidePopup();
         final ThemeSelectionDialog dialog = new ThemeSelectionDialog(myConfiguration);
 
@@ -103,8 +102,11 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
           myResultValue = null;
           cancelCellEditing();
         }
-      } else {
-        myResultValue = selectedValue;
+      }
+      else {
+        if (selectedValue instanceof ThemeEditorStyle){
+          myResultValue = ((ThemeEditorStyle)selectedValue).getName();
+        }
         stopCellEditing();
       }
     }
