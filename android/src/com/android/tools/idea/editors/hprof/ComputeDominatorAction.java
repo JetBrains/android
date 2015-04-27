@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.idea.editors.hprof.tables.heaptable.HeapTableManager;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,15 +25,13 @@ import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-public class ComputeDominatorAction extends AnAction {
-  private Snapshot mySnapshot;
-  private HeapTableManager myHeapTableManager;
+public abstract class ComputeDominatorAction extends AnAction {
+  @NotNull private Snapshot mySnapshot;
   @NotNull Project myProject;
 
-  public ComputeDominatorAction(@NotNull Snapshot snapshot, @NotNull HeapTableManager heapTableManager, @NotNull Project project) {
+  public ComputeDominatorAction(@NotNull Snapshot snapshot, @NotNull Project project) {
     super(null, "Compute Dominators", AndroidIcons.Ddms.AllocationTracker);
     mySnapshot = snapshot;
-    myHeapTableManager = heapTableManager;
     myProject = project;
   }
 
@@ -42,6 +39,8 @@ public class ComputeDominatorAction extends AnAction {
   public void actionPerformed(AnActionEvent e) {
     ProgressManager.getInstance().run(new ComputeDominatorIndicator(myProject));
   }
+
+  public abstract void onDominatorsComputed();
 
   private class ComputeDominatorIndicator extends Task.Modal {
     public ComputeDominatorIndicator(@NotNull Project project) {
@@ -51,7 +50,7 @@ public class ComputeDominatorAction extends AnAction {
     @Override
     public void onSuccess() {
       super.onSuccess();
-      myHeapTableManager.notifyDominatorsComputed();
+      onDominatorsComputed();
     }
 
     @Override
