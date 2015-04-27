@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.net.wifi.WifiManager android.net.DhcpInfo getDhcpInfo()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager android.net.wifi.WifiInfo getConnectionInfo()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean disableNetwork(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean disconnect()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean enableNetwork(int, boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean is5GHzBandSupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean isDeviceToApRttSupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean isEnhancedPowerReportingSupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean isP2pSupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean isPreferredNetworkOffloadSupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean isScanAlwaysAvailable()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean isTdlsSupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean reassociate()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean reconnect()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean removeNetwork(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean saveConfiguration()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean setWifiEnabled(boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager boolean startScan()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager int addNetwork(android.net.wifi.WifiConfiguration)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager int getWifiState()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.wifi.WifiManager.WIFI_STATE_DISABLING, android.net.wifi.WifiManager.WIFI_STATE_DISABLED, android.net.wifi.WifiManager.WIFI_STATE_ENABLING, android.net.wifi.WifiManager.WIFI_STATE_ENABLED, android.net.wifi.WifiManager.WIFI_STATE_UNKNOWN}" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager int updateNetwork(android.net.wifi.WifiConfiguration)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager java.util.List&lt;android.net.wifi.ScanResult&gt; getScanResults()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager java.util.List&lt;android.net.wifi.WifiConfiguration&gt; getConfiguredNetworks()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_WIFI_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager.MulticastLock void acquire()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_MULTICAST_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.WifiManager.MulticastLock void release()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CHANGE_WIFI_MULTICAST_STATE&quot;" />
+    </annotation>
+  </item>
+</root>
+
