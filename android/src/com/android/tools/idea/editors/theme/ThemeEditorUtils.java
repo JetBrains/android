@@ -24,14 +24,19 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -40,11 +45,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Collections;
-import java.util.Comparator;
+
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -54,6 +61,21 @@ public class ThemeEditorUtils {
     .weakValues()
     .maximumSize(30) // To be able to cache roughly one screen of attributes
     .build();
+  private static final Set<String> DEFAULT_THEMES = ImmutableSet
+    .of("Theme.AppCompat.NoActionBar", "Theme.AppCompat.Light.NoActionBar");
+  private static final Set<String> DEFAULT_THEMES_FALLBACK = ImmutableSet
+    .of("Theme.Material.NoActionBar", "Theme.Material.Light.NoActionBar");
+
+  public static final Comparator<ThemeEditorStyle> STYLE_COMPARATOR = new Comparator<ThemeEditorStyle>() {
+    @Override
+    public int compare(ThemeEditorStyle o1, ThemeEditorStyle o2) {
+      if (o1.isProjectStyle() == o2.isProjectStyle()) {
+        return o1.getName().compareTo(o2.getName());
+      }
+
+      return o1.isProjectStyle() ? -1 : 1;
+    }
+  };
 
   private ThemeEditorUtils() { }
 
@@ -204,5 +226,37 @@ public class ThemeEditorUtils {
     catch (Exception e) {
       return false;
     }
+  }
+
+  @NotNull
+  private static Collection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes,
+                                                                  final @NotNull Set<String> names) {
+    return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
+      @Override
+      public boolean apply(@Nullable ThemeEditorStyle theme) {
+        return theme != null && names.contains(theme.getSimpleName());
+      }
+    }));
+  }
+
+  @NotNull
+  public static ImmutableList<ThemeEditorStyle> getDefaultThemes(@NotNull ThemeResolver themeResolver) {
+    Collection<ThemeEditorStyle> editableThemes = themeResolver.getLocalThemes();
+    Collection<ThemeEditorStyle> readOnlyLibThemes = new HashSet<ThemeEditorStyle>(themeResolver.getProjectThemes());
+    readOnlyLibThemes.removeAll(editableThemes);
+
+    Collection<ThemeEditorStyle> foundThemes = findThemes(readOnlyLibThemes, DEFAULT_THEMES);
+
+    if (foundThemes.isEmpty()) {
+      Collection<ThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
+      foundThemes = findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK);
+      if (foundThemes.isEmpty()) {
+        foundThemes.addAll(readOnlyLibThemes);
+        foundThemes.addAll(readOnlyFrameworkThemes);
+      }
+    }
+    Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(STYLE_COMPARATOR);
+    temporarySet.addAll(foundThemes);
+    return ImmutableList.copyOf(temporarySet);
   }
 }

@@ -59,13 +59,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
 
   protected final List<EditedStyleItem> myAttributes;
-  private final Configuration myConfiguration;
   private List<TableLabel> myLabels;
-  /**
-   * Used to store the name of the theme parent as it is in the styles.xml file
-   * May be different from the name of mySelectedStyle.getParent() as a reloading of the theme may be necessary
-   */
-  private String myParentNameInXml;
 
   protected final ThemeEditorStyle mySelectedStyle;
 
@@ -141,10 +135,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     mySelectedStyle = selectedStyle;
     myGroupBy = groupBy;
     myResourceResolver = configuration.getResourceResolver();
-    myConfiguration = configuration;
-
-    ThemeEditorStyle parent = selectedStyle.getParent();
-    myParentNameInXml = (parent != null) ? parent.getName() : null;
     reloadContent();
   }
 
@@ -276,7 +266,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return "Theme Parent";
       }
       else {
-        return myParentNameInXml == null ? "[no parent]" : myParentNameInXml;
+        ThemeEditorStyle parent = mySelectedStyle.getParent();
+        return parent == null ? "[no parent]" : parent;
       }
     }
 
@@ -289,8 +280,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         String newName = (String) value;
         //Changes the value of Parent in XML
         mySelectedStyle.setParent(newName);
-        myParentNameInXml = newName;
-        reloadContent();
+        fireTableCellUpdated(0, 1);
       }
     }
 
@@ -310,7 +300,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public ActionListener getGoToDefinitionCallback() {
-      return myParentNameInXml == null ? null : myGotoDefinitionCallback;
+      return mySelectedStyle.getParent() == null ? null : myGotoDefinitionCallback;
     }
 
     @Override

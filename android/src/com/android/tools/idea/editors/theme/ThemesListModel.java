@@ -17,40 +17,19 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class ThemesListModel extends AbstractListModel implements ComboBoxModel {
-  private static final Set<String> DEFAULT_THEMES = ImmutableSet
-    .of("Theme.AppCompat.NoActionBar",
-        "Theme.AppCompat.Light.NoActionBar");
-  private static final Set<String> DEFAULT_THEMES_FALLBACK = ImmutableSet
-    .of("Theme.Material.NoActionBar",
-        "Theme.Material.Light.NoActionBar");
 
   private static final JSeparator SEPARATOR = new JSeparator(SwingConstants.HORIZONTAL);
 
-  public static final Comparator<ThemeEditorStyle> STYLE_COMPARATOR = new Comparator<ThemeEditorStyle>() {
-    @Override
-    public int compare(ThemeEditorStyle o1, ThemeEditorStyle o2) {
-      if (o1.isProjectStyle() == o2.isProjectStyle()) {
-        return o1.getName().compareTo(o2.getName());
-      }
-
-      return o1.isProjectStyle() ? -1 : 1;
-    }
-  };
   public static final String CREATE_NEW_THEME = "Create New Theme";
   public static final String SHOW_ALL_THEMES = "Show all themes";
   public static final String RENAME = "Rename ";
@@ -78,31 +57,13 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   public void setThemeResolver(@NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
-    Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(STYLE_COMPARATOR);
+    Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
+    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
 
     Collection<ThemeEditorStyle> editableThemes = themeResolver.getLocalThemes();
     temporarySet.addAll(editableThemes);
+    temporarySet.addAll(defaultThemes);
     myNumberProjectThemes = editableThemes.size();
-
-    Collection<ThemeEditorStyle> readOnlyLibThemes = new HashSet<ThemeEditorStyle>(themeResolver.getProjectThemes());
-    readOnlyLibThemes.removeAll(editableThemes);
-
-    Collection<ThemeEditorStyle> foundThemes = findThemes(readOnlyLibThemes, DEFAULT_THEMES);
-
-    if (foundThemes.isEmpty()) {
-      Collection<ThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
-      foundThemes = findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK);
-      if (foundThemes.isEmpty()) {
-        temporarySet.addAll(readOnlyLibThemes);
-        temporarySet.addAll(readOnlyFrameworkThemes);
-      }
-      else {
-        temporarySet.addAll(foundThemes);
-      }
-    }
-    else {
-      temporarySet.addAll(foundThemes);
-    }
 
     myThemeList = ImmutableList.copyOf(temporarySet);
     mySizeBeforeExtraOptions = myThemeList.size();
@@ -123,15 +84,6 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
 
     fireContentsChanged(this, 0, getSize() - 1);
-  }
-
-  private @NotNull Collection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes, final @NotNull Set<String> names) {
-    return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
-      @Override
-      public boolean apply(@NotNull ThemeEditorStyle theme) {
-        return names.contains(theme.getSimpleName());
-      }
-    }));
   }
 
   @Override
