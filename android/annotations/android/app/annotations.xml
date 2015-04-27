@@ -127,6 +127,9 @@
   <item name="android.app.Activity android.content.Intent getParentActivityIntent()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.Activity android.net.Uri getReferrer()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.Activity android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -221,7 +224,7 @@
   </item>
   <item name="android.app.Activity java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE}" />
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE}" />
     </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -250,6 +253,7 @@
     <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.app.Activity void onCreate(android.os.Bundle)">
+    <annotation name="android.support.annotation.MainThread" />
     <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.app.Activity void onCreate(android.os.Bundle) 0">
@@ -485,7 +489,7 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.AlertDialog AlertDialog(android.content.Context, int) 1">
-    <annotation name="android.support.annotation.AttrRes" />
+    <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.app.AlertDialog boolean onKeyDown(int, android.view.KeyEvent) 1">
     <annotation name="android.support.annotation.NonNull" />
@@ -708,6 +712,9 @@
   </item>
   <item name="android.app.Dialog Dialog(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Dialog Dialog(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.app.Dialog android.content.Context getContext()">
     <annotation name="android.support.annotation.NonNull" />
@@ -1069,11 +1076,29 @@
   <item name="android.app.Instrumentation void sendTrackballEventSync(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.IntentService void onHandleIntent(android.content.Intent)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
   <item name="android.app.KeyguardManager android.app.KeyguardManager.KeyguardLock newKeyguardLock(java.lang.String)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.KeyguardManager void exitKeyguardSecurely(android.app.KeyguardManager.OnKeyguardExitResult)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.DISABLE_KEYGUARD&quot;" />
+    </annotation>
+  </item>
   <item name="android.app.KeyguardManager void exitKeyguardSecurely(android.app.KeyguardManager.OnKeyguardExitResult) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.KeyguardManager.KeyguardLock void disableKeyguard()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.DISABLE_KEYGUARD&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.KeyguardManager.KeyguardLock void reenableKeyguard()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.DISABLE_KEYGUARD&quot;" />
+    </annotation>
   </item>
   <item name="android.app.LauncherActivity java.util.List&lt;android.app.LauncherActivity.ListItem&gt; makeListItems()">
     <annotation name="android.support.annotation.NonNull" />
