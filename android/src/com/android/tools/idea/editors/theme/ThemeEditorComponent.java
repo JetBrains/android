@@ -637,6 +637,10 @@ public class ThemeEditorComponent extends Splitter {
           if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
             myAttributesTable.updateRowHeights();
           }
+          else if (e.getLastRow() == 0) {
+            // Theme parent has been changed, needs reloading to update attributes
+            reload(myPreviousSelectedTheme);
+          }
         }
 
         if (myPreviewPanel != null) {
