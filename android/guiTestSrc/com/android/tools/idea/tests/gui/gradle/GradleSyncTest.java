@@ -123,6 +123,12 @@ public class GradleSyncTest extends GuiTestCase {
   @After
   public void resetSettings() {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+
+    // Clear HTTP proxy settings, in case a test changed them.
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.PROXY_HOST = "";
+    ideSettings.PROXY_PORT = 80;
   }
 
   @Test @IdeGuiTest
