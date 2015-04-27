@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -55,11 +56,15 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(facet.getModule().getProject(), file);
     assert xmlFile != null : file;
+
     NlModel model = NlModel.create(editor, facet, xmlFile);
+    Disposer.register(editor, model);
 
     mySurface = new DesignSurface(model);
 
     myContentSplitter = new ThreeComponentsSplitter();
+    Disposer.register(editor, myContentSplitter);
+
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
     myContentSplitter.setInnerComponent(mySurface);
