@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.hprof.tables.heaptable;
 
 import com.android.tools.idea.editors.hprof.HprofViewPanel;
+import com.android.tools.idea.editors.hprof.ComputeDominatorAction;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstanceDetailModel;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstanceDetailView;
 import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
@@ -25,6 +26,8 @@ import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -158,7 +161,8 @@ public class HeapTableManager {
       });
 
       JBSplitter splitter = createNavigationSplitter(heapTable, instancesTreeTable);
-      myParentContainer.addTab(new TabInfo(splitter).setText(model.getHeapName()).setSideComponent(new JPanel()));
+      DefaultActionGroup group = new DefaultActionGroup(new ComputeDominatorAction(mySnapshot, this, myProject));
+      myParentContainer.addTab(new TabInfo(splitter).setText(model.getHeapName()).setActions(group, ActionPlaces.UNKNOWN));
     }
   }
 }
