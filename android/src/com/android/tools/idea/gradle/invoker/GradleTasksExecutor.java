@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErr
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
@@ -41,7 +40,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -101,13 +99,16 @@ import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
 import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
+import static com.intellij.openapi.application.ModalityState.NON_MODAL;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.android.AndroidPlugin.*;
@@ -167,8 +168,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
     return "GradleTaskInvocation";
   }
 
-  @NotNull
   @Override
+  @NotNull
   public DumbModeAction getDumbModeAction() {
     return DumbModeAction.WAIT;
   }
@@ -253,7 +254,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
       private void addStatisticsMessage(@NotNull String text) {
         addMessage(new GradleMessage(GradleMessage.Kind.STATISTICS, text), null);
       }
-    }, ModalityState.NON_MODAL);
+    }, NON_MODAL);
   }
 
   private void invokeGradleTasks() {
@@ -332,6 +333,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
         catch (BuildException e) {
           buildError = e;
         }
+        catch (Throwable e) {
+          handleTaskExecutionError(e);
+        }
         finally {
           myContext.dropCancellationInfoFor(id);
           String gradleOutput = output.toString();
@@ -349,7 +353,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
             // window for that situation though.
             showBuildException(buildError, output.getStdErr(), buildMessages);
           }
-
           output.close();
 
           stopwatch.stop();
@@ -382,64 +385,68 @@ class GradleTasksExecutor extends Task.Backgroundable {
       }
     };
 
-    try {
-      if (isGuiTestingMode()) {
-        // We use this task in GUI tests to simulate errors coming from Gradle project sync.
-        Application application = ApplicationManager.getApplication();
-        Runnable task = application.getUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY);
-        if (task != null) {
-          application.putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, null);
-          task.run();
-        }
+    if (isGuiTestingMode()) {
+      // We use this task in GUI tests to simulate errors coming from Gradle project sync.
+      Application application = ApplicationManager.getApplication();
+      Runnable task = application.getUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY);
+      if (task != null) {
+        application.putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, null);
+        task.run();
       }
-      myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
     }
-    catch (ExternalSystemException e) {
-      if (myIndicator.isCanceled()) {
-        LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
-      }
-      else {
-        final String error = e.getMessage();
-        if (error != null && error.contains("Build cancelled")) {
-          // We don't get the real cause, we need to check the error message.
-          return;
-        }
-        Runnable showErrorTask = new Runnable() {
-          @Override
-          public void run() {
-            String msg = "Failed to complete Gradle execution.\n\nCause:\n" + error;
-            Messages.showErrorDialog(myProject, msg, GRADLE_RUNNING_MSG_TITLE);
+    myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
+  }
 
-            // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
-            // hyperlink to set the JDK home.
-            // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
-            if (AndroidStudioSpecificInitializer.isAndroidStudio() &&
-                error != null &&
-                error.startsWith("Supplied javaHome is not a valid folder")) {
-              File androidHome = IdeSdks.getAndroidSdkPath();
-              String androidSdkPath = androidHome != null ? androidHome.getPath() : null;
-              SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
-              selectSdkDialog.setModal(true);
-              if (selectSdkDialog.showAndGet()) {
-                final String jdkHome = selectSdkDialog.getJdkHome();
-                invokeLaterIfNeeded(new Runnable() {
+  private void handleTaskExecutionError(@NotNull Throwable e) {
+    if (myIndicator.isCanceled()) {
+      LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
+      return;
+    }
+    //noinspection ThrowableResultOfMethodCallIgnored
+    Throwable rootCause = getRootCause(e);
+    final String error = nullToEmpty(rootCause.getMessage());
+    if (error.contains("Build cancelled")) {
+      return;
+    }
+    Runnable showErrorTask = new Runnable() {
+      @Override
+      public void run() {
+        String msg = "Failed to complete Gradle execution.";
+        if (isEmpty(error)) {
+          // Unlikely that 'error' is null or empty, since now we catch the real exception.
+          msg += " Cause: unknown.";
+        }
+        else {
+          msg += "\n\nCause:\n" + error;
+        }
+        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, msg), null);
+        showMessages();
+
+        // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
+        // hyperlink to set the JDK home.
+        // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
+        if (isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
+          File androidHome = IdeSdks.getAndroidSdkPath();
+          String androidSdkPath = androidHome != null ? androidHome.getPath() : null;
+          SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
+          selectSdkDialog.setModal(true);
+          if (selectSdkDialog.showAndGet()) {
+            final String jdkHome = selectSdkDialog.getJdkHome();
+            invokeLaterIfNeeded(new Runnable() {
+              @Override
+              public void run() {
+                ApplicationManager.getApplication().runWriteAction(new Runnable() {
                   @Override
                   public void run() {
-                    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                      @Override
-                      public void run() {
-                        IdeSdks.setJdkPath(new File(jdkHome));
-                      }
-                    });
+                    IdeSdks.setJdkPath(new File(jdkHome));
                   }
                 });
               }
-            }
+            });
           }
-        };
-        invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
+        }
       }
-    }
+    }; invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
   }
 
   @NotNull
