@@ -207,6 +207,17 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         return getModuleSelector().getModule();
       }
     };
+    myAvdCombo.getComboBox().setRenderer(new ListCellRendererWrapper() {
+      @Override
+      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        if (value instanceof IdDisplay) {
+          setText(((IdDisplay)value).getDisplay());
+        }
+        else {
+          setText(String.format("<html><font color='red'>Unknown AVD %1$s</font></html>", value == null ? "" : value.toString()));
+        }
+      }
+    });
 
     myAvdComboComponent = new ComboboxWithBrowseButton(myAvdCombo.getComboBox());
 
@@ -373,13 +384,15 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myModuleJBLabel.setAnchor(anchor);
   }
 
-  private static boolean containsItem(JComboBox combo, @NotNull Object item) {
-    for (int i = 0, n = combo.getItemCount(); i < n; i++) {
-      if (item.equals(combo.getItemAt(i))) {
-        return true;
+  @Nullable
+  private static Object findAvdWithName(@NotNull JComboBox avdCombo, @NotNull String avdName) {
+    for (int i = 0, n = avdCombo.getItemCount(); i < n; i++) {
+      Object item = avdCombo.getItemAt(i);
+      if (item instanceof IdDisplay && avdName.equals(((IdDisplay)item).getId())) {
+        return item;
       }
     }
-    return false;
+    return null;
   }
 
   @Override
@@ -388,27 +401,14 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     updateGoogleCloudVisible(configuration);
 
+    final JComboBox combo = myAvdCombo.getComboBox();
     final String avd = configuration.PREFERRED_AVD;
     if (avd != null) {
-      JComboBox combo = myAvdCombo.getComboBox();
-      if (containsItem(combo, avd)) {
-        combo.setSelectedItem(avd);
+      Object item = findAvdWithName(combo, avd);
+      if (item != null) {
+        combo.setSelectedItem(item);
       }
       else {
-        combo.setRenderer(new ListCellRendererWrapper() {
-          @Override
-          public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-            if (value == null) {
-              setText("<html><font color='red'>" + avd + "</font></html>");
-            }
-            else if (value instanceof IdDisplay) {
-              setText(((IdDisplay)value).getDisplay());
-            }
-            else {
-              setText(value.toString());
-            }
-          }
-        });
         combo.setSelectedItem(null);
         incorrectPreferredAvd = avd;
       }
