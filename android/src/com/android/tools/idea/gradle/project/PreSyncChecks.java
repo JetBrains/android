@@ -126,7 +126,7 @@ final class PreSyncChecks {
       if (!ideProxySettings.PROXY_HOST.equals(proxySettings.getHost())) {
         String msg = "Android Studio is configured to use a HTTP proxy. " +
                      "Gradle may need these proxy settings to access the Internet (e.g. for downloading dependencies.)\n\n" +
-                     "Would you the IDE's proxy configuration to be set in the project's gradle.properties file?";
+                     "Would you like to have the IDE's proxy configuration be set in the project's gradle.properties file?";
         DoNotAskOption doNotAskOption = new PropertyDoNotAskOption(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME);
         int result = Messages.showYesNoDialog(project, msg, "Proxy Settings", Messages.getQuestionIcon(), doNotAskOption);
         if (result == YES) {
