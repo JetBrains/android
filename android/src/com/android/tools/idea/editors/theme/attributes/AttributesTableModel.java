@@ -46,6 +46,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -129,6 +130,16 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   public void addThemePropertyChangedListener(final ThemePropertyChangedListener listener) {
     myThemePropertyChangedListeners.add(listener);
+  }
+
+  public ImmutableSet<String> getDefinedAttributes() {
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+
+    for (EditedStyleItem item : myAttributes) {
+      builder.add(item.getQualifiedName());
+    }
+
+    return builder.build();
   }
 
   public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
