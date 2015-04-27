@@ -61,7 +61,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
 
   private static void pickImage(TemplateWizardState state) {
     // This is no longer done by the asset state by default, but by the
-    // AssetSetStep#initialize method
+    // RasterAssetSetStep#initialize method
     state.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
       .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png"))
       .getAbsolutePath());

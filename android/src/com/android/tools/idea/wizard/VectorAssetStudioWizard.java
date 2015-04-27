@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,20 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 
 import static com.android.tools.idea.wizard.TemplateWizardStep.NONE;
+import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 
 /**
- * Wizard that allows the user to create various density-scaled assets.
+ * Wizard that allows the user to create vector assets.
  */
-public class AssetStudioWizard extends TemplateWizard implements TemplateWizardStep.UpdateListener {
+public class VectorAssetStudioWizard extends TemplateWizard implements TemplateWizardStep.UpdateListener {
   protected Module myModule;
   protected VirtualFile myTargetFile;
   protected TemplateWizardState myWizardState = new TemplateWizardState();
   protected ChooseOutputResDirStep myOutputStep;
-  protected RasterAssetSetStep myIconStep;
+  protected VectorAssetSetStep myIconStep;
 
-  public AssetStudioWizard(@Nullable Project project, @Nullable Module module, @Nullable VirtualFile targetFile) {
-    super("Asset Studio", project);
+  public VectorAssetStudioWizard(@Nullable Project project, @Nullable Module module, @Nullable VirtualFile targetFile) {
+    super("Vector Asset Studio", project);
     myModule = module;
     myTargetFile = targetFile;
     getWindow().setMinimumSize(new Dimension(800, 640));
@@ -46,12 +47,12 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
 
   @Override
   protected void init() {
-    myIconStep = new RasterAssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFile);
+    myIconStep = new VectorAssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFile);
     Disposer.register(getDisposable(), myIconStep);
     myOutputStep = new ChooseOutputResDirStep(myWizardState, myProject, null, NONE, myModule, myTargetFile);
     addStep(myIconStep);
     addStep(myOutputStep);
-
+    myWizardState.put(ATTR_SOURCE_TYPE, AssetStudioAssetGenerator.SourceType.SVG);
     super.init();
   }
 
