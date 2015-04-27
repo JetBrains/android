@@ -201,6 +201,9 @@
   <item name="android.media.session.MediaSessionManager.OnActiveSessionsChangedListener void onActiveSessionsChanged(java.util.List&lt;android.media.session.MediaController&gt;) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.session.PlaybackState android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.media.session.PlaybackState.CustomAction.Builder Builder(java.lang.String, java.lang.CharSequence, int) 2">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>

@@ -6,17 +6,154 @@
   <item name="android.bluetooth.BluetoothAdapter android.bluetooth.BluetoothDevice getRemoteDevice(java.lang.String)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.bluetooth.BluetoothAdapter android.bluetooth.BluetoothServerSocket listenUsingInsecureRfcommWithServiceRecord(java.lang.String, java.util.UUID)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter android.bluetooth.BluetoothServerSocket listenUsingRfcommWithServiceRecord(java.lang.String, java.util.UUID)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean cancelDiscovery()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean disable()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean enable()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean isDiscovering()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean isEnabled()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean setName(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean startDiscovery()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean startLeScan(android.bluetooth.BluetoothAdapter.LeScanCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean startLeScan(java.util.UUID[], android.bluetooth.BluetoothAdapter.LeScanCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter int getProfileConnectionState(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter int getScanMode()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.bluetooth.BluetoothAdapter.SCAN_MODE_NONE, android.bluetooth.BluetoothAdapter.SCAN_MODE_CONNECTABLE, android.bluetooth.BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE}" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter int getState()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.bluetooth.BluetoothAdapter.STATE_OFF, android.bluetooth.BluetoothAdapter.STATE_TURNING_ON, android.bluetooth.BluetoothAdapter.STATE_ON, android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF}" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter java.lang.String getAddress()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter java.util.Set&lt;android.bluetooth.BluetoothDevice&gt; getBondedDevices()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter void stopLeScan(android.bluetooth.BluetoothAdapter.LeScanCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
   <item name="android.bluetooth.BluetoothClass void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.bluetooth.BluetoothDevice android.bluetooth.BluetoothClass getBluetoothClass()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
   <item name="android.bluetooth.BluetoothDevice android.bluetooth.BluetoothSocket createInsecureRfcommSocketToServiceRecord(java.util.UUID)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.bluetooth.BluetoothDevice android.bluetooth.BluetoothSocket createRfcommSocketToServiceRecord(java.util.UUID)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice android.os.ParcelUuid[] getUuids()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothDevice boolean createBond()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothDevice boolean fetchUuidsWithSdp()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothDevice boolean setPairingConfirmation(boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+    </annotation>
   </item>
   <item name="android.bluetooth.BluetoothDevice boolean setPin(byte[]) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice int getBondState()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothDevice int getType()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothDevice java.lang.String getName()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
   </item>
   <item name="android.bluetooth.BluetoothDevice void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -74,6 +211,42 @@
   </item>
   <item name="android.bluetooth.BluetoothHealthAppConfiguration void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealthCallback void onHealthAppConfigurationStatusChange(android.bluetooth.BluetoothHealthAppConfiguration, int)">
+    <annotation name="android.support.annotation.BinderThread" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealthCallback void onHealthChannelStateChange(android.bluetooth.BluetoothHealthAppConfiguration, android.bluetooth.BluetoothDevice, int, int, android.os.ParcelFileDescriptor, int)">
+    <annotation name="android.support.annotation.BinderThread" />
+  </item>
+  <item name="android.bluetooth.BluetoothManager int getConnectionState(android.bluetooth.BluetoothDevice, int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothManager java.util.List&lt;android.bluetooth.BluetoothDevice&gt; getConnectedDevices(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothManager java.util.List&lt;android.bluetooth.BluetoothDevice&gt; getDevicesMatchingConnectionStates(int, int[])">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothProfile int getConnectionState(android.bluetooth.BluetoothDevice)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothProfile java.util.List&lt;android.bluetooth.BluetoothDevice&gt; getConnectedDevices()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
+  </item>
+  <item name="android.bluetooth.BluetoothProfile java.util.List&lt;android.bluetooth.BluetoothDevice&gt; getDevicesMatchingConnectionStates(int[])">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />
+    </annotation>
   </item>
   <item name="android.bluetooth.BluetoothSocket java.io.InputStream getInputStream()">
     <annotation name="android.support.annotation.NonNull" />
