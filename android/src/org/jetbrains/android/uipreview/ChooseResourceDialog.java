@@ -153,10 +153,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
-    this(module, types, value, tag, ResourceNameVisibility.HIDE);
+    this(module, types, value, tag, ResourceNameVisibility.HIDE, null);
   }
 
-  public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag, ResourceNameVisibility resourceNameVisibility) {
+  public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag, ResourceNameVisibility resourceNameVisibility, @Nullable String colorName) {
     super(module.getProject());
     myModule = module;
     myTag = tag;
@@ -232,6 +232,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     valueChanged(null);
     init();
+    if (colorName != null) {
+      myResourceNameField.setText(colorName);
+      updateResourceNameStatus();
+    }
   }
 
   public enum ResourceNameVisibility {
