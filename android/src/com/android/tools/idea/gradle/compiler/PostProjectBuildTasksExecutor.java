@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -129,10 +129,10 @@ public class PostProjectBuildTasksExecutor {
     }
   }
 
-  private static class GradleMessageIterator extends AbstractIterator<String> {
-    private final Iterator<GradleMessage> myIterator;
+  private static class MessageIterator extends AbstractIterator<String> {
+    private final Iterator<Message> myIterator;
 
-    GradleMessageIterator(@NotNull Collection<GradleMessage> compilerMessages) {
+    MessageIterator(@NotNull Collection<Message> compilerMessages) {
       myIterator = compilerMessages.iterator();
     }
 
@@ -142,16 +142,16 @@ public class PostProjectBuildTasksExecutor {
       if (!myIterator.hasNext()) {
         return endOfData();
       }
-      GradleMessage msg = myIterator.next();
+      Message msg = myIterator.next();
       return msg != null ? msg.getText() : null;
     }
   }
 
   public void onBuildCompletion(@NotNull GradleInvocationResult result) {
     Iterator<String> errors = Iterators.emptyIterator();
-    List<GradleMessage> errorMessages = result.getCompilerMessages(GradleMessage.Kind.ERROR);
+    List<Message> errorMessages = result.getCompilerMessages(Message.Kind.ERROR);
     if (!errorMessages.isEmpty()) {
-      errors = new GradleMessageIterator(errorMessages);
+      errors = new MessageIterator(errorMessages);
     }
     //noinspection TestOnlyProblems
     onBuildCompletion(errors, errorMessages.size());

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
@@ -29,7 +30,7 @@ public class GradleOutputParser implements PatternAwareOutputParser {
   private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("[\\d]+ error(s)?");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     if (ignoreMessage(line)) {
       return true;
@@ -41,7 +42,7 @@ public class GradleOutputParser implements PatternAwareOutputParser {
       return true;
     }
     if (line.startsWith("Total time: ") || line.startsWith("BUILD ")) {
-      messages.add(new GradleMessage(GradleMessage.Kind.INFO, line));
+      messages.add(new Message(Message.Kind.INFO, line, SourceFilePosition.UNKNOWN));
       return true;
     }
 

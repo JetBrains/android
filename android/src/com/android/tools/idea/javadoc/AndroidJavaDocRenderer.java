@@ -66,7 +66,7 @@ import java.util.Locale;
 
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static org.jetbrains.android.util.AndroidUtils.hasImageExtension;
+import static com.android.utils.SdkUtils.hasImageExtension;
 
 public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource.  */
