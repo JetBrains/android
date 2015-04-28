@@ -37,6 +37,7 @@ import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -104,6 +105,7 @@ import static com.google.common.io.Closeables.close;
 import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
+import static com.intellij.openapi.ui.MessageType.*;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
@@ -122,8 +124,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
   };
 
   private static final long ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/;
-
   private static final Logger LOG = Logger.getInstance(GradleInvoker.class);
+  public static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle Build (Logging)");
+  public static final NotificationGroup BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("Gradle Build (Balloon)");
 
   // Dummy objects used for mapping {@link AbstractSyncErrorHandler} to the 'build messages' environment.
   private static final Notification DUMMY_NOTIFICATION = new Notification("dummy", "dummy", "dummy", NotificationType.ERROR);
@@ -159,7 +162,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private CloseListener myCloseListener;
 
   GradleTasksExecutor(@NotNull GradleTaskExecutionContext context) {
-    super(context.getProject(), String.format("Gradle: Executing Tasks %1$s", context.getGradleTasks().toString()), true);
+    super(context.getProject(), "Gradle Build Running", true);
     myContext = context;
   }
 
@@ -259,10 +262,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private void invokeGradleTasks() {
     final Project project = getNotNullProject();
-
     final GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
-
-    final File projectDirPath = getBaseDirPath(project);
 
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
       @Override
@@ -274,9 +274,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myContext.getGradleTasks()), null);
 
-        String executingTasksText =
-          "Executing tasks: " + myContext.getGradleTasks() + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
-        consoleView.print(executingTasksText, NORMAL_OUTPUT);
+        String executingTasksText = "Executing tasks: " + myContext.getGradleTasks();
+        consoleView.print(executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), NORMAL_OUTPUT);
+        addToEventLog(executingTasksText, INFO);
 
         GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
@@ -394,6 +394,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
         task.run();
       }
     }
+
+    File projectDirPath = getBaseDirPath(project);
     myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
   }
 
@@ -446,7 +448,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
       }
-    }; invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
+    }; 
+    invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
   }
 
   @NotNull
@@ -756,11 +759,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
     Project project = getNotNullProject();
     if (!project.isDisposed()) {
       String statusMsg = createStatusMessage(durationMillis);
-      MessageType messageType = myErrorCount > 0 ? MessageType.ERROR : myWarningCount > 0 ? MessageType.WARNING : MessageType.INFO;
+      MessageType messageType = myErrorCount > 0 ? ERROR : myWarningCount > 0 ? WARNING : INFO;
       if (durationMillis > ONE_MINUTE_MS) {
-        getToolWindowManager().notifyByBalloon(ToolWindowId.MESSAGES_WINDOW, messageType, statusMsg);
+        BALLOON_NOTIFICATION.createNotification(statusMsg, messageType).notify(project);
       }
-      CompilerManager.NOTIFICATION_GROUP.createNotification(statusMsg, messageType).notify(myProject);
+      else {
+        addToEventLog(statusMsg, messageType);
+      }
     }
   }
 
@@ -780,6 +785,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     message = message + " in " + formatDuration(durationMillis);
     return message;
+  }
+
+  private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
+    LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
   }
 
   @NotNull
