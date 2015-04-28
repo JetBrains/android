@@ -93,6 +93,10 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     map.put(ResourceType.ID, multimap);
     multimap.put("foo1", new ResourceItem("foo1", ResourceType.ID, null));
     multimap.put("foo3", new ResourceItem("foo3", ResourceType.ID, null));
+    multimap.put("foo.4", new ResourceItem("foo.4", ResourceType.ID, null));
+    multimap.put("foo_5", new ResourceItem("foo_5", ResourceType.ID, null));
+    multimap.put("foo-6", new ResourceItem("foo-6", ResourceType.ID, null));
+    multimap.put("foo:7", new ResourceItem("foo:7", ResourceType.ID, null));
     LocalResourceRepository resources = new LocalResourceRepository("unit test") {
       @NonNull
       @Override
@@ -110,6 +114,26 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     assertEquals("foo1 already exists", validator.getErrorText("foo1"));
     assertEquals(null, validator.getErrorText("foo2"));
     assertEquals("foo3 already exists", validator.getErrorText("foo3"));
+
+    assertEquals("foo_4 already exists", validator.getErrorText("foo.4"));
+    assertEquals("foo_4 already exists", validator.getErrorText("foo:4"));
+    assertEquals("foo_4 already exists", validator.getErrorText("foo-4"));
+    assertEquals("foo_4 already exists", validator.getErrorText("foo_4"));
+
+    assertEquals("foo_5 already exists", validator.getErrorText("foo.5"));
+    assertEquals("foo_5 already exists", validator.getErrorText("foo:5"));
+    assertEquals("foo_5 already exists", validator.getErrorText("foo-5"));
+    assertEquals("foo_5 already exists", validator.getErrorText("foo_5"));
+
+    assertEquals("foo_6 already exists", validator.getErrorText("foo.6"));
+    assertEquals("foo_6 already exists", validator.getErrorText("foo:6"));
+    assertEquals("foo_6 already exists", validator.getErrorText("foo-6"));
+    assertEquals("foo_6 already exists", validator.getErrorText("foo_6"));
+
+    assertEquals("foo_7 already exists", validator.getErrorText("foo.7"));
+    assertEquals("foo_7 already exists", validator.getErrorText("foo:7"));
+    assertEquals("foo_7 already exists", validator.getErrorText("foo-7"));
+    assertEquals("foo_7 already exists", validator.getErrorText("foo_7"));
   }
 
   public void testUniqueOrExists() throws Exception {
@@ -117,6 +141,7 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     existing.add("foo1");
     existing.add("foo2");
     existing.add("foo3");
+    existing.add("foo_4");
 
     ResourceNameValidator validator = ResourceNameValidator.create(true, existing, ResourceType.ID);
     validator.unique();
@@ -126,6 +151,7 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     assertNotNull(validator.getErrorText("foo1"));
     assertNotNull(validator.getErrorText("foo2"));
     assertNotNull(validator.getErrorText("foo3"));
+    assertNotNull(validator.getErrorText("foo_4"));
 
     validator.exist();
     assertNotNull(validator.getErrorText("foo"));
@@ -133,5 +159,9 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     assertNull(validator.getErrorText("foo1"));
     assertNull(validator.getErrorText("foo2"));
     assertNull(validator.getErrorText("foo3"));
+    assertNull(validator.getErrorText("foo_4"));
+    assertNull(validator.getErrorText("foo.4"));
+    assertNull(validator.getErrorText("foo:4"));
+    assertNull(validator.getErrorText("foo-4"));
   }
 }
