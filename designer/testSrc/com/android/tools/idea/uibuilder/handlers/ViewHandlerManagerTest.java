@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uilbuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 
 public class ViewHandlerManagerTest extends LayoutTestCase {
   public void test() {
