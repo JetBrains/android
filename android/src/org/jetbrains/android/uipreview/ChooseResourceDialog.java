@@ -310,17 +310,13 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   @Nullable
   @Override
   protected JComponent createSouthPanel() {
-    JPanel panel = new JPanel();
-    BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
-    panel.setLayout(layout);
-    myResourceNameField = new JTextField();
+    ResourceDialogSouthPanel resourceDialogSouthPanel = new ResourceDialogSouthPanel();
+    myResourceNameField = resourceDialogSouthPanel.getResourceNameField();
     myResourceNameField.getDocument().addDocumentListener(new ValidatingDocumentListener());
-    myResourceNameMessage = new JLabel("Dummy error message");
+    myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
     updateResourceNameStatus();
-    panel.add(myResourceNameField);
-    panel.add(myResourceNameMessage);
-    panel.add(super.createSouthPanel());
-    return panel;
+    resourceDialogSouthPanel.getContainerPanel().add(super.createSouthPanel());
+    return resourceDialogSouthPanel.getFullPanel();
   }
 
   public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
