@@ -16,14 +16,14 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uilbuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
-import static com.android.tools.idea.uilbuilder.LayoutTestUtilities.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
 
