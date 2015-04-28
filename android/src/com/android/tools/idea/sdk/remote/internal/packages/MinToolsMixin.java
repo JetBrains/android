@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.SdkRepoConstants;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import org.w3c.dom.Node;
 
 import java.util.Properties;
