@@ -39,9 +39,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -462,7 +460,7 @@ public class AddonsListFetcher {
      *        See {@link SdkAddonsListConstants#getXsdStream(int)}
      */
     private Validator getValidator(int version) throws SAXException {
-        InputStream xsdStream = SdkAddonsListConstants.getXsdStream(version);
+        StreamSource[] xsdStreams = SdkAddonsListConstants.getXsdStream(version);
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
         if (factory == null) {
@@ -470,7 +468,7 @@ public class AddonsListFetcher {
         }
 
         // This may throw a SAX Exception if the schema itself is not a valid XSD
-        Schema schema = factory.newSchema(new StreamSource(xsdStream));
+        Schema schema = factory.newSchema(xsdStreams);
 
         Validator validator = schema == null ? null : schema.newValidator();
 

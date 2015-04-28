@@ -157,7 +157,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
   /**
    * Returns SdkRepoConstants.getXsdStream() or SdkAddonConstants.getXsdStream().
    */
-  protected abstract InputStream getXsdStream(int version);
+  protected abstract StreamSource[] getXsdStream(int version);
 
   /**
    * In case we fail to load an XML, examine the XML to see if it matches a <b>future</b>
@@ -837,15 +837,15 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
    *                See {@link SdkRepoConstants#getXsdStream(int)}
    */
   private Validator getValidator(int version) throws SAXException {
-    InputStream xsdStream = getXsdStream(version);
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
     if (factory == null) {
       return null;
     }
 
+    StreamSource[] xsdStreams = getXsdStream(version);
     // This may throw a SAX Exception if the schema itself is not a valid XSD
-    Schema schema = factory.newSchema(new StreamSource(xsdStream));
+    Schema schema = factory.newSchema(xsdStreams);
 
     Validator validator = schema == null ? null : schema.newValidator();
 
