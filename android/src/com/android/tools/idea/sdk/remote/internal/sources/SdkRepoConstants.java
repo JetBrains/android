@@ -20,6 +20,7 @@ package com.android.tools.idea.sdk.remote.internal.sources;
 import com.android.annotations.NonNull;
 import com.android.sdklib.repository.RepoXsdUtil;
 
+import javax.xml.transform.stream.StreamSource;
 import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -117,7 +118,6 @@ public class SdkRepoConstants extends RepoConstants {
     /** A generic package. */
     public static final String NODE_GENERIC         = "generic";               //$NON-NLS-1$
 
-
     /**
      * List of possible nodes in a repository XML. Used to populate options automatically
      * in the no-GUI mode.
@@ -139,7 +139,7 @@ public class SdkRepoConstants extends RepoConstants {
      * @return An {@link InputStream} object for the local XSD file or
      *         null if there is no schema for the requested version.
      */
-    public static InputStream getXsdStream(int version) {
+    public static StreamSource[] getXsdStream(int version) {
         return RepoXsdUtil.getXsdStream(NODE_SDK_REPOSITORY, version);
     }
 

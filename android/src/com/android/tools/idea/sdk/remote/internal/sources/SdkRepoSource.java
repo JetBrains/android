@@ -23,6 +23,7 @@ import org.xml.sax.ErrorHandler;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.regex.Pattern;
@@ -107,7 +108,7 @@ public class SdkRepoSource extends SdkSource {
   }
 
   @Override
-  protected InputStream getXsdStream(int version) {
+  protected StreamSource[] getXsdStream(int version) {
     return SdkRepoConstants.getXsdStream(version);
   }
 

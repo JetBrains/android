@@ -19,6 +19,7 @@ package com.android.tools.idea.sdk.remote.internal.sources;
 import com.android.annotations.Nullable;
 import org.w3c.dom.Document;
 
+import javax.xml.transform.stream.StreamSource;
 import java.io.InputStream;
 
 
@@ -88,7 +89,7 @@ public class SdkAddonSource extends SdkSource {
   }
 
   @Override
-  protected InputStream getXsdStream(int version) {
+  protected StreamSource[] getXsdStream(int version) {
     return SdkAddonConstants.getXsdStream(version);
   }
 
