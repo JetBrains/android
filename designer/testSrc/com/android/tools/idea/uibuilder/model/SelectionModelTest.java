@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uilbuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.Ref;
 
 import javax.swing.event.ChangeEvent;
