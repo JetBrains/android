@@ -99,7 +99,11 @@ public class ThemeEditorComponent extends Splitter {
   private final Configuration myConfiguration;
   private final Module myModule;
   private final AndroidThemePreviewPanel myPreviewPanel;
+
   private final StyleAttributesFilter myAttributesFilter;
+  private TableRowSorter<AttributesTableModel> myAttributesSorter;
+  private final SimpleModeFilter mySimpleModeFilter;
+
   private final AttributesPanel myPanel = new AttributesPanel();
   private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
 
@@ -120,6 +124,7 @@ public class ThemeEditorComponent extends Splitter {
   };
   private ThemeEditorStyle mySelectedTheme;
   private MessageBusConnection myMessageBusConnection;
+  private AttributesTableModel myModel;
 
   public ThemeEditorComponent(final Configuration configuration, final Module module) {
     this.myConfiguration = configuration;
@@ -218,6 +223,7 @@ public class ThemeEditorComponent extends Splitter {
     updateUiParameters();
 
     myAttributesFilter = new StyleAttributesFilter();
+    mySimpleModeFilter = new SimpleModeFilter();
 
     myPanel.getBackButton().addActionListener(new ActionListener() {
       @Override
@@ -236,9 +242,8 @@ public class ThemeEditorComponent extends Splitter {
 
         myAttributesTable.clearSelection();
         myPanel.getPalette().clearSelection();
-        myAttributesFilter.setFilterEnabled(!myPanel.isAdvancedMode());
 
-        myAttributesFilter.setAttributesFilter(myAttributesFilter.ATTRIBUTES_DEFAULT_FILTER);
+        configureFilter();
 
         ((TableRowSorter)myAttributesTable.getRowSorter()).sort();
         myAttributesTable.updateRowHeights();
@@ -317,6 +322,16 @@ public class ThemeEditorComponent extends Splitter {
         myPreviewPanel.repaint();
       }
     });
+  }
+
+  private void configureFilter() {
+    if (myPanel.isAdvancedMode()) {
+      myAttributesFilter.setFilterEnabled(false);
+      myAttributesSorter.setRowFilter(myAttributesFilter);
+    } else {
+      mySimpleModeFilter.configure(myModel.getDefinedAttributes());
+      myAttributesSorter.setRowFilter(mySimpleModeFilter);
+    }
   }
 
   /**
@@ -615,10 +630,10 @@ public class ThemeEditorComponent extends Splitter {
     myConfiguration.setTheme(selectedTheme.getName());
 
     assert myConfiguration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
-    final AttributesTableModel model = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration, myModule.getProject());
-    model.setGoToDefinitionListener(myClickListener);
+    myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration, myModule.getProject());
+    myModel.setGoToDefinitionListener(myClickListener);
 
-    model.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
+    myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
       public void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -630,7 +645,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    model.addTableModelListener(new TableModelListener() {
+    myModel.addTableModelListener(new TableModelListener() {
       @Override
       public void tableChanged(TableModelEvent e) {
         if (e.getType() == TableModelEvent.UPDATE) {
@@ -653,9 +668,8 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
-    TableRowSorter<AttributesTableModel> sorter = new TableRowSorter<AttributesTableModel>(model);
-    sorter.setRowFilter(myAttributesFilter);
-    myPanel.setAdvancedMode(!myAttributesFilter.myIsFilterEnabled);
+    myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
+    configureFilter();
 
     ActionListener listener = new ActionListener() {
       @Override
@@ -664,12 +678,12 @@ public class ThemeEditorComponent extends Splitter {
       }
     };
 
-    myAttributesTable.setModel(model);
-    myAttributesTable.setRowSorter(sorter);
+    myAttributesTable.setModel(myModel);
+    myAttributesTable.setRowSorter(myAttributesSorter);
     myAttributesTable.updateRowHeights();
-    model.parentAttribute.setGotoDefinitionCallback(listener);
+    myModel.parentAttribute.setGotoDefinitionCallback(listener);
 
-    myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(myConfiguration, model));
+    myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(myConfiguration, myModel));
     myPanel.getPalette().addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
@@ -699,7 +713,7 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
-    model.fireTableStructureChanged();
+    myModel.fireTableStructureChanged();
   }
 
   @Override
@@ -710,33 +724,41 @@ public class ThemeEditorComponent extends Splitter {
     super.dispose();
   }
 
-  class StyleAttributesFilter extends RowFilter<AttributesTableModel, Integer> {
-    // TODO: This is just a random list of attributes. Replace with a possibly dynamic list of simple attributes.
+  class SimpleModeFilter extends AttributesFilter {
     public final Set<String> ATTRIBUTES_DEFAULT_FILTER = ImmutableSet
-      .of("android:colorPrimary",
-          "android:colorPrimaryDark",
-          "android:colorAccent",
-          "android:colorForeground",
-          "android:textColorPrimary",
-          "android:textColorSecondary",
-          "android:textColorPrimaryInverse",
-          "android:textColorSecondaryInverse",
-          "android:colorBackground",
-          "android:windowBackground",
-          "android:navigationBarColor");
-    private boolean myIsFilterEnabled = true;
-    private Set<String> filterAttributes = ATTRIBUTES_DEFAULT_FILTER;
+      .of("colorPrimary",
+          "colorPrimaryDark",
+          "colorAccent",
+          "colorForeground",
+          "textColorPrimary",
+          "textColorSecondary",
+          "textColorPrimaryInverse",
+          "textColorSecondaryInverse",
+          "colorBackground",
+          "windowBackground",
+          "navigationBarColor");
 
-    public void setFilterEnabled(boolean enabled) {
-      this.myIsFilterEnabled = enabled;
+    public SimpleModeFilter() {
+      myIsFilterEnabled = true;
+      filterAttributes = new HashSet<String>();
     }
 
-    /**
-     * Set the attribute names we want to display.
-     */
-    public void setAttributesFilter(@NotNull Set<String> attributeNames) {
-      filterAttributes = ImmutableSet.copyOf(attributeNames);
+    public void configure(final Set<String> availableAttributes) {
+      filterAttributes.clear();
+
+      for (final String candidate : ATTRIBUTES_DEFAULT_FILTER) {
+        if (availableAttributes.contains(candidate)) {
+          filterAttributes.add(candidate);
+        } else {
+          filterAttributes.add(SdkConstants.ANDROID_NS_NAME_PREFIX + candidate);
+        }
+      }
     }
+  }
+
+  abstract class AttributesFilter extends RowFilter<AttributesTableModel, Integer> {
+    boolean myIsFilterEnabled;
+    Set<String> filterAttributes;
 
     @Override
     public boolean include(Entry<? extends AttributesTableModel, ? extends Integer> entry) {
@@ -769,6 +791,24 @@ public class ThemeEditorComponent extends Splitter {
       }
 
       return filterAttributes.contains(attributeName);
+    }
+  }
+
+  class StyleAttributesFilter extends AttributesFilter {
+    public StyleAttributesFilter() {
+      myIsFilterEnabled = true;
+      filterAttributes = Collections.emptySet();
+    }
+
+    public void setFilterEnabled(boolean enabled) {
+      this.myIsFilterEnabled = enabled;
+    }
+
+    /**
+     * Set the attribute names we want to display.
+     */
+    public void setAttributesFilter(@NotNull Set<String> attributeNames) {
+      filterAttributes = ImmutableSet.copyOf(attributeNames);
     }
   }
 
