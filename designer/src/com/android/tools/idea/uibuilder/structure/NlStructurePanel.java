@@ -15,11 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.LightToolWindowContent;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class NlStructurePanel extends JPanel implements LightToolWindowContent {
+// TODO: this can be inlined if we know that it doesn't have to include the component tree.
+// Otherwise, look at DesignerToolWindow to see how to add a splitter and include the component tree & properties panel
+public class NlStructurePanel implements LightToolWindowContent {
+  private final NlPropertiesPanel myPropertiesPanel;
+
+  public NlStructurePanel(@NotNull DesignSurface designSurface) {
+    myPropertiesPanel = new NlPropertiesPanel(designSurface.getCurrentScreenView());
+  }
+
+  public JComponent getPanel() {
+    return myPropertiesPanel;
+  }
+
   @Override
   public void dispose() {
   }

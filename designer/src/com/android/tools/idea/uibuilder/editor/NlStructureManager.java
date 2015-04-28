@@ -48,17 +48,19 @@ public class NlStructureManager extends NlAbstractManager {
 
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
-    NlStructurePanel palettePanel = new NlStructurePanel();
+    // should be whatever is bound in NlEditor
+    assert designer instanceof NlEditorPanel;
+
+    NlStructurePanel structurePanel = new NlStructurePanel(((NlEditorPanel)designer).getSurface());
 
     return createContent(designer,
-                         palettePanel,
+                         structurePanel,
                          "Structure",
                          AllIcons.Toolwindows.ToolWindowStructure,
-                         palettePanel,
-                         palettePanel,
+                         structurePanel.getPanel(),
+                         structurePanel.getPanel(),
                          320,
-                         null);
-  }
+                         null);  }
 
   @NotNull
   @Override
