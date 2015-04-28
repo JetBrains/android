@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -100,8 +101,13 @@ public class ColorEditor extends AbstractTableCellEditor {
   private class ColorEditorActionListener implements ActionListener {
     @Override
     public void actionPerformed(final ActionEvent e) {
-      final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null, ChooseResourceDialog.ResourceNameVisibility.FORCE);
+      String itemValue = myItem.getValue();
+      String colorName = null;
+      if (itemValue != null && itemValue.startsWith(SdkConstants.COLOR_RESOURCE_PREFIX)) {
+        colorName = itemValue.substring(SdkConstants.COLOR_RESOURCE_PREFIX.length());
+      }
+      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null,
+                                                                   ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
 
       final String oldValue = myItem.getItemResourceValue().getValue();
 
