@@ -21,6 +21,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -32,9 +33,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
@@ -50,12 +51,17 @@ import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
+  private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
     "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
@@ -119,6 +125,8 @@ public class GradleSyncState {
   }
 
   public void syncStarted(boolean notifyUser) {
+    addInfoToEventLog("Gradle sync started");
+
     cleanUpProjectPreferences();
     synchronized (myLock) {
       mySyncInProgress = true;
@@ -138,6 +146,12 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull final String message) {
+    String logMsg = "Gradle sync failed";
+    if (isNotEmpty(message)) {
+      logMsg += String.format(": %1$s", message);
+    }
+    addToEventLog(logMsg, ERROR);
+
     syncFinished();
     syncPublisher(new Runnable() {
       @Override
@@ -150,6 +164,8 @@ public class GradleSyncState {
   }
 
   public void syncEnded() {
+    addInfoToEventLog("Gradle sync completed");
+
     // Temporary: Clear resourcePrefix flag in case it was set to false when working with
     // an older model. TODO: Remove this when we no longer support models older than 0.10.
     //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -166,6 +182,14 @@ public class GradleSyncState {
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_ENDED, null, null);
   }
 
+  private void addInfoToEventLog(@NotNull String message) {
+    addToEventLog(message, INFO);
+  }
+
+  private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
+    LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
+  }
+
   private void syncFinished() {
     synchronized (myLock) {
       mySyncInProgress = false;
@@ -176,11 +200,11 @@ public class GradleSyncState {
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, publishingTask);
+    invokeLaterIfProjectAlive(myProject, publishingTask);
   }
 
   public void notifyUser() {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
+    invokeLaterIfProjectAlive(myProject, new Runnable() {
       @Override
       public void run() {
         EditorNotifications notifications = EditorNotifications.getInstance(myProject);
