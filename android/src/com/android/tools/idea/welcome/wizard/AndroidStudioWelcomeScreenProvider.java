@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.repository.SdkAddonsListConstants;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
