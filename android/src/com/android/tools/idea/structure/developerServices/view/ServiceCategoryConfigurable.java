@@ -34,9 +34,9 @@ public final class ServiceCategoryConfigurable implements Configurable {
   private final ServiceCategory myCategory;
   private DeveloperServicesPanel myServicesPanel;
 
-  public ServiceCategoryConfigurable(@NotNull Module module, @NotNull ServiceCategory category) {
+  public ServiceCategoryConfigurable(@NotNull ComboBoxModel moduleList, @NotNull ServiceCategory category) {
     myCategory = category;
-    myServicesPanel = new DeveloperServicesPanel(module, myCategory);
+    myServicesPanel = new DeveloperServicesPanel(moduleList, myCategory);
   }
 
   @Nls
