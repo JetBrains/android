@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.preview;
 
 
 import com.android.ide.common.rendering.api.MergeCookie;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.editors.theme.ThemePreviewBuilder.ComponentDefinition;
+import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
@@ -28,6 +31,7 @@ import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.android.tools.swing.ui.NavigationComponent;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -45,6 +49,7 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +68,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +86,7 @@ import java.util.concurrent.TimeUnit;
 public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
+
   // The scaling factor is based on how we want the preview to look for different devices. 160 means that a device with 160 DPI would look
   // exactly as GraphicsLayoutRenderer would render it. A device with 300 DPI would usually look smaller but because we apply this scaling
   // factor, it would be scaled 2x to look exactly as the 100 DPI version would look.
@@ -89,8 +96,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
                                             "android.support.design.widget.FloatingActionButton")
-                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
-                      .set("clickable", "true"));
+                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha").set("clickable", "true"));
 
   /** Min API level to use for filtering. */
   private int myMinApiLevel;
@@ -98,6 +104,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private String mySearchTerm = "";
   /** Cache of the custom components found on the project */
   private List<ComponentDefinition> myCustomComponents = Collections.emptyList();
+  /** List of components on the support library (if available) */
+  private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
 
   protected final Configuration myConfiguration;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
@@ -122,6 +130,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
   };
   private double myConstantScalingFactor = DEFAULT_SCALING_FACTOR;
+  private boolean myIsAppCompatTheme = false;
 
   static class Breadcrumb extends NavigationComponent.Item {
     private final ThemePreviewBuilder.ComponentGroup myGroup;
@@ -163,6 +172,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   public AndroidThemePreviewPanel(@NotNull final Configuration configuration) {
     super(BoxLayout.PAGE_AXIS);
+
+    setMinimumSize(JBUI.size(200, 0));
 
     myConfiguration = configuration;
     myAndroidPreviewPanel = new AndroidPreviewPanel(configuration);
@@ -259,6 +270,22 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         }
       }
     });
+
+    myConfiguration.addListener(new ConfigurationListener() {
+      @Override
+      public boolean changed(int flags) {
+        refreshConfiguration();
+
+        if ((flags & ConfigurationListener.CFG_THEME) != 0) {
+          boolean appCompatTheme = isAppCompatTheme(myConfiguration);
+          if (appCompatTheme != myIsAppCompatTheme) {
+            rebuild();
+          }
+        }
+
+        return true;
+      }
+    });
   }
 
   @NotNull
@@ -305,7 +332,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
           }
         });
 
-        // Now search for support library components.
+        // Now search for support library components. We use a HashSet to avoid adding duplicate components from source and jar files.
+        final HashSet<ComponentDefinition> supportLibraryComponents = new HashSet<ComponentDefinition>();
         viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getLibrariesScope(project), true);
         viewClasses.forEach(new Processor<PsiClass>() {
           @Override
@@ -314,7 +342,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
             ComponentDefinition component = SUPPORT_LIBRARY_COMPONENTS.get(className);
             if (component != null) {
-              customComponents.add(component);
+              supportLibraryComponents.add(component);
             }
 
             return true;
@@ -322,7 +350,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         });
 
         myCustomComponents = Collections.unmodifiableList(customComponents);
-        if (!myCustomComponents.isEmpty()) {
+        mySupportLibraryComponents = ImmutableList.copyOf(supportLibraryComponents);
+        if (!myCustomComponents.isEmpty() || mySupportLibraryComponents.isEmpty()) {
           rebuild();
         }
       }
@@ -344,6 +373,10 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(myMinApiLevel))
         .addComponentFilter(myGroupFilter);
+
+      if (myIsAppCompatTheme = isAppCompatTheme(myConfiguration)) {
+        builder.addAllComponents(mySupportLibraryComponents);
+      }
       myAndroidPreviewPanel.setDocument(builder.build());
 
       if (forceRepaint) {
@@ -362,8 +395,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     rebuild(true);
   }
 
-  public void updateConfiguration(@NotNull Configuration configuration) {
-    myAndroidPreviewPanel.updateConfiguration(configuration);
+  private void refreshConfiguration() {
+    myAndroidPreviewPanel.updateConfiguration(myConfiguration);
     // We want the preview to remain the same size even when the device being used to render is different.
     // Adjust the scale to the current config.
     if (myConfiguration.getDeviceState() != null) {
@@ -388,6 +421,31 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   public void invalidateGraphicsRenderer() {
     myAndroidPreviewPanel.invalidateGraphicsRenderer();
     myAndroidPreviewPanel.repaint();
+  }
+
+  /**
+   * Checks if the theme selected in the configuration is AppCompat based.
+   */
+  static boolean isAppCompatTheme(Configuration configuration) {
+    ResourceResolver resources = configuration.getResourceResolver();
+
+    if (resources == null) {
+      LOG.error("ResourceResolver is null");
+      return false;
+    }
+
+    StyleResourceValue defaultTheme = resources.getDefaultTheme();
+    for (int i = 0; i < ResourceResolver.MAX_RESOURCE_INDIRECTION; i++) {
+      // for loop ensures that we don't run into cyclic theme inheritance.
+      if (defaultTheme.getName().startsWith("Theme.AppCompat")) {
+        return true;
+      }
+      defaultTheme = resources.getParent(defaultTheme);
+      if (defaultTheme == null) {
+        break;
+      }
+    }
+    return false;
   }
 
   // Implements RenderContext

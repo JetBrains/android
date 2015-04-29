@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme;
+package com.android.tools.idea.editors.theme.preview;
 
 import com.android.SdkConstants;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -51,6 +52,8 @@ public class ThemePreviewBuilder {
   public static final String BUILDER_NS_NAME = "builder";
   /** Attribute to use to specify the ComponentGroup that a specific item in the preview belongs to. */
   public static final String BUILDER_ATTR_GROUP = "group";
+
+  static final String THEME_PREVIEW_LAYOUT = "com.android.layoutlib.bridge.android.theme.ThemePreviewLayout";
 
   private static final Map<String, String> NAMESPACE_TO_URI = ImmutableMap.of(
     ANDROID_NS_NAME, ANDROID_URI,
@@ -99,15 +102,17 @@ public class ThemePreviewBuilder {
   public static class ComponentDefinition {
     private static final AtomicInteger ourCounter = new AtomicInteger(0);
 
+    // Name and group identify the component
+    final String name;
+    final ComponentGroup group;
+
     private final int id;
     final String description;
-    final ComponentGroup group;
-    final String name;
-    final List<String> aliases = new ArrayList<String>();
-
     final HashMap<String, String> attributes = new HashMap<String, String>();
+
     private final int weight;
     int apiLevel;
+    List<String> aliases;
 
     public ComponentDefinition(String description, ComponentGroup group, String name, int weight) {
       this.id = ourCounter.incrementAndGet();
@@ -180,8 +185,65 @@ public class ThemePreviewBuilder {
      * Adds a component name alias to help with text search.
      */
     public ComponentDefinition addAlias(@NotNull String text) {
+      if (aliases == null) {
+        aliases = new ArrayList<String>();
+      }
+
       aliases.add(text);
       return this;
+    }
+
+    Element build(@NotNull Document document) {
+      Element component = document.createElement(name);
+
+      for (Map.Entry<String, String> entry : attributes.entrySet()) {
+        List<String> keyComponents = Splitter.on(":").limit(2).splitToList(entry.getKey());
+
+        if (keyComponents.size() != 1) {
+          component.setAttributeNS(NAMESPACE_TO_URI.get(keyComponents.get(0)), keyComponents.get(1), entry.getValue());
+        } else {
+          component.setAttribute(entry.getKey(), entry.getValue());
+        }
+      }
+
+      setAttributeIfAbsent(component, ATTR_ID, getId());
+      setAttributeIfAbsent(component, ATTR_TEXT, description);
+      setAttributeIfAbsent(component, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+      setAttributeIfAbsent(component, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+      if (weight != 0) {
+        setAttributeIfAbsent(component, ATTR_LAYOUT_WEIGHT, Integer.toString(weight));
+      }
+      setAttributeIfAbsent(component, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER);
+
+      if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN) &&
+          !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT) &&
+          !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT) &&
+          !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP) &&
+          !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM) &&
+          !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START) &&
+          !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)) {
+        // Default box around every component.
+        setAttribute(component, ATTR_LAYOUT_MARGIN_START, toDp(12));
+        setAttribute(component, ATTR_LAYOUT_MARGIN_END, toDp(12));
+      }
+
+      component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
+
+      return component;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ComponentDefinition that = (ComponentDefinition)o;
+      return Objects.equal(group, that.group) &&
+             Objects.equal(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(group, name);
     }
   }
 
@@ -221,7 +283,11 @@ public class ThemePreviewBuilder {
       }
 
       StringBuilder searchString = new StringBuilder(input.name);
-      searchString.append(' ').append(Joiner.on(' ').join(input.aliases))
+
+      if (input.aliases != null) {
+        searchString.append(' ').append(Joiner.on(' ').join(input.aliases));
+      }
+      searchString
         .append(' ').append(input.description)
         .append(' ').append(input.group.name);
 
@@ -294,7 +360,7 @@ public class ThemePreviewBuilder {
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
       .set(null, ATTR_STYLE, "?android:attr/progressBarStyleHorizontal"),
     new ComponentDefinition("SeekBar", ComponentGroup.SLIDERS, SEEK_BAR)
-      .set(ATTR_VALUE, "50")
+      .set("progress", "50")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT));
 
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
@@ -307,11 +373,12 @@ public class ThemePreviewBuilder {
 
   @NotNull
   private static Element buildMainLayoutElement(@NotNull Document document) {
-    Element layout = document.createElement("com.android.layoutlib.bridge.android.theme.ThemePreviewLayout");
-    layout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-    layout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-    // All values in DP
+    Element layout = document.createElement(THEME_PREVIEW_LAYOUT);
+    setAttribute(layout, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+    setAttribute(layout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    // Set the custom preview layout attributes
     layout.setAttribute("max_columns", "3");
+    // All values in DP
     layout.setAttribute("max_column_width", "500");
     layout.setAttribute("min_column_width", "350");
     layout.setAttribute("item_margin", "5");
@@ -320,95 +387,63 @@ public class ThemePreviewBuilder {
   }
 
   @NotNull
-  private static Element buildComponent(@NotNull Document document, @NotNull ComponentDefinition def) {
-    Element component = document.createElement(def.name);
-
-    for (Map.Entry<String, String> entry : def.attributes.entrySet()) {
-      List<String> keyComponents = Splitter.on(":").limit(2).splitToList(entry.getKey());
-
-      if (keyComponents.size() != 1) {
-        component.setAttributeNS(NAMESPACE_TO_URI.get(keyComponents.get(0)), keyComponents.get(1), entry.getValue());
-      } else {
-        component.setAttribute(entry.getKey(), entry.getValue());
-      }
-    }
-
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_ID)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_ID, def.getId());
-    }
-
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_TEXT)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_TEXT, def.description);
-    }
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-    }
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-    }
-
-    if (def.weight != 0 && !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WEIGHT, Integer.toString(def.weight));
-    }
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY)) {
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER);
-    }
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN) &&
-        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT) &&
-        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT) &&
-        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP) &&
-        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM) &&
-        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START) &&
-        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)) {
-      // Default box around every component.
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, toDp(12));
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, toDp(12));
-    }
-
-    component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, def.group.name());
-
-    return component;
-  }
-
-  @NotNull
   private static Element buildElementGroup(@NotNull Document document,
                                            @NotNull ComponentGroup group,
                                            @NotNull String groupColor,
                                            @NotNull List<ComponentDefinition> components) {
     Element componentGrouper = document.createElement(RELATIVE_LAYOUT);
-    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, "?android:attr/colorBackground");
-    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_PADDING, toDp(14));
+    setAttribute(componentGrouper, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+    setAttribute(componentGrouper, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    setAttribute(componentGrouper, ATTR_BACKGROUND, "?android:attr/colorBackground");
+    setAttribute(componentGrouper, ATTR_PADDING, toDp(14));
     componentGrouper.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     Element elementGroup = document.createElement(LINEAR_LAYOUT);
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_ORIENTATION, group.orientation);
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_CENTER_IN_PARENT, VALUE_TRUE);
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, toDp(10));
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(50));
-    elementGroup.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER);
+    setAttribute(elementGroup, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    setAttribute(elementGroup, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    setAttribute(elementGroup, ATTR_ORIENTATION, group.orientation);
+    setAttribute(elementGroup, ATTR_LAYOUT_CENTER_IN_PARENT, VALUE_TRUE);
+    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_START, toDp(10));
+    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(50));
+    setAttribute(elementGroup, ATTR_GRAVITY, GRAVITY_VALUE_CENTER);
     elementGroup.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     Element groupTitle = document.createElement(TEXT_VIEW);
-    groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-    groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-    groupTitle.setAttributeNS(ANDROID_URI, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
-    groupTitle.setAttributeNS(ANDROID_URI, "textColor", groupColor);
-    groupTitle.setAttributeNS(ANDROID_URI, "text", group.name.toUpperCase());
-    groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, VALUE_TRUE);
+    setAttribute(groupTitle, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    setAttribute(groupTitle, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    setAttribute(groupTitle, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
+    setAttribute(groupTitle, "textColor", groupColor);
+    setAttribute(groupTitle, "text", group.name.toUpperCase());
+    setAttribute(groupTitle, ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, VALUE_TRUE);
     groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     for (ComponentDefinition definition : components) {
-      elementGroup.appendChild(buildComponent(document, definition));
+      elementGroup.appendChild(definition.build(document));
     }
 
     componentGrouper.appendChild(elementGroup);
     componentGrouper.appendChild(groupTitle);
 
     return componentGrouper;
+  }
+
+  @NotNull
+  private List<ComponentDefinition> getComponentsByGroup(@NotNull final ComponentGroup group) {
+    return ImmutableList.copyOf(Iterables.filter(myComponents, new Predicate<ComponentDefinition>() {
+      @Override
+      public boolean apply(ComponentDefinition input) {
+        if (group != input.group) {
+          return false;
+        }
+
+        for (Predicate<ComponentDefinition> filter : myComponentFilters) {
+          if (!filter.apply(input)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }));
   }
 
   private static void printDebug(@NotNull PrintStream out, @NotNull Document document) {
@@ -434,25 +469,6 @@ public class ThemePreviewBuilder {
     }
   }
 
-  @NotNull
-  private List<ComponentDefinition> getComponentsByGroup(@NotNull final ComponentGroup group) {
-    return ImmutableList.copyOf(Iterables.filter(myComponents, new Predicate<ComponentDefinition>() {
-      @Override
-      public boolean apply(ComponentDefinition input) {
-        if (group != input.group) {
-          return false;
-        }
-
-        for (Predicate<ComponentDefinition> filter : myComponentFilters) {
-          if (!filter.apply(input)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    }));
-  }
-
   /**
    * Returns the passed number as a string with format %ddp.
    */
@@ -465,6 +481,28 @@ public class ThemePreviewBuilder {
    */
   private static String toSp(int n) {
     return String.format("%d" + UNIT_SP, n);
+  }
+
+  /**
+   * Utility method that sets an attribute using the "android" namespace.
+   * @param element the element to set the attribute on
+   * @param name the attribute name
+   * @param value the attribute name
+   */
+  private static void setAttribute(Element element, String name, String value) {
+    element.setAttributeNS(ANDROID_URI, name, value);
+  }
+
+  /**
+   * Utility method that sets an attribute using the "android" namespace only if the attribute doesn't already exist in the Element.
+   * @param element the element to set the attribute on
+   * @param name the attribute name
+   * @param value the attribute name
+   */
+  private static void setAttributeIfAbsent(Element element, String name, String value) {
+    if (!element.hasAttributeNS(ANDROID_URI, name)) {
+      setAttribute(element, name, value);
+    }
   }
 
   @NotNull
@@ -527,10 +565,10 @@ public class ThemePreviewBuilder {
 
     // Background
     Element backgroundLayout = document.createElement(LINEAR_LAYOUT);
-    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
-    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER_HORIZONTAL);
-    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, myBackgroundColor);
+    setAttribute(backgroundLayout, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    setAttribute(backgroundLayout, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
+    setAttribute(backgroundLayout, ATTR_GRAVITY, GRAVITY_VALUE_CENTER_HORIZONTAL);
+    setAttribute(backgroundLayout, ATTR_BACKGROUND, myBackgroundColor);
 
     Element layout = buildMainLayoutElement(document);
     backgroundLayout.appendChild(layout);
