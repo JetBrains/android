@@ -98,6 +98,8 @@ import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELA
 import static org.jetbrains.android.util.AndroidCommonUtils.platformToolPath;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
 
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -409,8 +411,13 @@ public final class AndroidSdkUtils {
   public static void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
     File sources = findPlatformSources(target);
     if (sources != null) {
-      VirtualFile virtualFile = VfsUtil.findFileByIoFile(sources, true);
+      VirtualFile virtualFile = findFileByIoFile(sources, true);
       if (virtualFile != null) {
+        for (VirtualFile file : sdkModificator.getRoots(SOURCES)) {
+          if (file.equals(virtualFile)) {
+            return;
+          }
+        }
         sdkModificator.addRoot(virtualFile, SOURCES);
       }
     }
@@ -552,6 +559,34 @@ public final class AndroidSdkUtils {
       }
     }
     return false;
+  }
+
+  public static void clearLocalPkgInfo(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    if (data == null) {
+      return;
+    }
+
+    if (data.getAndroidPlatform() != null) {
+      data.getAndroidPlatform().getSdkData().getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+    }
+    data.clearAndroidPlatform();
+  }
+
+  /**
+   * Reload SDK information and update the source root of the SDK.
+   */
+  public static void updateSdkSourceRoot(@NotNull Sdk sdk) {
+    clearLocalPkgInfo(sdk);
+
+    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    if (platform != null) {
+      IAndroidTarget target = platform.getTarget();
+      SdkModificator sdkModificator = sdk.getSdkModificator();
+      sdkModificator.removeRoots(SOURCES);
+      findAndSetPlatformSources(target, sdkModificator);
+      sdkModificator.commitChanges();
+    }
   }
 
   @VisibleForTesting
