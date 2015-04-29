@@ -695,9 +695,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
                 return;
               }
 
-              if (true) {
-                AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
-              }
+              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
               AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);
               AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.RENDERSCRIPT);
               AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.BUILDCONFIG);
