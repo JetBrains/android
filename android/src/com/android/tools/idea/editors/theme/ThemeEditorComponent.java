@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.theme.attributes.*;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -656,7 +657,6 @@ public class ThemeEditorComponent extends Splitter {
             }
 
             if (myPreviewPanel != null) {
-              myPreviewPanel.updateConfiguration(myConfiguration);
               myPreviewPanel.revalidate();
               myPreviewPanel.repaint();
             }
