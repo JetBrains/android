@@ -29,6 +29,7 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -930,22 +931,23 @@ public class AndroidResourceUtil {
       }
     }
     PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Change Color Resource", files) {
+    WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change Color Resource", files) {
       @Override
-      protected void run(@NotNull Result<Void> result) {
+      protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        result.setResult(false);
         for (Resources resources : resourcesElements) {
           for (ScalarResourceElement colorElement : resources.getColors()) {
             String colorValue = colorElement.getName().getStringValue();
             if (StringUtil.equalsIgnoreCase(colorValue, colorName)) {
               colorElement.setStringValue(newValue);
+              result.setResult(true);
             }
           }
         }
       }
     };
-    action.execute();
 
-    return true;
+    return action.execute().getResultObject();
   }
 
   @Nullable
