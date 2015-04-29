@@ -221,7 +221,13 @@ public class ThemeEditorUtils {
     final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
 
     try {
-      return AndroidResourceUtil.changeColorResource(facet, colorName, colorValue, fileName, dirNames);
+      if (!AndroidResourceUtil.changeColorResource(facet, colorName, colorValue, fileName, dirNames)) {
+        // Changing color resource has failed, one possible reason is that color isn't defined in the project.
+        // Trying to create the color instead.
+        return AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, colorValue);
+      }
+
+      return true;
     }
     catch (Exception e) {
       return false;
