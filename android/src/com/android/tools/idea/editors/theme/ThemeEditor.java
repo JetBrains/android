@@ -41,18 +41,16 @@ import java.beans.PropertyChangeListener;
 public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   private final ThemeEditorVirtualFile myVirtualFile;
   private final Configuration myConfiguration;
-  private VirtualFile myFile;
   private final ThemeEditorComponent myComponent;
   private long myModificationCount;
 
   public ThemeEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    myFile = file;
     myVirtualFile = (ThemeEditorVirtualFile)file;
     Module module = myVirtualFile.getModule();
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    myConfiguration = facet.getConfigurationManager().getConfiguration(myFile);
+    myConfiguration = facet.getConfigurationManager().getConfiguration(myVirtualFile);
     myModificationCount = getModificationCount();
 
     myComponent = new ThemeEditorComponent(myConfiguration, module);
@@ -128,7 +126,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public boolean isValid() {
-    return myFile.isValid();
+    return myVirtualFile.isValid();
   }
 
   @Override
