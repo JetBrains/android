@@ -17,7 +17,7 @@
   <id>com.android.tools.idea.updater</id>
   <name>SDK Updater</name>
   <version>1.0</version>
-  <vendor>JetBrains</vendor>
+  <vendor>Google</vendor>
 
   <description><![CDATA[
       Android SDK Updater Plugin
@@ -28,11 +28,20 @@
 
   <depends>org.jetbrains.android</depends>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <applicationConfigurable parentId="preferences.general"
+                             displayName="Android SDK Updater"
+                             instance="com.android.tools.idea.updater.configure.SdkUpdaterConfigurable"
+                             id="android.sdk-updates"/>
+  </extensions>
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</implementation-class>
       <interface-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</interface-class>
     </component>
   </application-components>
+
 
 </idea-plugin>

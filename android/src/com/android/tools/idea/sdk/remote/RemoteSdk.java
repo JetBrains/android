@@ -21,7 +21,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.repository.SdkAddonsListConstants;
 import com.android.sdklib.repository.SdkRepoConstants;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher;
 import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher.Site;
@@ -32,7 +31,11 @@ import com.android.tools.idea.sdk.remote.internal.sources.*;
 import com.android.tools.idea.sdk.remote.internal.updater.SettingsController;
 import com.android.utils.ILogger;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.diagnostic.Logger;
+
+import java.util.ArrayList;
 
 
 /**
@@ -90,9 +93,10 @@ public class RemoteSdk {
     for (SdkSource source : sources.getAllSources()) {
       source.load(getDownloadCache(), new NullTaskMonitor(logger), forceHttp);
       RemotePkgInfo[] pkgs = source.getPackages();
-
-      for (RemotePkgInfo p : pkgs) {
-        remotes.put(p.getPkgDesc().getType(), p);
+      if (pkgs != null) {  // pkgs will be null if there was an error during load
+        for (RemotePkgInfo p : pkgs) {
+          remotes.put(p.getPkgDesc().getType(), p);
+        }
       }
     }
 
@@ -129,14 +133,14 @@ public class RemoteSdk {
         baseUrl = SdkRepoConstants.URL_GOOGLE_SDK_SITE;
       }
 
-      mSdkSources.removeAll(SdkSourceCategory.ANDROID_REPO);
-
-      mSdkSources.add(SdkSourceCategory.ANDROID_REPO, new SdkRepoSource(baseUrl, SdkSourceCategory.ANDROID_REPO.getUiName()));
+      mSdkSources.set(SdkSourceCategory.ANDROID_REPO,
+                      Lists.<SdkSource>newArrayList(new SdkRepoSource(baseUrl, SdkSourceCategory.ANDROID_REPO.getUiName())));
     }
 
     // Load user sources (this will also notify change listeners but this operation is
     // done early enough that there shouldn't be any anyway.)
-    if (expired || !mSdkSources.hasSources(SdkSourceCategory.USER_ADDONS)) {
+    // Don't refresh sources, as this doesn't really change except within the sdk manager, which manages refreshes separately.
+    if (!mSdkSources.hasSources(SdkSourceCategory.USER_ADDONS)) {
       mSdkSources.loadUserAddons(logger);
     }
 
@@ -170,18 +174,19 @@ public class RemoteSdk {
 
       if (sites != null) {
         mSdkSources.removeAll(SdkSourceCategory.ADDONS_3RD_PARTY);
-
         if (fetch3rdParties) {
+          ArrayList<SdkSource> newSources = Lists.newArrayList();
           for (Site s : sites) {
             switch (s.getType()) {
               case ADDON_SITE:
-                mSdkSources.add(SdkSourceCategory.ADDONS_3RD_PARTY, new SdkAddonSource(s.getUrl(), s.getUiName()));
+                newSources.add(new SdkAddonSource(s.getUrl(), s.getUiName()));
                 break;
               case SYS_IMG_SITE:
-                mSdkSources.add(SdkSourceCategory.ADDONS_3RD_PARTY, new SdkSysImgSource(s.getUrl(), s.getUiName()));
+                newSources.add(new SdkSysImgSource(s.getUrl(), s.getUiName()));
                 break;
             }
           }
+          mSdkSources.set(SdkSourceCategory.ADDONS_3RD_PARTY, newSources);
         }
       }
     }
