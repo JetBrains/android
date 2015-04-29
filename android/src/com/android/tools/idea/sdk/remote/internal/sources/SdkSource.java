@@ -22,9 +22,6 @@ import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.io.NonClosingInputStream;
 import com.android.io.NonClosingInputStream.CloseBehavior;
 import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.RepoConstants;
-import com.android.sdklib.repository.SdkAddonConstants;
-import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
@@ -576,7 +573,8 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
       if (isADT) {
         info = "This repository requires a more recent version of ADT. Please update the Eclipse Android plugin.";
         mDescription =
-          "This repository requires a more recent version of ADT, the Eclipse Android plugin.\nYou must update it before you can see other new packages.";
+          "This repository requires a more recent version of ADT, the Eclipse Android plugin.\n" +
+          "You must update it before you can see other new packages.";
 
       }
       else {
@@ -734,6 +732,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     }
 
     // Get an XML document
+    // TODO(jbakermalone): no need for full DOM parse here
     Document doc = null;
     try {
       assert xml.markSupported();
@@ -769,7 +768,6 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
 
       // Prepare a new document using a namespace aware builder
       factory.setNamespaceAware(true);
-      builder = factory.newDocumentBuilder();
 
     }
     catch (Exception e) {
