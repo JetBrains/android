@@ -29,12 +29,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.Color;
+import java.awt.*;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -297,22 +298,23 @@ public class ThemePreviewBuilder {
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT));
 
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
-  private static final int VERTICAL_GROUP_PADDING = 15;
-  private static final int LINE_PADDING = 5;
-  private static final int GROUP_TITLE_FONT_SIZE = 9;
+  private static final int GROUP_TITLE_FONT_SIZE = 12;
 
   private List<ComponentDefinition> myComponents = new ArrayList<ComponentDefinition>();
   private String myGroupHeaderColor = "@android:color/darker_gray";
-  private String mySeparatorColor = "@android:color/darker_gray";
-  private int mySeparatorHeight = 5;
+  private String myBackgroundColor = "@android:color/darker_gray";
   private PrintStream myDebugPrintStream;
 
   @NotNull
   private static Element buildMainLayoutElement(@NotNull Document document) {
-    Element layout = document.createElement(LINEAR_LAYOUT);
-    layout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-    layout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
-    layout.setAttributeNS(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
+    Element layout = document.createElement("com.android.layoutlib.bridge.android.theme.ThemePreviewLayout");
+    layout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+    layout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    // All values in DP
+    layout.setAttribute("max_columns", "3");
+    layout.setAttribute("max_column_width", "500");
+    layout.setAttribute("min_column_width", "350");
+    layout.setAttribute("item_margin", "5");
 
     return layout;
   }
@@ -351,9 +353,16 @@ public class ThemePreviewBuilder {
     if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY)) {
       component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_CENTER);
     }
-    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN)) {
+    if (!component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN) &&
+        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT) &&
+        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT) &&
+        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP) &&
+        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM) &&
+        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START) &&
+        !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)) {
       // Default box around every component.
-      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, toDp(5));
+      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, toDp(12));
+      component.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, toDp(12));
     }
 
     component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, def.group.name());
@@ -362,20 +371,44 @@ public class ThemePreviewBuilder {
   }
 
   @NotNull
-  private static Element buildElementGroup(@NotNull Document document, @NotNull ComponentGroup group, @NotNull String verticalPadding) {
+  private static Element buildElementGroup(@NotNull Document document,
+                                           @NotNull ComponentGroup group,
+                                           @NotNull String groupColor,
+                                           @NotNull List<ComponentDefinition> components) {
+    Element componentGrouper = document.createElement(RELATIVE_LAYOUT);
+    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, "?android:attr/colorBackground");
+    componentGrouper.setAttributeNS(ANDROID_URI, ATTR_PADDING, toDp(14));
+    componentGrouper.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
+
     Element elementGroup = document.createElement(LINEAR_LAYOUT);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_ORIENTATION, group.orientation);
+    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_CENTER_IN_PARENT, VALUE_TRUE);
+    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, toDp(10));
+    elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(50));
     elementGroup.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER);
-
     elementGroup.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
-    if (VALUE_VERTICAL.equals(group.orientation)) {
-      elementGroup.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, verticalPadding);
+    Element groupTitle = document.createElement(TEXT_VIEW);
+    groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    groupTitle.setAttributeNS(ANDROID_URI, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
+    groupTitle.setAttributeNS(ANDROID_URI, "textColor", groupColor);
+    groupTitle.setAttributeNS(ANDROID_URI, "text", group.name.toUpperCase());
+    groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, VALUE_TRUE);
+    groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
+
+    for (ComponentDefinition definition : components) {
+      elementGroup.appendChild(buildComponent(document, definition));
     }
 
-    return elementGroup;
+    componentGrouper.appendChild(elementGroup);
+    componentGrouper.appendChild(groupTitle);
+
+    return componentGrouper;
   }
 
   private static void printDebug(@NotNull PrintStream out, @NotNull Document document) {
@@ -384,8 +417,11 @@ public class ThemePreviewBuilder {
 
       DOMImplementationLS impl = (DOMImplementationLS)reg.getDOMImplementation("LS");
       LSSerializer serializer = impl.createLSSerializer();
+      LSOutput lsOutput = impl.createLSOutput();
+      lsOutput.setEncoding("UTF-8");
+      lsOutput.setByteStream(out);
 
-      out.println(serializer.writeToString(document));
+      serializer.write(document, lsOutput);
     }
     catch (ClassNotFoundException e) {
       e.printStackTrace(out);
@@ -466,20 +502,15 @@ public class ThemePreviewBuilder {
     return this;
   }
 
-  public ThemePreviewBuilder setSeparatorColor(@NotNull String color) {
-    mySeparatorColor = color;
+  public ThemePreviewBuilder setBackgroundColor(@NotNull String color) {
+    myBackgroundColor = color;
 
     return this;
   }
 
-  public ThemePreviewBuilder setSeparatorColor(@NotNull Color color) {
-    setSeparatorColor('#' + Integer.toHexString(color.getRGB()));
+  public ThemePreviewBuilder setBackgroundColor(@NotNull Color color) {
+    setBackgroundColor('#' + Integer.toHexString(color.getRGB()));
 
-    return this;
-  }
-
-  public ThemePreviewBuilder setSeparatorHeight(int height) {
-    mySeparatorHeight = height;
     return this;
   }
 
@@ -494,48 +525,26 @@ public class ThemePreviewBuilder {
     DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     Document document = documentBuilder.newDocument();
 
+    // Background
+    Element backgroundLayout = document.createElement(LINEAR_LAYOUT);
+    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
+    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER_HORIZONTAL);
+    backgroundLayout.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, myBackgroundColor);
+
     Element layout = buildMainLayoutElement(document);
-    document.appendChild(layout);
+    backgroundLayout.appendChild(layout);
+    document.appendChild(backgroundLayout);
 
     // Iterate over all the possible classes.
-    boolean isFirstGroup = true;
     for (ComponentGroup group : ComponentGroup.values()) {
       List<ComponentDefinition> components = getComponentsByGroup(group);
       if (components.isEmpty()) {
         continue;
       }
 
-      if (!isFirstGroup) {
-        Element separator = document.createElement(VIEW);
-        separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-        separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, toDp(mySeparatorHeight));
-        separator.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, toDp(LINE_PADDING));
-        separator.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, mySeparatorColor);
-        separator.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
-
-        layout.appendChild(separator);
-      } else {
-        isFirstGroup = false;
-      }
-
-      Element groupTitle = document.createElement(TEXT_VIEW);
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(LINE_PADDING));
-      groupTitle.setAttributeNS(ANDROID_URI, "textColor", myGroupHeaderColor);
-      groupTitle.setAttributeNS(ANDROID_URI, "text", group.name.toUpperCase());
-      groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
-      groupTitle.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN, toDp(LINE_PADDING));
-
-      Element elementGroup = buildElementGroup(document, group, toDp(VERTICAL_GROUP_PADDING));
-
+      Element elementGroup = buildElementGroup(document, group, myGroupHeaderColor, components);
       layout.appendChild(elementGroup);
-      layout.appendChild(groupTitle);
-
-      for (ComponentDefinition definition : components) {
-        elementGroup.appendChild(buildComponent(document, definition));
-      }
     }
 
     if (myDebugPrintStream != null) {
