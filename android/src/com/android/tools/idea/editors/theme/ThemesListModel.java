@@ -22,9 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static com.android.tools.idea.editors.theme.SeparatedList.group;
 
 public class ThemesListModel extends AbstractListModel implements ComboBoxModel {
 
@@ -33,19 +36,18 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   public static final String CREATE_NEW_THEME = "Create New Theme";
   public static final String SHOW_ALL_THEMES = "Show all themes";
   public static final String RENAME = "Rename ";
-  private static final Object[] EXTRA_OPTIONS = {SHOW_ALL_THEMES, SEPARATOR, CREATE_NEW_THEME};
 
-  private ImmutableList<ThemeEditorStyle> myThemeList;
+  private SeparatedList myAllItems;
   private Object mySelectedObject;
-  private int myNumberProjectThemes;
-  private int mySizeBeforeExtraOptions;
-  private boolean isRenameAllowed;
+
+  private final ArrayList<String> myEditThemeOptions = new ArrayList<String>();
 
   public ThemesListModel(@NotNull ThemeResolver themeResolver) {
     this(themeResolver, null);
   }
 
   public ThemesListModel(@NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
+    myEditThemeOptions.add(CREATE_NEW_THEME);
     setThemeResolver(themeResolver, defaultThemeName);
   }
 
@@ -63,13 +65,14 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     Collection<ThemeEditorStyle> editableThemes = themeResolver.getLocalThemes();
     temporarySet.addAll(editableThemes);
     temporarySet.addAll(defaultThemes);
-    myNumberProjectThemes = editableThemes.size();
+    int projectThemesCount = editableThemes.size();
 
-    myThemeList = ImmutableList.copyOf(temporarySet);
-    mySizeBeforeExtraOptions = myThemeList.size();
-    if (myNumberProjectThemes > 0) {
-      mySizeBeforeExtraOptions++;
-    }
+    ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);
+    ImmutableList<ThemeEditorStyle> projectThemes = allThemes.subList(0, projectThemesCount);
+    ImmutableList<ThemeEditorStyle> externalThemes = allThemes.subList(projectThemesCount, allThemes.size());
+
+    myAllItems = new SeparatedList(SEPARATOR, group(projectThemes), group(externalThemes, SHOW_ALL_THEMES),
+                                   group(myEditThemeOptions));
 
     // Set the default selection to the first element.
     if (defaultThemeName != null && themeResolver.getTheme(defaultThemeName) != null) {
@@ -77,8 +80,8 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
       return;
     }
 
-    if (!myThemeList.isEmpty()) {
-      setSelectedItem(myThemeList.get(0));
+    if (!allThemes.isEmpty()) {
+      setSelectedItem(allThemes.get(0));
     } else {
       setSelectedItem(null);
     }
@@ -88,27 +91,13 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Override
   public int getSize() {
-    return mySizeBeforeExtraOptions + EXTRA_OPTIONS.length + (isRenameAllowed ? 1 : 0);
+    return myAllItems.size();
   }
 
   @NotNull
   @Override
   public Object getElementAt(int index) {
-    if (isRenameAllowed && index == getSize() - 1) {
-      return renameOption();
-    }
-    if (index >= mySizeBeforeExtraOptions) {
-      return EXTRA_OPTIONS[index - mySizeBeforeExtraOptions];
-    }
-    if (myNumberProjectThemes > 0) {
-      if (index == myNumberProjectThemes) {
-        return SEPARATOR;
-      }
-      else if (index > myNumberProjectThemes) {
-        return myThemeList.get(index - 1);
-      }
-    }
-    return myThemeList.get(index);
+    return myAllItems.get(index);
   }
 
   @Override
@@ -118,12 +107,14 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
     if (!Objects.equal(mySelectedObject, anItem)) {
       mySelectedObject = anItem;
-      if (mySelectedObject instanceof ThemeEditorStyle) {
-        isRenameAllowed = ((ThemeEditorStyle)mySelectedObject).isProjectStyle();
+
+      if (myEditThemeOptions.size() == 2) {
+        myEditThemeOptions.remove(1);
       }
-      else {
-        isRenameAllowed = false;
+      if (mySelectedObject instanceof ThemeEditorStyle && ((ThemeEditorStyle)mySelectedObject).isProjectStyle()) {
+        myEditThemeOptions.add(renameOption());
       }
+
       fireContentsChanged(this, -1, -1);
     }
   }
