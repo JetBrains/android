@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.remote.internal.sources;
 
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
-import com.android.sdklib.repository.SdkSysImgConstants;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.GuardedBy;
@@ -37,7 +36,6 @@ import java.util.Map.Entry;
 public class SdkSources {
 
   private static final String KEY_COUNT = "count";
-
   private static final String KEY_SRC = "src";
   private static final String KEY_DISPLAY = "disp";
 

@@ -17,7 +17,6 @@
 package com.android.tools.idea.sdk.remote.internal.sources;
 
 import com.android.annotations.Nullable;
-import com.android.sdklib.repository.SdkSysImgConstants;
 import org.w3c.dom.Document;
 
 import java.io.InputStream;

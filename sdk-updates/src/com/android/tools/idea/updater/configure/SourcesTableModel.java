@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.sdklib.repository.SdkSysImgConstants;
 import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
@@ -46,6 +45,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   private SdkSources mySources;
   private Map<String, SdkSource> myInitialItems = Maps.newHashMap();
   private SdkState mySdkState;
+  
   private Runnable mySourcesChangeListener = new Runnable() {
     @Override
     public void run() {

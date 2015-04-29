@@ -23,9 +23,9 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
