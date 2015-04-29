@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.designer.LightFillLayout;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -65,9 +66,17 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myContentSplitter = new ThreeComponentsSplitter();
     Disposer.register(editor, myContentSplitter);
 
+    // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
+    // used for the palette and the structure/properties panes.
+    JPanel contentPanel = new JPanel(new LightFillLayout());
+    JLabel toolbar = new JLabel();
+    toolbar.setVisible(false);
+    contentPanel.add(toolbar);
+    contentPanel.add(mySurface);
+
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
-    myContentSplitter.setInnerComponent(mySurface);
+    myContentSplitter.setInnerComponent(contentPanel);
     add(myContentSplitter, BorderLayout.CENTER);
 
     model.requestRender();
