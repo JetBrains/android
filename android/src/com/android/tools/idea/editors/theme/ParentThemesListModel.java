@@ -25,56 +25,34 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.ArrayList;
 
+import static com.android.tools.idea.editors.theme.SeparatedList.group;
+
 public class ParentThemesListModel extends AbstractListModel implements ComboBoxModel {
   private static final JSeparator SEPARATOR = new JSeparator(SwingConstants.HORIZONTAL);
 
   public static final String SHOW_ALL_THEMES = "Show all themes";
 
-  private final ImmutableList<ThemeEditorStyle> myDefaultParentThemeList;
-  private final ArrayList<ThemeEditorStyle> myRecentParentThemeList = new ArrayList<ThemeEditorStyle>();
   private Object mySelectedObject;
-  private int myNumberSeparators;
+  private final SeparatedList myAllItems;
 
   public ParentThemesListModel(@NotNull ImmutableList<ThemeEditorStyle> defaultThemeList, @NotNull ThemeEditorStyle parent) {
-    myDefaultParentThemeList = defaultThemeList;
-    if (!myDefaultParentThemeList.contains(parent)) {
-      myRecentParentThemeList.add(parent);
+    ArrayList<ThemeEditorStyle> recentParentThemeList = new ArrayList<ThemeEditorStyle>();
+    if (!defaultThemeList.contains(parent)) {
+      recentParentThemeList.add(parent);
     }
+    myAllItems = new SeparatedList(SEPARATOR, group(recentParentThemeList), group(defaultThemeList), group(SHOW_ALL_THEMES));
     setSelectedItem(parent);
-
-    if (!myDefaultParentThemeList.isEmpty()) {
-      myNumberSeparators++;
-    }
-    if (!myRecentParentThemeList.isEmpty()) {
-      myNumberSeparators++;
-    }
   }
 
   @Override
   public int getSize() {
-    return myRecentParentThemeList.size() + myDefaultParentThemeList.size() + myNumberSeparators + 1;
+    return myAllItems.size();
   }
 
   @NotNull
   @Override
   public Object getElementAt(int index) {
-    if (index == getSize() - 1) {
-      return SHOW_ALL_THEMES;
-    }
-    if (index == getSize() - 2) {
-      return SEPARATOR;
-    }
-    int recentParentThemeNumber = myRecentParentThemeList.size();
-    if (recentParentThemeNumber > 0) {
-      if (index < recentParentThemeNumber) {
-        return myRecentParentThemeList.get(index);
-      }
-      if (index == recentParentThemeNumber) {
-        return SEPARATOR;
-      }
-      return myDefaultParentThemeList.get(index - recentParentThemeNumber - 1);
-    }
-    return myDefaultParentThemeList.get(index);
+    return myAllItems.get(index);
   }
 
   @Override
