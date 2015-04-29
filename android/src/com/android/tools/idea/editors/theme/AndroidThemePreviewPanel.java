@@ -80,10 +80,10 @@ import java.util.concurrent.TimeUnit;
 public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
-  // The scaling factor is based on how we want the preview to look for different devices. 300 means that a device with 300 DPI would look
-  // exactly as GraphicsLayoutRenderer would render it. A device with 600 DPI would usually look smaller but because we apply this scaling
-  // factor, it would be scaled 2x to look exactly as the 300 DPI version would look.
-  private static final double DEFAULT_SCALING_FACTOR = 300.0;
+  // The scaling factor is based on how we want the preview to look for different devices. 160 means that a device with 160 DPI would look
+  // exactly as GraphicsLayoutRenderer would render it. A device with 300 DPI would usually look smaller but because we apply this scaling
+  // factor, it would be scaled 2x to look exactly as the 100 DPI version would look.
+  private static final double DEFAULT_SCALING_FACTOR = 160.0;
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
@@ -338,7 +338,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private void rebuild(boolean forceRepaint) {
     try {
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
-        .setSeparatorColor(UIUtil.getPanelBackground()) // Separator to give the appearance of cards
+        .setBackgroundColor(UIUtil.getPanelBackground()) // Separator to give the appearance of cards
         .addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
