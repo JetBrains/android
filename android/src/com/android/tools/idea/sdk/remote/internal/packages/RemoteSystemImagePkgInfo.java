@@ -23,12 +23,16 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.SystemImage;
-import com.android.sdklib.repository.*;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalSysImgPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSysImgConstants;
 import org.w3c.dom.Node;
 
 import java.io.File;

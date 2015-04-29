@@ -19,8 +19,6 @@ package com.android.tools.idea.sdk.remote;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
-import com.android.sdklib.repository.SdkAddonsListConstants;
-import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher;
 import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher.Site;
@@ -33,7 +31,6 @@ import com.android.utils.ILogger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.diagnostic.Logger;
 
 import java.util.ArrayList;
 

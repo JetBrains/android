@@ -17,7 +17,7 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.SdkRepoConstants;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 
 /**
  * Interface used to decorate a {@link Package} that has a dependency

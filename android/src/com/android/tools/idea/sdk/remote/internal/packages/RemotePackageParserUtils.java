@@ -18,8 +18,11 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.sdklib.repository.*;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.sdk.remote.internal.archives.*;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import org.w3c.dom.Node;
 
 import java.util.Properties;
