@@ -19,7 +19,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.RepoConstants;
+import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.utils.Pair;
 import org.w3c.dom.Node;
 

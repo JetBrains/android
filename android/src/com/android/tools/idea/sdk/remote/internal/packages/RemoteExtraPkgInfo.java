@@ -19,12 +19,15 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.*;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.*;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 

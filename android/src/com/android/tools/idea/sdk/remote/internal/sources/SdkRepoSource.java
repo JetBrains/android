@@ -17,8 +17,6 @@
 package com.android.tools.idea.sdk.remote.internal.sources;
 
 import com.android.annotations.Nullable;
-import com.android.sdklib.repository.RepoConstants;
-import com.android.sdklib.repository.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
 import org.w3c.dom.*;
 import org.xml.sax.ErrorHandler;
@@ -34,7 +32,7 @@ import java.util.regex.Pattern;
  * An sdk-repository source, i.e. a download site.
  * A repository describes one or more {@link com.android.tools.idea.sdk.remote.internal.packages.Package}s available for download.
  */
-public class SdkRepoSource extends com.android.tools.idea.sdk.remote.internal.sources.SdkSource {
+public class SdkRepoSource extends SdkSource {
 
   /**
    * Constructs a new source for the given repository URL.
