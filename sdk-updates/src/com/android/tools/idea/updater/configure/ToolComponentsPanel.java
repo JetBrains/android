@@ -112,6 +112,7 @@ public class ToolComponentsPanel {
     myToolsDetailTable.updateUI();
     myToolsSummaryTable.updateUI();
     TreeUtil.expandAll(myToolsDetailTable.getTree());
+    TreeUtil.expandAll(myToolsSummaryTable.getTree());
   }
 
   public void setPackages(Set<UpdatablePkgInfo> toolsPackages, Set<UpdatablePkgInfo> buildToolsPackages) {
