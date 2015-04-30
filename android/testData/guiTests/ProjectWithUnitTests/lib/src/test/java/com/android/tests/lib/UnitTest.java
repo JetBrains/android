@@ -37,6 +37,7 @@ import org.junit.Test;
 import java.lang.reflect.Field;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 public class UnitTest {
     @Test
@@ -189,5 +190,22 @@ public class UnitTest {
     public void commonsLogging() {
         Log log = LogFactory.getLog(getClass());
         log.info("I can use commons-logging!");
+    }
+
+    @Test
+    public void onlyOneMockableJar() throws Exception {
+        URL[] urls = ((URLClassLoader) getClass().getClassLoader()).getURLs();
+        int count = 0;
+        URL mockableJar = null;
+        for(URL u : urls){
+            if(u.toString().contains("mockable-")){
+                count++;
+                mockableJar = u;
+            }
+        }
+
+        assertEquals(1, count);
+        assertNotNull(mockableJar);
+        assertTrue(mockableJar.toString().contains("mockable-android-19.jar"));
     }
 }
