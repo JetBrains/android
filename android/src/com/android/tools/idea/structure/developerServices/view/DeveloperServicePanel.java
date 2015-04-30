@@ -63,6 +63,9 @@ public final class DeveloperServicePanel extends EditorPanel {
     initializeFooterPanel(developerServiceMetadata);
 
     myBindings.bind(new VisibleProperty(myDetailsPanel), new SelectedProperty(myEnabledCheckbox));
+    if (myService.getContext().isInstalled().get()) {
+      myEnabledCheckbox.setSelected(true);
+    }
 
     add(myRootPanel);
   }
