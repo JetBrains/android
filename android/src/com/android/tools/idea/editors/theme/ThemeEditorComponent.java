@@ -586,28 +586,20 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName) {
+    // This is required since the configuration could have a link to a non existent theme (if it was removed).
+    // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
+    // fails to find the local themes.
+    myConfiguration.setTheme(null);
 
-    // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
-    // If we don't use invokeLater, it will still work with the previous cached PSI file value.
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        // This is required since the configuration could have a link to a non existent theme (if it was removed).
-        // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
-        // fails to find the local themes.
-        myConfiguration.setTheme(null);
+    myStyleResolver = new StyleResolver(myConfiguration);
+    myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
+    mySubStyleSourceAttribute = null;
 
-        myStyleResolver = new StyleResolver(myConfiguration);
-        myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
-        mySubStyleSourceAttribute = null;
-
-        final ThemeResolver themeResolver = new ThemeResolver(myConfiguration, myStyleResolver);
-        myPanel.getThemeCombo().setModel(new ThemesListModel(themeResolver, defaultThemeName));
-        loadStyleAttributes();
-        mySelectedTheme = myPanel.getSelectedTheme();
-        saveCurrentSelectedTheme();
-      }
-    });
+    final ThemeResolver themeResolver = new ThemeResolver(myConfiguration, myStyleResolver);
+    myPanel.getThemeCombo().setModel(new ThemesListModel(themeResolver, defaultThemeName));
+    loadStyleAttributes();
+    mySelectedTheme = myPanel.getSelectedTheme();
+    saveCurrentSelectedTheme();
   }
 
   /**
@@ -647,23 +639,30 @@ public class ThemeEditorComponent extends Splitter {
 
     myModel.addTableModelListener(new TableModelListener() {
       @Override
-      public void tableChanged(TableModelEvent e) {
-        if (e.getType() == TableModelEvent.UPDATE) {
-          if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
-            myAttributesTable.updateRowHeights();
-          }
-          else if (e.getLastRow() == 0) {
-            // Theme parent has been changed, needs reloading to update attributes
-            reload(myPreviousSelectedTheme);
-          }
-        }
+      public void tableChanged(final TableModelEvent e) {
+        // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
+        // If we don't use invokeLater, it will still work with the previous cached PSI file value.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            if (e.getType() == TableModelEvent.UPDATE) {
+              if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
+                myAttributesTable.updateRowHeights();
+              }
+              else if (e.getLastRow() == 0) {
+                // Theme parent has been changed, needs reloading to update attributes
+                reload(myPreviousSelectedTheme);
+              }
+            }
 
-        if (myPreviewPanel != null) {
-          myPreviewPanel.updateConfiguration(myConfiguration);
-          myPreviewPanel.revalidate();
-          myPreviewPanel.repaint();
-        }
-        myAttributesTable.repaint();
+            if (myPreviewPanel != null) {
+              myPreviewPanel.updateConfiguration(myConfiguration);
+              myPreviewPanel.revalidate();
+              myPreviewPanel.repaint();
+            }
+            myAttributesTable.repaint();
+          }
+        });
       }
     });
 
