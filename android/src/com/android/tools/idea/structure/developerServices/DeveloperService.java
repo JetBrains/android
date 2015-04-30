@@ -64,7 +64,6 @@ public final class DeveloperService {
    * Execute instructions which will install this service.
    */
   public void install() {
-
     Project project = myServiceParser.getModule().getProject();
     new WriteCommandAction.Simple(project, "Install service: " + getMetadata().getName()) {
       @Override
@@ -72,5 +71,6 @@ public final class DeveloperService {
         myServiceParser.createRecipe(true);
       }
     }.execute();
+    getContext().snapshot();
   }
 }
