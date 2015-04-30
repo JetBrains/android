@@ -26,6 +26,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
@@ -272,7 +273,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
               cardPanel.setVisible(false);
             }
           }
-        });
+        }, ModalityState.any());
       }
     };
 
@@ -284,7 +285,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           public void run() {
             cardPanel.setVisible(false);
           }
-        });
+        }, ModalityState.any());
       }
     };
 
