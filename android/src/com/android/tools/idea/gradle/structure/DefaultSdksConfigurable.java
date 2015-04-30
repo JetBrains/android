@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.options.BaseConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -202,7 +201,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
       }
     };
     if (SystemInfo.isMac) {
-      descriptor.putUserData(PathChooserDialog.NATIVE_MAC_CHOOSER_SHOW_HIDDEN_FILES, Boolean.TRUE);
+      descriptor.withShowHiddenFiles(true);
     }
     descriptor.setTitle(title);
     return descriptor;
