@@ -34,10 +34,12 @@ public class NlPaletteModel {
 
   private static final String METADATA = "palette.xml";
 
+  private static final String ELEM_ITEM = "item";
+  private static final String ELEM_PALETTE = "palette";
+  private static final String ELEM_CREATION = "creation";
+
   private static final String ATTR_TAG = "tag";
-  private static final String ATTR_PALETTE = "palette";
   private static final String ATTR_NAME = "name";
-  private static final String ATTR_ITEM = "item";
   private static final String ATTR_TITLE = "title";
   private static final String ATTR_TOOLTIP = "tooltip";
   private static final String ATTR_ICON = "icon";
@@ -65,7 +67,7 @@ public class NlPaletteModel {
   @VisibleForTesting
   void loadPalette(@NotNull Document document) {
     loadModels(document);
-    Element palette = document.getRootElement().getChild(ATTR_PALETTE);
+    Element palette = document.getRootElement().getChild(ELEM_PALETTE);
     if (palette == null) {
       LOG.warn("Missing palette tag");
       return;
@@ -86,7 +88,7 @@ public class NlPaletteModel {
       return null;
     }
     NlPaletteGroup group = new NlPaletteGroup(name);
-    for (Element itemElement : groupElement.getChildren(ATTR_ITEM)) {
+    for (Element itemElement : groupElement.getChildren(ELEM_ITEM)) {
       String tag = itemElement.getAttributeValue(ATTR_TAG);
       if (tag == null) {
         LOG.warn(String.format("Item without a tag for group: %s", name));
@@ -97,7 +99,7 @@ public class NlPaletteModel {
         LOG.warn(String.format("Model not found for group: %s with tag: %s", name, tag));
         continue;
       }
-      Element paletteElement = modelElement.getChild(ATTR_PALETTE);
+      Element paletteElement = modelElement.getChild(ELEM_PALETTE);
       if (paletteElement == null) {
         LOG.warn(String.format("Palette not found on model for group: %s with tag: %s", name, tag));
         continue;
@@ -107,7 +109,7 @@ public class NlPaletteModel {
         continue;
       }
       group.add(item);
-      for (Element subItemElement : itemElement.getChildren(ATTR_ITEM)) {
+      for (Element subItemElement : itemElement.getChildren(ELEM_ITEM)) {
         NlPaletteItem subItem = loadItem(subItemElement, modelElement);
         if (subItem == null) {
           continue;
@@ -123,23 +125,41 @@ public class NlPaletteModel {
     String title = getAttributeValue(itemElement, modelElement, ATTR_TITLE);
     String tooltip = getAttributeValue(itemElement, modelElement, ATTR_TOOLTIP);
     String iconPath = getAttributeValue(itemElement, modelElement, ATTR_ICON);
+    String creation = getElementValue(itemElement, modelElement, ELEM_CREATION);
     if (title.isEmpty()) {
       LOG.warn(String.format("No title found for item with tag: %s", modelElement.getAttributeValue(ATTR_TAG)));
       return null;
     }
-    return new NlPaletteItem(title, iconPath, tooltip);
+    if (creation.isEmpty()) {
+      LOG.warn(String.format("No creation found for item with tag: %s", modelElement.getAttributeValue(ATTR_TAG)));
+      return null;
+    }
+    return new NlPaletteItem(title, iconPath, tooltip, creation);
   }
 
   @NotNull
-  private static String getAttributeValue(@NotNull Element fromElement, @NotNull Element modelElement, String attributeName) {
+  private static String getAttributeValue(@NotNull Element fromElement, @NotNull Element modelElement, @NotNull String attributeName) {
     String value = fromElement.getAttributeValue(attributeName);
     if (value != null) {
       return value;
     }
-    Element paletteElement = modelElement.getChild(ATTR_PALETTE);
+    Element paletteElement = modelElement.getChild(ELEM_PALETTE);
     assert paletteElement != null;
     value = paletteElement.getAttributeValue(attributeName);
     return value != null ? value : "";
+  }
+
+  @NotNull
+  private static String getElementValue(@NotNull Element fromElement, @NotNull Element modelElement, @NotNull String tagName) {
+    Element element = fromElement.getChild(tagName);
+    if (element != null) {
+      return element.getText();
+    }
+    element = modelElement.getChild(tagName);
+    if (element == null) {
+      return "";
+    }
+    return element.getText();
   }
 
   private void loadModels(@NotNull Document document) {
