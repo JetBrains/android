@@ -39,7 +39,8 @@ import java.util.List;
 
 /**
  * Configurable for the Android SDK Manager.
- * TODO(jbakermalone): implement the searchable interface more completely
+ * TODO(jbakermalone): implement the searchable interface more completely. Unfortunately it seems that this involves not using forms
+ *                     for the UI?
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
   SdkUpdaterConfigPanel myPanel;
@@ -156,6 +157,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void disposeUIResources() {
-    myPanel.disposeUIResources();
+    if (myPanel != null) {
+      myPanel.disposeUIResources();
+    }
   }
 }
