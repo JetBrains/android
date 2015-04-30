@@ -21,9 +21,9 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.openapi.util.IconLoader;
@@ -209,7 +209,7 @@ public class SystemImagePreview {
     try {
       if (SystemInfo.isMac) {
         @SuppressWarnings("SpellCheckingInspection")
-        String output = ExecUtil.execAndReadLine("/usr/sbin/kextstat", "-l", "-b", "com.intel.kext.intelhaxm");
+        String output = ExecUtil.execAndReadLine(new GeneralCommandLine("/usr/sbin/kextstat", "-l", "-b", "com.intel.kext.intelhaxm"));
         if (output != null && !output.isEmpty()) {
           Pattern pattern = Pattern.compile("com\\.intel\\.kext\\.intelhaxm( \\((.+)\\))?");
           Matcher matcher = pattern.matcher(output);
@@ -239,7 +239,7 @@ public class SystemImagePreview {
         return HaxmState.NOT_INSTALLED;
       } else if (SystemInfo.isWindows) {
         @SuppressWarnings("SpellCheckingInspection") ProcessOutput
-          processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("sc", "query", "intelhaxm"), null);
+          processOutput = ExecUtil.execAndGetOutput(new GeneralCommandLine("sc", "query", "intelhaxm"));
         return Iterables.all(processOutput.getStdoutLines(), new Predicate<String>() {
           @Override
           public boolean apply(String input) {
@@ -247,7 +247,7 @@ public class SystemImagePreview {
           }
         }) ? HaxmState.INSTALLED : HaxmState.NOT_INSTALLED;
       } else if (SystemInfo.isUnix) {
-        ProcessOutput processOutput = ExecUtil.execAndGetOutput(ImmutableList.of("kvm-ok"), null);
+        ProcessOutput processOutput = ExecUtil.execAndGetOutput(new GeneralCommandLine("kvm-ok"));
         return Iterables.any(processOutput.getStdoutLines(), new Predicate<String>() {
           @Override
           public boolean apply(String input) {
