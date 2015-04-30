@@ -17,12 +17,19 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.dnd.DnDAction;
+import com.intellij.ide.dnd.DnDDragStartBean;
+import com.intellij.ide.dnd.DnDManager;
+import com.intellij.ide.dnd.DnDSource;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
+import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.util.ui.TextTransferable;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -35,8 +42,8 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 public class NlPalettePanel extends JPanel implements LightToolWindowContent {
   public static final Insets INSETS = new Insets(0, 6, 0, 6);
 
-  @NotNull private DnDAwareTree myTree;
-  @NotNull private NlPaletteModel myModel;
+  @NotNull private final DnDAwareTree myTree;
+  @NotNull private final NlPaletteModel myModel;
 
   public NlPalettePanel() {
     myModel = new NlPaletteModel();
@@ -95,17 +102,15 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
                                         boolean hasFocus) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         Object content = node.getUserObject();
-        if (content != null && content.getClass().equals(NlPaletteItem.class)) {
-          NlPaletteItem item = (NlPaletteItem)node.getUserObject();
+        if (content instanceof NlPaletteItem) {
+          NlPaletteItem item = (NlPaletteItem)content;
           append(item.getTitle());
           setIcon(item.getIcon());
           setToolTipText(item.getTooltip());
         }
-        else if (content != null && content.getClass().equals(NlPaletteGroup.class)) {
-          NlPaletteGroup group = (NlPaletteGroup)node.getUserObject();
-          if (group != null) {
-            append(group.getTitle());
-          }
+        else if (content instanceof NlPaletteGroup) {
+          NlPaletteGroup group = (NlPaletteGroup)content;
+          append(group.getTitle());
           setIcon(AllIcons.Nodes.Folder);
         }
       }
@@ -124,11 +129,54 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
   }
 
   private static void enableDnD(@NotNull DnDAwareTree tree) {
-    // todo...
+    final DnDManager dndManager = DnDManager.getInstance();
+    dndManager.registerSource(new PaletteDnDSource(tree), tree);
   }
 
   @Override
   public void dispose() {
+  }
+
+  private static class PaletteDnDSource implements DnDSource {
+    private final DnDAwareTree myTree;
+
+    private PaletteDnDSource(@NotNull DnDAwareTree tree) {
+      myTree = tree;
+    }
+
+    @Override
+    public boolean canStartDragging(DnDAction action, Point dragOrigin) {
+      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+      Object content = node.getUserObject();
+      return content instanceof NlPaletteItem;
+    }
+
+    @Override
+    public DnDDragStartBean startDragging(DnDAction action, Point dragOrigin) {
+      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+      Object content = node.getUserObject();
+      assert content instanceof NlPaletteItem;
+      NlPaletteItem item = (NlPaletteItem)content;
+      return new DnDDragStartBean(new TextTransferable(item.getRepresentation()));
+    }
+
+    @Nullable
+    @Override
+    public Pair<Image, Point> createDraggedImage(DnDAction action, Point dragOrigin) {
+      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      return DnDAwareTree.getDragImage(myTree, path, dragOrigin);
+    }
+
+    @Override
+    public void dragDropEnd() {
+      myTree.clearSelection();
+    }
+
+    @Override
+    public void dropActionChanged(int gestureModifiers) {
+    }
   }
 
   private static final class PaletteSpeedSearch extends TreeSpeedSearch {
@@ -144,7 +192,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
       TreePath path = (TreePath)element;
       DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
       Object content = node.getUserObject();
-      if (content == null || !content.getClass().equals(NlPaletteItem.class)) {
+      if (!(content instanceof NlPaletteItem)) {
         return false;
       }
       NlPaletteItem item = (NlPaletteItem)content;
