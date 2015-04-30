@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
@@ -43,6 +45,9 @@ public class ViewHandlerManager implements ProjectComponent {
     return project.getComponent(ViewHandlerManager.class);
   }
 
+  /**
+   * Returns the {@link ViewHandlerManager} for the current project
+   */
   @NonNull
   public static ViewHandlerManager get(@NonNull AndroidFacet facet) {
     return get(facet.getModule().getProject());
@@ -52,6 +57,23 @@ public class ViewHandlerManager implements ProjectComponent {
     myProject = project;
   }
 
+  /**
+   * Gets the {@link ViewHandler} associated with the given component, if any
+   *
+   * @param component the component to find a handler for
+   * @return the corresponding view handler, if any
+   */
+  @Nullable
+  public ViewHandler getHandler(@NonNull NlComponent component) {
+    return getHandler(component.getTagName());
+  }
+
+  /**
+   * Gets the {@link ViewHandler} associated with the given XML tag, if any
+   *
+   * @param viewTag the tag to look up
+   * @return the corresponding view handler, if any
+   */
   @Nullable
   public ViewHandler getHandler(@NonNull String viewTag) {
     ViewHandler handler = myHandlers.get(viewTag);
@@ -63,6 +85,30 @@ public class ViewHandlerManager implements ProjectComponent {
     return handler != NONE ? handler : null;
   }
 
+  /**
+   * Finds the nearest layout/view group handler for the given component.
+   *
+   * @param component the component to search from
+   * @param strict    if true, only consider parents of the component, not the component itself
+   */
+  @Nullable
+  public ViewGroupHandler findLayoutHandler(@NonNull NlComponent component, boolean strict) {
+    NlComponent curr = component;
+    if (strict) {
+      curr = curr.getParent();
+    }
+    while (curr != null) {
+      ViewHandler handler = getHandler(curr);
+      if (handler instanceof ViewGroupHandler) {
+        return (ViewGroupHandler)handler;
+      }
+
+      curr = curr.getParent();
+    }
+
+    return null;
+  }
+
   private ViewHandler createHandler(@NonNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     if (LINEAR_LAYOUT.equals(viewTag) || FQCN_LINEAR_LAYOUT.equals(viewTag)) {
@@ -72,13 +118,14 @@ public class ViewHandlerManager implements ProjectComponent {
       return new RelativeLayoutHandler();
     }
     if (ABSOLUTE_LAYOUT.equals(viewTag)) {
-      return new LinearLayoutHandler();
+      return new AbsoluteLayoutHandler();
     }
 
     if (viewTag.indexOf('.') != -1) {
       String handlerName = viewTag + "Handler";
       JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
       PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+
       for (PsiClass cls : classes) {
         // Look for bytecode and instantiate if possible, then return
         // TODO: Instantiate

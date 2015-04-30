@@ -72,7 +72,7 @@ public class BlueprintLayer extends Layer {
   }
 
   private void drawComponent(@NonNull Graphics2D gc, @NonNull NlComponent component, @NonNull ViewHandlerManager viewHandlerManager) {
-    if (component.viewInfo != null) {
+    if (component.viewInfo != null && component.tag.isValid()) {
       String className = component.viewInfo.getClassName();
 
       int x = getSwingX(myScreenView, component.x);

@@ -80,6 +80,6 @@ public class Coordinates {
   public static NlComponent findComponent(@NonNull ScreenView view,
                                           @SwingCoordinate int swingX, 
                                           @SwingCoordinate int swingY) {
-    return view.getModel().findLeafAt(getAndroidX(view, swingX), getAndroidY(view, swingY));
+    return view.getModel().findLeafAt(getAndroidX(view, swingX), getAndroidY(view, swingY), false);
   }
 }

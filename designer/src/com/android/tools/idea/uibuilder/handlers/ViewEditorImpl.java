@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.api;
+package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
-import java.awt.*;
+/**
+ * Implementation of the {@link ViewEditor} abstraction presented
+ * to {@link ViewHandler} instances
+ */
+public class ViewEditorImpl extends ViewEditor {
+  private final ScreenView myScreen;
 
-/** A view handler is a tool handler for a given Android view class */
-public class ViewHandler {
-  /**
-   * Paints the constraints for this component. If it returns true, it has handled
-   * the children as well.
-   *
-   * @param graphics  the graphics to paint into
-   * @param component the component whose constraints we want to paint
-   * @return true if we're done with this component <b>and</b> it's children
-   */
-  public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
-    return false;
+  public ViewEditorImpl(@NonNull ScreenView screen) {
+    myScreen = screen;
+  }
+
+  @Override
+  public int getDpi() {
+    return myScreen.getConfiguration().getDensity().getDpiValue();
   }
 }
