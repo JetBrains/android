@@ -71,17 +71,11 @@ public class SdkUpdaterConfigPanel {
 
   public SdkUpdaterConfigPanel(SdkState sdkState) {
     mySdkState = sdkState;
-    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, myUpdater, myUpdater, null,
-                         true); // TODO(jbakermalone): show something on error
     ILogger logger = new LogWrapper(Logger.getInstance(getClass()));
     mySdkSources = mySdkState.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
-    mySdkState.getRemoteSdk().fetch(mySdkSources, logger);  // fetch to find any problems with the urls
     mySdkSources.addChangeListener(mySourcesChangeListener);
     myUpdateSitesPanel.setSdkState(sdkState);
-
     mySdkLocation.setText(IdeSdks.getAndroidSdkPath().getPath());
-
-    refresh();
   }
 
   public String getSdkPath() {
@@ -128,6 +122,7 @@ public class SdkUpdaterConfigPanel {
   public void refresh() {
     myPlatformComponentsPanel.startLoading();
     myToolComponentsPanel.startLoading();
+    myUpdateSitesPanel.startLoading();
 
     Runnable remoteComplete = new DispatchRunnable() {
       @Override
@@ -135,6 +130,7 @@ public class SdkUpdaterConfigPanel {
         updateItems();
         myPlatformComponentsPanel.finishLoading();
         myToolComponentsPanel.finishLoading();
+        myUpdateSitesPanel.finishLoading();
       }
     };
     mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, myUpdater, remoteComplete, null, true);
@@ -178,15 +174,13 @@ public class SdkUpdaterConfigPanel {
   }
 
   public void reset() {
+    refresh();
     myPlatformComponentsPanel.reset();
     myToolComponentsPanel.reset();
     myUpdateSitesPanel.reset();
-
-    myRootPane.repaint();
   }
 
   public void disposeUIResources() {
-    myUpdateSitesPanel.disposeUIResources();
     mySdkSources.removeChangeListener(mySourcesChangeListener);
   }
 
