@@ -46,14 +46,6 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   private Map<String, SdkSource> myInitialItems = Maps.newHashMap();
   private SdkState mySdkState;
   
-  private Runnable mySourcesChangeListener = new Runnable() {
-    @Override
-    public void run() {
-      mySdkState.getRemoteSdk().fetch(mySources, new LogWrapper(Logger.getInstance(SourcesTableModel.class)));
-      sourcesUpdated();
-    }
-  };
-
   SourcesTableModel() {
     super();
     setColumnInfos(new ColumnInfo[]{new ColumnInfo<Row, Boolean>("Enabled") {
@@ -142,16 +134,15 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   public void setSdkState(SdkState state) {
     mySdkState = state;
     mySources = state.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, new LogWrapper(Logger.getInstance(getClass())));
-    mySources.addChangeListener(mySourcesChangeListener);
     for (SdkSource s : mySources.getAllSources()) {
       myInitialItems.put(s.getUrl(), s);
     }
-    sourcesUpdated();
+    refreshSources();
   }
 
   private Map<String, Boolean> myUrlEnabledMap = Maps.newHashMap();
 
-  private void sourcesUpdated() {
+  public void refreshSources() {
     ArrayList<Row> items = Lists.newArrayList();
     for (SdkSource source : mySources.getAllSources()) {
       Boolean enabled = myUrlEnabledMap.get(source.getUrl());
@@ -226,7 +217,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     for (Row row : getItems()) {
       row.myEnabled = row.mySource.isEnabled();
     }
-    sourcesUpdated();
+    refreshSources();
   }
 
   public boolean isSourcesModified() {
@@ -240,10 +231,6 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
       }
     }
     return false;
-  }
-
-  public void dispose() {
-    mySources.removeChangeListener(mySourcesChangeListener);
   }
 
   public void save() {

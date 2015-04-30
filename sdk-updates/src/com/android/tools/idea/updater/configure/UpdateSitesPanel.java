@@ -19,13 +19,13 @@ import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.AnActionButtonUpdater;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,10 +37,12 @@ public class UpdateSitesPanel {
   private JPanel myRootPanel;
   private JBTable myUpdateSitesTable;
   private JPanel mySourcesPanel;
+  private JPanel mySourcesLoadingPanel;
+  private AsyncProcessIcon mySourcesLoadingIcon;
   private SourcesTableModel mySourcesTableModel;
-  private SdkState mySdkState;
 
   private void createUIComponents() {
+    mySourcesLoadingIcon = new AsyncProcessIcon("Loading...");
     mySourcesTableModel = new SourcesTableModel();
     myUpdateSitesTable = new TableView<SourcesTableModel.Row>(mySourcesTableModel);
     ToolbarDecorator userDefinedDecorator = ToolbarDecorator.createDecorator(myUpdateSitesTable);
@@ -107,15 +109,20 @@ public class UpdateSitesPanel {
   }
 
   public void setSdkState(SdkState state) {
-    mySdkState = state;
     mySourcesTableModel.setSdkState(state);
-  }
-
-  public void disposeUIResources() {
-    mySourcesTableModel.dispose();
   }
 
   public void save() {
     mySourcesTableModel.save();
   }
+
+  public void startLoading() {
+    mySourcesLoadingPanel.setVisible(true);
+  }
+
+  public void finishLoading() {
+    mySourcesTableModel.refreshSources();
+    mySourcesLoadingPanel.setVisible(false);
+  }
+
 }
