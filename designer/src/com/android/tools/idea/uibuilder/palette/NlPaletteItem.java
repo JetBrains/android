@@ -25,12 +25,14 @@ public class NlPaletteItem {
   @NotNull private final String myTitle;
   @NotNull private final String myTooltip;
   @NotNull private final String myIconPath;
+  @NotNull private final String myRepresentation;
   @Nullable private Icon myIcon;
 
-  public NlPaletteItem(@NotNull String title, @NotNull String iconPath, @NotNull String tooltip) {
+  public NlPaletteItem(@NotNull String title, @NotNull String iconPath, @NotNull String tooltip, @NotNull String representation) {
     myTitle = title;
     myIconPath = iconPath;
     myTooltip = tooltip;
+    myRepresentation = representation;
   }
 
   @NotNull
@@ -54,5 +56,10 @@ public class NlPaletteItem {
   @NotNull
   public String getTooltip() {
     return myTooltip;
+  }
+
+  @NotNull
+  public String getRepresentation() {
+    return myRepresentation;
   }
 }
