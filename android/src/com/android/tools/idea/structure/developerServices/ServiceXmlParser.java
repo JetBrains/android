@@ -51,6 +51,7 @@ import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
@@ -195,6 +196,25 @@ import java.util.regex.Pattern;
     }
   }
 
+  @NotNull
+  private void initializeService(@NotNull File initializeFile) {
+    InitializeXmlParser initializeXmlParser = new InitializeXmlParser(myModule, myContext);
+
+    try {
+      InputSource xmlSource = new InputSource(new FileInputStream(initializeFile));
+      SAXParserFactory.newInstance().newSAXParser().parse(xmlSource, initializeXmlParser);
+    }
+    catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+    catch (SAXException e) {
+      throw new RuntimeException(e);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private void parseServiceTag(@NotNull Attributes attributes) {
     String format = requireAttr(attributes, Schema.Service.ATTR_FORMAT);
     try {
@@ -215,6 +235,7 @@ import java.util.regex.Pattern;
     String learnLink = attributes.getValue(Schema.Service.ATTR_LEARN_MORE);
     String apiLink = attributes.getValue(Schema.Service.ATTR_API_DOCS);
 
+    initializeService(new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_INITIALIZE)));
     myRecipeFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_EXECUTE));
 
     try {
@@ -482,6 +503,7 @@ import java.util.regex.Pattern;
       public static final String ATTR_EXECUTE = "execute";
       public static final String ATTR_FORMAT = "format";
       public static final String ATTR_ICON = "icon";
+      public static final String ATTR_INITIALIZE = "initialize";
       public static final String ATTR_LEARN_MORE = "learnMore";
       public static final String ATTR_MIN_API = "minApi";
       public static final String ATTR_NAME = "name";
