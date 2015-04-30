@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -38,9 +41,9 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandler {
@@ -58,17 +61,25 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
       if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
         NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
         NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
+        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixGradleModelVersionHyperlink(false);
 
-        String newMsg = firstLine + "\nPossible causes:<ul>" +
-                        String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
-                                      project.getName()) + gradleSettingsHyperlink.toHtml() + "</li>"  +
-                        "<li>The build file may be missing a Gradle plugin.\n" +  applyGradlePluginHyperlink.toHtml() + "</li>";
+        String newMsg = firstLine + "\nPossible causes:<ul>";
+        if (!gradleModelIsRecent(project)) {
+          newMsg = newMsg +
+                   String.format("<li>The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
+                                 " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n",
+                                 project.getName()) + upgradeAndroidPluginHyperlink.toHtml() + "</li>";
+        }
+        newMsg = newMsg +
+                 String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
+                               project.getName()) + gradleSettingsHyperlink.toHtml() + "</li>" +
+                               "<li>The build file may be missing a Gradle plugin.\n" + applyGradlePluginHyperlink.toHtml() + "</li>";
         String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
         notification.setTitle(title);
         notification.setMessage(newMsg);
         notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
 
-        addNotificationListener(notification, project, gradleSettingsHyperlink, applyGradlePluginHyperlink);
+        addNotificationListener(notification, project, gradleSettingsHyperlink, applyGradlePluginHyperlink, upgradeAndroidPluginHyperlink);
       }
       else if (virtualFile != null && notification.getLine() > 0 && notification.getNavigatable() == null) {
         OpenFileDescriptor descriptor =
@@ -101,6 +112,15 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
       }
     }
     return new OpenGradleSettingsHyperlink();
+  }
+
+  private static boolean gradleModelIsRecent(@NotNull Project project) {
+    // Sync has failed, so we can only check the build file.
+    FullRevision fromBuildFile = getAndroidGradleModelVersionFromBuildFile(project);
+    if (fromBuildFile != null) {
+      return fromBuildFile.compareTo(PreciseRevision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION)) >= 0;
+    }
+    return false;
   }
 
   private static boolean isUsingWrapper(@NotNull Project project) {
