@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.prefs.AndroidLocation;
@@ -23,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.avdmanager.EmulatorRunner;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.GradleSyncState;
@@ -34,7 +32,6 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
@@ -57,17 +54,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -77,25 +71,19 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
-import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.ThreeState;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
-import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,12 +92,26 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_EMULATOR;
+import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ArrayUtilRt.find;
+import static org.jetbrains.android.compiler.AndroidCompileUtil.generate;
+import static org.jetbrains.android.facet.AndroidRootUtil.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+import static org.jetbrains.android.util.AndroidCommonUtils.toolPath;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
+import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
  * @author yole
  */
-public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
+public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacet");
 
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<AndroidFacet>("android");
@@ -294,7 +296,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Returns the name of the build type
+   * @return the name of the build type
    */
   @Nullable
   public String getBuildTypeName() {
@@ -318,7 +320,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
         assert productFlavor != null;
         providers.add(productFlavor.getSourceProvider());
       }
-
       return providers;
     } else {
       return null;
@@ -326,10 +327,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getFlavorSourceProviders()} but typed for internal IntelliJ usage with
-   * {@link VirtualFile} instead of {@link File} references
+   * Like {@link #getFlavorSourceProviders()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
+   * references.
    *
-   * @return the flavor source providers or null in legacy projects
+   * @return the flavor source providers or {@code null} in legacy projects.
    */
   @Nullable
   public List<IdeaSourceProvider> getIdeaFlavorSourceProviders() {
@@ -373,7 +374,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   /**
    * Returns the source provider specific to the flavor combination, if any.
    *
-   * @return the source provider or null
+   * @return the source provider or {@code null}.
    */
   @Nullable
   public SourceProvider getMultiFlavorSourceProvider() {
@@ -390,10 +391,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getMultiFlavorSourceProvider()} but typed for internal IntelliJ usage with
-   * {@link VirtualFile} instead of {@link File} references
+   * Like {@link #getMultiFlavorSourceProvider()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
+   * references.
    *
-   * @return the flavor source providers or null in legacy projects
+   * @return the flavor source providers or {@code null} in legacy projects.
    */
   @Nullable
   public IdeaSourceProvider getIdeaMultiFlavorSourceProvider() {
@@ -425,10 +426,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getVariantSourceProvider()} but typed for internal IntelliJ usage with
-   * {@link VirtualFile} instead of {@link File} references
+   * Like {@link #getVariantSourceProvider()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
+   * references.
    *
-   * @return the flavor source providers or null in legacy projects
+   * @return the flavor source providers or {@code null} in legacy projects.
    */
   @Nullable
   public IdeaSourceProvider getIdeaVariantSourceProvider() {
@@ -461,11 +462,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public boolean isGeneratedFileRemoved(@NotNull AndroidAutogeneratorMode mode) {
     synchronized (myAutogeneratedFiles) {
-      final Set<String> filePaths = myAutogeneratedFiles.get(mode);
+      Set<String> filePaths = myAutogeneratedFiles.get(mode);
 
       if (filePaths != null) {
         for (String path : filePaths) {
-          final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+          VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
 
           if (file == null) {
             return true;
@@ -478,7 +479,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public void clearAutogeneratedFiles(@NotNull AndroidAutogeneratorMode mode) {
     synchronized (myAutogeneratedFiles) {
-      final Set<String> set = myAutogeneratedFiles.get(mode);
+      Set<String> set = myAutogeneratedFiles.get(mode);
       if (set != null) {
         set.clear();
       }
@@ -490,7 +491,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Set<String> set = myAutogeneratedFiles.get(mode);
 
       if (set == null) {
-        set = new HashSet<String>();
+        set = Sets.newHashSet();
         myAutogeneratedFiles.put(mode, set);
       }
       set.add(file.getPath());
@@ -500,8 +501,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public Set<String> getAutogeneratedFiles(@NotNull AndroidAutogeneratorMode mode) {
     synchronized (myAutogeneratedFiles) {
-      final Set<String> set = myAutogeneratedFiles.get(mode);
-      return set != null ? new HashSet<String>(set) : Collections.<String>emptySet();
+      Set<String> set = myAutogeneratedFiles.get(mode);
+      return set != null ? Sets.newHashSet(set) : Collections.<String>emptySet();
     }
   }
 
@@ -544,16 +545,18 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return false;
   }
 
+  @NotNull
   public AvdInfo[] getValidCompatibleAvds() {
     AvdManager manager = getAvdManagerSilently();
-    List<AvdInfo> result = new ArrayList<AvdInfo>();
+    List<AvdInfo> result = Lists.newArrayList();
     if (manager != null && reloadAvds(manager)) {
       addCompatibleAvds(result, manager.getValidAvds());
     }
     return result.toArray(new AvdInfo[result.size()]);
   }
 
-  private AvdInfo[] addCompatibleAvds(List<AvdInfo> to, @NotNull AvdInfo[] from) {
+  @NotNull
+  private AvdInfo[] addCompatibleAvds(@NotNull List<AvdInfo> to, @NotNull AvdInfo[] from) {
     AndroidVersion minSdk = AndroidModuleInfo.get(this).getRuntimeMinSdkVersion();
     AndroidPlatform platform = getConfiguration().getAndroidPlatform();
     if (platform == null) {
@@ -610,7 +613,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * Returns a target from a hash that was generated by {@link IAndroidTarget#hashString()}.
    *
    * @param hash the {@link IAndroidTarget} hash string.
-   * @return The matching {@link IAndroidTarget} or null.
+   * @return The matching {@link IAndroidTarget} or {@code null}.
    */
   @Nullable
   public IAndroidTarget getTargetFromHashString(@NotNull String hash) {
@@ -618,9 +621,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
   }
 
-  public void launchEmulator(@Nullable final String avdName, @NotNull final String commands) {
+  public void launchEmulator(@Nullable String avdName, @NotNull String commands) {
     File sdkLocation = null;
-    if (Projects.isGradleProject(getModule().getProject()) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (Projects.isGradleProject(getModule().getProject()) && isAndroidStudio()) {
       sdkLocation = IdeSdks.getAndroidSdkPath();
     }
     else {
@@ -631,8 +634,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     if (sdkLocation != null) {
-      File emulatorPath = new File(sdkLocation, AndroidCommonUtils.toolPath(SdkConstants.FN_EMULATOR));
-      final GeneralCommandLine commandLine = new GeneralCommandLine();
+      File emulatorPath = new File(sdkLocation, toolPath(FN_EMULATOR));
+      GeneralCommandLine commandLine = new GeneralCommandLine();
       commandLine.setExePath(emulatorPath.getPath());
       if (avdName != null) {
         commandLine.addParameter("-avd");
@@ -667,7 +670,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     ourDynamicTemplateMenuCreated = true;
     DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
     newGroup.addSeparator();
-    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
+    ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
 
     if (menu != null) {
       newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
@@ -695,10 +698,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
                 return;
               }
 
-              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
-              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);
-              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.RENDERSCRIPT);
-              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.BUILDCONFIG);
+              generate(module, AndroidAutogeneratorMode.AAPT);
+              generate(module, AndroidAutogeneratorMode.AIDL);
+              generate(module, AndroidAutogeneratorMode.RENDERSCRIPT);
+              generate(module, AndroidAutogeneratorMode.BUILDCONFIG);
 
               activateSourceAutogenerating();
             }
@@ -710,16 +713,16 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       private Sdk myPrevSdk;
 
       @Override
-      public void rootsChanged(final ModuleRootEvent event) {
+      public void rootsChanged(ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
             if (isDisposed()) {
               return;
             }
-            final ModuleRootManager rootManager = ModuleRootManager.getInstance(getModule());
+            ModuleRootManager rootManager = ModuleRootManager.getInstance(getModule());
 
-            final Sdk newSdk = rootManager.getSdk();
+            Sdk newSdk = rootManager.getSdk();
             if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
               androidPlatformChanged();
 
@@ -736,36 +739,30 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private void addResourceFolderToSdkRootsIfNecessary() {
-    final Sdk sdk = ModuleRootManager.getInstance(getModule()).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
+    Sdk sdk = ModuleRootManager.getInstance(getModule()).getSdk();
+    if (sdk == null || !isAndroidSdk(sdk)) {
       return;
     }
 
-    final SdkAdditionalData data = sdk.getSdkAdditionalData();
-    if (!(data instanceof AndroidSdkAdditionalData)) {
-      return;
-    }
-
-    final AndroidPlatform platform = ((AndroidSdkAdditionalData)data).getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
     if (platform == null) {
       return;
     }
 
-    final String resFolderPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
+    String resFolderPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
     if (resFolderPath == null) {
       return;
     }
-    final List<VirtualFile> filesToAdd = new ArrayList<VirtualFile>();
+    List<VirtualFile> filesToAdd = Lists.newArrayList();
 
-    final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(resFolderPath));
+    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(resFolderPath));
     if (resFolder != null) {
       filesToAdd.add(resFolder);
     }
 
     if (platform.needToAddAnnotationsJarToClasspath()) {
-      final String sdkHomePath = FileUtil.toSystemIndependentName(platform.getSdkData().getLocation().getPath());
-      final VirtualFile annotationsJar = JarFileSystem.getInstance().findFileByPath(
-        sdkHomePath + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH + JarFileSystem.JAR_SEPARATOR);
+      String sdkHomePath = toSystemIndependentName(platform.getSdkData().getLocation().getPath());
+      VirtualFile annotationsJar = JarFileSystem.getInstance().findFileByPath(sdkHomePath + ANNOTATIONS_JAR_RELATIVE_PATH + JAR_SEPARATOR);
       if (annotationsJar != null) {
         filesToAdd.add(annotationsJar);
       }
@@ -775,11 +772,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private static void addFilesToSdkIfNecessary(@NotNull Sdk sdk, @NotNull Collection<VirtualFile> files) {
-    final List<VirtualFile> newFiles = new ArrayList<VirtualFile>(files);
+    List<VirtualFile> newFiles = Lists.newArrayList(files);
     newFiles.removeAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
 
     if (newFiles.size() > 0) {
-      final SdkModificator modificator = sdk.getSdkModificator();
+      SdkModificator modificator = sdk.getSdkModificator();
 
       for (VirtualFile file : newFiles) {
         modificator.addRoot(file, OrderRootType.CLASSES);
@@ -807,17 +804,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Nullable
-  public static AndroidFacet getInstance(@NotNull final PsiElement element) {
-    Module module = AndroidPsiUtils.getModuleSafely(element);
-    if (module == null) return null;
-    return getInstance(module);
+  public static AndroidFacet getInstance(@NotNull PsiElement element) {
+    Module module = getModuleSafely(element);
+    return module != null ? getInstance(module) : null;
   }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull DomElement element) {
     Module module = element.getModule();
-    if (module == null) return null;
-    return getInstance(module);
+    return module != null ? getInstance(module) : null;
   }
 
   @Nullable
@@ -837,22 +832,22 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private static boolean isInAndroidSdk(@NonNull PsiElement element) {
-    final PsiFile file = element.getContainingFile();
+    PsiFile file = element.getContainingFile();
 
     if (file == null) {
       return false;
     }
-    final VirtualFile vFile = file.getVirtualFile();
+    VirtualFile virtualFile = file.getVirtualFile();
 
-    if (vFile == null) {
+    if (virtualFile == null) {
       return false;
     }
-    final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
-    final List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(vFile);
+    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(virtualFile);
 
     for (OrderEntry entry : entries) {
       if (entry instanceof JdkOrderEntry) {
-        final Sdk sdk = ((JdkOrderEntry)entry).getJdk();
+        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
 
         if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
           return true;
@@ -899,16 +894,16 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public Manifest getManifest() {
     File manifestIoFile = getMainSourceProvider().getManifestFile();
 
-    final VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
-    if (manifestFile == null) return null;
-    return AndroidUtils.loadDomElement(getModule(), manifestFile, Manifest.class);
+    VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
+    return manifestFile != null ? loadDomElement(getModule(), manifestFile, Manifest.class) : null;
   }
 
+  @NotNull
   public static AndroidFacetType getFacetType() {
     return (AndroidFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
   }
 
-  // todo: correctly support classes from external non-platform jars
+  // TODO: correctly support classes from external non-platform jars
   @NotNull
   public Map<String, PsiClass> getClassMap(@NotNull final String className, @NotNull final ClassMapConstructor constructor) {
     synchronized (myClassMapLock) {
@@ -920,7 +915,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           @Nullable
           @Override
           public Result<Map<String, PsiClass>> compute() {
-            final Map<String, PsiClass> map = computeClassMap(className, constructor);
+            Map<String, PsiClass> map = computeClassMap(className, constructor);
             return Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
           }
         }, false);
@@ -933,17 +928,17 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   private Map<String, PsiClass> computeClassMap(@NotNull String className, @NotNull ClassMapConstructor constructor) {
     Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, constructor, false);
-    final Map<String, PsiClass> result = new HashMap<String, PsiClass>();
+    Map<String, PsiClass> result = Maps.newHashMap();
     boolean shouldRebuildInitialMap = false;
 
-    for (final String key : classMap.keySet()) {
-      final SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
+    for (String key : classMap.keySet()) {
+      SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
 
       if (!isUpToDate(pointer, key, constructor)) {
         shouldRebuildInitialMap = true;
         break;
       }
-      final PsiClass aClass = pointer.getElement();
+      PsiClass aClass = pointer.getElement();
 
       if (aClass != null) {
         result.put(key, aClass);
@@ -954,27 +949,27 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       result.clear();
       classMap = getInitialClassMap(className, constructor, true);
 
-      for (final String key : classMap.keySet()) {
-        final SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-        final PsiClass aClass = pointer.getElement();
+      for (String key : classMap.keySet()) {
+        SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
+        PsiClass aClass = pointer.getElement();
 
         if (aClass != null) {
           result.put(key, aClass);
         }
       }
     }
-    final Project project = getModule().getProject();
+    Project project = getModule().getProject();
     fillMap(className, constructor, ProjectScope.getProjectScope(project), result, false);
     return result;
   }
 
   private static boolean isUpToDate(SmartPsiElementPointer<PsiClass> pointer, String tagName, ClassMapConstructor constructor) {
-    final PsiClass aClass = pointer.getElement();
+    PsiClass aClass = pointer.getElement();
     if (aClass == null) {
       return false;
     }
-    final String[] tagNames = constructor.getTagNamesByClass(aClass);
-    return ArrayUtilRt.find(tagNames, tagName) >= 0;
+    String[] tagNames = constructor.getTagNamesByClass(aClass);
+    return find(tagNames, tagName) >= 0;
   }
 
   @NotNull
@@ -983,11 +978,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
                                                                            boolean forceRebuild) {
     Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myInitialClassMaps.get(className);
     if (viewClassMap != null && !forceRebuild) return viewClassMap;
-    final HashMap<String, PsiClass> map = new HashMap<String, PsiClass>();
+    Map<String, PsiClass> map = Maps.newHashMap();
 
     if (fillMap(className, constructor, getModule().getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
-      viewClassMap = new HashMap<String, SmartPsiElementPointer<PsiClass>>(map.size());
-      final SmartPointerManager manager = SmartPointerManager.getInstance(getModule().getProject());
+      viewClassMap = Maps.newHashMapWithExpectedSize(map.size());
+      SmartPointerManager manager = SmartPointerManager.getInstance(getModule().getProject());
 
       for (Map.Entry<String, PsiClass> entry : map.entrySet()) {
         viewClassMap.put(entry.getKey(), manager.createSmartPsiElementPointer(entry.getValue()));
@@ -1001,11 +996,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private boolean fillMap(@NotNull final String className,
                           @NotNull final ClassMapConstructor constructor,
-                          GlobalSearchScope scope,
+                          @NotNull GlobalSearchScope scope,
                           final Map<String, PsiClass> map,
                           final boolean libClassesOnly) {
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(getModule().getProject());
-    final PsiClass baseClass = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
+    PsiClass baseClass = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
       @Override
       @Nullable
       public PsiClass compute() {
@@ -1041,13 +1036,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
 
-  public void scheduleSourceRegenerating(@NotNull final AndroidAutogeneratorMode mode) {
+  public void scheduleSourceRegenerating(@NotNull AndroidAutogeneratorMode mode) {
     synchronized (myDirtyModes) {
       myDirtyModes.add(mode);
     }
   }
 
-  public boolean cleanRegeneratingState(@NotNull final AndroidAutogeneratorMode mode) {
+  public boolean cleanRegeneratingState(@NotNull AndroidAutogeneratorMode mode) {
     synchronized (myDirtyModes) {
       return myDirtyModes.remove(mode);
     }
@@ -1233,29 +1228,29 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @Override
     public File getManifestFile() {
       Module module = getModule();
-      VirtualFile manifestFile = AndroidRootUtil.getFileByRelativeModulePath(module, getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+      VirtualFile manifestFile = getFileByRelativeModulePath(module, getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
       if (manifestFile == null) {
         VirtualFile root = !isGradleProject() ? AndroidRootUtil.getMainContentRoot(AndroidFacet.this) : null;
         if (root != null) {
-          return new File(VfsUtilCore.virtualToIoFile(root), SdkConstants.ANDROID_MANIFEST_XML);
+          return new File(virtualToIoFile(root), ANDROID_MANIFEST_XML);
         } else {
-          return new File(SdkConstants.ANDROID_MANIFEST_XML);
+          return new File(ANDROID_MANIFEST_XML);
         }
       } else {
-        return VfsUtilCore.virtualToIoFile(manifestFile);
+        return virtualToIoFile(manifestFile);
       }
     }
 
     @NonNull
     @Override
     public Set<File> getJavaDirectories() {
-      Set<File> dirs = new HashSet<File>();
+      Set<File> dirs = Sets.newHashSet();
 
-      final Module module = getModule();
-      final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+      Module module = getModule();
+      VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
       if (contentRoots.length != 0) {
         for (VirtualFile root : contentRoots) {
-          dirs.add(VfsUtilCore.virtualToIoFile(root));
+          dirs.add(virtualToIoFile(root));
         }
       }
       return dirs;
@@ -1270,30 +1265,30 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @NonNull
     @Override
     public Set<File> getAidlDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getAidlGenDir(AndroidFacet.this);
-      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      final VirtualFile dir = getAidlGenDir(AndroidFacet.this);
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getRenderscriptDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(AndroidFacet.this);
-      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(AndroidFacet.this);
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getResDirectories() {
       String resRelPath = getProperties().RES_FOLDER_RELATIVE_PATH;
-      final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(getModule(), resRelPath, true);
-      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      VirtualFile dir =  getFileByRelativeModulePath(getModule(), resRelPath, true);
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getAssetsDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getAssetsDir(AndroidFacet.this);
-      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      final VirtualFile dir = getAssetsDir(AndroidFacet.this);
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(virtualToIoFile(dir));
     }
 
     @NonNull

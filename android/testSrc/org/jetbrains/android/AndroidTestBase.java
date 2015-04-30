@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
+
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
   /** Environment variable or system property containing the full path to an SDK install */
@@ -233,7 +235,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
     Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {

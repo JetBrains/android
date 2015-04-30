@@ -19,7 +19,6 @@ import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -279,9 +278,7 @@ public class AndroidLintTest extends AndroidTestCase {
         return;
       }
       Sdk androidSdk = createAndroidSdk(recentSdkPath, platformDir);
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
-      assertNotNull(data);
-      AndroidPlatform androidPlatform = data.getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.
       AndroidSdkUtils.setSdkData(androidPlatform.getSdkData());

@@ -522,7 +522,7 @@ public class PostProjectSetupTasksExecutor {
         Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
         if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
           // First try to recreate SDK; workaround for issue 78072
-          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
           AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
           if (additionalData != null && sdkData != null) {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
@@ -588,7 +588,7 @@ public class PostProjectSetupTasksExecutor {
    */
   private static boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
     if (isAndroidSdk(sdk)) {
-      AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
       boolean needsAnnotationsJar = false;
       if (additionalData != null && sdkData != null) {
@@ -615,9 +615,9 @@ public class PostProjectSetupTasksExecutor {
     List<String> missingPlatforms = Lists.newArrayList();
 
     for (Sdk sdk : invalidAndroidSdks) {
-      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
-      if (additionalData instanceof AndroidSdkAdditionalData) {
-        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
+      AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+      if (additionalData != null) {
+        String platform = additionalData.getBuildTargetHashString();
         if (platform != null) {
           missingPlatforms.add("'" + platform + "'");
           AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
