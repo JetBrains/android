@@ -22,11 +22,40 @@ import org.jdom.input.SAXBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-public class NlComponentModelTest extends TestCase {
+public class NlPaletteModelTest extends TestCase {
   private NlPaletteModel model = new NlPaletteModel();
+
+  @Language("XML")
+  private static final String FRAME_LAYOUT_CREATION =
+    "<FrameLayout\n" +
+    "  android:layout_width=\"match_parent\"\n" +
+    "  android:layout_height=\"match_parent\">\n" +
+    "</FrameLayout>";
+
+  @Language("XML")
+  private static final String HORIZONTAL_LINEAR_LAYOUT_CREATION =
+    "<LinearLayout\n" +
+    "  android:layout_width=\"match_parent\"\n" +
+    "  android:layout_height=\"match_parent\">\n" +
+    "</LinearLayout>";
+
+  @Language("XML")
+  private static final String VERTICAL_LINEAR_LAYOUT_CREATION =
+    "<LinearLayout\n" +
+    "  android:orientation=\"vertical\"\n" +
+    "  android:layout_width=\"match_parent\"\n" +
+    "  android:layout_height=\"match_parent\">\n" +
+    "</LinearLayout>";
+
+  @Language("XML")
+  private static final String CONSTRAINT_LAYOUT_CREATION =
+    "<ConstraintLayout\n" +
+    "  android:layout_width=\"match_parent\"\n" +
+    "  android:layout_height=\"match_parent\">\n" +
+    "</ConstraintLayout>";
 
   @Language("XML")
   private static final String SINGLE_GROUP_WITH_ITEM_OVERRIDES =
@@ -42,13 +71,8 @@ public class NlComponentModelTest extends TestCase {
     "              icon=\"AndroidIcons.Views.VerticalLinearLayout\"\n" +
     "              tooltip=\"A Layout for a single column.\">\n" +
     "          <creation>\n" +
-    "            <![CDATA[\n" +
-    "            <LinearLayout\n" +
-    "              android:orientation=\"vertical\"\n" +
-    "              android:layout_width=\"match_parent\"\n" +
-    "              android:layout_height=\"match_parent\">\n" +
-    "            </LinearLayout>\n" +
-    "        ]]>\n" +
+    "            <![CDATA[\n" + VERTICAL_LINEAR_LAYOUT_CREATION +
+    "            ]]>\n" +
     "          </creation>\n" +
     "        </item>\n" +
     "      </item>\n" +
@@ -71,11 +95,7 @@ public class NlComponentModelTest extends TestCase {
     "        />\n" +
     "\n" +
     "    <creation>\n" +
-    "      <![CDATA[\n" +
-    "          <FrameLayout\n" +
-    "            android:layout_width=\"match_parent\"\n" +
-    "            android:layout_height=\"match_parent\">\n" +
-    "          </FrameLayout>\n" +
+    "      <![CDATA[\n" + FRAME_LAYOUT_CREATION +
     "      ]]>\n" +
     "    </creation>\n" +
     "  </meta>\n" +
@@ -101,23 +121,20 @@ public class NlComponentModelTest extends TestCase {
     "        />\n" +
     "\n" +
     "    <creation>\n" +
-    "      <![CDATA[\n" +
-    "          <LinearLayout\n" +
-    "            android:orientation=\"horizontal\"\n" +
-    "            android:layout_width=\"match_parent\"\n" +
-    "            android:layout_height=\"match_parent\">\n" +
-    "          </LinearLayout>\n" +
+    "      <![CDATA[\n" + HORIZONTAL_LINEAR_LAYOUT_CREATION +
     "      ]]>\n" +
     "    </creation>\n" +
     "  </meta>\n" +
     "\n" +
     "</meta-model>";
 
-  private static final List<NlPaletteGroup> GROUP_WITH_ITEM_OVERRIDES = Arrays.asList(
+  private static final List<NlPaletteGroup> GROUP_WITH_ITEM_OVERRIDES = Collections.singletonList(
     makeGroup("Layouts",
-              new NlPaletteItem("FrameLayout", "AndroidIcons.Views.FrameLayout", "A Layout for a single item."),
-              new NlPaletteItem("LinearLayout (Horizontal)", "AndroidIcons.Views.LinearLayout", "A Layout for a single row."),
-              new NlPaletteItem("LinearLayout (Vertical)", "AndroidIcons.Views.VerticalLinearLayout", "A Layout for a single column."))
+              new NlPaletteItem("FrameLayout", "AndroidIcons.Views.FrameLayout", "A Layout for a single item.", FRAME_LAYOUT_CREATION),
+              new NlPaletteItem("LinearLayout (Horizontal)", "AndroidIcons.Views.LinearLayout", "A Layout for a single row.",
+                                HORIZONTAL_LINEAR_LAYOUT_CREATION),
+              new NlPaletteItem("LinearLayout (Vertical)", "AndroidIcons.Views.VerticalLinearLayout", "A Layout for a single column.",
+                                VERTICAL_LINEAR_LAYOUT_CREATION))
   );
 
   public void testSingleGroupWithItemOverrides() throws Exception {
@@ -150,11 +167,7 @@ public class NlComponentModelTest extends TestCase {
     "        />\n" +
     "\n" +
     "    <creation>\n" +
-    "      <![CDATA[\n" +
-    "          <FrameLayout\n" +
-    "            android:layout_width=\"match_parent\"\n" +
-    "            android:layout_height=\"match_parent\">\n" +
-    "          </FrameLayout>\n" +
+    "      <![CDATA[\n" + FRAME_LAYOUT_CREATION +
     "      ]]>\n" +
     "    </creation>\n" +
     "  </meta>\n" +
@@ -179,12 +192,7 @@ public class NlComponentModelTest extends TestCase {
     "        />\n" +
     "\n" +
     "    <creation>\n" +
-    "      <![CDATA[\n" +
-    "          <LinearLayout\n" +
-    "            android:orientation=\"horizontal\"\n" +
-    "            android:layout_width=\"match_parent\"\n" +
-    "            android:layout_height=\"match_parent\">\n" +
-    "          </LinearLayout>\n" +
+    "      <![CDATA[\n" + HORIZONTAL_LINEAR_LAYOUT_CREATION +
     "      ]]>\n" +
     "    </creation>\n" +
     "  </meta>\n" +
@@ -204,19 +212,15 @@ public class NlComponentModelTest extends TestCase {
     "        />\n" +
     "\n" +
     "    <creation>\n" +
-    "      <![CDATA[\n" +
-    "          <FrameLayout\n" +
-    "            android:layout_width=\"match_parent\"\n" +
-    "            android:layout_height=\"match_parent\">\n" +
-    "          </FrameLayout>\n" +
+    "      <![CDATA[\n" + CONSTRAINT_LAYOUT_CREATION +
     "      ]]>\n" +
     "    </creation>\n" +
     "  </meta>\n" +
     "\n" +
     "</meta-model>";
 
-  private static final List<NlPaletteGroup> GROUP_WITH_MISSING_DATA = Arrays.asList(
-    makeGroup("Layouts", new NlPaletteItem("ConstraintLayout", "", ""))
+  private static final List<NlPaletteGroup> GROUP_WITH_MISSING_DATA = Collections.singletonList(
+    makeGroup("Layouts", new NlPaletteItem("ConstraintLayout", "", "", CONSTRAINT_LAYOUT_CREATION))
   );
 
   public void testGroupWithMissingData() throws Exception {
@@ -233,7 +237,7 @@ public class NlComponentModelTest extends TestCase {
     return group;
   }
 
-  private void assertGroupsEquals(List<NlPaletteGroup> expectedGroups, List<NlPaletteGroup> actualGroups) {
+  private static void assertGroupsEquals(List<NlPaletteGroup> expectedGroups, List<NlPaletteGroup> actualGroups) {
     for (int i=0; i<expectedGroups.size(); i++) {
       if (i >= actualGroups.size()) {
         break;
@@ -241,7 +245,7 @@ public class NlComponentModelTest extends TestCase {
       NlPaletteGroup expectedGroup = expectedGroups.get(i);
       NlPaletteGroup actualGroup = actualGroups.get(i);
       assertEquals(String.format("group[%d].title", i), expectedGroup.getTitle(), actualGroup.getTitle());
-      for (int j=0; i<expectedGroup.getItems().size(); j++) {
+      for (int j=0; j<expectedGroup.getItems().size(); j++) {
         if (j >= actualGroup.getItems().size()) {
           break;
         }
@@ -250,13 +254,14 @@ public class NlComponentModelTest extends TestCase {
         assertEquals(String.format("group[%d].item[%d].title", i, j), expectedItem.getTitle(), actualItem.getTitle());
         assertEquals(String.format("group[%d].item[%d].icon", i, j), expectedItem.getIconPath(), actualItem.getIconPath());
         assertEquals(String.format("group[%d].item[%d].tooltip", i, j), expectedItem.getTooltip(), actualItem.getTooltip());
+        assertEquals(String.format("group[%d].item[%d].creation", i, j), expectedItem.getRepresentation(), actualItem.getRepresentation().trim());
       }
       assertEquals(String.format("group[%d].items.length", i), expectedGroup.getItems().size(), actualGroup.getItems().size());
     }
     assertEquals("groups.length", expectedGroups.size(), actualGroups.size());
   }
 
-  private Document loadDocument(String xml) throws Exception {
+  private static Document loadDocument(String xml) throws Exception {
     return new SAXBuilder().build(new StringReader(xml));
   }
 }
