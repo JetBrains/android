@@ -20,6 +20,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +48,11 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
   }
 
   @NotNull
+  public JComponent getFocusedComponent() {
+    return myTree;
+  }
+
+  @NotNull
   private static DnDAwareTree createTree(@NotNull NlPaletteModel model) {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -63,6 +69,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
     addData(model, rootNode);
     expandAll(tree, rootNode);
     tree.setSelectionRow(0);
+    new PaletteSpeedSearch(tree);
     return tree;
   }
 
@@ -87,13 +94,14 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
                                         int row,
                                         boolean hasFocus) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-        if (leaf) {
+        Object content = node.getUserObject();
+        if (content != null && content.getClass().equals(NlPaletteItem.class)) {
           NlPaletteItem item = (NlPaletteItem)node.getUserObject();
           append(item.getTitle());
           setIcon(item.getIcon());
           setToolTipText(item.getTooltip());
         }
-        else {
+        else if (content != null && content.getClass().equals(NlPaletteGroup.class)) {
           NlPaletteGroup group = (NlPaletteGroup)node.getUserObject();
           if (group != null) {
             append(group.getTitle());
@@ -121,5 +129,26 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent {
 
   @Override
   public void dispose() {
+  }
+
+  private static final class PaletteSpeedSearch extends TreeSpeedSearch {
+    PaletteSpeedSearch(@NotNull JTree tree) {
+      super(tree);
+    }
+
+    @Override
+    protected boolean isMatchingElement(Object element, String pattern) {
+      if (element == null || pattern == null) {
+        return false;
+      }
+      TreePath path = (TreePath)element;
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+      Object content = node.getUserObject();
+      if (content == null || !content.getClass().equals(NlPaletteItem.class)) {
+        return false;
+      }
+      NlPaletteItem item = (NlPaletteItem)content;
+      return compare(item.getTitle(), pattern);
+    }
   }
 }
