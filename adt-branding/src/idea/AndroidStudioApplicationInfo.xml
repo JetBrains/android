@@ -20,14 +20,11 @@
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
-  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png"/>
+  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size12="/artwork/toolWindowProject_AS.png"/>
   <package code="__PACKAGE_CODE__"/>
   <names product="Android Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 
-  <welcome-screen logo-url="/artwork/welcome.png"
-                  caption-url="/welcomeCaption_community.png"
-                  slogan-url="/developSlogan_community.png"/>
-
+  <welcome-screen logo-url="/artwork/welcome.png"/>
   <editor background-url="/artwork/studio_logo_background.png"/>
 
   <plugins url="http://plugins.jetbrains.com"/>
