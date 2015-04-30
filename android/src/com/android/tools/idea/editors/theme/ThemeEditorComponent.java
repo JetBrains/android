@@ -736,7 +736,8 @@ public class ThemeEditorComponent extends Splitter {
           "textColorSecondaryInverse",
           "colorBackground",
           "windowBackground",
-          "navigationBarColor");
+          "navigationBarColor",
+          "statusBarColor");
 
     public SimpleModeFilter() {
       myIsFilterEnabled = true;
