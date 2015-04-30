@@ -103,6 +103,10 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
     new RunAndroidSdkManagerAction().doRunTool(project, sdkHome.getPath());
   }
 
+  public static void runSpecificSdkManagerSynchronously(@Nullable Project project, @NotNull File sdkHome) {
+    new SdkManagerRunner(sdkHome.getPath(), null, project).run();
+  }
+
   @Override
   protected void doRunTool(@Nullable final Project project, @NotNull final String sdkPath) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -115,60 +119,74 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
 
   private static void launchExternalSdkManager(@Nullable final Project project, @NotNull final String sdkPath) {
-    final ProgressWindow p = new ProgressWindow(false, true, project);
+    ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final String toolPath = sdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
-        GeneralCommandLine commandLine = new GeneralCommandLine();
-        commandLine.setExePath(toolPath);
-        commandLine.addParameter("sdk");
+    ApplicationManager.getApplication().executeOnPooledThread(new SdkManagerRunner(sdkPath, p, project));
+  }
 
-        final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
-        try {
-          if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(500)) ==
-              ExecutionStatus.TIMEOUT) {
+  private static class SdkManagerRunner implements Runnable {
+    private final String mySdkPath;
+    private final ProgressWindow myProgressWindow;
+    private final Project myProject;
 
-            // It takes about 2 seconds to start the SDK Manager on Windows. Display a small
-            // progress indicator otherwise it seems like the action wasn't invoked and users tend
-            // to click multiple times on it, ending up with several instances of the manager
-            // window.
+    private SdkManagerRunner(String sdkPath, ProgressWindow progressWindow, Project project) {
+      mySdkPath = sdkPath;
+      myProgressWindow = progressWindow;
+      myProject = project;
+    }
+
+
+    @Override
+    public void run() {
+      final String toolPath = mySdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
+      GeneralCommandLine commandLine = new GeneralCommandLine();
+      commandLine.setExePath(toolPath);
+      commandLine.addParameter("sdk");
+
+      final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
+      try {
+        if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(500)) ==
+            ExecutionStatus.TIMEOUT) {
+
+          // It takes about 2 seconds to start the SDK Manager on Windows. Display a small
+          // progress indicator otherwise it seems like the action wasn't invoked and users tend
+          // to click multiple times on it, ending up with several instances of the manager
+          // window.
+          if (myProgressWindow != null) {
             try {
-              p.start();
-              p.setText("Starting SDK Manager...");
+              myProgressWindow.start();
+              myProgressWindow.setText("Starting SDK Manager...");
               for (double d = 0; d < 1; d += 1.0 / 20) {
-                p.setFraction(d);
+                myProgressWindow.setFraction(d);
                 //noinspection BusyWait
                 Thread.sleep(100);
               }
             }
-            catch (InterruptedException ignore) {
+            catch(InterruptedException ignore){
             }
-            finally {
-              p.stop();
+            finally{
+              myProgressWindow.stop();
             }
-
-            return;
           }
-        }
-        catch (ExecutionException e) {
-          LOG.error(e);
           return;
         }
-
-        final String message = processor.getMessage();
-        if (message.toLowerCase().contains("error")) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showErrorDialog(project, "Cannot launch SDK manager.\nOutput:\n" + message, getName());
-            }
-          });
-        }
       }
-    });
+      catch (ExecutionException e) {
+        LOG.error(e);
+        return;
+      }
+
+      final String message = processor.getMessage();
+      if (message.toLowerCase().contains("error")) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            Messages.showErrorDialog(myProject, "Cannot launch SDK manager.\nOutput:\n" + message, getName());
+          }
+        });
+      }
+    }
   }
 }
