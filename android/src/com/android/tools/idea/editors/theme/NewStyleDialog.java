@@ -18,12 +18,16 @@ package com.android.tools.idea.editors.theme;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,11 +36,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class NewStyleDialog extends DialogWrapper {
-  private static final String OTHER = "Other ...";
-  private static final String DARK = "@android:style/Theme.Material.NoActionBar";
-  private static final String LIGHT = "@android:style/Theme.Material.Light.NoActionBar";
-  private static final String[] DEFAULT_COMBOBOX_OPTIONS = {DARK, LIGHT, OTHER};
-
   private final ResourceNameValidator myResourceNameValidator;
   private JPanel contentPane;
   private JTextField myStyleNameTextField;
@@ -51,13 +50,13 @@ public class NewStyleDialog extends DialogWrapper {
    * Creates a new style dialog. This dialog it's used both to create new themes and new styles.
    * @param isTheme Whether the new item will be a theme or a regular style. This will only affect the messages displayed to user.
    * @param configuration The current device configuration.
-   * @param defaultParentStyle The parent style that will be preselected in the parent text field.
+   * @param defaultParentName The parent style that will be preselected in the parent text field.
    * @param currentThemeName The current theme name. This is used to automatically generate style names suggestions.
    * @param message Message to display to the user when creating the new style.
    */
   public NewStyleDialog(boolean isTheme,
                         @NotNull final Configuration configuration,
-                        @Nullable String defaultParentStyle,
+                        @Nullable String defaultParentName,
                         @Nullable final String currentThemeName,
                         @Nullable String message) {
     super(true);
@@ -78,19 +77,25 @@ public class NewStyleDialog extends DialogWrapper {
     myParentStyleLabel.setText(String.format("Parent %1$s name:", styleTypeString));
     myEmptyStyleValidationText = String.format("You must specify a %1$s name", styleTypeString);
 
-    myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentStyle, currentThemeName));
+    myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentName, currentThemeName));
 
-    final DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel(DEFAULT_COMBOBOX_OPTIONS);
-    if (!(DARK.equals(defaultParentStyle) || LIGHT.equals(defaultParentStyle))) {
-      comboBoxModel.insertElementAt(defaultParentStyle, 0);
+    final ThemeResolver themeResolver = new ThemeResolver(configuration);
+    final ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
+    ThemeEditorStyle defaultParent = null;
+    if (defaultParentName != null) {
+      defaultParent = themeResolver.getTheme(defaultParentName);
     }
-    myParentStyleComboBox.setModel(comboBoxModel);
-    myParentStyleComboBox.setSelectedItem(defaultParentStyle);
+
+    //noinspection GtkPreferredJComboBoxRenderer
+    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(AndroidFacet.getInstance(configuration.getModule())));
+    final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemes, defaultParent);
+    myParentStyleComboBox.setModel(parentThemesListModel);
     myParentStyleComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
-        if (OTHER.equals(selectedValue)) {
+        Object selectedValue = myParentStyleComboBox.getSelectedItem();
+        ThemeEditorStyle selectedParent = null;
+        if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
           myParentStyleComboBox.hidePopup();
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
@@ -99,15 +104,22 @@ public class NewStyleDialog extends DialogWrapper {
           if (dialog.isOK()) {
             String myStyleParentName = dialog.getTheme();
             if (myStyleParentName != null) {
-              if (comboBoxModel.getIndexOf(myStyleParentName) != -1) {
-                comboBoxModel.removeElement(myStyleParentName);
-              }
-              comboBoxModel.insertElementAt(myStyleParentName, 0);
+              selectedParent = themeResolver.getTheme(myStyleParentName);
             }
           }
-          myParentStyleComboBox.setSelectedItem(comboBoxModel.getElementAt(0));
         }
-        myStyleNameTextField.setText(getNewStyleNameSuggestion((String)myParentStyleComboBox.getSelectedItem(), currentThemeName));
+        else if (selectedValue instanceof ThemeEditorStyle) {
+          selectedParent = (ThemeEditorStyle)selectedValue;
+        }
+        if (selectedParent == null) {
+          selectedParent = (ThemeEditorStyle)parentThemesListModel.getElementAt(0);
+        }
+        else if (!defaultThemes.contains(selectedParent)) {
+            parentThemesListModel.removeElement(selectedParent);
+            parentThemesListModel.insertElementAt(selectedParent, 0);
+        }
+        myParentStyleComboBox.setSelectedItem(selectedParent);
+        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedParent.getName(), currentThemeName));
       }
     });
 
@@ -148,7 +160,7 @@ public class NewStyleDialog extends DialogWrapper {
   }
 
   public String getStyleParentName() {
-    return (String)myParentStyleComboBox.getSelectedItem();
+    return ((ThemeEditorStyle)myParentStyleComboBox.getSelectedItem()).getName();
   }
 
   static String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
