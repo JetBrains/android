@@ -31,10 +31,7 @@ import java.util.List;
  * interaction can have a number of graphics {@link Layer}s which are added and
  * cleaned up on behalf of the interaction by the system.
  * <p/>
- * Interactions are typically mouse oriented. If a mouse wishes to integrate
- * with the native drag &amp; drop support, it should also implement
- * the {@link DropInteraction} interface, which is a sub interface of this
- * {@linkplain Interaction} interface. There are pros and cons to using native drag
+ * Interactions are typically mouse oriented. There are pros and cons to using native drag
  * &amp; drop, so various interactions will differ in whether they use it.
  * In particular, you should use drag &amp; drop if your interaction should:
  * <ul>

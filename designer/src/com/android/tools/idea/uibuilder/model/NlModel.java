@@ -17,11 +17,13 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.collect.Lists;
@@ -74,7 +76,8 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     return new NlModel(parent, facet, file);
   }
 
-  private NlModel(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+  @VisibleForTesting
+  protected NlModel(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
     myParent = parent;
     myFacet = facet;
     myFile = file;
@@ -261,7 +264,7 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
   private final Map<XmlTag,NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
   private final Map<XmlTag,NlComponent> myMergeComponentMap = Maps.newHashMap();
 
-  void updateHierarchy(@Nullable RenderResult result) {
+  private void updateHierarchy(@Nullable RenderResult result) {
     if (result == null || result.getSession() == null || !result.getSession().getResult().isSuccess()) {
       myComponents.clear();
       return;
@@ -269,7 +272,8 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     updateHierarchy(result.getSession().getRootViews());
   }
 
-  void updateHierarchy(@Nullable List<ViewInfo> rootViews) {
+  @VisibleForTesting
+  public void updateHierarchy(@Nullable List<ViewInfo> rootViews) {
     for (NlComponent component : myComponents) {
       initTagMap(component);
       component.children = null;
@@ -384,8 +388,19 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     return (tag != null) ? findViewsByTag(tag) : null;
   }
 
+  /**
+   * Looks up the point at the given pixel coordinates in the Android screen coordinate system, and
+   * finds the leaf component there and returns it, if any. If the point is outside the screen bounds,
+   * it will either return null, or the root view if {@code useRootOutsideBounds} is set and there is
+   * precisely one parent.
+   *
+   * @param x                    the x pixel coordinate
+   * @param y                    the y pixel coordinate
+   * @param useRootOutsideBounds if true, return the root component when pointing outside the screen, otherwise null
+   * @return the leaf component at the coordinate
+   */
   @Nullable
-  public NlComponent findLeafAt(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  public NlComponent findLeafAt(@AndroidCoordinate int x, @AndroidCoordinate int y, boolean useRootOutsideBounds) {
     // Search BACKWARDS such that if the children are painted on top of each
     // other (as is the case in a FrameLayout) I pick the last one which will
     // be topmost!
@@ -394,6 +409,17 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
       NlComponent leaf = component.findLeafAt(x, y);
       if (leaf != null) {
         return leaf;
+      }
+    }
+
+    if (useRootOutsideBounds) {
+      // If dragging outside of the screen, associate it with the
+      // root widget (if there is one, and at most one (e.g. not a <merge> tag)
+      List<NlComponent> components = myComponents;
+      if (components.size() == 1) {
+        return components.get(0);
+      } else {
+        return null;
       }
     }
 
@@ -497,12 +523,15 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     // Notify parent components about children getting deleted
     for (Map.Entry<NlComponent, List<NlComponent>> entry : siblingLists.entrySet()) {
       NlComponent parent = entry.getKey();
+      if (parent == null) {
+        continue;
+      }
       List<NlComponent> children = entry.getValue();
       boolean finished = false;
 
-      ViewHandler handler = viewHandlerManager.getHandler(parent.tag.getName());
-      if (handler != null) {
-        finished = handler.deleteChildren(parent, children);
+      ViewHandler handler = viewHandlerManager.getHandler(parent);
+      if (handler instanceof ViewGroupHandler) {
+        finished = ((ViewGroupHandler)handler).deleteChildren(parent, children);
       }
 
       if (!finished) {
