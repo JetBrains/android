@@ -34,12 +34,15 @@ import org.jetbrains.android.maven.AndroidFacetImporterBase;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.idea.maven.importing.FacetImporterTestCase;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.util.Arrays;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 
 /**
  * @author Eugene.Kudelevsky
@@ -125,7 +128,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     checkSdk(mavenSdk);
 
     assert mavenSdk != null;
-    final AndroidSdkAdditionalData mavenSdkData = (AndroidSdkAdditionalData)mavenSdk.getSdkAdditionalData();
+    final AndroidSdkAdditionalData mavenSdkData = getAndroidSdkAdditionalData(mavenSdk);
     @SuppressWarnings("ConstantConditions")
     final AndroidSdkData sdkData = mavenSdkData.getAndroidPlatform().getSdkData();
     final IAndroidTarget[] targets = sdkData.getTargets();
@@ -178,8 +181,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     setSdk(module, sdk);
     importProject();
     assertEquals(mavenSdk, ModuleRootManager.getInstance(module).getSdk());
-    final SdkAdditionalData androidSdkData = mavenSdk.getSdkAdditionalData();
-    final AndroidSdkAdditionalData mavenSdkData = (AndroidSdkAdditionalData)androidSdkData;
+    final AndroidSdkAdditionalData mavenSdkData = getAndroidSdkAdditionalData(mavenSdk);
     @SuppressWarnings("ConstantConditions")
     final AndroidSdkData sdkData = mavenSdkData.getAndroidPlatform().getSdkData();
     final IAndroidTarget[] targets = sdkData.getTargets();

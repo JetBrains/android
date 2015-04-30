@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -48,7 +48,6 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
@@ -77,6 +76,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Properties;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
@@ -351,7 +352,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
             sdkModificator.commitChanges();
 
             // Rename the JDK that goes along with this SDK.
-            AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+            AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
             if (additionalData != null) {
               Sdk jdk = additionalData.getJavaSdk();
               if (jdk != null) {
@@ -497,16 +498,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       return;
     }
 
-    SdkAdditionalData sdkData = sdk.getSdkAdditionalData();
-    if (sdkData instanceof AndroidSdkAdditionalData) {
-      AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)sdkData;
-      AndroidPlatform platform = androidSdkData.getAndroidPlatform();
-      if (platform != null) {
-        SdkModificator sdkModificator = sdk.getSdkModificator();
-        IAndroidTarget target = platform.getTarget();
-        AndroidSdkUtils.findAndSetPlatformSources(target, sdkModificator);
-        sdkModificator.commitChanges();
-      }
+    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    if (platform != null) {
+      SdkModificator sdkModificator = sdk.getSdkModificator();
+      IAndroidTarget target = platform.getTarget();
+      AndroidSdkUtils.findAndSetPlatformSources(target, sdkModificator);
+      sdkModificator.commitChanges();
     }
   }
 

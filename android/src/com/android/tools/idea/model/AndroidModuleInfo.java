@@ -121,7 +121,7 @@ public class AndroidModuleInfo {
   public AndroidVersion getBuildSdkVersion() {
     // TODO: Get this from the model! For now, we take advantage of the fact that
     // the model should have synced the right type of Android SDK to the IntelliJ facet.
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
+    AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
     if (platform != null) {
       return platform.getApiVersion();
     }

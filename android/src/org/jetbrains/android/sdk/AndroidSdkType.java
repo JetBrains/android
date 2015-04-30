@@ -272,12 +272,9 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Nullable
-  private static Sdk getInternalJavaSdk(Sdk sdk) {
-    final SdkAdditionalData data = sdk.getSdkAdditionalData();
-    if (data instanceof AndroidSdkAdditionalData) {
-      return ((AndroidSdkAdditionalData)data).getJavaSdk();
-    }
-    return null;
+  private static Sdk getInternalJavaSdk(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    return data != null ? data.getJavaSdk() : null;
   }
 
   public static AndroidSdkType getInstance() {

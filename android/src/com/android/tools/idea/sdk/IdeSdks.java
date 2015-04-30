@@ -114,7 +114,7 @@ public final class IdeSdks {
     }
     else {
       for (Sdk sdk : androidSdks) {
-        AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+        AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
         assert data != null;
         Sdk jdk = data.getJavaSdk();
         if (jdk != null) {
@@ -195,7 +195,7 @@ public final class IdeSdks {
    */
   private static void updateAndroidSdks(@NotNull Sdk jdk) {
     for (Sdk sdk : getAllAndroidSdks()) {
-      AndroidSdkAdditionalData oldData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      AndroidSdkAdditionalData oldData = getAndroidSdkAdditionalData(sdk);
       if (oldData == null) {
         continue;
       }
@@ -324,9 +324,7 @@ public final class IdeSdks {
 
   @NotNull
   private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    assert data != null;
-    AndroidPlatform androidPlatform = data.getAndroidPlatform();
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
     assert androidPlatform != null;
     return androidPlatform.getTarget();
   }
@@ -443,7 +441,7 @@ public final class IdeSdks {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
+      AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
       assert data != null;
       Sdk jdk = data.getJavaSdk();
       if (isJdkCompatible(jdk, preferredVersion)) {
@@ -520,12 +518,8 @@ public final class IdeSdks {
   public static List<Sdk> getEligibleAndroidSdks() {
     List<Sdk> sdks = Lists.newArrayList();
     for (Sdk sdk : getAllAndroidSdks()) {
-      SdkAdditionalData sdkData = sdk.getSdkAdditionalData();
-      if (sdkData instanceof AndroidSdkAdditionalData) {
-        AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)sdkData;
-        if (sdk.getName().startsWith(SDK_NAME_PREFIX) && androidSdkData.getAndroidPlatform() != null) {
-          sdks.add(sdk);
-        }
+      if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatform.getInstance(sdk) != null) {
+        sdks.add(sdk);
       }
     }
     return sdks;
