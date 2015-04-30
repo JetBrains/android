@@ -107,6 +107,8 @@ import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * Panel which can show render errors, along with embedded hyperlinks to perform actions such as
@@ -1207,10 +1209,10 @@ public class RenderErrorPanel extends JPanel {
       return false;
     }
 
-    if (sdk.getSdkType() instanceof AndroidSdkType) {
-      final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+    if (isAndroidSdk(sdk)) {
+      AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
       if (data != null) {
-        final Sdk jdk = data.getJavaSdk();
+        Sdk jdk = data.getJavaSdk();
         if (jdk != null) {
           sdk = jdk;
         }

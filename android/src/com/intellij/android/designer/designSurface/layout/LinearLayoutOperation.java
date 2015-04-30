@@ -293,7 +293,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     // it will work on any version of the platform
     AndroidDesignerEditorPanel panel = AndroidDesignerUtils.getPanel(myContext.getArea());
     if (panel != null) {
-      AndroidPlatform platform = AndroidPlatform.getPlatform(panel.getModule());
+      AndroidPlatform platform = AndroidPlatform.getInstance(panel.getModule());
       if (platform != null) {
         return platform.getApiLevel() >= 8;
       }

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
@@ -82,7 +83,7 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public boolean isModified() {
-    final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)mySdk.getSdkAdditionalData();
+    final AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(mySdk);
     Sdk javaSdk = data != null ? data.getJavaSdk() : null;
     final String javaSdkHomePath = javaSdk != null ? javaSdk.getHomePath() : null;
     final Sdk selectedSdk = myForm.getSelectedSdk();
@@ -111,13 +112,12 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
     if (mySdk == null) {
       return;
     }
-    SdkAdditionalData data = mySdk.getSdkAdditionalData();
-    if (!(data instanceof AndroidSdkAdditionalData)) {
+    AndroidSdkAdditionalData data = AndroidSdkUtils.getAndroidSdkAdditionalData(mySdk);
+    if (data == null) {
       return;
     }
-    final AndroidSdkAdditionalData androidData = (AndroidSdkAdditionalData)data;
-    AndroidPlatform platform = androidData.getAndroidPlatform();
-    myForm.init(androidData.getJavaSdk(), mySdk, platform != null ? androidData.getBuildTarget(platform.getSdkData()) : null);
+    AndroidPlatform platform = data.getAndroidPlatform();
+    myForm.init(data.getJavaSdk(), mySdk, platform != null ? data.getBuildTarget(platform.getSdkData()) : null);
   }
 
   @Override

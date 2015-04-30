@@ -76,6 +76,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 
@@ -984,13 +985,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       return false;
     }
     final String platformId = getPlatformFromConfig(mavenProject);
-
-    final AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (sdkAdditionalData == null) {
-      return false;
-    }
-
-    final AndroidPlatform androidPlatform = sdkAdditionalData.getAndroidPlatform();
+    final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
     if (androidPlatform == null) {
       return false;
     }
@@ -1071,18 +1066,18 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   @Nullable
   private static Sdk createNewAndroidSdkForMaven(String sdkPath, IAndroidTarget target) {
-    final String sdkName = "Maven " + AndroidSdkUtils.chooseNameForNewLibrary(target);
-    final Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, sdkName, false);
+    String sdkName = "Maven " + AndroidSdkUtils.chooseNameForNewLibrary(target);
+    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, sdkName, false);
 
     if (sdk == null) {
       return null;
     }
-    final SdkModificator modificator = sdk.getSdkModificator();
+    SdkModificator modificator = sdk.getSdkModificator();
 
     for (OrderRoot root : AndroidSdkUtils.getLibraryRootsForTarget(target, sdkPath, false)) {
       modificator.addRoot(root.getFile(), root.getType());
     }
-    final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
 
     if (data != null) {
       final Sdk javaSdk = data.getJavaSdk();
@@ -1093,8 +1088,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         }
       }
       else {
-        LOG.error("AndroidSdkUtils.createNewAndroidPlatform should return " +
-                  "Android SDK with a valid JDK reference, or return null");
+        LOG.error("AndroidSdkUtils.createNewAndroidPlatform should return Android SDK with a valid JDK reference, or return null");
       }
     }
     modificator.commitChanges();
