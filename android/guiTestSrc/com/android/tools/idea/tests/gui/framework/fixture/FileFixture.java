@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -94,6 +95,27 @@ public class FileFixture {
 
   @NotNull
   public FileFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+    final DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
+    final PsiFile psiFile = GuiActionRunner.execute(new GuiQuery<PsiFile>() {
+      @Override
+      protected PsiFile executeInEDT() throws Throwable {
+        return PsiManager.getInstance(myProject).findFile(myVirtualFile);
+      }
+    });
+    assertNotNull("No Psi file found for path " + quote(myVirtualFile.getPath()), psiFile);
+
+    pause(new Condition("Waiting for error analysis to complete" + expected) {
+      @Override
+      public boolean test() {
+        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+          @Override
+          protected Boolean executeInEDT() throws Throwable {
+            return codeAnalyzer.isErrorAnalyzingFinished(psiFile);
+          }
+        });
+      }
+    }, SHORT_TIMEOUT);
+
     final Document document = GuiActionRunner.execute(new GuiQuery<Document>() {
       @Override
       protected Document executeInEDT() throws Throwable {
