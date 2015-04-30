@@ -175,7 +175,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
     if (TOOLS_URI.equals(namespaceUri)) {
       prefix = TOOLS_PREFIX;
     } else if (ANDROID_URI.equals(namespaceUri)) {
-      prefix = PREFIX_ANDROID;
+      prefix = ANDROID_NS_NAME;
     } else {
       prefix = APP_PREFIX;
     }
