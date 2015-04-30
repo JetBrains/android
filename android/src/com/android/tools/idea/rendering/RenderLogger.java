@@ -683,7 +683,7 @@ public class RenderLogger extends LayoutLog {
     }
     ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
     builder.addLink(" ", "Show Exception", ".", getLinkManager().createRunnableLink(detailsFix));
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     if (platform == null) {
       // Again, shouldn't happen.
       return problem;

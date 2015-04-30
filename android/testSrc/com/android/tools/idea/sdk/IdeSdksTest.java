@@ -23,11 +23,9 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
@@ -113,11 +111,7 @@ public class IdeSdksTest extends IdeaTestCase {
     assertEquals(platformTargets.size(), sdks.size());
 
     for (Sdk sdk : sdks) {
-      SdkAdditionalData data = sdk.getSdkAdditionalData();
-      assertNotNull(data);
-      assertEquals(AndroidSdkAdditionalData.class, data.getClass());
-      AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
-      AndroidPlatform androidPlatform = androidSdkData.getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
       assertNotNull(androidPlatform);
       IAndroidTarget target = androidPlatform.getTarget();
       platformTargets.remove(target);
