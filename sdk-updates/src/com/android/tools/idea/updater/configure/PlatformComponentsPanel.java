@@ -104,6 +104,7 @@ public class PlatformComponentsPanel {
     myPlatformDetailTable.updateUI();
     myPlatformSummaryTable.updateUI();
     TreeUtil.expandAll(myPlatformDetailTable.getTree());
+    TreeUtil.expandAll(myPlatformSummaryTable.getTree());
   }
 
   public void startLoading() {
