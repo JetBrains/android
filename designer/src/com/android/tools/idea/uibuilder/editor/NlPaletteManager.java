@@ -55,7 +55,7 @@ public class NlPaletteManager extends NlAbstractManager {
                          "Palette",
                          AllIcons.Toolwindows.ToolWindowPalette,
                          palettePanel,
-                         palettePanel,
+                         palettePanel.getFocusedComponent(),
                          180,
                          null);
   }
