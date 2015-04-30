@@ -83,7 +83,7 @@ public class LayoutPullParserFactory {
   private static boolean prefCapableTargetInstalled(@NotNull PsiFile file) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     if (module != null) {
-      AndroidPlatform platform = AndroidPlatform.getPlatform(module);
+      AndroidPlatform platform = AndroidPlatform.getInstance(module);
       if (platform != null) {
         for (IAndroidTarget target : platform.getSdkData().getTargets()) {
           AndroidVersion version = target.getVersion();

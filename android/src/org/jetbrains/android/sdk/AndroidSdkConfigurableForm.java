@@ -38,6 +38,7 @@ import java.awt.event.ItemListener;
 import java.util.List;
 import java.util.Map;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
@@ -198,11 +199,11 @@ class AndroidSdkConfigurableForm {
   }
 
   public void updateJdks(Sdk sdk, String previousName) {
-    final Sdk[] sdks = mySdkModel.getSdks();
+    Sdk[] sdks = mySdkModel.getSdks();
     for (Sdk currentSdk : sdks) {
       if (currentSdk != null && isAndroidSdk(currentSdk)) {
-        final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)currentSdk.getSdkAdditionalData();
-        final Sdk internalJava = data != null ? data.getJavaSdk() : null;
+        AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(currentSdk);
+        Sdk internalJava = data != null ? data.getJavaSdk() : null;
         if (internalJava != null && Comparing.equal(internalJava.getName(), previousName)) {
           data.setJavaSdk(sdk);
         }
@@ -211,9 +212,11 @@ class AndroidSdkConfigurableForm {
     updateJdks();
   }
 
-  public void internalJdkUpdate(final Sdk sdk) {
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) return;
+  public void internalJdkUpdate(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    if (data == null) {
+      return;
+    }
     final Sdk javaSdk = data.getJavaSdk();
     if (myJdksModel.getIndexOf(javaSdk) == -1) {
       myJdksModel.addElement(javaSdk);

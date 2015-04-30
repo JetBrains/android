@@ -37,10 +37,10 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.FrameworkResourceLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -190,10 +190,9 @@ public class ResourceResolverCache {
   }
 
   /**
-   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources based on the current
-   * configuration selection.
+   * Returns a {@link LocalResourceRepository} for the framework resources based on the current configuration selection.
    *
-   * @return the framework resources or null if not found.
+   * @return the framework resources or {@code null} if not found.
    */
   @Nullable
   public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
@@ -220,23 +219,14 @@ public class ResourceResolverCache {
   }
 
   /**
-   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources of a given
-   * target.
+   * Returns a {@link LocalResourceRepository} for the framework resources of a given target.
    *
    * @param target the target for which to return the framework resources.
-   * @return the framework resources or null if not found.
+   * @return the framework resources or {@code null} if not found.
    */
   @Nullable
   private static FrameworkResources getFrameworkResources(@NotNull IAndroidTarget target, @NotNull Module module, boolean forceReload) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return null;
-    }
-    AndroidPlatform platform = data.getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
       return null;
     }

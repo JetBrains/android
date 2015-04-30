@@ -21,20 +21,16 @@ import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Implementation of {@link JUnitPatcher} that removes android.jar from the class path. It's only applicable to
@@ -65,17 +61,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     PathsList classPath = javaParameters.getClassPath();
 
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return;
-    }
-
-    SdkAdditionalData data = sdk.getSdkAdditionalData();
-    if (!(data instanceof AndroidSdkAdditionalData)) {
-      return;
-    }
-
-    AndroidPlatform platform = ((AndroidSdkAdditionalData)data).getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
       return;
     }
@@ -95,7 +81,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     // classes needed by the testing code (e.g. XML/JSON related).
     String mockableJarPath = null;
     for (String path : classPath.getPathList()) {
-      if (new File(FileUtil.toSystemDependentName(path)).getName().startsWith("mockable-")) {
+      if (new File(toSystemDependentName(path)).getName().startsWith("mockable-")) {
         // PathsList stores strings - use the one that's actually stored there.
         mockableJarPath = path;
         break;

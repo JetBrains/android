@@ -191,7 +191,7 @@ public class ConfigurationManager implements Disposable {
     if (myDevices == null || myDevices.isEmpty()) {
       List<Device> devices = null;
 
-      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+      AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
@@ -253,7 +253,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public IAndroidTarget[] getTargets() {
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     if (platform != null) {
       final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -397,7 +397,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     return platform != null ? platform.getTarget() : null;
   }
 

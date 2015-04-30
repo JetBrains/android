@@ -27,8 +27,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -222,20 +220,8 @@ public class AndroidTargetData {
 
   @Nullable
   public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return null;
-    }
-    AndroidPlatform platform = data.getAndroidPlatform();
-    if (platform == null) {
-      return null;
-    }
-
-    return platform.getSdkData().getTargetData(target);
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    return platform != null ? platform.getSdkData().getTargetData(target) : null;
   }
 
   private class PublicAttributeDefinitions extends FilteredAttributeDefinitions {

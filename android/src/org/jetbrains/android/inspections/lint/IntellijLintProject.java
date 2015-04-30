@@ -837,7 +837,7 @@ class IntellijLintProject extends Project {
         }
       }
 
-      AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
+      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
       if (platform != null) {
         return platform.getApiLevel();
       }
