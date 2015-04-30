@@ -22,14 +22,13 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,8 +38,6 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * @author Eugene.Kudelevsky
@@ -76,13 +73,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   @Nullable
   public AndroidPlatform getAndroidPlatform() {
-    final Module module = myFacet.getModule();
-    Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-    if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)moduleSdk.getSdkAdditionalData();
-      return data != null ? data.getAndroidPlatform() : null;
-    }
-    return null;
+    return AndroidPlatform.getInstance(myFacet.getModule());
   }
 
   @Nullable
@@ -104,7 +95,9 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
-    if (getState().ALLOW_USER_CONFIGURATION) {
+    JpsAndroidModuleProperties state = getState();
+    assert state != null;
+    if (state.ALLOW_USER_CONFIGURATION) {
       return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
     }
     return NO_EDITOR_TABS;

@@ -31,29 +31,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Class to render layouts to a {@link Graphics} instance. This renderer does not allow for much customization of the device and does not
@@ -187,22 +176,13 @@ public class GraphicsLayoutRenderer {
     }
 
     Module module = facet.getModule();
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     IAndroidTarget target = configuration.getTarget();
 
     if (target == null) {
       throw new InitializationException("Unable to get IAndroidTarget");
     }
 
-    if (sdk == null || !AndroidSdkUtils.isAndroidSdk(sdk)) {
-      throw new InitializationException("Unable to get Android SDK");
-    }
-
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      throw new InitializationException("Unable to get AndroidSdkAdditionalData");
-    }
-    AndroidPlatform platform = data.getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
       throw new InitializationException("Unable to get AndroidPlatform");
     }

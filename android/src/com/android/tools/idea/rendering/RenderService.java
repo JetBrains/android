@@ -35,8 +35,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
@@ -44,8 +42,6 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidBundle;
@@ -87,7 +83,7 @@ public class RenderService {
       return null;
     }
     Project project = module.getProject();
-    AndroidPlatform platform = getPlatform(module);
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform != null) {
       try {
         return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
@@ -105,7 +101,7 @@ public class RenderService {
   public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target,
                                            @MagicConstant(flagsFromClass = Features.class) int capability) {
     Project project = module.getProject();
-    AndroidPlatform platform = getPlatform(module);
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform != null) {
       try {
         LayoutLibrary library = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
@@ -219,25 +215,12 @@ public class RenderService {
 
   @Nullable
   public AndroidPlatform getPlatform() {
-    return getPlatform(getModule());
-  }
-
-  @Nullable
-  static AndroidPlatform getPlatform(@NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return null;
-    }
-    return data.getAndroidPlatform();
+    return AndroidPlatform.getInstance(getModule());
   }
 
   @Nullable
   private static AndroidPlatform getPlatform(@NotNull final Module module, @Nullable RenderLogger logger) {
-    AndroidPlatform platform = getPlatform(module);
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
         RenderProblem.Html message = RenderProblem.create(ERROR);
