@@ -288,7 +288,7 @@ public class SdkState {
       try {
         IndicatorLogger logger = new IndicatorLogger(indicator);
 
-        myPackages = new SdkPackages();
+        SdkPackages packages = new SdkPackages();
         if (mySdkData != null) {
           // fetch local sdk
           indicator.setText("Loading local SDK...");
@@ -296,7 +296,7 @@ public class SdkState {
           if (myForceRefresh) {
             mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
           }
-          myPackages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
+          packages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
           indicator.setFraction(0.25);
         }
         if (indicator.isCanceled()) {
@@ -324,7 +324,7 @@ public class SdkState {
         // compute updates
         indicator.setText("Compute SDK updates...");
         indicator.setFraction(0.75);
-        myPackages.setRemotePkgInfos(remotes);
+        packages.setRemotePkgInfos(remotes);
         if (indicator.isCanceled()) {
           return;
         }
@@ -335,6 +335,8 @@ public class SdkState {
           return;
         }
         success = true;
+        myPackages = packages;
+        myLastRefreshMs = System.currentTimeMillis();
       }
       finally {
         myLastRefreshMs = System.currentTimeMillis();
