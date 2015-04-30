@@ -49,7 +49,7 @@ public class MarqueeInteraction extends Interaction {
    * @param toggle If true, toggle the membership of contained elements
    *            instead of adding it.
    */
-  public MarqueeInteraction(ScreenView surface, boolean toggle) {
+  public MarqueeInteraction(@NonNull ScreenView surface, boolean toggle) {
     myScreenView = surface;
 
     if (toggle) {

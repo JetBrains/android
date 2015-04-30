@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.designer.*;
 import junit.framework.TestCase;
 
 import java.awt.*;

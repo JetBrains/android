@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.TextDirection;
@@ -26,7 +26,7 @@ import com.google.common.collect.Lists;
 import java.awt.*;
 import java.util.List;
 
-public class RelativeLayoutHandler extends ViewHandler {
+public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
     NlGraphics g = new NlGraphics(graphics, screenView.getSurface().getLayeredPane());

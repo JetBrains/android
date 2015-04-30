@@ -165,4 +165,9 @@ public class SelectionModel {
       addComponent(all, child);
     }
   }
+
+  /** Returns true if the given component is part of the selection */
+  public boolean isSelected(@NonNull NlComponent component) {
+    return mySelection.contains(component);
+  }
 }

@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface;
+package com.android.tools.idea.uibuilder.fixtures;
 
-public class DropInteraction extends Interaction {
+import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.model.NlModel;
+
+public class SurfaceFixture {
+  public ScreenFixture screen(@NonNull NlModel model) {
+    return new ScreenFixture(this, model);
+  }
 }

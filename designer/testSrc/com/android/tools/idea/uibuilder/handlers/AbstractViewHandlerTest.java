@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface;
+package com.android.tools.idea.uibuilder.handlers;
 
-public class MoveInteraction extends Interaction {
-  // TODO
-  public MoveInteraction() {
-  }
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+
+/** Convenience implementation for view handler tests */
+public abstract class AbstractViewHandlerTest extends LayoutTestCase {
 }

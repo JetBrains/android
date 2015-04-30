@@ -42,9 +42,11 @@ public class NlComponent {
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
   private NlComponent myParent;
+  private String myTagName;
 
   public NlComponent(@NonNull XmlTag tag) {
     this.tag = tag;
+    myTagName = tag.getName(); // for non-read lock access elsewhere
   }
 
   public void setBounds(@AndroidCoordinate int x, @AndroidCoordinate int y, @AndroidCoordinate int w, @AndroidCoordinate int h) {
@@ -272,5 +274,15 @@ public class NlComponent {
 
   public void setParent(@Nullable NlComponent parent) {
     myParent = parent;
+  }
+
+  @NonNull
+  public String getTagName() {
+    return myTagName;
+  }
+
+  @Override
+  public String toString() {
+    return describe(this);
   }
 }
