@@ -234,9 +234,9 @@ public class Template {
    * Not only is creating a project expensive, but it performing PSI operations right after a project creation could lead to
    * IndexNotReadyException. If you have a project available at call time, use {@link #render(File, File, Map, Project)} instead.
    *
-   * @param outputRootPath the filesystem directory that represents the root directory where the template will be expanded.
-   * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
-   * @param args the key/value pairs that are fed into the input parameters for the template.
+   * @param outputRootPath the root directory where the template will be expanded.
+   * @param moduleRootPath the root of the IDE project module for the template being expanded.
+   * @param args           the key/value pairs that are fed into the input parameters for the template.
    */
   @Deprecated
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
@@ -244,26 +244,51 @@ public class Template {
   }
 
   /**
+   * Executes the template, rendering it to output files under the given module root directory. This method will sync the project with
+   * Gradle if needed.
+   *
+   * @param outputRootPath the the root directory where the template will be expanded.
+   * @param moduleRootPath the the root of the IDE project module for the template being expanded.
+   * @param args           the key/value pairs that are fed into the input parameters for the template.
+   * @param project        the target project of this template.
+   *
+   * @see #render(File, File, Map, Project, boolean)
+   */
+  public void render(@NotNull File outputRootPath,
+                     @NotNull File moduleRootPath,
+                     @NotNull Map<String, Object> args,
+                     @Nullable Project project) {
+    render(outputRootPath, moduleRootPath, args, project, true);
+  }
+
+  /**
    * Executes the template, rendering it to output files under the given module root directory.
    *
-   * @param outputRootPath the filesystem directory that represents the root directory where the template will be expanded.
-   * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
-   * @param args the key/value pairs that are fed into the input parameters for the template.
-   * @param project the target project of this template.
+   * @param outputRootPath     the root directory where the template will be expanded.
+   * @param moduleRootPath     the root of the IDE project module for the template being expanded.
+   * @param args               the key/value pairs that are fed into the input parameters for the template.
+   * @param project            the target project of this template.
+   * @param gradleSyncIfNeeded indicates whether a Gradle sync should be performed if needed.
    */
-  public void render(@NotNull final File outputRootPath, @NotNull final File moduleRootPath, @NotNull final Map<String, Object> args,
-                     @Nullable final Project project) {
+  public void render(@NotNull final File outputRootPath,
+                     @NotNull final File moduleRootPath,
+                     @NotNull final Map<String, Object> args,
+                     @Nullable final Project project,
+                     final boolean gradleSyncIfNeeded) {
     assert outputRootPath.isDirectory() : outputRootPath;
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        doRender(outputRootPath, moduleRootPath, args, project);
+        doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
       }
     });
   }
 
-  private void doRender(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args,
-                       @Nullable Project project) {
+  private void doRender(@NotNull File outputRootPath,
+                        @NotNull File moduleRootPath,
+                        @NotNull Map<String, Object> args,
+                        @Nullable Project project,
+                        boolean gradleSyncIfNeeded) {
     myFilesToOpen.clear();
     myOutputRoot = outputRootPath;
     if (project == null) {
@@ -297,7 +322,7 @@ public class Template {
         }
       }
     }
-    if (myNeedsGradleSync && !myProject.isDefault() && isBuildWithGradle(project)) {
+    if (gradleSyncIfNeeded && myNeedsGradleSync && !myProject.isDefault() && isBuildWithGradle(project)) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }

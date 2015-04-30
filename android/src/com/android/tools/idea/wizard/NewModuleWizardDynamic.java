@@ -113,6 +113,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       Iterables.concat(ImmutableSet.of(new AndroidModuleTemplatesProvider()), contributions);
     addPath(new SingleStepPath(new ChooseModuleTypeStep(templateProviders, getDisposable())));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
+      path.setGradleSyncIfNecessary(false);
       addPath(path);
     }
     for (NewModuleDynamicPath contribution : contributions) {

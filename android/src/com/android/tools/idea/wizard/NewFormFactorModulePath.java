@@ -76,6 +76,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private TemplateParameterStep2 myParameterStep;
   private List<File> myFilesToOpen = Lists.newArrayList();
   private String myDefaultModuleName = null;
+  private boolean myGradleSyncIfNecessary = true;
 
   public static List<NewFormFactorModulePath> getAvailableFormFactorModulePaths(@NotNull Disposable disposable) {
     TemplateManager manager = TemplateManager.getInstance();
@@ -268,7 +269,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      template.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
+      template.render(projectRoot, moduleRoot, templateState, myWizard.getProject(), myGradleSyncIfNecessary);
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
         return true;
@@ -277,7 +278,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
-      activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject());
+      activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject(), myGradleSyncIfNecessary);
 
       // If the parent wizard supports opening files in the editor upon completion, do that
       List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
@@ -290,5 +291,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     else {
       return false;
     }
+  }
+
+  protected void setGradleSyncIfNecessary(boolean value) {
+    myGradleSyncIfNecessary = value;
   }
 }
