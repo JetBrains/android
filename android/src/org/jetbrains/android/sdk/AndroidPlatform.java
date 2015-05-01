@@ -19,6 +19,7 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Sets;
+import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -29,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -135,14 +137,14 @@ public class AndroidPlatform {
             }
             else {
               boolean ok = true;
-              IAndroidTarget.IOptionalLibrary[] libraries = target.getOptionalLibraries();
-              if (libraries == null) {
+              List<OptionalLibrary> libraries = target.getAdditionalLibraries();
+              if (libraries.isEmpty()) {
                 // we cannot identify add-on target without optional libraries by classpath
                 ok = false;
               }
               else {
-                for (IAndroidTarget.IOptionalLibrary optionalLibrary : libraries) {
-                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJarPath()))) {
+                for (OptionalLibrary optionalLibrary : libraries) {
+                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJar().getAbsolutePath()))) {
                     ok = false;
                   }
                 }
