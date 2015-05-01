@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
@@ -25,6 +26,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -41,6 +43,8 @@ import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
@@ -240,6 +244,12 @@ public class InteractionManager {
 
       // See if it's over a selected view
       NlComponent component = selectionModel.findComponent(mx, my);
+      if (component == null || component.isRoot()) {
+        // Finally pick any unselected component in the model under the cursor
+        // Finally pick any unselected component in the model under the cursor
+        component = screenView.getModel().findLeafAt(mx, my, false);
+      }
+
       if (component != null && !component.isRoot()) {
           Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
           if (cursor != mySurface.getCursor()) {
@@ -280,7 +290,6 @@ public class InteractionManager {
       if(event.getID() == MouseEvent.MOUSE_PRESSED){
         mySurface.getLayeredPane().requestFocusInWindow();
       }
-      Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
 
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
@@ -318,12 +327,6 @@ public class InteractionManager {
       }
       if (myCurrentInteraction == null) {
         updateCursor(x, y);
-      } else if (myCurrentInteraction instanceof DropInteraction) {
-        // Mouse Up shouldn't be delivered in the middle of a drag & drop -
-        // but this can happen on some versions of Linux
-        // (see http://code.google.com/p/android/issues/detail?id=19057 )
-        // and if we process the mouseUp it will abort the remainder of
-        // the drag & drop operation, so ignore this event!
       } else {
         finishInteraction(x, y, false);
       }
@@ -347,15 +350,45 @@ public class InteractionManager {
       if (myCurrentInteraction != null) {
         myCurrentInteraction.update(x, y);
       } else {
+        x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
+        y = myLastMouseY;
         int modifiers = event.getModifiersEx();
         boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
         ScreenView screenView = mySurface.getScreenView(x, y);
-        NlComponent component = Coordinates.findComponent(screenView, x, y);
         Interaction interaction;
-        if (component == null || component.isRoot()) {
-          interaction = new MarqueeInteraction(screenView, toggle);
+        SelectionModel selectionModel = screenView.getSelectionModel();
+        // Dragging on top of a selection handle: start a resize operation
+
+        int ax = Coordinates.getAndroidX(screenView, x);
+        int ay = Coordinates.getAndroidY(screenView, y);
+        int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
+        SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
+        if (handle != null) {
+          interaction = new ResizeInteraction(screenView, handle.component, handle);
         } else {
-          interaction = new MoveInteraction();
+          NlModel model = screenView.getModel();
+          NlComponent component = model.findLeafAt(ax, ay, false);
+          if (component == null || component.isRoot()) {
+            // Dragging on the background/root view: start a marquee selection
+            interaction = new MarqueeInteraction(screenView, toggle);
+          }
+          else {
+            List<NlComponent> dragged;
+            // Dragging over a non-root component: move the set of components (if the component dragged over is
+            // part of the selection, drag them all, otherwise drag just this component)
+            if (selectionModel.isSelected(component)) {
+              dragged = Lists.newArrayList();
+              for (NlComponent selected : selectionModel.getSelection()) {
+                if (!selected.isRoot()) {
+                  dragged.add(selected);
+                }
+              }
+            }
+            else {
+              dragged = Collections.singletonList(component);
+            }
+            interaction = new DragDropInteraction(screenView, dragged);
+          }
         }
         startInteraction(x, y, interaction, modifiers);
       }
@@ -420,6 +453,9 @@ public class InteractionManager {
 
       if (keyChar == '1') {
         mySurface.zoomActual();
+      } else if (keyChar == 'r') {
+        mySurface.getCurrentScreenView().getModel().requestRender();
+        mySurface.zoomIn();
       } else if (keyChar == '+') {
         mySurface.zoomIn();
       } else if (keyChar == '-') {
@@ -468,6 +504,47 @@ public class InteractionManager {
 
     @Override
     public void dragEnter(DropTargetDragEvent event) {
+      if (myCurrentInteraction == null) {
+        Point location = event.getLocation();
+        myLastMouseX = location.x;
+        myLastMouseY = location.y;
+
+        // Ideally we'd pull out the transfer data
+        for (DataFlavor flavor : event.getCurrentDataFlavors()) {
+          if (flavor.getMimeType().startsWith("text/plain;") || flavor.getMimeType().equals("text/plain")) {
+            // Ideally we'd pull out the transfer data here, construct proper XML representations (if applicable)
+            // and pass that to a drag handler:
+            //  Transferable transferable = event.getTransferable();
+            //  try {
+            //    Object transferData = transferable.getTransferData(flavor);
+            //    ...
+            // but unfortunately that doesn't work: we're only allowed to access the transferable on an actual drop
+            // and the above will throw a InvalidDnDOperationException or pass an invalid value (such as "Unsupported type").
+            // Therefore, instead, we create a dummy object and pass that around; we'll correct the actual XML
+            // when the drop completes.
+            event.acceptDrag(DnDConstants.ACTION_COPY);
+            ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+            final NlModel model = screenView.getModel();
+            final Project project = model.getFacet().getModule().getProject();
+            XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
+            try {
+              String xml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
+              XmlTag tag = elementFactory.createTagFromText(xml);
+              NlComponent dragged = new NlComponent(tag);
+              // TODO: Pick some better bounds once we know. Use preview-render as a clue?
+              dragged.w = 200;
+              dragged.h = 100;
+              dragged.x = Coordinates.getAndroidX(screenView, myLastMouseX);
+              dragged.y = Coordinates.getAndroidY(screenView, myLastMouseY);
+              DragDropInteraction interaction = new DragDropInteraction(screenView, Collections.singletonList(dragged));
+              interaction.setType(DragType.COPY);
+              startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
+            }
+            catch (IncorrectOperationException ignore) {
+            }
+          }
+        }
+      }
     }
 
     @Override
@@ -475,6 +552,10 @@ public class InteractionManager {
       Point location = event.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
+      if (myCurrentInteraction instanceof DragDropInteraction) {
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY);
+      }
+
       for (DataFlavor flavor : event.getCurrentDataFlavors()) {
         if (String.class == flavor.getRepresentationClass()) {
           event.acceptDrag(DnDConstants.ACTION_COPY);
@@ -490,19 +571,24 @@ public class InteractionManager {
 
     @Override
     public void dragExit(DropTargetEvent event) {
+      if (myCurrentInteraction instanceof DragDropInteraction) {
+        finishInteraction(myLastMouseX, myLastMouseY, true);
+      }
     }
 
     @Override
     public void drop(DropTargetDropEvent event) {
       Point location = event.getLocation();
+      myLastMouseX = location.x;
+      myLastMouseY = location.y;
+
       ScreenView screenView = mySurface.getScreenView(location.x, location.y);
 
-      // TODO: Use proper model APIs to do this
       try {
         Transferable transferable = event.getTransferable();
         if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
           event.acceptDrop(DnDConstants.ACTION_MOVE);
-          final String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
+          final String text = (String)transferable.getTransferData(DataFlavor.stringFlavor);
           final NlModel model = screenView.getModel();
           final Project project = model.getFacet().getModule().getProject();
           final XmlFile file = model.getFile();
@@ -510,18 +596,66 @@ public class InteractionManager {
             @Override
             protected void run(@NotNull Result<Void> result) throws Throwable {
               XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
-              XmlTag tag;
-              try {
-                tag = elementFactory.createTagFromText(xml);
+              XmlTag tag = null;
+              if (XmlUtils.parseDocumentSilently(text, false) != null) {
+                try {
+                  String xml = text;
+                  // TODO: Remove this temporary hack, which adds an Android namespace if necessary (this is such
+                  // that the resulting tag is namespace aware, and attempts to manipulate it from a component handler
+                  // will correctly set namespace prefixes)
+                  if (!xml.contains(ANDROID_URI)) {
+                    int index = xml.indexOf('<');
+                    if (index != -1) {
+                      index = xml.indexOf(' ', index);
+                      if (index == -1) {
+                        index = xml.indexOf("/>");
+                        if (index == -1) {
+                          index = xml.indexOf('>');
+                        }
+                      }
+                      if (index != -1) {
+                        xml =
+                          xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
+                      }
+                    }
+                  }
+                  tag = elementFactory.createTagFromText(xml);
+                }
+                catch (IncorrectOperationException ignore) {
+                  // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
+                  // to drop something like plain text -- insert this as a text view instead.
+                  // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
+                  // check first instead.
+                }
               }
-              catch (IncorrectOperationException ignore) {
-                // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
-                // to drop something like plain text -- insert this as a text view instead.
-                tag = elementFactory.createTagFromText("<TextView android:text=\"" + XmlUtils.toXmlAttributeValue(xml) + "\"" +
+              if (tag == null) {
+                tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
+                                                       " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
                                                        " android:layout_width=\"wrap_content\"" +
                                                        " android:layout_height=\"wrap_content\"" +
                                                        "/>");
               }
+
+              if (myCurrentInteraction instanceof DragDropInteraction) {
+                // On a drag we put in a place holder component for the drag operation
+                List<NlComponent> draggedComponents = ((DragDropInteraction)myCurrentInteraction).getDraggedComponents();
+                NlComponent component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
+                if (component != null) {
+                  assert component.tag.getName().equals("placeholder") : component.tag.getName();
+                  component.tag = tag;
+                }
+                finishInteraction(myLastMouseX, myLastMouseY, false);
+                if (component != null && component.tag.isValid() && component.tag.getParent() instanceof XmlTag) {
+                  // Remove any xmlns: attributes once the element is added into the document
+                  for (XmlAttribute attribute : component.tag.getAttributes()) {
+                    if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+                      attribute.delete();
+                    }
+                  }
+                }
+                return;
+              }
+
               XmlDocument document = file.getDocument();
               if (document != null) {
                 XmlTag rootTag = document.getRootTag();

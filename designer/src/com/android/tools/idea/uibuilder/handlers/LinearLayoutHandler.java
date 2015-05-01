@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -29,7 +29,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingX;
 import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingY;
 
-public class LinearLayoutHandler extends ViewHandler {
+public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
     NlComponent prev = null;
