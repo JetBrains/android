@@ -52,7 +52,7 @@ public class SdkState {
 
   @Nullable private final AndroidSdkData mySdkData;
   private final RemoteSdk myRemoteSdk;
-  private SdkPackages myPackages = null;
+  private SdkPackages myPackages = new SdkPackages();
 
   private long myLastRefreshMs;
   private LoadTask myTask;
@@ -103,7 +103,6 @@ public class SdkState {
 
   @NonNull
   public SdkPackages getPackages() {
-    assert myPackages != null;
     return myPackages;
   }
 
@@ -173,9 +172,22 @@ public class SdkState {
     onErrors.add(complete);
     boolean result = load(timeoutMs, canBeCancelled, onLocalCompletes, onSuccesses, onErrors, forceRefresh, true);
     if (!ApplicationManager.getApplication().isDispatchThread()) {
-      // not dispatch thread, assume progress is being handled elsewhere. We don't have to wait since load() ran in-thread.
-      return result;
+      // Not dispatch thread, assume progress is being handled elsewhere.
+      if (result) {
+        // We don't have to wait since load() ran in-thread.
+        return result;
+      }
+      try {
+        completed.waitForUnsafe();
+      }
+      catch (InterruptedException e) {
+        onError.run();
+        return false;
+      }
+      return true;
     }
+
+    // If we are on the dispatch thread, show progress while waiting.
     ProgressManager pm = ProgressManager.getInstance();
     ProgressIndicator indicator = pm.getProgressIndicator();
     indicator = indicator == null ? new ProgressWindow(false, false, null) : indicator;
@@ -287,7 +299,6 @@ public class SdkState {
       boolean success = false;
       try {
         IndicatorLogger logger = new IndicatorLogger(indicator);
-
         SdkPackages packages = new SdkPackages();
         if (mySdkData != null) {
           // fetch local sdk
@@ -297,6 +308,7 @@ public class SdkState {
             mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
           }
           packages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
+          myPackages = packages;
           indicator.setFraction(0.25);
         }
         if (indicator.isCanceled()) {
@@ -325,6 +337,7 @@ public class SdkState {
         indicator.setText("Compute SDK updates...");
         indicator.setFraction(0.75);
         packages.setRemotePkgInfos(remotes);
+        myPackages = packages;
         if (indicator.isCanceled()) {
           return;
         }
@@ -335,7 +348,6 @@ public class SdkState {
           return;
         }
         success = true;
-        myPackages = packages;
         myLastRefreshMs = System.currentTimeMillis();
       }
       finally {
