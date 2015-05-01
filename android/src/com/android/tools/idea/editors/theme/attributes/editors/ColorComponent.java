@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.SwingConstants;
 import javax.swing.border.MatteBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -41,26 +40,29 @@ import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.List;
 
+import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
+
 public class ColorComponent extends JPanel {
-  private static final int PADDING = 5;
+  private static final int DISTANCE_BETWEEN_ROWS = 20;
+  private static final String LABEL_TEMPLATE = "<html><b><font color=\"#6F6F6F\">%s</font></b><font color=\"#9B9B9B\">%s</font>";
+  private static final int LABEL_BUTTON_GAP = 8;
+  private static final int BUTTON_VERTICAL_PADDINGS = 14;
+  public static final int SUM_PADDINGS = DISTANCE_BETWEEN_ROWS + LABEL_BUTTON_GAP + BUTTON_VERTICAL_PADDINGS;
 
   private final ColorChooserButton myColorChooserButton;
   private final JLabel myNameLabel;
-  private final JLabel myValueLabel;
+  private String myValue = "";
 
   public ColorComponent() {
-    super(new BorderLayout(0, PADDING));
+    super(new BorderLayout(0, LABEL_BUTTON_GAP));
 
-    MatteBorder matteBorder = BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, getBackground());
+    MatteBorder matteBorder = BorderFactory.createMatteBorder(DISTANCE_BETWEEN_ROWS / 2, 0, DISTANCE_BETWEEN_ROWS / 2, 0, getBackground());
     setBorder(matteBorder);
 
     myNameLabel = new JLabel("Name");
-    myValueLabel = new JLabel("Value");
-    myValueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
     final JPanel innerPanel = new JPanel(new BorderLayout());
     innerPanel.add(myNameLabel, BorderLayout.WEST);
-    innerPanel.add(myValueLabel, BorderLayout.EAST);
 
     add(innerPanel, BorderLayout.NORTH);
 
@@ -79,8 +81,9 @@ public class ColorComponent extends JPanel {
   }
 
   public void configure(final EditedStyleItem resValue, final List<Color> color) {
-    myNameLabel.setText(ThemeEditorUtils.getDisplayHtml(resValue));
-    myValueLabel.setText(color.isEmpty() ? "" : ResourceHelper.colorToString(color.get(0)));
+    String colorText = color.isEmpty() ? "" : " - " + ResourceHelper.colorToString(color.get(0));
+    myNameLabel.setText(String.format(LABEL_TEMPLATE, resValue.getQualifiedName(), colorText));
+    myValue = resValue.getQualifiedName();
     myColorChooserButton.configure(resValue, color);
   }
 
@@ -91,7 +94,7 @@ public class ColorComponent extends JPanel {
   }
 
   public String getValue() {
-    return myValueLabel.getText();
+    return myValue;
   }
 
   public void addActionListener(final ActionListener listener) {
@@ -101,12 +104,15 @@ public class ColorComponent extends JPanel {
   private static class ColorChooserButton extends JButton {
     private static final Logger LOG = Logger.getInstance(ColorChooserButton.class);
 
-    private static final int TEXT_PADDING = 3;
-    private static final int STATES_PADDING = 5;
+    private static final int BETWEEN_STATES_PADDING = 2;
+    private static final int STATES_PADDING = 6;
+    private static final int ARC_SIZE = 10;
+    public static final double THRESHOLD_BRIGHTNESS = 0.8;
 
     private String myValue;
     private @NotNull List<Color> myColors = Collections.emptyList();
     private boolean myIsPublic;
+    private final float[] myHsbArray = new float[3];
 
     public void configure(final EditedStyleItem resValue, final List<Color> color) {
       myValue = resValue.getValue();
@@ -116,34 +122,49 @@ public class ColorComponent extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
+      setupAAPainting(g);
+
+      final int width = getWidth();
+      final int height = getHeight();
+
       // Background is filled manually here instead of calling super.paintComponent()
       // because some L'n'Fs (e.g. GTK+) paint additional decoration even with null border.
       g.setColor(getBackground());
-      g.fillRect(0, 0, getWidth(), getHeight());
+      g.fillRect(0, 0, width, height);
+
+      g.setColor(getBackground());
+      g.fillRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
+
+      g.setColor(Gray._170);
+      g.drawRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
 
       if (myValue == null) {
         LOG.error("Trying to draw ColorChooserButton in inconsistent state (either name or value is null)!");
         return;
       }
 
-      final int width = getWidth();
-      final int height = getHeight();
-
-      final int cellSize = height - 2 * STATES_PADDING;
-      int xOffset = STATES_PADDING;
+      final int cellSize = height - 2 * BETWEEN_STATES_PADDING;
+      int xOffset = BETWEEN_STATES_PADDING;
       for (final Color color : myColors) {
         g.setColor(color);
-        g.fillRect(xOffset, STATES_PADDING, cellSize, cellSize);
+        g.fillRoundRect(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize, ARC_SIZE, ARC_SIZE);
 
-        g.setColor(JBColor.BLACK);
-        g.drawRect(xOffset, STATES_PADDING, cellSize, cellSize);
+        Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), myHsbArray);
+        if (myHsbArray[2] > THRESHOLD_BRIGHTNESS) {
+          // Drawing a border to avoid displaying white boxes on a white background
+          g.setColor(Gray._239);
+          g.drawRoundRect(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize - 1, ARC_SIZE, ARC_SIZE);
+        }
 
-        xOffset += cellSize + STATES_PADDING;
+        xOffset += cellSize + BETWEEN_STATES_PADDING;
       }
 
+      xOffset += STATES_PADDING - BETWEEN_STATES_PADDING;
+
       FontMetrics fm = g.getFontMetrics();
-      g.setColor(JBColor.BLACK);
-      g.drawString(myValue, xOffset, height - TEXT_PADDING - fm.getDescent());
+      g.setColor(Gray._111);
+      int yOffset = (height - fm.getHeight()) / 2 + fm.getAscent();
+      g.drawString(myValue, xOffset, yOffset);
 
       // If the attribute is private or there are no colors, draw a cross on attribute cell.
       if (!myIsPublic || myColors.isEmpty()) {
