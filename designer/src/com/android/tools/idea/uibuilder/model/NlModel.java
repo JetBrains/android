@@ -21,8 +21,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceVersion;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -35,7 +36,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -43,7 +43,6 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.ChangeListener;
@@ -54,7 +53,7 @@ import java.util.List;
 /**
  * Model for an XML file
  */
-public class NlModel implements Disposable, ConfigurationListener, ResourceFolderManager.ResourceFolderListener {
+public class NlModel implements Disposable, ResourceChangeListener {
   @AndroidCoordinate public static final int EMPTY_COMPONENT_SIZE = 5;
   @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
@@ -66,10 +65,8 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
   private List<NlComponent> myComponents = Lists.newArrayList();
   private final SelectionModel mySelectionModel;
   private Disposable myParent;
-  private ExternalChangeListener myPsiListener;
-  private int myConfigurationDirty;
   private boolean myActive;
-  private boolean myVariantChanged;
+  private ResourceVersion myRenderedVersion;
 
   @NonNull
   public static NlModel create(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
@@ -83,20 +80,6 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
     mySelectionModel = new SelectionModel();
-
-    if (facet.isGradleProject()) {
-      // Ensure that the app resources have been initialized first, since
-      // we want it to add its own variant listeners before ours (such that
-      // when the variant changes, the project resources get notified and updated
-      // before our own update listener attempts a re-render)
-      ModuleResourceRepository.getModuleResources(facet, true /*createIfNecessary*/);
-      myFacet.getResourceFolderManager().addListener(this);
-    }
-
-    myConfiguration.addListener(this);
-
-    myPsiListener = new ExternalChangeListener(this);
-    activate();
   }
 
   public void setParentDisposable(Disposable parent) {
@@ -109,26 +92,22 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
   public void activate() {
     if (!myActive) {
       myActive = true;
-      myPsiListener.activate();
 
-      if (myVariantChanged || (myConfigurationDirty & MASK_RENDERING) != 0) {
-        myVariantChanged = false;
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+      ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
+      if (!version.equals(myRenderedVersion)) {
         requestRender();
       }
-      myConfigurationDirty = 0;
     }
   }
 
   /** Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future. */
   public void deactivate() {
     if (myActive) {
-      myPsiListener.deactivate();
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+      manager.removeListener(this, myFacet, myFile, myConfiguration);
       myActive = false;
     }
-  }
-
-  public void buildProject() {
-    requestRender();
   }
 
   public XmlFile getFile() {
@@ -188,6 +167,11 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     if (configuration == null) {
       return;
     }
+
+    // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
+    // external changes
+    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(myFile.getProject());
+    myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
@@ -584,45 +568,18 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
 
   @Override
   public void dispose() {
-    myPsiListener.deactivate();
-    myConfiguration.removeListener(this);
-    myFacet.getResourceFolderManager().removeListener(this);
+    deactivate(); // ensure listeners are unregistered if necessary
   }
 
-  // ---- Implements ResourceFolderManager.ResourceFolderListener ----
-
   @Override
-  public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-                                     @NotNull List<VirtualFile> folders,
-                                     @NotNull Collection<VirtualFile> added,
-                                     @NotNull Collection<VirtualFile> removed) {
-    if (facet == myFacet) {
-      if (myActive) {
-        // The app resources should already have been refreshed by their own variant listener
-        requestRender();
-      } else {
-        myVariantChanged = true;
-      }
-    }
+  public String toString() {
+    return NlModel.class.getSimpleName() + " for " + myFile;
   }
 
-  // ---- implements ConfigurationListener ----
+  // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
 
   @Override
-  public boolean changed(int flags) {
-    if (myActive) {
-      requestRender();
-
-      //if ((flags & CFG_TARGET) != 0) {
-      //  IAndroidTarget target = myConfiguration != null ? myConfiguration.getTarget() : null;
-      //  if (target != null) {
-      //    updatePalette(target);
-      //  }
-      //}
-    } else {
-      myConfigurationDirty |= flags;
-    }
-
-    return true;
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+    requestRender();
   }
 }
