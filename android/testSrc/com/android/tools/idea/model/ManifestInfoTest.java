@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -298,8 +299,13 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public IOptionalLibrary[] getOptionalLibraries() {
-      return null;
+    public List<OptionalLibrary> getOptionalLibraries() {
+      return Collections.emptyList();
+    }
+
+    @Override
+    public List<OptionalLibrary> getAdditionalLibraries() {
+      return Collections.emptyList();
     }
 
     @Override
