@@ -98,7 +98,6 @@ public class ScreenView {
         break;
       }
     }
-    myModel.requestRender();
   }
 
   public void toggleOrientation() {
@@ -110,7 +109,6 @@ public class ScreenView {
     if (flip != null) {
       configuration.setDeviceState(flip);
     }
-    myModel.requestRender();
   }
 
   @NonNull
