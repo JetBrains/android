@@ -76,8 +76,12 @@ import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
  * Handles parsing a recipe.xml.ftl file. A recipe file specifies a bunch of file-related actions
  * to take after a template is processed, such as copying files over, merging them, or opening them
  * in the main editor.
+ * <p/>
+ * A recipe, when parsed, will additionally execute its instructions, unless you call
+ * {@link #setDryRun(boolean)} and set it to {@code true}, first.
  */
 // TODO: This class is doing too much. Create classes for each schema element and delegate?
+// TODO: dry-run is a short term solution. We should separate parsing from recipe execution
 public final class RecipeXmlParser extends DefaultHandler {
   private static final Logger LOG = Logger.getInstance(RecipeXmlParser.class);
   /**
@@ -107,15 +111,19 @@ public final class RecipeXmlParser extends DefaultHandler {
   private static final String OPEN_TAG = "open";
   private static final String OPEN_ATTR_FILE = "file";
 
-  @NotNull private final Project myProject;
-  @NotNull private final PrefixTemplateLoader myLoader;
-  @NotNull private final Configuration myFreemarker;
-  @NotNull private final File myTemplateRoot;
-  @NotNull private final File myOutputRoot;
-  @NotNull private final File myModuleRoot;
+  @NotNull private Project myProject;
+  @NotNull private PrefixTemplateLoader myLoader;
+  @NotNull private Configuration myFreemarker;
+  @NotNull private Map<String, Object> myParamMap;
+  @NotNull private File myTemplateRoot;
+  @NotNull private File myOutputRoot;
+  @NotNull private File myModuleRoot;
 
-  @NotNull private final Map<String, Object> myParamMap;
-  @NotNull private final List<File> myFilesToOpen = Lists.newArrayList();
+  @NotNull private List<File> myFilesToCopy = Lists.newArrayList();
+  @NotNull private List<File> myFilesToMerge = Lists.newArrayList();
+  @NotNull private List<File> myFilesToOpen = Lists.newArrayList();
+
+  private boolean myIsDryRun;
   private boolean myNeedsGradleSync;
   private boolean mySyncGradleIfNeeded;
 
@@ -227,6 +235,35 @@ public final class RecipeXmlParser extends DefaultHandler {
   }
 
   /**
+   * If {@code true}, parse this recipe file but do not execute its instructions. Defaults to
+   * {@code false}
+   */
+  public void setDryRun(boolean isDryRun) {
+    myIsDryRun = isDryRun;
+  }
+
+  /**
+   * Return a list of all dependencies which this recipe wants to add.
+   */
+  public List<String> getDependencies() {
+    return (List<String>)myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+  }
+
+  /**
+   * Return a list of all target files which this recipe wants to create / overwrite.
+   */
+  public List<File> getFilesToCopy() {
+    return myFilesToCopy;
+  }
+
+  /**
+   * Return a list of all target files which this recipe wants to create / modify.
+   */
+  public List<File> getFilesToMerge() {
+    return myFilesToMerge;
+  }
+
+  /**
    * Returns the list of all files requested by the recipe file for opening in the editor.
    */
   public List<File> getFilesToOpen() {
@@ -247,11 +284,14 @@ public final class RecipeXmlParser extends DefaultHandler {
           toFile = TemplateUtils.stripSuffix(toFile, DOT_FTL);
         }
 
-        if (instantiate) {
-          instantiate(myFreemarker, myParamMap, fromFile, toFile);
-        }
-        else {
-          copyTemplateResource(fromFile, toFile);
+        myFilesToCopy.add(toFile);
+        if (!myIsDryRun) {
+          if (instantiate) {
+            instantiate(myFreemarker, myParamMap, fromFile, toFile);
+          }
+          else {
+            copyTemplateResource(fromFile, toFile);
+          }
         }
       }
       else if (MERGE_TAG.equals(name)) {
@@ -261,8 +301,12 @@ public final class RecipeXmlParser extends DefaultHandler {
           toFile = getPath(attributes, MERGE_ATTR_FROM);
           toFile = TemplateUtils.stripSuffix(toFile, DOT_FTL);
         }
-        // Resources in template.xml are located within root/
-        merge(myFreemarker, myParamMap, fromFile, toFile);
+
+        myFilesToMerge.add(toFile);
+        if (!myIsDryRun) {
+          // Resources in template.xml are located within root/
+          merge(myFreemarker, myParamMap, fromFile, toFile);
+        }
       }
       else if (name.equals(OPEN_TAG)) {
         // The relative path here is within the output directory:
@@ -301,6 +345,10 @@ public final class RecipeXmlParser extends DefaultHandler {
   public void endElement(String uri, String localName, String name) throws SAXException {
     // Post-process this recipe once we close the root tag
     if (RECIPE_TAG.equals(name)) {
+      if (myIsDryRun) {
+        return;
+      }
+
       // Handle dependencies
       if (myParamMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
         Object maybeDependencyList = myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
@@ -536,8 +584,8 @@ public final class RecipeXmlParser extends DefaultHandler {
    * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
    */
   private void mergeDependenciesIntoFile(@NotNull File gradleBuildFile) throws IOException, TemplateException {
-    File gradleTemplate =
-      new File(TemplateManager.getTemplateRootFolder().getPath(), FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
+    String templateRoot = TemplateManager.getTemplateRootFolder().getPath();
+    File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
     myLoader.setTemplateFile(gradleTemplate);
     String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate.getName());
     String destinationContents = null;
@@ -597,8 +645,8 @@ public final class RecipeXmlParser extends DefaultHandler {
     VirtualFile sourceFile = VfsUtil.findFileByIoFile(src, true);
     assert sourceFile != null : src;
     sourceFile.refresh(false, false);
-    File parentPath = (src.isDirectory() ? dest : dest.getParentFile());
-    VirtualFile destFolder = checkedCreateDirectoryIfMissing(parentPath);
+    File destPath = (src.isDirectory() ? dest : dest.getParentFile());
+    VirtualFile destFolder = checkedCreateDirectoryIfMissing(destPath);
     if (src.isDirectory()) {
       copyDirectory(sourceFile, destFolder);
     }
