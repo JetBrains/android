@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
@@ -49,8 +50,15 @@ public class NlProperty {
     myDefinition = attributeDefinition;
   }
 
+  @NotNull
   public String getName() {
     return myDescriptor.getName();
+  }
+
+  @Nullable
+  public String getValue() {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    return myTag.getAttributeValue(myDescriptor.getName(myTag));
   }
 
   @Override
@@ -64,5 +72,9 @@ public class NlProperty {
       .add("name", getName())
       .add("namespace", namespace)
       .toString();
+  }
+
+  public String getTooltipText() {
+    return myDescriptor.getName(myTag);
   }
 }

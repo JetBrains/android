@@ -125,11 +125,42 @@ public class NlPropertiesTest extends LayoutTestCase {
     assertPresent(tag, properties, VIEW_ATTRS);
     assertPresent(tag, properties, LINEARLAYOUT_ATTRS);
     assertAbsent(tag, properties, TEXTVIEW_ATTRS);
+  }
 
+  public void testAppCompatIssues() {
+    @Language("XML")
+    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
+                    "  <TextView />" +
+                    "</RelativeLayout>";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+
+    @Language("XML")
+    String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<resources>\n" +
+                      "    <declare-styleable name=\"View\">\n" +
+                      "        <attr name=\"android:focusable\" />\n" +
+                      "        <attr name=\"theme\" format=\"reference\" />\n" +
+                      "        <attr name=\"android:theme\" />\n" +
+                      "        <attr name=\"custom\" />\n" +
+                      "    </declare-styleable>\n" +
+                      "</resources>";
+    myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
+
+    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    assertEquals(1, subTags.length);
+
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(subTags[0]);
+    assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
+
+    // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
+    // The android:focusable refers to the platform attribute, and hence should not be duplicated..
+    assertPresent("TextView", properties, "focusable", "theme", "custom");
+    assertAbsent("TextView", properties, "android:focusable", "android:theme");
   }
 
   @Nullable
-  private static NlProperty getPropertyByName(@NotNull List<NlProperty> properties, @NotNull String name) {
+  public static NlProperty getPropertyByName(@NotNull List<NlProperty> properties, @NotNull String name) {
     for (NlProperty property : properties) {
       if (name.equals(property.getName())) {
         return property;

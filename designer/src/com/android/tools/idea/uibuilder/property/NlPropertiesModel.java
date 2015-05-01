@@ -70,11 +70,6 @@ public class NlPropertiesModel extends AbstractTableModel {
 
   @Override
   public Object getValueAt(int row, int column) {
-    if (column == 1) {
-      return "";
-    }
-    else {
-      return row < myProperties.size() ? myProperties.get(row) : null;
-    }
+    return row < myProperties.size() ? myProperties.get(row) : null;
   }
 }

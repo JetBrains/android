@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -23,11 +26,33 @@ public class NlPropertyRenderer extends ColoredTableCellRenderer {
   @Override
   protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
     if (!(value instanceof NlProperty)) {
-      append(value.toString());
       return;
     }
 
     NlProperty property = (NlProperty)value;
+
+    customize(property, column);
+  }
+
+  @VisibleForTesting
+  void customize(NlProperty property, int column) {
+    if (column == 0) {
+      appendName(property);
+    } else {
+      appendValue(property);
+    }
+  }
+
+  private void appendValue(@NotNull NlProperty property) {
+    String value = property.getValue();
+    if (value == null) {
+      value = "";
+    }
+    append(value, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+  }
+
+  private void appendName(@NotNull NlProperty property) {
     append(property.getName());
+    setToolTipText(property.getTooltipText());
   }
 }
