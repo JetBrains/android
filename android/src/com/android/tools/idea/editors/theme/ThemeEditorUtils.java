@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.google.common.base.Predicate;
@@ -57,14 +58,11 @@ import java.util.TreeSet;
  * Utility class for static methods which are used in different classes of theme editor
  */
 public class ThemeEditorUtils {
-  private static final Cache<String, String> ourTooltipCache = CacheBuilder.newBuilder()
-    .weakValues()
-    .maximumSize(30) // To be able to cache roughly one screen of attributes
+  private static final Cache<String, String> ourTooltipCache = CacheBuilder.newBuilder().weakValues().maximumSize(30) // To be able to cache roughly one screen of attributes
     .build();
-  private static final Set<String> DEFAULT_THEMES = ImmutableSet
-    .of("Theme.AppCompat.NoActionBar", "Theme.AppCompat.Light.NoActionBar");
-  private static final Set<String> DEFAULT_THEMES_FALLBACK = ImmutableSet
-    .of("Theme.Material.NoActionBar", "Theme.Material.Light.NoActionBar");
+  private static final Set<String> DEFAULT_THEMES = ImmutableSet.of("Theme.AppCompat.NoActionBar", "Theme.AppCompat.Light.NoActionBar");
+  private static final Set<String> DEFAULT_THEMES_FALLBACK =
+    ImmutableSet.of("Theme.Material.NoActionBar", "Theme.Material.Light.NoActionBar");
 
   public static final Comparator<ThemeEditorStyle> STYLE_COMPARATOR = new Comparator<ThemeEditorStyle>() {
     @Override
@@ -77,7 +75,8 @@ public class ThemeEditorUtils {
     }
   };
 
-  private ThemeEditorUtils() { }
+  private ThemeEditorUtils() {
+  }
 
   @NotNull
   public static String generateToolTipText(@NotNull final ItemResourceValue resValue,
@@ -235,8 +234,7 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  private static Collection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes,
-                                                                  final @NotNull Set<String> names) {
+  private static Collection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes, final @NotNull Set<String> names) {
     return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
       @Override
       public boolean apply(@Nullable ThemeEditorStyle theme) {
@@ -264,5 +262,14 @@ public class ThemeEditorUtils {
     Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(STYLE_COMPARATOR);
     temporarySet.addAll(foundThemes);
     return ImmutableList.copyOf(temporarySet);
+  }
+
+  public static int getMinApiLevel(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return 1;
+    }
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    return moduleInfo.getMinSdkVersion().getApiLevel();
   }
 }
