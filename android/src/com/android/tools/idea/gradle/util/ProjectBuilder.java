@@ -123,6 +123,14 @@ public class ProjectBuilder {
     GradleInvoker.getInstance(myProject).addAfterGradleInvocationTask(task);
   }
 
+  public void removeAfterProjectBuildTask(@NotNull AfterProjectBuildTask task) {
+    // CompilerManager does not yet allow for listeners to be removed:
+    //    https://youtrack.jetbrains.com/issue/IDEA-139893
+    //CompilerManager.getInstance(myProject).removeAfterTask(task);
+
+    GradleInvoker.getInstance(myProject).removeAfterGradleInvocationTask(task);
+  }
+
   /**
    * Convenient implementation of {@link AfterProjectBuildTask} meant for listeners that do not care of the build result.
    */
