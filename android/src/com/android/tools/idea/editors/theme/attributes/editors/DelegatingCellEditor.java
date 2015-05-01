@@ -82,7 +82,9 @@ public class DelegatingCellEditor implements TableCellEditor {
     returnedComponent.setFont(font);
 
     if (returnedComponent instanceof JComponent) {
-      ((JComponent) returnedComponent).setToolTipText(tooltipText);
+      JComponent jComponent = (JComponent)returnedComponent;
+      jComponent.setToolTipText(tooltipText);
+      jComponent.setComponentPopupMenu(table.getComponentPopupMenu());
     }
     return returnedComponent;
   }

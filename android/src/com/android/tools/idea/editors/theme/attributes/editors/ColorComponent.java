@@ -28,6 +28,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.border.MatteBorder;
 import java.awt.BorderLayout;
@@ -81,6 +82,12 @@ public class ColorComponent extends JPanel {
     myNameLabel.setText(ThemeEditorUtils.getDisplayHtml(resValue));
     myValueLabel.setText(color.isEmpty() ? "" : ResourceHelper.colorToString(color.get(0)));
     myColorChooserButton.configure(resValue, color);
+  }
+
+  @Override
+  public void setComponentPopupMenu(JPopupMenu popup) {
+    super.setComponentPopupMenu(popup);
+    myColorChooserButton.setComponentPopupMenu(popup);
   }
 
   public String getValue() {
