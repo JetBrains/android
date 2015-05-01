@@ -100,7 +100,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   private Collection<UpdatableExternalComponent> getComponents(ProgressIndicator indicator, boolean remote) {
     initIfNecessary();
     List<UpdatableExternalComponent> result = Lists.newArrayList();
-    mySdkState.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, true, null, null, null, true);
+    mySdkState.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, true, null, null, null, false);
     for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs()) {
       if (remote) {
         if (info.hasRemote()) {
