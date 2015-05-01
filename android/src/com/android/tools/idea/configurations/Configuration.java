@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -55,7 +56,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration implements Disposable {
+public class Configuration implements Disposable, ModificationTracker {
 
   /** Min API version that supports preferences API rendering. */
   public static final int PREFERENCES_MIN_API = 21;
@@ -166,6 +167,8 @@ public class Configuration implements Disposable {
   protected int myFolderConfigDirty = MASK_FOLDERCONFIG;
 
   protected int myProjectStateVersion;
+
+  private long myModificationCount;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -1115,6 +1118,7 @@ public class Configuration implements Disposable {
   public void updated(int flags) {
     myNotifyDirty |= flags;
     myFolderConfigDirty |= flags;
+    myModificationCount++;
 
     if (myManager.getStateVersion() != myProjectStateVersion) {
       myNotifyDirty |= MASK_PROJECT_STATE;
@@ -1235,5 +1239,10 @@ public class Configuration implements Disposable {
     if (updateFlags != 0) {
       updated(updateFlags);
     }
+  }
+
+  @Override
+  public long getModificationCount() {
+    return myModificationCount;
   }
 }
