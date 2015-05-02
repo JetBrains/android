@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
@@ -23,6 +24,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -548,6 +550,38 @@ public class RenderErrorPanel extends JPanel {
   private void reportBrokenClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
     Map<String,Throwable> brokenClasses = logger.getBrokenClasses();
     if (brokenClasses != null && !brokenClasses.isEmpty()) {
+      final Module module = logger.getModule();
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
+          String modelVersion = facet.getIdeaAndroidProject().getDelegate().getModelVersion();
+          if (modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2")) {
+            builder.addBold("Using an obsolete version of the Gradle plugin (" + modelVersion +
+                            "); this can lead to layouts not rendering correctly.").newline();
+            builder.addIcon(HtmlBuilderHelper.getTipIconPath());
+
+            Runnable runnable = new Runnable() {
+              @Override
+              public void run() {
+                FixGradleModelVersionHyperlink quickFix = new FixGradleModelVersionHyperlink("", GRADLE_PLUGIN_RECOMMENDED_VERSION,
+                                                                                             null, false);
+                quickFix.executeIfClicked(module.getProject(),
+                                          new HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, quickFix.getUrl()));
+              }
+            };
+            builder.add("Tip: Either ")
+              .addLink("update the Gradle plugin build version to 1.2.3", myLinkManager.createRunnableLink(runnable))
+              .add(" or later, or downgrade to version 1.1.3, or as a workaround, ");
+            builder.beginList();
+            builder.listItem().addLink("", "Build the project", ", then", myLinkManager.createCompileModuleUrl());
+            builder.listItem().addLink("", "Gradle Sync the project", ", then", myLinkManager.createSyncProjectUrl());
+            builder.listItem().addLink("Manually ", "refresh the layout", " (or restart the IDE)", myLinkManager.createRefreshRenderUrl());
+            builder.endList();
+            builder.newline();
+          }
+        }
+      }
+
       builder.add("The following classes could not be instantiated:");
 
       Throwable firstThrowable = null;
