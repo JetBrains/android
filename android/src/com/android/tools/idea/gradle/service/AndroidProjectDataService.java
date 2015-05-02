@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service;
 
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
@@ -71,6 +72,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
@@ -193,8 +195,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         if (incompatibleVersionFound != null) {
           FixGradleModelVersionHyperlink quickFix =
-            new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", "1.2.0", null /* do not update Gradle version */,
-                                               false);
+            new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", GRADLE_PLUGIN_RECOMMENDED_VERSION,
+                                               null /* do not update Gradle version */, false);
           String[] text = {
             String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", incompatibleVersionFound),
             "Please use Android plugin version 1.2 or newer."
