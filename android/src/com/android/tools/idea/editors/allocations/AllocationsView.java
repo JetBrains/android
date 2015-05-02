@@ -22,6 +22,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.GotoFileCellRenderer;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,10 +56,7 @@ public class AllocationsView {
   private final AllocationInfo[] myAllocations;
 
   @NotNull
-  private final JComponent myColumnTree;
-
-  @NotNull
-  private final StackTraceNode myTreeNode;
+  private MainTreeNode myTreeNode;
 
   @NotNull
   private final JTree myTree;
@@ -66,10 +64,16 @@ public class AllocationsView {
   @NotNull
   private final DefaultTreeModel myTreeModel;
 
+  @NotNull
+  private final JPanel myPanel;
+
+  private GroupBy myGroupBy;
+
   public AllocationsView(@NotNull Project project, @NotNull final AllocationInfo[] allocations) {
     myProject = project;
     myAllocations = allocations;
-    myTreeNode = groupByStack(allocations);
+    myGroupBy = new GroupByMethod();
+    myTreeNode = generateTree();
     myTreeModel = new DefaultTreeModel(myTreeNode);
 
     myTree = new Tree(myTreeModel);
@@ -143,6 +147,14 @@ public class AllocationsView {
                   setIcon(AllIcons.FileTypes.JavaClass);
                   append(allocation.getAllocatedClass());
                 }
+                else if (value instanceof ClassNode) {
+                  setIcon(PlatformIcons.CLASS_ICON);
+                  append(((PackageNode)value).getName());
+                }
+                else if (value instanceof PackageNode) {
+                  setIcon(AllIcons.Modules.SourceFolder);
+                  append(((PackageNode)value).getName());
+                }
                 else {
                   append(value.toString());
                 }
@@ -214,7 +226,6 @@ public class AllocationsView {
         myTreeModel.nodeStructureChanged(myTreeNode);
       }
     });
-
     new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
       @Override
       public String convert(TreePath e) {
@@ -227,16 +238,53 @@ public class AllocationsView {
       }
     }, true);
 
-    myColumnTree = builder.build();
-  }
+    JComponent columnTree = builder.build();
+    myPanel = new JPanel(new BorderLayout());
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getMainActions(), true);
+    myPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
+    myPanel.add(columnTree, BorderLayout.CENTER);  }
 
+  @NotNull
   public Component getComponent() {
-    return myColumnTree;
+    return myPanel;
   }
 
-  private static StackTraceNode groupByStack(@NotNull AllocationInfo[] allocations) {
-    StackTraceNode tree = new StackTraceNode();
-    for (AllocationInfo alloc : allocations) {
+  private void setGroupBy(@NotNull GroupBy groupBy) {
+    myGroupBy = groupBy;
+    myTreeNode = generateTree();
+    myTreeModel.setRoot(myTreeNode);
+    myTreeModel.nodeStructureChanged(myTreeNode);
+  }
+
+  private ActionGroup getMainActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    group.add(new ComboBoxAction() {
+      @NotNull
+      @Override
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        DefaultActionGroup group = new DefaultActionGroup();
+        group.add(new ChangeGroupAction(new GroupByMethod()));
+        group.add(new ChangeGroupAction(new GroupByAllocator()));
+        return group;
+      }
+
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        getTemplatePresentation().setText(myGroupBy.getName());
+        e.getPresentation().setText(myGroupBy.getName());
+      }
+    });
+    group.add(new EditMultipleSourcesAction());
+
+    return group;
+  }
+
+  @NotNull
+  private MainTreeNode generateTree() {
+    MainTreeNode tree = myGroupBy.create();
+    for (AllocationInfo alloc : myAllocations) {
       tree.insert(alloc);
     }
     return tree;
@@ -304,6 +352,50 @@ public class AllocationsView {
         VirtualFile file = ((PsiFile)files.get(0)).getVirtualFile();
         new OpenFileHyperlinkInfo(myProject, file, element.getLineNumber()).navigate(myProject);
       }
+    }
+  }
+
+  interface GroupBy {
+    String getName();
+    MainTreeNode create();
+  }
+
+  static class GroupByMethod implements GroupBy {
+    @Override
+    public String getName() {
+      return "Group by Method";
+    }
+
+    @Override
+    public MainTreeNode create() {
+      return new StackTraceNode();
+    }
+  }
+
+  static class GroupByAllocator implements GroupBy {
+    @Override
+    public String getName() {
+      return "Group by Allocator";
+    }
+
+    @Override
+    public MainTreeNode create() {
+      return new PackageNode();
+    }
+  }
+
+  class ChangeGroupAction extends AnAction {
+
+    private GroupBy myGroupBy;
+
+    public ChangeGroupAction(GroupBy groupBy) {
+      super(groupBy.getName());
+      myGroupBy = groupBy;
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      setGroupBy(myGroupBy);
     }
   }
 }
