@@ -67,6 +67,7 @@ public class AndroidPlugin implements ApplicationComponent {
   public static class GuiTestSuiteState {
     private boolean myOpenProjectWizardAlreadyTested;
     private boolean myImportProjectWizardAlreadyTested;
+    private boolean myUseCachedGradleModelOnly;
 
     public boolean isOpenProjectWizardAlreadyTested() {
       return myOpenProjectWizardAlreadyTested;
@@ -82,6 +83,14 @@ public class AndroidPlugin implements ApplicationComponent {
 
     public void setImportProjectWizardAlreadyTested(boolean importProjectWizardAlreadyTested) {
       myImportProjectWizardAlreadyTested = importProjectWizardAlreadyTested;
+    }
+
+    public boolean syncWithCachedModelOnly() {
+      return myUseCachedGradleModelOnly;
+    }
+
+    public void setUseCachedGradleModelOnly(boolean useCachedGradleModelOnly) {
+      myUseCachedGradleModelOnly = useCachedGradleModelOnly;
     }
   }
 }
