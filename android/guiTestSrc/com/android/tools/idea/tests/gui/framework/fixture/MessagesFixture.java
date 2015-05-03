@@ -60,7 +60,12 @@ public class MessagesFixture {
 
   @NotNull
   public MessagesFixture clickYes() {
-    findAndClickButton(myDelegate, "Yes");
+    return click("Yes");
+  }
+
+  @NotNull
+  public MessagesFixture click(@NotNull String text) {
+    findAndClickButton(myDelegate, text);
     return this;
   }
 

@@ -68,6 +68,7 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
+import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -117,6 +118,22 @@ public final class GuiTests {
         });
       }
     });
+  }
+
+  @NotNull
+  public static File getFilePathProperty(@NotNull String propertyName, @NotNull String description, boolean isDirectory) {
+    String pathValue = System.getProperty(propertyName);
+    if (isNullOrEmpty(pathValue)) {
+      fail("Please specify " + description + ", using the system property " + quote(propertyName));
+    }
+    File path = new File(pathValue);
+    if (isDirectory) {
+      assertThat(path).isDirectory();
+    }
+    else {
+      assertThat(path).isFile();
+    }
+    return path;
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
