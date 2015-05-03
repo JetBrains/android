@@ -29,9 +29,10 @@ public class NlPropertyRenderer extends ColoredTableCellRenderer {
       return;
     }
 
-    NlProperty property = (NlProperty)value;
+    setPaintFocusBorder(false);
+    setFocusBorderAroundIcon(true);
 
-    customize(property, column);
+    customize((NlProperty)value, column);
   }
 
   @VisibleForTesting
