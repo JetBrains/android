@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.builder.model.SourceProvider;
 import com.android.resources.Density;
@@ -67,6 +68,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
   public static final Key<String> ATTR_CLIPART_NAME = createKey(AssetStudioAssetGenerator.ATTR_CLIPART_NAME, PATH, String.class);
+  public static final Key<String> ATTR_VECTOR_LIB_ICON_PATH = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_LIB_ICON_PATH, PATH, String.class);
   public static final Key<String> ATTR_TEXT = createKey(AssetStudioAssetGenerator.ATTR_TEXT, PATH, String.class);
   public static final Key<String> ATTR_FONT = createKey(AssetStudioAssetGenerator.ATTR_FONT, PATH, String.class);
   public static final Key<AssetType> ATTR_ASSET_TYPE = createKey(AssetStudioAssetGenerator.ATTR_ASSET_TYPE, PATH, AssetType.class);
@@ -606,7 +608,9 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     FlowLayout layout = new FlowLayout();
     dialog.getRootPane().setLayout(layout);
     int count = 0;
-    for (Iterator<String> iter = GraphicGenerator.getClipartNames(); iter.hasNext(); ) {
+    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(RasterAssetSetStep.IMAGES_CLIPART_BIG,
+                                                                    SdkConstants.DOT_PNG);
+         iter.hasNext(); ) {
       final String name = iter.next();
       try {
         JButton btn = new JButton();
