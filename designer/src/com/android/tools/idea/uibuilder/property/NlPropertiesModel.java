@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlTag;
@@ -23,21 +25,21 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.AbstractTableModel;
 import java.util.Collections;
 import java.util.List;
 
-public class NlPropertiesModel extends AbstractTableModel {
+public class NlPropertiesModel extends PTableModel {
   @Nullable private XmlTag myTag;
-  @NotNull private List<NlProperty> myProperties = Collections.emptyList();
 
-  public void update(@NotNull Iterable<NlComponent> selection) {
+  public void update(@NotNull Iterable<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
     // TODO: handle multiple selections: show properties common to all selections
     NlComponent first = Iterables.getFirst(selection, null);
     myTag = first == null ? null : first.tag;
     if (myTag == null) {
-      myProperties = Collections.emptyList();
-      fireTableDataChanged();
+      setItems(Collections.<PTableItem>emptyList());
+      if (postUpdateRunnable != null) {
+        postUpdateRunnable.run();
+      }
       return;
     }
 
@@ -47,29 +49,18 @@ public class NlPropertiesModel extends AbstractTableModel {
       @Override
       public void run() {
         final List<NlProperty> properties = NlProperties.getInstance().getProperties(myTag);
+        final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties);
+
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
-            myProperties = properties;
-            fireTableDataChanged();
+            setItems(groupedProperties);
+            if (postUpdateRunnable != null) {
+              postUpdateRunnable.run();
+            }
           }
         });
       }
     });
-  }
-
-  @Override
-  public int getRowCount() {
-    return myProperties.size();
-  }
-
-  @Override
-  public int getColumnCount() {
-    return 2;
-  }
-
-  @Override
-  public Object getValueAt(int row, int column) {
-    return row < myProperties.size() ? myProperties.get(row) : null;
   }
 }
