@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.model.java;
 
-import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
@@ -26,21 +25,32 @@ import java.io.Serializable;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class SimpleIdeaModuleDependency implements IdeaDependency, Serializable {
+/**
+ * Dependency to a Java module.
+ */
+public class JavaModuleDependency implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myModuleName;
-  @NotNull private final IdeaDependencyScope myScope;
+  @Nullable private final String myScope;
   private final boolean myExported;
 
   @Nullable
-  public static SimpleIdeaModuleDependency copy(IdeaModuleDependency original) {
+  public static JavaModuleDependency copy(IdeaModuleDependency original) {
     IdeaModule module = original.getDependencyModule();
     if (module != null && isNotEmpty(module.getName())) {
-      return new SimpleIdeaModuleDependency(module.getName(), original.getScope(), original.getExported());
+      String scope = null;
+      IdeaDependencyScope originalScope = original.getScope();
+      if (originalScope != null) {
+        scope = originalScope.getScope();
+      }
+      return new JavaModuleDependency(module.getName(), scope, original.getExported());
     }
     return null;
   }
 
-  public SimpleIdeaModuleDependency(@NotNull String moduleName, @NotNull IdeaDependencyScope scope, boolean exported) {
+  public JavaModuleDependency(@NotNull String moduleName, @Nullable String scope, boolean exported) {
     myModuleName = moduleName;
     myScope = scope;
     myExported = exported;
@@ -51,14 +61,12 @@ public class SimpleIdeaModuleDependency implements IdeaDependency, Serializable 
     return myModuleName;
   }
 
-  @Override
-  @NotNull
-  public IdeaDependencyScope getScope() {
+  @Nullable
+  public String getScope() {
     return myScope;
   }
 
-  @Override
-  public boolean getExported() {
+  public boolean isExported() {
     return myExported;
   }
 }
