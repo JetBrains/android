@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.model.java;
 
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -22,12 +22,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link SimpleIdeaModuleDependency}.
+ * Tests for {@link JavaModuleDependency}.
  */
-public class SimpleIdeaModuleDependencyTest {
+public class JavaModuleDependencyTest {
   private IdeaModuleDependency myOriginalDependency;
   private IdeaModule myIdeaModule;
 
@@ -41,7 +42,7 @@ public class SimpleIdeaModuleDependencyTest {
   public void testCopyWithNullIdeaModule() {
     expect(myOriginalDependency.getDependencyModule()).andStubReturn(null);
     replay(myOriginalDependency, myIdeaModule);
-    assertNull(SimpleIdeaModuleDependency.copy(myOriginalDependency));
+    assertNull(JavaModuleDependency.copy(myOriginalDependency));
     verify(myOriginalDependency, myIdeaModule);
   }
 
@@ -50,7 +51,7 @@ public class SimpleIdeaModuleDependencyTest {
     expect(myOriginalDependency.getDependencyModule()).andStubReturn(myIdeaModule);
     expect(myIdeaModule.getName()).andStubReturn(null);
     replay(myOriginalDependency, myIdeaModule);
-    assertNull(SimpleIdeaModuleDependency.copy(myOriginalDependency));
+    assertNull(JavaModuleDependency.copy(myOriginalDependency));
     verify(myOriginalDependency, myIdeaModule);
   }
 
@@ -59,7 +60,7 @@ public class SimpleIdeaModuleDependencyTest {
     expect(myOriginalDependency.getDependencyModule()).andStubReturn(myIdeaModule);
     expect(myIdeaModule.getName()).andStubReturn("");
     replay(myOriginalDependency, myIdeaModule);
-    assertNull(SimpleIdeaModuleDependency.copy(myOriginalDependency));
+    assertNull(JavaModuleDependency.copy(myOriginalDependency));
     verify(myOriginalDependency, myIdeaModule);
   }
 
@@ -72,15 +73,16 @@ public class SimpleIdeaModuleDependencyTest {
     expect(myIdeaModule.getName()).andStubReturn(moduleName);
     expect(myOriginalDependency.getScope()).andStubReturn(scope);
     expect(myOriginalDependency.getExported()).andStubReturn(true);
+    expect(scope.getScope()).andStubReturn("compile");
 
-    replay(myOriginalDependency, myIdeaModule);
+    replay(myOriginalDependency, myIdeaModule, scope);
 
-    SimpleIdeaModuleDependency copy = SimpleIdeaModuleDependency.copy(myOriginalDependency);
+    JavaModuleDependency copy = JavaModuleDependency.copy(myOriginalDependency);
     assertNotNull(copy);
     assertEquals(moduleName, copy.getModuleName());
-    assertSame(scope, copy.getScope());
-    assertTrue(copy.getExported());
+    assertSame("compile", copy.getScope());
+    assertTrue(copy.isExported());
 
-    verify(myOriginalDependency, myIdeaModule);
+    verify(myOriginalDependency, myIdeaModule, scope);
   }
 }

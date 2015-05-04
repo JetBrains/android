@@ -17,12 +17,13 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
-import com.android.tools.idea.gradle.SimpleIdeaModuleDependency;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
+import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -31,10 +32,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,33 +40,26 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
 
 public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaJavaProject> {
-  @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
-
-  private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = DependencyScope.COMPILE;
+  private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;
 
   @Override
   protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaJavaProject javaProject) {
     List<String> unresolved = Lists.newArrayList();
-    List<? extends IdeaDependency> dependencies = javaProject.getDependencies();
-    for (IdeaDependency dependency : dependencies) {
-      if (dependency instanceof SimpleIdeaModuleDependency) {
-        updateModuleDependency(moduleModel, (SimpleIdeaModuleDependency)dependency);
-        continue;
+    for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
+      updateDependency(moduleModel, dependency);
+    }
+
+    for (JarLibraryDependency dependency : javaProject.getJarLibraryDependencies()) {
+      if (dependency.isResolved()) {
+        updateDependency(moduleModel, dependency);
       }
-      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
-        IdeaSingleEntryLibraryDependency libDependency = (IdeaSingleEntryLibraryDependency)dependency;
-        if (isResolved(libDependency)) {
-          updateLibraryDependency(moduleModel, (IdeaSingleEntryLibraryDependency)dependency);
-          continue;
-        }
-        String name = getUnresolvedDependencyName(libDependency);
-        if (name != null) {
-          unresolved.add(name);
-        }
+      else {
+        unresolved.add(dependency.getName());
       }
     }
 
@@ -89,30 +79,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     facetProperties.BUILDABLE = javaProject.isBuildable();
   }
 
-  private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
-    String libraryName = getFileName(dependency);
-    return libraryName != null && !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
-  }
-
-  @Nullable
-  private static String getUnresolvedDependencyName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
-    String libraryName = getFileName(dependency);
-    if (libraryName == null) {
-      return null;
-    }
-    // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
-    // We report the unresolved dependency as 'commons-collections:commons-collections:3.2'
-    return libraryName.substring(UNRESOLVED_DEPENDENCY_PREFIX.length()).replace(' ', ':');
-  }
-
-  @Nullable
-  private static String getFileName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
-    File binaryPath = dependency.getFile();
-    return binaryPath != null ? binaryPath.getName() : null;
-  }
-
-  private void updateModuleDependency(@NotNull ModifiableRootModel moduleModel, @NotNull SimpleIdeaModuleDependency dependency) {
+  private void updateDependency(@NotNull ModifiableRootModel moduleModel, @NotNull JavaModuleDependency dependency) {
     DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
+
     String moduleName = dependency.getModuleName();
     ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module found = null;
@@ -129,9 +98,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     setupErrors.addMissingModule(moduleName, moduleModel.getModule().getName(), null);
   }
 
-  private void updateLibraryDependency(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaSingleEntryLibraryDependency dependency) {
+  private void updateDependency(@NotNull ModifiableRootModel moduleModel, @NotNull JarLibraryDependency dependency) {
     DependencyScope scope = parseScope(dependency.getScope());
-    File binaryPath = dependency.getFile();
+    File binaryPath = dependency.getBinaryPath();
     if (binaryPath == null) {
       DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
       setupErrors.addMissingBinaryPath(moduleModel.getModule().getName());
@@ -141,25 +110,22 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     // Gradle API doesn't provide library name at the moment.
     String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(path);
-    setUpLibraryDependency(moduleModel, name, scope, singletonList(path), getPath(dependency.getSource()), getPath(dependency.getJavadoc()));
+    setUpLibraryDependency(moduleModel, name, scope, singletonList(path), asPaths(dependency.getSourcePath()),
+                           asPaths(dependency.getJavadocPath()));
   }
 
   @NotNull
-  private static List<String> getPath(@Nullable File file) {
+  private static List<String> asPaths(@Nullable File file) {
     return file == null ? Collections.<String>emptyList() : singletonList(file.getPath());
   }
 
   @NotNull
-  private static DependencyScope parseScope(@Nullable IdeaDependencyScope scope) {
+  private static DependencyScope parseScope(@Nullable String scope) {
     if (scope == null) {
       return DEFAULT_DEPENDENCY_SCOPE;
     }
-    String description = scope.getScope();
-    if (description == null) {
-      return DEFAULT_DEPENDENCY_SCOPE;
-    }
     for (DependencyScope dependencyScope : DependencyScope.values()) {
-      if (description.equalsIgnoreCase(dependencyScope.toString())) {
+      if (scope.equalsIgnoreCase(dependencyScope.toString())) {
         return dependencyScope;
       }
     }
