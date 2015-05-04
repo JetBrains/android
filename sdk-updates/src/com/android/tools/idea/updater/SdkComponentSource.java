@@ -28,6 +28,7 @@ import com.android.utils.StdLogger;
 import com.google.common.collect.Lists;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -46,15 +47,19 @@ public class SdkComponentSource implements ExternalComponentSource {
   SdkState mySdkState;
   private static final ILogger ILOG = new StdLogger(StdLogger.Level.ERROR);
 
-  private void initIfNecessary() {
+  private boolean initIfNecessary() {
     if (mySdkState != null) {
-      return;
+      return true;
     }
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assert data != null;
+    if (data == null) {
+      Logger.getInstance(getClass()).warn("Couldn't find existing SDK");
+      return false;
+    }
     mySdkState = SdkState.getInstance(data);
 
     mySources = mySdkState.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, ILOG);
+    return true;
   }
 
   /**
@@ -98,8 +103,10 @@ public class SdkComponentSource implements ExternalComponentSource {
   }
 
   private Collection<UpdatableExternalComponent> getComponents(ProgressIndicator indicator, boolean remote) {
-    initIfNecessary();
     List<UpdatableExternalComponent> result = Lists.newArrayList();
+    if (!initIfNecessary()) {
+      return result;
+    }
     mySdkState.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, true, null, null, null, false);
     for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs()) {
       if (remote) {
