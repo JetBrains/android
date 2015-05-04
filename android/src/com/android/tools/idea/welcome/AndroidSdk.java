@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -49,8 +48,9 @@ public final class AndroidSdk extends InstallableComponent {
 
   /**
    * Find latest build tools revision. Versions compatible with the selected platforms will be installed by the platform components.
+   * @return The FullRevision of the latest build tools package, or null if no remote build tools packages are available.
    */
-  @NotNull
+  @Nullable
   private static FullRevision getLatestCompatibleBuildToolsRevision(@NotNull Multimap<PkgType, RemotePkgInfo> packages) {
     FullRevision revision = null;
     Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
@@ -70,7 +70,10 @@ public final class AndroidSdk extends InstallableComponent {
     result.add(PkgDesc.Builder.newTool(FullRevision.NOT_SPECIFIED, FullRevision.NOT_SPECIFIED).create());
     result.add(PkgDesc.Builder.newPlatformTool(FullRevision.NOT_SPECIFIED).create());
     if (remotePackages != null) {
-      result.add(PkgDesc.Builder.newBuildTool(getLatestCompatibleBuildToolsRevision(remotePackages)).create());
+      FullRevision revision = getLatestCompatibleBuildToolsRevision(remotePackages);
+      if (revision != null) {
+        result.add(PkgDesc.Builder.newBuildTool(revision).create());
+      }
     }
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
