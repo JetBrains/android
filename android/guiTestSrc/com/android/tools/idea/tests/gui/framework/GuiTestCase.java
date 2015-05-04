@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -34,6 +35,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -44,7 +46,7 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
-import org.jetbrains.android.AndroidPlugin;
+import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -71,6 +73,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
+import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
@@ -101,6 +104,20 @@ public abstract class GuiTestCase {
 
     myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
     myRobot.settings().delayBetweenEvents(30);
+
+    setIdeSettings();
+  }
+
+  private static void setIdeSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+
+    // Clear HTTP proxy settings, in case a test changed them.
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.PROXY_HOST = "";
+    ideSettings.PROXY_PORT = 80;
+
+    getGuiTestSuiteState().setSkipSdkMerge(false);
   }
 
   @After
@@ -193,7 +210,7 @@ public abstract class GuiTestCase {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    AndroidPlugin.GuiTestSuiteState testSuiteState = getTestSuiteState();
+    GuiTestSuiteState testSuiteState = getGuiTestSuiteState();
     if (!testSuiteState.isImportProjectWizardAlreadyTested()) {
       testSuiteState.setImportProjectWizardAlreadyTested(true);
 
@@ -240,7 +257,7 @@ public abstract class GuiTestCase {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    AndroidPlugin.GuiTestSuiteState state = getTestSuiteState();
+    GuiTestSuiteState state = getGuiTestSuiteState();
     if (!state.isOpenProjectWizardAlreadyTested()) {
       state.setOpenProjectWizardAlreadyTested(true);
 
@@ -262,13 +279,6 @@ public abstract class GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
-  }
-
-  @NotNull
-  private static AndroidPlugin.GuiTestSuiteState getTestSuiteState() {
-    AndroidPlugin.GuiTestSuiteState state = AndroidPlugin.getGuiTestSuiteState();
-    assertNotNull(state);
-    return state;
   }
 
   /**
