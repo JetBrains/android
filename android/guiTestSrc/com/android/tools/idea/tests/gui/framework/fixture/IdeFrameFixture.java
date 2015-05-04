@@ -728,6 +728,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeFrameFixture useLocalGradleDistribution(@NotNull File gradleHomePath) {
+    return useLocalGradleDistribution(gradleHomePath.getPath());
+  }
+
+  @NotNull
   public IdeFrameFixture useLocalGradleDistribution(@NotNull String gradleHome) {
     GradleProjectSettings settings = getGradleSettings();
     settings.setDistributionType(LOCAL);

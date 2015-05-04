@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
@@ -65,7 +66,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -96,7 +96,6 @@ import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.INFO;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -108,8 +107,8 @@ import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
-import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
+import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -118,17 +117,6 @@ public class GradleSyncTest extends GuiTestCase {
   @Before
   public void disableSourceGenTask() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
-
-  @After
-  public void resetSettings() {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
-
-    // Clear HTTP proxy settings, in case a test changed them.
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = false;
-    ideSettings.PROXY_HOST = "";
-    ideSettings.PROXY_PORT = 80;
   }
 
   @Test @IdeGuiTest
@@ -577,11 +565,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
-    String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
-    if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.2.1 distribution using the system property "
-           + quote(SUPPORTED_GRADLE_HOME_PROPERTY));
-    }
+    File gradleHomePath = getFilePathProperty(SUPPORTED_GRADLE_HOME_PROPERTY, "the path of a local Gradle 2.2.1 distribution", true);
 
     IdeFrameFixture projectFrame = importSimpleApplication();
 
@@ -593,7 +577,7 @@ public class GradleSyncTest extends GuiTestCase {
     findGradleSyncMessageDialog(projectFrame.target).clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
-    chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome))
+    chooseGradleHomeDialog.chooseGradleHome(gradleHomePath)
                           .clickOk()
                           .requireNotShowing();
 
@@ -636,7 +620,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
     projectFrame.deleteGradleWrapper()
-                .useLocalGradleDistribution(nonExistingDirPath.getPath())
+                .useLocalGradleDistribution(nonExistingDirPath)
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
@@ -930,7 +914,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testAndroidPluginAndGradleVersionCompatibility() throws IOException {
-    String gradleTwoDotFourHome = getGradleHomeFromSystemProperty("gradle.2.4.home", "2.4");
+    File gradleTwoDotFourHome = getGradleHomeFromSystemProperty("gradle.2.4.home", "2.4");
 
     IdeFrameFixture projectFrame = importSimpleApplication();
 
@@ -1010,20 +994,14 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=73087
   @Test @IdeGuiTest
   public void testUserDefinedLibraryAttachments() throws IOException {
-    String javadocJarPathProperty = "guava.javadoc.jar.path";
-    String javadocJarPath = System.getProperty(javadocJarPathProperty);
-    if (isEmpty(javadocJarPath)) {
-      fail("Please specify the path of the Javadoc jar file for Guava, using the system property " + quote(javadocJarPathProperty));
-    }
-    File attachmentPath = new File(javadocJarPath);
-    assertThat(attachmentPath).isFile();
+    File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
 
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     LibraryPropertiesDialogFixture propertiesDialog = projectFrame.showPropertiesForLibrary("guava");
-    propertiesDialog.addAttachment(attachmentPath)
+    propertiesDialog.addAttachment(javadocJarPath)
                     .clickOk();
 
-    String javadocJarUrl = pathToUrl(javadocJarPath);
+    String javadocJarUrl = pathToUrl(javadocJarPath.getPath());
 
     // Verify that the library has the Javadoc attachment we just added.
     LibraryFixture library = propertiesDialog.getLibrary();
@@ -1109,18 +1087,55 @@ public class GradleSyncTest extends GuiTestCase {
     assertEquals("UTF-8", EncodingProjectManager.getInstance(project).getDefaultCharsetName());
   }
 
+  // Verifies that the IDE switches SDKs if the IDE and project SDKs are not the same.
+  @Test @IdeGuiTest
+  public void testSdkSwitch() throws IOException {
+    File secondSdkPath = getFilePathProperty("second.android.sdk.path", "the path of a secondary Android SDK", true);
+    getGuiTestSuiteState().setSkipSdkMerge(true);
+
+    File originalSdkPath = IdeSdks.getAndroidSdkPath();
+    assertNotNull(originalSdkPath);
+
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    // Change the SDK in the project. We expect the IDE to have the same SDK as the project.
+    LocalProperties localProperties = new LocalProperties(projectFrame.getProject());
+    localProperties.setAndroidSdkPath(secondSdkPath);
+    localProperties.save();
+
+    projectFrame.requestProjectSync();
+
+    MessagesFixture messages = MessagesFixture.findByTitle(myRobot, projectFrame.target, "Android SDK Manager");
+    messages.click("Use Project's SDK");
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    assertThat(IdeSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
+
+    // Set the project's SDK to be the original one. Now we will choose the IDE's SDK.
+    localProperties = new LocalProperties(projectFrame.getProject());
+    localProperties.setAndroidSdkPath(originalSdkPath);
+    localProperties.save();
+
+    projectFrame.requestProjectSync();
+
+    messages = MessagesFixture.findByTitle(myRobot, projectFrame.target, "Android SDK Manager");
+    messages.click("Use Android Studio's SDK");
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    localProperties = new LocalProperties(projectFrame.getProject());
+    assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
+  }
+
   @NotNull
-  private static String getUnsupportedGradleHome() {
+  private static File getUnsupportedGradleHome() {
     return getGradleHomeFromSystemProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY, "2.1");
   }
 
   @NotNull
-  private static String getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
-    String gradleHome = System.getProperty(propertyName);
-    if (isEmpty(gradleHome)) {
-      fail("Please specify the path of a Gradle " + gradleVersion + " distribution, using the system property " + quote(propertyName));
-    }
-    assertThat(new File(gradleHome)).isDirectory();
-    return gradleHome;
+  private static File getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
+    String description = "the path of a Gradle " + gradleVersion + " distribution";
+    return getFilePathProperty(propertyName, description, true);
   }
 }
