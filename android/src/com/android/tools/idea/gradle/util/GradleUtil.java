@@ -1238,4 +1238,16 @@ public final class GradleUtil {
     ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, SYSTEM_ID, getBaseDirPath(project).getPath());
     return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
   }
+
+  /**
+   * Indicates whether <a href="https://code.google.com/p/android/issues/detail?id=170841">a known layout rendering issue</a> is present in
+   * the given model.
+   *
+   * @param model the given model.
+   * @return {@true} if the model has the layout rendering issue; {@code false} otherwise.
+   */
+  public static boolean hasLayoutRenderingIssue(@NotNull AndroidProject model) {
+    String modelVersion = model.getModelVersion();
+    return modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2");
+  }
 }
