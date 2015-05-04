@@ -28,10 +28,7 @@ import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -143,7 +140,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
     AttributeDefinition def = myAttrs.get(name);
     if (def == null) {
-      def = new AttributeDefinition(name);
+      def = new AttributeDefinition(name, parentStyleable, Collections.<AttributeFormat>emptySet());
       myAttrs.put(def.getName(), def);
     }
     def.addFormats(formats);
