@@ -102,9 +102,12 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   @Override
   public void updateState(@Nullable SdkManager manager) {
     boolean isSelected;
-    myIsOptional = isOptionalForSdkLocation(manager);
+    // If we don't have anything to install, show as unchecked and not editable.
+    boolean nothingToInstall = getRequiredSdkPackages(null).isEmpty();
+    myIsOptional = !nothingToInstall && isOptionalForSdkLocation(manager);
+
     if (!myIsOptional) {
-      isSelected = true;
+      isSelected = !nothingToInstall;
     }
     else if (myUserSelection != null) {
       isSelected = myUserSelection;
@@ -126,6 +129,9 @@ public abstract class InstallableComponent extends ComponentTreeNode {
         descs.add(desc.getPath());
       }
       Collection<IPkgDesc> requiredSdkPackages = getRequiredSdkPackages(null);
+      if (requiredSdkPackages.isEmpty()) {
+        return false;
+      }
       for (IPkgDesc desc : requiredSdkPackages) {
         if (!descs.contains(desc.getPath())) {
           return false;

@@ -37,8 +37,8 @@ import com.android.tools.idea.avdmanager.LogWrapper;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -73,12 +73,19 @@ public class AndroidVirtualDevice extends InstallableComponent {
   private static final Set<String> DISABLED_HARDWARE =
     ImmutableSet.of(HW_DPAD, HW_MAINKEYS, HW_TRACKBALL, AVD_INI_SNAPSHOT_PRESENT, AVD_INI_SKIN_DYNAMIC);
   private ProgressStep myProgressStep;
+  @Nullable
   private final AndroidVersion myLatestVersion;
 
   public AndroidVirtualDevice(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)");
-    myLatestVersion = InstallComponentsPath.findLatestPlatform(remotePackages, false).getDesc().getAndroidVersion();
+    RemotePkgInfo latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages, false);
+    if (latestInfo != null) {
+      myLatestVersion = latestInfo.getDesc().getAndroidVersion();
+    }
+    else {
+      myLatestVersion = null;
+    }
   }
 
   @NotNull
@@ -166,10 +173,13 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(Multimap<PkgType, RemotePkgInfo> remotePackages) {
     MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder googleApis = PkgDesc.Builder.newAddon(myLatestVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG);
-    PkgDesc.Builder sysImg = PkgDesc.Builder
-      .newAddonSysImg(myLatestVersion, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM, unspecifiedRevision);
-    return ImmutableList.of(googleApis.create(), sysImg.create());
+    List<IPkgDesc> result = Lists.newArrayList();
+    if (myLatestVersion != null) {
+      result.add(PkgDesc.Builder.newAddon(myLatestVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG).create());
+      result.add(PkgDesc.Builder.newAddonSysImg(myLatestVersion, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM,
+                                                unspecifiedRevision).create());
+    }
+    return result;
   }
 
   @Override
