@@ -44,6 +44,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
 
+  @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
   private boolean myLibrary;
 
@@ -66,7 +67,11 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getModelVersion() {
-    return SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
+    return myModelVersion;
+  }
+
+  public void setModelVersion(@NotNull String modelVersion) {
+    myModelVersion = modelVersion;
   }
 
   @Override

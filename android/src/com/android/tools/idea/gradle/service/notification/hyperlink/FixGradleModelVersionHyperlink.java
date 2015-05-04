@@ -50,38 +50,27 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   /**
    * Creates a new {@link FixGradleModelVersionHyperlink}. This constructor updates the Gradle model to the version in
    * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
-   * This constructor also opens the migration to the Android Gradle model version 1.0 (from an older version) in the browser.
-   */
-  public FixGradleModelVersionHyperlink() {
-    this("Open migration guide, fix plug-in version and sync project", true);
-  }
-
-  /**
-   * Creates a new {@link FixGradleModelVersionHyperlink}. This constructor updates the Gradle model to the version in
-   * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
    *
-   * @param text               the text of the URL.
    * @param openMigrationGuide indicates whether the migration guide to the Android Gradle model version 1.0 (from an older version) should
    *                           be opened in the browser.
    */
-  public FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
-    this(text, GRADLE_PLUGIN_RECOMMENDED_VERSION, GRADLE_LATEST_VERSION, openMigrationGuide);
+  public FixGradleModelVersionHyperlink(boolean openMigrationGuide) {
+    this(GRADLE_PLUGIN_RECOMMENDED_VERSION, GRADLE_LATEST_VERSION, openMigrationGuide);
   }
 
   /**
    * Creates a new {@link FixGradleModelVersionHyperlink}.
    *
-   * @param text               the text of the URL.
    * @param modelVersion       the version to update the Android Gradle model to.
    * @param gradleVersion      the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
    * @param openMigrationGuide indicates whether the migration guide to the Android Gradle model version 1.0 (from an older version) should
    *                           be opened in the browser.
    */
-  public FixGradleModelVersionHyperlink(@NotNull String text,
-                                        @NotNull String modelVersion,
+  public FixGradleModelVersionHyperlink(@NotNull String modelVersion,
                                         @Nullable String gradleVersion,
                                         boolean openMigrationGuide) {
-    super("fixGradleElements", text);
+    super("fixGradleElements",
+          openMigrationGuide ? "Open migration guide, fix plug-in version and sync project" : "Fix plug-in version and sync project");
     myModelVersion = modelVersion;
     myGradleVersion = gradleVersion;
     myOpenMigrationGuide = openMigrationGuide;
