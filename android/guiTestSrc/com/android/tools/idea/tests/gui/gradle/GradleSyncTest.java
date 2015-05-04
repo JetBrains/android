@@ -41,6 +41,9 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -54,6 +57,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
+import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -61,6 +65,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
+import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,6 +108,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findDialog;
@@ -115,8 +121,11 @@ import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
   @Before
-  public void disableSourceGenTask() {
+  public void resetIdeState() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+    GuiTestSuiteState state = getGuiTestSuiteState();
+    assertNotNull(state);
+    state.setUseCachedGradleModelOnly(false);
   }
 
   @Test @IdeGuiTest
@@ -1126,6 +1135,40 @@ public class GradleSyncTest extends GuiTestCase {
 
     localProperties = new LocalProperties(projectFrame.getProject());
     assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
+  }
+
+  // Verifies that if syncing using cached model, and if the cached model is missing data, we fall back to a full Gradle sync.
+  // See: https://code.google.com/p/android/issues/detail?id=160899
+  @Test @IdeGuiTest
+  public void testWithCacheMissingModules() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    // Remove a module from the cache.
+    Project project = projectFrame.getProject();
+    DataNode<ProjectData> cache = getCachedProjectData(project);
+    assertNotNull(cache);
+
+    List<DataNode<?>> cachedChildren = field("myChildren").ofType(new TypeRef<List<DataNode<?>>>(){}).in(cache).get();
+    assertThat(cachedChildren.size()).isGreaterThan(1);
+    DataNode<?> toRemove = null;
+    for (DataNode<?> child : cachedChildren) {
+      if (child.getData() instanceof ModuleData) {
+        toRemove = child;
+        break;
+      }
+    }
+    assertNotNull(toRemove);
+    cachedChildren.remove(toRemove);
+
+    // Force the IDE to use cache for sync.
+    GuiTestSuiteState state = getGuiTestSuiteState();
+    assertNotNull(state);
+    state.setUseCachedGradleModelOnly(true);
+
+    // Sync again, and a full sync should occur, since the cache is missing modules.
+    // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync
+    // finished.
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
   }
 
   @NotNull
