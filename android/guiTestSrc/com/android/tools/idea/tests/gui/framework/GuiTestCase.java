@@ -117,7 +117,9 @@ public abstract class GuiTestCase {
     ideSettings.PROXY_HOST = "";
     ideSettings.PROXY_PORT = 80;
 
-    getGuiTestSuiteState().setSkipSdkMerge(false);
+    GuiTestSuiteState state = getGuiTestSuiteState();
+    state.setSkipSdkMerge(false);
+    state.setUseCachedGradleModelOnly(false);
   }
 
   @After
