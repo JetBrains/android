@@ -96,6 +96,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFi
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.io.Files.write;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.WARNING;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -854,22 +855,9 @@ public class GradleSyncTest extends GuiTestCase {
 
     IdeFrameFixture projectFrame = openSimpleApplication();
 
-    File projectPath = projectFrame.getProjectPath();
-    File buildFile = new File(projectPath, FN_BUILD_GRADLE);
-    assertThat(buildFile).isFile();
-
     // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
     // We expect the IDE to warn the user about this incompatibility.
-    String contents = Files.toString(buildFile, Charsets.UTF_8);
-    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
-    Matcher matcher = pattern.matcher(contents);
-    if (matcher.find()) {
-      contents = contents.substring(0, matcher.start(1)) + "1.0.0" + contents.substring(matcher.end(1));
-      write(contents, buildFile, Charsets.UTF_8);
-    }
-    else {
-      fail("Cannot find declaration of Android plugin");
-    }
+    updateAndroidModelVersion(projectFrame.getProjectPath(), "1.0.0");
 
     projectFrame.useLocalGradleDistribution(gradleTwoDotFourHome)
                 .requestProjectSync()
@@ -938,7 +926,8 @@ public class GradleSyncTest extends GuiTestCase {
     DataNode<ProjectData> cache = getCachedProjectData(project);
     assertNotNull(cache);
 
-    List<DataNode<?>> cachedChildren = field("myChildren").ofType(new TypeRef<List<DataNode<?>>>(){}).in(cache).get();
+    List<DataNode<?>> cachedChildren = field("myChildren").ofType(new TypeRef<List<DataNode<?>>>() {
+    }).in(cache).get();
     assertThat(cachedChildren.size()).isGreaterThan(1);
     DataNode<?> toRemove = null;
     for (DataNode<?> child : cachedChildren) {
@@ -959,6 +948,34 @@ public class GradleSyncTest extends GuiTestCase {
     // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync
     // finished.
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+  }
+
+  // Verify that the IDE warns users about rendering issue when using plugin 1.2.0 to 1.2.2.
+  // See https://code.google.com/p/android/issues/detail?id=170841
+  @Test
+  public void testModelWithLayoutRenderingIssue() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+    updateAndroidModelVersion(projectFrame.getProjectPath(), "1.2.0");
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(WARNING, firstLineStartingWith("Using an obsolete version of the Gradle plugin (1.2.0)"));
+  }
+
+  private static void updateAndroidModelVersion(@NotNull File projectPath, @NotNull String modelVersion) throws IOException {
+    File buildFile = new File(projectPath, FN_BUILD_GRADLE);
+    assertThat(buildFile).isFile();
+
+    String contents = Files.toString(buildFile, Charsets.UTF_8);
+    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
+    Matcher matcher = pattern.matcher(contents);
+    if (matcher.find()) {
+      contents = contents.substring(0, matcher.start(1)) + modelVersion + contents.substring(matcher.end(1));
+      write(contents, buildFile, Charsets.UTF_8);
+    }
+    else {
+      fail("Cannot find declaration of Android plugin");
+    }
   }
 
   @NotNull
