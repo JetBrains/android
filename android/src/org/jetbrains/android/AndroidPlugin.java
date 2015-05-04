@@ -68,6 +68,7 @@ public class AndroidPlugin implements ApplicationComponent {
     private boolean myOpenProjectWizardAlreadyTested;
     private boolean myImportProjectWizardAlreadyTested;
     private boolean mySkipSdkMerge;
+    private boolean myUseCachedGradleModelOnly;
 
     public boolean isOpenProjectWizardAlreadyTested() {
       return myOpenProjectWizardAlreadyTested;
@@ -91,6 +92,14 @@ public class AndroidPlugin implements ApplicationComponent {
 
     public void setSkipSdkMerge(boolean skipSdkMerge) {
       mySkipSdkMerge = skipSdkMerge;
+    }
+
+    public boolean syncWithCachedModelOnly() {
+      return myUseCachedGradleModelOnly;
+    }
+
+    public void setUseCachedGradleModelOnly(boolean useCachedGradleModelOnly) {
+      myUseCachedGradleModelOnly = useCachedGradleModelOnly;
     }
   }
 }
