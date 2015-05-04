@@ -52,6 +52,7 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +91,8 @@ import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
+import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -99,7 +102,8 @@ public class GradleProjectImporter {
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   // When this system property is set, the sync operation always tries to use the cached project data unless any gradle files are modified.
-  private static final boolean alwaysSyncWithCachedProjectData = Boolean.getBoolean("studio.sync.with.cached.project.data");
+  private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
+    SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
   private final ImporterDelegate myDelegate;
 
@@ -511,21 +515,19 @@ public class GradleProjectImporter {
     setHasSyncErrors(project, false);
     setHasWrongJdk(project, false);
 
-    if (alwaysSyncWithCachedProjectData || options.useCachedProjectData) {
+    if (forceSyncWithCachedModel() || options.useCachedProjectData) {
       GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
       if (syncData != null && syncData.canUseCachedProjectData()) {
         DataNode<ProjectData> cache = getCachedProjectData(project);
-        if (cache != null) {
+        if (cache != null && !isCacheMissingModels(cache, project)) {
           PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
           executor.setGenerateSourcesAfterSync(false);
           executor.setUsingCachedProjectData(true);
           executor.setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
 
-          if (!isCacheMissingModels(cache, project)) {
-            ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
-            setUpTask.onSuccess(cache);
-            return;
-          }
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, true, listener);
+          setUpTask.onSuccess(cache);
+          return;
         }
       }
     }
@@ -539,6 +541,17 @@ public class GradleProjectImporter {
     myDelegate.importProject(project, setUpTask, progressExecutionMode);
   }
 
+  private static boolean forceSyncWithCachedModel() {
+    if (SYNC_WITH_CACHED_MODEL_ONLY) {
+      return true;
+    }
+    if (isGuiTestingMode()) {
+      GuiTestSuiteState state = getGuiTestSuiteState();
+      return state.syncWithCachedModelOnly();
+    }
+    return false;
+  }
+
   @VisibleForTesting
   static boolean isCacheMissingModels(@NotNull DataNode<ProjectData> cache, @NotNull Project project) {
     Collection<DataNode<ModuleData>> moduleDataNodes = findAll(cache, MODULE);
@@ -548,10 +561,15 @@ public class GradleProjectImporter {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
         DataNode<ModuleData> moduleDataNode = moduleDataNodesByName.get(module.getName());
-        if (moduleDataNode != null) {
-          if (isCacheMissingModels(moduleDataNode, module)) {
+        if (moduleDataNode == null) {
+          // When a Gradle facet is present, there should be a cache node for the module.
+          AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+          if (gradleFacet != null) {
             return true;
           }
+        }
+        else if (isCacheMissingModels(moduleDataNode, module)) {
+          return true;
         }
       }
       return false;
