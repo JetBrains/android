@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
@@ -103,6 +103,7 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
+import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
@@ -559,8 +560,9 @@ public class RenderErrorPanel extends JPanel {
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
-          String modelVersion = facet.getIdeaAndroidProject().getDelegate().getModelVersion();
-          if (modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2")) {
+          AndroidProject androidProject = facet.getIdeaAndroidProject().getDelegate();
+          String modelVersion = androidProject.getModelVersion();
+          if (hasLayoutRenderingIssue(androidProject)) {
             builder.addBold("Using an obsolete version of the Gradle plugin (" + modelVersion +
                             "); this can lead to layouts not rendering correctly.").newline();
             builder.addIcon(HtmlBuilderHelper.getTipIconPath());
@@ -568,7 +570,7 @@ public class RenderErrorPanel extends JPanel {
             Runnable runnable = new Runnable() {
               @Override
               public void run() {
-                FixGradleModelVersionHyperlink quickFix = new FixGradleModelVersionHyperlink("", GRADLE_PLUGIN_RECOMMENDED_VERSION,
+                FixGradleModelVersionHyperlink quickFix = new FixGradleModelVersionHyperlink(GRADLE_PLUGIN_RECOMMENDED_VERSION,
                                                                                              null, false);
                 quickFix.executeIfClicked(module.getProject(),
                                           new HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, quickFix.getUrl()));

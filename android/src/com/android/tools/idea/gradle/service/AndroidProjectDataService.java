@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
@@ -29,6 +28,7 @@ import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -69,9 +69,9 @@ import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
-import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
-import static com.android.tools.idea.gradle.messages.Message.Type.INFO;
+import static com.android.tools.idea.gradle.messages.Message.Type.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -149,6 +149,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         String incompatibleModelVersionFound = null;
         String nonMatchingModelEncodingFound = null;
+        String modelVersionWithLayoutRenderingIssue = null;
 
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
@@ -159,6 +160,10 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             AndroidProject delegate = androidProject.getDelegate();
 
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
+            if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(delegate)) {
+              modelVersionWithLayoutRenderingIssue = delegate.getModelVersion();
+            }
+
             FullRevision modelVersion = parseRevision(delegate.getModelVersion());
             boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, PreviewComparison.IGNORE) >= 0;
 
@@ -193,7 +198,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             for (File folder : sourceFolders) {
               // Have to add a word before the path, otherwise IDEA won't show it.
               String[] text = {"Folder " + folder.getPath()};
-              messages.add(new Message(EXTRA_GENERATED_SOURCES, Message.Type.WARNING, text));
+              messages.add(new Message(EXTRA_GENERATED_SOURCES, WARNING, text));
             }
           }
         }
@@ -204,6 +209,10 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         if (nonMatchingModelEncodingFound != null) {
           setIdeEncodingAndAddEncodingMismatchMessage(nonMatchingModelEncodingFound, project);
+        }
+
+        if (modelVersionWithLayoutRenderingIssue != null) {
+          addLayoutRenderingIssueMessage(modelVersionWithLayoutRenderingIssue, project);
         }
 
         if (hasExtraGeneratedFolders) {
@@ -240,12 +249,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     }
   }
 
-  private static void addModelVersionIncompatibilityMessage(@NotNull String incompatibleModelVersionFound, @NotNull Project project) {
-    FixGradleModelVersionHyperlink quickFix =
-      new FixGradleModelVersionHyperlink("Fix plug-in version and sync project", "1.2.0", null /* do not update Gradle version */,
-                                         false);
+  private static void addModelVersionIncompatibilityMessage(@NotNull String modelVersion, @NotNull Project project) {
+    NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(GRADLE_PLUGIN_RECOMMENDED_VERSION,
+                                                                        null /* do not update Gradle version */, false);
     String[] text = {
-      String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", incompatibleModelVersionFound),
+      String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", modelVersion),
       "Please use Android plugin version 1.2 or newer."
     };
     ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text), quickFix);
@@ -259,8 +267,20 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       "Mismatching encodings can lead to serious bugs."
     };
     encodings.setDefaultCharsetName(newEncoding);
-    OpenUrlHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
+    NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
     ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text), openDocHyperlink);
+  }
+
+  private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
+    // See https://code.google.com/p/android/issues/detail?id=170841
+    NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(false);
+    NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841",
+                                                                  "More Info...");
+    String[] text = {
+      String.format("Using an obsolete version of the Gradle plugin (%1$s); this can lead to layouts not rendering correctly.",
+                    modelVersion)
+    };
+    ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text), openDocHyperlink, quickFix);
   }
 
   @NotNull
