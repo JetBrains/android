@@ -18,7 +18,9 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
@@ -70,6 +72,7 @@ import static com.android.SdkConstants.*;
 public class HtmlLinkManager {
   private static final String URL_EDIT_CLASSPATH = "action:classpath";
   private static final String URL_BUILD = "action:build";
+  private static final String URL_SYNC = "action:sync";
   private static final String URL_SHOW_XML = "action:showXml";
   private static final String URL_ACTION_IGNORE_FRAGMENTS = "action:ignoreFragment";
   private static final String URL_RUNNABLE = "runnable:";
@@ -112,6 +115,11 @@ public class HtmlLinkManager {
       assert dataContext != null;
       assert module != null;
       handleCompileModuleUrl(url, module);
+    }
+    else if (url.equals(URL_SYNC)) {
+      assert dataContext != null;
+      assert module != null;
+      handleSyncProjectUrl(url, module.getProject());
     }
     else if (url.equals(URL_EDIT_CLASSPATH)) {
       assert module != null;
@@ -308,6 +316,16 @@ public class HtmlLinkManager {
   private static void handleCompileModuleUrl(@NotNull String url, @NotNull Module module) {
     assert url.equals(URL_BUILD) : url;
     ProjectBuilder.getInstance(module.getProject()).compileJava();
+  }
+
+  public String createSyncProjectUrl() {
+    return URL_SYNC;
+  }
+
+  private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
+    assert url.equals(URL_SYNC) : url;
+    BuildVariantView.getInstance(project).projectImportStarted();
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 
   public String createEditClassPathUrl() {
