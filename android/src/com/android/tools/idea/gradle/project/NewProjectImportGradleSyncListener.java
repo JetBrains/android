@@ -22,31 +22,27 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
+import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
 
-public abstract class NewProjectImportGradleSyncListener implements GradleSyncListener {
-  @Override
-  public void syncStarted(@NotNull Project project) {
-  }
-
+public abstract class NewProjectImportGradleSyncListener extends GradleSyncListener.Adapter {
   @Override
   public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -81,10 +77,10 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
 
     if (contentRoot != null) {
       File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
-      Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
+      Module module = moduleManager.newModule(moduleFile.getPath(), JAVA.getId());
 
       // This prevents the balloon "Unsupported Modules detected".
-      module.setOption(EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
+      module.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId());
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);
@@ -118,7 +114,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
   }
 
   public static void activateProjectView(@NotNull Project project) {
-    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(PROJECT_VIEW);
     if (window != null) {
       window.activate(null, false);
     }

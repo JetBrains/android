@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.util.GradleBundle;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -39,6 +38,7 @@ import javax.swing.event.DocumentListener;
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
@@ -121,7 +121,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
         }
         return super.doValidate();
       default:
-        return newPathIsInvalidInfo(locationSettingType.getDescription(GradleConstants.SYSTEM_ID));
+        return newPathIsInvalidInfo(locationSettingType.getDescription(GRADLE_SYSTEM_ID));
     }
   }
 

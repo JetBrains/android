@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.tools.idea.gradle.service.notification.errors.*;
+import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -28,16 +28,18 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
   private final List<AbstractSyncErrorHandler> myHandlers;
 
+  @SuppressWarnings("unused")
   public GradleNotificationExtension() {
     this(Arrays.asList(AbstractSyncErrorHandler.EP_NAME.getExtensions()));
   }
@@ -50,7 +52,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   @Override
   @NotNull
   public ProjectSystemId getTargetExternalSystemId() {
-    return GradleConstants.SYSTEM_ID;
+    return GRADLE_SYSTEM_ID;
   }
 
   @Override

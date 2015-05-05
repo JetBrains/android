@@ -34,7 +34,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
@@ -59,7 +58,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,7 +97,6 @@ import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
  */
 public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
-  private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   // When this system property is set, the sync operation always tries to use the cached project data unless any gradle files are modified.
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
@@ -621,11 +618,11 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        refreshProject(project, SYSTEM_ID, getBaseDirPath(project).getPath(), callback, false /* resolve dependencies */,
+        refreshProject(project, GRADLE_SYSTEM_ID, getBaseDirPath(project).getPath(), callback, false /* resolve dependencies */,
                        progressExecutionMode, true /* always report import errors */);
       }
       catch (RuntimeException e) {
-        String externalSystemName = SYSTEM_ID.getReadableName();
+        String externalSystemName = GRADLE_SYSTEM_ID.getReadableName();
         throw new ConfigurationException(e.getMessage(), ExternalSystemBundle.message("error.cannot.parse.project", externalSystemName));
       }
     }
