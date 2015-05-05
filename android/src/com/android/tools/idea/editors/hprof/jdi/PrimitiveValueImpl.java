@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables.instancestable;
+package com.android.tools.idea.editors.hprof.jdi;
 
-import com.android.tools.idea.editors.hprof.tables.HprofTreeTable;
-import com.intellij.ui.treeStructure.treetable.TreeTableModel;
+import com.android.tools.perflib.heap.Field;
+import com.sun.jdi.PrimitiveValue;
 import org.jetbrains.annotations.NotNull;
 
-public class InstancesTreeTable extends HprofTreeTable {
-  public InstancesTreeTable(@NotNull InstancesTreeTableModel model) {
-    super(model);
+public abstract class PrimitiveValueImpl extends ValueImpl implements PrimitiveValue {
+
+  public PrimitiveValueImpl(@NotNull Field field, @NotNull Object value) {
+    super(field, value);
   }
 
   @Override
-  public void setModel(@NotNull TreeTableModel model) {
-    super.setModel(model);
-    assert (model instanceof InstancesTreeTableModel);
-    prettifyTable();
+  public String toString() {
+    assert (myValue != null);
+    return myValue.toString();
   }
 }
