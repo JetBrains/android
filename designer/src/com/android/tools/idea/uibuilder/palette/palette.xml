@@ -1608,8 +1608,8 @@
       <item tag="RelativeLayout"/>
     </group>
     <group name="Widgets">
-      <item tag="TextView" title="Plain TextView">
-        <item title="Large Text">
+      <item tag="TextView" title="Plain TextView" id="TextView">
+        <item title="Large Text" id="LargeText">
           <creation>
             <![CDATA[
               <TextView
@@ -1621,7 +1621,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Medium Text">
+        <item title="Medium Text" id="MediumText">
           <creation>
             <![CDATA[
               <TextView
@@ -1633,7 +1633,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Small Text">
+        <item title="Small Text" id="SmallText">
           <creation>
             <![CDATA[
               <TextView
@@ -1647,7 +1647,7 @@
         </item>
       </item>
       <item tag="Button">
-        <item title="Small Button">
+        <item title="Small Button" id="SmallButton">
           <creation>
             <![CDATA[
               <Button
@@ -1664,34 +1664,34 @@
       <item tag="CheckBox"/>
       <item tag="Switch"/>
       <item tag="ToggleButton"/>
-      <item tag="ImageButton"/>
-      <item tag="ImageView"/>
       <item tag="ProgressBar"
-            title="ProgressBar (Large)">
+            title="ProgressBar (Large)"
+            id="ProgressBarLarge">
         <creation>
           <![CDATA[
               <ProgressBar
-                style="?android:attr/progressBarStyleLarge"
+                style="@android:style/Widget.ProgressBar.Large"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
               />
             ]]>
         </creation>
-        <item title="ProgressBar (Normal)">
+        <item title="ProgressBar (Normal)" id="ProgressBarNormal">
           <creation>
             <![CDATA[
               <ProgressBar
+                style="@android:style/Widget.ProgressBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
               />
             ]]>
           </creation>
         </item>
-        <item title="ProgressBar (Small)">
+        <item title="ProgressBar (Small)" id="ProgressBarSmall">
           <creation>
             <![CDATA[
               <ProgressBar
-                style="?android:attr/progressBarStyleSmall"
+                style="@android:style/Widget.ProgressBar.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
               />
@@ -1699,6 +1699,7 @@
           </creation>
         </item>
         <item title="ProgressBar (Horizontal)"
+              id="ProgressBarHorizontal"
               resize="horizontal">
           <creation>
             <![CDATA[
@@ -1714,13 +1715,16 @@
       <item tag="SeekBar"/>
       <item tag="RatingBar"/>
       <item tag="Spinner"/>
+      <item tag="ImageButton"/>
+      <item tag="ImageView"/>
       <item tag="WebView"/>
     </group>
 
     <group name="Text Fields">
       <item tag="EditText"
-            title="Plain Text">
-        <item title="Person Name" resize="horizontal">
+            title="Plain Text"
+            id="PlainText">
+        <item title="Person Name" resize="horizontal" id="PersonName">
           <!-- TODO: Do a drop handler which sets <requestFocus>! -->
           <creation>
             <![CDATA[
@@ -1734,7 +1738,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Password" resize="horizontal">
+        <item title="Password" resize="horizontal" id="Password">
           <creation>
             <![CDATA[
               <EditText
@@ -1746,7 +1750,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Password (Numeric)" resize="horizontal">
+        <item title="Password (Numeric)" resize="horizontal" id="PasswordNumeric">
           <creation>
             <![CDATA[
               <EditText
@@ -1758,7 +1762,7 @@
             ]]>
           </creation>
         </item>
-        <item title="E-mail" resize="horizontal">
+        <item title="E-mail" resize="horizontal" id="Email">
           <creation>
             <![CDATA[
               <EditText
@@ -1770,7 +1774,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Phone" resize="horizontal">
+        <item title="Phone" resize="horizontal" id="Phone">
           <creation>
             <![CDATA[
               <EditText
@@ -1782,7 +1786,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Postal Address">
+        <item title="Postal Address" id="PostalAddress">
           <creation>
             <![CDATA[
               <EditText
@@ -1794,7 +1798,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Multiline Text">
+        <item title="Multiline Text" id="MultilineText">
           <creation>
             <![CDATA[
               <EditText
@@ -1806,7 +1810,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Time" resize="horizontal">
+        <item title="Time" resize="horizontal" id="Time">
           <creation>
             <![CDATA[
               <EditText
@@ -1818,7 +1822,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Date" resize="horizontal">
+        <item title="Date" resize="horizontal" id="Date">
           <creation>
             <![CDATA[
               <EditText
@@ -1830,7 +1834,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Number" resize="horizontal">
+        <item title="Number" resize="horizontal" id="Number">
           <creation>
             <![CDATA[
               <EditText
@@ -1842,7 +1846,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Number (Signed)" resize="horizontal">
+        <item title="Number (Signed)" resize="horizontal" id="NumberSigned">
           <creation>
             <![CDATA[
               <EditText
@@ -1854,7 +1858,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Number (Decimal)" resize="horizontal">
+        <item title="Number (Decimal)" resize="horizontal" id="NumberDecimal">
           <creation>
             <![CDATA[
               <EditText

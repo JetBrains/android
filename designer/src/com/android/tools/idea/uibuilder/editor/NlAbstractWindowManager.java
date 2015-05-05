@@ -18,28 +18,32 @@ package com.android.tools.idea.uibuilder.editor;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public abstract class NlAbstractManager extends LightToolWindowManager {
+public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
-  public NlAbstractManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
+  public NlAbstractWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
   }
 
   protected void initToolWindow(@NotNull String id, @NotNull Icon icon) {
     myToolWindow = ToolWindowManager.getInstance(myProject).registerToolWindow(id, false, getAnchor(), myProject, true);
     myToolWindow.setIcon(icon);
-    initGearActions();
-
     myToolWindow.setAvailable(false, null);
+    myToolWindow.setAutoHide(false);
+    initGearActions();
   }
 
   @Nullable
@@ -52,15 +56,17 @@ public abstract class NlAbstractManager extends LightToolWindowManager {
     return null;
   }
 
-  @Override
-  protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
-    if (designer == null) {
-      myToolWindow.setAvailable(false, null);
+  protected void createWindowContent(@NotNull JComponent contentPane, @NotNull JComponent focusedComponent, @Nullable AnAction[] actions) {
+    ContentManager contentManager = myToolWindow.getContentManager();
+    Content content = contentManager.getFactory().createContent(contentPane, null, false);
+    content.setCloseable(false);
+    content.setPreferredFocusableComponent(focusedComponent);
+    if (actions != null) {
+      ToolWindowEx toolWindow = (ToolWindowEx)myToolWindow;
+      toolWindow.setTitleActions(actions);
     }
-    else {
-      myToolWindow.setAvailable(true, null);
-      myToolWindow.show(null);
-    }
+    contentManager.addContent(content);
+    contentManager.setSelectedContent(content, true);
   }
 
   @Override
