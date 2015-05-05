@@ -29,6 +29,7 @@ import org.jetbrains.android.run.AndroidRunningState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 
@@ -81,9 +82,14 @@ public abstract class CloudConfigurationProvider {
   @NotNull
   public abstract Collection<IDevice> getLaunchingCloudDevices();
 
-  public static boolean isCloudDevice(IDevice device) {
-    return device.getName().startsWith("Cloud device:");
-  }
+  @Nullable
+  public abstract Icon getCloudDeviceIcon();
+
+  /**
+   * Returns {@code null} if the provided device is not a cloud device.
+   */
+  @Nullable
+  public abstract String getCloudDeviceConfiguration(IDevice device);
 
   @Nullable
   public static CloudConfigurationProvider getCloudConfigurationProvider() {

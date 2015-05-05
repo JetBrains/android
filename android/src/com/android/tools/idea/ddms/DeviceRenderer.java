@@ -38,18 +38,13 @@ public class DeviceRenderer {
   private DeviceRenderer() {
   }
 
+  @VisibleForTesting
   static void renderDeviceName(IDevice d, ColoredTextContainer component) {
     renderDeviceName(d, component, null);
   }
 
-  @VisibleForTesting
   static void renderDeviceName(IDevice d, ColoredTextContainer component, AvdManager avdManager) {
     component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
-
-    if (CloudConfigurationProvider.isCloudDevice(d) && d.getState() != IDevice.DeviceState.ONLINE) {
-      component.append("Launching a cloud device...", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      return;
-    }
 
     String name;
     if (d.isEmulator()) {
@@ -77,6 +72,18 @@ public class DeviceRenderer {
     }
 
     component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
+  }
+
+  private static void renderCloudDeviceName(IDevice device, ColoredTextContainer component,
+                                            @NotNull CloudConfigurationProvider cloudConfigurationProvider) {
+    component.setIcon(cloudConfigurationProvider.getCloudDeviceIcon());
+    String cloudDeviceConfiguration = cloudConfigurationProvider.getCloudDeviceConfiguration(device);
+    if (device.getState() == IDevice.DeviceState.OFFLINE) {
+      component.append("Launching " + cloudDeviceConfiguration, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+    }
+    else {
+      component.append(cloudDeviceConfiguration, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    }
   }
 
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
@@ -107,6 +114,9 @@ public class DeviceRenderer {
   }
 
   public static class DeviceNameRenderer extends ColoredTableCellRenderer {
+    private final static CloudConfigurationProvider CLOUD_CONFIGURATION_PROVIDER =
+      CloudConfigurationProvider.getCloudConfigurationProvider();
+
     private final AvdManager myAvdManager;
     public DeviceNameRenderer(@Nullable AvdManager avdManager) {
       myAvdManager = avdManager;
@@ -115,7 +125,14 @@ public class DeviceRenderer {
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
       if (value instanceof IDevice) {
-        renderDeviceName((IDevice)value, this, myAvdManager);
+        IDevice device = (IDevice)value;
+        if (CLOUD_CONFIGURATION_PROVIDER != null && CLOUD_CONFIGURATION_PROVIDER.getCloudDeviceConfiguration(device) != null) {
+          // This is a cloud device, so use a specific rendering.
+          renderCloudDeviceName(device, this, CLOUD_CONFIGURATION_PROVIDER);
+        }
+        else {
+          renderDeviceName(device, this, myAvdManager);
+        }
       }
     }
   }
