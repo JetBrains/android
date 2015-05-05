@@ -37,10 +37,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
-import com.android.tools.idea.run.CloudConfigurationProvider;
-import com.android.tools.idea.run.CloudTargetChooser;
-import com.android.tools.idea.run.InstalledApks;
-import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -303,7 +300,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         }
       }
-    } else if (myTargetChooser instanceof CloudTargetChooser) {
+    }
+    else if (myTargetChooser instanceof CloudTargetChooser) {
       assert provider != null;
       final CloudTargetChooser cloudTargetChooser = (CloudTargetChooser)myTargetChooser;
       if (cloudTargetChooser.getConfigurationKind() == MATRIX) {
@@ -319,6 +317,20 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         });
         return new DefaultExecutionResult(console, myProcessHandler);
+      }
+    }
+    else if (myTargetChooser instanceof CloudDebuggingTargetChooser) {
+      assert provider != null;
+      myTargetDevices = EMPTY_DEVICE_ARRAY;
+      String cloudDeviceSerialNumber = ((CloudDebuggingTargetChooser)myTargetChooser).getCloudDeviceSerialNumber();
+      for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
+        if (device.getSerialNumber().equals(cloudDeviceSerialNumber)) {
+          myTargetDevices = new IDevice[] {device};
+          break;
+        }
+      }
+      if (myTargetDevices.length == 0) { // No matching cloud device available.
+        return null;
       }
     }
 
