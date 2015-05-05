@@ -40,7 +40,6 @@ public class StyleResolverTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
     StyleResolver styleResolver = new StyleResolver(configuration);
 
-    assertNull(styleResolver.getStyle("@style/TextAppearance")); // It's a system style. Not using the namespace so this should fail.
     assertNotNull(styleResolver.getStyle("@android:style/TextAppearance"));
 
     ThemeEditorStyle style = styleResolver.getStyle("@android:style/Theme.Holo.Light");
