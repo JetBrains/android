@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -57,7 +58,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * The design surface in the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class DesignSurface extends JPanel {
+public class DesignSurface extends JPanel implements ScalableDesignSurface {
   private static final Logger LOG = Logger.getInstance(DesignSurface.class);
 
   private final ScreenView myScreenView;
@@ -229,8 +230,14 @@ public class DesignSurface extends JPanel {
     }
   }
 
+  @Override
   public double getScale() {
     return myScale;
+  }
+
+  @Override
+  public Configuration getConfiguration() {
+    return myScreenView.getConfiguration();
   }
 
   private void setScale(double scale) {
