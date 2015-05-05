@@ -75,7 +75,7 @@ public class StyleResolver {
     return (item.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + item.getName();
   }
 
-  @Nullable
+  @NotNull
   public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
     try {
       return myStylesCache.get(qualifiedStyleName, new Callable<ThemeEditorStyle>() {
