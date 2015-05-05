@@ -43,7 +43,6 @@ import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -56,7 +55,6 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -70,11 +68,11 @@ import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.Message.Type.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
-import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
@@ -229,8 +227,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
           String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
           msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
-          NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
-          ExternalSystemNotificationManager.getInstance(project).showNotification(GradleConstants.SYSTEM_ID, notification);
+          NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, PROJECT_SYNC);
+          ExternalSystemNotificationManager.getInstance(project).showNotification(GRADLE_SYSTEM_ID, notification);
         }
         else {
           String homePath = jdk.getHomePath();

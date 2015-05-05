@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.refactoring.rename;
 
-import com.google.common.base.Strings;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -30,7 +28,11 @@ import com.intellij.refactoring.rename.RenameInputValidatorEx;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.LINKED_PROJECT_PATH_KEY;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Issues a warning if a user tries to rename source root of a gradle-backed module
@@ -64,9 +66,8 @@ public class GradleAwareSourceRootRenameValidator implements RenameInputValidato
     VirtualFile virtualFile = ((PsiDirectory)element).getVirtualFile();
     Module[] modules = ModuleManager.getInstance(element.getProject()).getModules();
     for (Module module : modules) {
-      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY))
-          || Strings.isNullOrEmpty(module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH_KEY)))
-      {
+      if (!GRADLE_SYSTEM_ID.getId().equals(module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY)) ||
+          isEmpty(module.getOptionValue(LINKED_PROJECT_PATH_KEY))) {
         // Ignore modules not backed by gradle.
         continue;
       }
