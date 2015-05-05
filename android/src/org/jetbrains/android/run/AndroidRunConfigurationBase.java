@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.CloudConfiguration;
+import com.android.tools.idea.run.CloudDebuggingTargetChooser;
 import com.android.tools.idea.run.CloudTargetChooser;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
@@ -106,6 +107,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String INVALID_CLOUD_MATRIX_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
   public boolean IS_VALID_CLOUD_DEVICE_SELECTION = false; // indicates whether the selected cloud device config + project combo is valid
   public String INVALID_CLOUD_DEVICE_SELECTION_ERROR = ""; // specifies the error if the cloud device config + project combo is invalid
+  public String CLOUD_DEVICE_SERIAL_NUMBER = "";
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -283,6 +285,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         break;
       case CLOUD_DEVICE_LAUNCH:
         targetChooser = new CloudTargetChooser(SINGLE_DEVICE, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
+        break;
+      case CLOUD_DEVICE_DEBUGGING:
+        targetChooser = new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
         break;
       default:
         assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;
