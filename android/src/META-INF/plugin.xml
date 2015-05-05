@@ -45,10 +45,6 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>org.jetbrains.android.AndroidSdkLanguageLevelPusher</implementation-class>
-      <skipForDefaultProject/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.rendering.ResourceNotificationManager</implementation-class>
       <skipForDefaultProject/>
     </component>
