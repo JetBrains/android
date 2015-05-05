@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Default configuration for various views to be rendered
+    TODO: Remove views that don't have custom configuration
+    TODO: Parameterize the custom width (200dip) in the below?
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Expert Group -->
+    <CheckedTextView
+        android:text="CheckedTextView"
+        android:id="CheckedTextView"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content">
+    </CheckedTextView>
+    <QuickContactBadge
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:id="QuickContactBadge">
+    </QuickContactBadge>
+    <AutoCompleteTextView
+        android:layout_height="wrap_content"
+        android:layout_width="200dip"
+        android:text="AutoComplete"
+        android:id="AutoCompleteTextView">
+    </AutoCompleteTextView>
+    <MultiAutoCompleteTextView
+        android:layout_height="wrap_content"
+        android:layout_width="200dip"
+        android:text="MultiAutoComplete"
+        android:id="MultiAutoCompleteTextView">
+    </MultiAutoCompleteTextView>
+    <ZoomButton
+        android:id="ZoomButton"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:src="@android:drawable/btn_plus">
+    </ZoomButton>
+    <ZoomControls
+        android:id="ZoomControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </ZoomControls>
+
+    <!-- Containers Group -->
+    <RadioGroup
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:orientation="horizontal"
+        android:id="RadioGroup">
+        <RadioButton
+            android:checked="true">
+        </RadioButton>
+        <RadioButton></RadioButton>
+        <RadioButton></RadioButton>
+    </RadioGroup>
+    <ListView
+        android:id="ListView"
+        android:layout_width="200dip"
+        android:layout_height="60dip"
+        android:divider="#333333"
+        android:dividerHeight="1px">
+    </ListView>
+    <ExpandableListView
+        android:id="ExpandableListView"
+        android:layout_width="200dip"
+        android:layout_height="60dip"
+        android:divider="#333333"
+        android:dividerHeight="1px">
+    </ExpandableListView>
+
+    <!-- Date & Time Group -->
+    <TextClock
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="TextClock">
+    </TextClock>
+    <AnalogClock
+        android:layout_width="wrap_content"
+        android:id="AnalogClock"
+        android:layout_height="75dip">
+    </AnalogClock>
+    <DigitalClock
+        android:text="DigitalClock"
+        android:id="DigitalClock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </DigitalClock>
+    <Chronometer
+        android:text="Chronometer"
+        android:id="Chronometer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </Chronometer>
+    <CalendarView
+        android:id="CalendarView"
+        android:layout_width="200dip"
+        android:layout_height="200dip">
+    </CalendarView>
+    <DatePicker
+        android:id="DatePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </DatePicker>
+    <TimePicker
+        android:id="TimePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </TimePicker>
+</LinearLayout>
