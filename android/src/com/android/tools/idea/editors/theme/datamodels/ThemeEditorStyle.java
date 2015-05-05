@@ -75,10 +75,12 @@ public class ThemeEditorStyle {
     return repository.hasResourceItem(ResourceType.STYLE, myStyleName);
   }
 
+  @NotNull
   private StyleResourceValue getStyleResourceValue() {
     return myConfiguration.getResourceResolver().getStyle(myStyleName, myIsFrameworkStyle);
   }
 
+  @NotNull
   private List<XmlTag> getSourceXmls() {
     assert !myIsFrameworkStyle;
     LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
