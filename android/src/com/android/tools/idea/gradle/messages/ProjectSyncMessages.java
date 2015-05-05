@@ -48,7 +48,6 @@ import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
@@ -56,6 +55,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.findDependency;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
@@ -79,7 +79,7 @@ public class ProjectSyncMessages {
   }
 
   public int getErrorCount() {
-    return myNotificationManager.getMessageCount(null, NOTIFICATION_SOURCE, NotificationCategory.ERROR, GradleConstants.SYSTEM_ID);
+    return myNotificationManager.getMessageCount(null, NOTIFICATION_SOURCE, NotificationCategory.ERROR, GRADLE_SYSTEM_ID);
   }
 
   public ProjectSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
@@ -88,11 +88,11 @@ public class ProjectSyncMessages {
   }
 
   public int getMessageCount(@NotNull String groupName) {
-    return myNotificationManager.getMessageCount(groupName, NOTIFICATION_SOURCE, null, GradleConstants.SYSTEM_ID);
+    return myNotificationManager.getMessageCount(groupName, NOTIFICATION_SOURCE, null, GRADLE_SYSTEM_ID);
   }
 
   public boolean isEmpty() {
-    return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, null, GradleConstants.SYSTEM_ID) == 0;
+    return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, null, GRADLE_SYSTEM_ID) == 0;
   }
 
   public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
@@ -295,12 +295,12 @@ public class ProjectSyncMessages {
       updateNotification(notification, myProject, title, errorMsg, hyperlinks);
     }
 
-    myNotificationManager.showNotification(GradleConstants.SYSTEM_ID, notification);
+    myNotificationManager.showNotification(GRADLE_SYSTEM_ID, notification);
   }
 
   public void removeMessages(@NotNull String... groupNames) {
     for (String groupName : groupNames) {
-      myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, GradleConstants.SYSTEM_ID);
+      myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, GRADLE_SYSTEM_ID);
     }
   }
 

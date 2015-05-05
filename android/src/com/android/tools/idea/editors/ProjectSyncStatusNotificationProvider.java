@@ -29,10 +29,10 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
@@ -115,7 +115,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       createActionLabel("Open 'Messages' View", new Runnable() {
         @Override
         public void run() {
-          ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GradleConstants.SYSTEM_ID, PROJECT_SYNC);
+          ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
         }
       });
 
