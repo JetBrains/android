@@ -328,7 +328,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     else {
       boolean isActionableSelection = false;
       for (IDevice selectedDevice : getSelectedDevices()) {
-        if (!CloudConfigurationProvider.isCloudDevice(selectedDevice) || selectedDevice.isOnline()) {
+        if (myCloudConfigurationProvider == null
+            || myCloudConfigurationProvider.getCloudDeviceConfiguration(selectedDevice) == null
+            || !selectedDevice.isOffline()) {
           isActionableSelection = true;
           break;
         }
