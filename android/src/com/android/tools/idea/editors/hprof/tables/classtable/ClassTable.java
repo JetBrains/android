@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.hprof.tables.classtable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTable;
-import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesTreeTable;
 import com.android.tools.perflib.heap.ClassObj;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
