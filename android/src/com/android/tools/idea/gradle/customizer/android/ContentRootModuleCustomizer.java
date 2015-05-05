@@ -26,16 +26,14 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
-import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
@@ -235,7 +233,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   @NotNull
   public ProjectSystemId getProjectSystemId() {
-    return GradleConstants.SYSTEM_ID;
+    return GRADLE_SYSTEM_ID;
   }
 
   @Override
