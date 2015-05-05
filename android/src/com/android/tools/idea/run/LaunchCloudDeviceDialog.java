@@ -63,7 +63,7 @@ public class LaunchCloudDeviceDialog extends DialogWrapper {
       }
     });
 
-    myCloudProjectIdLabel.setFacet(facet);
+    myCloudProjectIdLabel.restoreChosenProjectId();
     myCloudConfigurationCombo.setFacet(facet);
 
     updateOkButton();
