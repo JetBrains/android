@@ -47,7 +47,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,6 +66,7 @@ import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncP
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
@@ -134,13 +134,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     if (androidProject != null) {
       Variant selectedVariant = getVariantToSelect(androidProject);
-      IdeaAndroidProject ideaAndroidProject =
-        new IdeaAndroidProject(GradleConstants.SYSTEM_ID,
-                               gradleModule.getName(),
-                               moduleRootDirPath,
-                               androidProject,
-                               selectedVariant.getName(),
-                               DEFAULT_TEST_ARTIFACT);
+      IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
+                                                                     androidProject, selectedVariant.getName(), DEFAULT_TEST_ARTIFACT);
       ideModule.createChild(IDE_ANDROID_PROJECT, ideaAndroidProject);
     }
 
@@ -230,7 +225,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public List<KeyValue<String, String>> getExtraJvmArgs() {
-    if (isInProcessMode(GradleConstants.SYSTEM_ID)) {
+    if (isInProcessMode(GRADLE_SYSTEM_ID)) {
       List<KeyValue<String, String>> args = Lists.newArrayList();
 
       if (!isAndroidStudio()) {

@@ -124,12 +124,13 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
+  public static final ProjectSystemId GRADLE_SYSTEM_ID = GradleConstants.SYSTEM_ID;
+
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
-  private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -351,7 +352,7 @@ public final class GradleUtil {
     }
 
     try {
-      GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+      GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
       if (settings != null) {
         // By setting the Gradle daemon timeout to -1, we don't allow IDEA to set it to 1 minute. Gradle daemons need to be reused as
         // much as possible. The default timeout is 3 hours.
@@ -378,7 +379,7 @@ public final class GradleUtil {
 
   @Nullable
   public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
-    GradleSettings settings = (GradleSettings)getSettings(project, SYSTEM_ID);
+    GradleSettings settings = (GradleSettings)getSettings(project, GRADLE_SYSTEM_ID);
 
     GradleSettings.MyState state = settings.getState();
     assert state != null;
@@ -1235,7 +1236,7 @@ public final class GradleUtil {
   @Nullable
   public static DataNode<ProjectData> getCachedProjectData(@NotNull Project project) {
     ProjectDataManager dataManager = ProjectDataManager.getInstance();
-    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, SYSTEM_ID, getBaseDirPath(project).getPath());
+    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, GRADLE_SYSTEM_ID, getBaseDirPath(project).getPath());
     return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
   }
 

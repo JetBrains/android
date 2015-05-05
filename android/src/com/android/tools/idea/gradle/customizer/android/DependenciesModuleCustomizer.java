@@ -31,7 +31,6 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
@@ -40,6 +39,7 @@ import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
@@ -133,7 +133,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   @Override
   @NotNull
   public ProjectSystemId getProjectSystemId() {
-    return GradleConstants.SYSTEM_ID;
+    return GRADLE_SYSTEM_ID;
   }
 
   @Override
