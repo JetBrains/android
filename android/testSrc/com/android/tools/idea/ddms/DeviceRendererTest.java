@@ -17,15 +17,9 @@ package com.android.tools.idea.ddms;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleColoredText;
-import com.intellij.ui.SimpleTextAttributes;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 import static com.android.ddmlib.IDevice.*;
 
