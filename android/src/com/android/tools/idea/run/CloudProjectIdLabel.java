@@ -26,19 +26,23 @@ import org.jetbrains.android.run.AndroidRunConfigurationBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.HashMap;
 import java.util.Map;
 
 public class CloudProjectIdLabel extends JBLabel {
   private static final String CLOUD_PROJECT_PROMPT = "Please select a project...";
 
   private final Kind myConfigurationKind;
+  private AndroidRunConfigurationBase myCurrentConfiguration;
   private Module myCurrentModule;
 
-  /** A cache of project ids selected by <kind, module>, so that if the module selection changes back and forth, we retain
-   * the appropriate selected project id.
+  // Used to keep track of user choices when run config and/or module are not available.
+  private static Map<Kind, String> myLastChosenProjectIdPerKind = Maps.newHashMapWithExpectedSize(5);
+
+  /** A cache of project ids selected by <kind, module> per android run configuration, so that if
+   * the configuration and/or module selections change back and forth, we retain the appropriate selected project id.
    */
-  private static Map<Pair<Kind, Module>, String> myProjectByModuleCache = Maps.newHashMapWithExpectedSize(5);
+  private static Map<AndroidRunConfigurationBase, Map<Pair<Kind, Module>, String>> myProjectByConfigurationAndModuleCache =
+    Maps.newHashMapWithExpectedSize(5);
 
   public CloudProjectIdLabel(@NotNull Kind configurationKind) {
     myConfigurationKind = configurationKind;
@@ -69,22 +73,42 @@ public class CloudProjectIdLabel extends JBLabel {
     restoreChosenProjectId();
   }
 
-  private void rememberChosenProjectId() {
-    if (myCurrentModule == null) {
-      return;
-    }
-
-    myProjectByModuleCache.put(Pair.create(myConfigurationKind, myCurrentModule), getText());
+  public void setConfiguration(@NotNull AndroidRunConfigurationBase configuration) {
+    myCurrentConfiguration = configuration;
   }
 
-  private void restoreChosenProjectId() {
-    if (myCurrentModule == null) {
+  private void rememberChosenProjectId() {
+    if (isProjectSpecified()) {
+      myLastChosenProjectIdPerKind.put(myConfigurationKind, getText());
+    }
+
+    if (myCurrentConfiguration == null || myCurrentModule == null) {
       return;
     }
 
-    String projectId = myProjectByModuleCache.get(Pair.create(myConfigurationKind, myCurrentModule));
-    if (projectId != null) {
-      updateCloudProjectId(projectId);
+    Map<Pair<Kind, Module>, String> projectByModuleCache = myProjectByConfigurationAndModuleCache.get(myCurrentConfiguration);
+    if (projectByModuleCache == null) {
+      projectByModuleCache = Maps.newHashMapWithExpectedSize(5);
+      myProjectByConfigurationAndModuleCache.put(myCurrentConfiguration, projectByModuleCache);
+    }
+    projectByModuleCache.put(Pair.create(myConfigurationKind, myCurrentModule), getText());
+  }
+
+  public void restoreChosenProjectId() {
+    if (myCurrentConfiguration == null || myCurrentModule == null) {
+      String lastChosenProjectId = myLastChosenProjectIdPerKind.get(myConfigurationKind);
+      if (lastChosenProjectId != null) {
+        updateCloudProjectId(lastChosenProjectId);
+      }
+      return;
+    }
+
+    Map<Pair<Kind, Module>, String> projectByModuleCache = myProjectByConfigurationAndModuleCache.get(myCurrentConfiguration);
+    if (projectByModuleCache != null) {
+      String projectId = projectByModuleCache.get(Pair.create(myConfigurationKind, myCurrentModule));
+      if (projectId != null) {
+        updateCloudProjectId(projectId);
+      }
     }
   }
 
