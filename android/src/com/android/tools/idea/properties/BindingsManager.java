@@ -234,28 +234,17 @@ public final class BindingsManager {
     });
   }
 
-  private class OneWayBinding<T> extends InvalidationListener<T> {
+  private class OneWayBinding<T> extends InvalidationListener {
     private final ObservableProperty<T> myPropertyDest;
     private final ObservableValue<T> myObservableSrc;
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
-    protected void onInvalidated(@NotNull ObservableValue<T> sender) {
+    protected void onInvalidated(@NotNull Observable sender) {
       if (myEnabled.get()) {
         enqueueUpdater(new PropertyUpdater<T>(myPropertyDest, myObservableSrc));
       }
     }
-
-    // TODO: Merge this with onInvalidated above (right now we can't because generic types differ, but
-    // this will change in a different CL.
-    private final InvalidationListener<Boolean> myEnabledListener = new InvalidationListener<Boolean>() {
-      @Override
-      protected void onInvalidated(@NotNull ObservableValue<Boolean> sender) {
-        if (myEnabled.get()) {
-          enqueueUpdater(new PropertyUpdater<T>(myPropertyDest, myObservableSrc));
-        }
-      }
-    };
 
     public OneWayBinding(ObservableProperty<T> propertyDest, ObservableValue<T> observableSrc, ObservableValue<Boolean> enabled) {
       myPropertyDest = propertyDest;
@@ -263,27 +252,27 @@ public final class BindingsManager {
       myEnabled = enabled;
 
       myObservableSrc.addListener(this);
-      myEnabled.addListener(myEnabledListener);
+      myEnabled.addListener(this);
     }
 
     public void dispose() {
       myObservableSrc.removeListener(this);
-      myEnabled.removeListener(myEnabledListener);
+      myEnabled.removeListener(this);
     }
   }
 
   private class TwoWayBinding<T> {
     private final ObservableProperty<T> myPropertyLhs;
     private final ObservableProperty<T> myPropertyRhs;
-    private final InvalidationListener<T> myLeftChangedListener = new InvalidationListener<T>() {
+    private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<T> sender) {
+      public void onInvalidated(@NotNull Observable sender) {
         enqueueUpdater(new PropertyUpdater<T>(myPropertyRhs, myPropertyLhs));
       }
     };
-    private final InvalidationListener<T> myRightChangedListener = new InvalidationListener<T>() {
+    private final InvalidationListener myRightChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<T> sender) {
+      public void onInvalidated(@NotNull Observable sender) {
         enqueueUpdater(new PropertyUpdater<T>(myPropertyLhs, myPropertyRhs));
       }
     };

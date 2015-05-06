@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.properties.InvalidationListener;
-import com.android.tools.idea.properties.ObservableValue;
+import com.android.tools.idea.properties.CountListener;
 import com.intellij.openapi.util.EmptyRunnable;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -34,25 +32,16 @@ public final class VisiblePropertyTest {
     visibleProperty.addListener(listener);
 
     assertThat(visibleProperty.get()).isTrue();
-    assertThat(listener.count).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
 
     label.setVisible(false);
     // Swing enqueues the visibility changed event, so we need to wait for it
     SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(visibleProperty.get()).isFalse();
-    assertThat(listener.count).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
 
     visibleProperty.set(true);
     assertThat(label.isVisible()).isTrue();
-    assertThat(listener.count).isEqualTo(2);
-  }
-
-  private static class CountListener extends InvalidationListener<Boolean> {
-    public int count;
-
-    @Override
-    protected void onInvalidated(@NotNull ObservableValue<Boolean> sender) {
-      count++;
-    }
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 }

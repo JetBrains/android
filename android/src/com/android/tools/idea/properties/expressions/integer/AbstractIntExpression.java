@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.properties.expressions.integer;
 
+import com.android.tools.idea.properties.Observable;
 import com.android.tools.idea.properties.ObservableValue;
 import com.android.tools.idea.properties.expressions.Expression;
 import com.android.tools.idea.properties.expressions.bool.BooleanExpression;
@@ -23,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Base class for Integer expressions, providing a default implementation for the {@link IntExpression} interface.
  */
-public abstract class AbstractIntExpression extends Expression<Integer> implements IntExpression {
+public abstract class AbstractIntExpression extends Expression implements IntExpression {
 
-  protected AbstractIntExpression(ObservableValue... values) {
+  protected AbstractIntExpression(Observable... values) {
     super(values);
   }
 
