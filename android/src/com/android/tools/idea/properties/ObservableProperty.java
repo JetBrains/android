@@ -36,6 +36,10 @@ public abstract class ObservableProperty<T> extends AbstractObservable<T> {
     }
   }
 
+  public final void set(@NotNull ObservableValue<T> value) {
+    set(value.get());
+  }
+
   @Override
   public String toString() {
     return get().toString();
