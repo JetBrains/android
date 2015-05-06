@@ -45,6 +45,7 @@ import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
@@ -84,7 +85,6 @@ import java.util.concurrent.TimeUnit;
  * Implements RenderContext to support Configuration toolbar in Theme Editor.
  */
 public class AndroidThemePreviewPanel extends Box implements RenderContext {
-
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
 
   // The scaling factor is based on how we want the preview to look for different devices. 160 means that a device with 160 DPI would look
@@ -111,6 +111,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
   protected final SearchTextField mySearchTextField;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
+  protected final JBScrollPane myScrollPane;
 
   private final ScheduledExecutorService mySearchScheduler = Executors.newSingleThreadScheduledExecutor();
   /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
@@ -170,13 +171,14 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   }
 
 
-  public AndroidThemePreviewPanel(@NotNull final Configuration configuration) {
+  public AndroidThemePreviewPanel(@NotNull final Configuration configuration, @NotNull Color background) {
     super(BoxLayout.PAGE_AXIS);
 
     setMinimumSize(JBUI.size(200, 0));
 
     myConfiguration = configuration;
     myAndroidPreviewPanel = new AndroidPreviewPanel(configuration);
+    myAndroidPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     myBreadcrumbs = new NavigationComponent<Breadcrumb>();
     myBreadcrumbs.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
@@ -186,13 +188,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myMinApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
 
-    JBScrollPane scrollPanel = new JBScrollPane(myAndroidPreviewPanel,
-                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+    myScrollPane = new JBScrollPane(myAndroidPreviewPanel,
+                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    scrollPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+    myScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+    myScrollPane.setBorder(null);
+    myScrollPane.setViewportBorder(null);
     mySearchTextField = new SearchTextField(true);
     // Avoid search box stretching more than 1 line.
     mySearchTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, mySearchTextField.getPreferredSize().height));
+    mySearchTextField.setBorder(IdeBorderFactory.createEmptyBorder(10, 30, 0, 30));
     final Runnable delayedUpdate = new Runnable() {
       @Override
       public void run() {
@@ -229,8 +234,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     add(myBreadcrumbs);
     add(mySearchTextField);
-    add(scrollPanel);
+    add(myScrollPane);
 
+    setBackground(background);
     reloadComponents();
 
     myBreadcrumbs.addItemListener(new NavigationComponent.ItemListener<Breadcrumb>() {
@@ -286,6 +292,14 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         return true;
       }
     });
+  }
+
+  @Override
+  public void setBackground(Color bg) {
+    super.setBackground(bg);
+
+    myScrollPane.getViewport().setBackground(bg);
+    mySearchTextField.setBackground(bg);
   }
 
   @NotNull
@@ -367,7 +381,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private void rebuild(boolean forceRepaint) {
     try {
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
-        .setBackgroundColor(UIUtil.getPanelBackground()) // Separator to give the appearance of cards
+        .setBackgroundColor(getBackground())
         .addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
@@ -459,7 +473,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   @Override
   public void setConfiguration(@NotNull Configuration configuration) {
-
+    // This method is used in the layout editor to support the multi-preview. The theme editor doesn't support it.
+    throw new UnsupportedOperationException("Configuration can not be changed on AndroidThemePreviewPanel");
   }
 
   @Override
