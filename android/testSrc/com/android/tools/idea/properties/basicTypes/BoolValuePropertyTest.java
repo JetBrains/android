@@ -44,6 +44,13 @@ public final class BoolValuePropertyTest {
   }
 
   @Test
+  public void testInvertValue() {
+    BoolValueProperty boolValue = new BoolValueProperty(false);
+    boolValue.invert();
+    assertThat(boolValue.get()).isEqualTo(true);
+  }
+
+  @Test
   public void testInvalidationListenerFiredOnValueChange() {
     BoolValueProperty boolValue = new BoolValueProperty();
     CountListener listener = new CountListener();

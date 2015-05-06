@@ -27,6 +27,11 @@ import org.jetbrains.annotations.NotNull;
  * that enable chaining.
  */
 public abstract class IntProperty extends ObservableProperty<Integer> implements IntExpression {
+
+  public void increment() {
+    set(get() + 1);
+  }
+
   @NotNull
   @Override
   public BooleanExpression isEqualTo(@NotNull ObservableValue<Integer> value) {
