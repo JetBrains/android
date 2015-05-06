@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.updater;
 
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
@@ -25,18 +30,22 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.DialogWrapperHost;
 import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Pair;
+import com.intellij.util.concurrency.FutureResult;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * An {@link ExternalComponentSource} that retrieves information from the {@link LocalSdk} and {@link RemoteSdk} provided
@@ -127,5 +136,48 @@ public class SdkComponentSource implements ExternalComponentSource {
   @Override
   public String getName() {
     return "Android SDK";
+  }
+
+  @NotNull
+  @Override
+  public Collection<? extends Pair<String, String>> getStatuses() {
+    initIfNecessary();
+    final FutureResult<List<Pair<String, String>>> resultFuture = new FutureResult();
+    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, new Runnable() {
+      @Override
+      public void run() {
+        PreciseRevision toolsRevision = null;
+        PreciseRevision platformRevision = null;
+        AndroidVersion platformVersion = null;
+        for (LocalPkgInfo info : mySdkState.getPackages().getLocalPkgInfos()) {
+          if (info.getDesc().getType() == PkgType.PKG_TOOLS && (toolsRevision == null || toolsRevision.compareTo(info.getDesc().getPreciseRevision()) < 0)) {
+            toolsRevision = info.getDesc().getPreciseRevision();
+          }
+          if (info.getDesc().getType() == PkgType.PKG_PLATFORM && (platformVersion == null || platformVersion.compareTo(info.getDesc().getAndroidVersion()) < 0)) {
+            platformRevision = info.getDesc().getPreciseRevision();
+            platformVersion = info.getDesc().getAndroidVersion();
+          }
+        }
+        List<Pair<String, String>> result = Lists.newArrayList();
+        if (toolsRevision != null) {
+          result.add(Pair.create("Android SDK Tools:", toolsRevision.toString()));
+        }
+        if (platformVersion != null) {
+          result.add(Pair.create("Android Platform Version:", SdkVersionInfo.getAndroidName(platformVersion.getApiLevel()) +
+                                                              " revision " +
+                                                              platformRevision));
+        }
+        resultFuture.set(result);
+      }
+    }, null, null, false);
+    try {
+      return resultFuture.get();
+    }
+    catch (InterruptedException e) {
+      return ImmutableList.of();
+    }
+    catch (ExecutionException e) {
+      return ImmutableList.of();
+    }
   }
 }
