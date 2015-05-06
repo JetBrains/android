@@ -60,4 +60,9 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
   private ActionButtonFixture findActionButtonByActionId(String actionId) {
     return ActionButtonFixture.findByActionId(actionId, robot, target);
   }
+
+  @NotNull
+  public MessagesFixture findMessageDialog(@NotNull String title) {
+    return MessagesFixture.findByTitle(robot, target, title);
+  }
 }
