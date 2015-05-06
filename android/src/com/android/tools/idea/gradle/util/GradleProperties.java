@@ -40,6 +40,7 @@ public class GradleProperties {
   @NonNls private static final String PROXY_USER_PROPERTY_NAME = "systemProp.http.proxyUser";
   @NonNls private static final String PROXY_PASSWORD_PROPERTY_NAME = "systemProp.http.proxyPassword";
   @NonNls private static final String PROXY_EXCEPTIONS_PROPERTY_NAME = "systemProp.http.nonProxyHosts";
+  @NonNls private static final String JVM_ARGS_PROPERTY_NAME = "org.gradle.jvmargs";
 
   @NotNull private final File myPath;
   private final Properties myProperties;
@@ -107,6 +108,15 @@ public class GradleProperties {
       "# org.gradle.parallel=true"
     };
     return Joiner.on(SystemProperties.getLineSeparator()).join(lines);
+  }
+
+  public void setJvmArgs(@NotNull String jvmArgs) {
+    myProperties.setProperty(JVM_ARGS_PROPERTY_NAME, jvmArgs);
+  }
+
+  @Nullable
+  public String getJvmArgs() {
+    return myProperties.getProperty(JVM_ARGS_PROPERTY_NAME);
   }
 
   public static class ProxySettings {

@@ -24,6 +24,7 @@ import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
@@ -51,6 +52,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
@@ -100,12 +102,15 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesTo
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -145,7 +150,41 @@ public final class GradleUtil {
   }
 
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
-    GradleSettings.getInstance(project).setGradleVmOptions("");
+    GradleSettings settings = GradleSettings.getInstance(project);
+    String existingJvmArgs = settings.getGradleVmOptions();
+    settings.setGradleVmOptions("");
+    if (!isEmptyOrSpaces(existingJvmArgs)) {
+      existingJvmArgs = existingJvmArgs.trim();
+      String msg = String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
+                                 "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
+                                 "Would you like to copy these JVM arguments:\n%1$s\n" +
+                                 "to the project's gradle.properties file?\n\n" +
+                                 "(Any existing JVM arguments in the gradle.properties file will be overwritten.)",
+                                 existingJvmArgs);
+      int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
+      if (result == Messages.YES) {
+        try {
+          GradleProperties gradleProperties = new GradleProperties(project);
+          gradleProperties.setJvmArgs(existingJvmArgs);
+          gradleProperties.save();
+        }
+        catch (IOException e) {
+          String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
+          LOG.info(err, e);
+
+          String cause = e.getMessage();
+          if (isNotEmpty(cause)) {
+            err += String.format("<br>\nCause: %1$s", cause);
+          }
+
+          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
+        }
+      }
+      else {
+        String text = String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
+        AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+      }
+    }
   }
 
   public static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
