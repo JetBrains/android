@@ -51,7 +51,6 @@ public class TranslationsEditorTest extends GuiTestCase {
     // make sure the notification is visible, and click on Open Editor to open the translations editor
     EditorNotificationPanelFixture notificationPanel =
       ideFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
-    assertNotNull(notificationPanel);
     notificationPanel.performAction("Open editor");
 
     // Wait for the translations editor table to show up
