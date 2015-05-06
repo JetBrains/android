@@ -65,7 +65,10 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
       throw new IllegalStateException("RenderTask should have PsiFile to render menu files");
     }
     String resourceName = ResourceHelper.getResourceName(psiFile);
-    myRenderTask.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.singletonList(resourceName));
+    ActionBarHandler actionBarHandler = myRenderTask.getLayoutlibCallback().getActionBarHandler();
+    if (actionBarHandler != null) {
+      actionBarHandler.setMenuIdNames(Collections.singletonList(resourceName));
+    }
     Map<Element, Object> viewCookies = Maps.newHashMap();
     return new DomPullParser(frameLayoutDocument.getDocumentElement()).setViewCookies(viewCookies);
   }
