@@ -208,6 +208,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintAppIndexingApiErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppIndexingApiErrorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.appindexing.error"), AppIndexingApiDetector.ISSUE_ERROR);
+    }
+  }
+
+  public static class AndroidLintAppIndexingApiWarningInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppIndexingApiWarningInspection() {
+      super(AndroidBundle.message("android.lint.inspections.appindexing.warning"), AppIndexingApiDetector.ISSUE_WARNING);
+    }
+  }
+
   public static class AndroidLintAssertInspection extends AndroidLintInspectionBase {
     public AndroidLintAssertInspection() {
       super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.ISSUE);
