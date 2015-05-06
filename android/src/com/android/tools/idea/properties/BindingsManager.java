@@ -16,6 +16,7 @@
 package com.android.tools.idea.properties;
 
 import com.android.tools.idea.properties.exceptions.BindingCycleException;
+import com.android.tools.idea.properties.expressions.bool.BooleanExpressions;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Maps;
@@ -112,9 +113,20 @@ public final class BindingsManager {
    * as the target value changes, and this may be hard to debug.
    */
   public <T> void bind(@NotNull ObservableProperty<T> dest, @NotNull ObservableValue<T> src) {
+    bind(dest, src, BooleanExpressions.TRUE);
+  }
+
+  /**
+   * Like {@link #bind(ObservableProperty, ObservableValue)}, but takes an additional observable boolean
+   * which, while set to false, disables the binding.
+   * <p/>
+   * This can be useful for UI fields that are initially linked to each other but which may break
+   * that link later on.
+   */
+  public <T> void bind(@NotNull ObservableProperty<T> dest, @NotNull ObservableValue<T> src, @NotNull ObservableValue<Boolean> enabled) {
     release(dest);
 
-    myOneWayBindings.put(dest, new OneWayBinding<T>(dest, src));
+    myOneWayBindings.put(dest, new OneWayBinding<T>(dest, src, enabled));
     enqueueUpdater(new PropertyUpdater<T>(dest, src));
   }
 
@@ -123,7 +135,7 @@ public final class BindingsManager {
    * be updated to reflect it.
    * <p/>
    * Although both properties can influence the other once bound, when this method is first called,
-   * the first parameter will be initialized with the value of the second.
+   * the first parameter will be initialized with the of the second.
    */
   public <T> void bindTwoWay(@NotNull ObservableProperty<T> first, @NotNull ObservableProperty<T> second) {
     releaseTwoWay(first, second);
@@ -225,20 +237,38 @@ public final class BindingsManager {
   private class OneWayBinding<T> extends InvalidationListener<T> {
     private final ObservableProperty<T> myPropertyDest;
     private final ObservableValue<T> myObservableSrc;
+    private final ObservableValue<Boolean> myEnabled;
 
     @Override
     protected void onInvalidated(@NotNull ObservableValue<T> sender) {
-      enqueueUpdater(new PropertyUpdater<T>(myPropertyDest, myObservableSrc));
+      if (myEnabled.get()) {
+        enqueueUpdater(new PropertyUpdater<T>(myPropertyDest, myObservableSrc));
+      }
     }
 
-    public OneWayBinding(ObservableProperty<T> propertyDest, ObservableValue<T> observableSrc) {
+    // TODO: Merge this with onInvalidated above (right now we can't because generic types differ, but
+    // this will change in a different CL.
+    private final InvalidationListener<Boolean> myEnabledListener = new InvalidationListener<Boolean>() {
+      @Override
+      protected void onInvalidated(@NotNull ObservableValue<Boolean> sender) {
+        if (myEnabled.get()) {
+          enqueueUpdater(new PropertyUpdater<T>(myPropertyDest, myObservableSrc));
+        }
+      }
+    };
+
+    public OneWayBinding(ObservableProperty<T> propertyDest, ObservableValue<T> observableSrc, ObservableValue<Boolean> enabled) {
       myPropertyDest = propertyDest;
       myObservableSrc = observableSrc;
+      myEnabled = enabled;
+
       myObservableSrc.addListener(this);
+      myEnabled.addListener(myEnabledListener);
     }
 
     public void dispose() {
       myObservableSrc.removeListener(this);
+      myEnabled.removeListener(myEnabledListener);
     }
   }
 
