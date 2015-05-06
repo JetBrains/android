@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.properties.InvalidationListener;
-import com.android.tools.idea.properties.ObservableValue;
-import org.fest.assertions.Assertions;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.properties.CountListener;
 import org.junit.Test;
 
 import javax.swing.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 public final class SelectedIndexPropertyTest {
   @Test
@@ -41,25 +37,14 @@ public final class SelectedIndexPropertyTest {
     selectedIndexProperty.addListener(listener);
 
     assertThat(selectedIndexProperty.get()).isEqualTo(0);
-    assertThat(listener.count).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
 
     comboBox.setSelectedIndex(2);
     assertThat(selectedIndexProperty.get()).isEqualTo(2);
-    assertThat(listener.count).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
 
     selectedIndexProperty.set(1);
     assertThat(comboBox.getSelectedIndex()).isEqualTo(1);
-    assertThat(listener.count).isEqualTo(2);
+    assertThat(listener.getCount()).isEqualTo(2);
   }
-
-  private static class CountListener extends InvalidationListener<Integer> {
-    public int count;
-
-    @Override
-    protected void onInvalidated(@NotNull ObservableValue<Integer> sender) {
-      count++;
-    }
-  }
-
-
 }

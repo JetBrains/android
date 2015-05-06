@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * Child classes should implement {@link #get()} and {@link #setDirectly(Object)} methods to
  * support modifying the actual value of this property.
  */
-public abstract class ObservableProperty<T> extends AbstractObservable<T> {
+public abstract class ObservableProperty<T> extends AbstractObservable implements ObservableValue<T> {
 
   public final void set(@NotNull T value) {
     if (!areValuesEqual(get(), value)) {
