@@ -298,12 +298,16 @@ public final class ModuleClassLoader extends RenderClassLoader {
           try {
             result.add(SdkUtils.fileToUrl(file));
 
-            File parentFile = file.getParentFile();
-            if (parentFile != null && (parentFile.getPath().endsWith(DOT_AAR) ||
-              parentFile.getPath().contains(EXPLODED_AAR))) {
+            File aarDir = file.getParentFile();
+            if (aarDir != null && (aarDir.getPath().endsWith(DOT_AAR) ||
+              aarDir.getPath().contains(EXPLODED_AAR))) {
+              if (aarDir.getPath().contains(EXPLODED_AAR) && FD_JARS.equals(aarDir.getName())) {
+                // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
+                aarDir = aarDir.getParentFile();
+              }
               AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
               if (appResources != null) {
-                AarResourceClassRegistry.get(myModule.getProject()).addLibrary(appResources, parentFile);
+                AarResourceClassRegistry.get(myModule.getProject()).addLibrary(appResources, aarDir);
               }
             }
           }
