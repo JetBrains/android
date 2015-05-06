@@ -36,6 +36,20 @@ import java.util.Map;
  */
 public class TypedVariableTest extends AndroidTestCase {
 
+  public void testParse() throws Exception {
+    assertEquals(TypedVariable.parse(TypedVariable.Type.BOOLEAN, "true"), Boolean.TRUE);
+    assertEquals(TypedVariable.parse(TypedVariable.Type.BOOLEAN, "false"), Boolean.FALSE);
+    assertEquals(TypedVariable.parse(TypedVariable.Type.BOOLEAN, "maybe"), null);
+    assertEquals(TypedVariable.parse(TypedVariable.Type.BOOLEAN, null), null);
+
+    assertEquals(TypedVariable.parse(TypedVariable.Type.INTEGER, "123"), Integer.valueOf(123));
+    assertEquals(TypedVariable.parse(TypedVariable.Type.INTEGER, "one-two-three"), null);
+    assertEquals(TypedVariable.parse(TypedVariable.Type.INTEGER, null), null);
+
+    assertEquals(TypedVariable.parse(TypedVariable.Type.STRING, "pass through"), "pass through");
+    assertEquals(TypedVariable.parse(TypedVariable.Type.STRING, null), null);
+  }
+
   public void testParseGlobal() throws Exception {
     final Map<String, Object> paramMap = new HashMap<String, Object>();
 
