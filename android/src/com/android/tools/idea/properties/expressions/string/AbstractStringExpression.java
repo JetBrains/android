@@ -13,33 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.basicTypes;
+package com.android.tools.idea.properties.expressions.string;
 
-import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.ObservableValue;
+import com.android.tools.idea.properties.expressions.Expression;
 import com.android.tools.idea.properties.expressions.bool.BooleanExpression;
-import com.android.tools.idea.properties.expressions.string.IsEmptyExpression;
-import com.android.tools.idea.properties.expressions.string.TrimExpression;
-import com.android.tools.idea.properties.expressions.string.StringExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A String-backed {@link ObservableProperty}.
+ * Base class for String expressions, providing a default implementation for the {@link StringExpression} interface.
  */
-public final class StringValueProperty extends ObservableProperty<String> implements StringExpression {
-  private String myValue;
+public abstract class AbstractStringExpression extends Expression<String> implements StringExpression {
 
-  public StringValueProperty(final String value) {
-    myValue = value;
-  }
-
-  public StringValueProperty() {
-    this("");
-  }
-
-  @NotNull
-  @Override
-  public String get() {
-    return myValue;
+  protected AbstractStringExpression(ObservableValue... values) {
+    super(values);
   }
 
   @NotNull
@@ -52,10 +39,5 @@ public final class StringValueProperty extends ObservableProperty<String> implem
   @Override
   public StringExpression trim() {
     return new TrimExpression(this);
-  }
-
-  @Override
-  protected void setDirectly(@NotNull String value) {
-    myValue = value;
   }
 }
