@@ -736,8 +736,8 @@
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
                     interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.structure.developerServices.developerServiceInitializers"
-                    interface="com.android.tools.idea.structure.developerServices.DeveloperServiceInitializers"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceInitializers"
+                    interface="com.android.tools.idea.structure.services.DeveloperServiceInitializers"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
