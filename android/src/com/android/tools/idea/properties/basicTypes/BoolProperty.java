@@ -28,6 +28,11 @@ import org.jetbrains.annotations.NotNull;
  * that enable chaining.
  */
 public abstract class BoolProperty extends ObservableProperty<Boolean> implements BooleanExpression {
+
+  public void invert() {
+    set(!get());
+  }
+
   @NotNull
   @Override
   public BooleanExpression not() {

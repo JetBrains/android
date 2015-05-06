@@ -44,6 +44,13 @@ public final class IntValuePropertyTest {
   }
 
   @Test
+  public void testIncrementValue() {
+    IntValueProperty intValue = new IntValueProperty(3);
+    intValue.increment();
+    assertThat(intValue.get()).isEqualTo(4);
+  }
+
+  @Test
   public void testInvalidationListenerFiredOnValueChange() {
     IntValueProperty intValue = new IntValueProperty(0);
     CountListener listener = new CountListener();
