@@ -23,26 +23,10 @@ import com.android.tools.idea.properties.expressions.string.TrimExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A String-backed {@link ObservableProperty}.
+ * Base class that every string-type property should inherit from, as it provides useful methods
+ * that enable chaining.
  */
-public final class StringValueProperty extends StringProperty {
-
-  private String myValue;
-
-  public StringValueProperty(final String value) {
-    myValue = value;
-  }
-
-  public StringValueProperty() {
-    this("");
-  }
-
-  @NotNull
-  @Override
-  public String get() {
-    return myValue;
-  }
-
+public abstract class StringProperty extends ObservableProperty<String> implements StringExpression {
   @NotNull
   @Override
   public BooleanExpression isEmpty() {
@@ -53,10 +37,5 @@ public final class StringValueProperty extends StringProperty {
   @Override
   public StringExpression trim() {
     return new TrimExpression(this);
-  }
-
-  @Override
-  protected void setDirectly(@NotNull String value) {
-    myValue = value;
   }
 }

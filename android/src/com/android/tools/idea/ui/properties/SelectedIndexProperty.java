@@ -13,34 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.basicTypes;
+package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.basicTypes.IntProperty;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 /**
- * An integer-backed {@link ObservableProperty}.
+ * {@link ObservableProperty} that wraps a Swing combobox and exposes its selected index.
  */
-public final class IntValueProperty extends IntProperty {
+public final class SelectedIndexProperty extends IntProperty implements ActionListener {
 
-  private Integer myValue;
+  private JComboBox myComboBox;
 
-  public IntValueProperty(final Integer value) {
-    myValue = value;
+  public SelectedIndexProperty(@NotNull JComboBox comboBox) {
+    myComboBox = comboBox;
+    myComboBox.addActionListener(this);
   }
 
-  public IntValueProperty() {
-    this(0);
+  @Override
+  public void actionPerformed(ActionEvent actionEvent) {
+    notifyInvalidated();
   }
 
   @NotNull
   @Override
   public Integer get() {
-    return myValue;
+    return myComboBox.getSelectedIndex();
   }
 
   @Override
   protected void setDirectly(@NotNull Integer value) {
-    myValue = value;
+    myComboBox.setSelectedIndex(value);
   }
 }

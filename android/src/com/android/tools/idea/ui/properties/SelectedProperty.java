@@ -13,34 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.basicTypes;
+package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.basicTypes.BoolProperty;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+
 /**
- * A boolean-backed {@link ObservableProperty}.
+ * {@link ObservableProperty} that wraps a Swing button and exposes its selected state (useful for
+ * checkboxes).
  */
-public final class BoolValueProperty extends BoolProperty {
+public final class SelectedProperty extends BoolProperty implements ItemListener {
+  private final AbstractButton myButton;
 
-  private Boolean myValue;
-
-  public BoolValueProperty(final Boolean value) {
-    myValue = value;
+  public SelectedProperty(AbstractButton button) {
+    myButton = button;
+    myButton.addItemListener(this);
   }
 
-  public BoolValueProperty() {
-    this(false);
+  @Override
+  public void itemStateChanged(ItemEvent itemEvent) {
+    notifyInvalidated();
   }
 
   @NotNull
   @Override
   public Boolean get() {
-    return myValue;
+    return myButton.isSelected();
   }
 
   @Override
   protected void setDirectly(@NotNull Boolean value) {
-    myValue = value;
+    myButton.setSelected(value);
   }
 }
