@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.developerServices;
+package com.android.tools.idea.structure.services;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 
@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 public interface DeveloperServiceInitializers {
   ExtensionPointName<DeveloperServiceInitializers> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.structure.developerServices.developerServiceInitializers");
+    ExtensionPointName.create("com.android.tools.idea.structure.services.developerServiceInitializers");
 
   Collection<? extends DeveloperServiceInitializer> getInitializers();
 }

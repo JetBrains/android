@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.developerServices.view;
+package com.android.tools.idea.structure.services.view;
 
 import com.android.tools.idea.structure.EditorPanel;
-import com.android.tools.idea.structure.developerServices.ServiceCategory;
-import com.android.tools.idea.structure.developerServices.DeveloperService;
-import com.android.tools.idea.structure.developerServices.DeveloperServices;
+import com.android.tools.idea.structure.services.ServiceCategory;
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServices;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.VerticalFlowLayout;
