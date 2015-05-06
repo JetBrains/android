@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.properties.basicTypes;
 
+import com.android.tools.idea.properties.ObservableValue;
 import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.expressions.bool.AndExpression;
+import com.android.tools.idea.properties.expressions.bool.BooleanExpression;
+import com.android.tools.idea.properties.expressions.bool.NotExpression;
+import com.android.tools.idea.properties.expressions.bool.OrExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A boolean-backed {@link ObservableProperty}.
  */
-public final class BoolValueProperty extends ObservableProperty<Boolean> {
+public final class BoolValueProperty extends ObservableProperty<Boolean> implements BooleanExpression {
 
   private Boolean myValue;
 
@@ -37,6 +42,24 @@ public final class BoolValueProperty extends ObservableProperty<Boolean> {
   @Override
   public Boolean get() {
     return myValue;
+  }
+
+  @NotNull
+  @Override
+  public BooleanExpression not() {
+    return new NotExpression(this);
+  }
+
+  @NotNull
+  @Override
+  public BooleanExpression or(@NotNull ObservableValue<Boolean> other) {
+    return new OrExpression(this, other);
+  }
+
+  @NotNull
+  @Override
+  public BooleanExpression and(@NotNull ObservableValue<Boolean> other) {
+    return new AndExpression(this, other);
   }
 
   @Override
