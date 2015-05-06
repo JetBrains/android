@@ -1,8 +1,7 @@
 package org.jetbrains.android.database;
 
-import com.intellij.database.dataSource.DataSourceTemplate;
 import com.intellij.database.dataSource.LocalDataSource;
-import com.intellij.database.model.info.DataSourceInfo;
+import com.intellij.database.model.DatabaseSystem;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.ModificationTracker;
@@ -24,7 +23,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-class AndroidDataSource extends LocalDataSource implements DataSourceInfo, ModificationTracker {
+class AndroidDataSource extends LocalDataSource implements DatabaseSystem, ModificationTracker {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSource");
 
   private State myState = new State();
@@ -145,11 +144,6 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   @Override
   public Icon getBaseIcon() {
     return AndroidIcons.Android;
-  }
-
-  @Override
-  public DataSourceTemplate getTemplate() {
-    return AndroidDbManager.DEFAULT_TEMPLATE;
   }
 
   @Override
