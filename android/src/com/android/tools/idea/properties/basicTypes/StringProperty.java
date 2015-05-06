@@ -27,6 +27,11 @@ import org.jetbrains.annotations.NotNull;
  * that enable chaining.
  */
 public abstract class StringProperty extends ObservableProperty<String> implements StringExpression {
+
+  public void clear() {
+    set("");
+  }
+
   @NotNull
   @Override
   public BooleanExpression isEmpty() {
