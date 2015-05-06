@@ -349,6 +349,7 @@ public class ThemePreviewBuilder {
     new ComponentDefinition("Status bar", ComponentGroup.STATUS_BAR, "com.android.layoutlib.bridge.bars.StatusBar")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
     new ComponentDefinition("Navigation bar", ComponentGroup.NAVIGATION_BAR, "com.android.layoutlib.bridge.bars.NavigationBar")
+      .set(ATTR_LAYOUT_HEIGHT, "@android:dimen/navigation_bar_height")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
 
     // Misc
@@ -364,7 +365,7 @@ public class ThemePreviewBuilder {
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT));
 
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
-  private static final int GROUP_TITLE_FONT_SIZE = 12;
+  private static final int GROUP_TITLE_FONT_SIZE = 11;
 
   private List<ComponentDefinition> myComponents = new ArrayList<ComponentDefinition>();
   private String myGroupHeaderColor = "@android:color/darker_gray";
@@ -379,9 +380,10 @@ public class ThemePreviewBuilder {
     // Set the custom preview layout attributes
     layout.setAttribute("max_columns", "3");
     // All values in DP
-    layout.setAttribute("max_column_width", "500");
-    layout.setAttribute("min_column_width", "350");
-    layout.setAttribute("item_margin", "5");
+    layout.setAttribute("max_column_width", "270");
+    layout.setAttribute("min_column_width", "270");
+    layout.setAttribute("item_horizontal_margin", "25");
+    layout.setAttribute("item_vertical_margin", "15");
 
     return layout;
   }
@@ -395,7 +397,10 @@ public class ThemePreviewBuilder {
     setAttribute(componentGrouper, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
     setAttribute(componentGrouper, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAttribute(componentGrouper, ATTR_BACKGROUND, "?android:attr/colorBackground");
-    setAttribute(componentGrouper, ATTR_PADDING, toDp(14));
+    setAttribute(componentGrouper, ATTR_PADDING_TOP, toDp(5));
+    setAttribute(componentGrouper, ATTR_PADDING_RIGHT, toDp(10));
+    setAttribute(componentGrouper, ATTR_PADDING_LEFT, toDp(10));
+    setAttribute(componentGrouper, ATTR_PADDING_BOTTOM, toDp(10));
     componentGrouper.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     Element elementGroup = document.createElement(LINEAR_LAYOUT);
@@ -413,7 +418,7 @@ public class ThemePreviewBuilder {
     setAttribute(groupTitle, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAttribute(groupTitle, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
     setAttribute(groupTitle, "textColor", groupColor);
-    setAttribute(groupTitle, "text", group.name.toUpperCase());
+    setAttribute(groupTitle, "text", group.name);
     setAttribute(groupTitle, ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, VALUE_TRUE);
     groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
@@ -567,6 +572,8 @@ public class ThemePreviewBuilder {
     Element backgroundLayout = document.createElement(LINEAR_LAYOUT);
     setAttribute(backgroundLayout, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     setAttribute(backgroundLayout, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
+    setAttribute(backgroundLayout, ATTR_PADDING_TOP, toDp(20));
+    setAttribute(backgroundLayout, ATTR_PADDING_BOTTOM, toDp(20));
     setAttribute(backgroundLayout, ATTR_GRAVITY, GRAVITY_VALUE_CENTER_HORIZONTAL);
     setAttribute(backgroundLayout, ATTR_BACKGROUND, myBackgroundColor);
 

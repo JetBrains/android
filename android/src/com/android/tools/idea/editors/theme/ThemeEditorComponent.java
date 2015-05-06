@@ -48,6 +48,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
+import com.intellij.ui.JBColor;
 import com.intellij.util.Processor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
@@ -80,6 +81,8 @@ import java.util.Set;
 
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
+
+  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x606162));
 
   public static final float HEADER_FONT_SCALE = 1.3f;
   public static final int REGULAR_CELL_PADDING = 4;
@@ -134,7 +137,7 @@ public class ThemeEditorComponent extends Splitter {
     myConfiguration.addListener(myConfigListener);
     myStyleResolver = new StyleResolver(myConfiguration);
 
-    myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration);
+    myPreviewPanel = new AndroidThemePreviewPanel(myConfiguration, PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     // Setup Javadoc handler.
@@ -833,7 +836,6 @@ public class ThemeEditorComponent extends Splitter {
     // (thus multiplier is 2.8 rather than 2). Also, we need some padding on top and bottom.
     int bigCellSize = (int) Math.floor(2.8f * regularFontSize) + LARGE_CELL_PADDING;
     int colorCellSize = 2 * regularFontSize + ColorComponent.SUM_PADDINGS;
-
     myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
       Color.class, colorCellSize,
