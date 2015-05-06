@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.templates.propertyAdapters;
 
-import com.android.tools.idea.properties.ObservableProperty;
-import com.android.tools.idea.properties.basicTypes.BoolValueProperty;
-import com.android.tools.idea.properties.basicTypes.IntValueProperty;
-import com.android.tools.idea.properties.basicTypes.StringValueProperty;
+import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.core.BoolValueProperty;
+import com.android.tools.idea.ui.properties.core.IntValueProperty;
+import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.ObjectWrapper;
 import freemarker.template.TemplateModel;
