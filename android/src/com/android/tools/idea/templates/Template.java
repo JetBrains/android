@@ -60,7 +60,6 @@ import com.intellij.psi.xml.*;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.TemplateException;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -299,8 +298,7 @@ public class Template {
 
     Map<String, Object> paramMap = createParameterMap(args);
     enforceParameterTypes(getMetadata(), args);
-    Configuration freemarker = new Configuration();
-    freemarker.setObjectWrapper(new DefaultObjectWrapper());
+    Configuration freemarker = new FreemarkerConfiguration();
     freemarker.setTemplateLoader(myLoader);
 
     processFile(freemarker, new File(TEMPLATE_XML_NAME), paramMap);
