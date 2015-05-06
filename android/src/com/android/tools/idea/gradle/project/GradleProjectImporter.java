@@ -365,6 +365,10 @@ public class GradleProjectImporter {
     createIdeaProjectDir(projectRootDirPath);
 
     Project newProject = project == null ? createProject(projectName, projectRootDirPath.getPath()) : project;
+    if (project == null) {
+      GradleSettings settings = GradleSettings.getInstance(newProject);
+      settings.setGradleVmOptions("");
+    }
     setUpProject(newProject, initialLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {

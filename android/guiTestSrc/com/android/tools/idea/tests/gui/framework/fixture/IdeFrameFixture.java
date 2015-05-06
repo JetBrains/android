@@ -72,6 +72,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -248,6 +249,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public GradleInvocationResult invokeProjectMake() {
+    return invokeProjectMake(null);
+  }
+
+  @NotNull
+  public GradleInvocationResult invokeProjectMake(@Nullable Runnable executeAfterInvokingMake) {
     myGradleProjectEventListener.reset();
 
     final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
@@ -263,6 +269,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       }
     });
     selectProjectMakeAction();
+
+    if (executeAfterInvokingMake != null) {
+      executeAfterInvokingMake.run();
+    }
+
     waitForBuildToFinish(COMPILE_JAVA);
 
     GradleInvocationResult result = resultRef.get();
@@ -815,6 +826,28 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
     return showPropertiesDialog(robot, libraryName, getProject());
+  }
+
+  @NotNull
+  public MessagesFixture findMessageDialog(@NotNull String title) {
+    return MessagesFixture.findByTitle(robot, target, title);
+  }
+
+  @NotNull
+  public IdeFrameFixture setGradleJvmArgs(@NotNull final String jvmArgs) {
+    Project project = getProject();
+
+    final GradleSettings settings = GradleSettings.getInstance(project);
+    settings.setGradleVmOptions(jvmArgs);
+
+    pause(new Condition("Gradle settings to be set") {
+      @Override
+      public boolean test() {
+        return jvmArgs.equals(settings.getGradleVmOptions());
+      }
+    }, SHORT_TIMEOUT);
+
+    return this;
   }
 
   private static class NoOpDisposable implements Disposable {

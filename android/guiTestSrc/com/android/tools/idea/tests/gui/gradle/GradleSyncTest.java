@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
+import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -121,6 +122,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
+  private static final String ANDROID_SDK_MANAGER_DIALOG_TITLE = "Android SDK Manager";
+  private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
+  private static final String GRADLE_SYNC_DIALOG_TITLE = "Gradle Sync";
+
   @Before
   public void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
@@ -581,7 +586,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    findGradleSyncMessageDialog(projectFrame.target).clickCancel();
+    projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.chooseGradleHome(gradleHomePath)
@@ -595,12 +600,11 @@ public class GradleSyncTest extends GuiTestCase {
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
-    projectFrame.deleteGradleWrapper()
-                .useLocalGradleDistribution(getUnsupportedGradleHome())
+    projectFrame.deleteGradleWrapper().useLocalGradleDistribution(getUnsupportedGradleHome())
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(projectFrame.target).clickOk();
+    projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -615,7 +619,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(projectFrame.target).clickOk();
+    projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -631,7 +635,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(projectFrame.target).clickOk();
+    projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -792,17 +796,11 @@ public class GradleSyncTest extends GuiTestCase {
     importProjectDialog.select(toSelect).clickOk();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    findGradleSyncMessageDialog(welcomeFrame.target).clickOk();
+    welcomeFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectDirPath);
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
-  }
-
-
-  @NotNull
-  private MessagesFixture findGradleSyncMessageDialog(@NotNull Container root) {
-    return MessagesFixture.findByTitle(myRobot, root, "Gradle Sync");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74341
@@ -1013,18 +1011,36 @@ public class GradleSyncTest extends GuiTestCase {
   // JVM settings for Gradle should be cleared before any invocation to Gradle.
   @Test @IdeGuiTest
   public void testClearJvmArgsOnSyncAndBuild() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    final IdeFrameFixture projectFrame = importSimpleApplication();
     Project project = projectFrame.getProject();
 
-    GradleSettings settings = GradleSettings.getInstance(project);
-    settings.setGradleVmOptions("-Xmx2048m");
+    GradleProperties gradleProperties = new GradleProperties(project);
+    gradleProperties.setJvmArgs("");
 
-    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-    assertEquals("", settings.getGradleVmOptions());
+    String jvmArgs = "-Xmx2048m";
+    projectFrame.setGradleJvmArgs(jvmArgs)
+                .requestProjectSync();
 
-    settings.setGradleVmOptions("-Xmx2048m");
-    projectFrame.invokeProjectMake();
-    assertEquals("", settings.getGradleVmOptions());
+    // Copy JVM args to gradle.properties file.
+    projectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
+
+    // Verify JVM args were removed from IDE's Gradle settings.
+    projectFrame.waitForGradleProjectSyncToFinish();
+    assertEquals("", GradleSettings.getInstance(project).getGradleVmOptions());
+
+    // Verify JVM args were copied to gradle.properties file
+    gradleProperties = new GradleProperties(project);
+    assertEquals(jvmArgs, gradleProperties.getJvmArgs());
+
+    projectFrame.setGradleJvmArgs(jvmArgs)
+                .invokeProjectMake(new Runnable() {
+                  @Override
+                  public void run() {
+                    // Copy JVM args to gradle.properties file.
+                    projectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
+                  }
+                });
+    assertEquals("", GradleSettings.getInstance(project).getGradleVmOptions());
   }
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
@@ -1046,7 +1062,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSync();
 
     // Expect IDE to ask user to copy proxy settings.
-    MessagesFixture message = MessagesFixture.findByTitle(myRobot, projectFrame.target, "Proxy Settings");
+    MessagesFixture message = projectFrame.findMessageDialog("Proxy Settings");
     message.clickYes();
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -1099,7 +1115,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSync();
 
-    MessagesFixture messages = MessagesFixture.findByTitle(myRobot, projectFrame.target, "Android SDK Manager");
+    MessagesFixture messages = projectFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
     messages.click("Use Project's SDK");
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -1113,7 +1129,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSync();
 
-    messages = MessagesFixture.findByTitle(myRobot, projectFrame.target, "Android SDK Manager");
+    messages = projectFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
     messages.click("Use Android Studio's SDK");
 
     projectFrame.waitForGradleProjectSyncToFinish();
