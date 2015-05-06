@@ -13,34 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.basicTypes;
+package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.basicTypes.BoolProperty;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 /**
- * A boolean-backed {@link ObservableProperty}.
+ * {@link ObservableProperty} that wraps a Swing component and exposes its enabled state.
  */
-public final class BoolValueProperty extends BoolProperty {
+public final class EnabledProperty extends BoolProperty implements PropertyChangeListener {
+  private final JComponent myComponent;
 
-  private Boolean myValue;
-
-  public BoolValueProperty(final Boolean value) {
-    myValue = value;
+  public EnabledProperty(@NotNull JComponent component) {
+    myComponent = component;
+    myComponent.addPropertyChangeListener("enabled", this);
   }
 
-  public BoolValueProperty() {
-    this(false);
+  @Override
+  public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+    notifyInvalidated();
   }
 
   @NotNull
   @Override
   public Boolean get() {
-    return myValue;
+    return myComponent.isEnabled();
   }
 
   @Override
   protected void setDirectly(@NotNull Boolean value) {
-    myValue = value;
+    myComponent.setEnabled(value);
   }
 }

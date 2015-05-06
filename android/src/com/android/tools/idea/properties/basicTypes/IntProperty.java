@@ -16,31 +16,11 @@
 package com.android.tools.idea.properties.basicTypes;
 
 import com.android.tools.idea.properties.ObservableProperty;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * A boolean-backed {@link ObservableProperty}.
+ * Base class that every integer-type property should inherit from, as it provides useful methods
+ * that enable chaining.
  */
-public final class BoolValueProperty extends BoolProperty {
-
-  private Boolean myValue;
-
-  public BoolValueProperty(final Boolean value) {
-    myValue = value;
-  }
-
-  public BoolValueProperty() {
-    this(false);
-  }
-
-  @NotNull
-  @Override
-  public Boolean get() {
-    return myValue;
-  }
-
-  @Override
-  protected void setDirectly(@NotNull Boolean value) {
-    myValue = value;
-  }
+public abstract class IntProperty extends ObservableProperty<Integer> {
+  // TODO: Flesh this out in a later CL
 }
