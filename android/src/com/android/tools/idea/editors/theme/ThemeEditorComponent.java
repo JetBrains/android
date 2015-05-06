@@ -182,8 +182,12 @@ public class ThemeEditorComponent extends Splitter {
       renderTask = service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
     }
 
-    // Get rid of default white background of the table.
-    myAttributesTable.setBackground(null);
+    final JScrollPane scroll = myPanel.getAttributesScrollPane();
+    scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
+
+    myAttributesTable.setBackground(null); // Get rid of default white background of the table.
+    scroll.setBackground(null); // needed for OS X, as by default is set to white
+    scroll.getViewport().setBackground(null); // needed for OS X, as by default is set to white
 
     myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRenderer(myConfiguration)));
     myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
@@ -301,9 +305,6 @@ public class ThemeEditorComponent extends Splitter {
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     JPanel myConfigToolbar = myPanel.getConfigToolbar();
     myConfigToolbar.add(actionToolbar.getComponent());
-
-    final JScrollPane scroll = myPanel.getAttributesScrollPane();
-    scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
 
     setFirstComponent(myPreviewPanel);
     setSecondComponent(myPanel.getRightPanel());
