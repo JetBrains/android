@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.developerServices.view;
+package com.android.tools.idea.structure.services.view;
 
 import com.android.tools.idea.structure.EditorPanel;
-import com.android.tools.idea.structure.developerServices.DeveloperService;
-import com.android.tools.idea.structure.developerServices.DeveloperServiceMetadata;
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
