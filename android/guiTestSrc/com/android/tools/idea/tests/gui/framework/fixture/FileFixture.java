@@ -23,6 +23,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -30,6 +31,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,15 +96,25 @@ public class FileFixture {
   }
 
   @NotNull
-  public FileFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
-    final DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
-    final PsiFile psiFile = GuiActionRunner.execute(new GuiQuery<PsiFile>() {
+  public FileFixture waitUntilErrorAnalysisFinishes() {
+    pause(new Condition("error analysis finishes") {
       @Override
-      protected PsiFile executeInEDT() throws Throwable {
-        return PsiManager.getInstance(myProject).findFile(myVirtualFile);
+      public boolean test() {
+        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+          @Override
+          protected Boolean executeInEDT() throws Throwable {
+            return DaemonCodeAnalyzerEx.getInstanceEx(myProject).isErrorAnalyzingFinished(getPsiFile());
+          }
+        });
       }
     });
-    assertNotNull("No Psi file found for path " + quote(myVirtualFile.getPath()), psiFile);
+    return this;
+  }
+
+  @NotNull
+  public FileFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+    final DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
+    final PsiFile psiFile = getPsiFile();
 
     pause(new Condition("Waiting for error analysis to complete" + expected) {
       @Override
@@ -138,8 +150,28 @@ public class FileFixture {
   }
 
   @NotNull
+  private PsiFile getPsiFile() {
+    final PsiFile psiFile = GuiActionRunner.execute(new GuiQuery<PsiFile>() {
+      @Override
+      protected PsiFile executeInEDT() throws Throwable {
+        return PsiManager.getInstance(myProject).findFile(myVirtualFile);
+      }
+    });
+    assertNotNull("No Psi file found for path " + quote(myVirtualFile.getPath()), psiFile);
+    return psiFile;
+  }
+
+  @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
-    final Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
+    final Ref<Document> documentRef = new Ref<Document>();
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
+        documentRef.set(document);
+      }
+    });
+    final Document document = documentRef.get();
     assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
 
     pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {

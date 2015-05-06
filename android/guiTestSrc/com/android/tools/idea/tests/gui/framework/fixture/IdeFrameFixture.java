@@ -61,7 +61,6 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
@@ -89,11 +88,13 @@ import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.*;
@@ -188,7 +189,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     Module module = getModule(moduleName);
     final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
@@ -629,7 +630,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
-  @Nullable
+  @NotNull
   public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
     EditorNotificationPanel panel = findPanel(message);  // fails test if not found (or if null and notifications were found)
     assertNotNull(panel);
@@ -643,8 +644,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     Collection<EditorNotificationPanel> panels = robot.finder().findAll(target, new GenericTypeMatcher<EditorNotificationPanel>(
       EditorNotificationPanel.class, true) {
       @Override
-      protected boolean isMatching(EditorNotificationPanel component) {
-        return true;
+      protected boolean isMatching(EditorNotificationPanel panel) {
+        return panel.isShowing();
       }
     });
 
@@ -652,36 +653,43 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       if (!panels.isEmpty()) {
         List<String> labels = Lists.newArrayList();
         for (EditorNotificationPanel panel : panels) {
-          labels.add(getEditorNotificationLabel(panel));
+          labels.addAll(getEditorNotificationLabels(panel));
         }
         fail("Found editor notifications when none were expected: " + labels);
       }
     } else {
       List<String> labels = Lists.newArrayList();
       for (EditorNotificationPanel panel : panels) {
-        String label = getEditorNotificationLabel(panel);
-        labels.add(label);
-        if (label.contains(message)) {
-          return panel;
+        List<String> found = getEditorNotificationLabels(panel);
+        labels.addAll(found);
+        for (String label : found) {
+          if (label.contains(message)) {
+            return panel;
+          }
         }
       }
 
-      fail("Did not find message " + message + "; available notifications are " + labels);
+      fail("Did not find message '" + message + "'; available notifications are " + labels);
     }
 
     return null;
   }
 
   /** Looks up the main label for a given editor notification panel */
-  private String getEditorNotificationLabel(@NotNull EditorNotificationPanel panel) {
-    final JLabel label = robot.finder().find(panel, JLabelMatcher.any());
-    return GuiActionRunner.execute(new GuiQuery<String>() {
-      @Override
-      @Nullable
-      protected String executeInEDT() throws Throwable {
-        return label.getText();
-      }
-    });
+  private List<String> getEditorNotificationLabels(@NotNull EditorNotificationPanel panel) {
+    final List<String> allText = Lists.newArrayList();
+    final Collection<JLabel> labels = robot.finder().findAll(panel, JLabelMatcher.any().andShowing());
+    for (final JLabel label : labels) {
+      String text = execute(new GuiQuery<String>() {
+        @Override
+        @Nullable
+        protected String executeInEDT() throws Throwable {
+          return label.getText();
+        }
+      });
+      allText.add(nullToEmpty(text));
+    }
+    return allText;
   }
 
   /** Clicks the given link in the editor notification with the given message */
@@ -802,7 +810,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   public void closeProject() {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         closeAndDispose(getProject());

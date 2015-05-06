@@ -1175,7 +1175,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   // Verify that the IDE warns users about rendering issue when using plugin 1.2.0 to 1.2.2.
   // See https://code.google.com/p/android/issues/detail?id=170841
-  @Test
+  @Test @IdeGuiTest
   public void testModelWithLayoutRenderingIssue() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
     updateAndroidModelVersion(projectFrame.getProjectPath(), "1.2.0");
@@ -1183,6 +1183,22 @@ public class GradleSyncTest extends GuiTestCase {
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(WARNING, firstLineStartingWith("Using an obsolete version of the Gradle plugin (1.2.0)"));
+  }
+
+  // Verifies that after making a change in a build.gradle file, the editor notification saying that sync is needed shows up. This wasn't
+  // the case after a project import.
+  // See https://code.google.com/p/android/issues/detail?id=171370
+  @Test @IdeGuiTest
+  public void testEditorNotificationsWhenSyncNeededAfterProjectImport() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/build.gradle")
+          .waitUntilErrorAnalysisFinishes()
+          .enterText("Hello World");
+
+    projectFrame.requireEditorNotification("Gradle files have changed since last project sync. " +
+                                           "A project sync may be necessary for the IDE to work properly.");
   }
 
   private static void updateAndroidModelVersion(@NotNull File projectPath, @NotNull String modelVersion) throws IOException {

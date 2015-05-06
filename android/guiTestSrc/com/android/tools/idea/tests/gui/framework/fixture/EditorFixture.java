@@ -817,6 +817,15 @@ public class EditorFixture {
     return this;
   }
 
+  @NotNull
+  public EditorFixture waitUntilErrorAnalysisFinishes() {
+    VirtualFile currentFile = getCurrentFile();
+    assertNotNull("Expected a file to be open", currentFile);
+    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+    file.waitUntilErrorAnalysisFinishes();
+    return this;
+  }
+
   /**
    * Invokes the show intentions action, waits for the actions to be displayed and then picks the
    * one with the given label prefix
