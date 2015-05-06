@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.properties.InvalidationListener;
-import com.android.tools.idea.properties.ObservableValue;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.properties.CountListener;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -34,15 +32,15 @@ public final class TextPropertyTest {
     textProperty.addListener(listener);
 
     assertThat(textProperty.get()).isEqualTo("New Label");
-    assertThat(listener.count).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
 
     label.setText("Label text updated directly");
     assertThat(textProperty.get()).isEqualTo("Label text updated directly");
-    assertThat(listener.count).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
 
     textProperty.set("Label text updated via property");
     assertThat(label.getText()).isEqualTo("Label text updated via property");
-    assertThat(listener.count).isEqualTo(2);
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 
   @Test
@@ -53,15 +51,15 @@ public final class TextPropertyTest {
     textProperty.addListener(listener);
 
     assertThat(textProperty.get()).isEqualTo("New Button");
-    assertThat(listener.count).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
 
     button.setText("Button text updated directly");
     assertThat(textProperty.get()).isEqualTo("Button text updated directly");
-    assertThat(listener.count).isEqualTo(1);
+    assertThat(listener.getCount()).isEqualTo(1);
 
     textProperty.set("Button text updated via property");
     assertThat(button.getText()).isEqualTo("Button text updated via property");
-    assertThat(listener.count).isEqualTo(2);
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 
   @Test
@@ -72,23 +70,14 @@ public final class TextPropertyTest {
     textProperty.addListener(listener);
 
     assertThat(textProperty.get()).isEqualTo("New Field");
-    assertThat(listener.count).isEqualTo(0);
+    assertThat(listener.getCount()).isEqualTo(0);
 
     field.setText("Field text updated directly");
     assertThat(textProperty.get()).isEqualTo("Field text updated directly");
-    assertThat(listener.count).isEqualTo(2); // +2 here: TextField fires two events when setText is called direclty (remove and insert)
+    assertThat(listener.getCount()).isEqualTo(2); // +2 here: TextField fires two events when setText is called direclty (remove and insert)
 
     textProperty.set("Field text updated via property");
     assertThat(field.getText()).isEqualTo("Field text updated via property");
-    assertThat(listener.count).isEqualTo(3); // Only +1 here: Property.set hides extra validation calls
-  }
-
-  private static class CountListener extends InvalidationListener<String> {
-    public int count;
-
-    @Override
-    protected void onInvalidated(@NotNull ObservableValue<String> sender) {
-      count++;
-    }
+    assertThat(listener.getCount()).isEqualTo(3); // Only +1 here: Property.set hides extra validation calls
   }
 }
