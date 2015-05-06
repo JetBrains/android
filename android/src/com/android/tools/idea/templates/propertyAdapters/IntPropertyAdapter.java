@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates.propertyAdapters;
 
-import com.android.tools.idea.properties.basicTypes.IntValueProperty;
+import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import freemarker.template.*;
 import org.jetbrains.annotations.NotNull;
 
