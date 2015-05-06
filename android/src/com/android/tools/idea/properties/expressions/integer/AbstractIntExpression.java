@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.properties.basicTypes;
+package com.android.tools.idea.properties.expressions.integer;
 
 import com.android.tools.idea.properties.ObservableValue;
-import com.android.tools.idea.properties.ObservableProperty;
+import com.android.tools.idea.properties.expressions.Expression;
 import com.android.tools.idea.properties.expressions.bool.BooleanExpression;
-import com.android.tools.idea.properties.expressions.integer.ComparisonExpression;
-import com.android.tools.idea.properties.expressions.integer.IntExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class that every integer-type property should inherit from, as it provides useful methods
- * that enable chaining.
+ * Base class for Integer expressions, providing a default implementation for the {@link IntExpression} interface.
  */
-public abstract class IntProperty extends ObservableProperty<Integer> implements IntExpression {
+public abstract class AbstractIntExpression extends Expression<Integer> implements IntExpression {
+
+  protected AbstractIntExpression(ObservableValue... values) {
+    super(values);
+  }
+
   @NotNull
   @Override
   public BooleanExpression isEqualTo(@NotNull ObservableValue<Integer> value) {
