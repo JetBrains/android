@@ -126,6 +126,11 @@ public class ThemeEditorStyle {
     return getStyleResourceValue().getValues();
   }
 
+  public boolean hasItem(@Nullable EditedStyleItem item) {
+    //TODO: add isOverriden() method to EditedStyleItem
+    return item != null && getStyleResourceValue().getItem(item.getName(), item.isFrameworkAttr()) != null;
+  }
+
   /**
    * Returns the style parent or null if this is a root style.
    */
@@ -170,14 +175,6 @@ public class ThemeEditorStyle {
     });
 
     return resultXmlTag.get();
-  }
-
-  /**
-   * Returns whether an attribute is locally defined by this style or not.
-   * @param attribute The style attribute name.
-   */
-  public boolean isAttributeDefined(@NotNull String attribute) {
-    return getStyleResourceValue().getNames().contains(attribute);
   }
 
   @Nullable

@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;
@@ -46,10 +47,9 @@ public class DelegatingCellRenderer implements TableCellRenderer {
 
     final Component returnedComponent =
       myDelegate.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
+    ThemeEditorStyle selectedStyle = ((AttributesTableModel) table.getModel()).getSelectedStyle();
     // Displays in bold attributes that are overriding their inherited value
-    returnedComponent.setFont((item != null && item.getSourceStyle().equals(((AttributesTableModel) table.getModel()).getSelectedStyle()))
-                              ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
+    returnedComponent.setFont(selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
 
     returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.GRAY : table.getForeground());
 
