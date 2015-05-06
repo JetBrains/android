@@ -83,6 +83,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (gradleSyncNeeded == ThreeState.YES) {
       return new StaleGradleModelNotificationPanel();
     }
+
     return null;
   }
 
