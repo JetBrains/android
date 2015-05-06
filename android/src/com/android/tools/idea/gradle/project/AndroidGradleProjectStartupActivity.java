@@ -30,7 +30,6 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   public void runActivity(@NotNull Project project) {
     if (isBuildWithGradle(project)) {
       GradleProjectImporter.getInstance().requestProjectSync(project, true, true, null);
-      GradleSyncState.getInstance(project).setSyncNotificationsEnabled(true);
     }
   }
 }

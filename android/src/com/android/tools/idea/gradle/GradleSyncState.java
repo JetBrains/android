@@ -86,9 +86,6 @@ public class GradleSyncState {
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
 
-  @GuardedBy("myLock")
-  private boolean mySyncTransparentChangeInProgress;
-
   @NotNull
   public static GradleSyncState getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleSyncState.class);
@@ -97,12 +94,6 @@ public class GradleSyncState {
   public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
     myMessageBus = messageBus;
-  }
-
-  public void setSyncNotificationsEnabled(boolean enabled) {
-    synchronized (myLock) {
-      mySyncNotificationsEnabled = enabled;
-    }
   }
 
   public boolean areSyncNotificationsEnabled() {
@@ -121,6 +112,7 @@ public class GradleSyncState {
       }
     });
 
+    enableNotifications();
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_SKIPPED, null, null);
   }
 
@@ -130,7 +122,6 @@ public class GradleSyncState {
     cleanUpProjectPreferences();
     synchronized (myLock) {
       mySyncInProgress = true;
-      mySyncTransparentChangeInProgress = false;
     }
     if (notifyUser) {
       notifyUser();
@@ -182,6 +173,7 @@ public class GradleSyncState {
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_ENDED, null, null);
   }
 
+
   private void addInfoToEventLog(@NotNull String message) {
     addToEventLog(message, INFO);
   }
@@ -193,14 +185,20 @@ public class GradleSyncState {
   private void syncFinished() {
     synchronized (myLock) {
       mySyncInProgress = false;
-      mySyncTransparentChangeInProgress = false;
     }
     setLastGradleSyncTimestamp(System.currentTimeMillis());
+    enableNotifications();
     notifyUser();
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
     invokeLaterIfProjectAlive(myProject, publishingTask);
+  }
+
+  private void enableNotifications() {
+    synchronized (myLock) {
+      mySyncNotificationsEnabled = true;
+    }
   }
 
   public void notifyUser() {
@@ -249,11 +247,6 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    synchronized (myLock) {
-      if (mySyncTransparentChangeInProgress) {
-        return ThreeState.NO;
-      }
-    }
     long lastSync = getLastGradleSyncTimestamp();
     if (lastSync < 0) {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
@@ -318,42 +311,6 @@ public class GradleSyncState {
     catch (Throwable e) {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
       LOG.info(msg, e);
-    }
-  }
-
-  /**
-   * There is an API method {@link #isSyncNeeded()} which simply compares <code>'*.gradle'</code> files modification stamp vs
-   * last gradle project refresh time and returns the result. I.e. it's assumed to say 'sync is needed' for a situation when
-   * one of the <code>'*.gradle'</code> files related to the current project is modified after the last project sync.
-   * <p/>
-   * However, there is a possible case that we change <code>'*.gradle'</code> config programmatically and want to consider that
-   * IDE and gradle projects are synced after that (e.g. when flushing IDE project structure changes into <code>'*.gradle'</code>
-   * config).
-   * <p/>
-   * This method helps with that - it executes given action (assuming that it changes <code>'*.gradle'</code> file(s) internally
-   * and updates current state in a way to consider that IDE and gradle projects are synced when the action completes.
-   * <p/>
-   * <b>Note:</b> it uses that behavior only when IDE and gradle projects are synced <code>before</code> given action execution.
-   * It just executes it and doesn't update internal state otherwise.
-   *
-   * @param action  an action to execute
-   */
-  public void runSyncTransparentAction(@NotNull Runnable action) {
-    synchronized (myLock) {
-      if (isSyncNeeded() == ThreeState.NO) {
-        mySyncTransparentChangeInProgress = true;
-      }
-    }
-    try {
-      action.run();
-    }
-    finally {
-      synchronized (myLock) {
-        if (isSyncNeeded() == ThreeState.NO) {
-          mySyncTransparentChangeInProgress = false;
-          myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
-        }
-      }
     }
   }
 }
