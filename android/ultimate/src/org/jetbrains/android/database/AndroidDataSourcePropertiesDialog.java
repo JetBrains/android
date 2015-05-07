@@ -140,12 +140,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         registerDeviceListener();
       }
     });
-    new UiNotifyConnector(myPanel, new Activatable.Adapter() {
-      @Override
-      public void showNotify() {
-        checkDriverPresence();
-      }
-    });
   }
 
   @NotNull
@@ -421,30 +415,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Override
   public String getHelpTopic() {
     return null; // todo
-  }
-
-  private void checkDriverPresence() {
-    final DatabaseDriver driver = myDataSource.getDatabaseDriver();
-    if (driver != null && !driver.isDownloaded()) {
-      myController.showErrorNotification(this,
-        "SQLite driver missing",
-        "<font size=\"3\"><a href=\"create\">Download</a> SQLite driver files</font>",
-        new Runnable() {
-          @Override
-          public void run() {
-            driver.downloadDriver(new Runnable() {
-              @Override
-              public void run() {
-                fireStateChanged();
-                myController.showErrorNotification(AndroidDataSourcePropertiesDialog.this, null);
-              }
-            });
-          }
-        });
-    }
-    else {
-      myController.showErrorNotification(this, null);
-    }
   }
 
   public boolean isModified() {
