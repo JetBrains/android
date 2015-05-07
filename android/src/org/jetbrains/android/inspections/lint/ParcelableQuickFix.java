@@ -530,7 +530,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
           myPersistenceMap.put(setterType, persistence);
         }
       }
-      myPersistenceMap.put(myTType, new EfficientParcelableFieldPersistence());
+      myPersistenceMap.put(myTType, new ParcelableFieldPersistence());
       myPersistenceMap.put(myTArrayType, new EfficientParcelableArrayFieldPersistence());
       myPersistenceMap.put(myTListType, new EfficientParcelableListFieldPersistence());
     }
@@ -616,19 +616,19 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       }
     }
 
-    private static class EfficientParcelableFieldPersistence implements FieldPersistence {
+    private static class ParcelableFieldPersistence implements FieldPersistence {
       @Override
       public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
         return new String[]{
-          String.format("%1$s.writeToParcel(%2$s, %3$s);\n", field.getName(), parcelVariableName, flagsVariableName)
+          String.format("%1$s.writeParcelable(%2$s, %3$s);\n", parcelVariableName, field.getName(), flagsVariableName)
         };
       }
 
       @Override
       public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
         return new String[]{
-          String.format("%1$s = %2$s.CREATOR.createFromParcel(%3$s);\n",
-                        field.getName(), field.getType().getCanonicalText(), parcelVariableName)
+          String.format("%1$s = %2$s.readParcelable(%3$s.class.getClassLoader());\n",
+                        field.getName(), parcelVariableName, field.getType().getCanonicalText())
         };
       }
     }
@@ -636,19 +636,13 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     private static class EfficientParcelableArrayFieldPersistence implements FieldPersistence {
       @Override
       public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
-        return new String[]{
-          String.format("%1$s.writeInt(%2$s == null ? 0 : %2$s.length);\n", parcelVariableName, field.getName()),
-          String.format("%1$s.writeTypedArray(%2$s, %3$s);\n", parcelVariableName, field.getName(), flagsVariableName),
-        };
+        return new String[]{String.format("%1$s.writeTypedArray(%2$s, %3$s);\n", parcelVariableName, field.getName(), flagsVariableName)};
       }
 
       @Override
       public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
         String typeName = field.getType().getDeepComponentType().getCanonicalText();
-        return new String[]{
-          String.format("%1$s = %2$s.CREATOR.newArray(%3$s.readInt());\n", field.getName(), typeName, parcelVariableName),
-          String.format("%1$s.readTypedArray(%2$s, %3$s.CREATOR);\n", parcelVariableName, field.getName(), typeName)
-        };
+        return new String[]{String.format("%1$s = %2$s.createTypedArray(%3$s.CREATOR);\n", field.getName(), parcelVariableName, typeName)};
       }
     }
 
