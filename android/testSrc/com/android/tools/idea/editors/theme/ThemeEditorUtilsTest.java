@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,7 +31,6 @@ import java.util.Scanner;
 public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   private String sdkPlatformPath;
-
   @Override
   protected boolean requireRecentSdk() {
     return true;
@@ -64,11 +64,33 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
     Collection<ItemResourceValue> values = theme.getValues();
-    assertEquals(6, values.size());
+    assertEquals(7, values.size());
 
     for (ItemResourceValue item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item, myModule, configuration);
       compareWithAns(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
+    }
+  }
+
+  public void testGetDisplayHtml() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
+    assertNotNull(theme);
+
+    Collection<ItemResourceValue> values = theme.getValues();
+    assertEquals(7, values.size());
+    for (ItemResourceValue item : values) {
+      String displayHtml = ThemeEditorUtils.getDisplayHtml(new EditedStyleItem(item, theme));
+      if ("myDeprecated".equals(item.getName())) {
+        assertEquals("<html><body><strike>myDeprecated</strike></body></html>", displayHtml);
+      } else {
+        assertEquals(item.getName(), displayHtml);
+      }
     }
   }
 }
