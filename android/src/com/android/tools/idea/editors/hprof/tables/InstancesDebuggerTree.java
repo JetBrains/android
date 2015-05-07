@@ -31,6 +31,7 @@ import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
 import com.intellij.debugger.ui.impl.watch.DebuggerTree;
 import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
 import com.intellij.debugger.ui.impl.watch.DefaultNodeDescriptor;
+import com.intellij.debugger.ui.impl.watch.NodeDescriptorImpl;
 import com.intellij.debugger.ui.tree.NodeDescriptor;
 import com.intellij.openapi.project.Project;
 import com.sun.jdi.request.EventRequest;
@@ -48,8 +49,9 @@ public class InstancesDebuggerTree {
   @NotNull private DebuggerTree myDebuggerTree;
   @NotNull private DebugProcessImpl myDebugProcess;
   @NotNull private volatile SuspendContextImpl myDummySuspendContext;
+  @NotNull private Heap myHeap;
 
-  public InstancesDebuggerTree(@NotNull Project project) {
+  public InstancesDebuggerTree(@NotNull Project project, @NotNull Heap heap) {
     myDebuggerTree = new DebuggerTree(project) {
       @Override
       protected void build(DebuggerContextImpl context) {
@@ -58,6 +60,8 @@ public class InstancesDebuggerTree {
         addChildren(root, null, instance);
       }
     };
+    myHeap = heap;
+    setHeap(heap);
     myDebugProcess = new DebugProcessEvents(project);
     final SuspendManagerImpl suspendManager = new SuspendManagerImpl(myDebugProcess);
     myDebugProcess.getManagerThread().invokeAndWait(new DebuggerCommandImpl() {
@@ -76,8 +80,7 @@ public class InstancesDebuggerTree {
           return;
         }
         else if (descriptor instanceof ContainerDescriptorImpl) {
-          ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)descriptor;
-          addChildren(debuggerTreeNode, containerDescriptor.getInstances());
+          addContainerChildren(debuggerTreeNode, (ContainerDescriptorImpl)descriptor);
         }
         else {
           InstanceFieldDescriptorImpl instanceDescriptor = (InstanceFieldDescriptorImpl)descriptor;
@@ -121,19 +124,30 @@ public class InstancesDebuggerTree {
     return myDebuggerTree;
   }
 
-  public void setRoot(@NotNull DebuggerTreeNodeImpl root) {
-    if (root.getDescriptor() instanceof HprofFieldDescriptorImpl) {
+  public void setHeap(@NotNull Heap heap) {
+    myHeap = heap;
+    if (myDebuggerTree.getMutableModel().getRoot() != null) {
+      setRoot(((DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot()).getDescriptor());
+    }
+  }
+
+  public void setRoot(@NotNull NodeDescriptorImpl rootDescriptor) {
+    DebuggerTreeNodeImpl root = DebuggerTreeNodeImpl.createNodeNoUpdate(getComponent(), rootDescriptor);
+    if (rootDescriptor instanceof HprofFieldDescriptorImpl) {
       ((HprofFieldDescriptorImpl)root.getDescriptor()).updateRepresentation(myDebugProcess.getManagerThread(), myDummySuspendContext);
     }
     myDebuggerTree.getMutableModel().setRoot(root);
     myDebuggerTree.treeChanged();
   }
 
-  private void addChildren(@NotNull DebuggerTreeNodeImpl node, @NotNull Collection<Instance> instances) {
+  private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, @NotNull ContainerDescriptorImpl containerDescriptor) {
+    Collection<Instance> instances = containerDescriptor.getInstances();
     List<HprofFieldDescriptorImpl> descriptors = new ArrayList<HprofFieldDescriptorImpl>(instances.size());
     for (Instance instance : instances) {
-      descriptors.add(
-        new InstanceFieldDescriptorImpl(myDebuggerTree.getProject(), new Field(Type.OBJECT, String.format("0x%x", instance.getId())), instance));
+      if (myHeap.getInstance(instance.getId()) != null) {
+        descriptors.add(new InstanceFieldDescriptorImpl(
+          myDebuggerTree.getProject(), new Field(Type.OBJECT, String.format("0x%x", instance.getId())), instance));
+      }
     }
     HprofFieldDescriptorImpl.batchUpdateRepresentation(descriptors, myDebugProcess.getManagerThread(), myDummySuspendContext);
     for (HprofFieldDescriptorImpl descriptor : descriptors) {
