@@ -36,6 +36,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +48,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -58,11 +60,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, ScrubberCellRenderer.DimensionChangeListener {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private static final String SERVER_HOST = "localhost";
+  @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
+  @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
   private static final int SERVER_PORT = 6700;
+  private static final int SERVER_LAUNCH_TIMEOUT_MS = 2000;
+  private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
 
   @NotNull private final Project myProject;
   @NotNull private final GfxTraceViewPanel myView;
   @NotNull private final ListeningExecutorService myService = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
+  private Process myServerProcess;
   private Socket myServerSocket;
   @NotNull private Client myClient;
   private Schema mySchema;
@@ -88,30 +95,31 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     myView.setupViewHierarchy(myProject);
 
     try {
-      myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
-      myClient = new ClientImpl(Executors.newCachedThreadPool(), myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
-      myIsConnectedToServer = true;
+      if (connectToServer()) {
+        myClient = new ClientImpl(Executors.newCachedThreadPool(), myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+        myIsConnectedToServer = true;
 
-      myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList(), myView.getGfxContextList());
+        myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList(), myView.getGfxContextList());
 
-      myAtomController = new AtomController(project, myView.getAtomScrollPane());
-      myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
-      myFrameBufferController =
-        new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeScrollPane(),
-                                  myView.getDepthScrollPane());
-      myStateController = new StateController(this, myView.getStateScrollPane());
+        myAtomController = new AtomController(project, myView.getAtomScrollPane());
+        myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
+        myFrameBufferController =
+          new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeScrollPane(),
+                                    myView.getDepthScrollPane());
+        myStateController = new StateController(this, myView.getStateScrollPane());
 
-      myControllers.add(myAtomController);
-      myControllers.add(myScrubberController);
-      myControllers.add(myStateController);
-      myControllers.add(myFrameBufferController);
+        myControllers.add(myAtomController);
+        myControllers.add(myScrubberController);
+        myControllers.add(myStateController);
+        myControllers.add(myFrameBufferController);
 
-      myContextController.initialize();
+        myContextController.initialize();
 
-      // TODO: Rewrite to use IntelliJ documentation view.
-      myDocumentationController = new DocumentationController(myView.getDocsPane());
+        // TODO: Rewrite to use IntelliJ documentation view.
+        myDocumentationController = new DocumentationController(myView.getDocsPane());
 
-      establishInterViewControls();
+        establishInterViewControls();
+      }
     }
     catch (IOException e) {
       LOG.error(e);
@@ -253,6 +261,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
       }
     }
 
+    // Only kill the server if we started it.
+    if (myServerProcess != null) {
+      myServerProcess.destroy();
+    }
+
     myService.shutdown();
   }
 
@@ -261,6 +274,84 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     for (GfxController controller : myControllers) {
       controller.clearCache();
     }
+  }
+
+  private void sleepThread(int milliseconds) {
+    try {
+      Thread.sleep(milliseconds);
+    } catch (InterruptedException e) {
+    }
+  }
+
+  /**
+   * Attempts to connect to a gapis server.
+   *
+   * If the first attempt to connect fails, will launch a new server process and attempt to connect again.
+   *
+   * TODO: Implement more robust process management.  For example:
+   * TODO: - Launch the new process in a separate thread so the GUI doesn't hang while the process is starting.
+   * TODO: - Better handling of shutdown so that the replayd process does not continue running.
+   * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
+   *
+   * @return true if a connection to the server was established.
+   */
+  private boolean connectToServer() {
+    myServerSocket = null;
+    try {
+      // Try to connect to an existing server.
+      myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
+    } catch (IOException e) {
+      myServerSocket = null;
+    }
+
+    if (myServerSocket == null) {
+      // The connection failed, so try to start a new instance of the server.
+      try {
+        // Look for the server binary in a subdirectory of the plugin.
+        File baseDirectory = new File(PathUtil.getJarPathForClass(getClass()));
+        if (baseDirectory.isFile()) {
+          // We got a .jar file, so use the directory containing the .jar file.
+          baseDirectory = baseDirectory.getParentFile();
+        }
+        if (baseDirectory.isDirectory()) {
+          File serverDirectory = new File(baseDirectory, SERVER_RELATIVE_PATH);
+          File serverExecutable = new File(serverDirectory, SERVER_EXECUTABLE_NAME);
+          ProcessBuilder pb = new ProcessBuilder(serverExecutable.getAbsolutePath());
+
+          // Add the server's directory to the path.  This allows the server to find and launch the replayd.
+          java.util.Map<String, String> env = pb.environment();
+          String path = env.get("PATH");
+          path = serverDirectory.getAbsolutePath() + File.pathSeparator + path;
+          env.put("PATH", path);
+
+          // Use the plugin directory as the working directory for the server.
+          pb.directory(baseDirectory);
+
+          // This will throw IOException if the server executable is not found.
+          myServerProcess = pb.start();
+        } else {
+          LOG.error("baseDirectory is not a directory: \"" + baseDirectory.getAbsolutePath() + "\"");
+        }
+      } catch (IOException e) {
+        LOG.warn(e);
+      }
+      if (myServerProcess != null) {
+        // After starting, the server requires a little time before it will be ready to accept connections.
+        // This loop polls the server to establish a connection.
+        for (int waitTime = 0;
+             myServerSocket == null && waitTime < SERVER_LAUNCH_TIMEOUT_MS;
+             waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
+          try {
+            myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
+          } catch (IOException e1) {
+            myServerSocket = null;
+            // Wait before trying again.
+            sleepThread(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
+          }
+        }
+      }
+    }
+    return myServerSocket != null;
   }
 
   public void notifyCaptureChanged(@NotNull final Capture capture) {
