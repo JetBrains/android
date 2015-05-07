@@ -28,10 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.TableCellRenderer;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class NlProperty extends PTableItem {
-  // Certain attributes are special and do not have an attribute defintion from attrs.xml
+  // Certain attributes are special and do not have an attribute definition from attrs.xml
   private static final Set<String> ATTRS_WITHOUT_DEFN = ImmutableSet.of(
     SdkConstants.ATTR_STYLE, // <View style="..." />
     SdkConstants.ATTR_CLASS, // class is suggested as an attribute for a <fragment>!
@@ -40,7 +42,7 @@ public class NlProperty extends PTableItem {
 
   @NotNull private final NlComponent myComponent;
   @Nullable private final AttributeDefinition myDefinition;
-  @NotNull private final String myAttribute;
+  @NotNull private final String myName;
   @Nullable private final String myNamespace;
 
   private NlPropertyRenderer myRenderer;
@@ -56,7 +58,7 @@ public class NlProperty extends PTableItem {
     // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
     myComponent = component;
-    myAttribute = descriptor.getName();
+    myName = descriptor.getName();
     myNamespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
                   ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag()) : null;
     myDefinition = attributeDefinition;
@@ -65,13 +67,18 @@ public class NlProperty extends PTableItem {
   @Override
   @NotNull
   public String getName() {
-    return myAttribute;
+    return myName;
   }
 
   @Nullable
   public String getValue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
-    return myComponent.getAttribute(myNamespace, myAttribute);
+    return myComponent.getAttribute(myNamespace, myName);
+  }
+
+  @NotNull
+  public List<String> getParentStylables() {
+    return myDefinition == null ? Collections.<String>emptyList() : myDefinition.getParentStyleables();
   }
 
   @NotNull
@@ -86,12 +93,22 @@ public class NlProperty extends PTableItem {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-      .add("name", myAttribute)
-      .add("namespace", myNamespace)
+      .add("name", myName)
+      .add("namespace", namespaceToPrefix(myNamespace))
       .toString();
   }
 
+  @Override
   public String getTooltipText() {
-    return myNamespace + "." + myNamespace;
+    return namespaceToPrefix(myNamespace) + myName;
+  }
+
+  @NotNull
+  private static String namespaceToPrefix(@Nullable String namespace) {
+    if (namespace != null && SdkConstants.NS_RESOURCES.equalsIgnoreCase(namespace)) {
+      return SdkConstants.ANDROID_PREFIX;
+    } else {
+      return "";
+    }
   }
 }
