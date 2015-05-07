@@ -38,14 +38,21 @@ import static com.intellij.psi.CommonClassNames.JAVA_UTIL_LIST;
 
 /**
  * Quick Fix for missing CREATOR field in an implementation of Parcelable.
- * This fix will add methods for persisting the fields in the class.
+ * This fix can either:
+ * <ul>
+ *   <li>Add methods for persisting the fields in the class.</li>
+ *   <li>Remove Parcelable and all methods related to Parcelable.</li>
+ *   <li>Remove existing implementation and redo the code generation.</li>
+ * </ul>
  */
-class ImplementParcelableQuickFix implements AndroidLintQuickFix {
+public class ParcelableQuickFix implements AndroidLintQuickFix {
   private static final String CREATOR =
     "public static final android.os.Parcelable.Creator<%1$s> CREATOR = new android.os.Parcelable.Creator<%1$s>() {\n" +
+    "  @Override\n" +
     "  public %1$s createFromParcel(android.os.Parcel in) {\n" +
     "    return new %1$s(in);\n" +
     "  }\n\n" +
+    "  @Override\n" +
     "  public %1$s[] newArray(int size) {\n" +
     "    return new %1$s[size];\n" +
     "  }\n" +
@@ -65,10 +72,18 @@ class ImplementParcelableQuickFix implements AndroidLintQuickFix {
   private static final String CLASS_T = "T";
   private static final String CLASS_T_ARRAY = "T[]";
 
-  private final String myName;
+  public enum Operation {
+    IMPLEMENT,
+    REMOVE,
+    REIMPLEMENT,
+  }
 
-  ImplementParcelableQuickFix(String name) {
+  private final String myName;
+  private final Operation myOperation;
+
+  public ParcelableQuickFix(String name, Operation operation) {
     myName = name;
+    myOperation = operation;
   }
 
   @NotNull
@@ -81,21 +96,71 @@ class ImplementParcelableQuickFix implements AndroidLintQuickFix {
   public boolean isApplicable(@NotNull PsiElement startElement,
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    if (!(startElement.getParent() instanceof PsiClass)) {
+    PsiClass parcelable = getClassOfSupportedElement(startElement);
+    if (parcelable == null || findParcelableFromImplementsList(parcelable) == null) {
       return false;
     }
-    PsiClass parcelable = (PsiClass)startElement.getParent();
-    PsiField field = parcelable.findFieldByName("CREATOR", false);
-    return field == null;
+    switch (myOperation) {
+      case IMPLEMENT:
+        return parcelable.findFieldByName("CREATOR", false) == null;
+      case REIMPLEMENT:
+        return parcelable.findFieldByName("CREATOR", false) != null;
+      case REMOVE:
+        return true;
+      default:
+        return false;
+    }
   }
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-    if (!(startElement.getParent() instanceof PsiClass)) {
+    PsiClass parcelable = getClassOfSupportedElement(startElement);
+    if (parcelable == null) {
       return;
     }
-    QuickFixWorker worker = new QuickFixWorker((PsiClass)startElement.getParent());
-    worker.execute();
+    QuickFixWorker worker = new QuickFixWorker(parcelable);
+    switch (myOperation) {
+      case IMPLEMENT:
+        worker.implement();
+        break;
+      case REMOVE:
+        worker.remove();
+        break;
+      case REIMPLEMENT:
+        worker.reimplement();
+        break;
+    }
+  }
+  @Nullable
+  private PsiClass getClassOfSupportedElement(@NotNull PsiElement element) {
+    if (element instanceof PsiIdentifier && element.getParent() instanceof PsiClass) {
+      return (PsiClass)element.getParent();
+    }
+    if (element instanceof PsiClass && myOperation != Operation.IMPLEMENT) {
+      return (PsiClass)element;
+    }
+    if (element instanceof PsiJavaCodeReferenceElement) {
+      PsiJavaCodeReferenceElement reference = (PsiJavaCodeReferenceElement)element;
+      if (reference.getCanonicalText().equals(CLASS_PARCELABLE) &&
+          reference.getParent() instanceof PsiReferenceList &&
+          reference.getParent().getParent() instanceof PsiClass) {
+        return (PsiClass)reference.getParent().getParent();
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static PsiElement findParcelableFromImplementsList(@NotNull PsiClass parcelable) {
+    PsiReferenceList implementsList = parcelable.getImplementsList();
+    if (implementsList != null) {
+      for (PsiJavaCodeReferenceElement element : implementsList.getReferenceElements()) {
+        if (CLASS_PARCELABLE.equals(element.getQualifiedName())) {
+          return element;
+        }
+      }
+    }
+    return null;
   }
 
   private static class QuickFixWorker {
@@ -130,7 +195,9 @@ class ImplementParcelableQuickFix implements AndroidLintQuickFix {
       populateFieldPersistenceByType();
     }
 
-    private void execute() {
+    private void implement() {
+      findOrCreateParcelableFromImplementsList();
+
       PsiMethod constructor = findOrCreateConstructor();
       addFieldReadsToConstructor(constructor);
 
@@ -138,7 +205,7 @@ class ImplementParcelableQuickFix implements AndroidLintQuickFix {
       addFieldWrites(writeToParcel);
 
       PsiMethod describeContents = findOrCreateDescribeContents();
-      PsiField creator = createCreator();
+      PsiField creator = findOrCreateCreator();
       PsiElement insertionPoint = findInsertionPoint();
 
       addBefore(myParcelable, constructor, insertionPoint);
@@ -146,48 +213,146 @@ class ImplementParcelableQuickFix implements AndroidLintQuickFix {
       addBefore(myParcelable, describeContents, insertionPoint);
       addBefore(myParcelable, creator, insertionPoint);
 
+      save();
+    }
+
+    private void remove() {
+      delete(findConstructor());
+      delete(findWriteToParcel());
+      delete(findDescribeContents());
+      delete(findCreator());
+      delete(findParcelableFromImplementsList());
+      delete(findImportOfClass(CLASS_PARCEL));
+      delete(findImportOfClass(CLASS_PARCELABLE));
+
+      save();
+    }
+
+    private void reimplement() {
+      delete(findConstructor());
+      delete(findWriteToParcel());
+      delete(findDescribeContents());
+      delete(findCreator());
+
+      implement();
+      save();
+    }
+
+    private void save() {
       Document document = FileDocumentManager.getInstance().getDocument(myParcelable.getContainingFile().getVirtualFile());
       if (document != null) {
         PsiDocumentManager.getInstance(myProject).commitDocument(document);
       }
     }
 
+    @Nullable
+    private PsiField findCreator() {
+      return myParcelable.findFieldByName("CREATOR", false);
+    }
+
     @NotNull
-    private PsiField createCreator() {
-      PsiField field = myFactory.createFieldFromText(String.format(CREATOR, myParcelable.getName()), myParcelable);
+    private PsiField findOrCreateCreator() {
+      PsiField field = findCreator();
+      if (field == null) {
+        field = myFactory.createFieldFromText(String.format(CREATOR, myParcelable.getName()), myParcelable);
+      }
       JavaCodeStyleManager.getInstance(myProject).shortenClassReferences(field);
       return field;
     }
 
-    @NotNull
-    private PsiMethod findOrCreateConstructor() {
+    @Nullable
+    private PsiMethod findConstructor() {
       for (PsiMethod method : myParcelable.getConstructors()) {
         if (isConstructorWithParcelParameter(method)) {
           return method;
         }
       }
-      return createMethodWithShortClassReferences(String.format(CONSTRUCTOR, myParcelable.getName()));
+      return null;
     }
 
     @NotNull
-    private PsiMethod findOrCreateDescribeContents() {
+    private PsiMethod findOrCreateConstructor() {
+      PsiMethod method = findConstructor();
+      if (method == null) {
+        method = createMethodWithShortClassReferences(String.format(CONSTRUCTOR, myParcelable.getName()));
+      }
+      return method;
+    }
+
+    @Nullable
+    private PsiMethod findDescribeContents() {
       for (PsiMethod method : myParcelable.getMethods()) {
         PsiParameterList params = method.getParameterList();
         if (method.getName().equals("describeContents") && params.getParametersCount() == 0) {
           return method;
         }
       }
-      return createMethodWithShortClassReferences(DESCRIBE_CONTENTS);
+      return null;
     }
 
     @NotNull
-    private PsiMethod findOrCreateWriteToParcel() {
+    private PsiMethod findOrCreateDescribeContents() {
+      PsiMethod method = findDescribeContents();
+      if (method == null) {
+        method = createMethodWithShortClassReferences(DESCRIBE_CONTENTS);
+      }
+      return method;
+    }
+
+    @Nullable
+    private PsiMethod findWriteToParcel() {
       for (PsiMethod method : myParcelable.getMethods()) {
         if (isWriteToParcelMethod(method)) {
           return method;
         }
       }
-      return createMethodWithShortClassReferences(WRITE_TO_PARCEL);
+      return null;
+    }
+
+    @NotNull
+    private PsiMethod findOrCreateWriteToParcel() {
+      PsiMethod method = findWriteToParcel();
+      if (method == null) {
+        method = createMethodWithShortClassReferences(WRITE_TO_PARCEL);
+      }
+      return method;
+    }
+
+    @Nullable
+    private PsiElement findParcelableFromImplementsList() {
+      PsiReferenceList implementsList = myParcelable.getImplementsList();
+      if (implementsList != null) {
+        for (PsiJavaCodeReferenceElement element : implementsList.getReferenceElements()) {
+          if (CLASS_PARCELABLE.equals(element.getQualifiedName())) {
+            return element;
+          }
+        }
+      }
+      return null;
+    }
+
+    private void findOrCreateParcelableFromImplementsList() {
+      PsiElement element = findParcelableFromImplementsList();
+      if (element == null) {
+        PsiReferenceList implementsList = myParcelable.getImplementsList();
+        if (implementsList != null) {
+          PsiJavaCodeReferenceElement implementsParcelable =
+            myFactory.createReferenceElementByFQClassName(CLASS_PARCELABLE, myParcelable.getResolveScope());
+          implementsList.add(implementsParcelable);
+        }
+      }
+    }
+
+    @Nullable
+    private PsiElement findImportOfClass(@NotNull String className) {
+      PsiFile file = myParcelable.getContainingFile();
+      if (file != null && file instanceof PsiJavaFile) {
+        PsiImportList importList = ((PsiJavaFile)file).getImportList();
+        if (importList != null) {
+          return importList.findSingleClassImportStatement(className);
+        }
+      }
+      return null;
     }
 
     private PsiMethod createMethodWithShortClassReferences(@NotNull String text) {
@@ -308,6 +473,12 @@ class ImplementParcelableQuickFix implements AndroidLintQuickFix {
         return;
       }
       parent.addBefore(element, insertionPoint);
+    }
+
+    private static void delete(@Nullable PsiElement element) {
+      if (element != null) {
+        element.delete();
+      }
     }
 
     private void populateIgnoredMethods() {

@@ -372,7 +372,9 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      return new AndroidLintQuickFix[]{new ImplementParcelableQuickFix(AndroidBundle.message("android.lint.fix.implement.parcelable"))};
+      return new AndroidLintQuickFix[]{
+        new ParcelableQuickFix(AndroidBundle.message("implement.parcelable.intention.text"), ParcelableQuickFix.Operation.IMPLEMENT),
+      };
     }
   }
 
