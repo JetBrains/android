@@ -41,7 +41,7 @@ import static java.util.Collections.emptyList;
 
 public class IdeaJavaProject implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 4L;
+  private static final long serialVersionUID = 5L;
 
   @NotNull private String myModuleName;
   @NotNull private Collection<JavaModuleContentRoot> myContentRoots = Lists.newArrayList();
@@ -53,9 +53,12 @@ public class IdeaJavaProject implements Serializable {
   @Nullable private File myBuildFolderPath;
 
   private boolean myBuildable;
+  private boolean myAndroidProjectWithoutVariants;
 
   @NotNull
-  public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
+  public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule,
+                                               @Nullable ModuleExtendedModel extendedModel,
+                                               boolean androidProjectWithoutVariants) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
     Map<String, Set<File>> artifactsByConfiguration = Maps.newHashMap();
     if (extendedModel != null) {
@@ -63,9 +66,12 @@ public class IdeaJavaProject implements Serializable {
     }
     ExtIdeaCompilerOutput compilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
     File buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
-    boolean buildable = isBuildable(ideaModule);
+
+    // If this is an Android project without variants, we cannot build it.
+    boolean buildable = !androidProjectWithoutVariants && isBuildable(ideaModule);
+
     return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
-                               buildFolderPath, buildable);
+                               buildFolderPath, buildable, androidProjectWithoutVariants);
   }
 
   @NotNull
@@ -106,7 +112,8 @@ public class IdeaJavaProject implements Serializable {
                          @Nullable Map<String, Set<File>> artifactsByConfiguration,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
-                         boolean buildable) {
+                         boolean buildable,
+                         boolean androidProjectWithoutVariants) {
     myModuleName = name;
     for (IdeaContentRoot contentRoot : contentRoots) {
       if (contentRoot != null) {
@@ -133,6 +140,7 @@ public class IdeaJavaProject implements Serializable {
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
     myBuildable = buildable;
+    myAndroidProjectWithoutVariants = androidProjectWithoutVariants;
   }
 
   @NotNull
@@ -218,5 +226,9 @@ public class IdeaJavaProject implements Serializable {
 
   public boolean isBuildable() {
     return myBuildable;
+  }
+
+  public boolean isAndroidProjectWithoutVariants() {
+    return myAndroidProjectWithoutVariants;
   }
 }
