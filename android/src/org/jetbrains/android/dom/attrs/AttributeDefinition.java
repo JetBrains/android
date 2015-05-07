@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.google.common.collect.Sets;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,7 @@ import java.util.*;
  */
 public class AttributeDefinition {
   private final String myName;
+  private final Set<String> myParentStyleables = Sets.newHashSet();
   private final Set<AttributeFormat> myFormats = EnumSet.noneOf(AttributeFormat.class);
   private final List<String> myValues = new ArrayList<String>();
   private final Map<String, String> myStyleable2DocValue = new HashMap<String, String>();
@@ -34,11 +36,14 @@ public class AttributeDefinition {
   private String myAttrGroup;
 
   public AttributeDefinition(@NotNull String name) {
-    myName = name;
+    this(name, null, Collections.<AttributeFormat>emptySet());
   }
 
-  public AttributeDefinition(@NotNull String name, @NotNull Collection<AttributeFormat> formats) {
+  public AttributeDefinition(@NotNull String name, @Nullable String parentStyleableName, @NotNull Collection<AttributeFormat> formats) {
     myName = name;
+    if (parentStyleableName != null) {
+      myParentStyleables.add(parentStyleableName);
+    }
     myFormats.addAll(formats);
   }
 
@@ -49,6 +54,11 @@ public class AttributeDefinition {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  public Collection<String> getParentStyleables() {
+    return myParentStyleables;
   }
 
   @NotNull
