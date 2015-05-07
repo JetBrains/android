@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.module.Module;
 import spantable.CellSpanModel;
 
@@ -64,10 +65,9 @@ public class DelegatingCellEditor implements TableCellEditor {
       final EditedStyleItem item = (EditedStyleItem) value;
       tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, myConfiguration);
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
-
+      ThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
       // Displays in bold attributes that are overriding their inherited value
-      font = (item.getSourceStyle().equals(((AttributesTableModel)table.getModel()).getSelectedStyle())) ? table.getFont()
-        .deriveFont(Font.BOLD) : table.getFont();
+      font = selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont();
     }
     else {
       // Not an EditedStyleItem for theme name and theme parent.
