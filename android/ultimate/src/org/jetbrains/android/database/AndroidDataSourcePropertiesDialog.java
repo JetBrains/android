@@ -430,7 +430,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         new Runnable() {
           @Override
           public void run() {
-            driver.downloadDriver(myPanel, new Runnable() {
+            driver.downloadDriver(new Runnable() {
               @Override
               public void run() {
                 fireStateChanged();
