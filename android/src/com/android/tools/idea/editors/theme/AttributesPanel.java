@@ -45,6 +45,10 @@ public class AttributesPanel {
     myBackButton.setIcon(AllIcons.Actions.Back);
     myBackButton.setBorder(BORDER);
 
+    myPaletteScrollPane.setVisible(false);
+    myAdvancedFilterCheckBox.setVisible(false);
+    myAttrGroupCombo.setVisible(false);
+
     new ComboboxSpeedSearch(myThemeCombo);
 
     myBackButton.setToolTipText("Back to the theme");
