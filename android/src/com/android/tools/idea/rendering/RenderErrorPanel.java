@@ -43,6 +43,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -545,10 +546,14 @@ public class RenderErrorPanel extends JPanel {
   @NotNull
   private static Collection<PsiClass> findInheritors(@NotNull Module module, @NotNull String name) {
     Project project = module.getProject();
-    PsiClass base = JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
-    if (base != null) {
-      GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
-      return ClassInheritorsSearch.search(base, scope, true).findAll();
+    try {
+      PsiClass base = JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
+      if (base != null) {
+        GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
+        return ClassInheritorsSearch.search(base, scope, true).findAll();
+      }
+    }
+    catch (IndexNotReadyException ignored) {
     }
     return Collections.emptyList();
   }
