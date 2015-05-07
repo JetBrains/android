@@ -132,18 +132,29 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
+    boolean androidProjectWithoutVariants = false;
     if (androidProject != null) {
       Variant selectedVariant = getVariantToSelect(androidProject);
-      IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
-                                                                     androidProject, selectedVariant.getName(), DEFAULT_TEST_ARTIFACT);
-      ideModule.createChild(IDE_ANDROID_PROJECT, ideaAndroidProject);
+      if (selectedVariant == null) {
+        // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.
+        // For now we are going to treat this case as a Java library module, because everywhere in the IDE (e.g. run configurations,
+        // editors, test support, variants tool window, project building, etc.) we have the assumption that there is at least one variant
+        // per Android project, and changing that in the code base is too risky, for very little benefit.
+        // See https://code.google.com/p/android/issues/detail?id=170722
+        androidProjectWithoutVariants = true;
+      }
+      else {
+        IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
+                                                                       androidProject, selectedVariant.getName(), DEFAULT_TEST_ARTIFACT);
+        ideModule.createChild(IDE_ANDROID_PROJECT, ideaAndroidProject);
+      }
     }
 
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
     if (gradleSettingsFile.isFile() && androidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule);
+      createJavaProject(gradleModule, ideModule, false);
       return;
     }
 
@@ -154,15 +165,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     IdeaGradleProject ideaGradleProject = newIdeaGradleProject(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(IDE_GRADLE_PROJECT, ideaGradleProject);
 
-    if (androidProject == null) {
+    if (androidProject == null || androidProjectWithoutVariants) {
       // This is a Java lib module.
-      createJavaProject(gradleModule, ideModule);
+      createJavaProject(gradleModule, ideModule, androidProjectWithoutVariants);
     }
   }
 
-  private void createJavaProject(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+  private void createJavaProject(@NotNull IdeaModule gradleModule,
+                                 @NotNull DataNode<ModuleData> ideModule,
+                                 boolean androidProjectWithoutVariants) {
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    IdeaJavaProject javaProject = newJavaProject(gradleModule, model);
+    IdeaJavaProject javaProject = newJavaProject(gradleModule, model, androidProjectWithoutVariants);
     ideModule.createChild(IDE_JAVA_PROJECT, javaProject);
   }
 
@@ -346,7 +359,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return builder.toString();
   }
 
-  @NotNull
+  @Nullable
   private static Variant getVariantToSelect(@NotNull AndroidProject androidProject) {
     Collection<Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
@@ -368,7 +381,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         return o1.getName().compareTo(o2.getName());
       }
     });
-    return sortedVariants.get(0);
+    return sortedVariants.isEmpty() ? null : sortedVariants.get(0);
   }
 
   @Override
