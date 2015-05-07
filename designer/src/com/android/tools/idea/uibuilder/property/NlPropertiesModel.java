@@ -34,6 +34,7 @@ public class NlPropertiesModel extends PTableModel {
   public void update(@NotNull Iterable<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
     // TODO: handle multiple selections: show properties common to all selections
     final NlComponent first = Iterables.getFirst(selection, null);
+    myComponent = first;
     if (first == null) {
       setItems(Collections.<PTableItem>emptyList());
       if (postUpdateRunnable != null) {
@@ -42,18 +43,21 @@ public class NlPropertiesModel extends PTableModel {
       return;
     }
 
+    final String tagName = first.getTagName();
+
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         final List<NlProperty> properties = NlProperties.getInstance().getProperties(first);
-        final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties);
+        final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties, myComponent);
+        final List<PTableItem> sortedProperties = new NlPropertiesSorter().sort(groupedProperties, myComponent);
 
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
-            setItems(groupedProperties);
+            setItems(sortedProperties);
             if (postUpdateRunnable != null) {
               postUpdateRunnable.run();
             }

@@ -60,4 +60,8 @@ public abstract class PTableItem {
   }
 
   public abstract String getName();
+
+  public String getTooltipText() {
+    return null;
+  }
 }
