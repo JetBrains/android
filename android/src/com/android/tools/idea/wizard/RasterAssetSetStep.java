@@ -18,30 +18,19 @@ package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
-import com.android.builder.model.SourceProvider;
 import com.android.resources.Density;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.collect.Iterators;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.update.MergingUpdateQueue;
-import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,15 +45,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 
 /**
- * {@linkplain AssetSetStep} is a wizard page that lets the user create a variety of density-scaled assets.
+ * {@linkplain RasterAssetSetStep} is a wizard page that lets the user create a variety of density-scaled assets.
  */
-public class AssetSetStep extends TemplateWizardStep implements Disposable {
-  private static final Logger LOG = Logger.getInstance(AssetSetStep.class);
+public class RasterAssetSetStep extends CommonAssetSetStep {
+  private static final Logger LOG = Logger.getInstance(RasterAssetSetStep.class);
   private static final int CLIPART_ICON_SIZE = 32;
   private static final int CLIPART_DIALOG_BORDER = 10;
   private static final int DIALOG_HEADER = 20;
@@ -72,9 +60,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
 
   private static final String V11 = "V11";
   private static final String V9 = "V9";
-  private SourceProvider mySourceProvider = null;
 
-  private AssetStudioAssetGenerator myAssetGenerator;
   private JPanel myPanel;
   private JRadioButton myImageRadioButton;
   private JRadioButton myClipartRadioButton;
@@ -130,28 +116,19 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   private JCheckBox myDogEarEffectCheckBox;
   private JBScrollPane myScrollPane;
 
-  protected AssetType mySelectedAssetType;
-  private boolean myInitialized;
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
-  private final MergingUpdateQueue myUpdateQueue;
-  private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public AssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
-                      @Nullable Icon sidePanelIcon, UpdateListener updateListener, @Nullable VirtualFile invocationTarget) {
-    super(state, project, module, sidePanelIcon, updateListener);
-    myAssetGenerator = new AssetStudioAssetGenerator(state);
-    if (invocationTarget != null && module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null) {
-        mySourceProvider = Iterators.getNext(IdeaSourceProvider.getSourceProvidersForFile(facet, invocationTarget, null).iterator(), null);
-      }
-    }
+  public RasterAssetSetStep(TemplateWizardState state,
+                            @Nullable Project project,
+                            @Nullable Module module,
+                            @Nullable Icon sidePanelIcon,
+                            UpdateListener updateListener,
+                            @Nullable VirtualFile invocationTarget) {
+    super(state, project, module, sidePanelIcon, updateListener, invocationTarget);
 
     // Speed the scrolling of myScrollPane
     myScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-    myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, this, null, false);
 
     register(ATTR_TEXT, myText);
     register(ATTR_SCALING, myCropRadioButton, Scaling.CROP);
@@ -276,51 +253,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   }
 
   @Override
-  public boolean validate() {
-    if (!super.validate()) {
-      return false;
-    }
-
-
-    String assetName = myTemplateState.getString(ATTR_ASSET_NAME);
-    if (drawableExists(assetName)) {
-      setErrorHtml(String.format("A drawable resource named %s already exists and will be overwritten.", assetName));
-    }
-
-    requestPreviewUpdate();
-    return true;
-  }
-
-  /**
-   * (Re)schedule the background task which updates the preview images.
-   */
-  private void requestPreviewUpdate() {
-    myUpdateQueue.cancelAllUpdates();
-    myUpdateQueue.queue(new Update("update") {
-      @Override
-      public void run() {
-        try {
-          myAssetGenerator.generateImages(myImageMap, true, true);
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updatePreviewImages();
-            }
-          });
-        }
-        catch (final ImageGeneratorException e) {
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              setErrorHtml(e.getMessage());
-            }
-          });
-        }
-      }
-    });
-  }
-
-  private void updatePreviewImages() {
+  protected void updatePreviewImages() {
     if (mySelectedAssetType == null || myImageMap == null) {
       return;
     }
@@ -363,14 +296,6 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
     }
 
     myUpdateListener.update();
-  }
-
-  private static void setIconOrClear(@NotNull ImageComponent component, @Nullable BufferedImage image) {
-    if (image == null) {
-      component.setIcon(null);
-    } else {
-      component.setIcon(new ImageIcon(image));
-    }
   }
 
   /**
@@ -460,21 +385,12 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   }
 
   @Override
-  public void updateStep() {
-    super.updateStep();
-
-    if (!myInitialized) {
-      myInitialized = true;
-      initialize();
-    }
-  }
-
-  @Override
   public String getHelpId() {
     return "Android-Gradle_Screen_Configuration_Page";
   }
 
-  private void initialize() {
+  @Override
+  protected void initialize() {
     myTemplateState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
       .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png"))
       .getAbsolutePath());
@@ -482,7 +398,8 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   }
 
   @NotNull
-  private String computeResourceName() {
+  @Override
+  protected String computeResourceName() {
     String resourceName = null;
     if (myTemplateState.get(TemplateMetadata.ATTR_ICON_NAME) != null) {
       resourceName = myStringEvaluator.evaluate(myTemplateState.getString(TemplateMetadata.ATTR_ICON_NAME), myTemplateState.getParameters());
@@ -506,42 +423,10 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
     return resourceName;
   }
 
-  /**
-   * Must be run inside a write action. Creates the asset files on disk.
-   */
-  public void createAssets(@Nullable Module module) {
-    File targetResDir = (File)myTemplateState.get(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER);
-    if (targetResDir == null) {
-      if (myTemplateState.hasAttr(TemplateMetadata.ATTR_RES_DIR)) {
-        assert module != null;
-        File moduleDir = new File(module.getModuleFilePath()).getParentFile();
-        targetResDir = new File(moduleDir, myTemplateState.getString(TemplateMetadata.ATTR_RES_DIR));
-      } else {
-        return;
-      }
-    }
-
+  @Override
+  protected void generateAssetFiles(File targetResDir) {
     File targetVariantDir = targetResDir.getParentFile();
-
     myAssetGenerator.outputImagesIntoVariantRoot(targetVariantDir);
-
-    VirtualFile resDir = LocalFileSystem.getInstance().findFileByIoFile(targetResDir);
-    if (resDir != null) {
-      // Refresh the res directory so that the new files show up in the IDE.
-      resDir.refresh(true, true);
-    } else {
-      // If we can't find the res directory, refresh the project.
-      if (myProject != null) {
-        myProject.getBaseDir().refresh(true, true);
-      }
-    }
-  }
-
-  private boolean drawableExists(String resourceName) {
-    if (mySourceProvider != null) {
-      return Parameter.existsResourceFile(mySourceProvider, myModule, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, resourceName);
-    }
-    return Parameter.existsResourceFile(myModule, ResourceType.DRAWABLE, resourceName);
   }
 
   @Override
@@ -559,11 +444,5 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   @Override
   protected JLabel getError() {
     return myError;
-  }
-
-
-  @Override
-  public void dispose()  {
-    myUpdateQueue.cancelAllUpdates();
   }
 }
