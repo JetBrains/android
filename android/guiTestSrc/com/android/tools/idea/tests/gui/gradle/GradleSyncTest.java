@@ -98,9 +98,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.io.Files.write;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.INFO;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.WARNING;
+import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -1193,12 +1191,35 @@ public class GradleSyncTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/build.gradle")
-          .waitUntilErrorAnalysisFinishes()
-          .enterText("Hello World");
+    editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes().enterText("Hello World");
 
-    projectFrame.requireEditorNotification("Gradle files have changed since last project sync. " +
-                                           "A project sync may be necessary for the IDE to work properly.");
+    projectFrame.requireEditorNotification(
+      "Gradle files have changed since last project sync. " + "A project sync may be necessary for the IDE to work properly.");
+  }
+
+  // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.
+  // See https://code.google.com/p/android/issues/detail?id=170722
+  @Test @IdeGuiTest
+  public void testWithAndroidProjectWithoutVariants() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    Module appModule = projectFrame.getModule("app");
+    assertNotNull(AndroidFacet.getInstance(appModule));
+
+    File appBuildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertThat(appBuildFile).isFile();
+
+    // Remove all variants.
+    appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    // Verify user was warned.
+    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(ERROR, firstLineStartingWith("The module 'app' is an Android project without build variants"));
+
+    // Verify AndroidFacet was removed.
+    appModule = projectFrame.getModule("app");
+    assertNull(AndroidFacet.getInstance(appModule));
   }
 
   private static void updateAndroidModelVersion(@NotNull File projectPath, @NotNull String modelVersion) throws IOException {
