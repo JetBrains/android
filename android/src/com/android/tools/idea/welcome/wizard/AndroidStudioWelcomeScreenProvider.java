@@ -103,6 +103,11 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
       catch (IOException e) {
         result = promptToRetryFailedConnection();
       }
+      catch (RuntimeException e) {
+        // "Proxy Vole" is a network layer used by Intellij.
+        // This layer will throw a RuntimeException instead of an IOException on certain proxy misconfigurations.
+        result = promptToRetryFailedConnection();
+      }
     }
     return result;
   }
@@ -122,9 +127,8 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
 
   @Nullable
   private static ConnectionState promptUserForProxy() {
-    int selection = Messages
-      .showDialog("Unable to access Android SDK add-on list", "Android Studio First Run", new String[]{"Setup Proxy", "Cancel"}, 1,
-                  Messages.getErrorIcon());
+    int selection = Messages.showIdeaMessageDialog(null, "Unable to access Android SDK add-on list", "Android Studio First Run",
+                                                   new String[]{"Setup Proxy", "Cancel"}, 1, Messages.getErrorIcon(), null);
     if (selection == 0) {
       //noinspection ConstantConditions
       HttpConfigurable.editConfigurable(null);
@@ -147,7 +151,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   }
 
   @NotNull
-  private Multimap<PkgType, RemotePkgInfo> fetchPackages() {
+  private static Multimap<PkgType, RemotePkgInfo> fetchPackages() {
     ConnectionState connectionState = checkInternetConnection();
     switch (connectionState) {
       case OK:
