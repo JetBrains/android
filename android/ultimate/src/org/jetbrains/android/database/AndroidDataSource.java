@@ -119,6 +119,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   public AndroidDataSource copy() {
     AndroidDataSource newSource = new AndroidDataSource();
     newSource.setName(getName());
+    newSource.setDatabaseDriver(getDatabaseDriver());
     State newState = newSource.getState();
     State state = buildFullState();
     newState.name = state.name;
