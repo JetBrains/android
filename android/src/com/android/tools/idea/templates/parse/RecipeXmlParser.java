@@ -16,23 +16,12 @@
 package com.android.tools.idea.templates.parse;
 
 import com.android.SdkConstants;
-import com.android.ide.common.xml.XmlFormatPreferences;
-import com.android.ide.common.xml.XmlFormatStyle;
-import com.android.ide.common.xml.XmlPrettyPrinter;
-import com.android.manifmerger.ManifestMerger2;
-import com.android.manifmerger.MergingReport;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.*;
-import com.android.utils.StdLogger;
-import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
@@ -44,17 +33,12 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.xml.*;
-import com.intellij.util.SystemProperties;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -63,8 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
@@ -88,10 +70,6 @@ public final class RecipeXmlParser extends DefaultHandler {
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
    */
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
-  /**
-   * Finds include ':module_name_1', ':module_name_2',... statements in settings.gradle files
-   */
-  private static final Pattern INCLUDE_PATTERN = Pattern.compile("(^|\\n)\\s*include +(':[^']+', *)*':[^']+'");
 
   private static final String RECIPE_TAG = "recipe";
   private static final String COPY_TAG = "copy";
@@ -101,9 +79,6 @@ public final class RecipeXmlParser extends DefaultHandler {
   private static final String DEPENDENCY_TAG = "dependency";
   private static final String DEPENDENCY_ATTR_MAVEN = "mavenUrl";
   private static final String MERGE_TAG = "merge";
-  private static final String MERGE_ATTR_STRATEGY = "templateMergeStrategy";
-  private static final String MERGE_ATTR_STRATEGY_REPLACE = "replace";
-  private static final String MERGE_ATTR_STRATEGY_PRESERVE = "preserve";
   private static final String MERGE_ATTR_FROM = "from";
   private static final String MERGE_ATTR_TO = "to";
   private static final String MKDIR_TAG = "mkdir";
@@ -133,8 +108,8 @@ public final class RecipeXmlParser extends DefaultHandler {
                          @NotNull Map<String, Object> paramMap,
                          @NotNull File templateRoot,
                          @NotNull File outputRoot,
-                         @NotNull File moduleRoot, boolean gradleSyncIfNeeded)
-  {
+                         @NotNull File moduleRoot,
+                         boolean gradleSyncIfNeeded) {
     myProject = project;
     myLoader = templateLoader;
     myTemplateRoot = templateRoot;
@@ -143,95 +118,6 @@ public final class RecipeXmlParser extends DefaultHandler {
     myParamMap = paramMap;
     myModuleRoot = moduleRoot;
     mySyncGradleIfNeeded = gradleSyncIfNeeded;
-  }
-
-  /**
-   * Merges the given manifest fragment into the given manifest file
-   */
-  @Nullable
-  private static String mergeManifest(@NotNull File targetManifest, @NotNull String mergeText) {
-    File tempFile = null;
-    try {
-      //noinspection SpellCheckingInspection
-      tempFile = FileUtil.createTempFile("manifmerge", DOT_XML);
-      FileUtil.writeToFile(tempFile, mergeText);
-      StdLogger logger = new StdLogger(StdLogger.Level.INFO);
-      ManifestMerger2.Invoker merger = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
-        .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS, ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
-        .addLibraryManifest(tempFile);
-      MergingReport mergeReport = merger.merge();
-      if (mergeReport.getMergedDocument().isPresent()) {
-        return XmlPrettyPrinter
-          .prettyPrint(mergeReport.getMergedDocument().get().getXml(), createXmlFormatPreferences(), XmlFormatStyle.MANIFEST, "\n",
-                       mergeText.endsWith("\n"));
-      }
-      return null;
-    }
-    catch (IOException e) {
-      LOG.error(e);
-    }
-    catch (ManifestMerger2.MergeFailureException e) {
-      LOG.error(e);
-      try {
-        FileUtil.appendToFile(tempFile, String.format("<!--%s-->", e.getMessage()));
-      }
-      catch (IOException e1) {
-        LOG.error(e1);
-      }
-    }
-    finally {
-      if (tempFile != null) {
-        tempFile.delete();
-      }
-    }
-    return null;
-  }
-
-  private static String mergeGradleSettingsFile(@NotNull String source, @NotNull String dest) throws IOException, TemplateException {
-    // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
-    // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
-    // support requires a project, which we don't necessarily have when instantiating a template.
-
-    StringBuilder contents = new StringBuilder(dest);
-
-    for (String line : Splitter.on('\n').omitEmptyStrings().trimResults().split(source)) {
-      if (!line.startsWith("include")) {
-        throw new RuntimeException("When merging settings.gradle files, only include directives can be merged.");
-      }
-      line = line.substring("include".length()).trim();
-
-      Matcher matcher = INCLUDE_PATTERN.matcher(contents);
-      if (matcher.find()) {
-        contents.insert(matcher.end(), ", " + line);
-      }
-      else {
-        contents.insert(0, "include " + line + SystemProperties.getLineSeparator());
-      }
-    }
-    return contents.toString();
-  }
-
-  @NotNull
-  private static XmlFormatPreferences createXmlFormatPreferences() {
-    // TODO: implement
-    return XmlFormatPreferences.defaults();
-  }
-
-  private static String getResourceId(@NotNull XmlTag tag) {
-    String name = tag.getAttributeValue(ATTR_NAME);
-    if (name == null) {
-      name = tag.getAttributeValue(ATTR_ID);
-    }
-
-    return name;
-  }
-
-  /**
-   * Wraps the given strings in the standard conflict syntax
-   */
-  private static String wrapWithMergeConflict(String original, String added) {
-    String sep = "\n";
-    return "<<<<<<< Original" + sep + original + sep + "=======" + sep + added + ">>>>>>> Added" + sep;
   }
 
   /**
@@ -420,7 +306,7 @@ public final class RecipeXmlParser extends DefaultHandler {
 
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
-      contents = mergeGradleSettingsFile(sourceText, targetText);
+      contents = RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText);
       myNeedsGradleSync = true;
     }
     else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
@@ -428,153 +314,13 @@ public final class RecipeXmlParser extends DefaultHandler {
       myNeedsGradleSync = true;
     }
     else if (hasExtension(to, DOT_XML)) {
-      contents = mergeXml(sourceText, targetText, to);
+      contents = RecipeMergeUtils.mergeXml(myProject, sourceText, targetText, to);
     }
     else {
       throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
     }
 
     writeFile(this, contents, to);
-  }
-
-  /**
-   * Merges sourceXml into targetXml/targetFile (targetXml is the contents of targetFile).
-   * Returns the resulting xml if it still needs to be written to targetFile,
-   * or null if the file has already been/doesn't need to be updated.
-   */
-  @Nullable
-  private String mergeXml(String sourceXml, String targetXml, File targetFile) {
-    boolean ok;
-    String fileName = targetFile.getName();
-    String contents;
-    if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-      Document currentDocument = XmlUtils.parseDocumentSilently(targetXml, true);
-      assert currentDocument != null : targetXml + " failed to parse";
-      Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
-      assert fragment != null : sourceXml + " failed to parse";
-      contents = mergeManifest(targetFile, sourceXml);
-      ok = contents != null;
-    }
-    else {
-      // Merge plain XML files
-      String parentFolderName = targetFile.getParentFile().getName();
-      ResourceFolderType folderType = ResourceFolderType.getFolderType(parentFolderName);
-      // mergeResourceFile handles the file updates itself, so no content is returned in this case.
-      contents = mergeResourceFile(targetXml, sourceXml, folderType);
-      ok = contents != null;
-    }
-
-    // Finally write out the merged file
-    if (!ok) {
-      // Just insert into file along with comment, using the "standard" conflict
-      // syntax that many tools and editors recognize.
-
-      contents = wrapWithMergeConflict(targetXml, sourceXml);
-    }
-    return contents;
-  }
-
-  /**
-   * Merges the given resource file contents into the given resource file
-   */
-  private String mergeResourceFile(@NotNull String targetXml, @NotNull String sourceXml, @Nullable ResourceFolderType folderType) {
-    XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(myProject)
-      .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml));
-    XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(myProject)
-      .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml));
-    XmlTag root = targetPsiFile.getDocument().getRootTag();
-    assert root != null : "Cannot find XML root in target: " + targetXml;
-
-    XmlAttribute[] attributes = sourcePsiFile.getRootTag().getAttributes();
-    for (XmlAttribute attr : attributes) {
-      if (attr.getNamespacePrefix().equals(XMLNS_PREFIX)) {
-        root.setAttribute(attr.getName(), attr.getValue());
-      }
-    }
-
-    List<XmlTagChild> prependElements = Lists.newArrayList();
-    XmlText indent = null;
-    if (folderType == ResourceFolderType.VALUES) {
-      // Try to merge items of the same name
-      Map<String, XmlTag> old = Maps.newHashMap();
-      for (XmlTag newSibling : root.getSubTags()) {
-        old.put(getResourceId(newSibling), newSibling);
-      }
-      for (PsiElement child : sourcePsiFile.getRootTag().getChildren()) {
-        if (child instanceof XmlComment) {
-          if (indent != null) {
-            prependElements.add(indent);
-          }
-          prependElements.add((XmlTagChild)child);
-        }
-        else if (child instanceof XmlText) {
-          indent = (XmlText)child;
-        }
-        else if (child instanceof XmlTag) {
-          XmlTag subTag = (XmlTag)child;
-          String mergeStrategy = subTag.getAttributeValue(MERGE_ATTR_STRATEGY);
-          subTag.setAttribute(MERGE_ATTR_STRATEGY, null);
-          // remove the space left by the deleted attribute
-          CodeStyleManager.getInstance(myProject).reformat(subTag);
-          String name = getResourceId(subTag);
-          XmlTag replace = name != null ? old.get(name) : null;
-          if (replace != null) {
-            // There is an existing item with the same id. Either replace it
-            // or preserve it depending on the "templateMergeStrategy" attribute.
-            // If that attribute does not exist, default to preserving it.
-
-            // Let's say you've used the activity wizard once, and it
-            // emits some configuration parameter as a resource that
-            // it depends on, say "padding". Then the user goes and
-            // tweaks the padding to some other number.
-            // Now running the wizard a *second* time for some new activity,
-            // we should NOT go and set the value back to the template's
-            // default!
-            if (MERGE_ATTR_STRATEGY_REPLACE.equals(mergeStrategy)) {
-              child = replace.replace(child);
-              // When we're replacing, the line is probably already indented. Skip the initial indent
-              if (child.getPrevSibling() instanceof XmlText && prependElements.get(0) instanceof XmlText) {
-                prependElements.remove(0);
-                // If we're adding something we'll need a newline/indent after it
-                if (!prependElements.isEmpty()) {
-                  prependElements.add(indent);
-                }
-              }
-              for (XmlTagChild element : prependElements) {
-                root.addBefore(element, child);
-              }
-            }
-            else if (MERGE_ATTR_STRATEGY_PRESERVE.equals(mergeStrategy)) {
-              // Preserve the existing value.
-            }
-            else {
-              // No explicit directive given, preserve the original value by default.
-              LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
-            }
-          }
-          else {
-            if (indent != null) {
-              prependElements.add(indent);
-            }
-            subTag = root.addSubTag(subTag, false);
-            for (XmlTagChild element : prependElements) {
-              root.addBefore(element, subTag);
-            }
-          }
-          prependElements.clear();
-        }
-      }
-    }
-    else {
-      // In other file types, such as layouts, just append all the new content
-      // at the end.
-      for (PsiElement child : sourcePsiFile.getRootTag().getChildren()) {
-        if (child instanceof XmlTag) {
-          root.addSubTag((XmlTag)child, false);
-        }
-      }
-    }
-    return targetPsiFile.getText();
   }
 
   /**
