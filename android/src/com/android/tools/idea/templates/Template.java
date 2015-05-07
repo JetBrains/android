@@ -17,7 +17,8 @@ package com.android.tools.idea.templates;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.templates.parse.RecipeXmlParser;
+import com.android.tools.idea.templates.recipe.Recipe;
+import com.android.tools.idea.templates.recipe.RecipeContext;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -452,15 +453,14 @@ public class Template {
     try {
       myLoader.setTemplateFile(getTemplateFile(fileRecipe));
       String xml = processFreemarkerTemplate(freemarker, paramMap, fileRecipe.getName());
-
       xml = XmlUtils.stripBom(xml);
-      InputSource inputSource = new InputSource(new StringReader(xml));
 
-      RecipeXmlParser recipeXmlParser =
-        new RecipeXmlParser(myProject, myLoader, freemarker, paramMap, new File(myTemplateRoot, DATA_ROOT), outputRoot, moduleRoot,
-                            gradleSyncIfNeeded);
-      SAXParserFactory.newInstance().newSAXParser().parse(inputSource, recipeXmlParser);
-      myFilesToOpen.addAll(recipeXmlParser.getFilesToOpen());
+      Recipe recipe = Recipe.parse(new StringReader(xml));
+      myFilesToOpen.addAll(recipe.getFilesToOpen());
+
+      RecipeContext recipeContext = new RecipeContext(myProject, myLoader, freemarker, paramMap, new File(myTemplateRoot, DATA_ROOT), outputRoot, moduleRoot,
+                                   gradleSyncIfNeeded);
+      recipe.execute(recipeContext);
     }
     catch (Exception e) {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
