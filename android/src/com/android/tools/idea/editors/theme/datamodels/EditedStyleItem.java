@@ -43,8 +43,6 @@ public class EditedStyleItem {
   private ItemResourceValue myItemResourceValue;
   private String myNormalizedValue;
   private boolean myModified;
-  // True if the value is a reference and not an actual value.
-  private boolean isValueReference;
   private boolean isAttr;
   private final String myAttrGroup;
 
@@ -90,7 +88,6 @@ public class EditedStyleItem {
       return;
     }
 
-    isValueReference = true;
     isAttr = SdkConstants.RESOURCE_CLZ_ATTR.equals(resource.getResourceType());
     StringBuilder valueBuilder = new StringBuilder().append(resource.getPrefix());
     if (Strings.isNullOrEmpty(resource.getPackage())) {
@@ -121,6 +118,10 @@ public class EditedStyleItem {
     return myItemResourceValue.getName();
   }
 
+  public boolean isFrameworkAttr() {
+    return myItemResourceValue.isFrameworkAttr();
+  }
+
   /**
    * Returns whether this value has been modified since this resource value was loaded.
    */
@@ -136,13 +137,6 @@ public class EditedStyleItem {
   @NotNull
   public ItemResourceValue getItemResourceValue() {
     return myItemResourceValue;
-  }
-
-  /**
-   * Returns whether this attribute value points to a reference.
-   */
-  public boolean isValueReference() {
-    return isValueReference;
   }
 
   /**
