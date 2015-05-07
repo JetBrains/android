@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBScrollPane;
@@ -34,7 +35,7 @@ import java.awt.*;
 import java.util.Enumeration;
 
 public class NlPropertiesPanel extends JPanel implements ChangeListener {
-  private final JBTable myTable;
+  private final PTable myTable;
   private final ScreenView myScreenView;
   private final NlPropertiesModel myModel;
   private MergingUpdateQueue myUpdateQueue;
@@ -48,20 +49,10 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
 
     myScreenView = screenView;
 
-    myTable = new JBTable();
-    myTable.setMaxItemsForSizeCalculation(10);
-    myTable.getTableHeader().setVisible(false);
-    myTable.getEmptyText().setText("No selected component");
-
     myModel = new NlPropertiesModel();
-    myTable.setModel(myModel);
+    myTable = new PTable(myModel);
 
-    TableCellRenderer cellRenderer = new NlPropertyRenderer();
-    Enumeration<TableColumn> columns = myTable.getColumnModel().getColumns();
-    while (columns.hasMoreElements()) {
-      TableColumn column = columns.nextElement();
-      column.setCellRenderer(cellRenderer);
-    }
+    myTable.getEmptyText().setText("No selected component");
 
     add(new JBScrollPane(myTable), BorderLayout.CENTER);
 
@@ -70,10 +61,16 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
 
   @Override
   public void stateChanged(ChangeEvent e) {
+    myTable.setPaintBusy(true);
     getUpdateQueue().queue(new Update("updateProperties") {
       @Override
       public void run() {
-        myModel.update(myScreenView.getSelectionModel().getSelection());
+        myModel.update(myScreenView.getSelectionModel().getSelection(), new Runnable() {
+          @Override
+          public void run() {
+            myTable.setPaintBusy(false);
+          }
+        });
       }
 
       @Override
@@ -88,7 +85,7 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (myUpdateQueue == null) {
-      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", 500, true, null, myScreenView.getModel(), null,
+      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", 250, true, null, myScreenView.getModel(), null,
                                              Alarm.ThreadToUse.SWING_THREAD);
     }
     return myUpdateQueue;

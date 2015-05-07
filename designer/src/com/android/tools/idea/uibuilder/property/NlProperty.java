@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,9 +27,10 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.table.TableCellRenderer;
 import java.util.Set;
 
-public class NlProperty {
+public class NlProperty extends PTableItem {
   // Certain attributes are special and do not have an attribute defintion from attrs.xml
   private static final Set<String> ATTRS_WITHOUT_DEFN = ImmutableSet.of(
     SdkConstants.ATTR_STYLE, // <View style="..." />
@@ -39,6 +41,7 @@ public class NlProperty {
   @NotNull private final XmlTag myTag;
   @NotNull private final XmlAttributeDescriptor myDescriptor;
   @Nullable private final AttributeDefinition myDefinition;
+  private NlPropertyRenderer myRenderer;
 
   public NlProperty(@NotNull XmlTag tag, @NotNull XmlAttributeDescriptor descriptor, @Nullable AttributeDefinition attributeDefinition) {
     if (attributeDefinition == null && !ATTRS_WITHOUT_DEFN.contains(descriptor.getName())) {
@@ -50,6 +53,7 @@ public class NlProperty {
     myDefinition = attributeDefinition;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return myDescriptor.getName();
@@ -59,6 +63,15 @@ public class NlProperty {
   public String getValue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
     return myTag.getAttributeValue(myDescriptor.getName(myTag));
+  }
+
+  @NotNull
+  @Override
+  public TableCellRenderer getCellRenderer() {
+    if (myRenderer == null) {
+      myRenderer = new NlPropertyRenderer();
+    }
+    return myRenderer;
   }
 
   @Override
