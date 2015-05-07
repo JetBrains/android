@@ -22,10 +22,12 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 
+import java.util.Map;
 import java.util.Set;
 
 
@@ -36,7 +38,7 @@ public final class SdkPackages {
   private final Set<UpdatablePkgInfo> myUpdatedPkgs = Sets.newTreeSet();
   private final Set<RemotePkgInfo> myNewPkgs = Sets.newTreeSet();
   private final long myTimestampMs;
-  private Set<UpdatablePkgInfo> myConsolidatedPkgs = Sets.newTreeSet();
+  private Map<String, UpdatablePkgInfo> myConsolidatedPkgs = Maps.newTreeMap();
   private LocalPkgInfo[] myLocalPkgInfos = new LocalPkgInfo[0];
   private Multimap<PkgType, RemotePkgInfo> myRemotePkgInfos = TreeMultimap.create();
 
@@ -80,11 +82,13 @@ public final class SdkPackages {
   }
 
   /**
-   * Returns a set of {@link UpdatablePackageInfo}s representing all known local and remote packages. Remote packages corresponding
-   * to local packages will be represented by a single item containing both the local and remote info..
+   * Returns a map of package install ids to {@link UpdatablePackageInfo}s representing all known
+   * local and remote packages. Remote packages corresponding to local packages will be represented
+   * by a single item containing both the local and remote info.
+   * {@see IPkgDesc#getInstallId()}
    */
   @NonNull
-  public Set<UpdatablePkgInfo> getConsolidatedPkgs() {
+  public Map<String, UpdatablePkgInfo> getConsolidatedPkgs() {
     return myConsolidatedPkgs;
   }
 
@@ -108,7 +112,7 @@ public final class SdkPackages {
   }
 
   private void computeUpdates() {
-    Set<UpdatablePkgInfo> newConsolidatedPkgs = Sets.newTreeSet();
+    Map<String, UpdatablePkgInfo> newConsolidatedPkgs = Maps.newTreeMap();
     UpdatablePkgInfo[] updatablePkgInfos = new UpdatablePkgInfo[myLocalPkgInfos.length];
     for (int i = 0; i < myLocalPkgInfos.length; i++) {
       updatablePkgInfos[i] = new UpdatablePkgInfo(myLocalPkgInfos[i]);
@@ -123,7 +127,7 @@ public final class SdkPackages {
         myUpdatedPkgs.add(info);
         updates.add(update);
       }
-      newConsolidatedPkgs.add(info);
+      newConsolidatedPkgs.put(info.getPkgDesc().getInstallId(), info);
     }
 
     // Find new packages not yet installed
@@ -143,7 +147,7 @@ public final class SdkPackages {
       }
 
       myNewPkgs.add(remote);
-      newConsolidatedPkgs.add(new UpdatablePkgInfo(remote));
+      newConsolidatedPkgs.put(remoteDesc.getInstallId(), new UpdatablePkgInfo(remote));
     }
     myConsolidatedPkgs = newConsolidatedPkgs;
   }

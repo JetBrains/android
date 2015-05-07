@@ -20,6 +20,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
@@ -90,18 +91,17 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    ApplicationManager.getApplication().runWriteAction(
-      new Runnable() {
-        @Override
-        public void run() {
-          IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
-        }
-      });
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                                                         @Override
+                                                         public void run() {
+                                                           IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
+                                                         }
+                                                       });
 
     myPanel.saveSources();
 
-    StringBuilder message = new StringBuilder();
-
+    HtmlBuilder message = new HtmlBuilder();
+    message.openHtmlBody();
     List<UpdatablePkgInfo> toDelete = Lists.newArrayList();
     List<IPkgDesc> requestedPackages = Lists.newArrayList();
     for (NodeStateHolder holder : myPanel.getStates()) {
@@ -109,32 +109,31 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         if (holder.getPkg().hasLocal()) {
           toDelete.add(holder.getPkg());
         }
-      } else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED && (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
+      }
+      else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
+               (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
         requestedPackages.add(holder.getPkg().getPkgDesc());
       }
     }
     if (!toDelete.isEmpty()) {
-      message.append("The following components will be deleted: \n");
+      message.add("The following components will be deleted: \n");
+      message.beginList();
       for (UpdatablePkgInfo item : toDelete) {
-        message.append("    -");
-        message.append(item.getPkgDesc().getListDescription());
-        message.append(", Revision: ");
-        message.append(item.getPkgDesc().getPreciseRevision());
-        message.append("\n");
+        message.listItem().add(item.getPkgDesc().getListDescription()).add(", Revision: ")
+          .add(item.getPkgDesc().getPreciseRevision().toString());
       }
-      if (!requestedPackages.isEmpty()) {
-        message.append("\n");
-      }
+      message.endList();
     }
     if (!requestedPackages.isEmpty()) {
-      message.append("The following components will be installed: \n");
+      message.add("The following components will be installed: \n");
+      message.beginList();
       for (IPkgDesc item : requestedPackages) {
-        message.append("    -");
-        message.append(item.getListDescription());
-        message.append("\n");
+        message.listItem().add(item.getListDescription());
       }
+      message.endList();
     }
-    String messageStr = message.toString();
+    message.closeHtmlBody();
+    String messageStr = message.getHtml();
     if (!messageStr.isEmpty()) {
       if (Messages.showOkCancelDialog(myPanel.getComponent(), messageStr, "Confirm Delete", AllIcons.General.Warning) == Messages.OK) {
         for (UpdatablePkgInfo item : toDelete) {
