@@ -61,6 +61,9 @@ public class SdkState {
 
   private SdkState(@Nullable AndroidSdkData sdkData) {
     mySdkData = sdkData;
+    if (mySdkData == null) {
+      myPackages = new SdkPackages();
+    }
     myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(SdkState.class)));
   }
 
