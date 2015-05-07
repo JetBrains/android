@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.NonNull;
+import com.android.utils.SdkUtils;
 import freemarker.template.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -40,12 +43,31 @@ public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
       return new SimpleScalar("");
     }
 
-    activityName = stripSuffix(activityName, ACTIVITY_NAME_SUFFIX, true /* recursive strip */);
+    activityName = stripActivitySuffix(activityName);
 
     // Convert CamelCase convention used in activity class names to underlined convention
     // used in layout name:
     String name = LAYOUT_NAME_PREFIX + TemplateUtils.camelCaseToUnderlines(activityName);
 
     return new SimpleScalar(name);
+  }
+
+  private static String stripActivitySuffix(@NotNull String activityName) {
+    // Does the name end with Activity<Number> ? If so, we don't want to
+    // for example turn "MainActivity2" into "activity_main_activity2"
+    int lastCharIndex = activityName.length() - 1;
+    if (Character.isDigit(activityName.charAt(lastCharIndex))) {
+      for (int i = lastCharIndex - 1; i > 0; i--) {
+        if (!Character.isDigit(activityName.charAt(i))) {
+          i++;
+          if (SdkUtils.endsWith(activityName, i, ACTIVITY_NAME_SUFFIX)) {
+            return activityName.substring(0, i - ACTIVITY_NAME_SUFFIX.length()) + activityName.substring(i);
+          }
+          break;
+        }
+      }
+    }
+
+    return stripSuffix(activityName, ACTIVITY_NAME_SUFFIX, true /* recursive strip */);
   }
 }
