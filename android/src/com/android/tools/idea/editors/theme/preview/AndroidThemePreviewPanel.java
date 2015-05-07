@@ -96,7 +96,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
                                             "android.support.design.widget.FloatingActionButton")
-                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha").set("clickable", "true"));
+                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha").set("clickable", "true"),
+                    "android.support.v7.widget.Toolbar",
+                    new ToolbarComponentDefinition(true/*isAppCompat*/));
+  private static final Map<String, String> SUPPORT_LIBRARY_REPLACEMENTS =
+    ImmutableMap.of("android.support.v7.widget.Toolbar", "Toolbar");
 
   /** Min API level to use for filtering. */
   private int myMinApiLevel;
@@ -106,6 +110,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private List<ComponentDefinition> myCustomComponents = Collections.emptyList();
   /** List of components on the support library (if available) */
   private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
+
+  /** List of component names that shouldn't be displayed. This is used in the case where a support component superseeds a framework one. */
+  private List<String> myDisabledComponents = new ArrayList<String>();
 
   protected final Configuration myConfiguration;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
@@ -119,6 +126,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   protected DumbService myDumbService;
 
+  /** Filters components that are disabled or that do not belong to the current selected group */
   private final Predicate<ComponentDefinition> myGroupFilter = new Predicate<ComponentDefinition>() {
     @Override
     public boolean apply(@Nullable ComponentDefinition input) {
@@ -130,6 +138,17 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       return (breadcrumb == null || breadcrumb.myGroup == null || breadcrumb.myGroup.equals(input.group));
     }
   };
+  private final Predicate<ComponentDefinition> mySupportReplacementsFilter = new Predicate<ComponentDefinition>() {
+    @Override
+    public boolean apply(@Nullable ComponentDefinition input) {
+      if (input == null) {
+        return false;
+      }
+
+      return !myDisabledComponents.contains(input.name);
+    }
+  };
+
   private double myConstantScalingFactor = DEFAULT_SCALING_FACTOR;
   private boolean myIsAppCompatTheme = false;
 
@@ -300,6 +319,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myScrollPane.getViewport().setBackground(bg);
     mySearchTextField.setBackground(bg);
+    myBreadcrumbs.setBackground(bg);
   }
 
   @NotNull
@@ -340,13 +360,13 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
               return false;
             }
 
-            customComponents
-              .add(new ComponentDefinition(description, ThemePreviewBuilder.ComponentGroup.CUSTOM, className));
+            customComponents.add(new ComponentDefinition(description, ThemePreviewBuilder.ComponentGroup.CUSTOM, className));
             return true;
           }
         });
 
         // Now search for support library components. We use a HashSet to avoid adding duplicate components from source and jar files.
+        myDisabledComponents.clear();
         final HashSet<ComponentDefinition> supportLibraryComponents = new HashSet<ComponentDefinition>();
         viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getLibrariesScope(project), true);
         viewClasses.forEach(new Processor<PsiClass>() {
@@ -357,6 +377,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
             ComponentDefinition component = SUPPORT_LIBRARY_COMPONENTS.get(className);
             if (component != null) {
               supportLibraryComponents.add(component);
+
+              String replaces = SUPPORT_LIBRARY_REPLACEMENTS.get(className);
+              if (replaces != null) {
+                myDisabledComponents.add(replaces);
+              }
             }
 
             return true;
@@ -381,15 +406,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private void rebuild(boolean forceRepaint) {
     try {
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
-        .setBackgroundColor(getBackground())
-        .addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
+        .setBackgroundColor(getBackground()).addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(myMinApiLevel))
         .addComponentFilter(myGroupFilter);
 
       if (myIsAppCompatTheme = isAppCompatTheme(myConfiguration)) {
-        builder.addAllComponents(mySupportLibraryComponents);
+        builder
+          .addComponentFilter(mySupportReplacementsFilter)
+          .addAllComponents(mySupportLibraryComponents);
       }
       myAndroidPreviewPanel.setDocument(builder.build());
 
