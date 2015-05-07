@@ -53,8 +53,9 @@ public class FormFactorUtils {
   public static class FormFactor {
     public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
                                                            Lists.newArrayList("20", "Glass", "Google APIs"), null);
-    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
-                                                         null, Lists.newArrayList("20", "21"));
+    // TODO(jbakermalone): in the future instead of whitelisting maybe we could determine this by availability of system images.
+    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 22,
+                                                         null, Lists.newArrayList("20", "21", "22"));
     public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
                                                           null, Lists.newArrayList("Glass", "google_gdk"));
     public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
