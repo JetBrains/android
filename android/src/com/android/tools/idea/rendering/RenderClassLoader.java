@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.rendering.ClassConverter.isValidClassFile;
@@ -39,14 +40,14 @@ import static com.android.tools.idea.rendering.ClassConverter.isValidClassFile;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  private ClassLoader myJarClassLoader;
+  protected UrlClassLoader myJarClassLoader;
   protected boolean myInsideJarClassLoader;
 
   public RenderClassLoader(@Nullable ClassLoader parent) {
     super(parent);
   }
 
-  protected abstract URL[] getExternalJars();
+  protected abstract List<URL> getExternalJars();
 
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -66,7 +67,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   @Nullable
   protected Class<?> loadClassFromJar(@NotNull String name) {
     if (myJarClassLoader == null) {
-      final URL[] externalJars = getExternalJars();
+      final List<URL> externalJars = getExternalJars();
       myJarClassLoader = createClassLoader(externalJars);
     }
 
@@ -104,7 +105,7 @@ public abstract class RenderClassLoader extends ClassLoader {
     }
   }
 
-  private ClassLoader createClassLoader(URL[] externalJars) {
+  protected UrlClassLoader createClassLoader(List<URL> externalJars) {
     return UrlClassLoader.build().parent(this).urls(externalJars).allowUnescaped().noPreload().get();
   }
 

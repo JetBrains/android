@@ -20,6 +20,8 @@ import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 import static com.android.tools.idea.rendering.ClassConverter.*;
 
@@ -151,8 +153,8 @@ public class ClassConverterTest extends TestCase {
     }
 
     @Override
-    protected URL[] getExternalJars() {
-      return new URL[0];
+    protected List<URL> getExternalJars() {
+      return Collections.emptyList();
     }
 
     @NotNull
