@@ -298,7 +298,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Override
-  protected URL[] getExternalJars() {
+  protected List<URL> getExternalJars() {
     final List<URL> result = new ArrayList<URL>();
 
     for (VirtualFile libFile : AndroidRootUtil.getExternalLibraries(myModule)) {
@@ -327,7 +327,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         }
       }
     }
-    return result.toArray(new URL[result.size()]);
+    return result;
   }
 
   /** Returns the path to a class file loaded for the given class, if any */
@@ -375,6 +375,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
           System.out.println("Discarding loader because some files have changed");
         }
         loader = null;
+      } else {
+        List<URL> updatedJarDependencies = loader.getExternalJars();
+        if (loader.myJarClassLoader != null && !updatedJarDependencies.equals(loader.myJarClassLoader.getUrls())) {
+          if (DEBUG_CLASS_LOADING) {
+            //noinspection UseOfSystemOutOrSystemErr
+            System.out.println("Recreating jar class loader because dependencies have changed.");
+          }
+          loader.myJarClassLoader = loader.createClassLoader(updatedJarDependencies);
+        }
       }
 
       // To be correct we should also check that the dependencies have not changed. It's not
