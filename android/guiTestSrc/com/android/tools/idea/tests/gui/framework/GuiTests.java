@@ -88,6 +88,8 @@ public final class GuiTests {
   /** Environment variable pointing to the JDK to be used for tests */
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
+  private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
+
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void setUpDefaultGeneralSettings() {
@@ -175,6 +177,16 @@ public final class GuiTests {
           return false;
         }
       }).withTimeout(LONG_TIMEOUT.duration()).using(robot);
+
+      // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
+      // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
+      try {
+        if (SYSTEM_EVENT_QUEUE.peekEvent() != null) {
+          SYSTEM_EVENT_QUEUE.getNextEvent();
+        }
+      } catch (InterruptedException ex ) {
+        // Ignored.
+      }
 
       if (listener.myActive) {
         pause(new Condition("Project to be opened") {
