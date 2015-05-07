@@ -54,7 +54,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
- * A {@link com.android.ide.common.rendering.api.LayoutLog} which records the problems it encounters and offers them as a
+ * A {@link LayoutLog} which records the problems it encounters and offers them as a
  * single summary at the end
  */
 public class RenderLogger extends LayoutLog {
@@ -733,27 +733,45 @@ public class RenderLogger extends LayoutLog {
    * Check if this is possibly an instance of http://b.android.com/164378. If likely, this adds a message with the recommended workaround.
    */
   private boolean checkForIssue164378(@Nullable Throwable throwable) {
+    if (isIssue164378(throwable)) {
+        RenderProblem.Html problem = RenderProblem.create(ERROR);
+        HtmlBuilder builder = problem.getHtmlBuilder();
+        addHtmlForIssue164378(throwable, myModule, getLinkManager(), builder, true);
+        addMessage(problem);
+        return true;
+    }
+    return false;
+  }
+
+
+  static boolean isIssue164378(@Nullable Throwable throwable) {
     if (throwable instanceof NoSuchFieldError) {
       StackTraceElement[] stackTrace = throwable.getStackTrace();
       if (stackTrace.length >= 1 && stackTrace[0].getClassName().startsWith("android.support")) {
-        RenderProblem.Html problem = RenderProblem.create(ERROR);
-        HtmlBuilder builder = problem.getHtmlBuilder();
-        builder.add("Rendering failed with a known bug. ");
-        if (myModule == null) {
-          // Unlikely, but just in case.
-          builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.");
-          return true;
-        }
-        HtmlLinkManager linkManager = getLinkManager();
-        builder.addLink("Please try a ", "rebuild", ".", linkManager.createCompileModuleUrl());
-        builder.newline().newline();
-        ShowExceptionFix showExceptionFix = new ShowExceptionFix(myModule.getProject(), throwable);
-        builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
-        addMessage(problem);
         return true;
       }
     }
     return false;
+  }
+
+  static void addHtmlForIssue164378(@NotNull Throwable throwable,
+                                    Module module,
+                                    HtmlLinkManager linkManager,
+                                    HtmlBuilder builder,
+                                    boolean addShowExceptionLink) {
+    builder.add("Rendering failed with a known bug. ");
+    if (module == null) {
+      // Unlikely, but just in case.
+      builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
+      return;
+    }
+    builder.addLink("Please try a ", "rebuild", ".", linkManager.createCompileModuleUrl());
+    builder.newline().newline();
+    if (!addShowExceptionLink) {
+      return;
+    }
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
+    builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
   }
 
   static boolean isLoggingAllErrors() {
