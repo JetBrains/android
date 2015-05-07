@@ -17,4 +17,7 @@
 
   <!-- My Layout Documentation -->
   <attr name="myLayout" format="reference"/>
+
+  <!-- DEPRECATED -->
+  <attr name="myDeprecated" format="reference" />
 </resources>
