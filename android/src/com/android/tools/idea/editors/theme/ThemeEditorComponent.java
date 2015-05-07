@@ -109,7 +109,13 @@ public class ThemeEditorComponent extends Splitter {
   private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
 
   private final AttributeReferenceRendererEditor myStyleEditor;
-  private final AttributeReferenceRendererEditor.ClickListener myClickListener;
+  private final GoToListener myGoToListener;
+
+  public interface GoToListener {
+    void goTo(@NotNull EditedStyleItem value);
+    void goToParent();
+  }
+
   private final ConfigurationListener myConfigListener = new ConfigurationListener() {
     @Override
     public boolean changed(int flags) {
@@ -144,9 +150,9 @@ public class ThemeEditorComponent extends Splitter {
 
     Project project = myModule.getProject();
     ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myConfiguration.getResourceResolver());
-    myClickListener = new AttributeReferenceRendererEditor.ClickListener() {
+    myGoToListener = new GoToListener() {
       @Override
-      public void clicked(@NotNull EditedStyleItem value) {
+      public void goTo(@NotNull EditedStyleItem value) {
         if (value.isAttr() && getSelectedStyle() != null && myConfiguration.getResourceResolver() != null) {
           // We need to resolve the theme attribute.
           // TODO: Do we need a full resolution or can we just try to get it from the StyleWrapper?
@@ -171,6 +177,11 @@ public class ThemeEditorComponent extends Splitter {
         }
         mySubStyleSourceAttribute = value;
         loadStyleAttributes();
+      }
+
+      @Override
+      public void goToParent() {
+        ThemeEditorComponent.this.goToParent();
       }
     };
     myStyleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
@@ -624,7 +635,7 @@ public class ThemeEditorComponent extends Splitter {
 
     assert myConfiguration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
     myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), myConfiguration, myModule.getProject());
-    myModel.setGoToDefinitionListener(myClickListener);
+    myModel.setGoToDefinitionListener(myGoToListener);
 
     myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
@@ -670,17 +681,9 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
     configureFilter();
 
-    ActionListener listener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        goToParent();
-      }
-    };
-
     myAttributesTable.setModel(myModel);
     myAttributesTable.setRowSorter(myAttributesSorter);
     myAttributesTable.updateRowHeights();
-    myModel.parentAttribute.setGotoDefinitionCallback(listener);
 
     myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(myConfiguration, myModel));
     myPanel.getPalette().addItemListener(new ItemListener() {
