@@ -168,7 +168,7 @@ public class ThemePreviewBuilderTest extends TestCase {
       headerTitles.add(nodeList.item(i).getNodeValue());
     }
     assertFalse(headerTitles.isEmpty());
-    assertTrue("'Custom' header should be present", headerTitles.contains(ThemePreviewBuilder.ComponentGroup.CUSTOM.name()));
+    assertTrue("'Custom' header should be present", headerTitles.contains(ThemePreviewBuilder.ComponentGroup.CUSTOM.name));
 
     nodeList =
       (NodeList)xPath.evaluate(COMPONENTS_XPATH, document.getDocumentElement(), XPathConstants.NODESET);
