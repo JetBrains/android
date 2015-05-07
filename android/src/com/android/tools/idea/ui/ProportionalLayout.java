@@ -159,12 +159,12 @@ public final class ProportionalLayout implements LayoutManager2 {
           definitions[i] = new ColumnDefinition(Type.Proportional, value);
         }
         else {
-          throw new IllegalArgumentException(String.format("Bad column definition: %s", s));
+          throw new IllegalArgumentException(String.format("Bad column definition: \"%1$s\" in \"%2$s\"", s, columnDefinitions));
         }
       }
     }
     catch (NumberFormatException ex) {
-      throw new IllegalArgumentException(String.format("Bad column definition: %s", columnDefinitions));
+      throw new IllegalArgumentException(String.format("Bad column definition: \"%s\"", columnDefinitions));
     }
 
     return new ProportionalLayout(definitions);
