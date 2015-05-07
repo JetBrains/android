@@ -18,18 +18,21 @@ package org.jetbrains.android.dom.attrs;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 import java.util.Set;
 
 public class AttributeDefinitionsImplTest extends AndroidTestCase {
   private AttributeDefinitions myDefs;
+  private AttributeDefinitions mySystemDefs;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject("dom/resources/attrs6.xml", "res/values/attrs.xml");
     myDefs = LocalResourceManager.getInstance(myModule).getAttributeDefinitions();
+    mySystemDefs = myFacet.getSystemResourceManager().getAttributeDefinitions();
     assertNotNull(myDefs);
   }
 
@@ -42,9 +45,7 @@ public class AttributeDefinitionsImplTest extends AndroidTestCase {
   }
 
   private void checkAttrDocForName(String attribute, String expectedDoc) {
-    AttributeDefinition def = myDefs.getAttrDefByName(attribute);
-    assertNotNull(def);
-    String doc = def.getDocValue(null);
+    String doc = localAttr(attribute).getDocValue(null);
     assertEquals(expectedDoc, StringUtil.trim(doc));
   }
 
@@ -56,9 +57,7 @@ public class AttributeDefinitionsImplTest extends AndroidTestCase {
   }
 
   private void checkAttrFormatForName(String attribute, Set<AttributeFormat> expectedFormat) {
-    AttributeDefinition def = myDefs.getAttrDefByName(attribute);
-    assertNotNull(def);
-    assertEquals(expectedFormat, def.getFormats());
+    assertEquals(expectedFormat, localAttr(attribute).getFormats());
   }
 
   public void testAttrFormat() {
@@ -70,5 +69,29 @@ public class AttributeDefinitionsImplTest extends AndroidTestCase {
     format = EnumSet.of(AttributeFormat.Color, AttributeFormat.Reference);
     checkAttrFormatForName("textColor", format);
     checkAttrFormatForName("textColorHighlight", format);
+  }
+
+  public void testParentStyleableName() {
+    assertTrue(localAttr("colorForeground").getParentStyleables().contains("Theme"));
+    assertTrue(localAttr("textColor").getParentStyleables().isEmpty());
+
+    assertTrue(systemAttr("background").getParentStyleables().contains("View"));
+    assertTrue(systemAttr("bufferType").getParentStyleables().contains("TextView"));
+  }
+
+  @NotNull
+  private AttributeDefinition localAttr(@NotNull String attrName) {
+    return attr(myDefs, attrName);
+  }
+
+  @NotNull
+  private AttributeDefinition systemAttr(@NotNull String attrName) {
+    return attr(mySystemDefs, attrName);
+  }
+
+  private static AttributeDefinition attr(@NotNull AttributeDefinitions defs, @NotNull String attrName) {
+    AttributeDefinition def = defs.getAttrDefByName(attrName);
+    assertNotNull("Missing attribute definition for " + attrName, def);
+    return def;
   }
 }
