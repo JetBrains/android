@@ -56,6 +56,9 @@ public class WizardConstants {
   @SuppressWarnings("unchecked")
   public static final Key<List<IPkgDesc>> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", WIZARD,
                                                                            (Class<List<IPkgDesc>>) (Class) List.class);
+  @SuppressWarnings("unchecked")
+  public static final Key<List<IPkgDesc>> SKIPPED_INSTALL_REQUESTS_KEY = createKey("packagesSkipped", WIZARD,
+                                                                           (Class<List<IPkgDesc>>) (Class) List.class);
   public static final Key<String> GRADLE_VERSION_KEY =
     createKey(TemplateMetadata.ATTR_GRADLE_VERSION, WIZARD, String.class);
   public static final Key<String> GRADLE_PLUGIN_VERSION_KEY =
@@ -74,6 +77,7 @@ public class WizardConstants {
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+
   /**
    * Files to open in the editor window after the Wizard is finished.
    */
