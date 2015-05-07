@@ -589,6 +589,12 @@ public class RenderErrorPanel extends JPanel {
         }
       }
 
+      for (Throwable throwable : brokenClasses.values()) {
+        if (RenderLogger.isIssue164378(throwable)) {
+          RenderLogger.addHtmlForIssue164378(throwable, module, myLinkManager, builder, false);
+          break;
+        }
+      }
       builder.add("The following classes could not be instantiated:");
 
       Throwable firstThrowable = null;
