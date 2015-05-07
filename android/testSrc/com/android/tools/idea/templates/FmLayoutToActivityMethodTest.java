@@ -26,7 +26,7 @@ import junit.framework.TestCase;
 @SuppressWarnings("javadoc")
 public class FmLayoutToActivityMethodTest extends TestCase {
   @SuppressWarnings("rawtypes")
-  private void check(String s, String expected) throws TemplateModelException {
+  private static void check(String s, String expected) throws TemplateModelException {
     FmLayoutToActivityMethod method = new FmLayoutToActivityMethod();
     List list = Collections.singletonList(new SimpleScalar(s));
     assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
@@ -50,5 +50,17 @@ public class FmLayoutToActivityMethodTest extends TestCase {
 
   public void test5() throws Exception {
     check("", "MainActivity");
+  }
+
+  public void test7() throws Exception {
+    check("activity_foo2", "Foo2Activity");
+  }
+
+  public void test8() throws Exception {
+    check("activity_foo200", "Foo200Activity");
+  }
+
+  public void test9() throws Exception {
+    check("activity_200", "MainActivity");
   }
 }
