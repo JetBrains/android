@@ -301,6 +301,21 @@
     </intentionAction>
 
     <intentionAction>
+      <className>org.jetbrains.android.intentions.ImplementParcelableAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.RedoParcelableAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.RemoveParcelableAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
       <className>org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction</className>
       <category>Android</category>
     </intentionAction>
