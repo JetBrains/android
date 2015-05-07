@@ -71,7 +71,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private String myTemplateName;
   private VirtualFile myTargetFolder;
   private Set<String> myExcluded;
-  @VisibleForTesting AssetSetStep myAssetSetStep;
+  @VisibleForTesting RasterAssetSetStep myAssetSetStep;
   @VisibleForTesting ChooseTemplateStep myChooseTemplateStep;
   private List<SourceProvider> mySourceProviders;
   private IdeaAndroidProject myGradleProject;
@@ -192,7 +192,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     }
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, myModule, null, this);
     mySteps.add(myTemplateParameterStep);
-    myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFolder);
+    myAssetSetStep = new RasterAssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFolder);
     Disposer.register(getDisposable(), myAssetSetStep);
     mySteps.add(myAssetSetStep);
     myAssetSetStep.setVisible(false);
