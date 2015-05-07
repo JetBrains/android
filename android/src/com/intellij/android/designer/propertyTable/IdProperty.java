@@ -68,7 +68,7 @@ public class IdProperty extends AttributeProperty {
   public static final Property INSTANCE = new IdProperty();
 
   private IdProperty() {
-    this(ATTR_ID, new AttributeDefinition(ATTR_ID, Arrays.asList(AttributeFormat.Reference)));
+    this(ATTR_ID, new AttributeDefinition(ATTR_ID, null, Arrays.asList(AttributeFormat.Reference)));
     setImportant(true);
   }
 
