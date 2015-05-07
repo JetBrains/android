@@ -15,27 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
+import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
 import java.util.List;
 
 public abstract class PTableGroupItem extends PTableItem {
   private List<PTableItem> myItems;
   private boolean myExpanded;
 
-  public void setChildren(List<PTableItem> items) {
+  public void setChildren(@NotNull List<PTableItem> items) {
     myItems = items;
     for (PTableItem item : items) {
       item.setParent(this);
     }
   }
 
+  public void addChild(@NotNull PTableItem item) {
+    item.setParent(this);
+    if (myItems == null) {
+      myItems = Lists.newArrayList();
+    }
+    myItems.add(item);
+  }
+
   @Override
   public List<PTableItem> getChildren() {
-    return myItems;
+    return myItems == null ? Collections.<PTableItem>emptyList() : myItems;
   }
 
   @Override
   public boolean hasChildren() {
-    return !myItems.isEmpty();
+    return myItems != null && !myItems.isEmpty();
   }
 
   @Override

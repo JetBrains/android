@@ -81,12 +81,47 @@ public class NlPropertiesTest extends LayoutTestCase {
   }
 
   public void testCustomViewAttributes() {
+    XmlFile xmlFile = setupCustomViewProject();
+
+    String tag = "p1.p2.PieChart";
+
+    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    assertEquals(1, subTags.length);
+
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
+
+    assertPresent(tag, properties, VIEW_ATTRS);
+    assertPresent(tag, properties, LINEARLAYOUT_ATTRS);
+    assertAbsent(tag, properties, TEXTVIEW_ATTRS);
+  }
+
+  public void testPropertyNames() {
+    XmlFile xmlFile = setupCustomViewProject();
+    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    assertEquals(1, subTags.length);
+
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+
+    NlProperty p = getPropertyByName(properties, "id");
+    assertNotNull(p);
+
+    assertEquals("id", p.getName());
+    assertEquals("@android:id", p.getTooltipText());
+
+    p = getPropertyByName(properties, "legend");
+    assertNotNull(p);
+
+    assertEquals("legend", p.getName());
+    assertEquals("legend", p.getTooltipText());
+  }
+
+  private XmlFile setupCustomViewProject() {
     @Language("XML")
     String layoutSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
                     "  <p1.p2.PieChart />" +
                     "</LinearLayout>";
-    String tag = "p1.p2.PieChart";
 
     @Language("XML")
     String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -115,16 +150,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", layoutSrc);
     myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
     myFixture.addFileToProject("src/p1/p2/PieChart.java", javaSrc);
-
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
-    assertEquals(1, subTags.length);
-
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
-    assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
-
-    assertPresent(tag, properties, VIEW_ATTRS);
-    assertPresent(tag, properties, LINEARLAYOUT_ATTRS);
-    assertAbsent(tag, properties, TEXTVIEW_ATTRS);
+    return xmlFile;
   }
 
   public void testAppCompatIssues() {
