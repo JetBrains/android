@@ -116,24 +116,27 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     if (!toDelete.isEmpty()) {
       message.append("The following components will be deleted: \n");
       for (UpdatablePkgInfo item : toDelete) {
-        message.append("    ");
+        message.append("    -");
         message.append(item.getPkgDesc().getListDescription());
-        message.append(" Revision: ");
+        message.append(", Revision: ");
         message.append(item.getPkgDesc().getPreciseRevision());
+        message.append("\n");
+      }
+      if (!requestedPackages.isEmpty()) {
         message.append("\n");
       }
     }
     if (!requestedPackages.isEmpty()) {
       message.append("The following components will be installed: \n");
       for (IPkgDesc item : requestedPackages) {
-        message.append("    ");
+        message.append("    -");
         message.append(item.getListDescription());
         message.append("\n");
       }
     }
     String messageStr = message.toString();
     if (!messageStr.isEmpty()) {
-      if (Messages.showYesNoDialog(myPanel.getComponent(), messageStr, "Confirm Delete", AllIcons.General.Warning) == Messages.YES) {
+      if (Messages.showOkCancelDialog(myPanel.getComponent(), messageStr, "Confirm Delete", AllIcons.General.Warning) == Messages.OK) {
         for (UpdatablePkgInfo item : toDelete) {
           item.getLocalInfo().delete();
         }
