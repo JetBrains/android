@@ -31,9 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
@@ -95,6 +93,12 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       NewFormFactorModulePath path = new NewFormFactorModulePath(formFactor, templateFile, disposable);
       toReturn.add(path);
     }
+    Collections.sort(toReturn, new Comparator<NewFormFactorModulePath>() {
+      @Override
+      public int compare(NewFormFactorModulePath p1, NewFormFactorModulePath p2) {
+        return p1.myFormFactor.compareTo(p2.myFormFactor);
+      }
+    });
     return toReturn;
   }
 
