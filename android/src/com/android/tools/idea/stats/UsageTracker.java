@@ -26,12 +26,24 @@ public abstract class UsageTracker {
   public static final String CATEGORY_GRADLE = "gradle";
   public static final String CATEGORY_DEPLOYMENT = "deployment";
 
+  // GA only allows sending a single <category,action,value> tuple per event
+  // However, we'd like to track different components of the avd such as its version, arch, etc
+  // So this category will consist of info events, but note that the total event count is somewhat meaningless
+  // Note: Custom dimensions could possibly alleviate this issue, and we should consider switching to
+  // that when we have more info on the sorts of custom dimensions we'd need.
+  public static final String CATEGORY_AVDINFO = "avdInfo";
+
   public static final String ACTION_SYNC_STARTED = "syncStarted";
   public static final String ACTION_SYNC_ENDED = "syncEnded";
   public static final String ACTION_SYNC_SKIPPED = "syncSkipped";
   public static final String ACTION_SYNC_FAILED = "syncFailed";
 
   public static final String ACTION_APK_DEPLOYED = "apkDeployed";
+  public static final String ACTION_EMULATOR_LAUNCHED = "emulatorLaunch";
+
+  public static final String INFO_AVD_ABI = "abi";
+  public static final String INFO_AVD_TARGET_VERSION = "version";
+
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
