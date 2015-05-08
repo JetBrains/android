@@ -21,13 +21,11 @@ import com.android.tools.idea.editors.hprof.tables.InstancesDebuggerTree;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTable;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTableModel;
 import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
-import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -44,8 +42,9 @@ import java.awt.event.MouseEvent;
 public class HprofViewPanel implements Disposable {
   private static final int DIVIDER_WIDTH = 4;
   @NotNull private JPanel myContainer;
+  private Heap myCurrentHeap = null;
 
-  public HprofViewPanel(@NotNull final Project project, @NotNull Snapshot snapshot) {
+  public HprofViewPanel(@NotNull final Project project, @NotNull final Snapshot snapshot) {
     JBPanel treePanel = new JBPanel(new BorderLayout());
     treePanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     treePanel.setBackground(JBColor.background());
@@ -55,21 +54,57 @@ public class HprofViewPanel implements Disposable {
     scrollPane.setViewportView(referenceTree.getComponent());
     treePanel.add(scrollPane, BorderLayout.CENTER);
 
-    InstancesDebuggerTree instancesDebuggerTree = new InstancesDebuggerTree(project);
+    assert (snapshot.getHeaps().size() > 0);
+    for (Heap heap : snapshot.getHeaps()) {
+      if ("app".equals(heap.getName())) {
+        myCurrentHeap = heap;
+        break;
+      }
+      else if (myCurrentHeap == null) {
+        myCurrentHeap = heap;
+      }
+    }
+
+    final InstancesDebuggerTree instancesDebuggerTree = new InstancesDebuggerTree(project, myCurrentHeap);
     instancesDebuggerTree.getComponent().addMouseListener(referenceTree.getMouseAdapter());
-    final ClassTable classTable = createClassTable(snapshot, instancesDebuggerTree);
+    final ClassTable classTable = createClassTable(instancesDebuggerTree);
     JBSplitter splitter = createNavigationSplitter(classTable, instancesDebuggerTree.getComponent());
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
 
-    DefaultActionGroup group = new DefaultActionGroup(new ComputeDominatorAction(snapshot, project) {
+    DefaultActionGroup group = new DefaultActionGroup(new ComboBoxAction() {
+      @NotNull
+      @Override
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        DefaultActionGroup group = new DefaultActionGroup();
+        for (final Heap heap : snapshot.getHeaps()) {
+          group.add(new AnAction(heap.getName() + " heap") {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+              myCurrentHeap = heap;
+              ((ClassTableModel)classTable.getModel()).setHeap(myCurrentHeap);
+              instancesDebuggerTree.setHeap(heap);
+            }
+          });
+        }
+        return group;
+      }
+
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        getTemplatePresentation().setText(myCurrentHeap.getName() + " heap");
+        e.getPresentation().setText(myCurrentHeap.getName() + " heap");
+      }
+    }, new ComputeDominatorAction(snapshot, project) {
       @Override
       public void onDominatorsComputed() {
         // TODO this should be done with tables adding listeners to the snapshot, as it's the snapshot that changes.
         classTable.notifyDominatorsComputed();
       }
     });
+
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
     classPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
 
@@ -83,8 +118,8 @@ public class HprofViewPanel implements Disposable {
   }
 
   @NotNull
-  private static ClassTable createClassTable(@NotNull Snapshot snapshot, @NotNull final InstancesDebuggerTree instancesDebuggerTree) {
-    final ClassTable classTable = new ClassTable(new ClassTableModel(snapshot));
+  private ClassTable createClassTable(@NotNull final InstancesDebuggerTree instancesDebuggerTree) {
+    final ClassTable classTable = new ClassTable(new ClassTableModel(myCurrentHeap));
     classTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent mouseEvent) {
@@ -93,8 +128,7 @@ public class HprofViewPanel implements Disposable {
         if (row >= 0) {
           int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
           ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-          instancesDebuggerTree.setRoot(DebuggerTreeNodeImpl.createNodeNoUpdate(instancesDebuggerTree.getComponent(),
-                                                                                new ContainerDescriptorImpl(classObj.getInstances())));
+          instancesDebuggerTree.setRoot(new ContainerDescriptorImpl(classObj.getHeapInstances(myCurrentHeap.getId())));
         }
       }
     });

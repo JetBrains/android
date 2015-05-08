@@ -52,9 +52,11 @@ public abstract class HprofTable extends JBTable {
 
   public void notifyDominatorsComputed() {
     List<? extends RowSorter.SortKey> sortKeys = getSortOrder();
+    int selectedRows = getSelectedRow();
     ((HprofTableModel)getModel()).enableAllColumns();
     setSortOrder(sortKeys);
     prettifyTable();
+    getSelectionModel().setSelectionInterval(selectedRows, selectedRows);
   }
 
   public void setDefaultSort() {
