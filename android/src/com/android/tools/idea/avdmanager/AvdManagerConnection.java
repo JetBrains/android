@@ -329,7 +329,7 @@ public class AvdManagerConnection {
 
         commandLine.addParameters("-avd", avdName);
 
-        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine);
+        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
         ProcessHandler processHandler;
         try {
           processHandler = runner.start();

@@ -647,7 +647,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           commandLine.addParameter(s);
         }
       }
-      final EmulatorRunner runner = new EmulatorRunner(getModule().getProject(), "AVD: " + avdName, commandLine);
+      AvdManager manager = getAvdManagerSilently();
+      AvdInfo info = manager == null ? null : manager.getAvd(avdName, true);
+      final EmulatorRunner runner = new EmulatorRunner(getModule().getProject(), "AVD: " + avdName, commandLine, info);
 
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         @Override
