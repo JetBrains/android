@@ -120,10 +120,6 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
     return myTextField.getText();
   }
 
-  public interface ClickListener {
-    void clicked(@NotNull EditedStyleItem value);
-  }
-
   public interface CompletionProvider {
     /**
      * Returns the available completions for the given attribute.
