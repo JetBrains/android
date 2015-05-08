@@ -46,7 +46,7 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
   @Nls
   @Override
   public String getDisplayName() {
-    return "Cloud Testing";
+    return "Cloud Test Lab";
   }
 
   @Nullable
@@ -62,8 +62,16 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
     panel.add(content, BorderLayout.NORTH);
     JEditorPane warningPane =
       new JEditorPane(UIUtil.HTML_MIME,
-                      "<html>You may incur charges for running tests in cloud if you select this option when submitting tests.<br><br>"
-                      + "See pricing information for details <a href='https://cloud.google.com'>here</a>.<br><br></html>");
+                      "<html>Google Cloud Test Lab provides a wide array of virtual and physical devices, to use for running tests and debugging."
+                      + " Use it to run your tests against a matrix of device combinations with a single click.<br><br>"
+                      + "<a href='https://cloud.google.com'>More about Google Cloud Test Lab</a><br><br>"
+                      + "<a href='https://cloud.google.com'>Pricing information</a><br><br></html>");
+    if (!CloudConfigurationProvider.canEnable()) {
+      warningPane.setText("<html>This feature is coming soon. Stay tuned!<br><br>"
+                          + "For more information, please visit <a href='https://cloud.google.com'>Google Cloud Test Lab</a>.<br><br></html>");
+    }
+    warningPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+    warningPane.setFont(enableCloudTesting.getFont());
     warningPane.setEditable(false);
     warningPane.setBackground(panel.getBackground());
     warningPane.addHyperlinkListener(new HyperlinkListener() {
@@ -88,8 +96,10 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
       }
     });
     content.add(warningPane, BorderLayout.NORTH);
-    enableCloudTesting.setText("Enable testing and debugging in the cloud");
-    content.add(enableCloudTesting, BorderLayout.WEST);
+    if (CloudConfigurationProvider.canEnable()) {
+      enableCloudTesting.setText("Enable testing and debugging in the cloud");
+      content.add(enableCloudTesting, BorderLayout.WEST);
+    }
     return panel;
   }
 
