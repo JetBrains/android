@@ -427,7 +427,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
-        String codeName = SdkVersionInfo.getCodeName(systemImage.getVersion().getApiLevel());
+        AndroidVersion version = systemImage.getVersion();
+        String codeName = version.isPreview()
+                          ? version.getCodename()
+                          : SdkVersionInfo.getCodeName(version.getApiLevel());
         String maybeDeprecated = systemImage.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ?
                                  " (Deprecated)" : "";
         return codeName == null ? "Unknown" : codeName + maybeDeprecated;
