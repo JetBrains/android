@@ -289,33 +289,33 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       if (myUiInitialized) {
         validateState();
 
-        // Populate the "Modules" section.
+        // Prepare module entries but don't add them until after developer services
         ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        removeModules();
-
         Module[] modules = moduleManager.getModules();
         Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
-        DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
-        Module toSelect = null;
+        List<AndroidModuleConfigurable> moduleConfigurables = Lists.newArrayList();
         for (Module module : modules) {
           AndroidModuleConfigurable configurable = addModule(module);
           if (configurable != null) {
-            if (AndroidFacet.getInstance(module) != null) {
-              // Only add Android modules
-              moduleList.addElement(module);
-            }
-            myConfigurables.add(configurable);
-            if (configurable.getDisplayName().equals(myUiState.lastSelectedConfigurable)) {
-              toSelect = module;
-            }
+            moduleConfigurables.add(configurable);
           }
         }
 
-        // Populate the "Developer Services" section, defaulting to the first module
+        // Populate the "Developer Services" section
         removeServices();
-        if (!myProject.isDefault() && moduleList.getSize() > 0) {
+
+        DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
+        for (AndroidModuleConfigurable moduleConfigurable : moduleConfigurables) {
+          // Collect only Android modules
+          if (AndroidFacet.getInstance(moduleConfigurable.getModule()) != null) {
+            moduleList.addElement(moduleConfigurable.getModule());
+          }
+        }
+
+        if (!myProject.isDefault() && moduleConfigurables.size() > 0) {
           Module module = (Module)moduleList.getSelectedItem();
+
           Set<ServiceCategory> categories = Sets.newHashSet();
           for (DeveloperService s : DeveloperServices.getAll(module)) {
             categories.add(s.getCategory());
@@ -324,6 +324,19 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           Collections.sort(categoriesSorted);
           for (ServiceCategory category : categoriesSorted) {
             myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
+          }
+        }
+
+        // Populate the "Modules" section.
+        removeModules();
+        Module toSelect = null;
+        for (Module module : modules) {
+          AndroidModuleConfigurable configurable = addModule(module);
+          if (configurable != null) {
+            myConfigurables.add(configurable);
+            if (configurable.getDisplayName().equals(myUiState.lastSelectedConfigurable)) {
+              toSelect = module;
+            }
           }
         }
 
