@@ -21,7 +21,6 @@ import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -40,6 +39,10 @@ import java.util.List;
  * specific configuration, and then passes on that information to the cloud provider in order to run the tests.
  */
 public abstract class CloudConfigurationProvider {
+
+  // If this JVM option is present and set to true, enable the plugin regardless of the Settings dialog enable property's value.
+  private static final String EXTERNAL_ENABLE_FLAG = "enable.google.cloud.testing.plugin";
+
   public static final ExtensionPointName<CloudConfigurationProvider> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.run.cloudConfigurationProvider");
 
@@ -76,8 +79,25 @@ public abstract class CloudConfigurationProvider {
                                                           @NotNull Executor executor) throws ExecutionException;
 
   public static boolean isEnabled() {
-    return CloudTestingConfigurable.getPersistedEnableProperty();
+    return Boolean.getBoolean(EXTERNAL_ENABLE_FLAG) || CloudTestingConfigurable.getPersistedEnableProperty();
   }
+
+  /**
+   * Returns whether there exists a provider that can currently be enabled.
+   */
+  public static boolean canEnable() {
+    CloudConfigurationProvider provider = getExtension();
+    if (provider != null) {
+      return provider.canBeEnabled();
+    }
+    return false;
+  }
+
+  /**
+   * Returns whether this provider can currently be enabled.
+   * This could, for example, query the cloud to determine this result.
+   */
+  protected abstract boolean canBeEnabled();
 
   @NotNull
   public abstract Collection<IDevice> getLaunchingCloudDevices();
@@ -96,12 +116,15 @@ public abstract class CloudConfigurationProvider {
     if (!isEnabled()) {
       return null;
     }
+    return getExtension();
+  }
 
+  @Nullable
+  private static CloudConfigurationProvider getExtension() {
     CloudConfigurationProvider[] extensions = EP_NAME.getExtensions();
     if (extensions.length > 0) {
       return extensions[0];
     }
-
     return null;
   }
 }
