@@ -16,16 +16,20 @@
 package com.android.tools.idea.wizard;
 
 import com.android.resources.Density;
+import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
@@ -52,18 +56,48 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   private JLabel myImageFileLabel;
   private JLabel myResourceNameLabel;
   private JTextField myResourceNameField;
+  private JPanel myErrorPanel;
+  private JLabel myConvertError;
+  private HyperlinkLabel myMoreErrors;
+  private MoreErrorHyperlinkAdapter myMoreErrorHyperlinkAdapter = new MoreErrorHyperlinkAdapter();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public VectorAssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
                       @Nullable Icon sidePanelIcon, UpdateListener updateListener, @Nullable VirtualFile invocationTarget) {
     super(state, project, module, sidePanelIcon, updateListener, invocationTarget);
 
-    myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+    myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory
+        .createSingleFileDescriptor("svg"));
 
     myTemplateState.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     // TODO: hook up notification type here!
     mySelectedAssetType = AssetType.ACTIONBAR;
     register(ATTR_ASSET_NAME, myResourceNameField);
+    myMoreErrors.addHyperlinkListener(myMoreErrorHyperlinkAdapter);
+    myErrorPanel.setVisible(false);
+  }
+
+  public class MoreErrorHyperlinkAdapter extends HyperlinkAdapter {
+    private String mErrorLog;
+
+    public void setErrorMessage(String error) {
+      mErrorLog = error;
+    }
+
+    @Override
+    protected void hyperlinkActivated(HyperlinkEvent e) {
+      // create a JTextArea to contain the error message.
+      JTextArea textArea = new JTextArea(25, 80);
+      textArea.setText(mErrorLog);
+      textArea.setEditable(false);
+      textArea.setCaretPosition(0);
+
+      // wrap a scrollpane around the text
+      JScrollPane scrollPane = new JScrollPane(textArea);
+
+      // display them in a message dialog
+      JOptionPane.showMessageDialog(myPanel, scrollPane);
+    }
   }
 
   @Override
@@ -81,12 +115,50 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
 
   @Override
   protected void updatePreviewImages() {
-    if (mySelectedAssetType == null || myImageMap == null) {
-      return;
+    if (!(mySelectedAssetType == null || myImageMap == null || myImageMap.size() == 0)) {
+      // The error message is generated during the preview generation.
+      // Therefore, it is natural to update the error message here.
+      final String errorMessage = (String)myTemplateState.get(ATTR_ERROR_LOG);
+      if (Strings.isNullOrEmpty(errorMessage)) {
+        myErrorPanel.setVisible(false);
+        myIsValid = true;
+      } else {
+        myErrorPanel.setVisible(true);
+        myIsValid = setupErrorMessages(errorMessage);
+      }
+
+      final BufferedImage previewImage = getImage(myImageMap, Density.ANYDPI.getResourceValue());
+      setIconOrClear(myImagePreview, previewImage);
+    } else {
+      myIsValid = false;
     }
 
-    final BufferedImage previewImage = getImage(myImageMap, Density.ANYDPI.getResourceValue());
-    setIconOrClear(myImagePreview, previewImage);
+    myUpdateListener.update();
+  }
+
+  /**
+   * We will always show the first line of errorMessage. If there are more errors, we will show a
+   * underlined text as "More...". When it is clicked, we will show more lines.
+   * At the same time, we also parse the errorMessage to decide whether going to the next step.
+   * Basically, if the preview image is empty, we disable the next step.
+   *
+   * @return whether or not the preview image is valid.
+   */
+  private boolean setupErrorMessages(String errorMessage) {
+    boolean isPreviewValid = !errorMessage.startsWith(ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE);
+    int firstLineBreak = errorMessage.indexOf("\n");
+    boolean moreErrors = firstLineBreak > 0 && firstLineBreak < errorMessage.length() - 1;
+    String firstLineError =
+        moreErrors ? errorMessage.substring(0, firstLineBreak) : errorMessage;
+    myConvertError.setText(firstLineError);
+    if (moreErrors) {
+      myMoreErrors.setVisible(true);
+      myMoreErrors.setHyperlinkText("More...");
+      myMoreErrorHyperlinkAdapter.setErrorMessage(errorMessage);
+    } else {
+      myMoreErrors.setVisible(false);
+    }
+    return isPreviewValid;
   }
 
   @Nullable

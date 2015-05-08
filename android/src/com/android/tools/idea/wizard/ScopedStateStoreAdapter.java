@@ -195,4 +195,15 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
   public String getAssetTheme() {
     return myState.get(ATTR_ASSET_THEME);
   }
+
+  @Nullable
+  @Override
+  public String getErrorLog()  {
+    return (String)myState.get(ATTR_ERROR_LOG);
+  }
+
+  @Override
+  public void setErrorLog(String log) {
+    myState.put(ATTR_ERROR_LOG, log);
+  }
 }
