@@ -291,8 +291,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       if (column == 0) {
         throw new RuntimeException("Tried to setValue at parent attribute label");
       }
-      else if (value != null) {
-        String newName = (String) value;
+      else {
+        assert value instanceof String;
+        String newName = (String)value;
         //Changes the value of Parent in XML
         mySelectedStyle.setParent(newName);
         fireTableCellUpdated(0, 1);
