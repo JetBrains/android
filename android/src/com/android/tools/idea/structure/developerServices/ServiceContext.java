@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure.developerServices;
 
 import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +35,16 @@ import java.util.Map;
 public final class ServiceContext {
   private final Map<String, Observable> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
+  private final BoolValueProperty myIsInstalled = new BoolValueProperty();
+  private final BoolValueProperty myIsModified = new BoolValueProperty();
+
+  public BoolValueProperty isInstalled() {
+    return myIsInstalled;
+  }
+
+  public BoolValueProperty isModified() {
+    return myIsModified;
+  }
 
   public void putValue(@NotNull String key, @NotNull Observable observable) {
     myValues.put(key, observable);
