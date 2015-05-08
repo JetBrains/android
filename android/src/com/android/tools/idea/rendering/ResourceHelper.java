@@ -498,7 +498,7 @@ public class ResourceHelper {
       return Collections.emptyList();
     }
 
-    final Set<Color> result = new HashSet<Color>();
+    final List<Color> result = new ArrayList<Color>();
     for (final String maybeColor : new StateListIterable(resources, color, MAX_RESOURCE_INDIRECTION, ATTR_COLOR, true)) {
       if (maybeColor.startsWith("#")) {
         final Color parsedColor = parseColor(maybeColor);
@@ -507,7 +507,7 @@ public class ResourceHelper {
         }
       }
     }
-    return new ArrayList<Color>(result);
+    return result;
   }
 
   /**
