@@ -20,29 +20,48 @@ import com.android.tools.idea.editors.hprof.tables.TableColumn;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
-import com.android.tools.perflib.heap.Snapshot;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class ClassTableModel extends HprofTableModel {
   @NotNull private List<TableColumn<ClassTableModel, ?>> myColumns;
   @NotNull private ArrayList<ClassObj> myEntries;
+  private int myCurrentHeapId;
 
-  public ClassTableModel(@NotNull Snapshot snapshot) {
+  public ClassTableModel(@NotNull Heap selectedHeap) {
     super();
     myColumns = createHeapTableColumns();
     myEntries = new ArrayList<ClassObj>();
-    for (Heap heap : snapshot.getHeaps()) {
-      myEntries.addAll(heap.getClasses());
+    setHeap(selectedHeap);
+  }
+
+  public void setHeap(@NotNull final Heap selectedHeap) {
+    myCurrentHeapId = selectedHeap.getId();
+    myEntries.clear();
+    // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
+    HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(selectedHeap.getClasses());
+    for (Instance instance : selectedHeap.getInstances()) {
+      entriesSet.add(instance.getClassObj());
     }
+    myEntries.addAll(entriesSet);
+    Collections.sort(myEntries, new Comparator<ClassObj>() {
+      @Override
+      public int compare(ClassObj o1, ClassObj o2) {
+        return o1.getHeapInstancesCount(selectedHeap.getId()) - o2.getHeapInstancesCount(selectedHeap.getId());
+      }
+    });
+    fireTableDataChanged();
   }
 
   @NotNull
-  protected static List<TableColumn<ClassTableModel, ?>> createHeapTableColumns() {
+  protected List<TableColumn<ClassTableModel, ?>> createHeapTableColumns() {
     List<TableColumn<ClassTableModel, ?>> columns = new ArrayList<TableColumn<ClassTableModel, ?>>();
     columns.add(new TableColumn<ClassTableModel, ClassObj>("Class Name", ClassObj.class, SwingConstants.LEFT, 800, true) {
       @Override
@@ -51,11 +70,18 @@ public class ClassTableModel extends HprofTableModel {
         return model.getEntry(row);
       }
     });
-    columns.add(new TableColumn<ClassTableModel, Integer>("Count", Integer.class, SwingConstants.RIGHT, 100, true) {
+    columns.add(new TableColumn<ClassTableModel, Integer>("Total Count", Integer.class, SwingConstants.RIGHT, 100, true) {
       @Override
       @NotNull
       public Integer getValue(@NotNull ClassTableModel model, int row) {
-        return model.getEntry(row).getInstances().size();
+        return model.getEntry(row).getInstanceCount();
+      }
+    });
+    columns.add(new TableColumn<ClassTableModel, Integer>("Heap Count", Integer.class, SwingConstants.RIGHT, 100, true) {
+      @Override
+      @NotNull
+      public Integer getValue(@NotNull ClassTableModel model, int row) {
+        return model.getEntry(row).getHeapInstances(myCurrentHeapId).size();
       }
     });
     columns.add(new TableColumn<ClassTableModel, Integer>("Sizeof", Integer.class, SwingConstants.RIGHT, 80, true) {
@@ -77,7 +103,7 @@ public class ClassTableModel extends HprofTableModel {
       @NotNull
       public Long getValue(@NotNull ClassTableModel model, int row) {
         long totalSize = 0;
-        for (Instance i : model.getEntry(row).getInstances()) {
+        for (Instance i : model.getEntry(row).getHeapInstances(myCurrentHeapId)) {
           totalSize += i.getTotalRetainedSize();
         }
         return totalSize;
