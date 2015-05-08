@@ -22,14 +22,6 @@ import java.awt.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-/**
- * Note: Due to a bug(?) in JDK 6, any top-level panels sized with a width smaller than 128 end up
- * forced to a width of 128. As a result, I've always set layouts in this test to be larger than
- * 128 pixels wide. This should be fine in practice because UIs smaller than 128 pixels don't exist
- * in this day and age.
- *
- * I was able to run the tests fine with smaller widths in JDK 7+.
- */
 public final class ProportionalLayoutTest {
   @Test
   public void columnCountMatchesLayoutDefinition() {
@@ -41,22 +33,15 @@ public final class ProportionalLayoutTest {
   public void minimumWidthCalculationUsesFitValues() throws Exception {
     final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
 
-    Component col0 = Box.createHorizontalStrut(121);
-    Component col1 = Box.createHorizontalStrut(34);
+    Component col0 = Box.createHorizontalStrut(80);
+    Component col1 = Box.createHorizontalStrut(20);
 
     panel.add(col0, new ProportionalLayout.Constraint(0, 0));
     panel.add(col1, new ProportionalLayout.Constraint(0, 1));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        assertThat(panel.getWidth()).isEqualTo(155);
-      }
-    });
+    assertThat(panel.getWidth()).isEqualTo(100);
   }
 
   @Test
@@ -69,16 +54,9 @@ public final class ProportionalLayoutTest {
     panel.add(col0, new ProportionalLayout.Constraint(0, 0));
     panel.add(col1, new ProportionalLayout.Constraint(0, 1));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        assertThat(panel.getWidth()).isEqualTo(150);
-      }
-    });
+    assertThat(panel.getWidth()).isEqualTo(150);
   }
 
   @Test
@@ -101,24 +79,17 @@ public final class ProportionalLayoutTest {
     panel.add(row2col1, new ProportionalLayout.Constraint(2, 1));
     panel.add(row4col1, new ProportionalLayout.Constraint(4, 1));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        assertThat(panel.getWidth()).isEqualTo(800);
+    assertThat(panel.getWidth()).isEqualTo(800);
 
-        assertThat(row0col0.getWidth()).isEqualTo(300);
-        assertThat(row1col0.getWidth()).isEqualTo(300);
-        assertThat(row3col0.getWidth()).isEqualTo(300);
+    assertThat(row0col0.getWidth()).isEqualTo(300);
+    assertThat(row1col0.getWidth()).isEqualTo(300);
+    assertThat(row3col0.getWidth()).isEqualTo(300);
 
-        assertThat(row0col1.getWidth()).isEqualTo(500);
-        assertThat(row2col1.getWidth()).isEqualTo(500);
-        assertThat(row4col1.getWidth()).isEqualTo(500);
-      }
-    });
+    assertThat(row0col1.getWidth()).isEqualTo(500);
+    assertThat(row2col1.getWidth()).isEqualTo(500);
+    assertThat(row4col1.getWidth()).isEqualTo(500);
   }
 
   @Test
@@ -143,26 +114,19 @@ public final class ProportionalLayoutTest {
     panel.add(col3, new ProportionalLayout.Constraint(0, 3));
     panel.add(col4, new ProportionalLayout.Constraint(0, 4));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        assertThat(panel.getWidth()).isEqualTo(300);
+    assertThat(panel.getWidth()).isEqualTo(300);
 
-        assertThat(col0.getWidth()).isEqualTo(100);
-        assertThat(col1.getWidth()).isEqualTo(50);
-        assertThat(col2.getWidth()).isEqualTo(75);
-        assertThat(col3.getWidth()).isEqualTo(25);
-        assertThat(col4.getWidth()).isEqualTo(50);
-      }
-    });
+    assertThat(col0.getWidth()).isEqualTo(100);
+    assertThat(col1.getWidth()).isEqualTo(50);
+    assertThat(col2.getWidth()).isEqualTo(75);
+    assertThat(col3.getWidth()).isEqualTo(25);
+    assertThat(col4.getWidth()).isEqualTo(50);
   }
 
   @Test
-  public void recommendedSizeCalculationMakesRoomForProportionalColumns() throws Exception {
+  public void preferredSizeCalculationMakesRoomForProportionalColumns() throws Exception {
     final JPanel panel = new JPanel(ProportionalLayout.fromString("*,2*,3*,4*"));
 
     // Col 0 - 10%
@@ -180,38 +144,22 @@ public final class ProportionalLayoutTest {
     panel.add(col2, new ProportionalLayout.Constraint(0, 2));
     panel.add(col3, new ProportionalLayout.Constraint(0, 3));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        Dimension d = panel.getPreferredSize();
-        assertThat(d.width).isEqualTo(400);
-        assertThat(col0.getWidth()).isEqualTo(40);
-        assertThat(col1.getWidth()).isEqualTo(80);
-        assertThat(col2.getWidth()).isEqualTo(120);
-        assertThat(col3.getWidth()).isEqualTo(160);
-      }
-    });
+    assertThat(panel.getWidth()).isEqualTo(400);
+    assertThat(col0.getWidth()).isEqualTo(40);
+    assertThat(col1.getWidth()).isEqualTo(80);
+    assertThat(col2.getWidth()).isEqualTo(120);
+    assertThat(col3.getWidth()).isEqualTo(160);
   }
 
   @Test
   public void minimumSizeCalculationCollapsesProportionalColumns() throws Exception {
     final JPanel panel = new JPanel(ProportionalLayout.fromString("10px,990*,*,20px,3*"));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        Dimension d = panel.getMinimumSize();
-        assertThat(d.width).isEqualTo(30);
-      }
-    });
+    assertThat(panel.getMinimumSize().getWidth()).isEqualTo(30);
   }
 
   @Test
@@ -224,20 +172,13 @@ public final class ProportionalLayoutTest {
     panel.add(row0, new ProportionalLayout.Constraint(0, 0));
     panel.add(row2, new ProportionalLayout.Constraint(2, 0));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        assertThat(panel.getHeight()).isEqualTo(70);
+    assertThat(panel.getHeight()).isEqualTo(70);
 
-        assertThat(row0.getHeight()).isEqualTo(20);
-        assertThat(row2.getY()).isEqualTo(20);
-        assertThat(row2.getHeight()).isEqualTo(50);
-      }
-    });
+    assertThat(row0.getHeight()).isEqualTo(20);
+    assertThat(row2.getY()).isEqualTo(20);
+    assertThat(row2.getHeight()).isEqualTo(50);
   }
 
   @Test
@@ -254,19 +195,18 @@ public final class ProportionalLayoutTest {
     final int right = 4;
     panel.setBorder(BorderFactory.createEmptyBorder(top, left, bottom, right));
 
-    JFrame frame = new JFrame();
-    frame.add(panel);
-    frame.pack();
+    mockPackPanel(panel);
 
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        assertThat(panel.getWidth()).isEqualTo(300);
-        assertThat(panel.getHeight()).isEqualTo(30);
-        assertThat(cell.getWidth()).isEqualTo(300 - left - right);
-        // ProportionalLayout height is always compressed to fit
-        assertThat(cell.getHeight()).isEqualTo(cell.getPreferredSize().height);
-      }
-    });
+    assertThat(panel.getWidth()).isEqualTo(300);
+    assertThat(panel.getHeight()).isEqualTo(30);
+    assertThat(cell.getWidth()).isEqualTo(300 - left - right);
+  }
+
+  /**
+   * This fake pack method aims to imitate Frame.pack(), which we can't call in headless mode.
+   */
+  private static void mockPackPanel(JPanel panel) {
+    panel.setSize(panel.getPreferredSize());
+    panel.doLayout();
   }
 }
