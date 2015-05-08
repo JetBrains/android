@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.structure.developerServices;
 
+import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.BuildFileStatement;
+import com.android.tools.idea.gradle.parser.Dependency;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A class that wraps the contents and {@link ServiceContext} of a 'service.xml' file. Each
@@ -72,5 +79,46 @@ public final class DeveloperService {
       }
     }.execute();
     getContext().snapshot();
+    getContext().isInstalled().set(true);
+  }
+
+  public void uninstall() {
+    if (!getContext().isInstalled().get()) {
+      return;
+    }
+
+    final GradleBuildFile gradleFile = GradleBuildFile.get(getModule());
+    if (gradleFile != null) {
+      boolean dependenciesChanged = false;
+      final List<BuildFileStatement> dependencies = gradleFile.getDependencies();
+      Iterator<BuildFileStatement> iterator = dependencies.iterator();
+      while (iterator.hasNext()) {
+        BuildFileStatement statement = iterator.next();
+        if (!(statement instanceof Dependency)) {
+          continue;
+        }
+
+        Dependency dependency = (Dependency)statement;
+        for (String dependencyValue : getMetadata().getDependencies()) {
+          if (dependency.getValueAsString().equals(dependencyValue)) {
+            iterator.remove();
+            dependenciesChanged = true;
+            break;
+          }
+        }
+      }
+
+      if (dependenciesChanged) {
+        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall service: " + getMetadata().getName()) {
+          @Override
+          public void run() {
+            gradleFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+          }
+        }.execute();
+      }
+      GradleProjectImporter.getInstance().requestProjectSync(getModule().getProject(), null);
+    }
+
+    getContext().isInstalled().set(false);
   }
 }
