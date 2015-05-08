@@ -19,11 +19,11 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor.ColorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,7 +46,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -71,13 +70,13 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
   public final ParentAttribute parentAttribute = new ParentAttribute();
 
-  private AttributeReferenceRendererEditor.ClickListener myGoToDefinitionListener;
+  private ThemeEditorComponent.GoToListener myGoToDefinitionListener;
 
-  public void setGoToDefinitionListener(AttributeReferenceRendererEditor.ClickListener goToDefinitionListener) {
+  public void setGoToDefinitionListener(ThemeEditorComponent.GoToListener goToDefinitionListener) {
     myGoToDefinitionListener = goToDefinitionListener;
   }
 
-  private class GoToDefinitionActionListener implements ActionListener {
+  private class GoToDefinitionAction implements ActionListener {
     private EditedStyleItem myItem = null;
 
     public void setItem(EditedStyleItem item) {
@@ -87,12 +86,12 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     @Override
     public void actionPerformed(ActionEvent e) {
       if (myGoToDefinitionListener != null && myItem != null) {
-        myGoToDefinitionListener.clicked(myItem);
+        myGoToDefinitionListener.goTo(myItem);
       }
     }
   }
 
-  private class OpenFileActionListener implements ActionListener {
+  private class OpenFileAction implements ActionListener {
     private VirtualFile myFile = null;
 
     public void setFile(VirtualFile file) {
@@ -115,8 +114,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
   }
 
-  private final GoToDefinitionActionListener myGoToDefinitionActionListener = new GoToDefinitionActionListener();
-  private final OpenFileActionListener myOpenFileActionListener = new OpenFileActionListener();
+  private final GoToDefinitionAction myGoToDefinitionAction = new GoToDefinitionAction();
+  private final OpenFileAction myOpenFileAction = new OpenFileAction();
+  private final ActionListener myGotoParentAction = new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      myGoToDefinitionListener.goToParent();
+    }
+  };
 
   public interface ThemePropertyChangedListener {
     void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue);
@@ -264,7 +269,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   public class ParentAttribute implements RowContents {
-    private ActionListener myGotoDefinitionCallback;
 
     @Override
     public int getColumnSpan(int column) {
@@ -305,13 +309,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       return (column == 1 && !mySelectedStyle.isReadOnly());
     }
 
-    public void setGotoDefinitionCallback(ActionListener gotoDefinitionCallback) {
-      myGotoDefinitionCallback = gotoDefinitionCallback;
-    }
-
     @Override
     public ActionListener getGoToDefinitionCallback() {
-      return mySelectedStyle.getParent() == null ? null : myGotoDefinitionCallback;
+      return mySelectedStyle.getParent() == null ? null : myGotoParentAction;
     }
 
     @Override
@@ -493,8 +493,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public ActionListener getGoToDefinitionCallback() {
       EditedStyleItem item = (EditedStyleItem)getValueAt(1);
       if (getCellClass(1) == ThemeEditorStyle.class) {
-        myGoToDefinitionActionListener.setItem(item);
-        return myGoToDefinitionActionListener;
+        myGoToDefinitionAction.setItem(item);
+        return myGoToDefinitionAction;
       }
 
       VirtualFileManager manager = VirtualFileManager.getInstance();
@@ -503,8 +503,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
       final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
       if (virtualFile != null) {
-        myOpenFileActionListener.setFile(virtualFile);
-        return myOpenFileActionListener;
+        myOpenFileAction.setFile(virtualFile);
+        return myOpenFileAction;
       }
 
       return null;
