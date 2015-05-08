@@ -278,19 +278,19 @@ public class ThemeEditorComponent extends Splitter {
         if (myPanel.isCreateNewThemeSelected()) {
           if (!createNewTheme()) {
             // User clicked "cancel", restore previously selected item in themes combo.
-            myPanel.getThemeCombo().getModel().setSelectedItem(mySelectedTheme);
+            myPanel.setSelectedTheme(mySelectedTheme);
           }
           return;
         }
         if (myPanel.isShowAllThemesSelected()) {
           if (!selectNewTheme()) {
-            myPanel.getThemeCombo().getModel().setSelectedItem(mySelectedTheme);
+            myPanel.setSelectedTheme(mySelectedTheme);
           }
           return;
         }
         if (myPanel.isRenameSelected()) {
           if (!renameTheme()) {
-            myPanel.getThemeCombo().getModel().setSelectedItem(mySelectedTheme);
+            myPanel.setSelectedTheme(mySelectedTheme);
           }
           return;
         }
