@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
+import com.android.builder.model.NativeLibrary;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +77,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @Nullable
   public Set<String> getAbiFilters() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public Collection<NativeLibrary> getNativeLibraries() {
     return null;
   }
 

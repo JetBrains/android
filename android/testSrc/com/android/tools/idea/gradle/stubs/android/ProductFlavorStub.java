@@ -161,6 +161,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
+  @Nullable
+  public File getJarJarRuleFile() {
+    return null;
+  }
+
+  @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     throw new UnsupportedOperationException();

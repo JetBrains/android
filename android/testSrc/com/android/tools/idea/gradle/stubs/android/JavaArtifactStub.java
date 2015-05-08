@@ -15,12 +15,27 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.Nullable;
 import com.android.builder.model.JavaArtifact;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+
 public class JavaArtifactStub extends BaseArtifactStub implements JavaArtifact {
+  private File myMockablePlatformJar;
+
   public JavaArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     super(name, dirName, new DependenciesStub(), buildType, fileStructure);
+  }
+
+  @Override
+  @Nullable
+  public File getMockablePlatformJar() {
+    return myMockablePlatformJar;
+  }
+
+  public void setMockablePlatformJar(@Nullable File mockablePlatformJar) {
+    myMockablePlatformJar = mockablePlatformJar;
   }
 }
