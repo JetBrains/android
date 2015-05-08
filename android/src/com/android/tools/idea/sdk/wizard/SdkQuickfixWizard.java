@@ -202,6 +202,7 @@ public class SdkQuickfixWizard extends DynamicWizard {
 
   private static class SdkQuickfixPath extends DynamicWizardPath {
     private Disposable myDisposable;
+    private LicenseAgreementStep myLicenseAgreementStep;
 
     public SdkQuickfixPath(Disposable disposable) {
       myDisposable = disposable;
@@ -209,7 +210,8 @@ public class SdkQuickfixWizard extends DynamicWizard {
 
     @Override
     protected void init() {
-      addStep(new LicenseAgreementStep(myDisposable));
+      myLicenseAgreementStep = new LicenseAgreementStep(myDisposable);
+      addStep(myLicenseAgreementStep);
       addStep(new SmwOldApiDirectInstall(myDisposable));
     }
 
@@ -221,6 +223,7 @@ public class SdkQuickfixWizard extends DynamicWizard {
 
     @Override
     public boolean performFinishingActions() {
+      myLicenseAgreementStep.performFinishingActions();
       return true;
     }
   }
