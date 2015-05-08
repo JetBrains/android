@@ -355,7 +355,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     if (apiLevel >= 1) {
       if (apiTarget == null) {
         state.put(myBuildApiKey, Integer.toString(apiLevel));
-      } else if (apiTarget.getOptionalLibraries() != null) {
+      } else if (!apiTarget.isPlatform()) {
         state.put(myBuildApiKey, AndroidTargetHash.getTargetHashString(apiTarget));
       } else {
         state.put(myBuildApiKey, TemplateMetadata.getBuildApiString(apiTarget.getVersion()));
