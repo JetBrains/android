@@ -84,6 +84,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<String> ATTR_ICON_RESOURCE = createKey("icon_resource", PATH, String.class);
   public static final Key<Integer> ATTR_FONT_SIZE = createKey(AssetStudioAssetGenerator.ATTR_FONT_SIZE, PATH, Integer.class);
   public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
+  public static final Key<String> ATTR_ERROR_LOG = createKey(AssetStudioAssetGenerator.ATTR_ERROR_LOG, PATH, String.class);
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
   private static final int CLIPART_ICON_SIZE = 32;
