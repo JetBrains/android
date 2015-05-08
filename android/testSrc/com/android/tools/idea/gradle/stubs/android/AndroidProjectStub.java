@@ -198,6 +198,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
+  public Collection<NativeToolchain> getNativeToolchains() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public Collection<SigningConfig> getSigningConfigs() {
     throw new UnsupportedOperationException();
   }
