@@ -55,7 +55,6 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
-import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
@@ -63,7 +62,6 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -94,6 +92,7 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
@@ -101,18 +100,17 @@ import static org.jetbrains.android.AndroidPlugin.*;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.*;
 
-public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
-  private EditorFixture myEditor;
-
+public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final File myProjectPath;
-
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
+
+  private EditorFixture myEditor;
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
     final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
       @Override
-      protected boolean isMatching(IdeFrameImpl frame) {
+      protected boolean isMatching(@NotNull IdeFrameImpl frame) {
         Project project = frame.getProject();
         if (project != null && projectPath.getPath().equals(project.getBasePath())) {
           return projectName == null || projectName.equals(project.getName());
@@ -134,7 +132,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
-    super(robot, target);
+    super(IdeFrameFixture.class, robot, target);
     myProjectPath = projectPath;
     final Project project = getProject();
 
@@ -229,7 +227,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public EditorFixture getEditor() {
     if (myEditor == null) {
-      myEditor = new EditorFixture(robot, this);
+      myEditor = new EditorFixture(robot(), this);
     }
 
     return myEditor;
@@ -386,7 +384,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public ChooseDeviceDialogFixture findChooseDeviceDialog() {
-    return ChooseDeviceDialogFixture.find(this, robot);
+    return ChooseDeviceDialogFixture.find(robot());
   }
 
   @NotNull
@@ -410,7 +408,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
    */
   public void invokeMenuPath(@NotNull String... path) {
     JMenuItem menuItem = findActionMenuItem(path);
-    robot.click(menuItem);
+    robot().click(menuItem);
   }
 
   /**
@@ -422,7 +420,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
    */
   public void invokeMenuPathRegex(@NotNull String... path) {
     JMenuItem menuItem = findActionMenuItem(true, path);
-    robot.click(menuItem);
+    robot().click(menuItem);
   }
 
   @NotNull
@@ -434,18 +432,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
-    Container root = target;
+    Container root = target();
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
-      JMenuItem found = robot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      assertNotNull(root);
+      JMenuItem found = robot().finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
-        protected boolean isMatching(JMenuItem menuItem) {
+        protected boolean isMatching(@NotNull JMenuItem menuItem) {
           return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
         }
       });
       if (i < segmentCount - 1) {
-        robot.click(found);
-        root = robot.findActivePopupMenu();
+        robot().click(found);
+        root = robot().findActivePopupMenu();
         continue;
       }
       return found;
@@ -476,7 +475,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }, LONG_TIMEOUT);
 
     waitForBackgroundTasksToFinish();
-    robot.waitForIdle();
+    robot().waitForIdle();
 
     return this;
   }
@@ -600,18 +599,18 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
                !progressManager.hasUnsafeProgressIndicator();
       }
     }, LONG_TIMEOUT);
-    robot.waitForIdle();
+    robot().waitForIdle();
     return this;
   }
 
   @NotNull
   private ActionButtonFixture findActionButtonByActionId(String actionId) {
-    return ActionButtonFixture.findByActionId(actionId, robot, target);
+    return ActionButtonFixture.findByActionId(actionId, robot(), target());
   }
 
   @NotNull
   public AndroidToolWindowFixture getAndroidToolWindow() {
-    return new AndroidToolWindowFixture(getProject(), robot);
+    return new AndroidToolWindowFixture(getProject(), robot());
   }
 
   @NotNull
@@ -621,30 +620,34 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
-    return new MessagesToolWindowFixture(getProject(), robot);
+    return new MessagesToolWindowFixture(getProject(), robot());
   }
 
   @NotNull
   public GradleToolWindowFixture getGradleToolWindow() {
-    return new GradleToolWindowFixture(getProject(), robot);
+    return new GradleToolWindowFixture(getProject(), robot());
   }
 
-  /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
+  /**
+   * Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is {@code null}.
+   */
   @NotNull
   public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
-    EditorNotificationPanel panel = findPanel(message);  // fails test if not found (or if null and notifications were found)
+    EditorNotificationPanel panel = findNotificationPanel(message);  // fails test if not found (or if null and notifications were found)
     assertNotNull(panel);
-    return new EditorNotificationPanelFixture(robot, panel);
+    return new EditorNotificationPanelFixture(robot(), panel);
   }
 
-  /** Locates an editor notification with the given main message (unless the message is null, in which case we assert
-   * that there are no visible editor notifications. Will fail if the given notification is not found. */
+  /**
+   * Locates an editor notification with the given main message (unless the message is {@code null}, in which case we assert
+   * that there are no visible editor notifications. Will fail if the given notification is not found.
+   */
   @Nullable
-  private EditorNotificationPanel findPanel(@Nullable String message) {
-    Collection<EditorNotificationPanel> panels = robot.finder().findAll(target, new GenericTypeMatcher<EditorNotificationPanel>(
+  private EditorNotificationPanel findNotificationPanel(@Nullable String message) {
+    Collection<EditorNotificationPanel> panels = robot().finder().findAll(target(), new GenericTypeMatcher<EditorNotificationPanel>(
       EditorNotificationPanel.class, true) {
       @Override
-      protected boolean isMatching(EditorNotificationPanel panel) {
+      protected boolean isMatching(@NotNull EditorNotificationPanel panel) {
         return panel.isShowing();
       }
     });
@@ -678,7 +681,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   /** Looks up the main label for a given editor notification panel */
   private List<String> getEditorNotificationLabels(@NotNull EditorNotificationPanel panel) {
     final List<String> allText = Lists.newArrayList();
-    final Collection<JLabel> labels = robot.finder().findAll(panel, JLabelMatcher.any().andShowing());
+    final Collection<JLabel> labels = robot().finder().findAll(panel, JLabelMatcher.any().andShowing());
     for (final JLabel label : labels) {
       String text = execute(new GuiQuery<String>() {
         @Override
@@ -694,17 +697,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   /** Clicks the given link in the editor notification with the given message */
   public void clickEditorNotification(@NotNull String message, @NotNull final String linkText) {
-    final EditorNotificationPanel panel = findPanel(message);
+    final EditorNotificationPanel panel = findNotificationPanel(message);
     assertNotNull(panel);
 
-    HyperlinkLabel label = robot.finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class, true) {
+    HyperlinkLabel label = robot().finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class, true) {
       @Override
-      protected boolean isMatching(HyperlinkLabel component) {
-        String text = Reflection.method("getText").withReturnType(String.class).in(component).invoke();
-        return text.contains(linkText);
+      protected boolean isMatching(@NotNull HyperlinkLabel component) {
+        String text = method("getText").withReturnType(String.class).in(component).invoke();
+        return text != null && text.contains(linkText);
       }
     });
-    ComponentDriver driver = new ComponentDriver(robot);
+    ComponentDriver driver = new ComponentDriver(robot());
     driver.click(label);
   }
 
@@ -719,7 +722,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
         ShowSettingsUtil.getInstance().showSettingsDialog(project, new ProjectConfigurablesGroup(project), new IdeConfigurablesGroup());
       }
     });
-    return IdeSettingsDialogFixture.find(robot);
+    return IdeSettingsDialogFixture.find(robot());
   }
 
   @NotNull
@@ -770,7 +773,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   public AvdManagerDialogFixture invokeAvdManager() {
     ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
     button.click();
-    return AvdManagerDialogFixture.find(robot);
+    return AvdManagerDialogFixture.find(robot());
   }
 
   @NotNull
@@ -778,33 +781,33 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     invokeMenuPath("Analyze", "Inspect Code...");
 
     //final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
-    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = robot().finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Specify Inspection Scope".equals(dialog.getTitle());
       }
     });
-    JButton button = robot.finder().find(dialog, JButtonMatcher.withText("OK").andShowing());
-    robot.click(button);
+    JButton button = robot().finder().find(dialog, JButtonMatcher.withText("OK").andShowing());
+    robot().click(button);
 
-    final InspectionTree tree = waitUntilFound(robot, new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
+    final InspectionTree tree = waitUntilFound(robot(), new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
       @Override
-      protected boolean isMatching(InspectionTree component) {
+      protected boolean isMatching(@NotNull InspectionTree component) {
         return true;
       }
     });
 
-    return new InspectionsFixture(robot, getProject(), tree);
+    return new InspectionsFixture(robot(), getProject(), tree);
   }
 
   @NotNull
   public ProjectViewFixture getProjectView() {
-    return new ProjectViewFixture(getProject(), robot);
+    return new ProjectViewFixture(getProject(), robot());
   }
 
   @NotNull
   public Project getProject() {
-    Project project = target.getProject();
+    Project project = target().getProject();
     assertNotNull(project);
     return project;
   }
@@ -833,12 +836,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    return showPropertiesDialog(robot, libraryName, getProject());
+    return showPropertiesDialog(robot(), libraryName, getProject());
   }
 
   @NotNull
   public MessagesFixture findMessageDialog(@NotNull String title) {
-    return MessagesFixture.findByTitle(robot, target, title);
+    return MessagesFixture.findByTitle(robot(), target(), title);
   }
 
   @NotNull
@@ -865,7 +868,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   private void selectApp(@NotNull String appName) throws ClassNotFoundException {
-    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot, this);
+    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot(), this);
     comboBoxActionFixture.selectApp(appName);
   }
 }

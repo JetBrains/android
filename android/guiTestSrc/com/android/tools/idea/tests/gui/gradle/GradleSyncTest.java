@@ -60,7 +60,6 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -245,7 +244,7 @@ public class GradleSyncTest extends GuiTestCase {
     // TODO implement a proper "SDK Quick Fix wizard" fixture that wraps a SdkQuickfixWizard
     DialogFixture quickFixDialog = findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
       @Override
-      protected boolean isMatching(Dialog dialog) {
+      protected boolean isMatching(@NotNull Dialog dialog) {
         return "Install Missing Components".equals(dialog.getTitle());
       }
     }).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
@@ -253,7 +252,7 @@ public class GradleSyncTest extends GuiTestCase {
     // Accept license
     quickFixDialog.radioButton(new GenericTypeMatcher<JRadioButton>(JRadioButton.class) {
       @Override
-      protected boolean isMatching(JRadioButton button) {
+      protected boolean isMatching(@NotNull JRadioButton button) {
         return "Accept".equals(button.getText());
       }
     }).click();
@@ -265,10 +264,11 @@ public class GradleSyncTest extends GuiTestCase {
     pause(new Condition("Android Support Repository is installed") {
       @Override
       public boolean test() {
+        //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() {
-            return finish.target.isEnabled();
+            return finish.target().isEnabled();
           }
         });
       }
@@ -709,7 +709,7 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(excludeFolderPaths).isNotEmpty();
 
     boolean isExcluded = false;
-    for (File path : excludeFolderPaths) {
+    for (File path : notNullize(excludeFolderPaths)) {
       if (isAncestor(centralBuildParentDirPath, path, true)) {
         isExcluded = true;
         break;
@@ -943,7 +943,7 @@ public class GradleSyncTest extends GuiTestCase {
                 .waitForGradleProjectSyncToFinish();
     projectFrame.closeProject();
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
@@ -1147,8 +1147,8 @@ public class GradleSyncTest extends GuiTestCase {
     DataNode<ProjectData> cache = getCachedProjectData(project);
     assertNotNull(cache);
 
-    List<DataNode<?>> cachedChildren = field("myChildren").ofType(new TypeRef<List<DataNode<?>>>() {
-    }).in(cache).get();
+    List<DataNode<?>> cachedChildren = field("myChildren").ofType(new TypeRef<List<DataNode<?>>>(){}).in(cache).get();
+    assertNotNull(cachedChildren);
     assertThat(cachedChildren.size()).isGreaterThan(1);
     DataNode<?> toRemove = null;
     for (DataNode<?> child : cachedChildren) {

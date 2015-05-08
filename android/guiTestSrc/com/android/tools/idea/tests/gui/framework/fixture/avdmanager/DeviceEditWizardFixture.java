@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -23,12 +22,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class DeviceEditWizardFixture extends AbstractWizardFixture {
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+
+public class DeviceEditWizardFixture extends AbstractWizardFixture<DeviceEditWizardFixture> {
 
   public static DeviceEditWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return "Hardware Profile Configuration".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
@@ -36,18 +38,18 @@ public class DeviceEditWizardFixture extends AbstractWizardFixture {
   }
 
   public DeviceEditWizardFixture(Robot robot, JDialog target) {
-    super(robot, target);
+    super(DeviceEditWizardFixture.class, robot, target);
   }
 
+  @NotNull
   public ConfigureDeviceOptionsStepFixture getConfigureDeviceOptionsStep() {
     JRootPane rootPane = findStepWithTitle("Configure Hardware Profile");
-    return new ConfigureDeviceOptionsStepFixture(robot, rootPane);
+    return new ConfigureDeviceOptionsStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public DeviceEditWizardFixture clickOk() {
-    JButton button = findButtonByText("OK");
-    robot.click(button);
+    findAndClickOkButton(this);
     return this;
   }
 }
