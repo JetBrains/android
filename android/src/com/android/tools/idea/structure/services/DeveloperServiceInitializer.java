@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.developerServices;
+package com.android.tools.idea.structure.services;
 
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
