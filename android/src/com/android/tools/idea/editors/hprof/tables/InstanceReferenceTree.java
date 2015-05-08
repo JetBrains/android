@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.hprof.tables;
 import com.android.tools.idea.editors.hprof.descriptors.InstanceFieldDescriptorImpl;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.RootObj;
-import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
 import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
@@ -31,9 +30,14 @@ import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class InstanceReferenceTree {
   @NotNull private Tree myTree;
+  private Instance myInstance;
 
   public InstanceReferenceTree() {
     TreeBuilder model = new TreeBuilder(null) {
@@ -64,7 +68,13 @@ public class InstanceReferenceTree {
                                         boolean hasFocus) {
         Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
         SimpleTextAttributes attributes;
-        if (instance.getImmediateDominator() == null) {
+        if (myInstance.getImmediateDominator() == instance) {
+          attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
+        }
+        else if (instance.getDistanceToGcRoot() == 0) {
+          attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
+        }
+        else if (instance.getImmediateDominator() == null) {
           attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
         }
         else {
@@ -93,9 +103,9 @@ public class InstanceReferenceTree {
         DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)path.getPathComponent(1);
         if (node.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
           InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)node.getDescriptor();
-          Instance instance = descriptor.getInstance();
-          assert (instance != null);
-          ((TreeBuilder)myTree.getModel()).setRoot(createInstanceBuilderNode(instance));
+          myInstance = descriptor.getInstance();
+          assert (myInstance != null);
+          ((TreeBuilder)myTree.getModel()).setRoot(createInstanceBuilderNode(myInstance));
           ((TreeBuilder)myTree.getModel()).nodeStructureChanged((TreeBuilderNode)myTree.getModel().getRoot());
         }
       }
@@ -117,7 +127,15 @@ public class InstanceReferenceTree {
       return;
     }
 
-    for (Instance reference : instance.getReferences()) {
+    List<Instance> sortedReferences = new ArrayList<Instance>(instance.getReferences());
+    Collections.sort(sortedReferences, new Comparator<Instance>() {
+      @Override
+      public int compare(Instance o1, Instance o2) {
+        return o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
+      }
+    });
+
+    for (Instance reference : sortedReferences) {
       node.add(createInstanceBuilderNode(reference));
     }
   }
