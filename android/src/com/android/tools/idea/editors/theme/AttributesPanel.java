@@ -71,8 +71,13 @@ public class AttributesPanel {
     myPalette.setShowCheckeredBackground(true);
   }
 
-  public void setSelectedTheme(final ThemeEditorStyle style) {
-    myThemeCombo.setSelectedItem(style);
+  /**
+   * @param theme Does not have to be one of the items in the combo box list.
+   */
+  public void setSelectedTheme(final ThemeEditorStyle theme) {
+    // we set the theme on the model and not the actual combo box
+    // as the model allows setting a theme that is not contained in the list, but the combo box does not.
+    myThemeCombo.getModel().setSelectedItem(theme);
   }
 
   public boolean isCreateNewThemeSelected() {
