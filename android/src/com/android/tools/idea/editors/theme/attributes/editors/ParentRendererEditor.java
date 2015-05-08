@@ -75,6 +75,7 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
     ThemeEditorStyle parent = (ThemeEditorStyle)value;
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myConfiguration));
     myComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
+    myResultValue = parent.getName();
     return myComboBox;
   }
 
