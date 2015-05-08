@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.structure.developerServices;
 
+import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
@@ -23,10 +25,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A generic mapping of strings to {@link Observable} values and {@link Runnable} actions. Adding
  * entries here allows them to be referenced within service.xml.
+ * <p/>
+ * Some of the values added to a context are marked as "watched", using
+ * {@link #putWatchedValue(String, ObservableProperty)}. Those values are special, and modifying
+ * any of them will mark this context as modified. {@link #snapshot()} and {@link #restore()} will
+ * also save and revert watched values - this is useful, for example, if a user is modifying a
+ * service but then cancels their changes.
  * <p/>
  * As a convention, you should organize your keys into namespaces, using periods to delimit them.
  * For example, instead of "countOfAnalyticsProjects" and "countOfAdsProjects", prefer instead
@@ -35,19 +44,50 @@ import java.util.Map;
 public final class ServiceContext {
   private final Map<String, Observable> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
+  private final Map<ObservableProperty, Object> myWatched = new WeakHashMap<ObservableProperty, Object>();
   private final BoolValueProperty myIsInstalled = new BoolValueProperty();
   private final BoolValueProperty myIsModified = new BoolValueProperty();
 
-  public BoolValueProperty isInstalled() {
-    return myIsInstalled;
-  }
+  private final InvalidationListener myWatchedListener = new InvalidationListener() {
+    @Override
+    protected void onInvalidated(@NotNull Observable sender) {
+      myIsModified.set(true);
+    }
+  };
 
   public BoolValueProperty isModified() {
     return myIsModified;
   }
 
+  public BoolValueProperty isInstalled() {
+    return myIsInstalled;
+  }
+
+  public void snapshot() {
+    for (ObservableProperty property : myWatched.keySet()) {
+      myWatched.put(property, property.get());
+    }
+
+    myIsModified.set(false);
+  }
+
+  public void restore() {
+    for (ObservableProperty property : myWatched.keySet()) {
+      //noinspection unchecked
+      property.set(myWatched.get(property));
+    }
+
+    myIsModified.set(false);
+  }
+
   public void putValue(@NotNull String key, @NotNull Observable observable) {
     myValues.put(key, observable);
+  }
+
+  public void putWatchedValue(@NotNull String key, @NotNull ObservableProperty property) {
+    putValue(key, property);
+    property.addWeakListener(myWatchedListener);
+    myWatched.put(property, property.get());
   }
 
   public void putAction(@NotNull String key, @NotNull Runnable action) {
