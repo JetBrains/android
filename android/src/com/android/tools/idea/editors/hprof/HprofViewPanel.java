@@ -16,9 +16,10 @@
 package com.android.tools.idea.editors.hprof;
 
 import com.android.tools.idea.editors.hprof.descriptors.ContainerDescriptorImpl;
+import com.android.tools.idea.editors.hprof.tables.InstanceReferenceTree;
+import com.android.tools.idea.editors.hprof.tables.InstancesDebuggerTree;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTable;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTableModel;
-import com.android.tools.idea.editors.hprof.tables.instancestable.InstancesDebuggerTree;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
@@ -32,44 +33,37 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.panels.Wrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class HprofViewPanel implements Disposable {
   private static final int DIVIDER_WIDTH = 4;
-  @NotNull private Project myProject;
   @NotNull private JPanel myContainer;
-  @NotNull private JPanel myDominatorPanel;
 
   public HprofViewPanel(@NotNull final Project project, @NotNull Snapshot snapshot) {
-    myProject = project;
-
-    InstancesDebuggerTree instancesDebuggerTree = createInstancesDebuggerTree();
-    final ClassTable classTable = createClassTable(snapshot, instancesDebuggerTree);
-    JBSplitter splitter = createNavigationSplitter(classTable, instancesDebuggerTree.getComponent());
-
-    myDominatorPanel = new JPanel(new BorderLayout());
-    myDominatorPanel.setBorder(new EmptyBorder(0, 2, 0, 0));
-
     JBPanel treePanel = new JBPanel(new BorderLayout());
     treePanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     treePanel.setBackground(JBColor.background());
-    treePanel.add(myDominatorPanel, BorderLayout.CENTER);
 
-    Wrapper treePanelWrapper = new Wrapper(treePanel);
-    treePanelWrapper.setBorder(new EmptyBorder(0, 1, 0, 0));
+    InstanceReferenceTree referenceTree = new InstanceReferenceTree();
+    JBScrollPane scrollPane = new JBScrollPane();
+    scrollPane.setViewportView(referenceTree.getComponent());
+    treePanel.add(scrollPane, BorderLayout.CENTER);
+
+    InstancesDebuggerTree instancesDebuggerTree = new InstancesDebuggerTree(project);
+    instancesDebuggerTree.getComponent().addMouseListener(referenceTree.getMouseAdapter());
+    final ClassTable classTable = createClassTable(snapshot, instancesDebuggerTree);
+    JBSplitter splitter = createNavigationSplitter(classTable, instancesDebuggerTree.getComponent());
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
 
-    DefaultActionGroup group = new DefaultActionGroup(new ComputeDominatorAction(snapshot, myProject) {
+    DefaultActionGroup group = new DefaultActionGroup(new ComputeDominatorAction(snapshot, project) {
       @Override
       public void onDominatorsComputed() {
         // TODO this should be done with tables adding listeners to the snapshot, as it's the snapshot that changes.
@@ -81,7 +75,7 @@ public class HprofViewPanel implements Disposable {
 
     JBSplitter mainSplitter = new JBSplitter(true);
     mainSplitter.setFirstComponent(classPanel);
-    mainSplitter.setSecondComponent(treePanelWrapper);
+    mainSplitter.setSecondComponent(treePanel);
     mainSplitter.setDividerWidth(DIVIDER_WIDTH);
 
     myContainer = new JPanel(new BorderLayout());
@@ -101,16 +95,10 @@ public class HprofViewPanel implements Disposable {
           ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
           instancesDebuggerTree.setRoot(DebuggerTreeNodeImpl.createNodeNoUpdate(instancesDebuggerTree.getComponent(),
                                                                                 new ContainerDescriptorImpl(classObj.getInstances())));
-
         }
       }
     });
     return classTable;
-  }
-
-  @NotNull
-  private InstancesDebuggerTree createInstancesDebuggerTree() {
-    return new InstancesDebuggerTree(myProject);
   }
 
   @NotNull
