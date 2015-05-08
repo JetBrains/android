@@ -274,7 +274,7 @@ public class LombokPsiParser extends JavaParser {
   }
 
   private static class PsiTypeDescriptor extends DefaultTypeDescriptor {
-    private final PsiType myType;
+    @NonNull private final PsiType myType;
 
     public PsiTypeDescriptor(@NonNull PsiType type) {
       super(type.getCanonicalText());
@@ -296,6 +296,23 @@ public class LombokPsiParser extends JavaParser {
       }
 
       return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      PsiTypeDescriptor that = (PsiTypeDescriptor)o;
+
+      if (!myType.equals(that.myType)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myType.hashCode();
     }
   }
 
