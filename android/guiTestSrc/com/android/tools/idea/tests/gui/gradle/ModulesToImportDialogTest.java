@@ -29,7 +29,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +53,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -124,7 +124,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     findByText("Save Selection As", myRobot, dialog).click();
     FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return dialog.isShowing() && "Save Module Selection".equals(dialog.getTitle());
       }
     });
@@ -137,7 +137,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     findByText("Load Selection from File", myRobot, dialog).click();
     fileChooser = FileChooserDialogFixture.findDialog(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return dialog.isShowing() && "Load Module Selection".equals(dialog.getTitle());
       }
     });
@@ -164,12 +164,14 @@ public class ModulesToImportDialogTest extends GuiTestCase {
   }
 
   public DialogAndWrapper<ModulesToImportDialog> launchDialog() {
-    final ModulesToImportDialog dialog = GuiActionRunner.execute(new GuiQuery<ModulesToImportDialog>() {
+    final ModulesToImportDialog dialog = execute(new GuiQuery<ModulesToImportDialog>() {
       @Override
       protected ModulesToImportDialog executeInEDT() throws Throwable {
         return new ModulesToImportDialog(myModules, null);
       }
     });
+
+    assertNotNull(dialog);
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -181,7 +183,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
 
     return IdeaDialogFixture.find(myRobot, ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return "Select Modules to Include in Project Subset".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });

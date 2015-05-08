@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -30,6 +29,8 @@ import java.io.File;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SUPPORTED_GRADLE_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.UNSUPPORTED_GRADLE_HOME_PROPERTY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
@@ -72,12 +73,13 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
 
   @NotNull
   private ChooseGradleHomeDialogFixture launchChooseGradleHomeDialog() {
-    final ChooseGradleHomeDialog dialog = GuiActionRunner.execute(new GuiQuery<ChooseGradleHomeDialog>() {
+    final ChooseGradleHomeDialog dialog = execute(new GuiQuery<ChooseGradleHomeDialog>() {
       @Override
       protected ChooseGradleHomeDialog executeInEDT() throws Throwable {
         return new ChooseGradleHomeDialog(MINIMUM_GRADLE_VERSION);
       }
     });
+    assertNotNull(dialog);
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override

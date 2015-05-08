@@ -20,7 +20,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.messages.SheetController;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ComponentFixture;
+import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -35,9 +35,10 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
+import static org.junit.Assert.assertNotNull;
 
 public class MessagesFixture {
-  @NotNull private final ComponentFixture<? extends Container> myDelegate;
+  @NotNull private final ContainerFixture<? extends Container> myDelegate;
 
   @NotNull
   public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
@@ -48,7 +49,7 @@ public class MessagesFixture {
     return new MessagesFixture(dialog);
   }
 
-  private MessagesFixture(@NotNull ComponentFixture<? extends Container> delegate) {
+  private MessagesFixture(@NotNull ContainerFixture<? extends Container> delegate) {
     myDelegate = delegate;
   }
 
@@ -84,7 +85,7 @@ public class MessagesFixture {
   static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
     JPanel sheetPanel = waitUntilFound(robot, root, new GenericTypeMatcher<JPanel>(JPanel.class) {
       @Override
-      protected boolean isMatching(JPanel panel) {
+      protected boolean isMatching(@NotNull JPanel panel) {
         if (panel.getClass().getName().startsWith(SheetController.class.getName()) && panel.isShowing()) {
           SheetController controller = findSheetController(panel);
           JPanel sheetPanel = field("mySheetPanel").ofType(JPanel.class).in(controller).get();
@@ -108,7 +109,7 @@ public class MessagesFixture {
 
     JEditorPane titleTextPane = robot.finder().find(sheetPanel, new GenericTypeMatcher<JEditorPane>(JEditorPane.class) {
       @Override
-      protected boolean isMatching(JEditorPane editorPane) {
+      protected boolean isMatching(@NotNull JEditorPane editorPane) {
         return editorPane != messageTextPane;
       }
     });
@@ -128,7 +129,7 @@ public class MessagesFixture {
     @Override
     @NotNull
     public String getMessage() {
-      JEditorPane messageTextPane = getMessageTextPane(target);
+      JEditorPane messageTextPane = getMessageTextPane(target());
       String text = getHtmlBody(messageTextPane.getText());
       return nullToEmpty(text);
     }
@@ -137,12 +138,16 @@ public class MessagesFixture {
   @NotNull
   private static JEditorPane getMessageTextPane(@NotNull JPanel sheetPanel) {
     SheetController sheetController = findSheetController(sheetPanel);
-    return field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
+    JEditorPane messageTextPane = field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
+    assertNotNull(messageTextPane);
+    return messageTextPane;
   }
 
   @NotNull
   private static SheetController findSheetController(@NotNull JPanel sheetPanel) {
-    return field("this$0").ofType(SheetController.class).in(sheetPanel).get();
+    SheetController sheetController = field("this$0").ofType(SheetController.class).in(sheetPanel).get();
+    assertNotNull(sheetController);
+    return sheetController;
   }
 
   @Nullable

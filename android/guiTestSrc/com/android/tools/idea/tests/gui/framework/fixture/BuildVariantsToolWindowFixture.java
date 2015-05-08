@@ -25,24 +25,22 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
-import static org.junit.Assert.assertNotNull;
 
 public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
   @NotNull private final IdeFrameFixture myProjectFrame;
 
   public BuildVariantsToolWindowFixture(@NotNull IdeFrameFixture projectFrame) {
-    super(BuildVariantToolWindowFactory.ID, projectFrame.getProject(), projectFrame.robot);
+    super(BuildVariantToolWindowFactory.ID, projectFrame.getProject(), projectFrame.robot());
     myProjectFrame = projectFrame;
   }
 
   @NotNull
-  public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull String module, @NotNull String variant) {
+  public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull final String module, @NotNull String variant) {
     activate();
     Content[] contents = myToolWindow.getContentManager().getContents();
     assertThat(contents.length).isGreaterThanOrEqualTo(1);
@@ -55,8 +53,8 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     JTableFixture table = new JTableFixture(myRobot, variantsTable);
     JTableCellFixture moduleCell = table.cell(new TableCellFinder() {
       @Override
-      @Nullable
-      public TableCell findCell(JTable table, JTableCellReader cellReader) {
+      @NotNull
+      public TableCell findCell(@NotNull JTable table, @NotNull JTableCellReader cellReader) {
         int rowCount = table.getRowCount();
         for (int i = 0; i < rowCount; i++) {
           int moduleColumnIndex = 0;
@@ -65,10 +63,9 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
             return row(i).column(moduleColumnIndex);
           }
         }
-        return null;
+        throw new AssertionError("Failed to find module '" + module + "' in 'Build Variants' view");
       }
     });
-    assertNotNull("Failed to find module '" + module + "' in 'Build Variants' view", moduleCell);
 
     TableCell variantCellCoordinates = row(moduleCell.row()).column(1);
     String selectedVariant = table.valueAt(variantCellCoordinates);

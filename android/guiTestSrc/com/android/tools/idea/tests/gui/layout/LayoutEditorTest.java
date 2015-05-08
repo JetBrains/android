@@ -85,7 +85,7 @@ public class LayoutEditorTest extends GuiTestCase {
     // Check id editing (has custom editor which strips out id prefixes
     PropertyFixture idProperty = propertySheet.findProperty("id");
     assertThat(idProperty).as("ID property").isNotNull();
-    assert idProperty != null; // for null analysis
+    assertNotNull(idProperty); // for null analysis
     idProperty.enterValue("tv1");
     idProperty.requireXmlValue("@+id/tv1");
 
