@@ -31,7 +31,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <applicationConfigurable parentId="preferences.general"
-                             displayName="Android SDK Updater"
+                             displayName="Android SDK"
                              instance="com.android.tools.idea.updater.configure.SdkUpdaterConfigurable"
                              id="android.sdk-updates"/>
   </extensions>

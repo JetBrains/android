@@ -96,16 +96,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
 
   @Override
   public void customizeRenderer(Renderer renderer, JTree tree, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-    StringBuilder result = new StringBuilder();
-    result.append("Android ");
-    result.append(SdkVersionInfo.getVersionString(myVersion.getApiLevel()));
-    String codeName = SdkVersionInfo.getCodeName(myVersion.getApiLevel());
-    if (codeName != null) {
-      result.append(" (");
-      result.append(codeName);
-      result.append(")");
-    }
-    renderer.getTextRenderer().append(result.toString());
+    renderer.getTextRenderer().append(getDescription(myVersion));
   }
 
   public AndroidVersion getVersion() {
@@ -185,5 +176,24 @@ class SummaryTreeNode extends UpdaterTreeNode {
 
   public UpdaterTreeNode getPrimaryChild() {
     return myPrimaryChild;
+  }
+
+  public static String getDescription(AndroidVersion version) {
+    StringBuilder result = new StringBuilder();
+    result.append("Android ");
+    if (version.isPreview()) {
+      result.append(version.getCodename());
+      result.append(" Preview");
+    }
+    else {
+      result.append(SdkVersionInfo.getVersionString(version.getApiLevel()));
+      String codeName = SdkVersionInfo.getCodeName(version.getApiLevel());
+      if (codeName != null) {
+        result.append(" (");
+        result.append(codeName);
+        result.append(")");
+      }
+    }
+    return result.toString();
   }
 }
