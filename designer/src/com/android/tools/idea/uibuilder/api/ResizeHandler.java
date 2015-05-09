@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 import java.awt.*;
 
@@ -37,6 +37,7 @@ public abstract class ResizeHandler {
   @AndroidCoordinate protected int startY;
   @AndroidCoordinate protected int lastX;
   @AndroidCoordinate protected int lastY;
+  protected int lastModifiers;
 
   /** The type of horizontal edge being resized, or null */
   public SegmentType horizontalEdgeType;
@@ -75,35 +76,52 @@ public abstract class ResizeHandler {
   /**
    * Finishes a resize at the given coordinate
    *
-   * @param x the x coordinate in the Android screen pixel coordinate system
-   * @param y the y coordinate in the Android screen pixel coordinate system
+   * @param x         the x coordinate in the Android screen pixel coordinate system
+   * @param y         the y coordinate in the Android screen pixel coordinate system
+   * @param modifiers the modifier key state
+   * @param newBounds the new (proposed) bounds of the component
    */
-  public abstract void commit(@AndroidCoordinate int x, @AndroidCoordinate int y);
+  public abstract void commit(@AndroidCoordinate int x,
+                              @AndroidCoordinate int y,
+                              int modifiers,
+                              @NonNull @AndroidCoordinate Rectangle newBounds);
 
   /**
    * Starts a resize at the given position
    *
-   * @param x the x coordinate in the Android screen pixel coordinate system
-   * @param y the y coordinate in the Android screen pixel coordinate system
+   * @param x         the x coordinate in the Android screen pixel coordinate system
+   * @param y         the y coordinate in the Android screen pixel coordinate system
+   * @param modifiers the modifier key state
    */
-  public void start(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     startX = x;
     startY = y;
+    lastX = x;
+    lastY = y;
+    lastModifiers = modifiers;
   }
 
   /**
    * Continues a resize to the given position. Will always come after a call to {@link #start}.
    *
-   * @param x the x coordinate in the Android screen pixel coordinate system
-   * @param y the y coordinate in the Android screen pixel coordinate system
+   * @param x         the x coordinate in the Android screen pixel coordinate system
+   * @param y         the y coordinate in the Android screen pixel coordinate system
+   * @param modifiers the modifier key state
+   * @param newBounds the new (proposed) bounds of the component
+   * @return null if the drag is successful so far, or an empty string (or a short error
+   * message describing the problem to be shown to the user) if not
    */
-  public void update(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  @Nullable
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers,
+                     @NonNull @AndroidCoordinate Rectangle newBounds) {
     lastX = x;
     lastY = y;
+    lastModifiers = modifiers;
+    return null;
   }
 
   /**
    * Paints the drag feedback during the resize operation
    */
-  public abstract void paint(@NonNull ScreenView screen, @NonNull Graphics2D gc);
+  public abstract void paint(@NonNull NlGraphics graphics);
 }
