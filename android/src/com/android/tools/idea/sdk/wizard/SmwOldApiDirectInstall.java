@@ -27,6 +27,7 @@ import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -111,7 +112,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       @Override
       public void run() {
         if (!ApplicationManager.getApplication().isDispatchThread()) {
-          ApplicationManager.getApplication().invokeLater(this);
+          ApplicationManager.getApplication().invokeLater(this, ModalityState.any());
           return;
         }
         // TODO: since the local SDK has been parsed, this is now a good time
