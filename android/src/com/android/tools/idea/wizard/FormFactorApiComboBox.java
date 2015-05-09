@@ -302,7 +302,7 @@ public final class FormFactorApiComboBox extends JComboBox {
       if (target.isPlatform()
           && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
         if (target.getVersion().isPreview()) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
+          return target.getVersion().getApiString() + ": " + target.getName();
         }
         String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
         if (name == null) {
@@ -375,7 +375,7 @@ public final class FormFactorApiComboBox extends JComboBox {
 
       // Are we installing a new platform (so we don't have an IAndroidTarget yet) ?
       // If so, adjust compile and target sdk to that new platform
-      if (apiTarget != null && apiLevel > apiTarget.getVersion().getApiLevel()) {
+      if (apiTarget != null && apiLevel > apiTarget.getVersion().getApiLevel() && !apiTarget.getVersion().isPreview()) {
         state.put(myBuildApiKey, Integer.toString(apiLevel));
         state.put(myTargetApiStringKey, Integer.toString(apiLevel));
         // myBuildApiLevelKey is already correct

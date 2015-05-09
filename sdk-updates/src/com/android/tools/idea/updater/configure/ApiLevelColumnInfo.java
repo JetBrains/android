@@ -44,7 +44,7 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
     }
 
     if (version != null) {
-      return Integer.toString(version.getApiLevel());
+      return version.getApiString();
     }
     else {
       return "Unknown";

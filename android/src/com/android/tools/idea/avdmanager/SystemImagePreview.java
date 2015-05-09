@@ -96,7 +96,6 @@ public class SystemImagePreview {
       ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, MAIN_CONTENT);
       int apiLevel = image.getVersion().getApiLevel();
       myApiLevelListener.setApiLevel(apiLevel);
-      Distribution distribution = DistributionService.getInstance().getDistributionForApiLevel(apiLevel);
       String codeName = getCodeName(myImageDescription);
       if (codeName != null) {
         myReleaseName.setText(codeName);
@@ -105,7 +104,8 @@ public class SystemImagePreview {
       if (icon != null) {
         myReleaseIcon.setIcon(icon);
       }
-      myApiLevel.setText(Integer.toString(apiLevel));
+      myApiLevel.setText(image.getVersion().getApiString());
+      myAndroidVersion.setVisible(!image.getVersion().isPreview());
       myAndroidVersion.setText(SdkVersionInfo.getVersionString(apiLevel));
       String vendorName;
       String tag = myImageDescription.getTag().getId();
@@ -124,7 +124,11 @@ public class SystemImagePreview {
    */
   @Nullable
   public static String getCodeName(@NotNull SystemImageDescription description) {
-    return SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
+    String codeName = description.getVersion().getCodename();
+    if (codeName == null) {
+      codeName = SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
+    }
+    return codeName;
   }
 
   /**
@@ -139,6 +143,13 @@ public class SystemImagePreview {
     Icon icon = null;
     try {
       icon = IconLoader.findIcon(String.format("/icons/versions/%1$s.png", codename), AndroidIcons.class);
+    } catch (RuntimeException ignored) {
+    }
+    if (icon != null) {
+      return icon;
+    }
+    try {
+      icon = IconLoader.findIcon("/icons/versions/Default.png", AndroidIcons.class);
     } catch (RuntimeException ignored) {
     }
     if (icon != null) {
