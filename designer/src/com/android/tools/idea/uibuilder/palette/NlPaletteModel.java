@@ -131,8 +131,7 @@ public class NlPaletteModel {
       return null;
     }
     if (creation.isEmpty()) {
-      LOG.warn(String.format("No creation found for item with tag: %s", modelElement.getAttributeValue(ATTR_TAG)));
-      return null;
+      creation = "<" + modelElement.getAttributeValue(ATTR_TAG) +"/>";
     }
     return new NlPaletteItem(title, iconPath, tooltip, creation);
   }

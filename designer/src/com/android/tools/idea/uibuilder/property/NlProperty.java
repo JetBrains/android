@@ -62,6 +62,9 @@ public class NlProperty extends PTableItem {
   @Nullable
   public String getValue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
+    if (!myTag.isValid()) {
+      return "";
+    }
     return myTag.getAttributeValue(myDescriptor.getName(myTag));
   }
 

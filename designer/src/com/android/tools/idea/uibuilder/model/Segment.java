@@ -56,7 +56,7 @@ public class Segment {
    * The node that contains this edge
    */
   @Nullable
-  public final NlComponent node;
+  public final NlComponent component;
 
   /**
    * The id of the node. May be null (in which case id should be generated when
@@ -68,14 +68,14 @@ public class Segment {
   public Segment(int at,
                  int from,
                  int to,
-                 @Nullable NlComponent node,
+                 @Nullable NlComponent component,
                  @Nullable String id,
                  @NotNull SegmentType edgeType,
                  @NotNull MarginType marginType) {
     this.at = at;
     this.from = from;
     this.to = to;
-    this.node = node;
+    this.component = component;
     this.id = id;
     this.edgeType = edgeType;
     this.marginType = marginType;
@@ -84,9 +84,9 @@ public class Segment {
   @NotNull
   @Override
   public String toString() {
-    String nodeStr = node == null ? "null" : node.tag.getName().substring(
-      node.tag.getName().lastIndexOf(('.')) + 1);
-    return "Segment [edgeType=" + edgeType + ", node=" + nodeStr + ", at=" + at + ", id=" + id
+    String componentStr = component == null ? "null" : component.getTagName().substring(
+      component.getTag().getName().lastIndexOf(('.')) + 1);
+    return "Segment [edgeType=" + edgeType + ", component=" + componentStr + ", at=" + at + ", id=" + id
            + ", from=" + from + ", to=" + to + ", marginType=" + marginType + "]";
   }
 }
