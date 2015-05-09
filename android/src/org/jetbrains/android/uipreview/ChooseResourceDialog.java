@@ -101,8 +101,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private final JBTabbedPane myContentPanel;
   private final ResourcePanel myProjectPanel;
   private final ResourcePanel mySystemPanel;
-  private ColorPicker myColorPicker;
+  private JPanel myColorPickerPanel;
 
+  private ColorPicker myColorPicker;
   private ResourcePickerListener myResourcePickerListener;
 
   private boolean myAllowCreateResource = true;
@@ -190,7 +191,23 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         public void closed(@Nullable Color color) { }
       });
       myColorPicker.pickARGB();
-      myContentPanel.addTab("Color", myColorPicker);
+
+      myColorPickerPanel = new JPanel(new BorderLayout());
+      myColorPickerPanel.add(myColorPicker);
+      myContentPanel.addTab("Color", myColorPickerPanel);
+
+      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+        ResourceDialogSouthPanel resourceDialogSouthPanel = new ResourceDialogSouthPanel();
+        myResourceNameField = resourceDialogSouthPanel.getResourceNameField();
+        myResourceNameField.getDocument().addDocumentListener(new ValidatingDocumentListener());
+        if (colorName != null) {
+          myResourceNameField.setText(colorName);
+        }
+        myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
+        myColorPickerPanel.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
+        updateResourceNameStatus();
+      }
+
       if (color != null) {
         myContentPanel.setSelectedIndex(2);
         doSelection = false;
@@ -220,22 +237,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     myContentPanel.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
-        boolean inColorPicker = myContentPanel.getSelectedComponent() == myColorPicker;
-        myResourceNameField.setVisible(inColorPicker);
-        myResourceNameMessage.setVisible(inColorPicker);
-        if (inColorPicker) {
-          updateResourceNameStatus();
-        }
         valueChanged(null);
       }
     });
 
     valueChanged(null);
     init();
-    if (colorName != null) {
-      myResourceNameField.setText(colorName);
-      updateResourceNameStatus();
-    }
   }
 
   public enum ResourceNameVisibility {
@@ -276,12 +283,18 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   public void updateResourceNameStatus() {
+    if (myResourceNameVisibility == ResourceNameVisibility.HIDE) {
+      setOKActionEnabled(true);
+      return;
+    }
+
     final String errorText = getErrorString();
     if (errorText == null) {
       myResourceNameMessage.setText(getResourceNameMessage());
       myResourceNameMessage.setForeground(JBColor.BLACK);
       setOKActionEnabled(true);
-    } else {
+    }
+    else {
       myResourceNameMessage.setText(errorText);
       myResourceNameMessage.setForeground(myOverwriteResource ? JBColor.ORANGE : JBColor.RED);
       setOKActionEnabled(myOverwriteResource);
@@ -305,18 +318,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
       updateResourceNameStatus();
     }
-  }
-
-  @Nullable
-  @Override
-  protected JComponent createSouthPanel() {
-    ResourceDialogSouthPanel resourceDialogSouthPanel = new ResourceDialogSouthPanel();
-    myResourceNameField = resourceDialogSouthPanel.getResourceNameField();
-    myResourceNameField.getDocument().addDocumentListener(new ValidatingDocumentListener());
-    myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
-    updateResourceNameStatus();
-    resourceDialogSouthPanel.getContainerPanel().add(super.createSouthPanel());
-    return resourceDialogSouthPanel.getFullPanel();
   }
 
   public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
@@ -451,7 +452,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   @Override
   protected void doOKAction() {
     valueChanged(null);
-    if (myContentPanel.getSelectedComponent() == myColorPicker) {
+    if (myContentPanel.getSelectedComponent() == myColorPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
       String colorName = myResourceNameField.getText();
 
       if (myOverwriteResource) {
@@ -475,10 +476,11 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   public void valueChanged(@Nullable TreeSelectionEvent e) {
     Component selectedComponent = myContentPanel.getSelectedComponent();
 
-    if (selectedComponent == myColorPicker) {
+    if (selectedComponent == myColorPickerPanel) {
       Color color = myColorPicker.getColor();
       myNewResourceAction.setEnabled(false);
       myResultResourceName = ResourceHelper.colorToString(color);
+      updateResourceNameStatus();
     }
     else {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
