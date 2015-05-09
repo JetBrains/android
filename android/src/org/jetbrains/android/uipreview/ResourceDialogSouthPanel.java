@@ -22,15 +22,10 @@ import javax.swing.*;
 public class ResourceDialogSouthPanel {
   private JTextField myResourceNameField;
   private JBLabel myResourceNameMessage;
-  private JPanel myContainerPanel;
   private JPanel myFullPanel;
 
   public JPanel getFullPanel() {
     return myFullPanel;
-  }
-
-  public JPanel getContainerPanel() {
-    return myContainerPanel;
   }
 
   public JBLabel getResourceNameMessage() {
