@@ -161,15 +161,15 @@ public class InteractionManager {
    * Starts the given interaction.
    */
   private void startInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @Nullable Interaction interaction,
-                                int mask) {
+                                int modifiers) {
     if (myCurrentInteraction != null) {
-      finishInteraction(x, y, true);
+      finishInteraction(x, y, modifiers, true);
       assert myCurrentInteraction == null;
     }
 
     if (interaction != null) {
       myCurrentInteraction = interaction;
-      myCurrentInteraction.begin(x, y, mask);
+      myCurrentInteraction.begin(x, y, modifiers);
      myLayers = interaction.createOverlays();
     }
   }
@@ -185,7 +185,7 @@ public class InteractionManager {
    */
   private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(x, y);
+      myCurrentInteraction.update(x, y, myLastStateMask);
     }
   }
 
@@ -193,15 +193,16 @@ public class InteractionManager {
    * Finish the given interaction, either from successful completion or from
    * cancellation.
    *
-   * @param x        The most recent mouse x coordinate applicable to the new
-   *                 interaction, in Swing coordinates.
-   * @param y        The most recent mouse y coordinate applicable to the new
-   *                 interaction, in Swing coordinates.
-   * @param canceled True if and only if the interaction was canceled.
+   * @param x         The most recent mouse x coordinate applicable to the new
+   *                  interaction, in Swing coordinates.
+   * @param y         The most recent mouse y coordinate applicable to the new
+   *                  interaction, in Swing coordinates.
+   * @param modifiers The most recent modifier key state
+   * @param canceled  True if and only if the interaction was canceled.
    */
-  private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, boolean canceled) {
+  private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.end(x, y, canceled);
+      myCurrentInteraction.end(x, y, modifiers, canceled);
       if (myLayers != null) {
         for (Layer layer : myLayers) {
           //noinspection SSBasedInspection
@@ -280,7 +281,7 @@ public class InteractionManager {
         ScreenView myScreenView = mySurface.getScreenView(x, y);
         NlComponent component = Coordinates.findComponent(myScreenView, x, y);
         if (component != null) {
-          PsiNavigateUtil.navigate(component.tag);
+          PsiNavigateUtil.navigate(component.getTag());
         }
       }
     }
@@ -304,6 +305,7 @@ public class InteractionManager {
 
       int x = event.getX();
       int y = event.getY();
+      int modifiers = event.getModifiersEx();
       if (myCurrentInteraction == null) {
         // Just a click, select
         ScreenView screenView = mySurface.getScreenView(x, y);
@@ -328,7 +330,7 @@ public class InteractionManager {
       if (myCurrentInteraction == null) {
         updateCursor(x, y);
       } else {
-        finishInteraction(x, y, false);
+        finishInteraction(x, y, modifiers, false);
       }
       mySurface.repaint();
     }
@@ -348,7 +350,10 @@ public class InteractionManager {
       int x = event.getX();
       int y = event.getY();
       if (myCurrentInteraction != null) {
-        myCurrentInteraction.update(x, y);
+        myLastMouseX = x;
+        myLastMouseY = y;
+        myLastStateMask = event.getModifiersEx();
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
@@ -378,8 +383,19 @@ public class InteractionManager {
             // part of the selection, drag them all, otherwise drag just this component)
             if (selectionModel.isSelected(component)) {
               dragged = Lists.newArrayList();
+
+              // Make sure the primary is the first element
+              NlComponent primary = selectionModel.getPrimary();
+              if (primary != null) {
+                if (primary.isRoot()) {
+                  primary = null;
+                } else {
+                  dragged.add(primary);
+                }
+              }
+
               for (NlComponent selected : selectionModel.getSelection()) {
-                if (!selected.isRoot()) {
+                if (!selected.isRoot() && selected != primary) {
                   dragged.add(selected);
                 }
               }
@@ -439,7 +455,7 @@ public class InteractionManager {
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(myLastMouseX, myLastMouseY, true);
+          finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
           return;
         }
 
@@ -530,7 +546,7 @@ public class InteractionManager {
             try {
               String xml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
               XmlTag tag = elementFactory.createTagFromText(xml);
-              NlComponent dragged = new NlComponent(tag);
+              NlComponent dragged = new NlComponent(model, tag);
               // TODO: Pick some better bounds once we know. Use preview-render as a clue?
               dragged.w = 200;
               dragged.h = 100;
@@ -553,7 +569,7 @@ public class InteractionManager {
       myLastMouseX = location.x;
       myLastMouseY = location.y;
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY);
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
       }
 
       for (DataFlavor flavor : event.getCurrentDataFlavors()) {
@@ -572,7 +588,7 @@ public class InteractionManager {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, true);
+        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
       }
     }
 
@@ -641,13 +657,16 @@ public class InteractionManager {
                 List<NlComponent> draggedComponents = ((DragDropInteraction)myCurrentInteraction).getDraggedComponents();
                 NlComponent component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
                 if (component != null) {
-                  assert component.tag.getName().equals("placeholder") : component.tag.getName();
-                  component.tag = tag;
+                  assert component.getTag().getName().equals("placeholder") : component.getTag().getName();
+                  component.setTag(tag);
+                  if (component.needsDefaultId()) {
+                    component.assignId();
+                  }
                 }
-                finishInteraction(myLastMouseX, myLastMouseY, false);
-                if (component != null && component.tag.isValid() && component.tag.getParent() instanceof XmlTag) {
+                finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, false);
+                if (component != null && component.getTag().isValid() && component.getTag().getParent() instanceof XmlTag) {
                   // Remove any xmlns: attributes once the element is added into the document
-                  for (XmlAttribute attribute : component.tag.getAttributes()) {
+                  for (XmlAttribute attribute : component.getTag().getAttributes()) {
                     if (attribute.getName().startsWith(XMLNS_PREFIX)) {
                       attribute.delete();
                     }
@@ -668,6 +687,7 @@ public class InteractionManager {
           };
           action.execute();
           event.getDropTargetContext().dropComplete(true); // or just event.dropComplete() ?
+          model.notifyModified();
         }
         else {
           event.rejectDrop();

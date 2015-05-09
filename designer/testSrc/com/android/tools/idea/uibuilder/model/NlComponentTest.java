@@ -32,9 +32,10 @@ public class NlComponentTest extends TestCase {
   }
 
   public void test() {
-    NlComponent linearLayout = new NlComponent(createTag("LinearLayout"));
-    NlComponent textView = new NlComponent(createTag("TextView"));
-    NlComponent button = new NlComponent(createTag("Button"));
+    NlModel model = mock(NlModel.class);
+    NlComponent linearLayout = new NlComponent(model, createTag("LinearLayout"));
+    NlComponent textView = new NlComponent(model, createTag("TextView"));
+    NlComponent button = new NlComponent(model, createTag("Button"));
 
     assertEquals(Collections.emptyList(), linearLayout.getChildren());
 
@@ -42,13 +43,13 @@ public class NlComponentTest extends TestCase {
     linearLayout.addChild(button);
 
     assertEquals(Arrays.asList(textView, button), linearLayout.getChildren());
-    assertEquals("LinearLayout", linearLayout.tag.getName());
-    assertEquals("Button", button.tag.getName());
+    assertEquals("LinearLayout", linearLayout.getTag().getName());
+    assertEquals("Button", button.getTag().getName());
 
-    assertSame(linearLayout, linearLayout.findViewByTag(linearLayout.tag));
-    assertSame(button, linearLayout.findViewByTag(button.tag));
-    assertSame(textView, linearLayout.findViewByTag(textView.tag));
-    assertEquals(Collections.singletonList(textView), linearLayout.findViewsByTag(textView.tag));
+    assertSame(linearLayout, linearLayout.findViewByTag(linearLayout.getTag()));
+    assertSame(button, linearLayout.findViewByTag(button.getTag()));
+    assertSame(textView, linearLayout.findViewByTag(textView.getTag()));
+    assertEquals(Collections.singletonList(textView), linearLayout.findViewsByTag(textView.getTag()));
 
     linearLayout.setBounds(0, 0, 1000, 800);
     textView.setBounds(0, 0, 200, 100);

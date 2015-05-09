@@ -17,13 +17,12 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -92,24 +91,24 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
-    super.begin(x, y, startMask);
-    moveTo(x, y, false);
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+    super.begin(x, y, modifiers);
+    moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y) {
-    super.update(x, y);
-    moveTo(x, y, false);
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+    super.update(x, y, modifiers);
+    moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, boolean canceled) {
-    super.end(x, y, canceled);
-    moveTo(x, y, !canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+    super.end(x, y, modifiers, canceled);
+    moveTo(x, y, modifiers, !canceled);
   }
 
-  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, boolean commit) {
+  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
@@ -127,14 +126,16 @@ public class DragDropInteraction extends Interaction {
         myDragHandler = myCurrentHandler.createDragHandler(new ViewEditorImpl(myScreenView), myDragReceiver, myDraggedComponents, myType);
         if (myDragHandler != null) {
           myDragHandler.start(Coordinates.getAndroidX(myScreenView, myStartX),
-                              Coordinates.getAndroidY(myScreenView, myStartY));
+                              Coordinates.getAndroidY(myScreenView, myStartY),
+                              myStartMask);
         }
       }
     }
 
     if (myDragHandler != null) {
-      myDragHandler.update(ax, ay);
-      if (commit) {
+      String error = myDragHandler.update(ax, ay, modifiers);
+      final List<NlComponent> added = Lists.newArrayList();
+      if (commit && error == null) {
         NlModel model = myScreenView.getModel();
         Project project = model.getFacet().getModule().getProject();
         XmlFile file = model.getFile();
@@ -142,10 +143,32 @@ public class DragDropInteraction extends Interaction {
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
-            myDragHandler.commit(ax, ay); // TODO: Run this *after* making a copy
+            myDragHandler.commit(ax, ay, modifiers); // TODO: Run this *after* making a copy
+
+            NlComponent before = null;
+            int insertIndex = myDragHandler.getInsertIndex();
+            if (insertIndex != -1 && insertIndex < myDragReceiver.getChildCount()) {
+              before = myDragReceiver.getChild(insertIndex);
+            }
+
+            ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
 
             // Move the widget and schedule a re-render
             for (NlComponent component : myDraggedComponents) {
+
+              // Notify parent & child about the creation and allow them to customize the objects
+              InsertType insertType =  myType == DragType.COPY ? InsertType.CREATE :
+                                       (component.getParent() != myDragReceiver ? InsertType.MOVE_INTO : InsertType.MOVE_WITHIN);
+              myCurrentHandler.onChildInserted(myDragReceiver, component, insertType);
+              ViewHandler viewHandler = viewHandlerManager.getHandler(component);
+              if (viewHandler != null) {
+                ViewEditor editor = new ViewEditorImpl(myScreenView);
+                boolean ok = viewHandler.onCreate(editor, myDragReceiver, component, insertType);
+                if (!ok) {
+                  return;
+                }
+              }
+
               // Also update the component hierarchy directly.
               // This will be corrected after the next rendering job too, but anticipate it
               // here such that tests etc can immediately see the result
@@ -153,12 +176,17 @@ public class DragDropInteraction extends Interaction {
               if (parent != null) {
                 parent.removeChild(component);
               }
-              myDragReceiver.addChild(component);
+              myDragReceiver.addChild(component, before);
+              added.add(component);
 
               // Move XML tags
-              if (myDragReceiver.tag != component.tag) {
-                XmlTag prev = component.tag;
-                component.tag = (XmlTag)myDragReceiver.tag.add(component.tag);
+              if (myDragReceiver.getTag() != component.getTag()) {
+                XmlTag prev = component.getTag();
+                if (before != null) {
+                  component.setTag((XmlTag)myDragReceiver.getTag().addBefore(component.getTag(), before.getTag()));
+                } else {
+                  component.setTag(myDragReceiver.getTag().addSubTag(component.getTag(), false));
+                }
                 if (myType == DragType.MOVE) {
                   prev.delete();
                 }
@@ -167,6 +195,9 @@ public class DragDropInteraction extends Interaction {
           }
         };
         action.execute();
+        model.notifyModified();
+        // Select newly dropped components
+        model.getSelectionModel().setSelection(added);
       }
       myScreenView.getSurface().repaint();
     }
@@ -243,7 +274,7 @@ public class DragDropInteraction extends Interaction {
     @Override
     public void paint(@NonNull Graphics2D gc) {
       if (myDragHandler != null) {
-        myDragHandler.paint(myScreenView, gc);
+        myDragHandler.paint(new NlGraphics(gc, myScreenView));
       }
     }
   }

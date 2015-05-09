@@ -35,7 +35,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -53,7 +56,7 @@ import java.util.List;
 /**
  * Model for an XML file
  */
-public class NlModel implements Disposable, ResourceChangeListener {
+public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   @AndroidCoordinate public static final int EMPTY_COMPONENT_SIZE = 5;
   @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
@@ -67,6 +70,7 @@ public class NlModel implements Disposable, ResourceChangeListener {
   private Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
+  private long myModificationCount;
 
   @NonNull
   public static NlModel create(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
@@ -236,6 +240,16 @@ public class NlModel implements Disposable, ResourceChangeListener {
   }
 
   @NonNull
+  public Module getModule() {
+    return myFacet.getModule();
+  }
+
+  @NonNull
+  public Project getProject() {
+    return getModule().getProject();
+  }
+
+  @NonNull
   public Configuration getConfiguration() {
     return myConfiguration;
   }
@@ -270,6 +284,7 @@ public class NlModel implements Disposable, ResourceChangeListener {
         newRoots.add(newRoot);
       }
     }
+    myModificationCount++;
     myComponents = newRoots;
   }
 
@@ -281,7 +296,7 @@ public class NlModel implements Disposable, ResourceChangeListener {
   }
 
   private static void gatherTags(Map<XmlTag, NlComponent> map, NlComponent component) {
-    XmlTag tag = component.tag;
+    XmlTag tag = component.getTag();
     map.put(tag, component);
 
     for (NlComponent child : component.getChildren()) {
@@ -329,7 +344,7 @@ public class NlModel implements Disposable, ResourceChangeListener {
         //}
       }
       if (component == null) {
-        component = new NlComponent(tag);
+        component = new NlComponent(this, tag);
       } else {
         component.children = null;
         myTagToComponentMap.remove(tag);
@@ -524,7 +539,7 @@ public class NlModel implements Disposable, ResourceChangeListener {
           if (p != null) {
             p.removeChild(component);
           }
-          component.tag.delete();
+          component.getTag().delete();
         }
       }
     }
@@ -581,5 +596,16 @@ public class NlModel implements Disposable, ResourceChangeListener {
   @Override
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
     requestRender();
+  }
+
+  // ---- Implements ModificationTracker ----
+
+  @Override
+  public long getModificationCount() {
+    return myModificationCount;
+  }
+
+  public void notifyModified() {
+    myModificationCount++;
   }
 }

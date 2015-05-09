@@ -34,7 +34,7 @@ public class NlPropertiesModel extends PTableModel {
   public void update(@NotNull Iterable<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
     // TODO: handle multiple selections: show properties common to all selections
     NlComponent first = Iterables.getFirst(selection, null);
-    myTag = first == null ? null : first.tag;
+    myTag = first == null ? null : first.getTag();
     if (myTag == null) {
       setItems(Collections.<PTableItem>emptyList());
       if (postUpdateRunnable != null) {

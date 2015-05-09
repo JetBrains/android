@@ -79,28 +79,28 @@ public class SelectionHandle {
     /**
      * Is the {@link SelectionHandle} somewhere on the left edge?
      */
-    boolean isLeft() {
+    public boolean isLeft() {
       return this == TOP_LEFT || this == LEFT_MIDDLE || this == BOTTOM_LEFT;
     }
 
     /**
      * Is the {@link SelectionHandle} somewhere on the right edge?
      */
-    boolean isRight() {
+    public boolean isRight() {
       return this == TOP_RIGHT || this == RIGHT_MIDDLE || this == BOTTOM_RIGHT;
     }
 
     /**
      * Is the {@link SelectionHandle} somewhere on the top edge?
      */
-    boolean isTop() {
+    public boolean isTop() {
       return this == TOP_LEFT || this == TOP_MIDDLE || this == TOP_RIGHT;
     }
 
     /**
      * Is the {@link SelectionHandle} somewhere on the bottom edge?
      */
-    boolean isBottom() {
+    public boolean isBottom() {
       return this == BOTTOM_LEFT || this == BOTTOM_MIDDLE || this == BOTTOM_RIGHT;
     }
   }

@@ -60,7 +60,7 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     if (myOverlay == null) {
       return;
     }

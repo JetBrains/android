@@ -17,13 +17,14 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 
 import java.util.List;
 
 /**
- * Handler for views that are layout managers
+ * Handler for views that are layout managers.
  */
 public class ViewGroupHandler extends ViewHandler {
   /**
@@ -76,5 +77,28 @@ public class ViewGroupHandler extends ViewHandler {
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     return null;
+  }
+
+  /**
+   * Called when a child for this view has been created and is being inserted into the
+   * view parent for which this {@linkplain ViewHandler} applies. Allows the parent to perform
+   * customizations of the object. As with {@link ViewHandler#onCreate}, the {@link InsertType}
+   * parameter can be used to handle new creation versus moves versus copy/paste
+   * operations differently.
+   *
+   * @param layout     the layout being inserted into (which may not yet contain the
+   *                   newly created node in its child list)
+   * @param newChild   the newly created component
+   * @param insertType whether this node was created as part of a newly created view, or
+   *                   as a copy, or as a move, etc.
+   */
+  public void onChildInserted(@NonNull NlComponent layout,
+                              @NonNull NlComponent newChild,
+                              @NonNull InsertType insertType) {
+  }
+
+  @Override
+  public FillPolicy getFillPolicy() {
+    return FillPolicy.BOTH;
   }
 }
