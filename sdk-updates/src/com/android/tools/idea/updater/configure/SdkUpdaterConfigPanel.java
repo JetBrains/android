@@ -140,7 +140,7 @@ public class SdkUpdaterConfigPanel {
     Multimap<AndroidVersion, UpdatablePkgInfo> platformPackages = TreeMultimap.create();
     Set<UpdatablePkgInfo> buildToolsPackages = Sets.newTreeSet();
     Set<UpdatablePkgInfo> toolsPackages = Sets.newTreeSet();
-    for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs()) {
+    for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs().values()) {
       AndroidVersion version = info.getPkgDesc().getAndroidVersion();
       PkgType type = info.getPkgDesc().getType();
       if (type == PkgType.PKG_SAMPLE) {
