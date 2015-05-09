@@ -148,7 +148,9 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
-    initIfNecessary();
+    if (!initIfNecessary()) {
+      return ImmutableList.of();
+    }
     final FutureResult<List<Pair<String, String>>> resultFuture = new FutureResult();
     mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, new Runnable() {
       @Override
