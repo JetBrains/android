@@ -146,7 +146,7 @@ public class InstancesDebuggerTree {
     for (Instance instance : instances) {
       if (myHeap.getInstance(instance.getId()) != null) {
         descriptors.add(new InstanceFieldDescriptorImpl(
-          myDebuggerTree.getProject(), new Field(Type.OBJECT, String.format("0x%x", instance.getId())), instance));
+          myDebuggerTree.getProject(), new Field(Type.OBJECT, String.format("0x%x", instance.getId() & Type.getIdSizeMask())), instance));
       }
     }
     HprofFieldDescriptorImpl.batchUpdateRepresentation(descriptors, myDebugProcess.getManagerThread(), myDummySuspendContext);
