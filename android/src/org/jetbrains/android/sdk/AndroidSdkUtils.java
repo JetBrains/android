@@ -788,6 +788,10 @@ public final class AndroidSdkUtils {
     return tryToChooseAndroidSdk() != null;
   }
 
+  /**
+   * @return AndroidSdkData for the current SDK. In the normal case, this should always be set up. During the first run or if for some
+   * reason we can't find the SDK this can be null.
+   */
   @Nullable
   public static AndroidSdkData tryToChooseAndroidSdk() {
     if (ourSdkData == null) {

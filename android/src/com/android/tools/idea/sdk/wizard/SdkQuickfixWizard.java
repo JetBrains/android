@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -193,6 +194,9 @@ public class SdkQuickfixWizard extends DynamicWizard {
         startSdkManagerAndExit();
       }
     }
+    // We've already installed things, so clearly there's an SDK.
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    SdkState.getInstance(data).loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
   }
 
   @Override
