@@ -100,18 +100,7 @@ class ParentTreeNode extends UpdaterTreeNode {
                                 boolean leaf,
                                 int row,
                                 boolean hasFocus) {
-    SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-    StringBuilder result = new StringBuilder();
-    result.append("Android ");
-    result.append(SdkVersionInfo.getVersionString(myVersion.getApiLevel()));
-    String codeName = SdkVersionInfo.getCodeName(myVersion.getApiLevel());
-    if (codeName != null) {
-      result.append(" (");
-      result.append(codeName);
-      result.append(")");
-    }
-
-    renderer.getTextRenderer().append(result.toString(), attributes);
+    renderer.getTextRenderer().append(SummaryTreeNode.getDescription(myVersion), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   @Override
