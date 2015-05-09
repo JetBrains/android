@@ -96,21 +96,22 @@ public class Interaction {
    * @param startMask The initial AWT mask for the interaction, if known, or
    *                  otherwise 0.
    */
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     myStartX = x;
     myStartY = y;
-    myStartMask = startMask;
+    myStartMask = modifiers;
   }
 
   /**
    * Handles updating of the interaction state for a new mouse position.
    *
-   * @param x The most recent mouse x coordinate applicable to this
-   *          interaction
-   * @param y The most recent mouse y coordinate applicable to this
-   *          interaction
+   * @param x         The most recent mouse x coordinate applicable to this
+   *                  interaction
+   * @param y         The most recent mouse y coordinate applicable to this
+   *                  interaction
+   * @param modifiers current modifier key mask
    */
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
   }
 
   /**
@@ -118,13 +119,14 @@ public class Interaction {
    * interaction has terminated (either through successful completion, or because
    * it was canceled).
    *
-   * @param x        The most recent mouse x coordinate applicable to this
-   *                 interaction
-   * @param y        The most recent mouse y coordinate applicable to this
-   *                 interaction
-   * @param canceled True if the interaction was canceled, and false otherwise.
+   * @param x         The most recent mouse x coordinate applicable to this
+   *                  interaction
+   * @param y         The most recent mouse y coordinate applicable to this
+   *                  interaction
+   * @param modifiers current modifier key mask
+   * @param canceled  True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
   }
 
   /**

@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
@@ -70,31 +71,36 @@ public class ResizeInteraction extends Interaction {
       ViewEditorImpl editor = new ViewEditorImpl(myScreenView);
       myResizeHandler = viewGroupHandler.createResizeHandler(editor, myComponent, myHorizontalEdge, myVerticalEdge);
       if (myResizeHandler != null) {
-        myResizeHandler.start(Coordinates.getAndroidX(myScreenView, myStartX), Coordinates.getAndroidY(myScreenView, myStartY));
+        myResizeHandler.start(Coordinates.getAndroidX(myScreenView, myStartX), Coordinates.getAndroidY(myScreenView, myStartY),
+                              startMask);
       }
     }
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y) {
-    super.update(x, y);
-    moveTo(x, y, false);
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+    super.update(x, y, modifiers);
+    moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, boolean canceled) {
-    super.end(x, y, canceled);
-    moveTo(x, y, !canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+    super.end(x, y, modifiers, canceled);
+    moveTo(x, y, modifiers, !canceled);
   }
 
-  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, boolean commit) {
+  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
     if (myResizeHandler == null) {
       return;
     }
+
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
+    final int deltaX = Coordinates.getAndroidDimension(myScreenView, x - myStartX);
+    final int deltaY = Coordinates.getAndroidDimension(myScreenView, y - myStartY);
 
-    myResizeHandler.update(ax, ay);
+    final Rectangle newBounds = getNewBounds(new Rectangle(myComponent.x, myComponent.y, myComponent.w, myComponent.h), deltaX, deltaY);
+    myResizeHandler.update(ax, ay, modifiers, newBounds);
     if (commit) {
       NlModel model = myScreenView.getModel();
       Project project = model.getFacet().getModule().getProject();
@@ -103,10 +109,11 @@ public class ResizeInteraction extends Interaction {
       WriteCommandAction action = new WriteCommandAction(project, label, file) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
-          myResizeHandler.commit(ax, ay);
+          myResizeHandler.commit(ax, ay, modifiers, newBounds);
         }
       };
       action.execute();
+      model.notifyModified();
     }
     myScreenView.getSurface().repaint();
   }
@@ -117,6 +124,95 @@ public class ResizeInteraction extends Interaction {
     NlComponent component = model.findLeafAt(x, y, true);
     ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getFacet());
     return component != null ? handlerManager.findLayoutHandler(component, false) : null;
+  }
+
+  /**
+   * For the new mouse position, compute the resized bounds (the bounding rectangle that
+   * the view should be resized to). This is not just a width or height, since in some
+   * cases resizing will change the x/y position of the view as well (for example, in
+   * RelativeLayout or in AbsoluteLayout).
+   */
+  private Rectangle getNewBounds(@AndroidCoordinate Rectangle b, @AndroidCoordinate int deltaX, @AndroidCoordinate int deltaY) {
+    int x = b.x;
+    int y = b.y;
+    int w = b.width;
+    int h = b.height;
+
+    if (deltaX == 0 && deltaY == 0) {
+      // No move - just use the existing bounds
+      return b;
+    }
+
+    ResizePolicy mResizePolicy = ResizePolicy.full(); // TODO
+
+    boolean isLeft = myVerticalEdge == SegmentType.LEFT || myVerticalEdge == SegmentType.START;
+    boolean isRight = myVerticalEdge == SegmentType.RIGHT || myVerticalEdge == SegmentType.END;
+    boolean isTop = myHorizontalEdge == SegmentType.TOP;
+    boolean isBottom = myHorizontalEdge == SegmentType.BOTTOM;
+
+    if (mResizePolicy.isAspectPreserving() && w != 0 && h != 0) {
+      double aspectRatio = w / (double) h;
+      int newW = Math.abs(b.width + (isLeft ? -deltaX : deltaX));
+      int newH = Math.abs(b.height + (isTop ? -deltaY : deltaY));
+      double newAspectRatio = newW / (double) newH;
+      if (newH == 0 || newAspectRatio > aspectRatio) {
+        deltaY = (int) (deltaX / aspectRatio);
+      } else {
+        deltaX = (int) (deltaY * aspectRatio);
+      }
+    }
+    if (isLeft) {
+      // The user is dragging the left edge, so the position is anchored on the
+      // right.
+      int x2 = b.x + b.width;
+      int nx1 = b.x + deltaX;
+      if (nx1 <= x2) {
+        x = nx1;
+        w = x2 - x;
+      }
+      else {
+        w = 0;
+        x = x2;
+      }
+    } else if (isRight) {
+      // The user is dragging the right edge, so the position is anchored on the
+      // left.
+      int nx2 = b.x + b.width + deltaX;
+      if (nx2 >= b.x) {
+        w = nx2 - b.x;
+      } else {
+        w = 0;
+      }
+    } else {
+      assert myVerticalEdge == null : myVerticalEdge;
+    }
+
+    if (isTop) {
+      // The user is dragging the top edge, so the position is anchored on the
+      // bottom.
+      int y2 = b.y + b.height;
+      int ny1 = b.y + deltaY;
+      if (ny1 < y2) {
+        y = ny1;
+        h = y2 - y;
+      } else {
+        h = 0;
+        y = y2;
+      }
+    } else if (isBottom) {
+      // The user is dragging the bottom edge, so the position is anchored on the
+      // top.
+      int ny2 = b.y + b.height + deltaY;
+      if (ny2 >= b.y) {
+        h = ny2 - b.y;
+      } else {
+        h = 0;
+      }
+    } else {
+      assert myHorizontalEdge == null : myHorizontalEdge;
+    }
+
+    return new Rectangle(x, y, w, h);
   }
 
   @Override
@@ -143,7 +239,7 @@ public class ResizeInteraction extends Interaction {
     @Override
     public void paint(@NonNull Graphics2D gc) {
       if (myResizeHandler != null) {
-        myResizeHandler.paint(myScreenView, gc);
+        myResizeHandler.paint(new NlGraphics(gc, myScreenView));
       }
     }
   }

@@ -59,28 +59,28 @@ public class ComponentFixture {
   }
 
   public ComponentFixture expectWidth(@NonNull String width) {
-    assertEquals("Wrong width", width, AndroidPsiUtils.getAttributeSafely(myComponent.tag, ANDROID_URI, ATTR_LAYOUT_WIDTH));
+    assertEquals("Wrong width", width, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_WIDTH));
     return this;
   }
 
   public ComponentFixture expectHeight(@NonNull String height) {
-    assertEquals("Wrong height", height, AndroidPsiUtils.getAttributeSafely(myComponent.tag, ANDROID_URI, ATTR_LAYOUT_HEIGHT));
+    assertEquals("Wrong height", height, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_HEIGHT));
     return this;
   }
 
   public ComponentFixture expectAttribute(@NonNull String name, @NonNull String value) {
-    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.tag, ANDROID_URI, name));
+    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, name));
     return this;
   }
 
   public ComponentFixture expectAttribute(@NonNull String namespace, @NonNull String name, @NonNull String value) {
-    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.tag, namespace, name));
+    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), namespace, name));
     return this;
   }
 
   @NonNull
   public ComponentFixture expectXml(@NonNull @Language("XML") String xml) {
-    assertEquals(xml, myComponent.tag.getText());
+    assertEquals(xml, myComponent.getTag().getText());
     return this;
   }
 

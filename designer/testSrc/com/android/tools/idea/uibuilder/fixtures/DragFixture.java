@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
 
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class DragFixture {
   @NonNull private final ScreenView myScreen;
   @SwingCoordinate private int myCurrentX;
   @SwingCoordinate private int myCurrentY;
+  private int myModifiers;
 
   public DragFixture(@NonNull ComponentListFixture components) {
     myComponents = components;
@@ -58,12 +60,30 @@ public class DragFixture {
     return this;
   }
 
+  public DragFixture modifiers(int modifiers) {
+    myModifiers = modifiers;
+    return this;
+  }
+
   public DragFixture dragTo(@AndroidCoordinate int x, @AndroidCoordinate int y) {
     moveTo(Coordinates.getSwingX(myScreen, x), Coordinates.getSwingY(myScreen, y));
     return this;
   }
 
   public DragFixture pressKey(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode, char keyChar) {
+    if (keyCode == KeyEvent.VK_SHIFT) {
+      myModifiers |= InputEvent.SHIFT_MASK;
+    }
+    if (keyCode == KeyEvent.VK_META) {
+      myModifiers |= InputEvent.META_MASK;
+    }
+    if (keyCode == KeyEvent.VK_CONTROL) {
+      myModifiers |= InputEvent.CTRL_MASK;
+    }
+    if (keyCode == KeyEvent.VK_ALT) {
+      myModifiers |= InputEvent.ALT_MASK;
+    }
+
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyPressed(event);
@@ -71,6 +91,18 @@ public class DragFixture {
   }
 
   public DragFixture releaseKey(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode, char keyChar) {
+    if (keyCode == KeyEvent.VK_SHIFT) {
+      myModifiers |= InputEvent.SHIFT_MASK;
+    }
+    if (keyCode == KeyEvent.VK_META) {
+      myModifiers |= InputEvent.META_MASK;
+    }
+    if (keyCode == KeyEvent.VK_CONTROL) {
+      myModifiers |= InputEvent.CTRL_MASK;
+    }
+    if (keyCode == KeyEvent.VK_ALT) {
+      myModifiers |= InputEvent.ALT_MASK;
+    }
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyReleased(event);
@@ -80,16 +112,16 @@ public class DragFixture {
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y) {
     myCurrentX = x;
     myCurrentY = y;
-    myInteraction.update(myCurrentX, myCurrentY);
+    myInteraction.update(myCurrentX, myCurrentY, myModifiers);
   }
 
   public ComponentListFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, false);
+    myInteraction.end(myCurrentX, myCurrentY, myModifiers, false);
     return myComponents;
   }
 
   public ComponentListFixture cancel() {
-    myInteraction.end(myCurrentX, myCurrentY, true);
+    myInteraction.end(myCurrentX, myCurrentY, myModifiers, true);
     return myComponents;
   }
 }
