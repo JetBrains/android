@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
+import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.idea.editors.hprof.descriptors.ContainerDescriptorImpl;
 import com.android.tools.idea.editors.hprof.descriptors.HprofFieldDescriptorImpl;
 import com.android.tools.idea.editors.hprof.descriptors.InstanceFieldDescriptorImpl;
@@ -26,6 +27,7 @@ import com.intellij.debugger.engine.SuspendContextImpl;
 import com.intellij.debugger.engine.SuspendManagerImpl;
 import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
+import com.intellij.debugger.ui.impl.DebuggerTreeRenderer;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
 import com.intellij.debugger.ui.impl.watch.DebuggerTree;
@@ -34,24 +36,30 @@ import com.intellij.debugger.ui.impl.watch.DefaultNodeDescriptor;
 import com.intellij.debugger.ui.impl.watch.NodeDescriptorImpl;
 import com.intellij.debugger.ui.tree.NodeDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.sun.jdi.request.EventRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class InstancesDebuggerTree {
+public class InstancesTree {
   @NotNull private DebuggerTree myDebuggerTree;
+  @NotNull private JComponent myColumnTree;
   @NotNull private DebugProcessImpl myDebugProcess;
   @NotNull private volatile SuspendContextImpl myDummySuspendContext;
   @NotNull private Heap myHeap;
 
-  public InstancesDebuggerTree(@NotNull Project project, @NotNull Heap heap) {
+  public InstancesTree(@NotNull Project project, @NotNull Heap heap, @NotNull MouseListener mouseListener) {
     myDebuggerTree = new DebuggerTree(project) {
       @Override
       protected void build(DebuggerContextImpl context) {
@@ -117,11 +125,62 @@ public class InstancesDebuggerTree {
       }
     });
     myDebuggerTree.setModel(model);
+    myDebuggerTree.setRootVisible(false);
+    myDebuggerTree.addMouseListener(mouseListener);
+
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myDebuggerTree).addColumn(
+        new ColumnTreeBuilder.ColumnBuilder()
+          .setName("Instance").setPreferredWidth(600).setRenderer((DebuggerTreeRenderer)myDebuggerTree.getCellRenderer())
+      ).addColumn(new ColumnTreeBuilder.ColumnBuilder().setName("Shallow Size").setPreferredWidth(80).setRenderer(
+        new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            NodeDescriptorImpl nodeDescriptor = (NodeDescriptorImpl)((TreeBuilderNode)value).getUserObject();
+            if (nodeDescriptor instanceof InstanceFieldDescriptorImpl) {
+              InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)nodeDescriptor;
+              assert !descriptor.isPrimitive();
+              Instance instance = (Instance)descriptor.getValueData();
+              if (instance != null) {
+                append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              }
+            }
+          }
+        })
+      ).addColumn(new ColumnTreeBuilder.ColumnBuilder().setName("Dominating Size").setPreferredWidth(80).setRenderer(
+        new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            NodeDescriptorImpl nodeDescriptor = (NodeDescriptorImpl)((TreeBuilderNode)value).getUserObject();
+            if (nodeDescriptor instanceof InstanceFieldDescriptorImpl) {
+              InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)nodeDescriptor;
+              assert !descriptor.isPrimitive();
+              Instance instance = (Instance)descriptor.getValueData();
+              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              }
+            }
+          }
+        })
+      );
+
+    myColumnTree = builder.build();
   }
 
   @NotNull
-  public DebuggerTree getComponent() {
-    return myDebuggerTree;
+  public JComponent getComponent() {
+    return myColumnTree;
   }
 
   public void setHeap(@NotNull Heap heap) {
@@ -132,7 +191,7 @@ public class InstancesDebuggerTree {
   }
 
   public void setRoot(@NotNull NodeDescriptorImpl rootDescriptor) {
-    DebuggerTreeNodeImpl root = DebuggerTreeNodeImpl.createNodeNoUpdate(getComponent(), rootDescriptor);
+    DebuggerTreeNodeImpl root = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, rootDescriptor);
     if (rootDescriptor instanceof HprofFieldDescriptorImpl) {
       ((HprofFieldDescriptorImpl)root.getDescriptor()).updateRepresentation(myDebugProcess.getManagerThread(), myDummySuspendContext);
     }
