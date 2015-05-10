@@ -41,6 +41,7 @@ import java.util.List;
 
 public class InstanceReferenceTree {
   @NotNull private Tree myTree;
+  @NotNull private JComponent myColumnTree;
   private Instance myInstance;
 
   public InstanceReferenceTree() {
@@ -61,59 +62,113 @@ public class InstanceReferenceTree {
     myTree = new Tree(model);
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
-    myTree.setCellRenderer(new ColoredTreeCellRenderer() {
-      @Override
-      public void customizeCellRenderer(@NotNull JTree tree,
-                                        Object value,
-                                        boolean selected,
-                                        boolean expanded,
-                                        boolean leaf,
-                                        int row,
-                                        boolean hasFocus) {
-        Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
-        SimpleTextAttributes attributes;
-        if (myInstance.getImmediateDominator() == instance) {
-          attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
-        }
-        else if (instance.getDistanceToGcRoot() == 0) {
-          attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-        }
-        else if (instance.getImmediateDominator() == null) {
-          attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
-        }
-        else {
-          attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-        }
 
-        if (instance instanceof ArrayInstance) {
-          setIcon(AllIcons.Debugger.Db_array);
-        }
-        else {
-          setIcon(AllIcons.Debugger.Value);
-        }
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
+      new ColumnTreeBuilder.ColumnBuilder().setName("Instance").setPreferredWidth(600).setRenderer(
+        new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+            SimpleTextAttributes attributes;
+            if (myInstance.getImmediateDominator() == instance) {
+              attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
+            }
+            else if (instance.getDistanceToGcRoot() == 0) {
+              attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
+            }
+            else if (instance.getImmediateDominator() == null) {
+              attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
+            }
+            else {
+              attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+            }
 
-        if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
-          int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
-          RowIcon icons = new RowIcon(totalIcons);
-          icons.setIcon(getIcon(), 0);
+            if (instance instanceof ArrayInstance) {
+              setIcon(AllIcons.Debugger.Db_array);
+            }
+            else {
+              setIcon(AllIcons.Debugger.Value);
+            }
 
-          int currentIcon = 1;
-          if (myInstance.getImmediateDominator() == instance) {
-            icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+            if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
+              int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
+              RowIcon icons = new RowIcon(totalIcons);
+              icons.setIcon(getIcon(), 0);
+
+              int currentIcon = 1;
+              if (myInstance.getImmediateDominator() == instance) {
+                icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+              }
+              if (instance.getDistanceToGcRoot() == 0) {
+                icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+              }
+              setIcon(icons);
+            }
+
+            append(instance.toString(), attributes);
           }
-          if (instance.getDistanceToGcRoot() == 0) {
-            icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+        })
+      ).addColumn(new ColumnTreeBuilder.ColumnBuilder().setName("Depth").setPreferredWidth(40).setRenderer(
+        new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+            if (instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+              append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+            }
           }
-          setIcon(icons);
-        }
+        })
+      ).addColumn(
+        new ColumnTreeBuilder.ColumnBuilder().setName("Shallow Size").setPreferredWidth(80).setRenderer(
+          new ColoredTreeCellRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree,
+                                              Object value,
+                                              boolean selected,
+                                              boolean expanded,
+                                              boolean leaf,
+                                              int row,
+                                              boolean hasFocus) {
+              Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+              append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+            }
+          })
+      ).addColumn(
+        new ColumnTreeBuilder.ColumnBuilder().setName("Dominating Size").setPreferredWidth(80).setRenderer(
+          new ColoredTreeCellRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree,
+                                              Object value,
+                                              boolean selected,
+                                              boolean expanded,
+                                              boolean leaf,
+                                              int row,
+                                              boolean hasFocus) {
+              Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+              if (instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              }
+          }
+        })
+      );
 
-        append(instance.toString(), attributes);
-      }
-    });
+    myColumnTree = builder.build();
   }
 
-  public Tree getComponent() {
-    return myTree;
+  public JComponent getComponent() {
+    return myColumnTree;
   }
 
   public MouseAdapter getMouseAdapter() {

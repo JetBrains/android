@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.hprof;
 
 import com.android.tools.idea.editors.hprof.descriptors.ContainerDescriptorImpl;
 import com.android.tools.idea.editors.hprof.tables.InstanceReferenceTree;
-import com.android.tools.idea.editors.hprof.tables.InstancesDebuggerTree;
+import com.android.tools.idea.editors.hprof.tables.InstancesTree;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTable;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTableModel;
 import com.android.tools.perflib.heap.ClassObj;
@@ -50,9 +50,7 @@ public class HprofViewPanel implements Disposable {
     treePanel.setBackground(JBColor.background());
 
     InstanceReferenceTree referenceTree = new InstanceReferenceTree();
-    JBScrollPane scrollPane = new JBScrollPane();
-    scrollPane.setViewportView(referenceTree.getComponent());
-    treePanel.add(scrollPane, BorderLayout.CENTER);
+    treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
 
     assert (snapshot.getHeaps().size() > 0);
     for (Heap heap : snapshot.getHeaps()) {
@@ -65,10 +63,11 @@ public class HprofViewPanel implements Disposable {
       }
     }
 
-    final InstancesDebuggerTree instancesDebuggerTree = new InstancesDebuggerTree(project, myCurrentHeap);
-    instancesDebuggerTree.getComponent().addMouseListener(referenceTree.getMouseAdapter());
-    final ClassTable classTable = createClassTable(instancesDebuggerTree);
-    JBSplitter splitter = createNavigationSplitter(classTable, instancesDebuggerTree.getComponent());
+    final InstancesTree instancesTree = new InstancesTree(project, myCurrentHeap, referenceTree.getMouseAdapter());
+    final ClassTable classTable = createClassTable(instancesTree);
+    JBScrollPane classTableScrollPane = new JBScrollPane();
+    classTableScrollPane.setViewportView(classTable);
+    JBSplitter splitter = createNavigationSplitter(classTableScrollPane, instancesTree.getComponent());
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
@@ -84,7 +83,7 @@ public class HprofViewPanel implements Disposable {
             public void actionPerformed(AnActionEvent e) {
               myCurrentHeap = heap;
               ((ClassTableModel)classTable.getModel()).setHeap(myCurrentHeap);
-              instancesDebuggerTree.setHeap(heap);
+              instancesTree.setHeap(heap);
             }
           });
         }
@@ -118,7 +117,7 @@ public class HprofViewPanel implements Disposable {
   }
 
   @NotNull
-  private ClassTable createClassTable(@NotNull final InstancesDebuggerTree instancesDebuggerTree) {
+  private ClassTable createClassTable(@NotNull final InstancesTree instancesTree) {
     final ClassTable classTable = new ClassTable(new ClassTableModel(myCurrentHeap));
     classTable.addMouseListener(new MouseAdapter() {
       @Override
@@ -128,7 +127,7 @@ public class HprofViewPanel implements Disposable {
         if (row >= 0) {
           int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
           ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-          instancesDebuggerTree.setRoot(new ContainerDescriptorImpl(classObj.getHeapInstances(myCurrentHeap.getId())));
+          instancesTree.setRoot(new ContainerDescriptorImpl(classObj.getHeapInstances(myCurrentHeap.getId())));
         }
       }
     });
@@ -150,9 +149,7 @@ public class HprofViewPanel implements Disposable {
     contextInformationPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     contextInformationPanel.setBackground(JBColor.background());
     if (rightPanelContents != null) {
-      JBScrollPane scrollPane = new JBScrollPane();
-      scrollPane.setViewportView(rightPanelContents);
-      contextInformationPanel.add(scrollPane, BorderLayout.CENTER);
+      contextInformationPanel.add(rightPanelContents, BorderLayout.CENTER);
     }
 
     JBSplitter navigationSplitter = new JBSplitter(false);
