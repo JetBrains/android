@@ -21,16 +21,16 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 
+/** Handler for the {@code <AbsoluteLayout>} layout */
 public class AbsoluteLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
@@ -40,12 +40,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
                                        @NonNull DragType type) {
     return new DragHandler(editor, this, layout, components, type) {
       @Override
-      public void start(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-        super.start(x, y);
-      }
-
-      @Override
-      public void paint(@NonNull ScreenView view, @NonNull Graphics2D gc) {
+      public void paint(@NonNull NlGraphics graphics) {
         int deltaX = lastX - startX;
         int deltaY = lastY - startY;
         for (NlComponent component : components) {
@@ -54,17 +49,13 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
           int w = component.w;
           int h = component.h;
 
-          int sx = Coordinates.getSwingX(view, x);
-          int sy = Coordinates.getSwingY(view, y);
-          int sw = Coordinates.getSwingDimension(view, w);
-          int sh = Coordinates.getSwingDimension(view, h);
-
-          NlGraphics.drawRect(NlDrawingStyle.DROP_PREVIEW, gc, sx, sy, sw, sh);
+          graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
+          graphics.drawRect(x, y, w, h);
         }
       }
 
       @Override
-      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
         // TODO: Remove all existing layout parameters; if you're dragging from one layout type to another, you don't
         // want stale layout parameters (e.g. layout_alignLeft from a previous RelativeLayout in a new GridLayout, and so on.)
 
@@ -72,9 +63,8 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
         int deltaY = y - startY;
 
         for (NlComponent component : components) {
-          // TODO: Property API for manipulating properties
-          component.tag.setAttribute(ATTR_LAYOUT_X, ANDROID_URI, editor.pxToDpWithUnits(component.x - layout.x + deltaX));
-          component.tag.setAttribute(ATTR_LAYOUT_Y, ANDROID_URI, editor.pxToDpWithUnits(component.y - layout.y + deltaY));
+          component.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, editor.pxToDpWithUnits(component.x - layout.x + deltaX));
+          component.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, editor.pxToDpWithUnits(component.y - layout.y + deltaY));
         }
       }
     };
@@ -86,68 +76,45 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
                                            @NonNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
-    return new ResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType) {
+    return new DefaultResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType) {
+      /**
+       * {@inheritDoc}
+       * <p>
+       * Overridden in this layout in order to let the top left coordinate be affected by
+       * the resize operation too. In other words, dragging the top left corner to resize a
+       * widget will not only change the size of the widget, it will also move it (though in
+       * this case, the bottom right corner will stay fixed).
+       */
       @Override
-      public void commit(@AndroidCoordinate int px, @AndroidCoordinate int py) {
-        int deltaX = px - startX;
-        int deltaY = py - startY;
-        int x = component.x;
-        int y = component.y;
-        NlComponent parent = component.getParent();
-        if (parent != null) {
-          // layout_x and layout_y are relative to the parent, not absolute screen coordinates
-          x -= parent.x;
-          y -= parent.y;
+      protected void setNewSizeBounds(@NonNull NlComponent component,
+                                      @NonNull NlComponent layout,
+                                      @NonNull Rectangle oldBounds,
+                                      @NonNull Rectangle newBounds,
+                                      @Nullable SegmentType horizontalEdge,
+                                      @Nullable SegmentType verticalEdge) {
+        Rectangle previousBounds = new Rectangle(component.x, component.y, component.w, component.h);
+        super.setNewSizeBounds(component, layout, previousBounds, newBounds,
+                               horizontalEdge, verticalEdge);
+        if (verticalEdge != null && newBounds.x != previousBounds.x) {
+          component.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, editor.pxToDp(newBounds.x - layout.x)));
         }
-        int w = component.w;
-        int h = component.h;
-        if (horizontalEdgeType == SegmentType.TOP) {
-          y += deltaY;
-          component.tag.setAttribute(ATTR_LAYOUT_Y, ANDROID_URI, editor.pxToDpWithUnits(y));
-          h -= deltaY;
-        } else {
-          h += deltaY;
+        if (horizontalEdge != null && newBounds.y != previousBounds.y) {
+          component.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, editor.pxToDp(newBounds.y - layout.y)));
         }
-        if (verticalEdgeType == SegmentType.LEFT || verticalEdgeType == SegmentType.START) {
-          x += deltaX;
-          component.tag.setAttribute(ATTR_LAYOUT_X, ANDROID_URI, editor.pxToDpWithUnits(x));
-          w -= deltaX;
-        } else {
-          w += deltaX;
-        }
-
-        // TODO: Snap to wrap_content or match_parent
-        component.tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, editor.pxToDpWithUnits(w));
-        component.tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, editor.pxToDpWithUnits(h));
       }
 
       @Override
-      public void paint(@NonNull ScreenView view, @NonNull Graphics2D gc) {
-        int deltaX = lastX - startX;
-        int deltaY = lastY - startY;
-        int x = component.x;
-        int y = component.y;
-        int w = component.w;
-        int h = component.h;
-        if (horizontalEdgeType == SegmentType.TOP) {
-          y += deltaY;
-          h -= deltaY;
-        } else {
-          h += deltaY;
+      protected String getResizeUpdateMessage(@NotNull NlComponent child,
+                                              @NotNull NlComponent parent,
+                                              @NotNull Rectangle newBounds,
+                                              @Nullable SegmentType horizontalEdge,
+                                              @Nullable SegmentType verticalEdge) {
+        Rectangle parentBounds = new Rectangle(layout.x, layout.y, layout.w, layout.h);
+        if (horizontalEdge == SegmentType.BOTTOM && verticalEdge == SegmentType.RIGHT) {
+          return super.getResizeUpdateMessage(child, parent, newBounds, horizontalEdge, verticalEdge);
         }
-        if (verticalEdgeType == SegmentType.LEFT || verticalEdgeType == SegmentType.START) {
-          x += deltaX;
-          w -= deltaX;
-        } else {
-          w += deltaX;
-        }
-
-        int sx = Coordinates.getSwingX(view, x);
-        int sy = Coordinates.getSwingY(view, y);
-        int sw = Coordinates.getSwingDimension(view, w);
-        int sh = Coordinates.getSwingDimension(view, h);
-
-        NlGraphics.drawRect(NlDrawingStyle.RESIZE_PREVIEW, gc, sx, sy, sw, sh);
+        return String.format("x=%d, y=%d\nwidth=%s, height=%s", editor.pxToDp(newBounds.x - parentBounds.x),
+                             editor.pxToDp(newBounds.y - parentBounds.y), getWidthAttribute(), getHeightAttribute());
       }
     };
   }

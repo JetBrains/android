@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
 
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import static org.junit.Assert.*;
@@ -33,6 +34,7 @@ public class ResizeFixture {
   @SwingCoordinate private int myCurrentX;
   @SwingCoordinate private int myCurrentY;
   private final ScreenView myScreen;
+  private int myModifiers;
 
   public ResizeFixture(@NonNull ComponentFixture componentFixture,
                        @Nullable SegmentType horizontalEdge,
@@ -90,7 +92,24 @@ public class ResizeFixture {
     return this;
   }
 
+  public ResizeFixture modifiers(int modifiers) {
+    myModifiers = modifiers;
+    return this;
+  }
+
   public ResizeFixture pressKey(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode, char keyChar) {
+    if (keyCode == KeyEvent.VK_SHIFT) {
+      myModifiers |= InputEvent.SHIFT_MASK;
+    }
+    if (keyCode == KeyEvent.VK_META) {
+      myModifiers |= InputEvent.META_MASK;
+    }
+    if (keyCode == KeyEvent.VK_CONTROL) {
+      myModifiers |= InputEvent.CTRL_MASK;
+    }
+    if (keyCode == KeyEvent.VK_ALT) {
+      myModifiers |= InputEvent.ALT_MASK;
+    }
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyPressed(event);
@@ -98,26 +117,37 @@ public class ResizeFixture {
   }
 
   public ResizeFixture releaseKey(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode, char keyChar) {
+    if (keyCode == KeyEvent.VK_SHIFT) {
+      myModifiers |= InputEvent.SHIFT_MASK;
+    }
+    if (keyCode == KeyEvent.VK_META) {
+      myModifiers |= InputEvent.META_MASK;
+    }
+    if (keyCode == KeyEvent.VK_CONTROL) {
+      myModifiers |= InputEvent.CTRL_MASK;
+    }
+    if (keyCode == KeyEvent.VK_ALT) {
+      myModifiers |= InputEvent.ALT_MASK;
+    }
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.keyReleased(event);
     return this;
   }
 
-
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y) {
     myCurrentX = x;
     myCurrentY = y;
-    myInteraction.update(myCurrentX, myCurrentY);
+    myInteraction.update(myCurrentX, myCurrentY, myModifiers);
   }
 
   public ComponentFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, false);
+    myInteraction.end(myCurrentX, myCurrentY, myModifiers, false);
     return myComponentFixture;
   }
 
   public ComponentFixture cancel() {
-    myInteraction.end(myCurrentX, myCurrentY, true);
+    myInteraction.end(myCurrentX, myCurrentY, myModifiers, true);
     return myComponentFixture;
   }
 }

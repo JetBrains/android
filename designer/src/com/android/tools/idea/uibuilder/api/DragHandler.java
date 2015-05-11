@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -38,6 +40,7 @@ public abstract class DragHandler {
   @AndroidCoordinate protected int startY;
   @AndroidCoordinate protected int lastX;
   @AndroidCoordinate protected int lastY;
+  protected int lastModifiers;
 
   /**
    * Constructs a new drag handler for the given view handler
@@ -76,35 +79,58 @@ public abstract class DragHandler {
   /**
    * Finishes a drag to the given coordinate
    *
-   * @param x the x coordinate in the Android screen pixel coordinate system
-   * @param y the y coordinate in the Android screen pixel coordinate system
+   * @param x         the x coordinate in the Android screen pixel coordinate system
+   * @param y         the y coordinate in the Android screen pixel coordinate system
+   * @param modifiers the modifier key state
    */
-  public abstract void commit(@AndroidCoordinate int x, @AndroidCoordinate int y);
+  public abstract void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers);
 
   /**
    * Starts a drag of the given components from the given position
    *
-   * @param x                 the x coordinate in the Android screen pixel coordinate system
-   * @param y                 the y coordinate in the Android screen pixel coordinate system
+   * @param x         the x coordinate in the Android screen pixel coordinate system
+   * @param y         the y coordinate in the Android screen pixel coordinate system
+   * @param modifiers the modifier key state
    */
-  public void start(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     startX = x;
     startY = y;
+    lastModifiers = modifiers;
   }
 
   /**
    * Continues a drag of the given components from the given position. Will always come after a call to {@link #start}.
    *
-   * @param x the x coordinate in the Android screen pixel coordinate system
-   * @param y the y coordinate in the Android screen pixel coordinate system
+   * @param x         the x coordinate in the Android screen pixel coordinate system
+   * @param y         the y coordinate in the Android screen pixel coordinate system
+   * @param modifiers the modifier key state
+   * @return null if the drag is successful so far, or an empty string (or a short error
+   * message describing the problem to be shown to the user) if not
    */
-  public void update(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  @Nullable
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     lastX = x;
     lastY = y;
+    lastModifiers = modifiers;
+    return null;
   }
 
   /**
    * Paints the drag feedback during the drag &amp; drop operation
+   *
+   * @param graphics the graphics to paint to
    */
-  public abstract void paint(@NonNull ScreenView screen, @NonNull Graphics2D gc);
+  public abstract void paint(@NonNull NlGraphics graphics);
+
+  /**
+   * Returns the index of the position between the children of the layout to drop newly inserted
+   * children, or -1 to append them at the end. 0 refers to the first child, and so on.
+   * The indices refer to the positions of the children <b>before</b> the drag, which matters
+   * if some of the existing children in the layout are being dragged.
+   *
+   * @return the insert index, or -1 to append to the end
+   */
+  public int getInsertIndex() {
+    return -1;
+  }
 }
