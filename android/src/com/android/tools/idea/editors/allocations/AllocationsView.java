@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.ddmlib.AllocationInfo;
-import com.android.tools.chartlib.LayoutComponent;
+import com.android.tools.chartlib.SunburstComponent;
 import com.android.tools.chartlib.ValuedTreeNode;
 import com.android.tools.idea.editors.allocations.nodes.*;
 import com.android.utils.HtmlBuilder;
@@ -58,7 +58,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class AllocationsView implements LayoutComponent.SliceSelectionListener {
+public class AllocationsView implements SunburstComponent.SliceSelectionListener {
 
   @NotNull
   private final Project myProject;
@@ -87,7 +87,7 @@ public class AllocationsView implements LayoutComponent.SliceSelectionListener {
   private final Component myComponent;
 
   private GroupBy myGroupBy;
-  private final LayoutComponent myLayout;
+  private final SunburstComponent myLayout;
   private String myChartOrientation;
   private String myChartUnit;
   private final JLabel myInfoLabel;
@@ -240,7 +240,7 @@ public class AllocationsView implements LayoutComponent.SliceSelectionListener {
     mySplitter.setFirstComponent(panel);
 
     myChartPane = new JPanel(new BorderLayout());
-    myLayout = new LayoutComponent(myTreeNode);
+    myLayout = new SunburstComponent(myTreeNode);
     myLayout.setAngle(360.0f);
     myLayout.setAutoSize(true);
     myLayout.setSeparator(1.0f);
@@ -394,7 +394,7 @@ public class AllocationsView implements LayoutComponent.SliceSelectionListener {
   }
 
   @Override
-  public void valueChanged(LayoutComponent.SliceSelectionEvent e) {
+  public void valueChanged(SunburstComponent.SliceSelectionEvent e) {
     ValuedTreeNode node = e == null ? null : e.getNode();
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
