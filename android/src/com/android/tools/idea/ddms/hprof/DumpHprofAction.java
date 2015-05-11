@@ -22,6 +22,7 @@ import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
+import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -73,7 +74,7 @@ public class DumpHprofAction extends AbstractClientAction {
 
       myClient.dumpHprof();
       synchronized (myEvents) {
-         myEvent = myEvents.start(System.currentTimeMillis(), 1);
+         myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
       }
       try {
         myResponse.await(1, TimeUnit.MINUTES);
