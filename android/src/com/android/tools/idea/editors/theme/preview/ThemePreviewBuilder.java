@@ -57,6 +57,7 @@ public class ThemePreviewBuilder {
 
   private static final Map<String, String> NAMESPACE_TO_URI = ImmutableMap.of(
     ANDROID_NS_NAME, ANDROID_URI,
+    APP_PREFIX, AUTO_URI,
     BUILDER_NS_NAME, BUILDER_URI
   );
 
@@ -300,12 +301,7 @@ public class ThemePreviewBuilder {
   // List containing all the pre-defined components that are displayed in the preview.
   public static final List<ComponentDefinition> AVAILABLE_BASE_COMPONENTS = ImmutableList.of(
     // Toolbar
-    new ComponentDefinition("Toolbar", ComponentGroup.TOOLBAR, "Toolbar")
-      .setApiLevel(21)
-      .set(ATTR_TITLE, "Toolbar")
-      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
-      .set("minHeight", "?attr/actionBarSize").set(ATTR_BACKGROUND, "?attr/colorPrimary")
-      .addAlias("Actionbar"),
+    new ToolbarComponentDefinition(false/*isAppCompat*/),
 
     // Buttons
     new ComponentDefinition("Normal", ComponentGroup.RAISED_BUTTON, BUTTON),
