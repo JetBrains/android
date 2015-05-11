@@ -26,7 +26,6 @@ import com.intellij.pom.Navigatable;
 import com.intellij.ui.content.Content;
 import com.intellij.util.Consumer;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +45,7 @@ import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 
 public class MessagesToolWindowFixture extends ToolWindowFixture {
@@ -101,7 +101,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     private ErrorTreeElement doFindMessage(@NotNull final ErrorTreeElementKind kind, @NotNull final MessageMatcher matcher) {
-      ErrorTreeElement found = GuiActionRunner.execute(new GuiQuery<ErrorTreeElement>() {
+      ErrorTreeElement found = execute(new GuiQuery<ErrorTreeElement>() {
         @Override
         @Nullable
         protected ErrorTreeElement executeInEDT() throws Throwable {
@@ -113,9 +113,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       });
 
-      if (found == null) {
-        fail(String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()));
-      }
+      assertNotNull(String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()), found);
       return found;
     }
 
@@ -253,7 +251,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // Find the URL of the hyperlink.
       final EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
 
-      final JEditorPane editorComponent = GuiActionRunner.execute(new GuiQuery<JEditorPane>() {
+      final JEditorPane editorComponent = execute(new GuiQuery<JEditorPane>() {
         @Override
         protected JEditorPane executeInEDT() throws Throwable {
           TreeCellEditor cellEditor = message.getRightSelfEditor();
@@ -261,12 +259,15 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       });
 
-      String text = GuiActionRunner.execute(new GuiQuery<String>() {
+      assertNotNull(editorComponent);
+
+      String text = execute(new GuiQuery<String>() {
         @Override
         protected String executeInEDT() throws Throwable {
           return editorComponent.getText();
         }
       });
+      assertNotNull(text);
       String url = extractUrl(text, hyperlinkText);
       return new SyncHyperlinkFixture(myRobot, url, editorComponent);
     }
@@ -349,7 +350,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       };
       if (synchronous) {
-        GuiActionRunner.execute(new GuiTask() {
+        execute(new GuiTask() {
           @Override
           protected void executeInEDT() throws Throwable {
             action.run();
@@ -357,6 +358,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         });
       }
       else {
+        //noinspection SSBasedInspection
         SwingUtilities.invokeLater(action);
       }
       return this;

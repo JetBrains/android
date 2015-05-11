@@ -28,7 +28,6 @@ import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.driver.JTableDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +40,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
 import static javax.swing.SwingUtilities.windowForComponent;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 /**
@@ -164,7 +164,7 @@ public class PropertyFixture {
 
     final JTextComponent field = waitUntilFound(myRobot, table, JTextComponentMatcher.any());
     componentDriver.focusAndWaitForFocusGain(field);
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         field.selectAll(); // workaround: when mouse clicking the focus listener doesn't kick in on some Linux window managers

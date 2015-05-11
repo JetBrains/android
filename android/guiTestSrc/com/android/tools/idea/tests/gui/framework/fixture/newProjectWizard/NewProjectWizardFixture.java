@@ -21,12 +21,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class NewProjectWizardFixture extends AbstractWizardFixture {
+public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return "Create New Project".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
@@ -34,38 +34,24 @@ public class NewProjectWizardFixture extends AbstractWizardFixture {
   }
 
   private NewProjectWizardFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
+    super(NewProjectWizardFixture.class, robot, target);
   }
 
   @NotNull
   public ConfigureAndroidProjectStepFixture getConfigureAndroidProjectStep() {
     JRootPane rootPane = findStepWithTitle("Configure your new project");
-    return new ConfigureAndroidProjectStepFixture(robot, rootPane);
+    return new ConfigureAndroidProjectStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public ConfigureFormFactorStepFixture getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Select the form factors your app will run on");
-    return new ConfigureFormFactorStepFixture(robot, rootPane);
+    return new ConfigureFormFactorStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
     JRootPane rootPane = findStepWithTitle("Choose options for your new file");
-    return new ChooseOptionsForNewFileStepFixture(robot, rootPane);
-  }
-
-  @NotNull
-  public NewProjectWizardFixture clickNext() {
-    JButton button = findButtonByText("Next");
-    robot.click(button);
-    return this;
-  }
-
-  @NotNull
-  public NewProjectWizardFixture clickFinish() {
-    JButton button = findButtonByText("Finish");
-    robot.click(button);
-    return this;
+    return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 }

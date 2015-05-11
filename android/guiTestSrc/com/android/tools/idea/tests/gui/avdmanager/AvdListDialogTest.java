@@ -41,7 +41,7 @@ public class AvdListDialogTest extends GuiTestCase {
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
     configureAvdOptionsStep.showAdvancedSettings();
     configureAvdOptionsStep.setFrontCamera("Emulated");
-    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").setUseHostGpu(true);
+    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectUseHostGpu(true);
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
 
@@ -61,7 +61,7 @@ public class AvdListDialogTest extends GuiTestCase {
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
 
     configureAvdOptionsStep.showAdvancedSettings();
-    configureAvdOptionsStep.setUseHostGpu(true);
+    configureAvdOptionsStep.selectUseHostGpu(true);
     
     avdEditWizardFixture.clickFinish();
     avdManagerDialog.close();

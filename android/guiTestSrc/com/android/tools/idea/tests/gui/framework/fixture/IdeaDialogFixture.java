@@ -21,7 +21,7 @@ import org.fest.reflect.exception.ReflectionError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ComponentFixture;
+import org.fest.swing.fixture.ContainerFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +33,8 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.field;
 
-public abstract class IdeaDialogFixture<T extends DialogWrapper> extends ComponentFixture<JDialog> {
+public abstract class IdeaDialogFixture<T extends DialogWrapper> extends ComponentFixture<IdeaDialogFixture, JDialog>
+  implements ContainerFixture<JDialog> {
   @NotNull private final T myDialogWrapper;
 
   @Nullable
@@ -67,7 +68,7 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
   public static <T extends DialogWrapper> DialogAndWrapper<T> find(@NotNull Robot robot, @NotNull final Class<T> clz) {
     return find(robot, clz, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog component) {
+      protected boolean isMatching(@NotNull JDialog component) {
         return component.isShowing();
       }
     });
@@ -79,7 +80,7 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
     final Ref<T> wrapperRef = new Ref<T>();
     JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         if (matcher.matches(dialog)) {
           T wrapper = getDialogWrapperFrom(dialog, clz);
           if (wrapper != null) {
@@ -94,7 +95,7 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
   }
 
   protected IdeaDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull T dialogWrapper) {
-    super(robot, target);
+    super(IdeaDialogFixture.class, robot, target);
     myDialogWrapper = dialogWrapper;
   }
 

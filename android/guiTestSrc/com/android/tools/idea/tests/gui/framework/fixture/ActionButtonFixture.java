@@ -20,17 +20,16 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class ActionButtonFixture extends ComponentFixture<ActionButton> {
+public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
   public static ActionButtonFixture findByActionId(@NotNull final String actionId, @NotNull Robot robot, @NotNull Container container) {
     final ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
-      protected boolean isMatching(ActionButton button) {
+      protected boolean isMatching(@NotNull ActionButton button) {
         AnAction action = button.getAction();
         if (action != null) {
           String id = ActionManager.getInstance().getId(action);
@@ -46,7 +45,7 @@ public class ActionButtonFixture extends ComponentFixture<ActionButton> {
   public static ActionButtonFixture findByText(@NotNull final String text, @NotNull Robot robot, @NotNull Container container) {
     final ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
-      protected boolean isMatching(ActionButton button) {
+      protected boolean isMatching(@NotNull ActionButton button) {
         AnAction action = button.getAction();
         return text.equals(action.getTemplatePresentation().getText());
       }
@@ -55,12 +54,6 @@ public class ActionButtonFixture extends ComponentFixture<ActionButton> {
   }
 
   private ActionButtonFixture(@NotNull Robot robot, @NotNull ActionButton target) {
-    super(robot, target);
-  }
-
-  @NotNull
-  public ActionButtonFixture click() {
-    robot.click(target);
-    return this;
+    super(ActionButtonFixture.class, robot, target);
   }
 }

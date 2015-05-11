@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
+import org.fest.assertions.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
@@ -32,6 +33,7 @@ import java.util.List;
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Test runner that automatically includes all test classes that extend {@link GuiTestCase}.
@@ -49,7 +51,7 @@ public class GuiTestSuiteRunner extends Suite {
 
     String packagePath = suiteClass.getPackage().getName().replace('.', File.separatorChar);
     int packagePathIndex = parentDir.getPath().indexOf(packagePath);
-    assert packagePathIndex > -1;
+    assertThat(packagePathIndex).isGreaterThan(-1);
     String testDirPath = parentDir.getPath().substring(0, packagePathIndex);
 
     findPotentialGuiTestClassFiles(parentDir, guiTestClassFiles);

@@ -38,7 +38,6 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
@@ -71,6 +70,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
@@ -159,7 +159,7 @@ public abstract class GuiTestCase {
       @Override
       public boolean test() {
         final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        GuiActionRunner.execute(new GuiTask() {
+        execute(new GuiTask() {
           @Override
           protected void executeInEDT() throws Throwable {
             for (Project project : openProjects) {
@@ -171,7 +171,8 @@ public abstract class GuiTestCase {
       }
     }, SHORT_TIMEOUT);
 
-    boolean welcomeFrameShown = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+    //noinspection ConstantConditions
+    boolean welcomeFrameShown = execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
@@ -240,7 +241,7 @@ public abstract class GuiTestCase {
   }
 
   private static void doImportProject(@NotNull final VirtualFile projectDir) {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         GradleProjectImporter.getInstance().importProject(projectDir);
@@ -269,7 +270,7 @@ public abstract class GuiTestCase {
       return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
     }
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();

@@ -72,7 +72,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
 
     JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         if (!"Library Properties".equals(dialog.getTitle()) || !dialog.isShowing()) {
           return false;
         }
@@ -96,14 +96,14 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
 
   @NotNull
   public LibraryPropertiesDialogFixture addAttachment(@NotNull File path) {
-    final ActionButton addButton = robot.finder().find(target, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    final ActionButton addButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
-      protected boolean isMatching(ActionButton button) {
+      protected boolean isMatching(@NotNull ActionButton button) {
         String toolTipText = button.getToolTipText();
         return button.isShowing() && isNotEmpty(toolTipText) && toolTipText.startsWith("Add");
       }
     });
-    robot.moveMouse(addButton);
+    robot().moveMouse(addButton);
     //noinspection SSBasedInspection
     SwingUtilities.invokeLater(new Runnable() {
       @Override
@@ -113,9 +113,9 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
     });
 
     VirtualFile attachment = findFileByIoFile(path, true);
-    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
         return dialog.isShowing() && isNotEmpty(title) && title.startsWith("Attach Files or Directories to Library");
       }

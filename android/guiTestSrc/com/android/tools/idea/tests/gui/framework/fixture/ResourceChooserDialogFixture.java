@@ -17,17 +17,18 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.JTextComponentDriver;
-import org.fest.swing.fixture.ComponentFixture;
+import org.fest.swing.fixture.ContainerFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 
-public class ResourceChooserDialogFixture extends ComponentFixture<Dialog> {
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
+public class ResourceChooserDialogFixture extends ComponentFixture<ResourceChooserDialogFixture, Dialog>
+  implements ContainerFixture<Dialog> {
 
   @NotNull
   public static ResourceChooserDialogFixture findDialog(@NotNull Robot robot) {
@@ -37,22 +38,21 @@ public class ResourceChooserDialogFixture extends ComponentFixture<Dialog> {
   }
 
   private ResourceChooserDialogFixture(@NotNull Robot robot, Dialog target) {
-    super(robot, target);
+    super(ResourceChooserDialogFixture.class, robot, target);
   }
 
   public void setDirectoryName(@NotNull String directory) {
-    Container parent = robot.finder().find(target, JLabelMatcher.withText("Directory name:")).getParent();
+    Container parent = robot().finder().find(target(), JLabelMatcher.withText("Directory name:")).getParent();
 
-    JTextComponent directoryField = robot.finder().findByType(parent, JTextComponent.class, true);
-    JTextComponentDriver driver = new JTextComponentDriver(robot);
+    JTextComponent directoryField = robot().finder().findByType(parent, JTextComponent.class, true);
+    JTextComponentDriver driver = new JTextComponentDriver(robot());
     driver.selectAll(directoryField);
     driver.setText(directoryField, directory);
   }
 
   @NotNull
   public ResourceChooserDialogFixture clickOK() {
-    JButton button = robot.finder().find(target, JButtonMatcher.withText("OK").andShowing());
-    robot.click(button);
+    findAndClickOkButton(this);
     return this;
   }
 }
