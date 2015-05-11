@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
@@ -24,8 +25,10 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
 
+@BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class IdeSettingsTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSettingsRemovalForGradleProjects() throws IOException {
