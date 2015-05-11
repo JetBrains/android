@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -31,12 +32,13 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+@BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class BuildVariantsTest extends GuiTestCase {
-
   private static final String MODULE_NAME = "app";
 
   @Test @IdeGuiTest
