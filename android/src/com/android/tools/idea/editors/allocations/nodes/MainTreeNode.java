@@ -16,20 +16,8 @@
 package com.android.tools.idea.editors.allocations.nodes;
 
 import com.android.ddmlib.AllocationInfo;
-import gnu.trove.TIntObjectHashMap;
 
-public class StackTraceNode extends MainTreeNode {
-  private TIntObjectHashMap<ThreadNode> myChildrenMap = new TIntObjectHashMap<ThreadNode>();
+public abstract class MainTreeNode extends AbstractTreeNode {
 
-  @Override
-  public void insert(AllocationInfo alloc) {
-    short id = alloc.getThreadId();
-    ThreadNode thread = myChildrenMap.get(id);
-    if (thread == null) {
-      thread = new ThreadNode(id);
-      myChildrenMap.put(id, thread);
-      addChild(thread);
-    }
-    thread.insert(alloc, 0);
-  }
+  public abstract void insert(AllocationInfo alloc);
 }

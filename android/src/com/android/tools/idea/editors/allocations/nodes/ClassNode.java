@@ -15,21 +15,11 @@
  */
 package com.android.tools.idea.editors.allocations.nodes;
 
-import com.android.ddmlib.AllocationInfo;
-import gnu.trove.TIntObjectHashMap;
+import org.jetbrains.annotations.NotNull;
 
-public class StackTraceNode extends MainTreeNode {
-  private TIntObjectHashMap<ThreadNode> myChildrenMap = new TIntObjectHashMap<ThreadNode>();
+public class ClassNode extends PackageNode {
 
-  @Override
-  public void insert(AllocationInfo alloc) {
-    short id = alloc.getThreadId();
-    ThreadNode thread = myChildrenMap.get(id);
-    if (thread == null) {
-      thread = new ThreadNode(id);
-      myChildrenMap.put(id, thread);
-      addChild(thread);
-    }
-    thread.insert(alloc, 0);
+  public ClassNode(@NotNull String name) {
+    super(name);
   }
 }
