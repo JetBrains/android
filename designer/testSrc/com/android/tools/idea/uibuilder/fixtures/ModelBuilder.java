@@ -69,7 +69,7 @@ public class ModelBuilder {
           TestCase.assertNotNull(xml, XmlUtils.parseDocument(xml, true));
         }
         catch (Exception e) {
-          TestCase.fail("Invalid XML created for the model.");
+          TestCase.fail("Invalid XML created for the model (" + xml + ")");
         }
         XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/" + myName, xml);
         XmlTag rootTag = xmlFile.getRootTag();

@@ -16,21 +16,30 @@
 package com.android.tools.idea.uibuilder.graphics;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class NlGraphics {
-  private final Graphics myGraphics;
-  private final JComponent myTarget;
+  private final ScreenView myScreenView;
+  private final Graphics2D myGraphics;
 
-  public NlGraphics(Graphics graphics, JComponent target) {
+  public NlGraphics(@NonNull Graphics2D graphics, @NonNull ScreenView screenView) {
     myGraphics = graphics;
-    myTarget = target;
+    myScreenView = screenView;
   }
 
-  public Graphics getGraphics() {
+  @NonNull
+  public Graphics2D getSwingGraphics() {
     return myGraphics;
+  }
+
+  @NonNull
+  public ScreenView getScreenView() {
+    return myScreenView;
   }
 
   /**
@@ -44,34 +53,72 @@ public class NlGraphics {
     myStyle = style;
   }
 
-  public static void useStroke(NlDrawingStyle style, Graphics gc) {
-    Color strokeColor = style.getStrokeColor();
-    if (strokeColor != gc.getColor()) {
-      gc.setColor(strokeColor);
-    }
-    if (gc instanceof Graphics2D) {
-      Graphics2D gc2 = (Graphics2D)gc;
-      Stroke stroke = style.getStroke();
-      if (gc2.getStroke() != stroke) {
-        gc2.setStroke(stroke);
-      }
-    }
-  }
-
-  public static void useFill(NlDrawingStyle style, Graphics gc) {
-    Color fillColor = style.getFillColor();
+  public void fillRect(@AndroidCoordinate int x,
+                       @AndroidCoordinate int y,
+                       @AndroidCoordinate int width,
+                       @AndroidCoordinate int height) {
+    Color fillColor = myStyle.getFillColor();
     if (fillColor != null) {
-      if (fillColor != gc.getColor()) {
-        gc.setColor(fillColor);
-      }
+      useFill(myStyle, myGraphics);
+
+      x = Coordinates.getSwingX(myScreenView, x);
+      y = Coordinates.getSwingY(myScreenView, y);
+      width = Coordinates.getSwingDimension(myScreenView, width);
+      height = Coordinates.getSwingDimension(myScreenView, height);
+
+      fillRect(myStyle, myGraphics, x, y, width, height);
     }
   }
 
-  public void fillRect(int x, int y, int width, int height) {
-    fillRect(myStyle, myGraphics, x, y, width, height);
+  public void drawLine(@AndroidCoordinate int x1,
+                       @AndroidCoordinate int y1,
+                       @AndroidCoordinate int x2,
+                       @AndroidCoordinate int y2) {
+    x1 = Coordinates.getSwingX(myScreenView, x1);
+    x2 = Coordinates.getSwingX(myScreenView, x2);
+    y1 = Coordinates.getSwingY(myScreenView, y1);
+    y2 = Coordinates.getSwingY(myScreenView, y2);
+
+    drawLine(myStyle, myGraphics, x1, y1, x2, y2);
   }
 
-  public static void fillRect(NlDrawingStyle style, Graphics gc, int x, int y, int width, int height) {
+  public void drawRect(@AndroidCoordinate int x,
+                       @AndroidCoordinate int y,
+                       @AndroidCoordinate int width,
+                       @AndroidCoordinate int height) {
+    x = Coordinates.getSwingX(myScreenView, x);
+    y = Coordinates.getSwingY(myScreenView, y);
+    width = Coordinates.getSwingDimension(myScreenView, width);
+    height = Coordinates.getSwingDimension(myScreenView, height);
+
+    drawRect(myStyle, myGraphics, x, y, width, height);
+  }
+
+  public void drawArrow(@AndroidCoordinate int x1,
+                        @AndroidCoordinate int y1,
+                        @AndroidCoordinate int x2,
+                        @AndroidCoordinate int y2) {
+    x1 = Coordinates.getSwingX(myScreenView, x1);
+    x2 = Coordinates.getSwingX(myScreenView, x2);
+    y1 = Coordinates.getSwingY(myScreenView, y1);
+    y2 = Coordinates.getSwingY(myScreenView, y2);
+
+    drawArrow(myStyle, myGraphics, x1, y1, x2, y2);
+  }
+
+  public void drawCross(@AndroidCoordinate int radius) {
+    radius = Coordinates.getSwingDimension(myScreenView, radius);
+    drawCross(myStyle, myGraphics, radius);
+  }
+
+  // Swing coordinate system
+
+  public static void fillRect(@NonNull NlDrawingStyle style,
+                              @NonNull Graphics gc,
+                              @SwingCoordinate int x,
+                              @SwingCoordinate int y,
+                              @SwingCoordinate int width,
+                              @SwingCoordinate int height) {
     Color fillColor = style.getFillColor();
     if (fillColor != null) {
       useFill(style, gc);
@@ -79,7 +126,12 @@ public class NlGraphics {
     }
   }
 
-  public static void drawFilledRect(NlDrawingStyle style, Graphics gc, int x, int y, int width, int height) {
+  public static void drawFilledRect(@NonNull NlDrawingStyle style,
+                                    @NonNull Graphics gc,
+                                    @SwingCoordinate int x,
+                                    @SwingCoordinate int y,
+                                    @SwingCoordinate int width,
+                                    @SwingCoordinate int height) {
     Color fillColor = style.getFillColor();
     if (fillColor != null) {
       useFill(style, gc);
@@ -92,42 +144,47 @@ public class NlGraphics {
     }
   }
 
-  public static void drawStrokeFilledRect(NlDrawingStyle style, Graphics gc, int x, int y, int width, int height) {
+  public static void drawStrokeFilledRect(@NonNull NlDrawingStyle style,
+                                          @NonNull Graphics gc,
+                                          @SwingCoordinate int x,
+                                          @SwingCoordinate int y,
+                                          @SwingCoordinate int width,
+                                          @SwingCoordinate int height) {
     useStroke(style, gc);
     if (style.getStrokeColor() != null) {
       gc.fillRect(x, y, width, height);
     }
   }
 
-  public void drawRect(int x, int y, int width, int height) {
-    drawRect(myStyle, myGraphics, x, y, width, height);
-  }
-
-  public static void drawRect(NlDrawingStyle style, Graphics gc, int x, int y, int width, int height) {
+  public static void drawRect(@NonNull NlDrawingStyle style,
+                              @NonNull Graphics gc,
+                              @SwingCoordinate int x,
+                              @SwingCoordinate int y,
+                              @SwingCoordinate int width,
+                              @SwingCoordinate int height) {
     useStroke(style, gc);
     gc.drawRect(x, y, width - 1, height - 1);
   }
 
-  public void drawLine(int x1, int y1, int x2, int y2) {
-    drawLine(myStyle, myGraphics, x1, y1, x2, y2);
-  }
-
-  public static void drawLine(NlDrawingStyle style, Graphics gc, int x1, int y1, int x2, int y2) {
+  public static void drawLine(@NonNull NlDrawingStyle style,
+                              @NonNull Graphics gc,
+                              @SwingCoordinate int x1,
+                              @SwingCoordinate int y1,
+                              @SwingCoordinate int x2,
+                              @SwingCoordinate int y2) {
     useStroke(style, gc);
     gc.drawLine(x1, y1, x2, y2);
   }
 
-
-  // arrows
-
   private static final int MIN_LENGTH = 10;
   private static final int ARROW_SIZE = 5;
 
-  public void drawArrow(int x1, int y1, int x2, int y2) {
-    drawArrow(myStyle, myGraphics, x1, y1, x2, y2);
-  }
-
-  public static void drawArrow(NlDrawingStyle style, Graphics graphics, int x1, int y1, int x2, int y2) {
+  public static void drawArrow(@NonNull NlDrawingStyle style,
+                               @NonNull Graphics graphics,
+                               @SwingCoordinate int x1,
+                               @SwingCoordinate int y1,
+                               @SwingCoordinate int x2,
+                               @SwingCoordinate int y2) {
     Color strokeColor = style.getStrokeColor();
     if (strokeColor != graphics.getColor()) {
       graphics.setColor(strokeColor);
@@ -212,7 +269,7 @@ public class NlGraphics {
     }
   }
 
-  public static void drawCross(NlDrawingStyle style, Graphics g, int radius) {
+  public static void drawCross(@NonNull NlDrawingStyle style, @NonNull Graphics g, @SwingCoordinate int radius) {
     int size2 = (radius - 3) / 2;
     Color fillColor = style.getFillColor();
     if (fillColor != null) {
@@ -224,7 +281,26 @@ public class NlGraphics {
     }
   }
 
-  public JComponent getTarget() {
-    return myTarget;
+  public static void useStroke(@NonNull NlDrawingStyle style, @NonNull Graphics gc) {
+    Color strokeColor = style.getStrokeColor();
+    if (strokeColor != gc.getColor()) {
+      gc.setColor(strokeColor);
+    }
+    if (gc instanceof Graphics2D) {
+      Graphics2D gc2 = (Graphics2D)gc;
+      Stroke stroke = style.getStroke();
+      if (gc2.getStroke() != stroke) {
+        gc2.setStroke(stroke);
+      }
+    }
+  }
+
+  public static void useFill(@NonNull NlDrawingStyle style, @NonNull Graphics gc) {
+    Color fillColor = style.getFillColor();
+    if (fillColor != null) {
+      if (fillColor != gc.getColor()) {
+        gc.setColor(fillColor);
+      }
+    }
   }
 }
