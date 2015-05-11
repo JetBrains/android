@@ -15,43 +15,36 @@
  */
 package com.android.tools.idea.editors.hprof.descriptors;
 
-import com.android.tools.perflib.heap.ClassObj;
-import com.android.tools.perflib.heap.Instance;
-import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.NodeDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+public class ExpansionDescriptorImpl extends NodeDescriptorImpl {
+  private final int myStartIndex;
+  private final int myTotal;
 
-public class ContainerDescriptorImpl extends NodeDescriptorImpl {
-  @NotNull ClassObj myClassObj;
-  @NotNull private List<Instance> myInstancesCache;
-
-  public ContainerDescriptorImpl(@NotNull ClassObj classObj, int heapId) {
-    myClassObj = classObj;
-    myInstancesCache = myClassObj.getHeapInstances(heapId);
+  public ExpansionDescriptorImpl(int startIndex, int total) {
+    myStartIndex = startIndex;
+    myTotal = total;
+    setLabel(calcRepresentation(null, null));
   }
 
-  @NotNull
-  public ClassObj getClassObj() {
-    return myClassObj;
+  public int getStartIndex() {
+    return myStartIndex;
   }
 
-  @NotNull
-  public List<Instance> getInstances() {
-    return myInstancesCache;
+  public int getTotal() {
+    return myTotal;
   }
 
   @Override
-  protected String calcRepresentation(EvaluationContextImpl context, DescriptorLabelListener labelListener) throws EvaluateException {
-    return null;
+  protected String calcRepresentation(EvaluationContextImpl context, DescriptorLabelListener labelListener) {
+    return String.format("%d of %d remaining. Click row to expand.", myTotal - myStartIndex, myTotal);
   }
 
   @Override
   public boolean isExpandable() {
-    return true;
+    return false;
   }
 
   @Override
