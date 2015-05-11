@@ -26,9 +26,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SUPPORTED_GRADLE_HOME_PROPERTY;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.UNSUPPORTED_GRADLE_HOME_PROPERTY;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
@@ -40,16 +38,14 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
-    String oldGradleHome = System.getProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY);
-    if (isEmpty(oldGradleHome)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(),
-                                 UNSUPPORTED_GRADLE_HOME_PROPERTY);
-      System.out.println(msg);
+    File unsupportedGradleHome = getUnsupportedGradleHome();
+    if (unsupportedGradleHome == null) {
+      skip("testValidationWithInvalidMinimumGradleVersion");
       return;
     }
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
-    dialog.chooseGradleHome(new File(oldGradleHome))
+    dialog.chooseGradleHome(unsupportedGradleHome)
           .clickOk()
           .requireValidationError("Gradle " + MINIMUM_GRADLE_VERSION + " or newer is required")
           .close();
@@ -57,16 +53,14 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
 
   @Test
   public void testValidateWithValidMinimumGradleVersion() {
-    String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
-    if (isEmpty(gradleHome)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(),
-                                 SUPPORTED_GRADLE_HOME_PROPERTY);
-      System.out.println(msg);
+    File gradleHomePath = getGradleHomePath();
+    if (gradleHomePath == null) {
+      skip("testValidateWithValidMinimumGradleVersion");
       return;
     }
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
-    dialog.chooseGradleHome(new File(gradleHome))
+    dialog.chooseGradleHome(gradleHomePath)
           .clickOk()
           .requireNotShowing();  // if it is not showing on the screen, it means that there were no validation errors.
   }
