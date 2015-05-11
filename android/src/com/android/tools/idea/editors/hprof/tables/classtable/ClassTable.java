@@ -23,6 +23,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,6 +50,7 @@ public class ClassTable extends HprofTable {
           if (pkg != null) {
             append(" (" + pkg + ")", new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
           }
+          setTransparentIconBackground(true);
           setIcon(PlatformIcons.CLASS_ICON);
           // TODO reformat anonymous classes (ANONYMOUS_CLASS_ICON) to match IJ.
         }
@@ -56,18 +58,17 @@ public class ClassTable extends HprofTable {
     });
   }
 
-  public void setHeap(@NotNull Heap heap) {
-    int modelRow = getRowSorter().convertRowIndexToModel(getSelectedRow());
-    ClassTableModel model = (ClassTableModel)getModel();
-    ClassObj selectedClassObj = model.getEntry(modelRow);
+  public void setHeap(@NotNull Heap heap, @Nullable ClassObj classToSelect) {
+    ((ClassTableModel)getModel()).setHeap(heap);
 
-    model.setHeap(heap);
-
-    ClassTableModel newModel = (ClassTableModel)getModel();
-    int newRow = newModel.findEntryRow(selectedClassObj);
-    if (newRow >= 0) {
-      int newViewRow = getRowSorter().convertRowIndexToView(newRow);
-      getSelectionModel().setSelectionInterval(newViewRow, newViewRow);
+    if (classToSelect != null) {
+      ClassTableModel newModel = (ClassTableModel)getModel();
+      int newRow = newModel.findEntryRow(classToSelect);
+      if (newRow >= 0) {
+        int newViewRow = getRowSorter().convertRowIndexToView(newRow);
+        getSelectionModel().setSelectionInterval(newViewRow, newViewRow);
+        scrollRectToVisible(new Rectangle(getCellRect(newViewRow, 0, true)));
+      }
     }
   }
 }
