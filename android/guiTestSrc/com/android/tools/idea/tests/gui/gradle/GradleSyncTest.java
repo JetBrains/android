@@ -586,20 +586,24 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
-    File gradleHomePath = getFilePathProperty(SUPPORTED_GRADLE_HOME_PROPERTY, "the path of a local Gradle 2.2.1 distribution", true);
+    File unsupportedGradleHome = getUnsupportedGradleHome();
+    File gradleHomePath = getGradleHomePath();
+    if (unsupportedGradleHome == null || gradleHomePath == null) {
+      skip("testUpdateGradleVersionWithLocalDistribution");
+      return;
+    }
 
     IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.deleteGradleWrapper()
-                .useLocalGradleDistribution(getUnsupportedGradleHome())
+                .useLocalGradleDistribution(unsupportedGradleHome)
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
-    chooseGradleHomeDialog.chooseGradleHome(gradleHomePath)
-                          .clickOk()
+    chooseGradleHomeDialog.chooseGradleHome(gradleHomePath).clickOk()
                           .requireNotShowing();
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -607,17 +611,20 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    File unsupportedGradleHome = getUnsupportedGradleHome();
+    if (unsupportedGradleHome == null) {
+      skip("testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle");
+      return;
+    }
 
-    projectFrame.deleteGradleWrapper().useLocalGradleDistribution(getUnsupportedGradleHome())
-                .requestProjectSync();
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    projectFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     projectFrame.waitForGradleProjectSyncToStart()
-                .waitForGradleProjectSyncToFinish()
-                .requireGradleWrapperSet();
+                .waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
   @Test @IdeGuiTest
@@ -632,8 +639,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     projectFrame.waitForGradleProjectSyncToStart()
-                .waitForGradleProjectSyncToFinish()
-                .requireGradleWrapperSet();
+                .waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
   @Test @IdeGuiTest
@@ -642,15 +648,13 @@ public class GradleSyncTest extends GuiTestCase {
 
     File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
     projectFrame.deleteGradleWrapper()
-                .useLocalGradleDistribution(nonExistingDirPath)
-                .requestProjectSync();
+                .useLocalGradleDistribution(nonExistingDirPath).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
     projectFrame.waitForGradleProjectSyncToStart()
-                .waitForGradleProjectSyncToFinish()
-                .requireGradleWrapperSet();
+                .waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74842
@@ -932,6 +936,10 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testAndroidPluginAndGradleVersionCompatibility() throws IOException {
     File gradleTwoDotFourHome = getGradleHomeFromSystemProperty("gradle.2.4.home", "2.4");
+    if (gradleTwoDotFourHome == null) {
+      skip("testAndroidPluginAndGradleVersionCompatibility");
+      return;
+    }
 
     IdeFrameFixture projectFrame = importSimpleApplication();
 
@@ -999,6 +1007,10 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testUserDefinedLibraryAttachments() throws IOException {
     File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
+    if (javadocJarPath == null) {
+      skip("testUserDefinedLibraryAttachments");
+      return;
+    }
 
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     LibraryPropertiesDialogFixture propertiesDialog = projectFrame.showPropertiesForLibrary("guava");
@@ -1044,14 +1056,13 @@ public class GradleSyncTest extends GuiTestCase {
     gradleProperties = new GradleProperties(project);
     assertEquals(jvmArgs, gradleProperties.getJvmArgs());
 
-    projectFrame.setGradleJvmArgs(jvmArgs)
-                .invokeProjectMake(new Runnable() {
-                  @Override
-                  public void run() {
-                    // Copy JVM args to gradle.properties file.
-                    projectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
-                  }
-                });
+    projectFrame.setGradleJvmArgs(jvmArgs).invokeProjectMake(new Runnable() {
+      @Override
+      public void run() {
+        // Copy JVM args to gradle.properties file.
+        projectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
+      }
+    });
     assertEquals("", GradleSettings.getInstance(project).getGradleVmOptions());
   }
 
@@ -1113,6 +1124,11 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSdkSwitch() throws IOException {
     File secondSdkPath = getFilePathProperty("second.android.sdk.path", "the path of a secondary Android SDK", true);
+    if (secondSdkPath == null) {
+      skip("testSdkSwitch");
+      return;
+    }
+
     getGuiTestSuiteState().setSkipSdkMerge(true);
 
     File originalSdkPath = IdeSdks.getAndroidSdkPath();
@@ -1250,16 +1266,5 @@ public class GradleSyncTest extends GuiTestCase {
     else {
       fail("Cannot find declaration of Android plugin");
     }
-  }
-
-  @NotNull
-  private static File getUnsupportedGradleHome() {
-    return getGradleHomeFromSystemProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY, "2.1");
-  }
-
-  @NotNull
-  private static File getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
-    String description = "the path of a Gradle " + gradleVersion + " distribution";
-    return getFilePathProperty(propertyName, description, true);
   }
 }
