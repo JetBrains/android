@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.intellij.ProjectTopics;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
@@ -31,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
  * interface to access them.
  */
 public final class DeveloperServices {
+  private static final Logger LOG = Logger.getInstance(DeveloperService.class);
+
   // TODO: Remove this flag after this feature is production ready
   private static final String ENABLE_DEVELOPER_SERVICES = "enable.developer.services";
 
@@ -60,11 +63,16 @@ public final class DeveloperServices {
     }
 
     for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
-      for (DeveloperServiceCreator creator : creators.getCreators()) {
-        DeveloperService service = creator.createService(module);
-        if (service != null) {
-          ourServices.put(module, service);
+      try {
+        for (DeveloperServiceCreator creator : creators.getCreators()) {
+          DeveloperService service = creator.createService(module);
+          if (service != null) {
+            ourServices.put(module, service);
+          }
         }
+      }
+      catch (Exception e) {
+        LOG.warn("Caught exception while initializing services", e);
       }
     }
 
