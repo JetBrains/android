@@ -17,25 +17,31 @@ package com.android.tools.idea.structure.services;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+
 /**
  * The valid list of categories a developer service can be a part of.
  */
 public enum ServiceCategory {
 
-  Ads,
-  Analytics,
-  Authentication,
-  GameServices("Game Services"),
-  GeoLocation("Geo/Location"),
-  Localization,
-  Payments,
-  Publishing;
+  ADS,
+  ANALYTICS,
+  AUTHENTICATION,
+  CLOUD,
+  FITNESS,
+  GAMES,
+  GEO_LOCATION("Geo/Location"),
+  LOCALIZATION,
+  MARKETING,
+  MEDIA,
+  PAYMENTS,
+  SOCIAL;
 
-  @NotNull
-  private final String myDisplayName;
+  @NotNull private final String myDisplayName;
 
   ServiceCategory() {
-    myDisplayName = name();
+    myDisplayName = UPPER_UNDERSCORE.to(UPPER_CAMEL, name());
   }
 
   ServiceCategory(@NotNull final String displayName) {
