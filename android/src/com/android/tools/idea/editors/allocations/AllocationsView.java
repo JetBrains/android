@@ -16,7 +16,10 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.ddmlib.AllocationInfo;
+import com.android.tools.chartlib.LayoutComponent;
+import com.android.tools.chartlib.ValuedTreeNode;
 import com.android.tools.idea.editors.allocations.nodes.*;
+import com.android.utils.HtmlBuilder;
 import com.intellij.execution.filters.OpenFileHyperlinkInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.GotoFileCellRenderer;
@@ -25,6 +28,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.JavaPsiFacade;
@@ -34,26 +38,35 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.Alarm;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.Convertor;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class AllocationsView {
+public class AllocationsView implements LayoutComponent.SliceSelectionListener {
 
   @NotNull
   private final Project myProject;
 
   @NotNull
   private final AllocationInfo[] myAllocations;
+  private final DefaultTableModel myInfoTableModel;
+  private final SearchTextFieldWithStoredHistory myPackageFilter;
 
   @NotNull
   private MainTreeNode myTreeNode;
@@ -65,9 +78,20 @@ public class AllocationsView {
   private final DefaultTreeModel myTreeModel;
 
   @NotNull
-  private final JPanel myPanel;
+  private JBSplitter mySplitter;
+
+  @NotNull
+  private JComponent myChartPane;
+
+  @NotNull
+  private final Component myComponent;
 
   private GroupBy myGroupBy;
+  private final LayoutComponent myLayout;
+  private String myChartOrientation;
+  private String myChartUnit;
+  private final JLabel myInfoLabel;
+  private Alarm myAlarm;
 
   public AllocationsView(@NotNull Project project, @NotNull final AllocationInfo[] allocations) {
     myProject = project;
@@ -75,6 +99,7 @@ public class AllocationsView {
     myGroupBy = new GroupByMethod();
     myTreeNode = generateTree();
     myTreeModel = new DefaultTreeModel(myTreeNode);
+    myAlarm = new Alarm(project);
 
     myTree = new Tree(myTreeModel);
     myTree.setRootVisible(false);
@@ -111,60 +136,7 @@ public class AllocationsView {
                 }
               }
             })
-            .setRenderer(new ColoredTreeCellRenderer() {
-              @Override
-              public void customizeCellRenderer(@NotNull JTree tree,
-                                                Object value,
-                                                boolean selected,
-                                                boolean expanded,
-                                                boolean leaf,
-                                                int row,
-                                                boolean hasFocus) {
-                if (value instanceof ThreadNode) {
-                  setIcon(AllIcons.Debugger.ThreadSuspended);
-                  append("< Thread " + ((ThreadNode)value).getThreadId() + " >");
-                }
-                else if (value instanceof StackNode) {
-                  StackTraceElement element = ((StackNode)value).getStackTraceElement();
-                  String name = element.getClassName();
-                  String pkg = null;
-                  int ix = name.lastIndexOf(".");
-                  if (ix != -1) {
-                    pkg = name.substring(0, ix);
-                    name = name.substring(ix + 1);
-                  }
-
-                  setIcon(PlatformIcons.METHOD_ICON);
-                  append(element.getMethodName() + "()");
-                  append(":" + element.getLineNumber() + ", ");
-                  append(name);
-                  if (pkg != null) {
-                    append(" (" + pkg + ")", new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
-                  }
-                }
-                else if (value instanceof AllocNode) {
-                  AllocationInfo allocation = ((AllocNode)value).getAllocation();
-                  setIcon(AllIcons.FileTypes.JavaClass);
-                  append(allocation.getAllocatedClass());
-                }
-                else if (value instanceof ClassNode) {
-                  setIcon(PlatformIcons.CLASS_ICON);
-                  append(((PackageNode)value).getName());
-                }
-                else if (value instanceof PackageNode) {
-                  setIcon(AllIcons.Modules.SourceFolder);
-                  append(((PackageNode)value).getName());
-                }
-                else {
-                  append(value.toString());
-                }
-              }
-
-              @Override
-              protected boolean shouldDrawBackground() {
-                return false;
-              }
-            }))
+            .setRenderer(new NodeTreeCellRenderer()))
         .addColumn(new ColumnTreeBuilder.ColumnBuilder()
             .setName("Count")
             .setPreferredWidth(150)
@@ -226,6 +198,10 @@ public class AllocationsView {
         myTreeModel.nodeStructureChanged(myTreeNode);
       }
     });
+    JComponent columnTree = builder.build();
+
+    mySplitter = new JBSplitter(true);
+
     new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
       @Override
       public String convert(TreePath e) {
@@ -238,22 +214,87 @@ public class AllocationsView {
       }
     }, true);
 
-    JComponent columnTree = builder.build();
-    myPanel = new JPanel(new BorderLayout());
+    JPanel panel = new JPanel(new BorderLayout());
+
+    JPanel topPanel = new JPanel(new BorderLayout());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getMainActions(), true);
-    myPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
-    myPanel.add(columnTree, BorderLayout.CENTER);  }
+    topPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
+    myPackageFilter = new SearchTextFieldWithStoredHistory("alloc.package.filter");
+    myPackageFilter.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        myAlarm.cancelAllRequests();
+        myAlarm.addRequest(new Runnable() {
+          @Override
+          public void run() {
+            setGroupBy(new GroupByAllocator());
+          }
+        }, 1000);
+      }
+    });
+    myPackageFilter.setVisible(false);
+    topPanel.add(myPackageFilter, BorderLayout.EAST);
+    panel.add(topPanel, BorderLayout.NORTH);
+    panel.add(columnTree, BorderLayout.CENTER);
+
+    mySplitter.setFirstComponent(panel);
+
+    myChartPane = new JPanel(new BorderLayout());
+    myLayout = new LayoutComponent(myTreeNode);
+    myLayout.setAngle(360.0f);
+    myLayout.setAutoSize(true);
+    myLayout.setSeparator(1.0f);
+    myLayout.setGap(20.0f);
+    myLayout.addSelectionListener(this);
+    myLayout.setBorder(IdeBorderFactory.createBorder());
+
+    toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getChartActions(), true);
+    myChartOrientation = "Sunburst";
+    myChartUnit = "Size";
+
+    myChartPane.add(toolbar.getComponent(), BorderLayout.NORTH);
+    JBSplitter chartSplitter = new JBSplitter();
+    myChartPane.add(chartSplitter, BorderLayout.CENTER);
+    chartSplitter.setFirstComponent(myLayout);
+
+    JPanel infoPanel = new JPanel(new BorderLayout());
+    infoPanel.setBorder(IdeBorderFactory.createBorder());
+
+    myInfoLabel = new JLabel();
+    myInfoLabel.setVerticalAlignment(SwingConstants.TOP);
+    infoPanel.add(myInfoLabel, BorderLayout.NORTH);
+    myInfoTableModel = new DefaultTableModel() {
+      @Override
+      public boolean isCellEditable(int i, int i1) {
+        return false;
+      }
+    };
+    myInfoTableModel.addColumn("Data");
+    JBTable info = new JBTable(myInfoTableModel);
+    info.setTableHeader(null);
+    info.setShowGrid(false);
+    info.setDefaultRenderer(Object.class, new NodeTableCellRenderer());
+    JBScrollPane scroll = new JBScrollPane(info);
+    scroll.setBorder(BorderFactory.createEmptyBorder());
+    infoPanel.add(scroll, BorderLayout.CENTER);
+    chartSplitter.setSecondComponent(infoPanel);
+    chartSplitter.setProportion(0.7f);
+
+    myComponent = mySplitter;
+  }
 
   @NotNull
   public Component getComponent() {
-    return myPanel;
+    return myComponent;
   }
 
   private void setGroupBy(@NotNull GroupBy groupBy) {
     myGroupBy = groupBy;
     myTreeNode = generateTree();
     myTreeModel.setRoot(myTreeNode);
+    myLayout.setData(myTreeNode);
     myTreeModel.nodeStructureChanged(myTreeNode);
+    myPackageFilter.setVisible(groupBy instanceof GroupByAllocator);
   }
 
   private ActionGroup getMainActions() {
@@ -277,7 +318,69 @@ public class AllocationsView {
       }
     });
     group.add(new EditMultipleSourcesAction());
+    group.add(new ShowChartAction());
 
+    return group;
+  }
+
+  private ActionGroup getChartActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new ComboBoxAction() {
+      @NotNull
+      @Override
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        DefaultActionGroup group = new DefaultActionGroup();
+        group.add(new AnAction("Sunburst") {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            myChartOrientation = "Sunburst";
+            myLayout.setAngle(360.0f);
+          }
+        });
+        group.add(new AnAction("Layout") {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            myChartOrientation = "Layout";
+            myLayout.setAngle(0.0f);
+          }
+        });
+        return group;
+      }
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        getTemplatePresentation().setText(myChartOrientation);
+        e.getPresentation().setText(myChartOrientation);
+      }
+    });
+    group.add(new ComboBoxAction() {
+      @NotNull
+      @Override
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        DefaultActionGroup group = new DefaultActionGroup();
+        group.add(new AnAction("Size") {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            myChartUnit = "Size";
+            myLayout.setUseCount(false);
+          }
+        });
+        group.add(new AnAction("Count") {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            myChartUnit = "Count";
+            myLayout.setUseCount(true);
+          }
+        });
+        return group;
+      }
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        getTemplatePresentation().setText(myChartUnit);
+        e.getPresentation().setText(myChartUnit);
+      }
+    });
     return group;
   }
 
@@ -288,6 +391,108 @@ public class AllocationsView {
       tree.insert(alloc);
     }
     return tree;
+  }
+
+  @Override
+  public void valueChanged(LayoutComponent.SliceSelectionEvent e) {
+    ValuedTreeNode node = e == null ? null : e.getNode();
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.openHtmlBody();
+    if (node == null) {
+      node = myTreeNode;
+    }
+    builder
+        .add("Total allocations:")
+        .addNbsp()
+        .addBold("" + node.getCount())
+        .newline()
+        .add("Total size:")
+        .addNbsp()
+        .addBold(StringUtil.formatFileSize(node.getValue()))
+        .newline().newline();
+    if (node instanceof AbstractTreeNode) {
+      TreeNode[] path = myTreeModel.getPathToRoot(node);
+      myInfoTableModel.setRowCount(path.length);
+      for (int i = 0; i < path.length; i++) {
+        myInfoTableModel.setValueAt(path[i], i, 0);
+      }
+      myInfoTableModel.fireTableDataChanged();
+    }
+    builder.closeHtmlBody();
+    myInfoLabel.setText(builder.getHtml());
+  }
+
+  private void customizeColoredRenderer(SimpleColoredComponent renderer, Object value) {
+    if (value instanceof ThreadNode) {
+      renderer.setIcon(AllIcons.Debugger.ThreadSuspended);
+      renderer.append("< Thread " + ((ThreadNode)value).getThreadId() + " >");
+    }
+    else if (value instanceof StackNode) {
+      StackTraceElement element = ((StackNode)value).getStackTraceElement();
+      String name = element.getClassName();
+      String pkg = null;
+      int ix = name.lastIndexOf(".");
+      if (ix != -1) {
+        pkg = name.substring(0, ix);
+        name = name.substring(ix + 1);
+      }
+
+      renderer.setIcon(PlatformIcons.METHOD_ICON);
+      renderer.append(element.getMethodName() + "()");
+      renderer.append(":" + element.getLineNumber() + ", ");
+      renderer.append(name);
+      if (pkg != null) {
+        renderer.append(" (" + pkg + ")", new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
+      }
+    }
+    else if (value instanceof AllocNode) {
+      AllocationInfo allocation = ((AllocNode)value).getAllocation();
+      renderer.setIcon(AllIcons.FileTypes.JavaClass);
+      renderer.append(allocation.getAllocatedClass());
+    }
+    else if (value instanceof ClassNode) {
+      renderer.setIcon(PlatformIcons.CLASS_ICON);
+      renderer.append(((PackageNode)value).getName());
+    }
+    else if (value instanceof PackageNode) {
+      String name = ((PackageNode)value).getName();
+      if (!name.isEmpty()) {
+        renderer.setIcon(AllIcons.Modules.SourceFolder);
+        renderer.append(name);
+      }
+    }
+    else if (value instanceof StackTraceNode) {
+      // Do nothing
+    } else if (value != null) {
+      renderer.append(value.toString());
+    }
+  }
+
+  public class NodeTableCellRenderer extends ColoredTableCellRenderer {
+
+    @Override
+    protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      customizeColoredRenderer(this, value);
+    }
+  }
+
+  private class NodeTreeCellRenderer extends ColoredTreeCellRenderer {
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      customizeColoredRenderer(this, value);
+    }
+
+
+    @Override
+    protected boolean shouldDrawBackground() {
+      return false;
+    }
   }
 
   private class EditMultipleSourcesAction extends AnAction {
@@ -372,7 +577,7 @@ public class AllocationsView {
     }
   }
 
-  static class GroupByAllocator implements GroupBy {
+  class GroupByAllocator implements GroupBy {
     @Override
     public String getName() {
       return "Group by Allocator";
@@ -380,7 +585,7 @@ public class AllocationsView {
 
     @Override
     public MainTreeNode create() {
-      return new PackageNode();
+      return new PackageRootNode("", myPackageFilter.getText());
     }
   }
 
@@ -396,6 +601,27 @@ public class AllocationsView {
     @Override
     public void actionPerformed(AnActionEvent e) {
       setGroupBy(myGroupBy);
+    }
+  }
+
+  class ShowChartAction extends ToggleAction {
+    public ShowChartAction() {
+      super("", "", AndroidIcons.Themes); // TODO: Customize icon
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return mySplitter.getSecondComponent() != null;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      if (state) {
+        mySplitter.setSecondComponent(myChartPane);
+      } else {
+        mySplitter.setSecondComponent(null);
+      }
+      valueChanged(null);
     }
   }
 }

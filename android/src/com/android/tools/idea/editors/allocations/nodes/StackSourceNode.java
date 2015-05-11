@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StackSourceNode extends AbstractTreeNode {
+abstract public class StackSourceNode extends AbstractTreeNode {
   @NotNull protected Map<StackTraceElement, StackNode>
     myChildrenMap = new HashMap<StackTraceElement, StackNode>();
 

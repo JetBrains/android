@@ -17,12 +17,13 @@ package com.android.tools.idea.editors.allocations.nodes;
 
 import com.android.ddmlib.AllocationInfo;
 import gnu.trove.TIntObjectHashMap;
+import org.jetbrains.annotations.NotNull;
 
-public class StackTraceNode extends MainTreeNode {
+public class StackTraceNode extends AbstractTreeNode implements MainTreeNode {
   private TIntObjectHashMap<ThreadNode> myChildrenMap = new TIntObjectHashMap<ThreadNode>();
 
   @Override
-  public void insert(AllocationInfo alloc) {
+  public void insert(@NotNull AllocationInfo alloc) {
     short id = alloc.getThreadId();
     ThreadNode thread = myChildrenMap.get(id);
     if (thread == null) {
