@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
@@ -25,8 +24,6 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
-import com.intellij.util.ui.UIUtil;
-import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Condition;
@@ -38,7 +35,11 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static junit.framework.Assert.assertNotNull;
+import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.timing.Pause.pause;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
@@ -93,18 +94,18 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
       TabLabel tabLabel;
       if (parentComponentType == null) {
-        tabLabel = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+        tabLabel = waitUntilFound(myRobot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
-          protected boolean isMatching(TabLabel component) {
+          protected boolean isMatching(@NotNull TabLabel component) {
             return component.toString().equals(tabName);
           }
         });
       }
       else {
         final JComponent parent = myRobot.finder().findByType(root, parentComponentType, false);
-        tabLabel = GuiTests.waitUntilFound(myRobot, parent, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+        tabLabel = waitUntilFound(myRobot, parent, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
-          protected boolean isMatching(TabLabel component) {
+          protected boolean isMatching(@NotNull TabLabel component) {
             return component.getParent() == parent && component.toString().equals(tabName);
           }
         });
@@ -115,12 +116,13 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     public boolean isExecutionInProgress() {
       // Consider that execution is in progress if 'stop' toolbar button is enabled.
-      ActionToolbarImpl toolbar = UIUtil.findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
+      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
       assertNotNull(toolbar);
-      List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
+      List<ActionButton> buttons = findComponentsOfType(toolbar, ActionButton.class);
       for (ActionButton button : buttons) {
         if ("com.intellij.execution.actions.StopAction".equals(button.getAction().getClass().getCanonicalName())) {
-          return Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
+          //noinspection ConstantConditions
+          return method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
         }
       }
       return true;
@@ -128,13 +130,14 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @TestOnly
     public boolean stop() {
-      ActionToolbarImpl toolbar = UIUtil.findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
+      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
       assertNotNull(toolbar);
-      List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
+      List<ActionButton> buttons = findComponentsOfType(toolbar, ActionButton.class);
       for (ActionButton button : buttons) {
         final AnAction action = button.getAction();
         if (action != null && action.getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
-          boolean enabled = Reflection.method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
+          //noinspection ConstantConditions
+          boolean enabled = method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
             button.click();
             return true;
@@ -147,7 +150,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
   }
 
   protected ExecutionToolWindowFixture(@NotNull String toolWindowId, @NotNull IdeFrameFixture ideFrame) {
-    super(toolWindowId, ideFrame.getProject(), ideFrame.robot);
+    super(toolWindowId, ideFrame.getProject(), ideFrame.robot());
   }
 
   @NotNull

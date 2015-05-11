@@ -20,7 +20,6 @@ import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,13 +29,13 @@ import static com.intellij.openapi.actionSystem.ActionPlaces.MAIN_TOOLBAR;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
-public class RunConfigurationComboBoxFixture extends ComponentFixture<JButton> {
+public class RunConfigurationComboBoxFixture extends JComponentFixture<RunConfigurationComboBoxFixture, JButton> {
   @NotNull
   static RunConfigurationComboBoxFixture find(@NotNull final IdeFrameFixture parent) {
-    ComponentFinder finder = parent.robot.finder();
-    ActionToolbarImpl toolbar = finder.find(parent.target, new GenericTypeMatcher<ActionToolbarImpl>(ActionToolbarImpl.class) {
+    ComponentFinder finder = parent.robot().finder();
+    ActionToolbarImpl toolbar = finder.find(parent.target(), new GenericTypeMatcher<ActionToolbarImpl>(ActionToolbarImpl.class) {
       @Override
-      protected boolean isMatching(ActionToolbarImpl toolbar) {
+      protected boolean isMatching(@NotNull ActionToolbarImpl toolbar) {
         String place = field("myPlace").ofType(String.class).in(toolbar).get();
         return MAIN_TOOLBAR.equals(place);
       }
@@ -44,15 +43,15 @@ public class RunConfigurationComboBoxFixture extends ComponentFixture<JButton> {
 
     JButton button = finder.find(toolbar, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
-      protected boolean isMatching(JButton button) {
+      protected boolean isMatching(@NotNull JButton button) {
         return button.getClass().getSimpleName().equals("ComboBoxButton");
       }
     });
-    return new RunConfigurationComboBoxFixture(parent.robot, button);
+    return new RunConfigurationComboBoxFixture(parent.robot(), button);
   }
 
   private RunConfigurationComboBoxFixture(@NotNull Robot robot, @NotNull JButton target) {
-    super(robot, target);
+    super(RunConfigurationComboBoxFixture.class, robot, target);
   }
 
   @Nullable
@@ -60,7 +59,7 @@ public class RunConfigurationComboBoxFixture extends ComponentFixture<JButton> {
     return execute(new GuiQuery<String>() {
       @Override
       protected String executeInEDT() throws Throwable {
-        return target.getText();
+        return target().getText();
       }
     });
   }

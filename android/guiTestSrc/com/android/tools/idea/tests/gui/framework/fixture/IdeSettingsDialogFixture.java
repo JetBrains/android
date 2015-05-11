@@ -39,7 +39,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDia
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
     return new IdeSettingsDialogFixture(robot, find(robot, OptionsEditorDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
         return expectedTitle.equals(dialog.getTitle()) && dialog.isShowing();
       }
@@ -60,12 +60,15 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDia
     OptionsEditor optionsEditor = field("myEditor").ofType(OptionsEditor.class)
                                                    .in(getDialogWrapper())
                                                    .get();
+    assertNotNull(optionsEditor);
     OptionsTree optionsTree = field("myTree").ofType(OptionsTree.class)
                                              .in(optionsEditor)
                                              .get();
+    assertNotNull(optionsTree);
     List<ConfigurableGroup> groups = field("myGroups").ofType(new TypeRef<List<ConfigurableGroup>>() {})
                                                       .in(optionsTree)
                                                       .get();
+    assertNotNull(groups);
     ConfigurableGroup group = null;
     for (ConfigurableGroup current : groups) {
       if (groupType.isInstance(current)) {

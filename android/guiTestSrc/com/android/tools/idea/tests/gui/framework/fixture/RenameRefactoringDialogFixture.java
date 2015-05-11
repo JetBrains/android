@@ -45,15 +45,15 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
 
   @NotNull
   public RenameRefactoringDialogFixture setNewName(@NotNull final String newName) {
-    final EditorTextField field = robot.finder().findByType(target, EditorTextField.class);
+    final EditorTextField field = robot().finder().findByType(target(), EditorTextField.class);
     GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         field.requestFocus();
       }
     });
-    robot.pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
-    robot.enterText(newName);
+    robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
+    robot().enterText(newName);
     return this;
   }
 
@@ -80,7 +80,7 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
     }
 
     public String getHtml() {
-      final JTextComponent component = robot.finder().find(target, JTextComponentMatcher.any());
+      final JTextComponent component = robot().finder().find(target(), JTextComponentMatcher.any());
       return GuiActionRunner.execute(new GuiQuery<String>() {
         @Override
         protected String executeInEDT() throws Throwable {

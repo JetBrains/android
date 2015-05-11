@@ -20,10 +20,8 @@ import com.intellij.openapi.externalSystem.service.task.ui.ExternalSystemNode;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.content.Content;
-import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,11 +30,12 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.List;
 
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class GradleToolWindowFixture extends ToolWindowFixture {
-
   public GradleToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Gradle", project, robot);
   }
@@ -44,12 +43,12 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
   public void runTask(final String taskName) {
     final Content content = getContent(ExternalSystemBundle.message("tool.window.title.tasks"));
     assertNotNull(content);
-    final JTree tasksTree = UIUtil.findComponentOfType(content.getComponent(), JTree.class);
+    final JTree tasksTree = findComponentOfType(content.getComponent(), JTree.class);
     assertNotNull(tasksTree);
     final TreePath treePath = findTaskPath((ExternalSystemNode)tasksTree.getModel().getRoot(), taskName);
     final Point locationOnScreen = new Point();
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // We store screen location here because it shows weird (negative) values after 'scrollPathToVisible()' is called.
