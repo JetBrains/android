@@ -23,6 +23,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -674,6 +675,12 @@ public class ResourceHelper {
 
     int depth = 0;
     while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
+      if (value.startsWith(PREFIX_BINDING_EXPR)) {
+        value = DbUtil.getBindingExprDefault(value);
+        if (value == null) {
+          return null;
+        }
+      }
       if (value.startsWith(PREFIX_RESOURCE_REF)) {
         boolean isFramework = layout.isFramework();
         layout = resources.findResValue(value, isFramework);
