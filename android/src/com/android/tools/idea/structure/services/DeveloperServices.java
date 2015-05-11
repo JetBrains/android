@@ -59,9 +59,9 @@ public final class DeveloperServices {
       return;
     }
 
-    for (DeveloperServiceInitializers initializers : DeveloperServiceInitializers.EP_NAME.getExtensions()) {
-      for (DeveloperServiceInitializer initializer : initializers.getInitializers()) {
-        DeveloperService service = initializer.createService(module);
+    for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
+      for (DeveloperServiceCreator creator : creators.getCreators()) {
+        DeveloperService service = creator.createService(module);
         if (service != null) {
           ourServices.put(module, service);
         }
