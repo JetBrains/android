@@ -17,15 +17,12 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
@@ -34,11 +31,11 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
-import com.intellij.refactoring.rename.*;
+import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -113,8 +110,8 @@ public class AndroidRenameTest extends AndroidTestCase {
         Editor editor = myFixture.getEditor();
         PsiFile file = myFixture.getFile();
         Editor completionEditor = InjectedLanguageUtil.getEditorForInjectedLanguageNoCommit(editor, file);
-        PsiElement element = TargetElementUtilBase.findTargetElement(completionEditor, TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
-                                                                                       TargetElementUtilBase.ELEMENT_NAME_ACCEPTED);
+        PsiElement element = TargetElementUtil.findTargetElement(completionEditor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
+                                                                                   TargetElementUtil.ELEMENT_NAME_ACCEPTED);
         assert element != null;
         final PsiElement substitution = RenamePsiElementProcessor.forElement(element).substituteElementToRename(element, editor);
         new RenameProcessor(myFixture.getProject(), substitution, newName, false, true).run();
