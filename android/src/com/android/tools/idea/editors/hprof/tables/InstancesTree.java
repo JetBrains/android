@@ -16,10 +16,7 @@
 package com.android.tools.idea.editors.hprof.tables;
 
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
-import com.android.tools.idea.editors.hprof.descriptors.ContainerDescriptorImpl;
-import com.android.tools.idea.editors.hprof.descriptors.HprofFieldDescriptorImpl;
-import com.android.tools.idea.editors.hprof.descriptors.InstanceFieldDescriptorImpl;
-import com.android.tools.idea.editors.hprof.descriptors.PrimitiveFieldDescriptorImpl;
+import com.android.tools.idea.editors.hprof.descriptors.*;
 import com.android.tools.perflib.heap.*;
 import com.intellij.debugger.engine.DebugProcessEvents;
 import com.intellij.debugger.engine.DebugProcessImpl;
@@ -45,10 +42,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -88,7 +86,7 @@ public class InstancesTree {
           return;
         }
         else if (descriptor instanceof ContainerDescriptorImpl) {
-          addContainerChildren(debuggerTreeNode, (ContainerDescriptorImpl)descriptor);
+          addContainerChildren(debuggerTreeNode, 0);
         }
         else {
           InstanceFieldDescriptorImpl instanceDescriptor = (InstanceFieldDescriptorImpl)descriptor;
@@ -127,10 +125,29 @@ public class InstancesTree {
     myDebuggerTree.setModel(model);
     myDebuggerTree.setRootVisible(false);
     myDebuggerTree.addMouseListener(mouseListener);
+    myDebuggerTree.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        super.mouseClicked(e);
+        TreePath path = ((JTree)e.getComponent()).getSelectionPath();
+        if (path == null || path.getPathCount() < 2) {
+          return;
+        }
+
+        DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)path.getPathComponent(1);
+        if (node.getDescriptor() instanceof ExpansionDescriptorImpl) {
+          DebuggerTreeNodeImpl containerNode = node.getParent();
+          myDebuggerTree.getMutableModel().removeNodeFromParent(node);
+          ExpansionDescriptorImpl expansionDescriptor = (ExpansionDescriptorImpl)node.getDescriptor();
+          addContainerChildren(containerNode, expansionDescriptor.getStartIndex());
+          myDebuggerTree.getMutableModel().nodeStructureChanged(containerNode);
+        }
+      }
+    });
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myDebuggerTree).addColumn(
-        new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Instance").setPreferredWidth(600).setRenderer((DebuggerTreeRenderer)myDebuggerTree.getCellRenderer())
+      new ColumnTreeBuilder.ColumnBuilder()
+        .setName("Instance").setPreferredWidth(600).setRenderer((DebuggerTreeRenderer)myDebuggerTree.getCellRenderer())
       ).addColumn(new ColumnTreeBuilder.ColumnBuilder().setName("Shallow Size").setPreferredWidth(80).setRenderer(
         new ColoredTreeCellRenderer() {
           @Override
@@ -185,8 +202,14 @@ public class InstancesTree {
 
   public void setHeap(@NotNull Heap heap) {
     myHeap = heap;
-    if (myDebuggerTree.getMutableModel().getRoot() != null) {
-      setRoot(((DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot()).getDescriptor());
+    if (myDebuggerTree.getMutableModel().getRoot() == null) {
+      return;
+    }
+
+    NodeDescriptorImpl nodeDescriptor = ((DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot()).getDescriptor();
+    if (nodeDescriptor instanceof ContainerDescriptorImpl) {
+      ContainerDescriptorImpl originalDescriptor = (ContainerDescriptorImpl)nodeDescriptor;
+      setRoot(new ContainerDescriptorImpl(originalDescriptor.getClassObj(), heap.getId()));
     }
   }
 
@@ -197,20 +220,32 @@ public class InstancesTree {
     }
     myDebuggerTree.getMutableModel().setRoot(root);
     myDebuggerTree.treeChanged();
+    myDebuggerTree.scrollRowToVisible(0);
   }
 
-  private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, @NotNull ContainerDescriptorImpl containerDescriptor) {
-    Collection<Instance> instances = containerDescriptor.getInstances();
-    List<HprofFieldDescriptorImpl> descriptors = new ArrayList<HprofFieldDescriptorImpl>(instances.size());
-    for (Instance instance : instances) {
+  private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, int startIndex) {
+    ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
+    List<Instance> instances = containerDescriptor.getInstances();
+    List<HprofFieldDescriptorImpl> descriptors = new ArrayList<HprofFieldDescriptorImpl>(100);
+    int i = startIndex;
+    int limit = startIndex + 100;
+    for (; i < instances.size(); ++i) {
+      if (i >= limit) {
+        break;
+      }
+      Instance instance = instances.get(i);
       if (myHeap.getInstance(instance.getId()) != null) {
         descriptors.add(new InstanceFieldDescriptorImpl(
-          myDebuggerTree.getProject(), new Field(Type.OBJECT, String.format("0x%x", instance.getId() & Type.getIdSizeMask())), instance));
+          myDebuggerTree.getProject(), new Field(
+            Type.OBJECT, String.format("0x%x (%d)", instance.getId() & Type.getIdSizeMask(), i)), instance));
       }
     }
     HprofFieldDescriptorImpl.batchUpdateRepresentation(descriptors, myDebugProcess.getManagerThread(), myDummySuspendContext);
     for (HprofFieldDescriptorImpl descriptor : descriptors) {
       node.add(DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, descriptor));
+    }
+    if (i == limit) {
+      node.add(DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, new ExpansionDescriptorImpl(limit, instances.size())));
     }
   }
 

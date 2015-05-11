@@ -174,8 +174,8 @@ public class InstanceReferenceTree {
   public MouseAdapter getMouseAdapter() {
     return new MouseAdapter() {
       @Override
-      public void mouseReleased(MouseEvent mouseEvent) {
-        super.mouseReleased(mouseEvent);
+      public void mousePressed(MouseEvent mouseEvent) {
+        super.mousePressed(mouseEvent);
         TreePath path = ((JTree)mouseEvent.getComponent()).getSelectionPath();
         if (path == null || path.getPathCount() < 2) {
           return;
