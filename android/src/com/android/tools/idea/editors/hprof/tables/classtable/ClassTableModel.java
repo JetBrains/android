@@ -118,6 +118,15 @@ public class ClassTableModel extends HprofTableModel {
     return myEntries.get(row);
   }
 
+  public int findEntryRow(@NotNull ClassObj classObj) {
+    for (int i = 0; i < myEntries.size(); ++i) {
+      if (myEntries.get(i) == classObj) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   @Override
   public int getRowCount() {
     return myEntries.size();

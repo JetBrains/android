@@ -75,6 +75,11 @@ public abstract class HprofFieldDescriptorImpl extends FieldDescriptorImpl {
     });
   }
 
+  @Nullable
+  public Object getValueData() {
+    return myValueData;
+  }
+
   @Override
   public abstract Value calcValue(EvaluationContextImpl evaluationContext);
 
