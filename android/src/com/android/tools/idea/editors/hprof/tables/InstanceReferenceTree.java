@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
+import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.idea.editors.hprof.descriptors.InstanceFieldDescriptorImpl;
+import com.android.tools.perflib.heap.ArrayInstance;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.RootObj;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
 import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +83,28 @@ public class InstanceReferenceTree {
         }
         else {
           attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+        }
+
+        if (instance instanceof ArrayInstance) {
+          setIcon(AllIcons.Debugger.Db_array);
+        }
+        else {
+          setIcon(AllIcons.Debugger.Value);
+        }
+
+        if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
+          int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
+          RowIcon icons = new RowIcon(totalIcons);
+          icons.setIcon(getIcon(), 0);
+
+          int currentIcon = 1;
+          if (myInstance.getImmediateDominator() == instance) {
+            icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+          }
+          if (instance.getDistanceToGcRoot() == 0) {
+            icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+          }
+          setIcon(icons);
         }
 
         append(instance.toString(), attributes);
