@@ -16,8 +16,14 @@
 package com.android.tools.idea.editors.allocations.nodes;
 
 import com.android.ddmlib.AllocationInfo;
+import com.android.tools.chartlib.ValuedTreeNode;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class MainTreeNode extends AbstractTreeNode {
+import java.util.Comparator;
 
-  public abstract void insert(AllocationInfo alloc);
+public interface MainTreeNode extends ValuedTreeNode {
+
+  void insert(@NotNull AllocationInfo alloc);
+
+  void sort(@NotNull Comparator<AbstractTreeNode> order);
 }

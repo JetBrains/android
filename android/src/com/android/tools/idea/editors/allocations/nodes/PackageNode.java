@@ -21,8 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PackageNode extends MainTreeNode {
-
+public class PackageNode extends AbstractTreeNode {
   @NotNull
   private final String myName;
 
@@ -32,26 +31,6 @@ public class PackageNode extends MainTreeNode {
   public PackageNode(@NotNull String name) {
     myName = name;
     myChildrenMap = new HashMap<String, PackageNode>();
-  }
-
-  public PackageNode() {
-    this("");
-  }
-
-  @Override
-  public void insert(AllocationInfo alloc) {
-    StackTraceElement[] trace = alloc.getStackTrace();
-    String[] packages;
-    if (trace.length > 0) {
-      // TODO don't use the last trace, but use a user defined filter.
-      String name = trace[0].getClassName();
-      int ix = name.indexOf("$");
-      name = ix >= 0 ? name.substring(0, ix) : name;
-      packages = name.split("\\.");
-    } else {
-      packages = new String[] { "< Unknown >" };
-    }
-    insert(packages, alloc, 0);
   }
 
   public void insert(String[] packages, AllocationInfo alloc, int depth) {
