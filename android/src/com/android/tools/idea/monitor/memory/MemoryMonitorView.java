@@ -58,6 +58,9 @@ public class MemoryMonitorView extends BaseMonitorView
   @NotNull private MemorySampler myMemorySampler;
   private final EventData myEvents;
 
+  public static final int EVENT_HPROF = 1;
+  public static final int EVENT_ALLOC = 2;
+
   public MemoryMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project);
     myDeviceContext = deviceContext;
@@ -74,7 +77,8 @@ public class MemoryMonitorView extends BaseMonitorView
     myTimelineComponent.configureUnits("MB");
     myTimelineComponent.configureStream(0, "Allocated", new JBColor(0x78abd9, 0x78abd9));
     myTimelineComponent.configureStream(1, "Free", new JBColor(0xbaccdc, 0x51585c));
-    myTimelineComponent.configureEvent(1, 0, AndroidIcons.Ddms.DumpHprof, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
+    myTimelineComponent.configureEvent(EVENT_HPROF, 0, AndroidIcons.Ddms.DumpHprof, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
+    myTimelineComponent.configureEvent(EVENT_ALLOC, 0, AndroidIcons.Ddms.AllocationTracker, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), true);
 
     myTimelineComponent.configureType(DeviceSampler.TYPE_DATA, TimelineComponent.Style.SOLID);
     myTimelineComponent.configureType(DeviceSampler.TYPE_TIMEOUT, TimelineComponent.Style.DASHED);
@@ -99,7 +103,7 @@ public class MemoryMonitorView extends BaseMonitorView
     }
     group.add(new GcAction(myDeviceContext));
     group.add(new DumpHprofAction(myProject, myDeviceContext, myEvents));
-    group.add(new ToggleAllocationTrackingAction(myDeviceContext));
+    group.add(new ToggleAllocationTrackingAction(myDeviceContext, myEvents));
 
     if (Boolean.getBoolean("studio.profiling.debug")) {
       group.addSeparator();
