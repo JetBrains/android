@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
@@ -45,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
@@ -59,6 +61,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Tests for {@link ModulesToImportDialog}.
  */
+@BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class ModulesToImportDialogTest extends GuiTestCase {
   private List<DataNode<ModuleData>> myModules;
   private DataNode<ModuleData> myProjectModule;
