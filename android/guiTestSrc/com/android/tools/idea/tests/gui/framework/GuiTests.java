@@ -78,8 +78,6 @@ public final class GuiTests {
   public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
-  public static final String SUPPORTED_GRADLE_HOME_PROPERTY = "supported.gradle.home.path";
-  public static final String UNSUPPORTED_GRADLE_HOME_PROPERTY = "unsupported.gradle.home.path";
 
   /** Environment variable set by users to point to sources */
   public static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
@@ -120,20 +118,36 @@ public final class GuiTests {
     });
   }
 
-  @NotNull
-  public static File getFilePathProperty(@NotNull String propertyName, @NotNull String description, boolean isDirectory) {
+  @Nullable
+  public static File getGradleHomePath() {
+    return getFilePathProperty("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
+  }
+
+  @Nullable
+  public static File getUnsupportedGradleHome() {
+    return getGradleHomeFromSystemProperty("unsupported.gradle.home.path", "2.1");
+  }
+
+  @Nullable
+  public static File getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
+    String description = "the path of a Gradle " + gradleVersion + " distribution";
+    return getFilePathProperty(propertyName, description, true);
+  }
+
+
+  @Nullable
+  public static File getFilePathProperty(@NotNull String propertyName,
+                                         @NotNull String description,
+                                         boolean isDirectory) {
     String pathValue = System.getProperty(propertyName);
-    if (isNullOrEmpty(pathValue)) {
-      fail("Please specify " + description + ", using the system property " + quote(propertyName));
+    if (!isNullOrEmpty(pathValue)) {
+      File path = new File(pathValue);
+      if (isDirectory && path.isDirectory() || !isDirectory && path.isFile()) {
+        return path;
+      }
     }
-    File path = new File(pathValue);
-    if (isDirectory) {
-      assertThat(path).isDirectory();
-    }
-    else {
-      assertThat(path).isFile();
-    }
-    return path;
+    System.out.println("Please specify " + description + ", using system property " + quote(propertyName));
+    return null;
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
@@ -372,6 +386,10 @@ public final class GuiTests {
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
     return waitUntilFound(robot, null, matcher);
+  }
+
+  public static void skip(@NotNull String testName) {
+    System.out.println("Skipping test '" + testName + "'");
   }
 
   /** Waits for a first component which passes the given matcher under the given root to become visible. */
