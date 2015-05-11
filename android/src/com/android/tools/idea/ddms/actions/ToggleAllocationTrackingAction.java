@@ -17,7 +17,9 @@ package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
+import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -27,12 +29,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class ToggleAllocationTrackingAction extends ToggleAction {
   private final DeviceContext myDeviceContext;
+  private final EventData myEvents;
+  private EventData.Event myEvent;
 
-  public ToggleAllocationTrackingAction(@NotNull DeviceContext context) {
+  public ToggleAllocationTrackingAction(@NotNull DeviceContext context, EventData events) {
     super(AndroidBundle.message("android.ddms.actions.allocationtracker.start"),
           null,
           AndroidIcons.Ddms.AllocationTracker);
     myDeviceContext = context;
+    myEvents = events;
   }
 
   @Override
@@ -50,11 +55,23 @@ public class ToggleAllocationTrackingAction extends ToggleAction {
     if (c == null) {
       return;
     }
+    long now = System.currentTimeMillis();
     if (c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON) {
       c.requestAllocationDetails();
       c.enableAllocationTracker(false);
+      if (myEvent == null) {
+        // Unexpected end of tracking, start now:
+        myEvent = myEvents.start(now, MemoryMonitorView.EVENT_ALLOC);
+      }
+      myEvent.stop(now);
+      myEvent = null;
     } else {
       c.enableAllocationTracker(true);
+      if (myEvent != null) {
+        // TODO add support for different end types (error, etc)
+        myEvent.stop(now);
+      }
+      myEvent = myEvents.start(now, MemoryMonitorView.EVENT_ALLOC);
     }
     c.requestAllocationStatus();
   }
