@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.compiler.CompileContext;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.compiler.CompilerMessageCategory.ERROR;
 import static com.intellij.openapi.compiler.CompilerMessageCategory.INFORMATION;
 import static junit.framework.Assert.assertEquals;
@@ -37,6 +39,7 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=73640">73640</a>.
  */
+@BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   private static final Pattern JPS_EXECUTING_TASKS_MSG_PATTERN = Pattern.compile("Gradle: Executing tasks: \\[(.*)\\]");
 
