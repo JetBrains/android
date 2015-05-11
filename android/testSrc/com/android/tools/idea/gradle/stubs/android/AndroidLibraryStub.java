@@ -158,6 +158,11 @@ public class AndroidLibraryStub implements AndroidLibrary {
   }
 
   @Override
+  public boolean isOptional() {
+    return false;
+  }
+
+  @Override
   @Nullable
   public MavenCoordinates getRequestedCoordinates() {
     throw new UnsupportedOperationException();
