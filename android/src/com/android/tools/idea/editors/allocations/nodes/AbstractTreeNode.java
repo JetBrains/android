@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.allocations.nodes;
 
-import com.android.tools.idea.editors.allocations.ValuedTreeNode;
+import com.android.tools.chartlib.ValuedTreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +27,7 @@ import java.util.Vector;
 
 public abstract class AbstractTreeNode implements ValuedTreeNode {
 
-  @Nullable private AbstractTreeNode myParent;
+  @Nullable protected AbstractTreeNode myParent;
 
   @Nullable private Comparator<AbstractTreeNode> myOrder = null;
 
@@ -106,7 +106,7 @@ public abstract class AbstractTreeNode implements ValuedTreeNode {
     }
   }
 
-  public void sort(Comparator<AbstractTreeNode> order) {
+  public void sort(@NotNull Comparator<AbstractTreeNode> order) {
     assert myParent == null;
     myOrder = order;
     ensureOrder();
