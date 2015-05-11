@@ -75,7 +75,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -123,9 +122,23 @@ public class GradleSyncTest extends GuiTestCase {
   private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
   private static final String GRADLE_SYNC_DIALOG_TITLE = "Gradle Sync";
 
+  private File myAndroidRepoPath;
+  private File myAndroidRepoTempPath;
+
   @Before
   public void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  @Before
+  public void restoreAndroidRepository() throws IOException {
+    File androidExtrasPath = new File(IdeSdks.getAndroidSdkPath(), join("extras", "android"));
+    myAndroidRepoPath = new File(androidExtrasPath ,"m2repository");
+    myAndroidRepoTempPath = new File(androidExtrasPath, "m2repository.temp");
+
+    if (!myAndroidRepoPath.isDirectory() && myAndroidRepoTempPath.isDirectory()) {
+      rename(myAndroidRepoTempPath, myAndroidRepoPath);
+    }
   }
 
   @Test @IdeGuiTest
@@ -226,12 +239,19 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
-    File androidRepoPath = new File(IdeSdks.getAndroidSdkPath(), join("extras", "android", "m2repository"));
-    assertThat(androidRepoPath).as("Android Support Repository must be installed before running this test").isDirectory();
+    if (!myAndroidRepoPath.isDirectory()) {
+      // Skip test if Android repository is not installed.
+      System.out.println("Android Support Repository must be installed before running 'testSyncMissingAppCompat'");
+      return;
+    }
 
     IdeFrameFixture projectFrame = importSimpleApplication();
 
-    assertTrue("Android Support Repository deleted", delete(androidRepoPath));
+    // Instead of deleting the Android repo folder, we rename it and later on restore it in a @SetUp method, so if this fails, the SDK
+    // will be in good state.
+    delete(myAndroidRepoTempPath);
+    rename(myAndroidRepoPath, myAndroidRepoTempPath);
+    assertThat(myAndroidRepoPath).doesNotExist();
 
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -249,15 +269,6 @@ public class GradleSyncTest extends GuiTestCase {
       }
     }).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
 
-    // Accept license
-    quickFixDialog.radioButton(new GenericTypeMatcher<JRadioButton>(JRadioButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JRadioButton button) {
-        return "Accept".equals(button.getText());
-      }
-    }).click();
-
-    quickFixDialog.button(withText("Next")).click();
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
@@ -279,7 +290,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.waitForGradleProjectSyncToFinish().waitForBackgroundTasksToFinish();
 
-    assertThat(androidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
+    assertThat(myAndroidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
   }
 
   @Test @IdeGuiTest
@@ -604,7 +615,8 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    projectFrame.waitForGradleProjectSyncToFinish()
+    projectFrame.waitForGradleProjectSyncToStart()
+                .waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
   }
 
@@ -619,7 +631,8 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    projectFrame.waitForGradleProjectSyncToFinish()
+    projectFrame.waitForGradleProjectSyncToStart()
+                .waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
   }
 
@@ -635,7 +648,8 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     projectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    projectFrame.waitForGradleProjectSyncToFinish()
+    projectFrame.waitForGradleProjectSyncToStart()
+                .waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
   }
 
@@ -1063,7 +1077,7 @@ public class GradleSyncTest extends GuiTestCase {
     MessagesFixture message = projectFrame.findMessageDialog("Proxy Settings");
     message.clickYes();
 
-    projectFrame.waitForGradleProjectSyncToFinish();
+    projectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
 
     // Verify gradle.properties has proxy settings.
     assertThat(gradlePropertiesPath).isFile();
