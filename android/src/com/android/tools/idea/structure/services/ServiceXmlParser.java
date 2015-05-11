@@ -31,6 +31,7 @@ import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpr
 import com.android.tools.idea.ui.properties.expressions.integer.AbstractIntExpression;
 import com.android.tools.idea.ui.properties.expressions.string.AbstractStringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
+import com.google.common.base.CaseFormat;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.HyperlinkLabel;
@@ -60,6 +61,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
 /**
  * Class which handles the parsing of a service.xml file. Note that a service.xml file is
@@ -239,7 +243,7 @@ import java.util.regex.Pattern;
     myRecipeFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_EXECUTE));
 
     try {
-      myServiceCategory = ServiceCategory.valueOf(category);
+      myServiceCategory = ServiceCategory.valueOf(UPPER_CAMEL.to(UPPER_UNDERSCORE, category));
     }
     catch (IllegalArgumentException e) {
       throw new RuntimeException(
