@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,6 +27,8 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
@@ -33,9 +36,8 @@ import static org.junit.Assert.assertNotNull;
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
+@BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
-  private static final String MINIMUM_GRADLE_VERSION = "2.1";
-
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
     File unsupportedGradleHome = getUnsupportedGradleHome();
@@ -47,7 +49,7 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
     dialog.chooseGradleHome(unsupportedGradleHome)
           .clickOk()
-          .requireValidationError("Gradle " + MINIMUM_GRADLE_VERSION + " or newer is required")
+          .requireValidationError("Gradle " + GRADLE_MINIMUM_VERSION + " or newer is required")
           .close();
   }
 
@@ -70,7 +72,7 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
     final ChooseGradleHomeDialog dialog = execute(new GuiQuery<ChooseGradleHomeDialog>() {
       @Override
       protected ChooseGradleHomeDialog executeInEDT() throws Throwable {
-        return new ChooseGradleHomeDialog(MINIMUM_GRADLE_VERSION);
+        return new ChooseGradleHomeDialog(GRADLE_MINIMUM_VERSION);
       }
     });
     assertNotNull(dialog);

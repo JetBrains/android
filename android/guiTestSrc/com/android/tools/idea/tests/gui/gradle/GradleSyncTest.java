@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.AbstractContentFixture;
@@ -92,6 +93,7 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
@@ -117,6 +119,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+@BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class GradleSyncTest extends GuiTestCase {
   private static final String ANDROID_SDK_MANAGER_DIALOG_TITLE = "Android SDK Manager";
   private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
