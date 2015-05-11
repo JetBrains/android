@@ -44,7 +44,7 @@ public class HardwareProfileTest extends GuiTestCase {
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = deviceEditWizard.getConfigureDeviceOptionsStep();
     deviceOptionsStep
       .setDeviceName(deviceName)
-      .setHasFrontCamera(false)
+      .selectHasFrontCamera(false)
       .setScreenResolutionX(1280)
       .setScreenResolutionY(920)
       .setScreenSize(5.2);

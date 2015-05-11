@@ -53,8 +53,10 @@ import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static com.intellij.util.containers.ContainerUtil.addAll;
 import static com.intellij.util.ui.UIUtil.initDefaultLAF;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
-import static org.fest.reflect.core.Reflection.staticMethod;
+import static org.fest.reflect.core.Reflection.method;
+import static org.junit.Assert.assertNotNull;
 
 public class IdeTestApplication implements Disposable {
   private static final Logger LOG = Logger.getInstance(IdeTestApplication.class);
@@ -84,8 +86,8 @@ public class IdeTestApplication implements Disposable {
 
       ClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
-      staticMethod("waitForIdeToStart").in(clazz).invoke();
-      staticMethod("setUpDefaultGeneralSettings").in(clazz).invoke();
+      method("waitForIdeToStart").in(clazz).invoke();
+      method("setUpDefaultGeneralSettings").in(clazz).invoke();
     }
 
     return ourInstance;
@@ -93,7 +95,7 @@ public class IdeTestApplication implements Disposable {
 
   private static File getConfigDirPath() throws IOException {
     String homeDirPath = toSystemDependentName(PathManager.getHomePath());
-    assert !homeDirPath.isEmpty();
+    assertThat(homeDirPath).isNotEmpty();
     File configDirPath = new File(homeDirPath, join("androidStudio", "gui-tests", "config"));
     ensureExists(configDirPath);
     return configDirPath;
@@ -120,15 +122,15 @@ public class IdeTestApplication implements Disposable {
 
     // We turn on "GUI Testing Mode" right away, even before loading the IDE.
     Class<?> androidPluginClass = Class.forName("org.jetbrains.android.AndroidPlugin", true, myIdeClassLoader);
-    staticMethod("setGuiTestingMode").withParameterTypes(boolean.class).in(androidPluginClass).invoke(true);
+    method("setGuiTestingMode").withParameterTypes(boolean.class).in(androidPluginClass).invoke(true);
 
     Class<?> classUtilCoreClass = Class.forName("com.intellij.ide.ClassUtilCore", true, myIdeClassLoader);
-    staticMethod("clearJarURLCache").in(classUtilCoreClass).invoke();
+    method("clearJarURLCache").in(classUtilCoreClass).invoke();
 
     Class<?> pluginManagerClass = Class.forName("com.intellij.ide.plugins.PluginManager", true, myIdeClassLoader);
-    staticMethod("start").withParameterTypes(String.class, String.class, String[].class)
-                         .in(pluginManagerClass)
-                         .invoke("com.intellij.idea.MainImpl", "start", args);
+    method("start").withParameterTypes(String.class, String.class, String[].class)
+                   .in(pluginManagerClass)
+                   .invoke("com.intellij.idea.MainImpl", "start", args);
   }
 
   // This method replaces BootstrapClassLoaderUtil.initClassLoader. The reason behind it is that when running UI tests the ClassLoader
@@ -198,14 +200,14 @@ public class IdeTestApplication implements Disposable {
     List<URL> urls = field("myURLs").ofType(new TypeRef<List<URL>>() {})
                                     .in(classLoader)
                                     .get();
-    assert urls != null;
+    assertNotNull(urls);
     return urls;
   }
 
   private static void addIdeaLibraries(@NotNull Collection<URL> classpath) throws MalformedURLException {
     Class<BootstrapClassLoaderUtil> aClass = BootstrapClassLoaderUtil.class;
     String selfRoot = PathManager.getResourceRoot(aClass, "/" + aClass.getName().replace('.', '/') + ".class");
-    assert selfRoot != null;
+    assertNotNull(selfRoot);
 
     URL selfRootUrl = new File(selfRoot).getAbsoluteFile().toURI().toURL();
     classpath.add(selfRootUrl);
@@ -364,7 +366,7 @@ public class IdeTestApplication implements Disposable {
 
   private static void mainMain() {
     // Duplicates what Main#main does.
-    staticMethod("installPatch").in(Main.class).invoke();
+    method("installPatch").in(Main.class).invoke();
   }
 
   @NotNull

@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,14 +43,14 @@ public class ConfigureProjectSubsetDialogFixture {
 
   private ConfigureProjectSubsetDialogFixture(@NotNull DialogFixture dialog) {
     myDialog = dialog;
-    Robot robot = dialog.robot;
-    myModulesTable = new JTableFixture(robot, robot.finder().findByType(dialog.target, JTable.class, true));
+    Robot robot = dialog.robot();
+    myModulesTable = new JTableFixture(robot, robot.finder().findByType(dialog.target(), JTable.class, true));
   }
 
   @NotNull
   public ConfigureProjectSubsetDialogFixture selectModule(@NotNull String moduleName, boolean selected) {
-    TableCell cell = myModulesTable.cell(moduleName);
-    myModulesTable.enterValue(row(cell.row).column(0), String.valueOf(selected));
+    JTableCellFixture cell = myModulesTable.cell(moduleName);
+    myModulesTable.enterValue(row(cell.row()).column(0), String.valueOf(selected));
     return this;
   }
 
