@@ -38,7 +38,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ComponentFixture;
+import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
@@ -150,7 +150,7 @@ public final class GuiTests {
       final MyProjectManagerListener listener = new MyProjectManagerListener();
       findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
         @Override
-        protected boolean isMatching(Frame frame) {
+        protected boolean isMatching(@NotNull Frame frame) {
           if (frame instanceof IdeFrame) {
             if (frame instanceof IdeFrameImpl) {
               listener.myActive = true;
@@ -233,7 +233,7 @@ public final class GuiTests {
   public static JBList waitForPopup(@NotNull Robot robot) {
     return waitUntilFound(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
-      protected boolean isMatching(JBList list) {
+      protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
         return model instanceof ListPopupModel;
       }
@@ -257,9 +257,10 @@ public final class GuiTests {
 
     // First fine the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
+    assertNotNull(root);
     JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
-      protected boolean isMatching(JBList list) {
+      protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
         return model instanceof ListPopupModel;
       }
@@ -307,19 +308,19 @@ public final class GuiTests {
     });
   }
 
-  public static void findAndClickOkButton(@NotNull ComponentFixture<? extends Container> container) {
+  public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {
     findAndClickButton(container, "OK");
   }
 
-  public static void findAndClickCancelButton(@NotNull ComponentFixture<? extends Container> container) {
+  public static void findAndClickCancelButton(@NotNull ContainerFixture<? extends Container> container) {
     findAndClickButton(container, "Cancel");
   }
 
-  public static void findAndClickButton(@NotNull ComponentFixture<? extends Container> container, @NotNull final String text) {
-    Robot robot = container.robot;
-    JButton button = robot.finder().find(container.target, new GenericTypeMatcher<JButton>(JButton.class) {
+  public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+    Robot robot = container.robot();
+    JButton button = robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
-      protected boolean isMatching(JButton button) {
+      protected boolean isMatching(@NotNull JButton button) {
         String buttonText = button.getText();
         if (buttonText != null) {
           return buttonText.trim().equals(text) && button.isShowing();

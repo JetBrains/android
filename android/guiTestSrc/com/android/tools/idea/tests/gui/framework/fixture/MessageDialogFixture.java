@@ -20,7 +20,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +27,7 @@ import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.base.Strings.nullToEmpty;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 
 class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements MessagesFixture.Delegate {
   @NotNull
@@ -35,7 +35,7 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
     final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
     JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         if (!title.equals(dialog.getTitle()) || !dialog.isShowing()) {
           return false;
         }
@@ -60,8 +60,9 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
   @Override
   @NotNull
   public String getMessage() {
-    final JTextPane textPane = robot.finder().findByType(target, JTextPane.class);
-    return GuiActionRunner.execute(new GuiQuery<String>() {
+    final JTextPane textPane = robot().finder().findByType(target(), JTextPane.class);
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<String>() {
       @Override
       protected String executeInEDT() throws Throwable {
         return nullToEmpty(textPane.getText());

@@ -29,7 +29,6 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
@@ -44,6 +43,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 
@@ -64,7 +64,8 @@ public class FileFixture {
     pause(new Condition("File " + quote(myPath.getPath()) + " to be opened") {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return isOpenAndSelected();
@@ -86,6 +87,7 @@ public class FileFixture {
           PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
           if (psiFile != null) {
             DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
+            //noinspection ConstantConditions
             boolean isRunning = method("isRunning").withReturnType(boolean.class).in(codeAnalyzer).invoke();
             return !isRunning;
           }
@@ -100,7 +102,8 @@ public class FileFixture {
     pause(new Condition("error analysis finishes") {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return DaemonCodeAnalyzerEx.getInstanceEx(myProject).isErrorAnalyzingFinished(getPsiFile());
@@ -119,7 +122,8 @@ public class FileFixture {
     pause(new Condition("Waiting for error analysis to complete" + expected) {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return codeAnalyzer.isErrorAnalyzingFinished(psiFile);
@@ -128,7 +132,7 @@ public class FileFixture {
       }
     }, SHORT_TIMEOUT);
 
-    final Document document = GuiActionRunner.execute(new GuiQuery<Document>() {
+    final Document document = execute(new GuiQuery<Document>() {
       @Override
       protected Document executeInEDT() throws Throwable {
         return FileDocumentManager.getInstance().getDocument(myVirtualFile);
@@ -136,7 +140,7 @@ public class FileFixture {
     });
     assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
 
-    Collection<HighlightInfo> highlightInfos = GuiActionRunner.execute(new GuiQuery<Collection<HighlightInfo>>() {
+    Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
       @Override
       protected Collection<HighlightInfo> executeInEDT() throws Throwable {
         CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<HighlightInfo>();
@@ -151,7 +155,7 @@ public class FileFixture {
 
   @NotNull
   private PsiFile getPsiFile() {
-    final PsiFile psiFile = GuiActionRunner.execute(new GuiQuery<PsiFile>() {
+    final PsiFile psiFile = execute(new GuiQuery<PsiFile>() {
       @Override
       protected PsiFile executeInEDT() throws Throwable {
         return PsiManager.getInstance(myProject).findFile(myVirtualFile);
@@ -164,7 +168,7 @@ public class FileFixture {
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
     final Ref<Document> documentRef = new Ref<Document>();
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
@@ -177,7 +181,7 @@ public class FileFixture {
     pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {
       @Override
       public boolean test() {
-        Collection<HighlightInfo> highlightInfos = GuiActionRunner.execute(new GuiQuery<Collection<HighlightInfo>>() {
+        Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
           @Override
           protected Collection<HighlightInfo> executeInEDT() throws Throwable {
             CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<HighlightInfo>();
@@ -185,6 +189,7 @@ public class FileFixture {
             return processor.getResults();
           }
         });
+        assertNotNull(highlightInfos);
         return highlightInfos.size() == expected;
       }
     }, SHORT_TIMEOUT);

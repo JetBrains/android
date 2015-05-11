@@ -18,10 +18,10 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.table.StringsCellRenderer;
 import com.google.common.collect.Lists;
+import org.fest.assertions.Assertions;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.BasicJTableCellReader;
 import org.fest.swing.driver.CellRendererReader;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
@@ -31,15 +31,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+import static org.fest.swing.edt.GuiActionRunner.execute;
+
 public class TranslationsEditorFixture extends JTableFixture {
   public TranslationsEditorFixture(@NotNull Robot robot, @NotNull StringResourceEditor target) {
     super(robot, target.getTranslationsTable());
-    cellReader(new BasicJTableCellReader(new StringsCellRendererReader()));
+    replaceCellReader(new BasicJTableCellReader(new StringsCellRendererReader()));
   }
 
   @NotNull
   public List<String> locales() {
-    List<String> columns = getColumnHeaderValues(target);
+    List<String> columns = getColumnHeaderValues(target());
     assert columns.size() > 3; // Key, Default Value and a checkbox are always present
     return columns.subList(3, columns.size());
   }
@@ -56,7 +58,8 @@ public class TranslationsEditorFixture extends JTableFixture {
 
   @NotNull
   private static List<String> getColumnHeaderValues(@NotNull final JTable table) {
-    return GuiActionRunner.execute(new GuiQuery<List<String>>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<List<String>>() {
       @Override
       protected List<String> executeInEDT() throws Throwable {
         int columnCount = table.getColumnModel().getColumnCount();

@@ -61,6 +61,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     pause(new Condition("Project view is initialized") {
       @Override
       public boolean test() {
+        //noinspection ConstantConditions
         return field("isInitialized").ofType(boolean.class).in(projectView).get();
       }
     }, SHORT_TIMEOUT);
@@ -166,6 +167,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     public boolean isJdk() {
       if (myNode instanceof NamedLibraryElementNode) {
         NamedLibraryElement value = ((NamedLibraryElementNode)myNode).getValue();
+        assertNotNull(value);
         LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();

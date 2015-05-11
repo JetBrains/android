@@ -21,7 +21,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
@@ -32,6 +31,7 @@ import javax.swing.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 
 public abstract class ToolWindowFixture {
@@ -79,7 +79,8 @@ public abstract class ToolWindowFixture {
   }
 
   protected boolean isActive() {
-    return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         return myToolWindow.isActive();
@@ -93,7 +94,7 @@ public abstract class ToolWindowFixture {
     }
 
     final Callback callback = new Callback();
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         myToolWindow.activate(callback);
@@ -121,7 +122,8 @@ public abstract class ToolWindowFixture {
   }
 
   private boolean isVisible() {
-    return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         if (!myToolWindow.isVisible()) {
