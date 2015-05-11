@@ -117,7 +117,7 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       return new ArrayReferenceImpl(myField, (ArrayInstance)myValueData);
     }
     else {
-      // TODO: Implement on Class objects.
+      // TODO: Implement Class objects.
       return new ObjectReferenceImpl(myField, (Instance)myValueData);
     }
   }

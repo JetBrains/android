@@ -82,7 +82,7 @@ public class HprofViewPanel implements Disposable {
             @Override
             public void actionPerformed(AnActionEvent e) {
               myCurrentHeap = heap;
-              ((ClassTableModel)classTable.getModel()).setHeap(myCurrentHeap);
+              classTable.setHeap(heap);
               instancesTree.setHeap(heap);
             }
           });
@@ -121,13 +121,13 @@ public class HprofViewPanel implements Disposable {
     final ClassTable classTable = new ClassTable(new ClassTableModel(myCurrentHeap));
     classTable.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseReleased(MouseEvent mouseEvent) {
-        super.mouseReleased(mouseEvent);
+      public void mousePressed(MouseEvent mouseEvent) {
+        super.mousePressed(mouseEvent);
         int row = classTable.getSelectedRow();
         if (row >= 0) {
           int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
           ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-          instancesTree.setRoot(new ContainerDescriptorImpl(classObj.getHeapInstances(myCurrentHeap.getId())));
+          instancesTree.setRoot(new ContainerDescriptorImpl(classObj, myCurrentHeap.getId()));
         }
       }
     });
