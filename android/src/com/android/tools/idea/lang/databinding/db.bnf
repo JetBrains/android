@@ -1,0 +1,175 @@
+{
+
+  parserClass="com.android.tools.idea.lang.databinding.parser.DbParser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="PsiDb"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.databinding.psi"
+  psiImplPackage="com.android.tools.idea.lang.databinding.psi.impl"
+
+  elementTypeHolderClass="com.android.tools.idea.lang.databinding.psi.DbTokenTypes"
+  elementTypeClass="com.android.tools.idea.lang.databinding.psi.DbElementType"
+  tokenTypeClass="com.android.tools.idea.lang.databinding.psi.DbTokenType"
+
+  extends(".*Expr")=expr
+
+  tokens=[
+    // literals
+    TRUE='true'
+    FALSE='false'
+    NULL='null'
+
+    // primitive types
+    BOOLEAN_KEYWORD='boolean'
+    BYTE_KEYWORD='byte'
+    CHAR_KEYWORD='char'
+    SHORT_KEYWORD='short'
+    INT_KEYWORD='int'
+    LONG_KEYWORD='long'
+    FLOAT_KEYWORD='float'
+    DOUBLE_KEYWORD='double'
+
+    // other keywords
+    VOID_KEYWORD='void'
+    CLASS_KEYWORD='class'
+    INSTANCEOF_KEYWORD='instanceof'
+    DEFAULT_KEYWORD='default'
+
+    // operators
+    EQEQ='=='
+    NE='!='
+    LE='<='
+    LTLT='<<'
+    LT='<'
+    GTGTGT='>>>'
+    GTGT='>>'
+    GTEQ='>='
+    GT='>'
+    EQ='='
+    EXCL='!'
+    TILDE='~'
+    QUESTQUEST='??'
+    QUEST='?'
+    COLON=':'
+    PLUS='+'
+    MINUS='-'
+    ASTERISK='*'
+    DIV='/'
+    ANDAND='&&'
+    AND='&'
+    OROR='||'
+    OR='|'
+    XOR='^'
+    PERC='%'
+
+    // other symbols
+    LPARENTH='('
+    RPARENTH=')'
+    LBRACKET='['
+    RBRACKET=']'
+    COMMA=','
+    DOT='.'
+
+    // Some more tokens are written directly in the flex file.
+  ]
+}
+
+dataBindingExpression ::= expr defaults?
+
+// All branches here must end in "Expr"
+expr
+  ::= nullCoalesceExpr     //  '??'
+  |   ternaryExpr
+  |   logicalOrExpr        //  '||'
+  |   logicalAndExpr
+  |   binaryOrExpr         //  '|'
+  |   binaryXorExpr
+  |   binaryAndExpr
+  |   eqComparisonExpr     //  '==' and '!='
+  |   instanceOfExpr
+  |   ineqComparisonExpr   //  '<=', '<' etc.
+  |   bitShiftExpr
+  |   addExpr              //  '+' and '-'
+  |   mulExpr              //  '*' and '/'
+  |   negationExpr         //  '!' and '~'
+  |   signChangeExpr
+  |   castExpr
+  |   methodExpr
+  |   bracketExpr          //  array op - []
+  |   dotExpr              //  field access
+  |   resourcesExpr
+  |   classExtractionExpr
+  |   literalExpr
+  |   idExpr
+  |   parenExpr           //  (grouping)
+
+nullCoalesceExpr ::= expr '??' expr
+ternaryExpr ::= expr '?' expr ':' expr
+logicalOrExpr ::= expr '||' expr
+logicalAndExpr ::= expr '&&' expr
+binaryOrExpr ::= expr '|' expr
+binaryXorExpr ::= expr '^' expr
+binaryAndExpr ::= expr '&' expr
+eqComparisonExpr ::= expr eqComparisonOp expr
+instanceOfExpr ::= expr 'instanceof' expr
+ineqComparisonExpr ::= expr ineqComparisonOp expr
+bitShiftExpr ::= expr bitShiftOp expr
+addExpr ::= expr addOp expr
+mulExpr ::= expr mulOp expr
+negationExpr ::= negationOp expr
+signChangeExpr ::= signOp expr
+castExpr ::= '(' type ')' expr
+methodExpr ::= expr '.' IDENTIFIER '(' expressionList? ')'
+bracketExpr ::= expr '[' expr ']'
+dotExpr ::= expr '.' IDENTIFIER
+resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
+classExtractionExpr ::= (type|'void') '.' 'class'
+literalExpr ::= literal
+idExpr ::= IDENTIFIER
+parenExpr ::= '(' expr ')'
+
+private eqComparisonOp ::= '==' | '!='
+private ineqComparisonOp ::= '<=' | '>=' | '<' | '>'
+private bitShiftOp ::= '<<' | '>>>' | '>>'
+private addOp ::= '+' | '-'
+private signOp ::= '+' | '-'
+private mulOp ::= '*' | '/'
+private negationOp ::= '~' | '!'
+
+expressionList ::= expr (',' expr)*
+
+private literal
+  ::= INTEGER_LITERAL
+  |   FLOAT_LITERAL
+  |   LONG_LITERAL
+  |   DOUBLE_LITERAL
+  |   TRUE | FALSE
+  |   NULL
+  |   CHARACTER_LITERAL
+  |   STRING_LITERAL
+
+typeArguments ::= '<' type (',' type)* '>'
+
+type ::= primitiveType ('[' ']')* | classOrInterfaceType ('[' ']')*
+
+classOrInterfaceType ::= IDENTIFIER typeArguments? ('.' IDENTIFIER typeArguments? )*
+
+resourceParameters ::= '(' expressionList ')'
+
+primitiveType
+  ::= BOOLEAN_KEYWORD
+  |   BYTE_KEYWORD
+  |   CHAR_KEYWORD
+  |   SHORT_KEYWORD
+  |   INT_KEYWORD
+  |   LONG_KEYWORD
+  |   FLOAT_KEYWORD
+  |   DOUBLE_KEYWORD
+
+defaults ::= ',' 'default' '=' constantValue
+
+constantValue
+  ::= literal
+  |   RESOURCE_REFERENCE
+  |   IDENTIFIER
