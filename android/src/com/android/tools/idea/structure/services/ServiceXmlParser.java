@@ -240,7 +240,10 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     String learnLink = attributes.getValue(Schema.Service.ATTR_LEARN_MORE);
     String apiLink = attributes.getValue(Schema.Service.ATTR_API_DOCS);
 
-    initializeService(new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_INITIALIZE)));
+    String initializeFilename = attributes.getValue(Schema.Service.ATTR_INITIALIZE);
+    if (initializeFilename != null) {
+      initializeService(new File(myRootPath, initializeFilename));
+    }
     myRecipeFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_EXECUTE));
 
     try {
