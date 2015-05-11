@@ -34,10 +34,16 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
+  public static final boolean ENABLED = Boolean.getBoolean("nele.enabled");
+
   /** FileEditorProvider ID for the layout editor */
   public static final String DESIGNER_ID = "android-designer2";
 
   public static boolean acceptLayout(@NonNull Project project, @NonNull VirtualFile file) {
+    if (!ENABLED) {
+      return false;
+    }
+
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
     return psiFile instanceof XmlFile &&
            getFacet(project, file) != null &&
