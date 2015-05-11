@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.hprof.tables.classtable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTable;
 import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Heap;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -53,5 +54,20 @@ public class ClassTable extends HprofTable {
         }
       }
     });
+  }
+
+  public void setHeap(@NotNull Heap heap) {
+    int modelRow = getRowSorter().convertRowIndexToModel(getSelectedRow());
+    ClassTableModel model = (ClassTableModel)getModel();
+    ClassObj selectedClassObj = model.getEntry(modelRow);
+
+    model.setHeap(heap);
+
+    ClassTableModel newModel = (ClassTableModel)getModel();
+    int newRow = newModel.findEntryRow(selectedClassObj);
+    if (newRow >= 0) {
+      int newViewRow = getRowSorter().convertRowIndexToView(newRow);
+      getSelectionModel().setSelectionInterval(newViewRow, newViewRow);
+    }
   }
 }
