@@ -769,7 +769,7 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    projectFrame.requestProjectSyncAndExpectFailure();
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
