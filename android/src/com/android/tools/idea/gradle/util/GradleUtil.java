@@ -118,6 +118,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.addAll;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.util.Collections.sort;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.gradle.wrapper.WrapperExecutor.forWrapperPropertiesFile;
@@ -149,41 +150,48 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  public static void clearStoredGradleJvmArgs(@NotNull Project project) {
+  public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
-    String existingJvmArgs = settings.getGradleVmOptions();
+    final String existingJvmArgs = settings.getGradleVmOptions();
     settings.setGradleVmOptions("");
     if (!isEmptyOrSpaces(existingJvmArgs)) {
-      existingJvmArgs = existingJvmArgs.trim();
-      String msg = String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
-                                 "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
-                                 "Would you like to copy these JVM arguments:\n%1$s\n" +
-                                 "to the project's gradle.properties file?\n\n" +
-                                 "(Any existing JVM arguments in the gradle.properties file will be overwritten.)",
-                                 existingJvmArgs);
-      int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
-      if (result == Messages.YES) {
-        try {
-          GradleProperties gradleProperties = new GradleProperties(project);
-          gradleProperties.setJvmArgs(existingJvmArgs);
-          gradleProperties.save();
-        }
-        catch (IOException e) {
-          String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
-          LOG.info(err, e);
+      invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String jvmArgs = existingJvmArgs.trim();
+          final String msg =
+            String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
+                          "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
+                          "Would you like to copy these JVM arguments:\n%1$s\n" +
+                          "to the project's gradle.properties file?\n\n" +
+                          "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
 
-          String cause = e.getMessage();
-          if (isNotEmpty(cause)) {
-            err += String.format("<br>\nCause: %1$s", cause);
+          int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
+          if (result == Messages.YES) {
+            try {
+              GradleProperties gradleProperties = new GradleProperties(project);
+              gradleProperties.setJvmArgs(jvmArgs);
+              gradleProperties.save();
+            }
+            catch (IOException e) {
+              String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
+              LOG.info(err, e);
+
+              String cause = e.getMessage();
+              if (isNotEmpty(cause)) {
+                err += String.format("<br>\nCause: %1$s", cause);
+              }
+
+              AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
+            }
           }
-
-          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
+          else {
+            String text =
+              String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
+            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+          }
         }
-      }
-      else {
-        String text = String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-        AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
-      }
+      });
     }
   }
 
