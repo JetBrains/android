@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
@@ -45,8 +45,7 @@ import static org.junit.Assert.assertNotNull;
  * </ul>
  */
 public class LayoutEditorTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testSetProperty() throws Exception {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
@@ -54,6 +53,7 @@ public class LayoutEditorTest extends GuiTestCase {
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.selectEditorTab(EditorFixture.Tab.DESIGN);
+
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
     layout.waitForNextRenderToFinish();
@@ -128,8 +128,7 @@ public class LayoutEditorTest extends GuiTestCase {
     property.requireXmlValue("?android:attr");
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testDeletion() throws Exception {
     // Tests deletion: Opens a layout, finds the first TextView, deletes it,
     // checks that the component hierarchy shows it as removed. Then performs
@@ -182,8 +181,7 @@ public class LayoutEditorTest extends GuiTestCase {
                                 "        TextView - @string/hello_world\n", false);
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testIdManipulation() throws Exception {
     // Checks that when we insert new widgets, we assign appropriate id's (they should
     // be unique in the application), and also check that when we copy/paste a component

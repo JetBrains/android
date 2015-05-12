@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.module.Module;
@@ -37,7 +37,7 @@ import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@BelongsToTestGroups(values = {PROJECT_SUPPORT})
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class BuildVariantsTest extends GuiTestCase {
   private static final String MODULE_NAME = "app";
 
