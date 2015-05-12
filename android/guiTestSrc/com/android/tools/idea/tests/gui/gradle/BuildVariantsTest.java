@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
@@ -23,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -38,6 +40,11 @@ import static org.junit.Assert.assertNotNull;
 @BelongsToTestGroups(values = {PROJECT_SUPPORT})
 public class BuildVariantsTest extends GuiTestCase {
   private static final String MODULE_NAME = "app";
+
+  @Before
+  public void skipSourceGenerationOnSync() {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
 
   @Test @IdeGuiTest
   public void testSwitchVariantWithFlavor() throws IOException {
@@ -70,14 +77,10 @@ public class BuildVariantsTest extends GuiTestCase {
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Debug");
 
     sourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
-    assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/debug",
-                                       generatedSourceDirPath + "aidl/flavor1/debug",
-                                       generatedSourceDirPath + "buildConfig/flavor1/debug",
-                                       generatedSourceDirPath + "rs/flavor1/debug",
-                                       MODULE_NAME + "/src/flavor1Debug/aidl",
-                                       MODULE_NAME + "/src/flavor1Debug/java",
-                                       MODULE_NAME + "/src/flavor1Debug/jni",
-                                       MODULE_NAME + "/src/flavor1Debug/rs");
+    assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/debug", generatedSourceDirPath + "aidl/flavor1/debug",
+                                       generatedSourceDirPath + "buildConfig/flavor1/debug", generatedSourceDirPath + "rs/flavor1/debug",
+                                       MODULE_NAME + "/src/flavor1Debug/aidl", MODULE_NAME + "/src/flavor1Debug/java",
+                                       MODULE_NAME + "/src/flavor1Debug/jni", MODULE_NAME + "/src/flavor1Debug/rs");
 
     assertEquals("assembleFlavor1Debug", androidFacetProperties.ASSEMBLE_TASK_NAME);
     // Verifies that https://code.google.com/p/android/issues/detail?id=83077 is not a bug.
@@ -100,7 +103,5 @@ public class BuildVariantsTest extends GuiTestCase {
 
     testSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
     assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
-
-    myRobot.waitForIdle();
   }
 }
