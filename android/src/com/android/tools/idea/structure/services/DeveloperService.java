@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -80,6 +81,9 @@ public final class DeveloperService {
     }.execute();
     getContext().snapshot();
     getContext().isInstalled().set(true);
+
+    UsageTracker.getInstance()
+      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_INSTALLED, getMetadata().getName(), null);
   }
 
   public void uninstall() {
@@ -120,5 +124,8 @@ public final class DeveloperService {
     }
 
     getContext().isInstalled().set(false);
+
+    UsageTracker.getInstance()
+      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_REMOVED, getMetadata().getName(), null);
   }
 }
