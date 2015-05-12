@@ -19,12 +19,8 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +29,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.parse.SaxUtils.requireAttr;
 
@@ -46,59 +41,29 @@ import static com.android.tools.idea.templates.parse.SaxUtils.requireAttr;
   private static final Logger LOG = Logger.getInstance(InitializeXmlParser.class);
 
   public static final String INITIALIZE_TAG = "initialize";
-  public static final String DEPENDENCY_TAG = "dependency";
-  public static final String DEPENDENCY_ATTR_NAME = "name";
   public static final String RESOURCE_TAG = "resource";
   public static final String RESOURCE_ATTR_NAME = "name";
   public static final String RESOURCE_ATTR_VAR = "var";
 
   @NotNull private final Module myModule;
   @NotNull private final ServiceContext myContext;
-  @NotNull private final List<String> myDependencies = Lists.newArrayList();
-
-  private boolean myIsInstalled = true; // Assume true, but change to false if we fail any condition
 
   public InitializeXmlParser(@NotNull Module module, @NotNull ServiceContext serviceContext) {
     myModule = module;
     myContext = serviceContext;
-
-    GradleBuildFile gradleBuildFile = GradleBuildFile.get(myModule);
-    if (gradleBuildFile != null) {
-      for (BuildFileStatement dependency : gradleBuildFile.getDependencies()) {
-        if (dependency instanceof Dependency) {
-          Object data = ((Dependency)dependency).data;
-          if (data instanceof String) {
-            myDependencies.add(((String)data));
-          }
-        }
-      }
-    }
   }
 
   @Override
   public void startElement(String uri, String localName, @NotNull String tagName, @NotNull Attributes attributes) throws SAXException {
-    if (tagName.equals(DEPENDENCY_TAG)) {
-      boolean dependencyFound = false;
-      Pattern dependencyPattern = Pattern.compile(requireAttr(tagName, attributes, DEPENDENCY_ATTR_NAME));
-      for (String dependency : myDependencies) {
-        if (dependencyPattern.matcher(dependency).matches()) {
-          dependencyFound = true;
-          break;
-        }
-      }
-
-      if (!dependencyFound) {
-        myIsInstalled = false;
-      }
-    }
-    else if (tagName.equals(RESOURCE_TAG)) {
-      boolean resourceFound = false;
+    if (tagName.equals(RESOURCE_TAG)) {
       String resourceUrl = requireAttr(tagName, attributes, RESOURCE_ATTR_NAME);
       String targetVar = requireAttr(tagName, attributes, RESOURCE_ATTR_VAR);
 
       AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
       assert appResources != null;
       ResourceUrl url = ResourceUrl.parse(resourceUrl);
+
+      boolean resourceFound = false;
       if (url != null) {
         List<ResourceItem> resourceItem = appResources.getResourceItem(url.type, url.name);
         if (resourceItem != null && !resourceItem.isEmpty()) {
@@ -111,19 +76,11 @@ import static com.android.tools.idea.templates.parse.SaxUtils.requireAttr;
       }
 
       if (!resourceFound) {
-        myIsInstalled = false;
+        LOG.warn(String.format("Could not initialize property %1$s from resource url %2$s, resource not found!", targetVar, resourceUrl));
       }
     }
     else if (!tagName.equals(INITIALIZE_TAG)) {
       LOG.warn("WARNING: Unknown initialize directive " + tagName);
-    }
-  }
-
-  @Override
-  public void endElement(String uri, String localName, @NotNull String tagName) throws SAXException {
-    if (tagName.equals(INITIALIZE_TAG)) {
-      myContext.isInstalled().set(myIsInstalled);
-      myContext.snapshot();
     }
   }
 

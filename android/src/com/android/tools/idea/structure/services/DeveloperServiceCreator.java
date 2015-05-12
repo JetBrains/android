@@ -28,10 +28,8 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.URL;
 
 /**
  * A class used by plugins to expose their service resources to Android Studio.
@@ -40,7 +38,7 @@ import java.io.InputStream;
  * content files (service.xml, recipe.xml, code files, etc.) that make up their service. This
  * allows this base class to instantiate an associated {@link DeveloperService}
  */
-public abstract class DeveloperServiceInitializer {
+public abstract class DeveloperServiceCreator {
   /**
    * Reserved filename for the xml file which defines a service.
    */
@@ -53,7 +51,7 @@ public abstract class DeveloperServiceInitializer {
    */
   @NotNull private final File myRootPath;
 
-  public DeveloperServiceInitializer() {
+  public DeveloperServiceCreator() {
     try {
       // TODO: Here, we copy all resources out from the initializer and create local File copies
       // of them, because our template code (see Template.java, RecipeXmlParser.java) requires
@@ -71,7 +69,11 @@ public abstract class DeveloperServiceInitializer {
         Files.createParentDirs(file);
         assert file.createNewFile();
         String fullName = new File(getResourceRoot(), name).getPath();
-        Resources.asByteSource(getClass().getResource(fullName)).copyTo(Files.asByteSink(file));
+        URL resource = getClass().getResource(fullName);
+        if (resource == null) {
+          throw new FileNotFoundException(String.format("Could not find service file %1$s", fullName));
+        }
+        Resources.asByteSource(resource).copyTo(Files.asByteSink(file));
       }
     }
     catch (IOException e) {
@@ -130,6 +132,7 @@ public abstract class DeveloperServiceInitializer {
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
    */
+  @NotNull
   protected abstract String getResourceRoot();
 
   /**
@@ -138,11 +141,13 @@ public abstract class DeveloperServiceInitializer {
    */
   // TODO: Revisit this and eliminate if possible. It exists so we can fetch all resources
   // under getResourceRoot() as input streams and convert them to files.
+  @NotNull
   protected abstract String[] getResources();
 
   /**
    * Create a context (a package of methods and variables, essentially) for the service UI to be
    * able to bind to.
    */
+  @NotNull
   protected abstract ServiceContext createContext();
 }

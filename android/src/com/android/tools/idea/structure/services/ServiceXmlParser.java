@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.tools.idea.gradle.parser.BuildFileStatement;
+import com.android.tools.idea.gradle.parser.Dependency;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.templates.FreemarkerConfiguration;
 import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.PrefixTemplateLoader;
@@ -31,6 +34,8 @@ import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpr
 import com.android.tools.idea.ui.properties.expressions.integer.AbstractIntExpression;
 import com.android.tools.idea.ui.properties.expressions.string.AbstractStringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.HyperlinkLabel;
@@ -57,9 +62,13 @@ import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
 /**
  * Class which handles the parsing of a service.xml file. Note that a service.xml file is
@@ -95,11 +104,11 @@ import java.util.regex.Pattern;
   @NotNull private final ServiceContext myContext;
   @NotNull private final Stack<String> myTagStack = new Stack<String>();
 
-  private PrefixTemplateLoader myLoader;
-  private DeveloperServiceMetadata myDeveloperServiceMetadata;
-  private ServiceCategory myServiceCategory;
-  private ServicePanelBuilder myPanelBuilder;
-  private File myRecipeFile;
+  @NotNull private PrefixTemplateLoader myLoader;
+  @NotNull private ServicePanelBuilder myPanelBuilder;
+  @NotNull private ServiceCategory myServiceCategory;
+  @NotNull private DeveloperServiceMetadata myDeveloperServiceMetadata;
+  @NotNull private File myRecipeFile;
 
   public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
@@ -119,10 +128,12 @@ import java.util.regex.Pattern;
     }
   }
 
+  @NotNull
   public Module getModule() {
     return myModule;
   }
 
+  @NotNull
   public ServiceContext getContext() {
     return myContext;
   }
@@ -196,7 +207,6 @@ import java.util.regex.Pattern;
     }
   }
 
-  @NotNull
   private void initializeService(@NotNull File initializeFile) {
     InitializeXmlParser initializeXmlParser = new InitializeXmlParser(myModule, myContext);
 
@@ -235,11 +245,14 @@ import java.util.regex.Pattern;
     String learnLink = attributes.getValue(Schema.Service.ATTR_LEARN_MORE);
     String apiLink = attributes.getValue(Schema.Service.ATTR_API_DOCS);
 
-    initializeService(new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_INITIALIZE)));
+    String initializeFilename = attributes.getValue(Schema.Service.ATTR_INITIALIZE);
+    if (initializeFilename != null) {
+      initializeService(new File(myRootPath, initializeFilename));
+    }
     myRecipeFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_EXECUTE));
 
     try {
-      myServiceCategory = ServiceCategory.valueOf(category);
+      myServiceCategory = ServiceCategory.valueOf(UPPER_CAMEL.to(UPPER_UNDERSCORE, category));
     }
     catch (IllegalArgumentException e) {
       throw new RuntimeException(
@@ -262,10 +275,54 @@ import java.util.regex.Pattern;
     for (String d : recipe.getDependencies()) {
       myDeveloperServiceMetadata.addDependency(d);
     }
-
     for (File f : recipe.getFilesToModify()) {
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
+
+    // Consider ourselves installed if this service's dependencies are already found in the current
+    // module.
+    // TODO: Flesh this simplistic approach out more. We would like to have a way to say a service
+    // isn't installed even if its dependency happens to be added to the project. For example,
+    // multiple services might share a dependency but have additional settings that indicate some
+    // are installed and others aren't.
+    List<String> moduleDependencyNames = Lists.newArrayList();
+    GradleBuildFile gradleBuildFile = GradleBuildFile.get(myModule);
+    if (gradleBuildFile != null) {
+      for (BuildFileStatement dependency : gradleBuildFile.getDependencies()) {
+        if (dependency instanceof Dependency) {
+          Object data = ((Dependency)dependency).data;
+          if (data instanceof String) {
+            String dependencyString = (String)data;
+            List<String> dependencyParts = Lists.newArrayList(Splitter.on(':').split(dependencyString));
+            if (dependencyParts.size() == 3) {
+              // From the dependency URL "group:name:version" string - we only care about "name"
+              // We ignore the version, as a service may be installed using an older version
+              // TODO: Handle "group: 'com.android.support', name: 'support-v4', version: '21.0.+'" format also
+              // See also GradleDetector#getNamedDependency
+              moduleDependencyNames.add(dependencyParts.get(1));
+            }
+          }
+        }
+      }
+    }
+    boolean allDependenciesFound = true;
+    for (String serviceDependency : myDeveloperServiceMetadata.getDependencies()) {
+      boolean thisDependencyFound = false;
+      for (String moduleDependencyName : moduleDependencyNames) {
+        if (serviceDependency.contains(moduleDependencyName)) {
+          thisDependencyFound = true;
+          break;
+        }
+      }
+
+      if (!thisDependencyFound) {
+        allDependenciesFound = false;
+        break;
+      }
+    }
+
+    myContext.isInstalled().set(allDependenciesFound);
+    myContext.snapshot();
   }
 
   private void parseUiGridTag(@NotNull Attributes attributes) {

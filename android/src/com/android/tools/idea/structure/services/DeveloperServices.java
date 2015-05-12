@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.intellij.ProjectTopics;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
@@ -31,8 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * interface to access them.
  */
 public final class DeveloperServices {
-  // TODO: Remove this flag after this feature is production ready
-  private static final String ENABLE_DEVELOPER_SERVICES = "enable.developer.services";
+  private static final Logger LOG = Logger.getInstance(DeveloperService.class);
 
   private static Multimap<Module, DeveloperService> ourServices = ArrayListMultimap.create();
 
@@ -51,20 +51,21 @@ public final class DeveloperServices {
   }
 
   private static void initializeFor(@NotNull Module module) {
-    if (!Boolean.getBoolean(ENABLE_DEVELOPER_SERVICES)) {
-      return;
-    }
-
     if (ourServices.containsKey(module)) {
       return;
     }
 
-    for (DeveloperServiceInitializers initializers : DeveloperServiceInitializers.EP_NAME.getExtensions()) {
-      for (DeveloperServiceInitializer initializer : initializers.getInitializers()) {
-        DeveloperService service = initializer.createService(module);
-        if (service != null) {
-          ourServices.put(module, service);
+    for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
+      try {
+        for (DeveloperServiceCreator creator : creators.getCreators()) {
+          DeveloperService service = creator.createService(module);
+          if (service != null) {
+            ourServices.put(module, service);
+          }
         }
+      }
+      catch (Exception e) {
+        LOG.warn("Caught exception while initializing services", e);
       }
     }
 
