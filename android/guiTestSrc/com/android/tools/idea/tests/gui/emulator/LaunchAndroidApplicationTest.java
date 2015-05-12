@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
@@ -35,8 +35,7 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*local path: (?:[^\\/]*[\\/])*SimpleApplication/app/build/outputs/apk/app-debug\\.apk.*", Pattern.DOTALL);
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
@@ -52,8 +51,7 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
                                        .clickTerminateApplication();
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     IdeFrameFixture projectFrame = importSimpleApplication();
     final EditorFixture editor = projectFrame.getEditor();
