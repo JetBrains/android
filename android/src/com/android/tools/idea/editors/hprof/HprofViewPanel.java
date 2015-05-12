@@ -77,12 +77,16 @@ public class HprofViewPanel implements Disposable {
       protected DefaultActionGroup createPopupActionGroup(JComponent button) {
         DefaultActionGroup group = new DefaultActionGroup();
         for (final Heap heap : snapshot.getHeaps()) {
+          if ("default".equals(heap.getName()) && heap.getClasses().isEmpty() && heap.getInstances().isEmpty()) {
+            continue;
+          }
           group.add(new AnAction(heap.getName() + " heap") {
             @Override
             public void actionPerformed(AnActionEvent e) {
               myCurrentHeap = heap;
-              classTable.setHeap(heap, instancesTree.getClassObj());
-              instancesTree.setClassObj(heap, instancesTree.getClassObj());
+              ClassObj classObj = instancesTree.getClassObj();
+              classTable.setHeap(heap, classObj);
+              instancesTree.setClassObj(heap, classObj);
               referenceTree.clearInstance();
             }
           });
