@@ -40,6 +40,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
@@ -65,6 +66,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private final Project myProject;
 
   private JPanel myPanel;
+  protected JBTabbedPane myTabbedPane;
   private JComboBox myModulesComboBox;
   private JPanel myConfigurationSpecificPanel;
   private JCheckBox myWipeUserDataCheckBox;
