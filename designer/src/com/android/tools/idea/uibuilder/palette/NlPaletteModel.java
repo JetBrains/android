@@ -39,6 +39,7 @@ public class NlPaletteModel {
   private static final String ELEM_CREATION = "creation";
 
   private static final String ATTR_TAG = "tag";
+  private static final String ATTR_ID = "id";
   private static final String ATTR_NAME = "name";
   private static final String ATTR_TITLE = "title";
   private static final String ATTR_TOOLTIP = "tooltip";
@@ -46,13 +47,24 @@ public class NlPaletteModel {
 
   @NotNull private final List<NlPaletteGroup> myGroups;
   @NotNull private final Map<String, Element> myTag2Model;
+  private static NlPaletteModel ourInstance;
 
-  public NlPaletteModel() {
+  @NotNull
+  public static NlPaletteModel get() {
+    if (ourInstance == null) {
+      ourInstance = new NlPaletteModel();
+      ourInstance.loadPalette();
+    }
+    return ourInstance;
+  }
+
+  @VisibleForTesting
+  NlPaletteModel() {
     myGroups = new ArrayList<NlPaletteGroup>();
     myTag2Model = new HashMap<String, Element>();
   }
 
-  public void loadPalette() {
+  private void loadPalette() {
     Document document = loadDocument(METADATA);
     if (document != null) {
       loadPalette(document);
@@ -125,6 +137,7 @@ public class NlPaletteModel {
     String title = getAttributeValue(itemElement, modelElement, ATTR_TITLE);
     String tooltip = getAttributeValue(itemElement, modelElement, ATTR_TOOLTIP);
     String iconPath = getAttributeValue(itemElement, modelElement, ATTR_ICON);
+    String id = getAttributeValue(itemElement, modelElement, ATTR_ID);
     String creation = getElementValue(itemElement, modelElement, ELEM_CREATION);
     if (title.isEmpty()) {
       LOG.warn(String.format("No title found for item with tag: %s", modelElement.getAttributeValue(ATTR_TAG)));
@@ -133,7 +146,10 @@ public class NlPaletteModel {
     if (creation.isEmpty()) {
       creation = "<" + modelElement.getAttributeValue(ATTR_TAG) +"/>";
     }
-    return new NlPaletteItem(title, iconPath, tooltip, creation);
+    if (id.isEmpty()) {
+      id = itemElement.getAttributeValue(ATTR_TAG, "");
+    }
+    return new NlPaletteItem(title, iconPath, tooltip, creation, id);
   }
 
   @NotNull

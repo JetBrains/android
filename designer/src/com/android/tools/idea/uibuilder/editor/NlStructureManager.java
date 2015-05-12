@@ -24,8 +24,10 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class NlStructureManager extends NlAbstractManager {
+public class NlStructureManager extends NlAbstractWindowManager {
+  private NlStructurePanel myStructurePanel;
 
   public NlStructureManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
@@ -42,16 +44,36 @@ public class NlStructureManager extends NlAbstractManager {
   }
 
   @Override
+  protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
+    if (designer == null) {
+      myToolWindow.setAvailable(false, null);
+    }
+    else {
+      if (myStructurePanel == null) {
+        myStructurePanel = createStructurePane(designer);
+        createWindowContent(myStructurePanel.getPanel(), myStructurePanel.getPanel(), null);
+      }
+      myToolWindow.setAvailable(true, null);
+      myToolWindow.show(null);
+    }
+  }
+
+  @Override
   protected ToolWindowAnchor getAnchor() {
     return ToolWindowAnchor.RIGHT;
   }
 
-  @Override
-  protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
+  private static NlStructurePanel createStructurePane(@NotNull DesignerEditorPanelFacade designer) {
     // should be whatever is bound in NlEditor
     assert designer instanceof NlEditorPanel;
+    NlEditorPanel editor = (NlEditorPanel)designer;
+    return new NlStructurePanel(editor.getSurface());
+  }
 
-    NlStructurePanel structurePanel = new NlStructurePanel(((NlEditorPanel)designer).getSurface());
+
+  @Override
+  protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
+    NlStructurePanel structurePanel = createStructurePane(designer);
 
     return createContent(designer,
                          structurePanel,
