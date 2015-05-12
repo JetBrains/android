@@ -21,6 +21,6 @@ import org.junit.runner.RunWith;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 
 @RunWith(GuiTestSuiteRunner.class)
-@GuiTestSuiteRunner.IncludeTestGroups(values = {PROJECT_SUPPORT})
+@GuiTestSuiteRunner.IncludeTestGroups({PROJECT_SUPPORT})
 public class ProjectSupportSuite {
 }

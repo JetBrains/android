@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -67,7 +67,7 @@ public class TranslationsEditorTest extends GuiTestCase {
     assertNotNull(txEditor);
 
     List<String> locales = txEditor.locales();
-    String[] expectedLocales = {"English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)"};
+    Object[] expectedLocales = {"English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)"};
     assertThat(locales).containsSequence(expectedLocales);
 
     List<String> keys = txEditor.keys();

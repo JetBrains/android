@@ -45,7 +45,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class GuiTestSuiteRunner extends Suite {
   @Retention(RetentionPolicy.RUNTIME)
   public @interface IncludeTestGroups {
-    TestGroup[] values();
+    TestGroup[] value();
   }
 
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError {
@@ -87,7 +87,7 @@ public class GuiTestSuiteRunner extends Suite {
   private static List<TestGroup> getSuiteGroups(@NotNull Class<?> suiteClass) {
     for (Annotation annotation : suiteClass.getAnnotations()) {
       if (annotation instanceof IncludeTestGroups) {
-        TestGroup[] values = ((IncludeTestGroups)annotation).values();
+        TestGroup[] values = ((IncludeTestGroups)annotation).value();
         if (values != null) {
           return Lists.newArrayList(values);
         }
@@ -127,7 +127,7 @@ public class GuiTestSuiteRunner extends Suite {
     }
     for (Annotation annotation : testClass.getAnnotations()) {
       if (annotation instanceof BelongsToTestGroups) {
-        TestGroup[] testGroups = ((BelongsToTestGroups)annotation).values();
+        TestGroup[] testGroups = ((BelongsToTestGroups)annotation).value();
         if (testGroups != null) {
           for (TestGroup testGroup : testGroups) {
             if (suiteGroups.contains(testGroup)) {

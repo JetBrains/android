@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
@@ -42,7 +42,7 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
-@BelongsToTestGroups(values = {PROJECT_SUPPORT})
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class RenameTest extends GuiTestCase {
 
   @Test @IdeGuiTest

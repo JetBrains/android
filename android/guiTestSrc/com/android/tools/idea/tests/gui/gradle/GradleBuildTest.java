@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
 import org.junit.Test;
@@ -31,7 +31,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 
-@BelongsToTestGroups(values = {PROJECT_SUPPORT})
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class GradleBuildTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testBuildWithInvalidJavaHome() throws IOException {
