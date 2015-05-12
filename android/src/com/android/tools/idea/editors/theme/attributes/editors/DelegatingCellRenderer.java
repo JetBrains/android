@@ -51,7 +51,7 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     // Displays in bold attributes that are overriding their inherited value
     returnedComponent.setFont(selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
 
-    returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.GRAY : table.getForeground());
+    returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.LIGHT_GRAY : table.getForeground());
 
     if (!(returnedComponent instanceof JComponent)) {
       // Does not support tooltips
