@@ -29,6 +29,8 @@ import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
@@ -204,6 +206,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           myResourceNameField.setText(colorName);
         }
         myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
+        Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
+        myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
         myColorPickerPanel.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
         updateResourceNameStatus();
       }
@@ -292,11 +296,13 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     if (errorText == null) {
       myResourceNameMessage.setText(getResourceNameMessage());
       myResourceNameMessage.setForeground(JBColor.BLACK);
+      myResourceNameMessage.setOpaque(false);
       setOKActionEnabled(true);
     }
     else {
       myResourceNameMessage.setText(errorText);
-      myResourceNameMessage.setForeground(myOverwriteResource ? JBColor.ORANGE : JBColor.RED);
+      myResourceNameMessage.setForeground(myOverwriteResource ? JBColor.BLACK : JBColor.RED);
+      myResourceNameMessage.setOpaque(myOverwriteResource);
       setOKActionEnabled(myOverwriteResource);
     }
   }
