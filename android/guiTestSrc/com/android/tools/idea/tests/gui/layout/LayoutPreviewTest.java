@@ -452,7 +452,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("String 1 defined only by |defaultConfig"));
     editor.enterText("edited ");
-    projectFrame.clickEditorNotification("Gradle files have changed since last project sync", "Sync Now");
+    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
     projectFrame.waitForGradleProjectSyncToFinish();
 
     editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
