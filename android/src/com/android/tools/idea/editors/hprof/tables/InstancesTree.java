@@ -197,7 +197,7 @@ public class InstancesTree {
     return myColumnTree;
   }
 
-  public void setClassObj(@NotNull Heap heap, @NotNull ClassObj classObj) {
+  public void setClassObj(@NotNull Heap heap, @Nullable ClassObj classObj) {
     if (myDebuggerTree.getMutableModel().getRoot() == null) {
       return;
     }
@@ -209,18 +209,30 @@ public class InstancesTree {
     }
 
     myHeap = heap;
+    DebuggerTreeNodeImpl newRoot;
 
-    ContainerDescriptorImpl containerDescriptor = new ContainerDescriptorImpl(classObj, heap.getId());
-    DebuggerTreeNodeImpl root = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, containerDescriptor);
-    myDebuggerTree.getMutableModel().setRoot(root);
+    if (classObj != null) {
+      ContainerDescriptorImpl containerDescriptor = new ContainerDescriptorImpl(classObj, heap.getId());
+      newRoot = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, containerDescriptor);
+    }
+    else {
+      newRoot = myDebuggerTree.getNodeFactory().getDefaultNode();
+    }
+    myDebuggerTree.getMutableModel().setRoot(newRoot);
     myDebuggerTree.treeChanged();
     myDebuggerTree.scrollRowToVisible(0);
   }
 
+  @Nullable
   public ClassObj getClassObj() {
     DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot();
-    ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
-    return containerDescriptor.getClassObj();
+    if (node.getDescriptor() instanceof DefaultNodeDescriptor) {
+      return null;
+    }
+    else {
+      ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
+      return containerDescriptor.getClassObj();
+    }
   }
 
   private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, int startIndex) {
