@@ -3,7 +3,7 @@
   "name": "Froyo",
   "version": "2.2",
   "apiLevel": 8,
-  "distributionPercentage": 0.005,
+  "distributionPercentage": 0.003,
   "url": "https://developer.android.com/about/versions/android-2.2.html",
   "descriptionBlocks": [
                            {
@@ -25,7 +25,7 @@
   "name": "Gingerbread",
   "version": "2.3",
   "apiLevel": 10,
-  "distributionPercentage": 0.091,
+  "distributionPercentage": 0.057,
   "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
@@ -47,7 +47,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.078,
+  "distributionPercentage": 0.053,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -96,7 +96,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.213,
+  "distributionPercentage": 0.156,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -145,7 +145,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.204,
+  "distributionPercentage": 0.181,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -178,7 +178,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.070,
+  "distributionPercentage": 0.055,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -235,7 +235,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.339,
+  "distributionPercentage": 0.398,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -276,7 +276,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.0,
+  "distributionPercentage": 0.097,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
