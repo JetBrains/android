@@ -100,7 +100,7 @@ public class NewProjectTest extends GuiTestCase {
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("defaultConfig {", null, true));
     editor.enterText("\nresValue \"string\", \"foo\", \"Typpo Here\"");
-    projectFrame.clickEditorNotification("Gradle files have changed since last project sync", "Sync Now");
+    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
     projectFrame.waitForGradleProjectSyncToFinish();
 
     InspectionsFixture inspections = projectFrame.inspectCode();
