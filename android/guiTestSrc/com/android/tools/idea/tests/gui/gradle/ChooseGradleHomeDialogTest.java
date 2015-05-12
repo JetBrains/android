@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.edt.GuiQuery;
@@ -36,7 +36,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
-@BelongsToTestGroups(values = {PROJECT_SUPPORT})
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
