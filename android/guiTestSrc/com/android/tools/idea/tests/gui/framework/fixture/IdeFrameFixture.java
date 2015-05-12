@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.Disposable;
@@ -48,18 +49,18 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
@@ -77,6 +78,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FD_GRADLE;
@@ -86,13 +88,11 @@ import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
@@ -207,6 +207,38 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     });
 
     return sourceFoldersByType;
+  }
+
+  @NotNull
+  public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull final JpsModuleSourceRootType<?> sourceType) {
+    final Set<String> paths = Sets.newHashSet();
+
+    Module module = getModule(moduleName);
+    final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+        try {
+          for (ContentEntry contentEntry : rootModel.getContentEntries()) {
+            for (SourceFolder folder : contentEntry.getSourceFolders()) {
+              JpsModuleSourceRootType<?> rootType = folder.getRootType();
+              if (rootType.equals(sourceType)) {
+                String path = urlToPath(folder.getUrl());
+                String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
+                paths.add(relativePath);
+              }
+            }
+          }
+        }
+        finally {
+          rootModel.dispose();
+        }
+      }
+    });
+
+    return paths;
   }
 
   @NotNull
@@ -643,19 +675,31 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return new GradleToolWindowFixture(getProject(), robot());
   }
 
-  /**
-   * Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is {@code null}.
-   */
   @NotNull
-  public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
-    EditorNotificationPanel panel = findNotificationPanel(message);  // fails test if not found (or if null and notifications were found)
-    assertNotNull(panel);
-    return new EditorNotificationPanelFixture(robot(), panel);
+  public EditorNotificationPanelFixture requireEditorNotification(@NotNull final String message) {
+    final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<EditorNotificationPanel>();
+
+    pause(new Condition("Notification with message '" + message + "' shows up") {
+      @Override
+      public boolean test() {
+        EditorNotificationPanel notificationPanel = findNotificationPanel(message);
+        notificationPanelRef.set(notificationPanel);
+        return notificationPanel != null;
+      }
+    });
+
+    EditorNotificationPanel notificationPanel = notificationPanelRef.get();
+    assertNotNull(notificationPanel);
+    return new EditorNotificationPanelFixture(robot(), notificationPanel);
+  }
+
+  public void requireNoEditorNotification() {
+    assertNull(findNotificationPanel(null));
   }
 
   /**
-   * Locates an editor notification with the given main message (unless the message is {@code null}, in which case we assert
-   * that there are no visible editor notifications. Will fail if the given notification is not found.
+   * Locates an editor notification with the given main message (unless the message is {@code null}, in which case we assert that there are
+   * no visible editor notifications. Will fail if the given notification is not found.
    */
   @Nullable
   private EditorNotificationPanel findNotificationPanel(@Nullable String message) {
@@ -673,21 +717,20 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         for (EditorNotificationPanel panel : panels) {
           labels.addAll(getEditorNotificationLabels(panel));
         }
-        fail("Found editor notifications when none were expected: " + labels);
+        fail("Found editor notifications when none were expected" + labels);
       }
-    } else {
-      List<String> labels = Lists.newArrayList();
-      for (EditorNotificationPanel panel : panels) {
-        List<String> found = getEditorNotificationLabels(panel);
-        labels.addAll(found);
-        for (String label : found) {
-          if (label.contains(message)) {
-            return panel;
-          }
+      return null;
+    }
+
+    List<String> labels = Lists.newArrayList();
+    for (EditorNotificationPanel panel : panels) {
+      List<String> found = getEditorNotificationLabels(panel);
+      labels.addAll(found);
+      for (String label : found) {
+        if (label.contains(message)) {
+          return panel;
         }
       }
-
-      fail("Did not find message '" + message + "'; available notifications are " + labels);
     }
 
     return null;
@@ -705,25 +748,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
           return label.getText();
         }
       });
-      allText.add(nullToEmpty(text));
+      if (isNotEmpty(text)) {
+        allText.add(text);
+      }
     }
     return allText;
-  }
-
-  /** Clicks the given link in the editor notification with the given message */
-  public void clickEditorNotification(@NotNull String message, @NotNull final String linkText) {
-    final EditorNotificationPanel panel = findNotificationPanel(message);
-    assertNotNull(panel);
-
-    HyperlinkLabel label = robot().finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class, true) {
-      @Override
-      protected boolean isMatching(@NotNull HyperlinkLabel component) {
-        String text = method("getText").withReturnType(String.class).in(component).invoke();
-        return text != null && text.contains(linkText);
-      }
-    });
-    ComponentDriver driver = new ComponentDriver(robot());
-    driver.click(label);
   }
 
   @NotNull
