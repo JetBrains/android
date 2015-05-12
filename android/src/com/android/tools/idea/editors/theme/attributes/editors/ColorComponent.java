@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
@@ -35,7 +34,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.List;
@@ -49,26 +47,19 @@ public class ColorComponent extends JPanel {
   private static final int BUTTON_VERTICAL_PADDINGS = 14;
   public static final int SUM_PADDINGS = DISTANCE_BETWEEN_ROWS + LABEL_BUTTON_GAP + BUTTON_VERTICAL_PADDINGS;
 
-  private final ColorChooserButton myColorChooserButton;
-  private final JLabel myNameLabel;
+  private final ColorChooserButton myColorChooserButton = new ColorChooserButton();
+  private final JLabel myNameLabel = new JLabel();
   private String myValue = "";
 
   public ColorComponent() {
     super(new BorderLayout(0, LABEL_BUTTON_GAP));
+    setBorder(BorderFactory.createMatteBorder(DISTANCE_BETWEEN_ROWS / 2, 0, DISTANCE_BETWEEN_ROWS / 2, 0, getBackground()));
 
-    MatteBorder matteBorder = BorderFactory.createMatteBorder(DISTANCE_BETWEEN_ROWS / 2, 0, DISTANCE_BETWEEN_ROWS / 2, 0, getBackground());
-    setBorder(matteBorder);
+    add(myNameLabel, BorderLayout.NORTH);
 
-    myNameLabel = new JLabel("Name");
-
-    final JPanel innerPanel = new JPanel(new BorderLayout());
-    innerPanel.add(myNameLabel, BorderLayout.WEST);
-
-    add(innerPanel, BorderLayout.NORTH);
-
-    myColorChooserButton = new ColorChooserButton();
     myColorChooserButton.setBorder(null);
     myColorChooserButton.setBackground(JBColor.WHITE);
+    myColorChooserButton.setForeground(null);
     add(myColorChooserButton, BorderLayout.CENTER);
   }
 
@@ -111,12 +102,10 @@ public class ColorComponent extends JPanel {
 
     private String myValue;
     private @NotNull List<Color> myColors = Collections.emptyList();
-    private boolean myIsPublic;
     private final float[] myHsbArray = new float[3];
 
     public void configure(final EditedStyleItem resValue, final List<Color> color) {
       myValue = resValue.getValue();
-      myIsPublic = resValue.isPublicAttribute();
       setColors(color);
     }
 
@@ -129,9 +118,6 @@ public class ColorComponent extends JPanel {
 
       // Background is filled manually here instead of calling super.paintComponent()
       // because some L'n'Fs (e.g. GTK+) paint additional decoration even with null border.
-      g.setColor(getBackground());
-      g.fillRect(0, 0, width, height);
-
       g.setColor(getBackground());
       g.fillRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
 
@@ -162,14 +148,9 @@ public class ColorComponent extends JPanel {
       xOffset += STATES_PADDING - BETWEEN_STATES_PADDING;
 
       FontMetrics fm = g.getFontMetrics();
-      g.setColor(Gray._111);
+      g.setColor(getForeground());
       int yOffset = (height - fm.getHeight()) / 2 + fm.getAscent();
       g.drawString(myValue, xOffset, yOffset);
-
-      // If the attribute is private or there are no colors, draw a cross on attribute cell.
-      if (!myIsPublic || myColors.isEmpty()) {
-        GraphicsUtil.drawCross(g, new Rectangle(0, 0, width, height), 0.5f);
-      }
     }
 
     public void setColors(@NotNull List<Color> colors) {
