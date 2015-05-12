@@ -407,9 +407,10 @@ public class GraphicsLayoutRenderer {
   }
 
   public void dispose() {
-    myRenderSession.dispose();
-
-    myRenderSession = null;
+    if (myRenderSession != null) {
+      myRenderSession.dispose();
+      myRenderSession = null;
+    }
   }
 
   /**
