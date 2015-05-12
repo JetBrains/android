@@ -73,7 +73,7 @@ public class ObjectReferenceImpl extends ValueImpl implements ObjectReference {
 
   @Override
   public long uniqueID() {
-    return myValue == null ? 0 : ((Instance)myValue).getId() & com.android.tools.perflib.heap.Type.getIdSizeMask();
+    return myValue == null ? 0 : ((Instance)myValue).getUniqueId();
   }
 
   @Override
