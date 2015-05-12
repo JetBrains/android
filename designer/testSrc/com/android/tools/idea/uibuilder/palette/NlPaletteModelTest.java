@@ -62,7 +62,7 @@ public class NlPaletteModelTest extends TestCase {
     "<meta-model>\n" +
     "  <palette>\n" +
     "    <group name=\"Layouts\">\n" +
-    "      <item tag=\"FrameLayout\"/>\n" +
+    "      <item tag=\"FrameLayout\" id=\"FrameLayoutId\"/>\n" +
     "      <item tag=\"LinearLayout\"\n" +
     "            title=\"LinearLayout (Horizontal)\"\n" +
     "            icon=\"AndroidIcons.Views.LinearLayout\"\n" +
@@ -130,11 +130,9 @@ public class NlPaletteModelTest extends TestCase {
 
   private static final List<NlPaletteGroup> GROUP_WITH_ITEM_OVERRIDES = Collections.singletonList(
     makeGroup("Layouts",
-              new NlPaletteItem("FrameLayout", "AndroidIcons.Views.FrameLayout", "A Layout for a single item.", FRAME_LAYOUT_CREATION),
-              new NlPaletteItem("LinearLayout (Horizontal)", "AndroidIcons.Views.LinearLayout", "A Layout for a single row.",
-                                HORIZONTAL_LINEAR_LAYOUT_CREATION),
-              new NlPaletteItem("LinearLayout (Vertical)", "AndroidIcons.Views.VerticalLinearLayout", "A Layout for a single column.",
-                                VERTICAL_LINEAR_LAYOUT_CREATION))
+              new NlPaletteItem("FrameLayout", "AndroidIcons.Views.FrameLayout", "A Layout for a single item.", FRAME_LAYOUT_CREATION, "FrameLayoutId"),
+              new NlPaletteItem("LinearLayout (Horizontal)", "AndroidIcons.Views.LinearLayout", "A Layout for a single row.", HORIZONTAL_LINEAR_LAYOUT_CREATION, "HorizontalLayout"),
+              new NlPaletteItem("LinearLayout (Vertical)", "AndroidIcons.Views.VerticalLinearLayout", "A Layout for a single column.", VERTICAL_LINEAR_LAYOUT_CREATION, "VerticalLayout"))
   );
 
   public void testSingleGroupWithItemOverrides() throws Exception {
@@ -220,7 +218,7 @@ public class NlPaletteModelTest extends TestCase {
     "</meta-model>";
 
   private static final List<NlPaletteGroup> GROUP_WITH_MISSING_DATA = Collections.singletonList(
-    makeGroup("Layouts", new NlPaletteItem("ConstraintLayout", "", "", CONSTRAINT_LAYOUT_CREATION))
+    makeGroup("Layouts", new NlPaletteItem("ConstraintLayout", "", "", CONSTRAINT_LAYOUT_CREATION, "ConstraintLayout"))
   );
 
   public void testGroupWithMissingData() throws Exception {
