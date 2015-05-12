@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.compiler.CompileContext;
@@ -49,7 +49,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
     GradleInvocationResult result = ideFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
-    assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":javaLib:compileJava");
+    assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
   }
 
   @Test @IdeGuiTest
