@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.intellij.openapi.diagnostic.Logger;
 import org.junit.After;
 import org.junit.Before;

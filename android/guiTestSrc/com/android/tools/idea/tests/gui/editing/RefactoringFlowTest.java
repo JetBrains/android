@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
@@ -27,8 +27,7 @@ import java.io.IOException;
 
 /** Tests the editing flow of refactoring */
 public class RefactoringFlowTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
     // you get a warning in the conflicts dialog first
@@ -48,8 +47,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     conflictsDialog.clickCancel();
   }
 
-  @Test
-  @IdeGuiTest()
+  @Test @IdeGuiTest()
   public void testWarnOverridingExternal() throws Exception {
     // Try to override a resource that is only defined in an external
     // library; check that we get an error message. Then try to override

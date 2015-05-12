@@ -16,15 +16,14 @@
 package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public class AvdListDialogTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testCreateAvd() throws Exception {
     IdeFrameFixture ideFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
@@ -51,8 +50,7 @@ public class AvdListDialogTest extends GuiTestCase {
     avdManagerDialog.deleteAvdByName("Nexus 7 2013 API 19");
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testEditAvd() throws Exception {
     IdeFrameFixture ideFrame = importSimpleApplication();
     makeNexus5(ideFrame);

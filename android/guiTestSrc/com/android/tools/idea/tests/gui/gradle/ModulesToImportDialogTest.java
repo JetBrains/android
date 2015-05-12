@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture.DialogAndWrapper;
@@ -61,7 +61,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Tests for {@link ModulesToImportDialog}.
  */
-@BelongsToTestGroups(values = {PROJECT_SUPPORT})
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class ModulesToImportDialogTest extends GuiTestCase {
   private List<DataNode<ModuleData>> myModules;
   private DataNode<ModuleData> myProjectModule;
