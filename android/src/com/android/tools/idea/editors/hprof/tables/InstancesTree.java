@@ -42,10 +42,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +56,7 @@ public class InstancesTree {
   @NotNull private volatile SuspendContextImpl myDummySuspendContext;
   @NotNull private Heap myHeap;
 
-  public InstancesTree(@NotNull Project project, @NotNull Heap heap, @NotNull MouseListener mouseListener) {
+  public InstancesTree(@NotNull Project project, @NotNull Heap heap, @NotNull TreeSelectionListener treeSelectionListener) {
     myDebuggerTree = new DebuggerTree(project) {
       @Override
       protected void build(DebuggerContextImpl context) {
@@ -67,7 +66,6 @@ public class InstancesTree {
       }
     };
     myHeap = heap;
-    setHeap(heap);
     myDebugProcess = new DebugProcessEvents(project);
     final SuspendManagerImpl suspendManager = new SuspendManagerImpl(myDebugProcess);
     myDebugProcess.getManagerThread().invokeAndWait(new DebuggerCommandImpl() {
@@ -124,13 +122,12 @@ public class InstancesTree {
     });
     myDebuggerTree.setModel(model);
     myDebuggerTree.setRootVisible(false);
-    myDebuggerTree.addMouseListener(mouseListener);
-    myDebuggerTree.addMouseListener(new MouseAdapter() {
+    myDebuggerTree.addTreeSelectionListener(treeSelectionListener);
+    myDebuggerTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        super.mouseClicked(e);
-        TreePath path = ((JTree)e.getComponent()).getSelectionPath();
-        if (path == null || path.getPathCount() < 2) {
+      public void valueChanged(TreeSelectionEvent e) {
+        TreePath path = e.getPath();
+        if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
           return;
         }
 
@@ -200,27 +197,30 @@ public class InstancesTree {
     return myColumnTree;
   }
 
-  public void setHeap(@NotNull Heap heap) {
-    myHeap = heap;
+  public void setClassObj(@NotNull Heap heap, @NotNull ClassObj classObj) {
     if (myDebuggerTree.getMutableModel().getRoot() == null) {
       return;
     }
 
-    NodeDescriptorImpl nodeDescriptor = ((DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot()).getDescriptor();
-    if (nodeDescriptor instanceof ContainerDescriptorImpl) {
-      ContainerDescriptorImpl originalDescriptor = (ContainerDescriptorImpl)nodeDescriptor;
-      setRoot(new ContainerDescriptorImpl(originalDescriptor.getClassObj(), heap.getId()));
+    if (myHeap == heap && ((DebuggerTreeNodeImpl)myDebuggerTree.getModel().getRoot()).getDescriptor() instanceof ContainerDescriptorImpl) {
+      if (getClassObj() == classObj) {
+        return;
+      }
     }
-  }
 
-  public void setRoot(@NotNull NodeDescriptorImpl rootDescriptor) {
-    DebuggerTreeNodeImpl root = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, rootDescriptor);
-    if (rootDescriptor instanceof HprofFieldDescriptorImpl) {
-      ((HprofFieldDescriptorImpl)root.getDescriptor()).updateRepresentation(myDebugProcess.getManagerThread(), myDummySuspendContext);
-    }
+    myHeap = heap;
+
+    ContainerDescriptorImpl containerDescriptor = new ContainerDescriptorImpl(classObj, heap.getId());
+    DebuggerTreeNodeImpl root = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, containerDescriptor);
     myDebuggerTree.getMutableModel().setRoot(root);
     myDebuggerTree.treeChanged();
     myDebuggerTree.scrollRowToVisible(0);
+  }
+
+  public ClassObj getClassObj() {
+    DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot();
+    ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
+    return containerDescriptor.getClassObj();
   }
 
   private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, int startIndex) {
@@ -229,7 +229,7 @@ public class InstancesTree {
     List<HprofFieldDescriptorImpl> descriptors = new ArrayList<HprofFieldDescriptorImpl>(100);
     int i = startIndex;
     int limit = startIndex + 100;
-    for (; i < instances.size(); ++i) {
+    while (i < instances.size()) {
       if (i >= limit) {
         break;
       }
@@ -237,7 +237,8 @@ public class InstancesTree {
       if (myHeap.getInstance(instance.getId()) != null) {
         descriptors.add(new InstanceFieldDescriptorImpl(
           myDebuggerTree.getProject(), new Field(
-            Type.OBJECT, String.format("0x%x (%d)", instance.getId() & Type.getIdSizeMask(), i)), instance));
+            Type.OBJECT, String.format("0x%x (%d)", instance.getUniqueId(), i)), instance));
+        ++i;
       }
     }
     HprofFieldDescriptorImpl.batchUpdateRepresentation(descriptors, myDebugProcess.getManagerThread(), myDummySuspendContext);
@@ -253,8 +254,6 @@ public class InstancesTree {
     if (instance == null) {
       return;
     }
-
-    // TODO: Limit number of children built.
 
     List<HprofFieldDescriptorImpl> descriptors;
     if (instance instanceof ClassInstance) {

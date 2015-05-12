@@ -39,7 +39,7 @@ public class ExpansionDescriptorImpl extends NodeDescriptorImpl {
 
   @Override
   protected String calcRepresentation(EvaluationContextImpl context, DescriptorLabelListener labelListener) {
-    return String.format("%d of %d remaining. Click row to expand.", myTotal - myStartIndex, myTotal);
+    return String.format("...<more instances (%d of %d remaining)>...", myTotal - myStartIndex, myTotal);
   }
 
   @Override
