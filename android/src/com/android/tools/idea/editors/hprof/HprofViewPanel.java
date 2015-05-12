@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.idea.editors.hprof.descriptors.ContainerDescriptorImpl;
 import com.android.tools.idea.editors.hprof.tables.InstanceReferenceTree;
 import com.android.tools.idea.editors.hprof.tables.InstancesTree;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTable;
@@ -49,7 +48,7 @@ public class HprofViewPanel implements Disposable {
     treePanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     treePanel.setBackground(JBColor.background());
 
-    InstanceReferenceTree referenceTree = new InstanceReferenceTree();
+    final InstanceReferenceTree referenceTree = new InstanceReferenceTree();
     treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
 
     assert (snapshot.getHeaps().size() > 0);
@@ -63,7 +62,7 @@ public class HprofViewPanel implements Disposable {
       }
     }
 
-    final InstancesTree instancesTree = new InstancesTree(project, myCurrentHeap, referenceTree.getMouseAdapter());
+    final InstancesTree instancesTree = new InstancesTree(project, myCurrentHeap, referenceTree.getOnInstanceSelectionListener());
     final ClassTable classTable = createClassTable(instancesTree);
     JBScrollPane classTableScrollPane = new JBScrollPane();
     classTableScrollPane.setViewportView(classTable);
@@ -82,8 +81,9 @@ public class HprofViewPanel implements Disposable {
             @Override
             public void actionPerformed(AnActionEvent e) {
               myCurrentHeap = heap;
-              classTable.setHeap(heap);
-              instancesTree.setHeap(heap);
+              classTable.setHeap(heap, instancesTree.getClassObj());
+              instancesTree.setClassObj(heap, instancesTree.getClassObj());
+              referenceTree.clearInstance();
             }
           });
         }
@@ -127,7 +127,7 @@ public class HprofViewPanel implements Disposable {
         if (row >= 0) {
           int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
           ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-          instancesTree.setRoot(new ContainerDescriptorImpl(classObj, myCurrentHeap.getId()));
+          instancesTree.setClassObj(myCurrentHeap, classObj);
         }
       }
     });

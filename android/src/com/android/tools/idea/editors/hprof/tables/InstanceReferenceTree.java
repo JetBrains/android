@@ -31,9 +31,9 @@ import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,26 +45,45 @@ public class InstanceReferenceTree {
   private Instance myInstance;
 
   public InstanceReferenceTree() {
-    TreeBuilder model = new TreeBuilder(null) {
+    final TreeBuilder model = new TreeBuilder(null) {
       @Override
       public void buildChildren(TreeBuilderNode node) {
-        addReferences(node);
-        this.nodeChanged(node);
+        if (node == getRoot()) {
+          node.add(createInstanceBuilderNode(myInstance));
+          nodeChanged(node);
+        }
+        else {
+          addReferences(node);
+          nodeChanged(node);
+        }
       }
 
       @Override
       public boolean isExpandable(TreeBuilderNode node) {
-        Instance instance = (Instance)node.getUserObject();
-        return instance.getReferences().size() > 0;
+        if (node == getRoot()) {
+          return node.getChildCount() > 0;
+        }
+        else {
+          Instance instance = (Instance)node.getUserObject();
+          return instance.getReferences().size() > 0;
+        }
       }
     };
 
+    // Set the root to a dummy object since the TreeBuilder implementation is very buggy.
+    model.setRoot(new TreeBuilderNode(null) {
+      @Override
+      protected TreeBuilder getTreeBuilder() {
+        return model;
+      }
+    });
+
     myTree = new Tree(model);
-    myTree.setRootVisible(true);
+    myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
-      new ColumnTreeBuilder.ColumnBuilder().setName("Instance").setPreferredWidth(600).setRenderer(
+      new ColumnTreeBuilder.ColumnBuilder().setName("Reference Tree").setPreferredWidth(600).setRenderer(
         new ColoredTreeCellRenderer() {
           @Override
           public void customizeCellRenderer(@NotNull JTree tree,
@@ -74,6 +93,11 @@ public class InstanceReferenceTree {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
+            if (tree.getModel().getRoot() == value) {
+              append("Dummy root node. This should not show up in view.");
+              return;
+            }
+
             Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
             SimpleTextAttributes attributes;
             if (myInstance.getImmediateDominator() == instance) {
@@ -125,7 +149,7 @@ public class InstanceReferenceTree {
                                             int row,
                                             boolean hasFocus) {
             Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
-            if (instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+            if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
               append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
             }
           }
@@ -142,7 +166,9 @@ public class InstanceReferenceTree {
                                               int row,
                                               boolean hasFocus) {
               Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
-              append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              if (instance != null) {
+                append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              }
             }
           })
       ).addColumn(
@@ -157,7 +183,7 @@ public class InstanceReferenceTree {
                                               int row,
                                               boolean hasFocus) {
               Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
-              if (instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
                 append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
           }
@@ -171,13 +197,28 @@ public class InstanceReferenceTree {
     return myColumnTree;
   }
 
-  public MouseAdapter getMouseAdapter() {
-    return new MouseAdapter() {
+  public void clearInstance() {
+    TreeBuilderNode root = (TreeBuilderNode)getMutableModel().getRoot();
+    root.removeAllChildren();
+    getMutableModel().nodeStructureChanged(root);
+  }
+
+  public void setInstance(@NotNull Instance instance) {
+    clearInstance();
+
+    TreeBuilder model = getMutableModel();
+    TreeBuilderNode root = (TreeBuilderNode)model.getRoot();
+    root.add(createInstanceBuilderNode(instance));
+    model.nodeStructureChanged((TreeBuilderNode)model.getRoot());
+  }
+
+  public TreeSelectionListener getOnInstanceSelectionListener() {
+    return new TreeSelectionListener() {
       @Override
-      public void mousePressed(MouseEvent mouseEvent) {
-        super.mousePressed(mouseEvent);
-        TreePath path = ((JTree)mouseEvent.getComponent()).getSelectionPath();
-        if (path == null || path.getPathCount() < 2) {
+      public void valueChanged(TreeSelectionEvent e) {
+        TreePath path = e.getPath();
+        if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
+          clearInstance();
           return;
         }
 
@@ -186,11 +227,15 @@ public class InstanceReferenceTree {
           InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)node.getDescriptor();
           myInstance = descriptor.getInstance();
           assert (myInstance != null);
-          ((TreeBuilder)myTree.getModel()).setRoot(createInstanceBuilderNode(myInstance));
-          ((TreeBuilder)myTree.getModel()).nodeStructureChanged((TreeBuilderNode)myTree.getModel().getRoot());
+          setInstance(myInstance);
         }
       }
     };
+  }
+
+  @NotNull
+  private TreeBuilder getMutableModel() {
+    return (TreeBuilder)myTree.getModel();
   }
 
   private TreeBuilderNode createInstanceBuilderNode(@NotNull final Instance instance) {
