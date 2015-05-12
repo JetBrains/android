@@ -34,9 +34,6 @@ import org.jetbrains.annotations.NotNull;
 public final class DeveloperServices {
   private static final Logger LOG = Logger.getInstance(DeveloperService.class);
 
-  // TODO: Remove this flag after this feature is production ready
-  private static final String ENABLE_DEVELOPER_SERVICES = "enable.developer.services";
-
   private static Multimap<Module, DeveloperService> ourServices = ArrayListMultimap.create();
 
   public static Iterable<DeveloperService> getAll(@NotNull Module module) {
@@ -54,10 +51,6 @@ public final class DeveloperServices {
   }
 
   private static void initializeFor(@NotNull Module module) {
-    if (!Boolean.getBoolean(ENABLE_DEVELOPER_SERVICES)) {
-      return;
-    }
-
     if (ourServices.containsKey(module)) {
       return;
     }
