@@ -68,6 +68,7 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
       navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "?attr/actionBarSize");
       navIcon.setAttribute("style", "?attr/toolbarNavigationButtonStyle");
       navIcon.setAttributeNS(ANDROID_URI, ATTR_SRC, "@drawable/abc_ic_ab_back_mtrl_am_alpha");
+      navIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
       toolbarComponent.appendChild(navIcon);
 
       // Create a title using the same values that the Toolbar title has when created programmatically.
@@ -79,6 +80,7 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
       title.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, VALUE_CENTER_VERTICAL);
       title.setAttributeNS(ANDROID_URI, "ellipsize", "end");
       title.setAttributeNS(ANDROID_URI, ATTR_SINGLE_LINE, VALUE_TRUE);
+      title.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
       toolbarComponent.appendChild(title);
     }
 
@@ -89,6 +91,7 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, attrPrefix + "selectableItemBackground");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_RIGHT);
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_SRC, "@drawable/abc_ic_menu_moreoverflow_mtrl_alpha");
+    menuIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
     toolbarComponent.appendChild(menuIcon);
 
     return toolbarComponent;

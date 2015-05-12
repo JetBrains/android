@@ -193,6 +193,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   public AndroidThemePreviewPanel(@NotNull final Configuration configuration, @NotNull Color background) {
     super(BoxLayout.PAGE_AXIS);
 
+    setOpaque(true);
     setMinimumSize(JBUI.size(200, 0));
 
     myConfiguration = configuration;
@@ -201,7 +202,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myBreadcrumbs = new NavigationComponent<Breadcrumb>();
     myBreadcrumbs.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
-    myBreadcrumbs.setOpaque(false);
 
     myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
 
@@ -216,7 +216,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     mySearchTextField = new SearchTextField(true);
     // Avoid search box stretching more than 1 line.
     mySearchTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, mySearchTextField.getPreferredSize().height));
-    mySearchTextField.setBorder(IdeBorderFactory.createEmptyBorder(10, 30, 0, 30));
+    mySearchTextField.setBorder(IdeBorderFactory.createEmptyBorder(0, 30, 0, 30));
     final Runnable delayedUpdate = new Runnable() {
       @Override
       public void run() {
@@ -251,8 +251,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
 
+    add(Box.createRigidArea(new Dimension(0, 5)));
     add(myBreadcrumbs);
+    add(Box.createRigidArea(new Dimension(0, 10)));
     add(mySearchTextField);
+    add(Box.createRigidArea(new Dimension(0, 10)));
     add(myScrollPane);
 
     setBackground(background);
