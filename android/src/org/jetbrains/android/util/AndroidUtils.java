@@ -978,23 +978,6 @@ public class AndroidUtils {
     LOG.debug(message);
   }
 
-  /**
-   * Returns true if the given file path points to an image file recognized by
-   * Android. See http://developer.android.com/guide/appendix/media-formats.html
-   * for details.
-   *
-   * @param path the filename to be tested
-   * @return true if the file represents an image file
-   */
-  public static boolean hasImageExtension(String path) {
-    return endsWithIgnoreCase(path, DOT_PNG) ||
-           endsWithIgnoreCase(path, DOT_9PNG) ||
-           endsWithIgnoreCase(path, DOT_GIF) ||
-           endsWithIgnoreCase(path, DOT_JPG) ||
-           endsWithIgnoreCase(path, DOT_JPEG) ||
-           endsWithIgnoreCase(path, DOT_BMP);
-  }
-
   public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {
     return name.equals(prefix) || name.startsWith(prefix + ".");
   }

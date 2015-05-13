@@ -1,6 +1,8 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
@@ -32,11 +34,11 @@ import java.util.List;
  */
 public class MergingExceptionParser implements PatternAwareOutputParser {
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     boolean hasError = false;
     int messageIndex;
-    GradleMessage.Kind kind = null;
+    Message.Kind kind = null;
     //noinspection SpellCheckingInspection
     if (line.contains("rror: ")) {
       messageIndex = line.indexOf(": Error: ");
@@ -46,7 +48,7 @@ public class MergingExceptionParser implements PatternAwareOutputParser {
           return false;
         }
       }
-      kind = GradleMessage.Kind.ERROR;
+      kind = Message.Kind.ERROR;
     } else { //noinspection SpellCheckingInspection
       if (line.contains("arning: ")) {
         messageIndex = line.indexOf(": Warning: ");
@@ -56,7 +58,7 @@ public class MergingExceptionParser implements PatternAwareOutputParser {
             return false;
           }
         }
-        kind = GradleMessage.Kind.WARNING;
+        kind = Message.Kind.WARNING;
       } else {
         return false;
       }
@@ -120,7 +122,7 @@ public class MergingExceptionParser implements PatternAwareOutputParser {
     }
 
     String message = line.substring(messageIndex + 2);
-    messages.add(new GradleMessage(kind, message, path, lineNumber, column));
+    messages.add(new Message(kind, message, new SourceFilePosition(new File(path), new SourcePosition(lineNumber - 1, column -1, -1))));
     return true;
   }
 }

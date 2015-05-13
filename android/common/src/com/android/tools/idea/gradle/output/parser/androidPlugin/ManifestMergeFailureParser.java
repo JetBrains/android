@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,7 +47,7 @@ public class ManifestMergeFailureParser implements PatternAwareOutputParser {
   private static final Pattern ERROR2 = Pattern.compile("([^:].[^:]+):(\\d+):(\\d+) (.+):");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     Matcher m = ERROR1.matcher(line);
     if (m.matches()) {
@@ -56,7 +60,8 @@ public class ManifestMergeFailureParser implements PatternAwareOutputParser {
         throw new ParsingFailedException(e);
       }
       String message = m.group(3);
-      messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message, sourcePath, lineNumber, -1));
+      messages.add(new Message(Message.Kind.ERROR, message,
+                               new SourceFilePosition(new File(sourcePath), new SourcePosition(lineNumber -1, -1, -1))));
       return true;
     }
     m = ERROR2.matcher(line);
@@ -88,13 +93,10 @@ public class ManifestMergeFailureParser implements PatternAwareOutputParser {
         String msg = reader.readLine();
         if (msg != null) {
           msg = removeLeadingTab(msg).trim();
+          Message.Kind kind = Message.Kind.findIgnoringCase(m.group(4), Message.Kind.ERROR);
 
-          GradleMessage.Kind kind = GradleMessage.Kind.findIgnoringCase(m.group(4));
-          if (kind == null) {
-            kind = GradleMessage.Kind.ERROR;
-          }
-
-          messages.add(new GradleMessage(kind, msg.trim(), sourcePath, lineNumber, column));
+          messages.add(new Message(kind, msg.trim(),
+                                   new SourceFilePosition(new File(sourcePath), new SourcePosition(lineNumber - 1, column - 1, -1))));
           return true;
         }
       }
