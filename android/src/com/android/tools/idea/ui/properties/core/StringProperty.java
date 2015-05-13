@@ -16,9 +16,7 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.string.IsEmptyExpression;
-import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.expressions.string.TrimExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class that every string-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
-public abstract class StringProperty extends ObservableProperty<String> implements StringExpression {
+public abstract class StringProperty extends ObservableProperty<String> implements ObservableString {
 
   public void clear() {
     set("");
@@ -34,13 +32,13 @@ public abstract class StringProperty extends ObservableProperty<String> implemen
 
   @NotNull
   @Override
-  public BooleanExpression isEmpty() {
+  public ObservableBool isEmpty() {
     return new IsEmptyExpression(this);
   }
 
   @NotNull
   @Override
-  public StringExpression trim() {
+  public ObservableString trim() {
     return new TrimExpression(this);
   }
 }

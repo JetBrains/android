@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public final class BooleanExpressionTest {
+public final class BooleanExpressionsTest {
 
   @Test
   public void testInvariants() throws Exception {

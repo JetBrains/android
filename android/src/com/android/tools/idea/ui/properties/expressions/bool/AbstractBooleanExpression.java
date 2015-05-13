@@ -17,13 +17,14 @@ package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class for boolean expressions, providing a default implementation for the {@link BooleanExpression} interface.
+ * Base class for boolean expressions, providing a default implementation for the {@link ObservableBool} interface.
  */
-public abstract class AbstractBooleanExpression extends Expression implements BooleanExpression {
+public abstract class AbstractBooleanExpression extends Expression implements ObservableBool {
 
   protected AbstractBooleanExpression(Observable... values) {
     super(values);
@@ -31,19 +32,19 @@ public abstract class AbstractBooleanExpression extends Expression implements Bo
 
   @NotNull
   @Override
-  public final BooleanExpression not() {
+  public final ObservableBool not() {
     return BooleanExpressions.not(this);
   }
 
   @NotNull
   @Override
-  public final BooleanExpression or(@NotNull ObservableValue<Boolean> other) {
+  public final ObservableBool or(@NotNull ObservableValue<Boolean> other) {
     return new OrExpression(this, other);
   }
 
   @NotNull
   @Override
-  public final BooleanExpression and(@NotNull ObservableValue<Boolean> other) {
+  public final ObservableBool and(@NotNull ObservableValue<Boolean> other) {
     return new AndExpression(this, other);
   }
 }
