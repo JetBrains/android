@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.expressions.integer;
+package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface which, when implemented, allows the chaining of Integer values.
  */
-public interface IntExpression extends ObservableValue<Integer> {
+public interface ObservableInt extends ObservableValue<Integer> {
   @NotNull
-  BooleanExpression isEqualTo(@NotNull ObservableValue<Integer> value);
+  ObservableBool isEqualTo(@NotNull ObservableValue<Integer> value);
 
   @NotNull
-  BooleanExpression isGreaterThan(@NotNull ObservableValue<Integer> value);
+  ObservableBool isGreaterThan(@NotNull ObservableValue<Integer> value);
 
   @NotNull
-  BooleanExpression isLessThan(@NotNull ObservableValue<Integer> value);
+  ObservableBool isLessThan(@NotNull ObservableValue<Integer> value);
 
   @NotNull
-  BooleanExpression isGreaterThanEqualTo(@NotNull ObservableValue<Integer> value);
+  ObservableBool isGreaterThanEqualTo(@NotNull ObservableValue<Integer> value);
 
   @NotNull
-  BooleanExpression isLessThanEqualTo(@NotNull ObservableValue<Integer> value);
+  ObservableBool isLessThanEqualTo(@NotNull ObservableValue<Integer> value);
 }

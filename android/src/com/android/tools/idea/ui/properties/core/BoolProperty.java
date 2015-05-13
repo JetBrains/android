@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.properties.core;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.expressions.bool.AndExpression;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.bool.NotExpression;
 import com.android.tools.idea.ui.properties.expressions.bool.OrExpression;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class that every boolean-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
-public abstract class BoolProperty extends ObservableProperty<Boolean> implements BooleanExpression {
+public abstract class BoolProperty extends ObservableProperty<Boolean> implements ObservableBool {
 
   public void invert() {
     set(!get());
@@ -35,19 +34,19 @@ public abstract class BoolProperty extends ObservableProperty<Boolean> implement
 
   @NotNull
   @Override
-  public BooleanExpression not() {
+  public ObservableBool not() {
     return new NotExpression(this);
   }
 
   @NotNull
   @Override
-  public BooleanExpression or(@NotNull ObservableValue<Boolean> other) {
+  public ObservableBool or(@NotNull ObservableValue<Boolean> other) {
     return new OrExpression(this, other);
   }
 
   @NotNull
   @Override
-  public BooleanExpression and(@NotNull ObservableValue<Boolean> other) {
+  public ObservableBool and(@NotNull ObservableValue<Boolean> other) {
     return new AndExpression(this, other);
   }
 
