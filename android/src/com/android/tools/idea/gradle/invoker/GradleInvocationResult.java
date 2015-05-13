@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -24,13 +24,13 @@ import java.util.List;
 
 public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
-  @NotNull private final ListMultimap<GradleMessage.Kind, GradleMessage> myCompilerMessagesByKind = ArrayListMultimap.create();
+  @NotNull private final ListMultimap<Message.Kind, Message> myCompilerMessagesByKind = ArrayListMultimap.create();
   private final boolean myBuildSuccessful;
 
-  GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<GradleMessage> compilerMessages, boolean buildSuccessful) {
+  GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, boolean buildSuccessful) {
     myTasks = tasks;
     myBuildSuccessful = buildSuccessful;
-    for (GradleMessage msg : compilerMessages) {
+    for (Message msg : compilerMessages) {
       myCompilerMessagesByKind.put(msg.getKind(), msg);
     }
   }
@@ -41,7 +41,7 @@ public class GradleInvocationResult {
   }
 
   @NotNull
-  public List<GradleMessage> getCompilerMessages(@NotNull GradleMessage.Kind kind) {
+  public List<Message> getCompilerMessages(@NotNull Message.Kind kind) {
     return myCompilerMessagesByKind.get(kind);
   }
 

@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -24,7 +26,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
-import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -248,14 +249,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
             addStatisticsMessage(CompilerBundle.message("statistics.error.count", myErrorCount));
             addStatisticsMessage(CompilerBundle.message("statistics.warnings.count", myWarningCount));
 
-            addMessage(new GradleMessage(GradleMessage.Kind.INFO, "See complete output in console"), new OpenGradleConsole());
+            addMessage(new Message(Message.Kind.INFO, "See complete output in console", SourceFilePosition.UNKNOWN), new OpenGradleConsole());
             myErrorTreeView.selectFirstMessage();
           }
         }
       }
 
       private void addStatisticsMessage(@NotNull String text) {
-        addMessage(new GradleMessage(GradleMessage.Kind.STATISTICS, text), null);
+        addMessage(new Message(Message.Kind.STATISTICS, text, SourceFilePosition.UNKNOWN), null);
       }
     }, NON_MODAL);
   }
@@ -272,7 +273,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         GradleConsoleView consoleView = GradleConsoleView.getInstance(project);
         consoleView.clear();
 
-        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myContext.getGradleTasks()), null);
+        addMessage(new Message(Message.Kind.INFO, "Gradle tasks " + myContext.getGradleTasks(), SourceFilePosition.UNKNOWN), null);
 
         String executingTasksText = "Executing tasks: " + myContext.getGradleTasks();
         consoleView.print(executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), NORMAL_OUTPUT);
@@ -347,7 +348,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
               application.putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
             }
           }
-          List<GradleMessage> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
+          List<Message> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
           if (myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
             // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
             // window for that situation though.
@@ -421,7 +422,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         else {
           msg += "\n\nCause:\n" + error;
         }
-        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, msg), null);
+        addMessage(new Message(Message.Kind.ERROR, msg, SourceFilePosition.UNKNOWN), null);
         showMessages();
 
         // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
@@ -448,15 +449,15 @@ class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
       }
-    }; 
+    };
     invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
   }
 
   @NotNull
-  private List<GradleMessage> showMessages(@NotNull String gradleOutput) {
+  private List<Message> showMessages(@NotNull String gradleOutput) {
     Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-    List<GradleMessage> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
-    for (GradleMessage msg : compilerMessages) {
+    List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
+    for (Message msg : compilerMessages) {
       addMessage(msg, null);
     }
     return compilerMessages;
@@ -466,11 +467,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
    * Something went wrong while invoking Gradle but the output parsers did not create any build messages. We show the stack trace in the
    * "Messages" view.
    */
-  private void showBuildException(@NotNull BuildException e, @NotNull String stdErr, @NotNull List<GradleMessage> buildMessages) {
+  private void showBuildException(@NotNull BuildException e, @NotNull String stdErr, @NotNull List<Message> buildMessages) {
     // There are no error messages to present. Show some feedback indicating that something went wrong.
     if (!stdErr.trim().isEmpty()) {
       // Show the contents of stderr as a compiler error.
-      GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, stdErr);
+      Message msg = new Message(Message.Kind.ERROR, stdErr, SourceFilePosition.UNKNOWN);
       buildMessages.add(msg);
       addMessage(msg, null);
     }
@@ -481,7 +482,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         //noinspection IOResourceOpenedButNotSafelyClosed
         e.printStackTrace(new PrintStream(out));
         String message = "Internal error:" + SystemProperties.getLineSeparator() + out.toString();
-        GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, message);
+        Message msg = new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN);
         buildMessages.add(msg);
         addMessage(msg, null);
       }
@@ -495,7 +496,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
-  private void addMessage(@NotNull final GradleMessage message, @Nullable final Navigatable navigatable) {
+  private void addMessage(@NotNull final Message message, @Nullable final Navigatable navigatable) {
     prepareMessageView();
     switch (message.getKind()) {
       case WARNING:
@@ -610,10 +611,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
-  private void add(@NotNull GradleMessage message, @Nullable Navigatable navigatable) {
+  private void add(@NotNull Message message, @Nullable Navigatable navigatable) {
     synchronized (myMessageViewLock) {
       if (myErrorTreeView != null && !getNotNullProject().isDisposed()) {
-        GradleMessage.Kind messageKind = message.getKind();
+        Message.Kind messageKind = message.getKind();
         int type = translateMessageKind(messageKind);
         LinkAwareMessageData messageData = prepareMessage(message);
         if (navigatable == null) {
@@ -639,7 +640,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   @NotNull
-  private LinkAwareMessageData prepareMessage(@NotNull GradleMessage message) {
+  private LinkAwareMessageData prepareMessage(@NotNull Message message) {
     final List<String> rawTextLines;
     String text = message.getText();
     if (text.indexOf('\n') == -1) {
@@ -648,7 +649,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     else {
       rawTextLines = Lists.newArrayList(on('\n').split(text));
     }
-    if (message.getKind() != GradleMessage.Kind.ERROR) {
+    if (message.getKind() != Message.Kind.ERROR) {
       //noinspection unchecked
       return new LinkAwareMessageData(toStringArray(rawTextLines), null);
     }
@@ -718,9 +719,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   @Nullable
-  private VirtualFile findFileFrom(@NotNull GradleMessage message) {
-    if (message instanceof GradleProjectAwareMessage) {
-      String gradlePath = ((GradleProjectAwareMessage)message).getGradlePath();
+  private VirtualFile findFileFrom(@NotNull Message message) {
+    SourceFile source = message.getSourceFilePositions().get(0).getFile();
+    if (source.getSourceFile() != null) {
+      return findFileByIoFile(source.getSourceFile(), true);
+    }
+    if (source.getDescription() != null) {
+      String gradlePath = source.getDescription();
       Module module = findModuleByGradlePath(getNotNullProject(), gradlePath);
       if (module != null) {
         AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
@@ -730,14 +735,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
         return gradleProject != null ? gradleProject.getBuildFile() : null;
       }
     }
-    String sourcePath = message.getSourcePath();
-    if (isEmpty(sourcePath)) {
-      return null;
-    }
-    return findFileByIoFile(new File(sourcePath), true);
+    return null;
   }
 
-  private static int translateMessageKind(@NotNull GradleMessage.Kind kind) {
+  private static int translateMessageKind(@NotNull Message.Kind kind) {
     switch (kind) {
       case INFO:
         return MessageCategory.INFORMATION;
