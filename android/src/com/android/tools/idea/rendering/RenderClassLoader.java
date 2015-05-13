@@ -73,7 +73,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     try {
       myInsideJarClassLoader = true;
-      String relative = ClassContext.getInternalName(name) + DOT_CLASS;
+      String relative = name.replace('.', '/').concat(DOT_CLASS);
       InputStream is = myJarClassLoader.getResourceAsStream(relative);
       if (is != null) {
         byte[] data = ByteStreams.toByteArray(is);
@@ -88,7 +88,7 @@ public abstract class RenderClassLoader extends ClassLoader {
             //noinspection UseOfSystemOutOrSystemErr
             System.out.println("  defining class " + name + " from .jar file");
           }
-          return defineClassAndPackage(null, rewritten, 0, rewritten.length);
+          return defineClassAndPackage(name, rewritten, 0, rewritten.length);
         }
         catch (UnsupportedClassVersionError inner) {
           // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
@@ -204,17 +204,26 @@ public abstract class RenderClassLoader extends ClassLoader {
     }
   }
 
-  protected Class<?> defineClassAndPackage(String name, byte[] b, int offset, int len) {
+  @NotNull
+  protected Class<?> defineClassAndPackage(@Nullable String name, @NotNull byte[] b, int offset, int len) {
     if (name != null) {
-      int i = name.lastIndexOf('.');
-      if (i != 0) {
-        String packageName = name.substring(0, i);
-        Package pkg = getPackage(packageName);
-        if (pkg == null) {
-          definePackage(packageName, null, null, null, null, null, null, null);
-        }
+      definePackage(name);
+      return defineClass(name, b, offset, len);
+    }
+    // Class name is not known at the moment.
+    Class<?> aClass = defineClass(null, b, offset, len);
+    definePackage(aClass.getName());
+    return aClass;
+  }
+
+  private void definePackage(@NotNull String className) {
+    int i = className.lastIndexOf('.');
+    if (i != 0) {
+      String packageName = className.substring(0, i);
+      Package pkg = getPackage(packageName);
+      if (pkg == null) {
+        definePackage(packageName, null, null, null, null, null, null, null);
       }
     }
-    return defineClass(name, b, offset, len);
   }
 }
