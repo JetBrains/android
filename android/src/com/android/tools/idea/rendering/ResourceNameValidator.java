@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.InputValidatorEx;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -111,7 +112,7 @@ public class ResourceNameValidator implements InputValidatorEx {
         inputString = inputString.substring(0, inputString.length() - DOT_XML.length());
       }
 
-      if (myAllowXmlExtension && myIsImageType && AndroidUtils.hasImageExtension(inputString)) {
+      if (myAllowXmlExtension && myIsImageType && SdkUtils.hasImageExtension(inputString)) {
         inputString = inputString.substring(0, inputString.lastIndexOf('.'));
       }
 

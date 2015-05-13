@@ -16,7 +16,7 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -297,14 +297,16 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
    */
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
     Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-    Collection<GradleMessage> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(stdErr);
+    Collection<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       boolean hasError = false;
-      for (GradleMessage message : compilerMessages) {
-        if (message.getKind() == GradleMessage.Kind.ERROR) {
+      for (Message message : compilerMessages) {
+        if (message.getKind() == Message.Kind.ERROR) {
           hasError = true;
         }
-        context.processMessage(AndroidGradleJps.createCompilerMessage(message));
+        for (CompilerMessage compilerMessage: AndroidGradleJps.createCompilerMessages(message)) {
+          context.processMessage(compilerMessage);
+        }
       }
       if (hasError) {
         return;

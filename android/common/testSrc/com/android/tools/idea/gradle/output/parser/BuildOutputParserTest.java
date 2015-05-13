@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
-import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -73,11 +72,11 @@ public class BuildOutputParserTest extends TestCase {
 
   public void testParseDisplayingUnhandledMessages() {
     String output = " **--- HELLO WORLD ---**";
-    List<GradleMessage> gradleMessages = parser.parseGradleOutput(output);
-    assertEquals(1, gradleMessages.size());
-    GradleMessage message = gradleMessages.get(0);
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals(1, Messages.size());
+    Message message = Messages.get(0);
     assertEquals(output, message.getText());
-    assertEquals(GradleMessage.Kind.SIMPLE, message.getKind());
+    assertEquals(Message.Kind.SIMPLE, message.getKind());
   }
 
   public void testParseParsedBuildIssue() throws IOException {
@@ -86,13 +85,13 @@ public class BuildOutputParserTest extends TestCase {
                     " \\u0027android\\u0027\",\"sourcePath\":\"/usr/local/google/home/cmw/" +
                     "udacity/Sunshine/app/src/main/res/menu/detail.xml\",\"position\":" +
                     "{\"startLine\":5},\"original\":\"\"}";
-    List<GradleMessage> gradleMessages = parser.parseGradleOutput(output);
-    assertEquals("Expect one message.", 1, gradleMessages.size());
-    GradleMessage message = gradleMessages.iterator().next();
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals("Expect one message.", 1, Messages.size());
+    Message message = Messages.iterator().next();
     assertEquals("No resource identifier found for attribute 'a' in package 'android'", message.getText());
-    assertEquals(GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals(Message.Kind.ERROR, message.getKind());
     assertEquals("/usr/local/google/home/cmw/udacity/Sunshine/app/src/main/res/menu/detail.xml", message.getSourcePath());
-    assertEquals(new SourcePosition(5, -1, -1), message.getPosition());
+    assertEquals(new SourcePosition(5, -1, -1), message.getSourceFilePositions().get(0).getPosition());
   }
 
   public void testParseAaptOutputWithRange1() throws IOException {
@@ -103,7 +102,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label='@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 4, 61);
   }
 
@@ -118,7 +117,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label=", "      '@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 5, 8);
   }
 
@@ -135,7 +134,7 @@ public class BuildOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Resource entry repeatedStyle1 already has bag item android:gravity.";
     String err = sourceFilePath + ":6: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 17);
   }
 
@@ -150,7 +149,7 @@ public class BuildOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Originally defined here.";
     String err = sourceFilePath + ":3: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 5);
   }
 
@@ -163,7 +162,7 @@ public class BuildOutputParserTest extends TestCase {
                 "    <item name='nonexistent'>left</item>");
     String messageText = "No resource found that matches the given name: attr 'nonexistent'.";
     String err = sourceFilePath + ":3: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 17);
   }
 
@@ -174,7 +173,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <style>");
     String messageText = "A 'name' attribute is required for <style>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -184,7 +183,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'type' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -194,7 +193,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'name' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -205,7 +204,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        <item name='android:layout_width'></item>");
     String messageText = "String types not allowed (at 'android:layout_width' with value '').";
     String err = sourceFilePath + ":3: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 21);
   }
 
@@ -221,7 +220,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginTop' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 8, 34);
   }
 
@@ -238,7 +237,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginLeft' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 9, 35);
   }
 
@@ -252,7 +251,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        android:id=''");
     String messageText = "String types not allowed (at 'id' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 20);
   }
 
@@ -271,7 +270,7 @@ public class BuildOutputParserTest extends TestCase {
        .append("location: Test").append(NEWLINE)
        .append("    int v2 = v4").append(NEWLINE)
        .append("             ^");
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    Collection<Message> messages = parser.parseGradleOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
   }
 
@@ -284,7 +283,7 @@ public class BuildOutputParserTest extends TestCase {
     err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(NEWLINE)
        .append("    System.out.println();asd").append(NEWLINE)
        .append("                         ^").append(NEWLINE);
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    Collection<Message> messages = parser.parseGradleOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
   }
 
@@ -311,7 +310,7 @@ public class BuildOutputParserTest extends TestCase {
       NEWLINE).append(NEWLINE);
     err.append("BUILD FAILED").append(NEWLINE).append(NEWLINE);
     err.append("Total time: 18.303 secs\n");
-    List<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    List<Message> messages = parser.parseGradleOutput(err.toString());
 
     assertEquals("0: Error:A problem occurred evaluating project ':project'.\n" +
                  "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.\n" +
@@ -325,7 +324,7 @@ public class BuildOutputParserTest extends TestCase {
     StringBuilder err = new StringBuilder();
     err.append("[Fatal Error] :5:7: The element type \"error\" must be terminated by the matching end-tag \"</error>\".").append(NEWLINE);
     err.append("FAILURE: Build failed with an exception.").append(NEWLINE);
-    List<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    List<Message> messages = parser.parseGradleOutput(err.toString());
 
     assertEquals("0: Error:The element type \"error\" must be terminated by the matching end-tag \"</error>\".\n" +
                  "1: Simple:FAILURE: Build failed with an exception.\n",
@@ -334,7 +333,7 @@ public class BuildOutputParserTest extends TestCase {
 
   public void testParseIncubatingFeatureMessage() {
     String out = "Parallel execution with configuration on demand is an incubating feature.";
-    List<GradleMessage> messages = parser.parseGradleOutput(out);
+    List<Message> messages = parser.parseGradleOutput(out);
     assertEquals("", toString(messages));
   }
 
@@ -359,15 +358,15 @@ public class BuildOutputParserTest extends TestCase {
     }
   }
 
-  private void assertHasCorrectErrorMessage(@NotNull Collection<GradleMessage> messages,
+  private void assertHasCorrectErrorMessage(@NotNull Collection<Message> messages,
                                             @NotNull String expectedText,
                                             long expectedLine,
                                             long expectedColumn) {
     assertEquals("[message count]", 1, messages.size());
-    GradleMessage message = ContainerUtil.getFirstItem(messages);
+    Message message = ContainerUtil.getFirstItem(messages);
     assertNotNull(message);
     assertEquals("[file path]", sourceFilePath, message.getSourcePath());
-    assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", expectedText, message.getText());
     assertEquals("[position line]", expectedLine, message.getLineNumber());
     assertEquals("[position column]", expectedColumn, message.getColumn());
@@ -463,24 +462,24 @@ public class BuildOutputParserTest extends TestCase {
 
     String messageText = "String types not allowed (at 'drawable_ref' with value '@drawable/stat_notify_sync_anim0').";
     String err = sourceFilePath + ":46: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
-    GradleMessage message = ContainerUtil.getFirstItem(messages);
+    Message message = ContainerUtil.getFirstItem(messages);
     assertNotNull(message);
 
     // NOT sourceFilePath; should be translated back from source comment
     assertEquals("[file path]", "src/test/resources/testData/resources/baseSet/values/values.xml", getSystemIndependentSourcePath(message));
 
-    assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
     assertEquals("[position line]", 9, message.getLineNumber());
     assertEquals("[position column]", 35, message.getColumn());
   }
 
   @Nullable
-  private static String getSystemIndependentSourcePath(@NotNull GradleMessage message) {
+  private static String getSystemIndependentSourcePath(@NotNull Message message) {
     String sourcePath = message.getSourcePath();
     return sourcePath == null ? null : FileUtil.toSystemIndependentName(sourcePath);
   }
@@ -534,18 +533,18 @@ public class BuildOutputParserTest extends TestCase {
 
     String messageText = "Random error message here";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
-    GradleMessage message = ContainerUtil.getFirstItem(messages);
+    Message message = ContainerUtil.getFirstItem(messages);
     assertNotNull(message);
 
     // NOT sourceFilePath; should be translated back from source comment
     String expected = "src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml";
     assertEquals("[file path]", expected, getSystemIndependentSourcePath(message));
 
-    assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
     assertEquals("[position line]", 4, message.getLineNumber());
     //assertEquals("[position column]", 35, message.getColumn());
@@ -2367,10 +2366,10 @@ public class BuildOutputParserTest extends TestCase {
   }
 
   @NotNull
-  private static String toString(@NotNull List<GradleMessage> messages) {
+  private static String toString(@NotNull List<Message> messages) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0, n = messages.size(); i < n; i++) {
-      GradleMessage message = messages.get(i);
+      Message message = messages.get(i);
       sb.append(Integer.toString(i)).append(':').append(' ');
       sb.append(StringUtil.capitalize(message.getKind().toString().toLowerCase(Locale.US))).append(':'); // INFO => Info
       sb.append(message.getText());
@@ -2379,11 +2378,13 @@ public class BuildOutputParserTest extends TestCase {
         sb.append('\t');
         sb.append(message.getSourcePath());
         sb.append(':').append(Long.toString(message.getLineNumber()));
-        sb.append(':').append(Long.toString(message.getColumn()));
-      }
-      if (message instanceof GradleProjectAwareMessage) {
-        sb.append('\n');
-        sb.append(((GradleProjectAwareMessage)message).getGradlePath());
+        sb.append(':').append(Long.toString(message.getColumn() == 0 ? -1 : message.getColumn()));
+      } else {
+        String gradlePath = message.getSourceFilePositions().get(0).getFile().getDescription();
+        if (gradlePath != null) {
+          sb.append('\n');
+          sb.append(gradlePath);
+        }
       }
       sb.append('\n');
     }

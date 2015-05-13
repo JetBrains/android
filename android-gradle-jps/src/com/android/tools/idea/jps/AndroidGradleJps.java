@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.jps;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.JpsGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleExtensionImpl;
@@ -32,6 +34,11 @@ import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Utility methods.
@@ -124,9 +131,15 @@ public final class AndroidGradleJps {
     return new CompilerMessage(COMPILER_NAME, kind, text);
   }
 
+  /**
+   * Adapter method to create IDEA CompilerMessages from an Android build Message.
+   *
+   * If the Android build message has multiple source locations, this will create multiple CompilerMesssages with the same kind and
+   * messageText, but different source positions.
+   */
   @NotNull
-  public static CompilerMessage createCompilerMessage(@NotNull GradleMessage message) {
-    BuildMessage.Kind kind = BuildMessage.Kind.PROGRESS;
+  public static List<CompilerMessage> createCompilerMessages(@NotNull Message message) {
+    final BuildMessage.Kind kind;
     switch (message.getKind()) {
       case INFO:
         kind = BuildMessage.Kind.INFO;
@@ -136,8 +149,19 @@ public final class AndroidGradleJps {
         break;
       case ERROR:
         kind = BuildMessage.Kind.ERROR;
+        break;
+      default:
+        kind = BuildMessage.Kind.PROGRESS;
     }
-    return new CompilerMessage(COMPILER_NAME, kind, message.getText().trim(), message.getSourcePath(), -1L, -1L, -1L,
-                               message.getLineNumber(), message.getColumn());
+    List<CompilerMessage> compilerMessages = new ArrayList<CompilerMessage>();
+    for (SourceFilePosition filePosition : message.getSourceFilePositions()) {
+      File sourceFile = filePosition.getFile().getSourceFile();
+      String sourceFilePath = sourceFile != null ? sourceFile.getAbsolutePath() : null;
+      SourcePosition pos = filePosition.getPosition();
+      compilerMessages.add(
+        new CompilerMessage(COMPILER_NAME, kind, message.getText().trim(), sourceFilePath, pos.getStartOffset(), pos.getEndOffset(),
+                            pos.getEndOffset(), pos.getEndLine(), pos.getEndColumn()));
+    }
+    return Collections.unmodifiableList(compilerMessages);
   }
 }
