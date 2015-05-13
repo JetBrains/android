@@ -16,9 +16,7 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.string.IsEmptyExpression;
-import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.expressions.string.TrimExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,13 +43,13 @@ public final class StringValueProperty extends StringProperty {
 
   @NotNull
   @Override
-  public BooleanExpression isEmpty() {
+  public ObservableBool isEmpty() {
     return new IsEmptyExpression(this);
   }
 
   @NotNull
   @Override
-  public StringExpression trim() {
+  public ObservableString trim() {
     return new TrimExpression(this);
   }
 
