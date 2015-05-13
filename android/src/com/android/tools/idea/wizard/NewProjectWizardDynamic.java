@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -123,16 +124,15 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        runFinish();
+      }
+    });
   }
 
-  @Override
-  public void doFinishAction() {
-    super.doFinishAction();
-
-    // super.doFinishAction invokes performFinishActions in a writeCommandAction. Due to changes made to
-    // ApplicationEx.runProcessWithProgressSynchronously in Idea 14, Modal Tasks are not showing a modal dialog when executed with write
-    // access. As we need the modal dialog with progress while improting the project, invoking project importer outside writeCommandAction.
-
+  private void runFinish() {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
@@ -213,12 +213,23 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
   }
 
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Creating project...";
+  }
+
   @Override
   protected void doFinish() throws IOException {
-    String location = myState.get(PROJECT_LOCATION_KEY);
+    final String location = myState.get(PROJECT_LOCATION_KEY);
     String name = myState.get(APPLICATION_NAME_KEY);
     assert location != null && name != null;
-    VfsUtil.createDirectoryIfMissing(location);
+    new WriteCommandAction.Simple(getProject()) {
+      @Override
+      protected void run() throws Throwable {
+        VfsUtil.createDirectoryIfMissing(location);
+      }
+    }.execute();
     myProject = ProjectManager.getInstance().createProject(name, location);
     super.doFinish();
   }

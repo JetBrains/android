@@ -24,6 +24,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -32,6 +34,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -426,14 +429,19 @@ public class TemplateUtils {
    * @return virtual file object for the given path. It can never be null.
    */
   @NotNull
-  public static VirtualFile checkedCreateDirectoryIfMissing(@NotNull File directory) throws IOException {
-    VirtualFile dir = VfsUtil.createDirectoryIfMissing(directory.getAbsolutePath());
-    if (dir == null) {
-      throw new IOException("Unable to create " + directory.getAbsolutePath());
-    }
-    else {
-      return dir;
-    }
+  public static VirtualFile checkedCreateDirectoryIfMissing(final @NotNull File directory) throws IOException {
+    return WriteCommandAction.runWriteCommandAction(null, new ThrowableComputable<VirtualFile, IOException>() {
+      @Override
+      public VirtualFile compute() throws IOException {
+        VirtualFile dir = VfsUtil.createDirectoryIfMissing(directory.getAbsolutePath());
+        if (dir == null) {
+          throw new IOException("Unable to create " + directory.getAbsolutePath());
+        }
+        else {
+          return dir;
+        }
+      }
+    });
   }
 
   /**

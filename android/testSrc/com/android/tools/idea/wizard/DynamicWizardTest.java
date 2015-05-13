@@ -98,6 +98,12 @@ public class DynamicWizardTest extends LightIdeaTestCase {
 
     }
 
+    @NotNull
+    @Override
+    protected String getProgressTitle() {
+      return "dummy";
+    }
+
     @Override
     protected String getWizardActionDescription() {
       return "Nothing is Done";
@@ -181,6 +187,12 @@ public class DynamicWizardTest extends LightIdeaTestCase {
 
     @Override
     public void performFinishingActions() {
+    }
+
+    @NotNull
+    @Override
+    protected String getProgressTitle() {
+      return "dummy";
     }
 
     @Override

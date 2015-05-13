@@ -23,6 +23,7 @@ import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.ScopedStateStore.Scope;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -96,9 +97,14 @@ public class SetupJdkPath extends DynamicWizardPath {
 
   @Override
   public boolean performFinishingActions() {
-    String path = myState.get(KEY_JDK_LOCATION);
+    final String path = myState.get(KEY_JDK_LOCATION);
     assert path != null;
-    IdeSdks.setJdkPath(new File(path));
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        IdeSdks.setJdkPath(new File(path));
+      }
+    });
     return true;
   }
 
