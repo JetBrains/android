@@ -24,6 +24,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.EmulatorRunner;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -64,6 +65,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -124,6 +126,12 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private AvdManager myAvdManager = null;
   private AndroidSdkData mySdkData;
+  /**
+   * A cache for in memory {@linkplain PsiPackage}s for data binding.
+   * <p>
+   * To avoid any project leaks, it is cleared when {@link #setIdeaAndroidProject(IdeaAndroidProject)} is called.
+   */
+  private Map<String, PsiPackage> myDataBindingPsiPackages = Maps.newConcurrentMap();
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
@@ -158,6 +166,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     //noinspection ConstantConditions
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
+    DataBindingUtil.initFor(this);
   }
 
   public boolean isAutogenerationEnabled() {
@@ -1123,12 +1132,36 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
+    myDataBindingPsiPackages.clear();
+    DataBindingUtil.onIdeaProjectSet(this);
   }
 
   public void addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
     MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
     connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, listener);
+  }
+
+  /**
+   * Returns a {@linkplain PsiPackage} instance for the given package name.
+   * <p>
+   * If it does not exist in the cache, a new one is created.
+   *
+   * @param packageName The qualified package name
+   * @return A {@linkplain PsiPackage} that represents the given qualified name
+   */
+  public synchronized PsiPackage getOrCreateDataBindingPsiPackage(String packageName) {
+    PsiPackage pkg = myDataBindingPsiPackages.get(packageName);
+    if (pkg == null) {
+      pkg = new PsiPackageImpl(PsiManager.getInstance(getModule().getProject()), packageName) {
+        @Override
+        public boolean isValid() {
+          return true;
+        }
+      };
+      myDataBindingPsiPackages.put(packageName, pkg);
+    }
+    return pkg;
   }
 
   /**
