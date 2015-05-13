@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.properties.expressions.integer;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpression;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,7 +27,7 @@ public abstract class ComparisonExpression extends AbstractBooleanExpression {
   private final ObservableValue<Integer> myValueLhs;
   private final ObservableValue<Integer> myValueRhs;
 
-  public static BooleanExpression isEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
+  public static ObservableBool isEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
     return new ComparisonExpression(valueLhs, valueRhs) {
       @Override
       protected Boolean compare(int valueLhs, int valueRhs) {
@@ -36,7 +36,7 @@ public abstract class ComparisonExpression extends AbstractBooleanExpression {
     };
   }
 
-  public static BooleanExpression isGreaterThan(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
+  public static ObservableBool isGreaterThan(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
     return new ComparisonExpression(valueLhs, valueRhs) {
       @Override
       protected Boolean compare(int valueLhs, int valueRhs) {
@@ -45,7 +45,7 @@ public abstract class ComparisonExpression extends AbstractBooleanExpression {
     };
   }
 
-  public static BooleanExpression isGreaterThanEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
+  public static ObservableBool isGreaterThanEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
     return new ComparisonExpression(valueLhs, valueRhs) {
       @Override
       protected Boolean compare(int valueLhs, int valueRhs) {
@@ -54,7 +54,7 @@ public abstract class ComparisonExpression extends AbstractBooleanExpression {
     };
   }
 
-  public static BooleanExpression isLessThan(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
+  public static ObservableBool isLessThan(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
     return new ComparisonExpression(valueLhs, valueRhs) {
       @Override
       protected Boolean compare(int valueLhs, int valueRhs) {
@@ -63,7 +63,7 @@ public abstract class ComparisonExpression extends AbstractBooleanExpression {
     };
   }
 
-  public static BooleanExpression isLessThanEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
+  public static ObservableBool isLessThanEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
     return new ComparisonExpression(valueLhs, valueRhs) {
       @Override
       protected Boolean compare(int valueLhs, int valueRhs) {

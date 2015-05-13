@@ -24,7 +24,7 @@ import org.junit.Test;
 import static com.android.tools.idea.ui.properties.BindingsManager.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
-public final class StringExpressionTest {
+public final class StringExpressionsTest {
 
   @Test
   public void testFormatStringExpression() throws Exception {
