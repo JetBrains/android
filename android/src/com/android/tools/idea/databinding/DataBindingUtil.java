@@ -18,27 +18,25 @@ package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.DataBindingInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
-import com.google.common.collect.Maps;
 import com.intellij.lang.Language;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.impl.light.*;
-import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.util.PsiUtil;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Utility class that handles the interaction between Data Binding and the IDE.
@@ -56,21 +55,11 @@ import java.util.*;
  */
 public class DataBindingUtil {
   public static final String BR = "BR";
-  private static int HAS_DATA_BINDING_UNKNOWN = 0;
-  private static int HAS_DATA_BINDING_YES = 1;
-  private static int HAS_DATA_BINDING_NO = 2;
-  private static final Key<Integer> KEY_HAS_DATA_BINDING = Key.create("has-data-binding");
-  private static final Key<List<PsiElementFinder>> KEY_CLASS_FINDERS = Key.create("class-finders");
-  private static final Key<List<PsiShortNamesCache>> KEY_SHORT_NAME_CACHES = Key.create("short-name-caches");
-  private static final Key<LightBrClass> KEY_BR_CLASS = Key.create("br-class");
 
-  /**
-   * Initializes necessary callbacks and information for the provided Facet.
-   * Called by the AndroidFacet on initialization.
-   */
-  public static void initFor(final AndroidFacet facet) {
-    facet.putUserData(KEY_HAS_DATA_BINDING, HAS_DATA_BINDING_UNKNOWN);
-  }
+  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.VIEW_STUB,
+                                                                    SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
+
+  private static AtomicLong ourDataBindingEnabledModificationCount = new AtomicLong(0);
 
   /**
    * Package private class used by BR class finder and BR short names cache to create a BR file on demand.
@@ -79,101 +68,128 @@ public class DataBindingUtil {
    * @return The LightBRClass that belongs to the given AndroidFacet
    */
   static LightBrClass getOrCreateBrClassFor(AndroidFacet facet) {
-    LightBrClass existing = facet.getUserData(KEY_BR_CLASS);
+    LightBrClass existing = facet.getLightBrClass();
     if (existing == null) {
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (facet) {
-        existing = facet.getUserData(KEY_BR_CLASS);
+        existing = facet.getLightBrClass();
         if (existing == null) {
           existing = new LightBrClass(PsiManager.getInstance(facet.getModule().getProject()), facet);
-          facet.putUserData(KEY_BR_CLASS, existing);
+          facet.setLightBrClass(existing);
         }
       }
     }
     return existing;
   }
 
+  private static PsiType parsePsiType(String text, AndroidFacet facet) {
+    return PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject()).createTypeFromText(text, null);
+  }
+
   private static void handleGradleSyncResult(Project project, AndroidFacet facet) {
-    if (project == null) {
-      return;
-    }
-    synchronized (facet) {
-      int hadDataBinding = safeGetHasDataBindingStatus(facet);
-      int hasDataBinding = resolveHasDataBinding(facet);
-      if (hadDataBinding == hasDataBinding) {
-        return;
-      }
-      if (hasDataBinding == HAS_DATA_BINDING_YES) {
-        enableDataBinding(project, facet);
-      }
-      else if (hasDataBinding == HAS_DATA_BINDING_NO) {
-        disableDataBinding(project, facet);
-      }
-      facet.putUserData(KEY_HAS_DATA_BINDING, hasDataBinding);
+    boolean wasEnabled = facet.isDataBindingEnabled();
+    boolean enabled = project != null && resolveHasDataBinding(facet);
+    if (enabled != wasEnabled) {
+      facet.setDataBindingEnabled(enabled);
+      ourDataBindingEnabledModificationCount.incrementAndGet();
     }
   }
 
-  private static void disableDataBinding(Project project, AndroidFacet facet) {
-    List<PsiShortNamesCache> shortNamesCaches = facet.getUserData(KEY_SHORT_NAME_CACHES);
-    if (shortNamesCaches != null) {
-      ExtensionPoint<PsiShortNamesCache> shortNamesExtPoint = Extensions.getArea(project).getExtensionPoint(PsiShortNamesCache.EP_NAME);
-      for (PsiShortNamesCache cache : shortNamesCaches) {
-        shortNamesExtPoint.unregisterExtension(cache);
-      }
-      facet.putUserData(KEY_SHORT_NAME_CACHES, null);
+  public static PsiType resolveViewPsiType(DataBindingInfo.ViewWithId viewWithId, AndroidFacet facet) {
+    String viewClassName = getViewClassName(viewWithId.tag, facet);
+    if (StringUtil.isNotEmpty(viewClassName)) {
+      return parsePsiType(viewClassName, facet);
     }
-    List<PsiElementFinder> elementFinders = facet.getUserData(KEY_CLASS_FINDERS);
-    if (elementFinders != null) {
-      ExtensionPoint<PsiElementFinder> extensionPoint = Extensions.getArea(project).getExtensionPoint(PsiElementFinder.EP_NAME);
-      for (PsiElementFinder finder : elementFinders) {
-        extensionPoint.unregisterExtension(finder);
+    return null;
+  }
+  /**
+   * Receives an {@linkplain XmlTag} and returns the View class that is represented by the tag.
+   * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
+   *
+   * @param tag The {@linkplain XmlTag} that represents the View
+   */
+  @Nullable
+  private static String getViewClassName(XmlTag tag, AndroidFacet facet) {
+    final String elementName = getViewName(tag);
+    if (elementName.indexOf('.') == -1) {
+      if (VIEW_PACKAGE_ELEMENTS.contains(elementName)) {
+        return SdkConstants.VIEW_PKG_PREFIX + elementName;
+      } else if (SdkConstants.WEB_VIEW.equals(elementName)) {
+        return SdkConstants.ANDROID_WEBKIT_PKG + elementName;
+      } else if (SdkConstants.VIEW_MERGE.equals(elementName)) {
+        return getViewClassNameFromMerge(tag, facet);
+      } else if (SdkConstants.VIEW_INCLUDE.equals(elementName)) {
+        return getViewClassNameFromInclude(tag, facet);
       }
-      facet.putUserData(KEY_CLASS_FINDERS, null);
+      return SdkConstants.WIDGET_PKG_PREFIX + elementName;
+    } else {
+      return elementName;
     }
   }
 
-  private static void enableDataBinding(Project project, AndroidFacet facet) {
-    ExtensionPoint<PsiElementFinder> extensionPoint = Extensions.getArea(project).getExtensionPoint(PsiElementFinder.EP_NAME);
-    DataBindingClassFinder dataBindingClassFinder = new DataBindingClassFinder(facet);
-    extensionPoint.registerExtension(dataBindingClassFinder);
-    BrClassFinder brClassFinder = new BrClassFinder(facet);
-    extensionPoint.registerExtension(brClassFinder);
-    facet.putUserData(KEY_CLASS_FINDERS, Arrays.asList(dataBindingClassFinder, brClassFinder));
-
-    ExtensionPoint<PsiShortNamesCache> shortNamesExtPoint = Extensions.getArea(project).getExtensionPoint(PsiShortNamesCache.EP_NAME);
-    PsiShortNamesCache bindingShortNamesCache = new DataBindingShortNamesCache(facet);
-    shortNamesExtPoint.registerExtension(bindingShortNamesCache);
-    BrShortNamesCache brShortNamesCache = new BrShortNamesCache(facet);
-    shortNamesExtPoint.registerExtension(brShortNamesCache);
-    facet.putUserData(KEY_SHORT_NAME_CACHES, Arrays.asList(bindingShortNamesCache, brShortNamesCache));
+  private static String getViewClassNameFromInclude(XmlTag tag, AndroidFacet facet) {
+    String reference = getViewClassNameFromLayoutReferenceTag(tag, facet);
+    return reference == null ? SdkConstants.CLASS_VIEW : reference;
   }
 
-  private static int resolveHasDataBinding(AndroidFacet facet) {
+  private static String getViewClassNameFromMerge(XmlTag tag, AndroidFacet facet) {
+    return getViewClassNameFromLayoutReferenceTag(tag, facet);
+  }
+
+  private static String getViewClassNameFromLayoutReferenceTag(XmlTag tag, AndroidFacet facet) {
+    String layout = tag.getAttributeValue(SdkConstants.ATTR_LAYOUT);
+    if (layout == null) {
+      return null;
+    }
+    LocalResourceRepository moduleResources = facet.getModuleResources(false);
+    if (moduleResources == null) {
+      return null;
+    }
+    ResourceUrl resourceUrl = ResourceUrl.parse(layout);
+    if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
+      return null;
+    }
+    DataBindingInfo info = moduleResources.getDataBindingInfoForLayout(resourceUrl.name);
+    if (info == null) {
+      return null;
+    }
+    return info.getQualifiedName();
+  }
+
+  private static String getViewName(XmlTag tag) {
+    String viewName = tag.getName();
+    if (SdkConstants.VIEW_TAG.equals(viewName)) {
+      viewName = tag.getAttributeValue(SdkConstants.ATTR_CLASS, SdkConstants.ANDROID_URI);
+    }
+    return viewName;
+  }
+
+  private static boolean resolveHasDataBinding(AndroidFacet facet) {
     if (!facet.isGradleProject()) {
-      return HAS_DATA_BINDING_NO;
+      return false;
     }
     if (facet.getIdeaAndroidProject() == null) {
-      return HAS_DATA_BINDING_NO;
+      return false;
     }
-    // TODO check plugin instead
-    boolean hasDependency = GradleUtil.dependsOn(facet.getIdeaAndroidProject(), SdkConstants.DATA_BINDING_LIB_ARTIFACT);
-    return hasDependency ? HAS_DATA_BINDING_YES : HAS_DATA_BINDING_NO;
+    // TODO Instead of checking library dependency, we should be checking whether data binding plugin is
+    // applied to this facet or not. Having library dependency does not guarantee data binding
+    // unless the plugin is applied as well.
+    return GradleUtil.dependsOn(facet.getIdeaAndroidProject(), SdkConstants.DATA_BINDING_LIB_ARTIFACT);
   }
 
-  private static int safeGetHasDataBindingStatus(AndroidFacet facet) {
-    Integer value = facet.getUserData(KEY_HAS_DATA_BINDING);
-    if (value == null) {
-      return HAS_DATA_BINDING_UNKNOWN;
-    }
-    return value;
-  }
-
-  static PsiClass getOrCreatePsiClass(AndroidFacet facet, DataBindingInfo info) {
-    if (info.getPsiClass() == null) {
+  static PsiClass getOrCreatePsiClass(DataBindingInfo info) {
+    PsiClass psiClass = info.getPsiClass();
+    if (psiClass == null) {
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (info) {
-        info.setPsiClass(new LightBindingClass(facet, PsiManager.getInstance(info.getProject()), info));
+        psiClass = info.getPsiClass();
+        if (psiClass == null) {
+          psiClass = new LightBindingClass(info.getFacet(), PsiManager.getInstance(info.getProject()), info);
+          info.setPsiClass(psiClass);
+        }
       }
     }
-    return info.getPsiClass();
+    return psiClass;
   }
 
   /**
@@ -194,26 +210,6 @@ public class DataBindingUtil {
       out.append(StringUtil.capitalize(section));
     }
     return out.toString();
-  }
-
-  /**
-   * Returns whether the given facet has data binding enabled or not.
-   *
-   * @param facet The facet to check.
-   * @return True if the given facet depends on data binding library, false otherwise.
-   */
-  public static boolean isDataBindingEnabled(AndroidFacet facet) {
-    return safeGetHasDataBindingStatus(facet) == HAS_DATA_BINDING_YES;
-  }
-
-  /**
-   * Returns whether the given facet has data binding enabled or we don't yet know the value.
-   *
-   * @param facet The facet to check.
-   * @return True if the given facet depends on data binding or it is not synced yet, false otherwise.
-   */
-  public static boolean isDataBindingEnabledOrUnknown(AndroidFacet facet) {
-    return safeGetHasDataBindingStatus(facet) != HAS_DATA_BINDING_NO;
   }
 
   /**
@@ -283,10 +279,12 @@ public class DataBindingUtil {
     private CachedValue<PsiField[]> myPsiFieldsCache;
     private PsiReferenceList myExtendsList;
     private PsiClassType[] myExtendsListTypes;
+    private final AndroidFacet myFacet;
 
     protected LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
       super(psiManager);
       myInfo = info;
+      myFacet = facet;
       myPsiMethodsCache =
         CachedValuesManager.getManager(info.getProject()).createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet) {
           @Override
@@ -319,8 +317,19 @@ public class DataBindingUtil {
             PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
             PsiField[] result = new PsiField[viewsWithIds.size()];
             int i = 0;
+            int unresolved = 0;
             for (DataBindingInfo.ViewWithId viewWithId : viewsWithIds) {
-              result[i++] = createPsiField(factory, viewWithId);
+              PsiField psiField = createPsiField(factory, viewWithId);
+              if (psiField == null) {
+                unresolved ++;
+              } else {
+                result[i++] = psiField;
+              }
+            }
+            if (unresolved > 0) {
+              PsiField[] validResult = new PsiField[i];
+              System.arraycopy(result, 0, validResult, 0, i);
+              return validResult;
             }
             return result;
           }
@@ -370,7 +379,7 @@ public class DataBindingUtil {
     @Override
     public PsiClass getSuperClass() {
       return JavaPsiFacade.getInstance(myInfo.getProject())
-        .findClass(BASE_CLASS, myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+        .findClass(BASE_CLASS, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
     }
 
     @Override
@@ -394,7 +403,8 @@ public class DataBindingUtil {
     public PsiClassType[] getExtendsListTypes() {
       if (myExtendsListTypes == null) {
         myExtendsListTypes = new PsiClassType[]{
-          PsiType.getTypeByName(BASE_CLASS, myInfo.getProject(), myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(false))};
+          PsiType.getTypeByName(BASE_CLASS, myInfo.getProject(),
+                                myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false))};
       }
       return myExtendsListTypes;
     }
@@ -419,13 +429,13 @@ public class DataBindingUtil {
 
     private void createVariableMethods(PsiElementFactory factory, PsiDataBindingResourceItem item, PsiMethod[] outPsiMethods, int index) {
       PsiMethod setter = factory.createMethod("set" + StringUtil.capitalize(item.getName()), PsiType.VOID);
-      PsiClassType type = PsiType
-        .getTypeByName(item.getExtra("type"), myInfo.getProject(), myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(true));
+      PsiType type = parsePsiType(item.getExtra(SdkConstants.ATTR_TYPE), myFacet);
       PsiParameter param = factory.createParameter(item.getName(), type);
       setter.getParameterList().add(param);
       PsiUtil.setModifierProperty(setter, PsiModifier.PUBLIC, true);
       PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
       final Language javaLang = Language.findLanguageByID("JAVA");
+      assert javaLang != null;
       outPsiMethods[index] = new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, javaLang);
 
       PsiMethod getter = factory.createMethod("get" + StringUtil.capitalize(item.getName()), type);
@@ -437,11 +447,12 @@ public class DataBindingUtil {
       PsiClassType myType = factory.createType(this);
       PsiClassType viewGroupType = PsiType
         .getTypeByName(SdkConstants.CLASS_VIEWGROUP, myInfo.getProject(),
-                       myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(true));
+                       myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, myInfo.getProject(),
-                                                              myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(true));
+                                                              myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiClassType viewType = PsiType
-        .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(), myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(true));
+        .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(),
+                       myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiParameter layoutInflaterParam = factory.createParameter("inflater", layoutInflaterType);
       PsiParameter rootParam = factory.createParameter("root", viewGroupType);
       PsiParameter attachToRootParam = factory.createParameter("attachToRoot", PsiType.BOOLEAN);
@@ -463,14 +474,17 @@ public class DataBindingUtil {
       for (PsiMethod method : methods) {
         PsiUtil.setModifierProperty(method, PsiModifier.PUBLIC, true);
         PsiUtil.setModifierProperty(method, PsiModifier.STATIC, true);
+        //noinspection ConstantConditions
         outPsiMethods[index++] =
           new LightDataBindingMethod(myInfo.getPsiFile(), psiManager, method, this, Language.findLanguageByID("JAVA"));
       }
     }
 
+    @Nullable
     private PsiField createPsiField(PsiElementFactory factory, DataBindingInfo.ViewWithId viewWithId) {
-      PsiField field = factory.createField(viewWithId.name, PsiType
-        .getTypeByName(viewWithId.className, myInfo.getProject(), myInfo.getModule().getModuleWithDependenciesAndLibrariesScope(false)));
+      PsiType type = resolveViewPsiType(viewWithId, myFacet);
+      assert type != null;
+      PsiField field = factory.createField(viewWithId.name, type);
       PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true);
       PsiUtil.setModifierProperty(field, PsiModifier.FINAL, true);
       return new LightDataBindingField(viewWithId, PsiManager.getInstance(myInfo.getProject()), field, this);
@@ -550,62 +564,64 @@ public class DataBindingUtil {
   /**
    * The light class that represents a data binding BR file
    */
-  static class LightBrClass extends AndroidLightClassBase {
+  public static class LightBrClass extends AndroidLightClassBase {
     private static final String BINDABLE_QUALIFIED_NAME = "android.databinding.Bindable";
     private final AndroidFacet myFacet;
     private CachedValue<PsiField[]> myFieldCache;
-    @Nullable
+    @NotNull
     private String[] myCachedFieldNames = new String[]{"_all"};
     private final String myQualifiedName;
     private PsiFile myContainingFile;
-    private PsiElement myNavigationElement;
 
     public LightBrClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
       super(psiManager);
       myQualifiedName = getBrQualifiedName(facet);
       myFacet = facet;
       myFieldCache =
-        CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet) {
-          @Override
-          PsiField[] doCompute() {
-            Project project = facet.getModule().getProject();
-            PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
-            LocalResourceRepository moduleResources = facet.getModuleResources(false);
-            Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
-            if (dataBindingResourceFiles == null) {
-              return defaultValue();
-            }
-            Set<String> variableNames = new HashSet<String>();
-            for (DataBindingInfo info : dataBindingResourceFiles.values()) {
-              for (PsiDataBindingResourceItem item : info.getItems(DataBindingResourceType.VARIABLE)) {
-                variableNames.add(item.getName());
+        CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(
+          new ResourceCacheValueProvider<PsiField[]>(facet, psiManager.getModificationTracker().getJavaStructureModificationTracker()) {
+            @Override
+            PsiField[] doCompute() {
+              Project project = facet.getModule().getProject();
+              PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
+              LocalResourceRepository moduleResources = facet.getModuleResources(false);
+              if (moduleResources == null) {
+                return defaultValue();
               }
+              Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+              if (dataBindingResourceFiles == null) {
+                return defaultValue();
+              }
+              Set<String> variableNames = new HashSet<String>();
+              for (DataBindingInfo info : dataBindingResourceFiles.values()) {
+                List<PsiDataBindingResourceItem> variables = info.getItems(DataBindingResourceType.VARIABLE);
+                if (variables != null) {
+                  for (PsiDataBindingResourceItem item : variables) {
+                    variableNames.add(item.getName());
+                  }
+                }
+              }
+              Set<String> bindables = collectVariableNamesFromBindables();
+              if (bindables != null) {
+                variableNames.addAll(bindables);
+              }
+              PsiField[] result = new PsiField[variableNames.size() + 1];
+              result[0] = createPsiField(project, elementFactory, "_all");
+              int i = 1;
+              for (String variable : variableNames) {
+                result[i++] = createPsiField(project, elementFactory, variable);
+              }
+              myCachedFieldNames = ArrayUtil.toStringArray(variableNames);
+              return result;
             }
-            Set<String> bindables = collectVariableNamesFromBindables();
-            if (bindables != null) {
-              variableNames.addAll(bindables);
-            }
-            PsiField[] result = new PsiField[variableNames.size() + 1];
-            result[0] = createPsiField(project, elementFactory, "_all");
-            int i = 1;
-            for (String variable : variableNames) {
-              result[i++] = createPsiField(project, elementFactory, variable);
-            }
-            myCachedFieldNames = variableNames.toArray(new String[variableNames.size()]);
-            return result;
-          }
 
-          @Override
-          PsiField[] defaultValue() {
-            Project project = facet.getModule().getProject();
-            return new PsiField[]{createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all")};
+            @Override
+            PsiField[] defaultValue() {
+              Project project = facet.getModule().getProject();
+              return new PsiField[]{createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all")};
+            }
           }
-
-          @Override
-          protected Object getAdditionalTracker() {
-            return PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT;
-          }
-        });
+        );
     }
 
     private Set<String> collectVariableNamesFromBindables() {
@@ -614,7 +630,8 @@ public class DataBindingUtil {
       if (aClass == null) {
         return null;
       }
-      final Collection<? extends PsiNameIdentifierOwner> psiElements =
+      //noinspection unchecked
+      final Collection<? extends PsiModifierListOwner> psiElements =
         AnnotatedElementsSearch.searchElements(aClass, myFacet.getModule().getModuleScope(), PsiMethod.class, PsiField.class).findAll();
       return BrUtil.collectIds(psiElements);
     }
@@ -689,7 +706,8 @@ public class DataBindingUtil {
     @NotNull
     @Override
     public PsiElement getNavigationElement() {
-      return getContainingFile();
+      PsiFile containingFile = getContainingFile();
+      return containingFile == null ? super.getNavigationElement() : containingFile;
     }
   }
 
@@ -702,4 +720,14 @@ public class DataBindingUtil {
       super(manager, field, containingClass);
     }
   }
+
+  /**
+   * Tracker that changes when a facet's data binding enabled value changes
+   */
+  public static ModificationTracker DATA_BINDING_ENABLED_TRACKER = new ModificationTracker() {
+    @Override
+    public long getModificationCount() {
+      return ourDataBindingEnabledModificationCount.longValue();
+    }
+  };
 }

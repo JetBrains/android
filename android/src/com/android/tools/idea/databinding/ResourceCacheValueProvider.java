@@ -16,46 +16,55 @@
 package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.intellij.openapi.util.CompositeModificationTracker;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValueProvider;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-abstract public class ResourceCacheValueProvider<T> implements CachedValueProvider<T> {
-  ModificationTracker myTracker = new ModificationTracker() {
+abstract public class ResourceCacheValueProvider<T> implements CachedValueProvider<T>, ModificationTracker {
+  ModificationTracker[] myAdditionalTrackers;
+  private ModificationTracker myTracker = new ModificationTracker() {
+    private long myLastVersion = -1;
+    private long myVersion = 0;
     @Override
     public long getModificationCount() {
       LocalResourceRepository moduleResources = myFacet.getModuleResources(false);
-      return moduleResources == null ? Long.MIN_VALUE : moduleResources.getModificationCount();
+      // make sure it changes if facet's module resource availability changes
+      long version = moduleResources == null ? Integer.MIN_VALUE : moduleResources.getModificationCount();
+      if (version != myLastVersion) {
+        myLastVersion = version;
+        myVersion ++;
+      }
+      return myVersion;
     }
   };
-  final AndroidFacet myFacet;
+  private final AndroidFacet myFacet;
 
-  public ResourceCacheValueProvider(AndroidFacet facet) {
+  public ResourceCacheValueProvider(AndroidFacet facet, ModificationTracker... additionalTrackers) {
     myFacet = facet;
+    myAdditionalTrackers = additionalTrackers;
   }
 
-  @Nullable
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
+  @Override
+  public long getModificationCount() {
+    return myTracker.getModificationCount();
+  }
+
+  @NotNull
   @Override
   public final Result<T> compute() {
     if (myFacet.getModuleResources(false) == null) {
       return Result.create(defaultValue(), myTracker);
     }
-    Object additionalTracker = getAdditionalTracker();
-    if (additionalTracker == null) {
-      return Result.create(doCompute(), myTracker);
-    } else {
-      return Result.create(doCompute(), myTracker, additionalTracker);
-    }
+    return Result.create(doCompute(), myTracker);
   }
 
   abstract T doCompute();
 
   abstract T defaultValue();
-
-  protected Object getAdditionalTracker() {
-    return null;
-  }
 }
 
