@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,7 +29,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,13 +36,13 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
-import static org.jetbrains.android.sdk.AndroidSdkType.validateAndroidSdk;
 
 public final class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
@@ -70,7 +70,7 @@ public final class SdkSync {
         setProjectSdk(localProperties, ideAndroidSdkPath);
         return;
       }
-      final AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
+      final ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
       if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
         invokeAndWaitIfNeeded(new Runnable() {

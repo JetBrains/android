@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.sdk;
 
-import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.Jdks;
@@ -40,9 +39,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
@@ -94,55 +93,6 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     }
     File sdkPath = new File(toSystemDependentName(path));
     return validateAndroidSdk(sdkPath, false).success;
-  }
-
-  /**
-   * Indicates whether the given path belongs to a valid Android SDK.
-   *
-   * @param sdkPath              the given path.
-   * @param includePathInMessage indicates whether the given path should be included in the result message.
-   * @return the validation result.
-   */
-  @NotNull
-  public static ValidationResult validateAndroidSdk(@Nullable File sdkPath, boolean includePathInMessage) {
-    if (sdkPath == null) {
-      return ValidationResult.error("");
-    }
-
-    String cause = null;
-    if (!sdkPath.isDirectory()) {
-      cause = "does not belong to a directory.";
-    }
-    else if (!sdkPath.canRead()) {
-      cause = "is not readable.";
-    }
-    else if (!sdkPath.canWrite()) {
-      cause = "is not writable.";
-    }
-    if (isNotEmpty(cause)) {
-      String message;
-      if (includePathInMessage) {
-        message = String.format("The path\n'%1$s'\n%2$s", sdkPath.getPath(), cause);
-      }
-      else {
-        message = String.format("The path %1$s", cause);
-      }
-      return ValidationResult.error(message);
-    }
-
-    File platformsDirPath = new File(sdkPath, SdkConstants.FD_PLATFORMS);
-    if (!platformsDirPath.isDirectory()) {
-      String message;
-      if (includePathInMessage) {
-        message = String.format("The SDK at\n'%1$s'\ndoes not contain any platforms.", sdkPath.getPath());
-      }
-      else {
-        message = "SDK does not contain any platforms.";
-      }
-      return ValidationResult.error(message);
-    }
-
-    return ValidationResult.SUCCESS;
   }
 
   @Override
@@ -281,20 +231,4 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     return SdkType.findInstance(AndroidSdkType.class);
   }
 
-  public static class ValidationResult {
-    @NotNull public static final ValidationResult SUCCESS = new ValidationResult(true, null);
-
-    public final boolean success;
-    @Nullable public final String message;
-
-    @NotNull
-    static ValidationResult error(@NotNull String message) {
-      return new ValidationResult(false, message);
-    }
-
-    private ValidationResult(boolean success, @Nullable String message) {
-      this.success = success;
-      this.message = message;
-    }
-  }
 }

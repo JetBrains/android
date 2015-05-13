@@ -46,6 +46,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -53,7 +54,6 @@ import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.sdk.AndroidSdkType.validateAndroidSdk;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public final class IdeSdks {
