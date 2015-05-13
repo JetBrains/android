@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public final class IntExpressionTest {
+public final class IntExpressionsTest {
 
   @Test
   public void testIsEqualExpression() {

@@ -16,14 +16,15 @@
 package com.android.tools.idea.ui.properties.expressions.string;
 
 import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class for String expressions, providing a default implementation for the {@link StringExpression} interface.
+ * Base class for String expressions, providing a default implementation for the {@link ObservableString} interface.
  */
-public abstract class AbstractStringExpression extends Expression implements StringExpression {
+public abstract class AbstractStringExpression extends Expression implements ObservableString {
 
   protected AbstractStringExpression(Observable... values) {
     super(values);
@@ -31,13 +32,13 @@ public abstract class AbstractStringExpression extends Expression implements Str
 
   @NotNull
   @Override
-  public BooleanExpression isEmpty() {
+  public ObservableBool isEmpty() {
     return new IsEmptyExpression(this);
   }
 
   @NotNull
   @Override
-  public StringExpression trim() {
+  public ObservableString trim() {
     return new TrimExpression(this);
   }
 }

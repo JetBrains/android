@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.expressions.string;
+package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface which, when implemented, allows the chaining of String values.
+ * Interface which, when implemented, allows the chaining of boolean values.
  */
-public interface StringExpression extends ObservableValue<String> {
+public interface ObservableBool extends ObservableValue<Boolean> {
   @NotNull
-  BooleanExpression isEmpty();
+  ObservableBool not();
 
   @NotNull
-  StringExpression trim();
+  ObservableBool or(@NotNull ObservableValue<Boolean> other);
+
+  @NotNull
+  ObservableBool and(@NotNull ObservableValue<Boolean> other);
 }
