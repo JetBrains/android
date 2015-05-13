@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.sdk;
 
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -31,10 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkType.validateAndroidSdk;
 
 public class SelectSdkDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -168,7 +169,7 @@ public class SelectSdkDialog extends DialogWrapper {
       return "Android SDK path not specified.";
     }
 
-    AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(new File(toSystemDependentName(path)), false);
+    ValidationResult validationResult = validateAndroidSdk(new File(toSystemDependentName(path)), false);
     if (!validationResult.success) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291
