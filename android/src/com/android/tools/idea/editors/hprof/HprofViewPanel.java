@@ -45,7 +45,6 @@ public class HprofViewPanel implements Disposable {
 
   public HprofViewPanel(@NotNull final Project project, @NotNull final Snapshot snapshot) {
     JBPanel treePanel = new JBPanel(new BorderLayout());
-    treePanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     treePanel.setBackground(JBColor.background());
 
     final InstanceReferenceTree referenceTree = new InstanceReferenceTree();
@@ -100,12 +99,6 @@ public class HprofViewPanel implements Disposable {
         getTemplatePresentation().setText(myCurrentHeap.getName() + " heap");
         e.getPresentation().setText(myCurrentHeap.getName() + " heap");
       }
-    }, new ComputeDominatorAction(snapshot, project) {
-      @Override
-      public void onDominatorsComputed() {
-        // TODO this should be done with tables adding listeners to the snapshot, as it's the snapshot that changes.
-        classTable.notifyDominatorsComputed();
-      }
     });
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
@@ -118,6 +111,9 @@ public class HprofViewPanel implements Disposable {
 
     myContainer = new JPanel(new BorderLayout());
     myContainer.add(mainSplitter);
+
+    // TODO Determine if the processing of hprof is good enough, and integrate this call if it is.
+    classTable.notifyDominatorsComputed();
   }
 
   @NotNull
@@ -141,16 +137,12 @@ public class HprofViewPanel implements Disposable {
   @NotNull
   public static JBSplitter createNavigationSplitter(@Nullable JComponent leftPanelContents, @Nullable JComponent rightPanelContents) {
     JBPanel navigationPanel = new JBPanel(new BorderLayout());
-    navigationPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     navigationPanel.setBackground(JBColor.background());
     if (leftPanelContents != null) {
-      JBScrollPane scrollPane = new JBScrollPane();
-      scrollPane.setViewportView(leftPanelContents);
-      navigationPanel.add(scrollPane, BorderLayout.CENTER);
+      navigationPanel.add(leftPanelContents, BorderLayout.CENTER);
     }
 
     JBPanel contextInformationPanel = new JBPanel(new BorderLayout());
-    contextInformationPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     contextInformationPanel.setBackground(JBColor.background());
     if (rightPanelContents != null) {
       contextInformationPanel.add(rightPanelContents, BorderLayout.CENTER);
