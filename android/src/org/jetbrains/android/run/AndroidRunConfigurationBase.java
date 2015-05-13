@@ -25,8 +25,8 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.CloudConfiguration;
 import com.android.tools.idea.run.CloudDebuggingTargetChooser;
 import com.android.tools.idea.run.CloudTargetChooser;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
@@ -297,14 +297,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidApplicationLauncher applicationLauncher = getApplicationLauncher(facet);
     if (applicationLauncher != null) {
       final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
-      return new AndroidRunningState(env, facet, targetChooser, computeCommandLine(), applicationLauncher,
+      return new AndroidRunningState(env, facet, getApkProvider(), targetChooser, computeCommandLine(), applicationLauncher,
                                      supportMultipleDevices, CLEAR_LOGCAT, this, nonDebuggableOnDevice);
     }
     return null;
   }
 
+  @NotNull
+  protected abstract ApkProvider getApkProvider();
+
   @Nullable
-  protected static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet, @Nullable ProcessHandler processHandler) {
+  protected static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet) throws IOException {
     final VirtualFile manifestFile = AndroidRootUtil.getCustomManifestFileForCompiler(facet);
 
     if (manifestFile == null) {
@@ -319,14 +322,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return Pair.create(manifestCopy, PathUtil.getLocalPath(manifestFile));
     }
     catch (IOException e) {
-      if (processHandler != null) {
-        processHandler.notifyTextAvailable("I/O error: " + e.getMessage(), ProcessOutputTypes.STDERR);
-      }
       LOG.info(e);
       if (tmpDir != null) {
         FileUtil.delete(tmpDir);
       }
-      return null;
+      throw e;
     }
   }
 
