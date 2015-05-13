@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
@@ -28,13 +29,13 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.border.MatteBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.ActionListener;
+import java.awt.geom.RoundRectangle2D;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class ColorComponent extends JPanel {
   private static final int LABEL_BUTTON_GAP = 8;
   private static final int BUTTON_VERTICAL_PADDINGS = 14;
   public static final int SUM_PADDINGS = DISTANCE_BETWEEN_ROWS + LABEL_BUTTON_GAP + BUTTON_VERTICAL_PADDINGS;
+  public static final int BACKGROUND_CELL_SIZE = 4;
 
   private final ColorChooserButton myColorChooserButton = new ColorChooserButton();
   private final JLabel myNameLabel = new JLabel();
@@ -98,11 +100,13 @@ public class ColorComponent extends JPanel {
     private static final int BETWEEN_STATES_PADDING = 2;
     private static final int STATES_PADDING = 6;
     private static final int ARC_SIZE = 10;
-    public static final double THRESHOLD_BRIGHTNESS = 0.8;
+
+    // If squared distance between two colors are less than this constant they're considered to be similar.
+    private static final double THRESHOLD_SQUARED_DISTANCE = 0.01;
 
     private String myValue;
     private @NotNull List<Color> myColors = Collections.emptyList();
-    private final float[] myHsbArray = new float[3];
+    private final float[] myRgbaArray = new float[4];
 
     public void configure(final EditedStyleItem resValue, final List<Color> color) {
       myValue = resValue.getValue();
@@ -132,11 +136,17 @@ public class ColorComponent extends JPanel {
       final int cellSize = height - 2 * BETWEEN_STATES_PADDING;
       int xOffset = BETWEEN_STATES_PADDING;
       for (final Color color : myColors) {
+        if (color.getAlpha() != 0xff) {
+          final RoundRectangle2D.Double clip =
+            new RoundRectangle2D.Double(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize, ARC_SIZE, ARC_SIZE);
+          GraphicsUtil.paintCheckeredBackground(g, clip, BACKGROUND_CELL_SIZE);
+        }
+
         g.setColor(color);
         g.fillRoundRect(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize, ARC_SIZE, ARC_SIZE);
 
-        Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), myHsbArray);
-        if (myHsbArray[2] > THRESHOLD_BRIGHTNESS) {
+        color.getRGBComponents(myRgbaArray);
+        if (Math.pow(1.0 - myRgbaArray[0], 2) + Math.pow(1.0 - myRgbaArray[1], 2) + Math.pow(1.0 - myRgbaArray[2], 2) < THRESHOLD_SQUARED_DISTANCE) {
           // Drawing a border to avoid displaying white boxes on a white background
           g.setColor(Gray._239);
           g.drawRoundRect(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize - 1, ARC_SIZE, ARC_SIZE);
