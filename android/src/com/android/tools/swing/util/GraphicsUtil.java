@@ -21,23 +21,28 @@ public class GraphicsUtil {
   /**
    * Paints a checkered board style background. Each grid square is {@code cellSize} pixels.
    */
-  public static void paintCheckeredBackground(Graphics g, Color backgroundColor, Color checkeredColor, Rectangle rect, int cellSize) {
+  public static void paintCheckeredBackground(Graphics g, Color backgroundColor, Color checkeredColor, Shape clip, int cellSize) {
+    final Rectangle rect = clip.getBounds();
+    final Shape savedClip = g.getClip();
+    g.setClip(clip);
+
     g.setColor(backgroundColor);
-    g.fillRect(0, 0, rect.width, rect.height);
+    g.fillRect(rect.x, rect.y, rect.width, rect.height);
 
     g.setColor(checkeredColor);
-    for (int y = 0; y * cellSize < rect.height; y++) {
-      for (int x = y % 2; x * cellSize < rect.width; x += 2) {
-        g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    for (int dy = 0; dy * cellSize < rect.height; dy++) {
+      for (int dx = dy % 2; dx * cellSize < rect.width; dx += 2) {
+        g.fillRect(rect.x + dx * cellSize, rect.y + dy * cellSize, cellSize, cellSize);
       }
     }
+    g.setClip(savedClip);
   }
 
   /**
    * Paints a checkered board style background. Each grid square is {@code cellSize} pixels.
    */
-  public static void paintCheckeredBackground(Graphics g, Rectangle rect, int cellSize) {
-    paintCheckeredBackground(g, Color.LIGHT_GRAY, Color.GRAY, rect, cellSize);
+  public static void paintCheckeredBackground(Graphics g, Shape clip, int cellSize) {
+    paintCheckeredBackground(g, Color.LIGHT_GRAY, Color.GRAY, clip, cellSize);
   }
 
   /**
