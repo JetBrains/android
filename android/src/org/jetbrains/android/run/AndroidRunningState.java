@@ -818,14 +818,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   private boolean isToLaunchDebug(@NotNull ClientData data) {
-    if (data.getDebuggerConnectionStatus() == ClientData.DebuggerStatus.WAITING) {
-      return true;
-    }
     String description = data.getClientDescription();
-    if (description == null) {
+    if (description == null || !description.equals(myTargetPackageName)) {
       return false;
     }
-    return description.equals(myTargetPackageName) && myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
+    return myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
   }
 
   private void launchDebug(Client client) {
