@@ -791,7 +791,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return s.split(" ");
   }
 
-  private void message(@NotNull String message, @NotNull Key outputKey) {
+  public void message(@NotNull String message, @NotNull Key outputKey) {
     getProcessHandler().notifyTextAvailable(message + '\n', outputKey);
   }
 
