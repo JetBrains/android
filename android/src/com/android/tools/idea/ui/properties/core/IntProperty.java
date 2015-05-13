@@ -17,16 +17,14 @@ package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.integer.ComparisonExpression;
-import com.android.tools.idea.ui.properties.expressions.integer.IntExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class that every integer-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
-public abstract class IntProperty extends ObservableProperty<Integer> implements IntExpression {
+public abstract class IntProperty extends ObservableProperty<Integer> implements ObservableInt {
 
   public void increment() {
     set(get() + 1);
@@ -34,31 +32,31 @@ public abstract class IntProperty extends ObservableProperty<Integer> implements
 
   @NotNull
   @Override
-  public BooleanExpression isEqualTo(@NotNull ObservableValue<Integer> value) {
+  public ObservableBool isEqualTo(@NotNull ObservableValue<Integer> value) {
     return ComparisonExpression.isEqual(this, value);
   }
 
   @NotNull
   @Override
-  public BooleanExpression isGreaterThan(@NotNull ObservableValue<Integer> value) {
+  public ObservableBool isGreaterThan(@NotNull ObservableValue<Integer> value) {
     return ComparisonExpression.isGreaterThan(this, value);
   }
 
   @NotNull
   @Override
-  public BooleanExpression isGreaterThanEqualTo(@NotNull ObservableValue<Integer> value) {
+  public ObservableBool isGreaterThanEqualTo(@NotNull ObservableValue<Integer> value) {
     return ComparisonExpression.isGreaterThanEqual(this, value);
   }
 
   @NotNull
   @Override
-  public BooleanExpression isLessThan(@NotNull ObservableValue<Integer> value) {
+  public ObservableBool isLessThan(@NotNull ObservableValue<Integer> value) {
     return ComparisonExpression.isLessThan(this, value);
   }
 
   @NotNull
   @Override
-  public BooleanExpression isLessThanEqualTo(@NotNull ObservableValue<Integer> value) {
+  public ObservableBool isLessThanEqualTo(@NotNull ObservableValue<Integer> value) {
     return ComparisonExpression.isLessThanEqual(this, value);
   }
 }

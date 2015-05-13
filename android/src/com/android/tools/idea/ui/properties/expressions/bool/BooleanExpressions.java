@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * chained expressions.
  */
 public final class BooleanExpressions {
-  public static final BooleanExpression TRUE = new AbstractBooleanExpression() {
+  public static final ObservableBool TRUE = new AbstractBooleanExpression() {
     @NotNull
     @Override
     public Boolean get() {
@@ -31,7 +32,7 @@ public final class BooleanExpressions {
     }
   };
 
-  public static final BooleanExpression FALSE = new AbstractBooleanExpression() {
+  public static final ObservableBool FALSE = new AbstractBooleanExpression() {
     @NotNull
     @Override
     public Boolean get() {
@@ -39,11 +40,11 @@ public final class BooleanExpressions {
     }
   };
 
-  public static BooleanExpression any(ObservableValue<Boolean>... values) {
+  public static ObservableBool any(ObservableValue<Boolean>... values) {
     return new AnyExpression(values);
   }
 
-  public static BooleanExpression not(@NotNull ObservableValue<Boolean> value) {
+  public static ObservableBool not(@NotNull ObservableValue<Boolean> value) {
     return new NotExpression(value);
   }
 }
