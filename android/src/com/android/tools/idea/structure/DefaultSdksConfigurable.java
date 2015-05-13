@@ -17,6 +17,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -34,7 +35,6 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.Function;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,11 +46,11 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.sdk.AndroidSdkType.validateAndroidSdk;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
 /**
@@ -120,7 +120,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose Android SDK Location", new Function<File, Void>() {
       @Override
       public Void fun(File file) {
-        AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(file, false);
+        ValidationResult validationResult = validateAndroidSdk(file, false);
         if (!validationResult.success) {
           String msg = validationResult.message;
           if (isEmpty(msg)) {
@@ -305,7 +305,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   public boolean validate() throws ConfigurationException {
-    AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
+    ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
     if (!validationResult.success) {
       String msg = validationResult.message;
       if (isEmpty(msg)) {
@@ -324,7 +324,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   public List<ProjectConfigurationError> validateState() {
     List<ProjectConfigurationError> errors = Lists.newArrayList();
 
-    AndroidSdkType.ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
+    ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
     if (!validationResult.success) {
       String msg = validationResult.message;
       if (isEmpty(msg)) {
