@@ -20,6 +20,9 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.palette.DnDTransferItem;
+import com.android.tools.idea.uibuilder.palette.ItemTransferable;
+import com.android.tools.idea.uibuilder.palette.NlPaletteItem;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
@@ -38,8 +41,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -525,38 +530,26 @@ public class InteractionManager {
         myLastMouseX = location.x;
         myLastMouseY = location.y;
 
-        // Ideally we'd pull out the transfer data
         for (DataFlavor flavor : event.getCurrentDataFlavors()) {
-          if (flavor.getMimeType().startsWith("text/plain;") || flavor.getMimeType().equals("text/plain")) {
-            // Ideally we'd pull out the transfer data here, construct proper XML representations (if applicable)
-            // and pass that to a drag handler:
-            //  Transferable transferable = event.getTransferable();
-            //  try {
-            //    Object transferData = transferable.getTransferData(flavor);
-            //    ...
-            // but unfortunately that doesn't work: we're only allowed to access the transferable on an actual drop
-            // and the above will throw a InvalidDnDOperationException or pass an invalid value (such as "Unsupported type").
-            // Therefore, instead, we create a dummy object and pass that around; we'll correct the actual XML
-            // when the drop completes.
+          if (flavor.equals(ItemTransferable.PALETTE_FLAVOR) ||
+              flavor.getMimeType().startsWith("text/plain;") || flavor.getMimeType().equals("text/plain")) {
             event.acceptDrag(DnDConstants.ACTION_COPY);
             ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
             final NlModel model = screenView.getModel();
-            final Project project = model.getFacet().getModule().getProject();
-            XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
             try {
-              String xml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
-              XmlTag tag = elementFactory.createTagFromText(xml);
+              DnDTransferItem item = getTransferItem(event.getTransferable(), true /* allow placeholders */);
+              XmlTag tag = createTagFromtransferItem(item);
               NlComponent dragged = new NlComponent(model, tag);
-              // TODO: Pick some better bounds once we know. Use preview-render as a clue?
-              dragged.w = 200;
-              dragged.h = 100;
-              dragged.x = Coordinates.getAndroidX(screenView, myLastMouseX);
-              dragged.y = Coordinates.getAndroidY(screenView, myLastMouseY);
+              dragged.w = item.getWidth();
+              dragged.h = item.getHeight();
+              dragged.x = Coordinates.getAndroidX(screenView, myLastMouseX) - dragged.w / 2;
+              dragged.y = Coordinates.getAndroidY(screenView, myLastMouseY) - dragged.h / 2;
               DragDropInteraction interaction = new DragDropInteraction(mySurface, Collections.singletonList(dragged));
               interaction.setType(DragType.COPY);
               startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
+              break;
             }
-            catch (IncorrectOperationException ignore) {
+            catch (Exception ignore) {
             }
           }
         }
@@ -573,7 +566,7 @@ public class InteractionManager {
       }
 
       for (DataFlavor flavor : event.getCurrentDataFlavors()) {
-        if (String.class == flavor.getRepresentationClass()) {
+        if (flavor.equals(ItemTransferable.PALETTE_FLAVOR) || String.class == flavor.getRepresentationClass()) {
           event.acceptDrag(DnDConstants.ACTION_COPY);
           return;
         }
@@ -598,105 +591,140 @@ public class InteractionManager {
       myLastMouseX = location.x;
       myLastMouseY = location.y;
 
-      ScreenView screenView = mySurface.getScreenView(location.x, location.y);
+     ScreenView screenView = mySurface.getScreenView(location.x, location.y);
 
       try {
-        Transferable transferable = event.getTransferable();
-        if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-          event.acceptDrop(DnDConstants.ACTION_MOVE);
-          final String text = (String)transferable.getTransferData(DataFlavor.stringFlavor);
-          final NlModel model = screenView.getModel();
-          final Project project = model.getFacet().getModule().getProject();
-          final XmlFile file = model.getFile();
-          WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Drop", file) {
-            @Override
-            protected void run(@NotNull Result<Void> result) throws Throwable {
-              XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
-              XmlTag tag = null;
-              if (XmlUtils.parseDocumentSilently(text, false) != null) {
-                try {
-                  String xml = text;
-                  // TODO: Remove this temporary hack, which adds an Android namespace if necessary (this is such
-                  // that the resulting tag is namespace aware, and attempts to manipulate it from a component handler
-                  // will correctly set namespace prefixes)
-                  if (!xml.contains(ANDROID_URI)) {
-                    int index = xml.indexOf('<');
-                    if (index != -1) {
-                      index = xml.indexOf(' ', index);
-                      if (index == -1) {
-                        index = xml.indexOf("/>");
-                        if (index == -1) {
-                          index = xml.indexOf('>');
-                        }
-                      }
-                      if (index != -1) {
-                        xml =
-                          xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
-                      }
-                    }
-                  }
-                  tag = elementFactory.createTagFromText(xml);
-                }
-                catch (IncorrectOperationException ignore) {
-                  // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
-                  // to drop something like plain text -- insert this as a text view instead.
-                  // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
-                  // check first instead.
-                }
-              }
-              if (tag == null) {
-                tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
-                                                       " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
-                                                       " android:layout_width=\"wrap_content\"" +
-                                                       " android:layout_height=\"wrap_content\"" +
-                                                       "/>");
-              }
+        final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
+        event.acceptDrop(DnDConstants.ACTION_MOVE);
+        final NlModel model = screenView.getModel();
+        final Project project = model.getFacet().getModule().getProject();
+        final XmlFile file = model.getFile();
+        WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Drop", file) {
+          @Override
+          protected void run(@NotNull Result<Void> result) throws Throwable {
+            XmlTag tag = createTagFromtransferItem(item);
 
-              if (myCurrentInteraction instanceof DragDropInteraction) {
-                // On a drag we put in a place holder component for the drag operation
-                List<NlComponent> draggedComponents = ((DragDropInteraction)myCurrentInteraction).getDraggedComponents();
-                NlComponent component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
-                if (component != null) {
-                  assert component.getTag().getName().equals("placeholder") : component.getTag().getName();
+            if (myCurrentInteraction instanceof DragDropInteraction) {
+              // On a drag we put in a place holder component for the drag operation
+              List<NlComponent> draggedComponents = ((DragDropInteraction)myCurrentInteraction).getDraggedComponents();
+              NlComponent component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
+              if (component != null) {
+                if (component.getTag().getName().equals("placeholder")) {
+                  // If we were unable to read the transfer data on dragEnter, replace the tag here:
                   component.setTag(tag);
-                  if (component.needsDefaultId()) {
-                    component.assignId();
-                  }
                 }
-                finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, false);
-                if (component != null && component.getTag().isValid() && component.getTag().getParent() instanceof XmlTag) {
-                  // Remove any xmlns: attributes once the element is added into the document
-                  for (XmlAttribute attribute : component.getTag().getAttributes()) {
-                    if (attribute.getName().startsWith(XMLNS_PREFIX)) {
-                      attribute.delete();
-                    }
-                  }
+                if (component.needsDefaultId()) {
+                  component.assignId();
                 }
-                return;
               }
-
-              XmlDocument document = file.getDocument();
-              if (document != null) {
-                XmlTag rootTag = document.getRootTag();
-                if (rootTag != null) {
-                  rootTag.addSubTag(tag, false);
-                  model.requestRender();
+              finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, false);
+              if (component != null && component.getTag().isValid() && component.getTag().getParent() instanceof XmlTag) {
+                // Remove any xmlns: attributes once the element is added into the document
+                for (XmlAttribute attribute : component.getTag().getAttributes()) {
+                  if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+                    attribute.delete();
+                  }
                 }
+              }
+              return;
+            }
+
+            XmlDocument document = file.getDocument();
+            if (document != null) {
+              XmlTag rootTag = document.getRootTag();
+              if (rootTag != null) {
+                rootTag.addSubTag(tag, false);
+                model.requestRender();
               }
             }
-          };
-          action.execute();
-          event.getDropTargetContext().dropComplete(true); // or just event.dropComplete() ?
-          model.notifyModified();
-        }
-        else {
-          event.rejectDrop();
-        }
+          }
+        };
+        action.execute();
+        event.getDropTargetContext().dropComplete(true); // or just event.dropComplete() ?
+        model.notifyModified();
       }
       catch (Exception ignore) {
         event.rejectDrop();
       }
     }
+  }
+
+  @NotNull
+  private static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder)
+    throws IOException, UnsupportedFlavorException {
+    DnDTransferItem item = null;
+    try {
+      if (transferable.isDataFlavorSupported(ItemTransferable.PALETTE_FLAVOR)) {
+        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.PALETTE_FLAVOR);
+      }
+      else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
+        item = new DnDTransferItem(new NlPaletteItem("", "", "", xml, ""), 200, 100);
+      }
+    } catch (InvalidDnDOperationException ex) {
+      if (!allowPlaceholder) {
+        throw ex;
+      }
+      String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
+      item = new DnDTransferItem(new NlPaletteItem("", "", "", defaultXml, ""), 200, 100);
+    }
+    if (item == null || item.getRepresentation().isEmpty()) {
+      throw new UnsupportedFlavorException(null);
+    }
+    return item;
+  }
+
+  @NotNull XmlTag createTagFromtransferItem(@NotNull DnDTransferItem item) {
+    ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+    NlModel model = screenView.getModel();
+    Project project = model.getFacet().getModule().getProject();
+    XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
+    XmlTag tag = null;
+    String text = item.getRepresentation();
+    if (XmlUtils.parseDocumentSilently(text, false) != null) {
+      try {
+        String xml = addAndroidNamespaceIfMissing(text);
+        tag = elementFactory.createTagFromText(xml);
+      }
+      catch (IncorrectOperationException ignore) {
+        // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
+        // to drop something like plain text -- insert this as a text view instead.
+        // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
+        // check first instead.
+      }
+    }
+    if (tag == null) {
+      tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
+                                             " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
+                                             " android:layout_width=\"wrap_content\"" +
+                                             " android:layout_height=\"wrap_content\"" +
+                                             "/>");
+    }
+    return tag;
+  }
+
+  private static String addAndroidNamespaceIfMissing(@NotNull String xml) {
+    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
+    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
+    // a component handler will correctly set namespace prefixes)
+
+    if (!xml.contains(ANDROID_URI)) {
+      int index = xml.indexOf('<');
+      if (index != -1) {
+        index = xml.indexOf(' ', index);
+        if (index == -1) {
+          index = xml.indexOf("/>");
+          if (index == -1) {
+            index = xml.indexOf('>');
+          }
+        }
+        if (index != -1) {
+          xml =
+            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
+        }
+      }
+    }
+    return xml;
   }
 
   @VisibleForTesting

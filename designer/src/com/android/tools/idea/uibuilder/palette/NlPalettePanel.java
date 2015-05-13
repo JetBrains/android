@@ -33,7 +33,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.IJSwingUtilities;
-import com.intellij.util.ui.TextTransferable;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +43,7 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -286,7 +286,22 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       Object content = node.getUserObject();
       assert content instanceof NlPaletteItem;
       NlPaletteItem item = (NlPaletteItem)content;
-      return new DnDDragStartBean(new TextTransferable(item.getRepresentation()));
+      Dimension size = null;
+      if (myDesignSurface != null) {
+        BufferedImage image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), 1.0);
+        if (image != null) {
+          size = new Dimension(image.getWidth(), image.getHeight());
+        }
+      }
+      if (size == null) {
+        Rectangle bounds = myTree.getPathBounds(path);
+        size = bounds != null ? bounds.getSize() : new Dimension(200, 100);
+        if (myDesignSurface != null) {
+          double scale = myDesignSurface.getScale();
+          size.setSize(size.getWidth() / scale, size.getHeight() / scale);
+        }
+      }
+      return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(item, size.width, size.height)));
     }
 
     @Nullable
@@ -297,18 +312,14 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       Object content = node.getUserObject();
       assert content instanceof NlPaletteItem;
       NlPaletteItem item = (NlPaletteItem)content;
-      Image image = null;
-      if (myMode == Mode.PREVIEW && myDesignSurface != null) {
+      BufferedImage image = null;
+      if (myDesignSurface != null) {
         image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), myDesignSurface.getScale());
       }
       if (image == null) {
-        return DnDAwareTree.getDragImage(myTree, path, dragOrigin);
-      } else {
-        Rectangle bounds = myTree.getPathBounds(path);
-        assert bounds != null;
-        Point point = new Point(bounds.x - dragOrigin.x, bounds.y - dragOrigin.y);
-        return Pair.pair(image, point);
+        image = (BufferedImage)DnDAwareTree.getDragImage(myTree, path, dragOrigin).getFirst();
       }
+      return Pair.<Image, Point>pair(image, new Point(-image.getWidth() / 2, -image.getHeight() / 2));
     }
 
     @Override
