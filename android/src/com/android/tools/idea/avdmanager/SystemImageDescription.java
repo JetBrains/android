@@ -64,9 +64,10 @@ public final class SystemImageDescription {
     if (myTarget != null) {
       return myTarget.getVersion();
     }
-    else {
+    else if (myRemotePackage != null) {
       return myRemotePackage.getAndroidVersion();
     }
+    return null;
   }
 
   public IPkgDesc getRemotePackage() {
@@ -111,6 +112,9 @@ public final class SystemImageDescription {
   public String getVendor() {
     if (myTarget != null) {
       return myTarget.getVendor();
+    }
+    if (mySystemImage != null && mySystemImage.getAddonVendor() != null) {
+      return mySystemImage.getAddonVendor().getDisplay();
     }
     if (myRemotePackage != null) {
       IdDisplay vendor = myRemotePackage.getVendor();

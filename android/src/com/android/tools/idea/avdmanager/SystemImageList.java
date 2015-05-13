@@ -308,10 +308,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     IAndroidTarget[] targets = data.getLocalSdk().getTargets();
     for (IAndroidTarget target : targets) {
       IdDisplay imageVendor = info.getPkgDesc().getVendor();
-      if ((imageVendor == null && target.isPlatform() ||
-          imageVendor != null && imageVendor.getId().equals(target.getVendor())) &&
-          info.getPkgDesc().getAndroidVersion().equals(target.getVersion()))
+      if ((imageVendor == null && target.isPlatform() || imageVendor != null && imageVendor.getId().equals(target.getVendor())) &&
+          info.getPkgDesc().getAndroidVersion().equals(target.getVersion())) {
         return target;
+      }
     }
     return null;
   }
@@ -325,9 +325,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     AndroidSdkData data = mySdkState.getSdkData();
     assert data != null; // we shouldn't be able to get here without local data being set
-    List<IAndroidTarget> targets = Lists.newArrayList(data.getLocalSdk().getTargets());
 
-    for (IAndroidTarget target : targets) {
+    for (IAndroidTarget target : data.getLocalSdk().getTargets(true)) {
       ISystemImage[] systemImages = target.getSystemImages();
       if (systemImages != null) {
         for (ISystemImage image : systemImages) {
@@ -369,7 +368,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     AndroidVersion maxVersion = null;
     SystemImageDescription best = null;
     for (SystemImageDescription desc : myModel.getItems()) {
-      if (!desc.isRemote() && ((maxVersion == null || desc.getVersion().compareTo(maxVersion) > 0) || (desc.getVersion().equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))) {
+      AndroidVersion version = desc.getVersion();
+      if (!desc.isRemote() &&
+          (maxVersion == null ||
+           (version != null &&
+            (version.compareTo(maxVersion) > 0 || (version.equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))))) {
         best = desc;
         maxVersion = best.getVersion();
       }
@@ -428,19 +431,24 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         AndroidVersion version = systemImage.getVersion();
-        String codeName = version.isPreview()
-                          ? version.getCodename()
-                          : SdkVersionInfo.getCodeName(version.getApiLevel());
-        String maybeDeprecated = systemImage.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ?
-                                 " (Deprecated)" : "";
-        return codeName == null ? "Unknown" : codeName + maybeDeprecated;
+        if (version == null) {
+          return "Unknown";
+        }
+        String codeName = version.isPreview() ? version.getCodename()
+                                              : SdkVersionInfo.getCodeName(version.getApiLevel());
+        String maybeDeprecated = version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
+        return codeName + maybeDeprecated;
       }
     },
     new SystemImageColumnInfo("API Level", 100) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
-        return systemImage.getVersion().getApiString();
+        AndroidVersion version = systemImage.getVersion();
+        if (version != null) {
+          return version.getApiString();
+        }
+        return "Unknown";
       }
 
       @Nullable
