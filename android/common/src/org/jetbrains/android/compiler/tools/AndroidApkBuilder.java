@@ -440,7 +440,7 @@ public class AndroidApkBuilder {
   public static void collectNativeLibraries(@NotNull File file, @NotNull List<File> result, boolean debugBuild) {
     if (!file.isDirectory()) {
 
-      // some users store jars and *.so libs in the same directory. Do not pack JARs to APK's "lib" folder!
+      // some users store jars and *.so libs in the same directory. Do not pack JARs to APKs "lib" folder!
       if (FileUtilRt.extensionEquals(file.getName(), EXT_NATIVE_LIB) ||
           (debugBuild && !(FileUtilRt.extensionEquals(file.getName(), "jar")))) {
         result.add(file);
