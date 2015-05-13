@@ -837,11 +837,10 @@ public class ThemeEditorComponent extends Splitter {
 
     // Big cells contain two lines of text, and we want some space between them
     // (thus multiplier is 2.8 rather than 2). Also, we need some padding on top and bottom.
-    int bigCellSize = (int) Math.floor(2.8f * regularFontSize) + LARGE_CELL_PADDING;
-    int colorCellSize = 2 * regularFontSize + ColorComponent.SUM_PADDINGS;
+    int bigCellSize = 2 * regularFontSize + ColorComponent.SUM_PADDINGS;
     myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
-      Color.class, colorCellSize,
+      Color.class, bigCellSize,
       DrawableDomElement.class, bigCellSize,
       TableLabel.class, headerFontSize + LARGE_CELL_PADDING
     ));
