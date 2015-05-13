@@ -73,7 +73,7 @@ public class IconPreviewFactory {
   }
 
   @Nullable
-  public Image getImage(@NotNull NlPaletteItem item, @NotNull Configuration configuration, double scale) {
+  public BufferedImage getImage(@NotNull NlPaletteItem item, @NotNull Configuration configuration, double scale) {
     BufferedImage image = readImage(item.getId(), configuration);
     if (image == null) {
       return null;
