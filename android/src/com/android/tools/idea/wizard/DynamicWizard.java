@@ -21,11 +21,10 @@ import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -177,7 +176,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
   /**
    * Declare any finishing actions that will take place at the completion of the wizard.
-   * This function is called inside of a {@link WriteCommandAction}.
    */
   public abstract void performFinishingActions();
 
@@ -412,9 +410,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
-   * Complete the wizard, doing any finishing actions that have been queued up during the wizard flow
-   * inside a write action and a command. Subclasses should rarely need to override
-   * this method.
+   * Complete the wizard, doing any finishing actions that have been queued up during the wizard flow,
+   * with a progress indicator. Subclasses should rarely need to override this method.
    */
   public void doFinishAction() {
     if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
@@ -422,8 +419,24 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       return;
     }
     myHost.close(DynamicWizardHost.CloseAction.FINISH);
-    new WizardCompletionAction().execute();
+
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
+          doFinish();
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+
+    }, getProgressTitle(), false, getProject());
   }
+
+  @NotNull
+  protected abstract String getProgressTitle();
 
   /**
    * Cancel the wizard
@@ -626,22 +639,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       } else {
         return null;
       }
-    }
-  }
-
-  protected final class WizardCompletionAction extends WriteCommandAction<Void> {
-    public WizardCompletionAction() {
-      super(DynamicWizard.this.getProject(), DynamicWizard.this.getWizardActionDescription());
-    }
-
-    @Override
-    protected void run(@NotNull Result<Void> result) throws Throwable {
-      doFinish();
-    }
-
-    @Override
-    protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-      return DynamicWizard.this.getUndoConfirmationPolicy();
     }
   }
 
