@@ -126,12 +126,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private AvdManager myAvdManager = null;
   private AndroidSdkData mySdkData;
-  /**
-   * A cache for in memory {@linkplain PsiPackage}s for data binding.
-   * <p>
-   * To avoid any project leaks, it is cleared when {@link #setIdeaAndroidProject(IdeaAndroidProject)} is called.
-   */
-  private Map<String, PsiPackage> myDataBindingPsiPackages = Maps.newConcurrentMap();
+  private boolean myDataBindingEnabled = false;
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
@@ -161,12 +156,12 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
   private RenderService myRenderService;
+  private DataBindingUtil.LightBrClass myLightBrClass;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     //noinspection ConstantConditions
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
-    DataBindingUtil.initFor(this);
   }
 
   public boolean isAutogenerationEnabled() {
@@ -1132,36 +1127,31 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
-    myDataBindingPsiPackages.clear();
     DataBindingUtil.onIdeaProjectSet(this);
+  }
+
+  /**
+   * Returns true if this facet includes data binding library
+   *
+   * @return True if data binding is enabled for this Facet
+   */
+  public boolean isDataBindingEnabled() {
+    return myDataBindingEnabled;
+  }
+
+  /**
+   * Called by the {@linkplain DataBindingUtil} to update whether this facet includes data binding or not.
+   *
+   * @param dataBindingEnabled True if Facet includes data binding, false otherwise.
+   */
+  public void setDataBindingEnabled(boolean dataBindingEnabled) {
+    myDataBindingEnabled = dataBindingEnabled;
   }
 
   public void addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
     MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
     connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, listener);
-  }
-
-  /**
-   * Returns a {@linkplain PsiPackage} instance for the given package name.
-   * <p>
-   * If it does not exist in the cache, a new one is created.
-   *
-   * @param packageName The qualified package name
-   * @return A {@linkplain PsiPackage} that represents the given qualified name
-   */
-  public synchronized PsiPackage getOrCreateDataBindingPsiPackage(String packageName) {
-    PsiPackage pkg = myDataBindingPsiPackages.get(packageName);
-    if (pkg == null) {
-      pkg = new PsiPackageImpl(PsiManager.getInstance(getModule().getProject()), packageName) {
-        @Override
-        public boolean isValid() {
-          return true;
-        }
-      };
-      myDataBindingPsiPackages.put(packageName, pkg);
-    }
-    return pkg;
   }
 
   /**
@@ -1249,6 +1239,26 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       myRenderService = new RenderService(this);
     }
     return myRenderService;
+  }
+
+  /**
+   * Set by {@linkplain DataBindingUtil} the first time we need it.
+   *
+   * @param lightBrClass
+   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   */
+  public void setLightBrClass(DataBindingUtil.LightBrClass lightBrClass) {
+    myLightBrClass = lightBrClass;
+  }
+
+  /**
+   * Returns the light BR class for this facet if it is aready set.
+   *
+   * @return The BR class for this facet, if exists
+   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   */
+  public DataBindingUtil.LightBrClass getLightBrClass() {
+    return myLightBrClass;
   }
 
   // Compatibility bridge for old (non-Gradle) projects. Also used in Gradle projects before the module has been synced.

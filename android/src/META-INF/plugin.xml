@@ -817,4 +817,17 @@
     <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
   </extensions>
 
+  <!-- data binding-->
+  <extensions defaultExtensionNs="com.intellij">
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder"/>
+  </extensions>
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
+    </component>
+  </project-components>
+
 </idea-plugin>
