@@ -59,7 +59,7 @@ import java.util.List;
 public class DragDropInteraction extends Interaction {
 
   /** The surface associated with this interaction. */
-  private final ScreenView myScreenView;
+  private final DesignSurface myDesignSurface;
 
   /** The components being dragged */
   private final List<NlComponent> myDraggedComponents;
@@ -78,8 +78,11 @@ public class DragDropInteraction extends Interaction {
   /** Whether we're copying or moving */
   private DragType myType = DragType.MOVE;
 
-  public DragDropInteraction(@NonNull ScreenView screenView, @NonNull List<NlComponent> dragged) {
-    myScreenView = screenView;
+  /** The last accessed screen view. */
+  private ScreenView myScreenView;
+
+  public DragDropInteraction(@NonNull DesignSurface designSurface, @NonNull List<NlComponent> dragged) {
+    myDesignSurface = designSurface;
     myDraggedComponents = dragged;
   }
 
@@ -109,6 +112,7 @@ public class DragDropInteraction extends Interaction {
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
+    myScreenView = myDesignSurface.getScreenView(x, y);
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
@@ -217,7 +221,8 @@ public class DragDropInteraction extends Interaction {
 
   @Nullable
   private ViewGroupHandler findViewGroupHandlerAt(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    NlModel model = myScreenView.getModel();
+    final ScreenView screenView = myDesignSurface.getScreenView(x, y);
+    NlModel model = screenView.getModel();
     NlComponent component = model.findLeafAt(x, y, true);
     if (component == myCachedComponent) {
       return myCachedHandler;
