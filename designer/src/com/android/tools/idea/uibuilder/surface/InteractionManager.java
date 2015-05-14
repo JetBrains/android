@@ -403,7 +403,7 @@ public class InteractionManager {
             else {
               dragged = Collections.singletonList(component);
             }
-            interaction = new DragDropInteraction(screenView, dragged);
+            interaction = new DragDropInteraction(mySurface, dragged);
           }
         }
         startInteraction(x, y, interaction, modifiers);
@@ -552,7 +552,7 @@ public class InteractionManager {
               dragged.h = 100;
               dragged.x = Coordinates.getAndroidX(screenView, myLastMouseX);
               dragged.y = Coordinates.getAndroidY(screenView, myLastMouseY);
-              DragDropInteraction interaction = new DragDropInteraction(screenView, Collections.singletonList(dragged));
+              DragDropInteraction interaction = new DragDropInteraction(mySurface, Collections.singletonList(dragged));
               interaction.setType(DragType.COPY);
               startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
             }
