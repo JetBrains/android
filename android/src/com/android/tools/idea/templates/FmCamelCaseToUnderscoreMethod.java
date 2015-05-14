@@ -28,6 +28,8 @@ public class FmCamelCaseToUnderscoreMethod implements TemplateMethodModelEx {
     if (args.size() != 1) {
       throw new TemplateModelException("Wrong arguments");
     }
-    return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(args.get(0).toString()));
+
+    String argString = ((TemplateScalarModel)args.get(0)).getAsString();
+    return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(argString));
   }
 }
