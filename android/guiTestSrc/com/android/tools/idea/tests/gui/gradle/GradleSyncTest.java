@@ -242,19 +242,15 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
-    if (!myAndroidRepoPath.isDirectory()) {
-      // Skip test if Android repository is not installed.
-      System.out.println("Android Support Repository must be installed before running 'testSyncMissingAppCompat'");
-      return;
+    if (myAndroidRepoPath.isDirectory()) {
+      // Instead of deleting the Android repo folder, we rename it and later on restore it in a @SetUp method, so if this fails, the SDK
+      // will be in good state.
+      delete(myAndroidRepoTempPath);
+      rename(myAndroidRepoPath, myAndroidRepoTempPath);
     }
+    assertThat(myAndroidRepoPath).doesNotExist();
 
     IdeFrameFixture projectFrame = importSimpleApplication();
-
-    // Instead of deleting the Android repo folder, we rename it and later on restore it in a @SetUp method, so if this fails, the SDK
-    // will be in good state.
-    delete(myAndroidRepoTempPath);
-    rename(myAndroidRepoPath, myAndroidRepoTempPath);
-    assertThat(myAndroidRepoPath).doesNotExist();
 
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
