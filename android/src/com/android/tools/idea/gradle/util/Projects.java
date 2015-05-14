@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
@@ -36,10 +38,14 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -441,5 +447,38 @@ public final class Projects {
 
   public static void setDependencySetupErrors(@NotNull Project project, @Nullable DependencySetupErrors errors) {
     project.putUserData(DEPENDENCY_SETUP_ERRORS, errors);
+  }
+
+  @Nullable
+  public static AndroidProject getAndroidModel(@NotNull VirtualFile file, @NotNull Project project) {
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    if (module == null) {
+      if (isGradleProject(project)) {
+        // You've edited a file that does not correspond to a module in a Gradle project; you are
+        // most likely editing a file in an excluded folder under the build directory
+        VirtualFile base = project.getBaseDir();
+        VirtualFile parent = file.getParent();
+        while (parent != null && parent.equals(base)) {
+          module = ModuleUtilCore.findModuleForFile(parent, project);
+          if (module != null) {
+            break;
+          }
+          parent = parent.getParent();
+        }
+      }
+
+      if (module == null) {
+        return null;
+      }
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    if (androidProject == null) {
+      return null;
+    }
+    return androidProject.getDelegate();
   }
 }

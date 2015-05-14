@@ -17,12 +17,9 @@
 package com.android.tools.idea.editors;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -30,7 +27,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +52,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    AndroidProject androidProject = getAndroidProject(file);
+    AndroidProject androidProject = Projects.getAndroidModel(file, myProject);
     if (androidProject == null) {
       return null;
     }
@@ -91,36 +87,5 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
     return null;
   }
 
-  @Nullable
-  private AndroidProject getAndroidProject(@NotNull VirtualFile file) {
-    Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-    if (module == null) {
-      if (Projects.isGradleProject(myProject)) {
-        // You've edited a file that does not correspond to a module in a Gradle project; you are
-        // most likely editing a file in an excluded folder under the build directory
-        VirtualFile base = myProject.getBaseDir();
-        VirtualFile parent = file.getParent();
-        while (parent != null && parent != base) {
-          module = ModuleUtilCore.findModuleForFile(parent, myProject);
-          if (module != null) {
-            break;
-          }
-          parent = parent.getParent();
-        }
-      }
 
-      if (module == null) {
-        return null;
-      }
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-    if (androidProject == null) {
-      return null;
-    }
-    return androidProject.getDelegate();
-  }
 }
