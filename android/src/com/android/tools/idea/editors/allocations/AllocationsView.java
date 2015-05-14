@@ -20,6 +20,7 @@ import com.android.tools.chartlib.SunburstComponent;
 import com.android.tools.chartlib.ValuedTreeNode;
 import com.android.tools.idea.editors.allocations.nodes.*;
 import com.android.utils.HtmlBuilder;
+import com.google.common.collect.Maps;
 import com.intellij.execution.filters.OpenFileHyperlinkInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.GotoFileCellRenderer;
@@ -33,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.*;
@@ -54,9 +54,9 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.event.MouseEvent;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Map;
 
 public class AllocationsView implements SunburstComponent.SliceSelectionListener {
 
@@ -92,6 +92,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
   private String myChartUnit;
   private final JLabel myInfoLabel;
   private Alarm myAlarm;
+  private final JBTable myInfoTable;
 
   public AllocationsView(@NotNull Project project, @NotNull final AllocationInfo[] allocations) {
     myProject = project;
@@ -110,7 +111,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
-        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UPDATE_POPUP, popupGroup);
+        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup);
         popupMenu.getComponent().show(comp, x, y);
       }
     });
@@ -270,11 +271,31 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
       }
     };
     myInfoTableModel.addColumn("Data");
-    JBTable info = new JBTable(myInfoTableModel);
-    info.setTableHeader(null);
-    info.setShowGrid(false);
-    info.setDefaultRenderer(Object.class, new NodeTableCellRenderer());
-    JBScrollPane scroll = new JBScrollPane(info);
+    myInfoTable = new JBTable(myInfoTableModel);
+    myInfoTable.addMouseListener(new PopupHandler() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        super.mousePressed(e);
+
+        if (e.getClickCount() == 2) {
+          Object value = myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0);
+          if (value instanceof TreeNode) {
+            TreeNode[] path = myTreeModel.getPathToRoot((TreeNode)value);
+            myTree.setSelectionPath(new TreePath(path));
+          }
+        }
+      }
+
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UPDATE_POPUP, popupGroup);
+        popupMenu.getComponent().show(comp, x, y);
+      }
+    });
+    myInfoTable.setTableHeader(null);
+    myInfoTable.setShowGrid(false);
+    myInfoTable.setDefaultRenderer(Object.class, new NodeTableCellRenderer());
+    JBScrollPane scroll = new JBScrollPane(myInfoTable);
     scroll.setBorder(BorderFactory.createEmptyBorder());
     infoPanel.add(scroll, BorderLayout.CENTER);
     chartSplitter.setSecondComponent(infoPanel);
@@ -423,6 +444,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
   }
 
   private void customizeColoredRenderer(SimpleColoredComponent renderer, Object value) {
+    renderer.setTransparentIconBackground(true);
     if (value instanceof ThreadNode) {
       renderer.setIcon(AllIcons.Debugger.ThreadSuspended);
       renderer.append("< Thread " + ((ThreadNode)value).getThreadId() + " >");
@@ -505,26 +527,42 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
       // setShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_EDIT_SOURCE).getShortcutSet());
     }
 
-    StackTraceElement getStackTraceElement(AnActionEvent e) {
-      Object node = myTree.getLastSelectedPathComponent();
-      if (node instanceof StackNode) {
-        return ((StackNode)node).getStackTraceElement();
+    Map<PsiFile, Integer> getTargetFiles(AnActionEvent e) {
+      Map<PsiFile, Integer> files = Maps.newHashMap();
+      Object node;
+      if (ActionPlaces.UPDATE_POPUP.equals(e.getPlace())) {
+        node = myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0);
+      } else {
+        node = myTree.getLastSelectedPathComponent();
       }
-      return null;
-    }
-
-    List<PsiElement> getTargetFiles(AnActionEvent e) {
-      List<PsiElement> files = new ArrayList<PsiElement>();
-      StackTraceElement element = getStackTraceElement(e);
-      if (element != null) {
-        String className = element.getClassName();
-        int ix = className.indexOf("$");
-        if (ix >= 0) {
-          className = className.substring(0, ix);
+      String className = null;
+      int lineNumber = 0;
+      if (node instanceof ClassNode) {
+        className = ((ClassNode)node).getQualifiedName();
+      } else {
+        StackTraceElement element = null;
+        if (node instanceof StackNode) {
+          element =  ((StackNode)node).getStackTraceElement();
+        } else if (node instanceof AllocNode) {
+          StackTraceElement[] stack = ((AllocNode)node).getAllocation().getStackTrace();
+          if (stack.length > 0) {
+            element = stack[0];
+          }
         }
+        if (element != null) {
+          lineNumber = element.getLineNumber();
+          className = element.getClassName();
+          int ix = className.indexOf("$");
+          if (ix >= 0) {
+            className = className.substring(0, ix);
+          }
+        }
+      }
+
+      if (className != null) {
         PsiClass[] classes = JavaPsiFacade.getInstance(myProject).findClasses(className, GlobalSearchScope.allScope(myProject));
         for (PsiClass c : classes) {
-          files.add(c.getContainingFile().getNavigationElement());
+          files.put((PsiFile)c.getContainingFile().getNavigationElement(), lineNumber);
         }
       }
       return files;
@@ -538,24 +576,25 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      List<PsiElement> files = getTargetFiles(e);
+      final Map<PsiFile, Integer> files = getTargetFiles(e);
       assert !files.isEmpty();
-      final StackTraceElement element = getStackTraceElement(e);
       if (files.size() > 1) {
-        final JBList list = new JBList(files);
+        final JBList list = new JBList(files.keySet());
         int width = WindowManager.getInstance().getFrame(myProject).getSize().width;
         list.setCellRenderer(new GotoFileCellRenderer(width));
         JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(new Runnable() {
           @Override
           public void run() {
-            VirtualFile file = ((PsiFile)list.getSelectedValue()).getVirtualFile();
-            new OpenFileHyperlinkInfo(myProject, file, element.getLineNumber()).navigate(myProject);
+            PsiFile psiFile = (PsiFile)list.getSelectedValue();
+            VirtualFile file = psiFile.getVirtualFile();
+            new OpenFileHyperlinkInfo(myProject, file, files.get(psiFile)).navigate(myProject);
           }
         }).createPopup().showInFocusCenter();
       }
       else {
-        VirtualFile file = ((PsiFile)files.get(0)).getVirtualFile();
-        new OpenFileHyperlinkInfo(myProject, file, element.getLineNumber()).navigate(myProject);
+        Map.Entry<PsiFile, Integer> entry = files.entrySet().iterator().next();
+        VirtualFile file = entry.getKey().getVirtualFile();
+        new OpenFileHyperlinkInfo(myProject, file, entry.getValue()).navigate(myProject);
       }
     }
   }
