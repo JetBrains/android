@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.allocations.nodes;
 import com.android.ddmlib.AllocationInfo;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.tree.TreeNode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,5 +52,11 @@ public class PackageNode extends AbstractTreeNode {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public String getQualifiedName() {
+    TreeNode parent = getParent();
+    String pkg = parent instanceof PackageNode ? ((PackageNode)parent).getQualifiedName() : "";
+    return pkg.isEmpty() ? myName : pkg + "." + myName;
   }
 }
