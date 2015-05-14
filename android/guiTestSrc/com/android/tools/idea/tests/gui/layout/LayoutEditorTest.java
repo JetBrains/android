@@ -67,11 +67,14 @@ public class LayoutEditorTest extends GuiTestCase {
 
     // Let's check the property sheet
     PropertySheetFixture propertySheet = layout.getPropertySheetFixture();
+
     PropertyFixture property = propertySheet.findProperty("text");
     assertNotNull(property);
+
     property.requireDisplayName("text");
     property.requireValue("@string/hello_world");
     property.enterValue("New Label");
+
     layout.waitForNextRenderToFinish();
     property.requireValue("New Label");
 
@@ -113,9 +116,6 @@ public class LayoutEditorTest extends GuiTestCase {
     property.enterValue("@");
     property.requireValue("\\@");
     property.requireXmlValue("\\@");
-    property.enterValue("?");
-    property.requireValue("\\?");
-    property.requireXmlValue("\\?");
     property.enterValue("@string"); // Incomplete reference.
     property.requireValue("\\@string");
     property.requireXmlValue("\\@string");
