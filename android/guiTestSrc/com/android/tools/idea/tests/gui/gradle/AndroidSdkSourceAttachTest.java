@@ -54,9 +54,6 @@ import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AndroidSdkSourceAttachTest extends GuiTestCase {
-  private static final String ACTIVITY_CLASS_FILE_PATH = "android/app/Activity.class";
-  private static final String ACTIVITY_JAVA_FILE_PATH = "android/app/Activity.java";
-
   // Sdk used for the simpleApplication project.
   private Sdk mySdk = findSuitableAndroidSdk("android-21");
 
@@ -70,8 +67,9 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
   @Before
   public void restoreAndroidSdkSource() throws IOException {
-    mySdkSourcePath = new File(mySdk.getHomePath() + "/sources/android-21");
-    mySdkSourceTmpPath = new File(mySdk.getHomePath() + "/sources.tmp/android-21"); // it can't be in 'sources' folder
+    String sdkHomePath = mySdk.getHomePath();
+    mySdkSourcePath = new File(sdkHomePath + "/sources/android-21");
+    mySdkSourceTmpPath = new File(sdkHomePath + "/sources.tmp/android-21"); // it can't be in 'sources' folder
 
     if (!mySdkSourcePath.isDirectory() && mySdkSourceTmpPath.isDirectory()) {
       rename(mySdkSourceTmpPath, mySdkSourcePath);
@@ -98,9 +96,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     // Download the source.
     findNotificationPanel(projectFrame).performAction("Download");
 
-    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
-      .withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
-
+    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
@@ -121,7 +117,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
-    assertThat(sourceFile.getPath()).endsWith(ACTIVITY_JAVA_FILE_PATH);
+    assertIsActivityJavaFile(sourceFile);
   }
 
   @Test
@@ -158,14 +154,16 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
-    assertThat(sourceFile.getPath()).endsWith(ACTIVITY_JAVA_FILE_PATH);
+    assertIsActivityJavaFile(sourceFile);
+  }
+
+  private static void assertIsActivityJavaFile(@NotNull VirtualFile sourceFile) {
+    assertThat(sourceFile.getPath()).endsWith("android/app/Activity.java");
   }
 
   private void acceptLegalNoticeIfNeeded() {
     if(!PropertiesComponent.getInstance().isTrueValue("decompiler.legal.notice.accepted")) {
-      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler"))
-        .withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
-
+      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
       acceptTermDialog.button(withText("Accept")).click();
     }
   }
@@ -179,13 +177,13 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   @NotNull
   private VirtualFile findActivityClassFile() {
     VirtualFile jarRoot = null;
-    for (VirtualFile f : mySdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
-      if (f.getUrl().startsWith(SdkConstants.EXT_JAR)) {
-        jarRoot = f;
+    for (VirtualFile file : mySdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+      if (file.getUrl().startsWith(SdkConstants.EXT_JAR)) {
+        jarRoot = file;
       }
     }
     assertNotNull(jarRoot);
-    VirtualFile classFile = jarRoot.findFileByRelativePath(ACTIVITY_CLASS_FILE_PATH);
+    VirtualFile classFile = jarRoot.findFileByRelativePath("android/app/Activity.class");
     assertNotNull(classFile);
     return classFile;
   }
