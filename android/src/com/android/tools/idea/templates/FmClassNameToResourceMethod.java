@@ -33,7 +33,7 @@ public class FmClassNameToResourceMethod implements TemplateMethodModelEx {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        String name = args.get(0).toString();
+        String name = ((TemplateScalarModel)args.get(0)).getAsString();
 
         if (name.isEmpty()) {
             return new SimpleScalar("");

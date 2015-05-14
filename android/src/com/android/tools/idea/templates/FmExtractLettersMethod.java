@@ -29,7 +29,7 @@ public class FmExtractLettersMethod implements TemplateMethodModelEx {
         if (args.size() != 1) {
             throw new TemplateModelException("Wrong arguments");
         }
-        String string = args.get(0).toString();
+        String string = ((TemplateScalarModel)args.get(0)).getAsString();
         StringBuilder sb = new StringBuilder(string.length());
         for (int i = 0, n = string.length(); i < n; i++) {
             char c = string.charAt(i);

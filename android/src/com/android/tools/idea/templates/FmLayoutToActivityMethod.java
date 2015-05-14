@@ -33,7 +33,7 @@ public class FmLayoutToActivityMethod implements TemplateMethodModelEx {
       throw new TemplateModelException("Wrong arguments");
     }
 
-    String name = args.get(0).toString();
+    String name = ((TemplateScalarModel)args.get(0)).getAsString();
 
     // Strip off the beginning portion of the layout name. The user might be typing
     // the activity name such that only a portion has been entered so far (e.g.

@@ -31,6 +31,7 @@ public class FmSlashedPackageNameMethod implements TemplateMethodModelEx {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        return new SimpleScalar(args.get(0).toString().replace('.', '/'));
+        String argString = ((TemplateScalarModel)args.get(0)).getAsString();
+        return new SimpleScalar(argString.replace('.', '/'));
     }
 }
