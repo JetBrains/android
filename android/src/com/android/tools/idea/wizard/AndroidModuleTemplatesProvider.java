@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -94,6 +96,18 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
         moduleTemplates.addAll(getModuleTemplates(metadata, formFactor));
       }
     }
+
+    Collections.sort(moduleTemplates, new Comparator<ModuleTemplate>() {
+      @Override
+      public int compare(ModuleTemplate t1, ModuleTemplate t2) {
+        FormFactorUtils.FormFactor f1 = t1.getFormFactor();
+        FormFactorUtils.FormFactor f2 = t2.getFormFactor();
+        assert f1 != null : t1; // because of null check before we added ot moduleTemplates list
+        assert f2 != null : t2;
+        return f1.compareTo(f2);
+      }
+    });
+
     return moduleTemplates;
   }
 }
