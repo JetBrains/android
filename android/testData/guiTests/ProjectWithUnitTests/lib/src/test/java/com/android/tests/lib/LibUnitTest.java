@@ -31,7 +31,6 @@ import android.os.PowerManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -39,7 +38,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-public class UnitTest {
+public class LibUnitTest {
     @Test
     public void passingTest() {
         assertEquals(4, 2+2);
@@ -150,10 +149,10 @@ public class UnitTest {
 
     @Test
     public void javaResourcesOnClasspath() throws Exception {
-        URL url = UnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
+        URL url = LibUnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
         assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
 
-        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
+        InputStream stream = LibUnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
         assertNotNull("expected resource_file.txt to be opened as a stream", stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
@@ -163,10 +162,10 @@ public class UnitTest {
 
     @Test
     public void prodJavaResourcesOnClasspath() throws Exception {
-        URL url = UnitTest.class.getClassLoader().getResource("lib_prod_resource_file.txt");
+        URL url = LibUnitTest.class.getClassLoader().getResource("lib_prod_resource_file.txt");
         assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
 
-        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_prod_resource_file.txt");
+        InputStream stream = LibUnitTest.class.getClassLoader().getResourceAsStream("lib_prod_resource_file.txt");
         assertNotNull("expected resource_file.txt to be opened as a stream", stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
@@ -178,12 +177,6 @@ public class UnitTest {
     public void prodRClass() {
         int id = R.string.app_name;
         assertTrue(id > 0);
-    }
-
-    @Test
-    @Ignore
-    public void thisIsIgnored() {
-        // Just excercise more JUnit features.
     }
 
     @Test
