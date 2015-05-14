@@ -20,11 +20,11 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor.ColorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -466,16 +466,15 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       final boolean succeeded;
+      boolean forceReload = false;
       // Color editing may return reference value, which can be the same as previous value
       // in this cell, but updating table is still required because value that reference points
-      // to was changed. To preserve this information, ColorEditor returns ColorInfo data
+      // to was changed. To preserve this information, ColorEditor returns ColorEditorValue data
       // structure with value and boolean flag which shows whether reload should be forced.
-      if (value instanceof ColorInfo) {
-        ColorInfo info = (ColorInfo) value;
-        succeeded = setAttributeValue(info.getResourceValue(), info.isForceReload());
-      } else {
-        succeeded = setAttributeValue(value.toString(), false);
+      if (value instanceof ColorEditor.ColorEditorValue) {
+        forceReload = ((ColorEditor.ColorEditorValue)value).isForceReload();
       }
+      succeeded = setAttributeValue(value.toString(), forceReload);
 
       if (succeeded) {
         fireTableCellUpdated(myRowIndex, column);
