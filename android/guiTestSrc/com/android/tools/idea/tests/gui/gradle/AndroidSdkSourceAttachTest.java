@@ -40,6 +40,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.rename;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static org.fest.assertions.Assertions.assertThat;
@@ -47,15 +48,15 @@ import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.clearLocalPkgInfo;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.findSuitableAndroidSdk;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AndroidSdkSourceAttachTest extends GuiTestCase {
+  private static final String ANDROID_PLATFORM = "android-21";
+
   // Sdk used for the simpleApplication project.
-  private Sdk mySdk = findSuitableAndroidSdk("android-21");
+  private Sdk mySdk = findSuitableAndroidSdk(ANDROID_PLATFORM);
 
   private File mySdkSourcePath;
   private File mySdkSourceTmpPath;
@@ -68,8 +69,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   @Before
   public void restoreAndroidSdkSource() throws IOException {
     String sdkHomePath = mySdk.getHomePath();
-    mySdkSourcePath = new File(sdkHomePath + "/sources/android-21");
-    mySdkSourceTmpPath = new File(sdkHomePath + "/sources.tmp/android-21"); // it can't be in 'sources' folder
+    mySdkSourcePath = new File(sdkHomePath, join("sources", ANDROID_PLATFORM));
+    mySdkSourceTmpPath = new File(sdkHomePath, join("sources.tmp", ANDROID_PLATFORM)); // it can't be in 'sources' folder
 
     if (!mySdkSourcePath.isDirectory() && mySdkSourceTmpPath.isDirectory()) {
       rename(mySdkSourceTmpPath, mySdkSourcePath);
