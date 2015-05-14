@@ -87,7 +87,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private HyperlinkLabel myHelpMeChooseLink = new HyperlinkLabel("Help me choose");
   private List<Pair<Key<Boolean>, JCheckBox>> myCheckboxKeys = Lists.newArrayList();
 
-  private List<FormFactor> myFormFactors = Lists.newArrayList();
+  private Set<FormFactor> myFormFactors = Sets.newTreeSet();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
   private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
@@ -96,7 +96,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private static final String DOWNLOAD_PROGRESS_CARD = "progress";
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
-    super("Select the form factors your app will run on", "Different platforms require separate SDKs", disposable);
+    super("Select the form factors your app will run on", "Different platforms may require separate SDKs", disposable);
     myDisposable = disposable;
     Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
     setBodyComponent(myPanel);
@@ -186,8 +186,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       if (formFactor == null) {
         continue;
       }
-      myFormFactors.add(formFactor);
-      minSdks.put(formFactor, metadata.getMinSdk());
+      if (!myFormFactors.contains(formFactor)) {
+        myFormFactors.add(formFactor);
+        minSdks.put(formFactor, metadata.getMinSdk());
+      }
     }
 
     // Number of rows is two for each active form factor (one for checkbox and one for popup) + one for each of the
@@ -207,28 +209,33 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       // Since we aren't connected to the wizard yet, we can't save this (wizard-scoped) state.
       // Save away the key and component so they can be registered later.
       myCheckboxKeys.add(Pair.create(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox));
-      FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, minSdks.get(formFactor));
-      FormFactorApiComboBox minSdkComboBox = controls.getMinSdkCombo();
-      minSdkComboBox.setName(formFactor.id + ".minSdk");
-      controls.layout(myFormFactorPanel, ++row, inclusionCheckBox.getIconTextGap());
-      myFormFactorApiSelectors.put(formFactor, controls);
-      minSdkComboBox.register(this);
 
-      // If we don't have any valid targets for the given form factor, disable that form factor
-      if (minSdkComboBox.getItemCount() == 0) {
-        inclusionCheckBox.setSelected(false);
-        inclusionCheckBox.setEnabled(false);
-        inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
+      // Only show SDK selector for base form factors.
+      if (formFactor.baseFormFactor == null) {
+        FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, minSdks.get(formFactor));
+        FormFactorApiComboBox minSdkComboBox = controls.getMinSdkCombo();
+        minSdkComboBox.setName(formFactor.id + ".minSdk");
 
-        JBCardLayout layout = new JBCardLayout();
-        final JPanel downloadCardPanel = new JPanel(layout);
-        downloadCardPanel.add(DOWNLOAD_PROGRESS_CARD, createDownloadingMessage());
-        final HyperlinkLabel link = new HyperlinkLabel("Download");
-        downloadCardPanel.add(DOWNLOAD_LINK_CARD, link);
-        layout.show(downloadCardPanel, DOWNLOAD_PROGRESS_CARD);
-        c.setColumn(1);
-        myFormFactorPanel.add(downloadCardPanel, c);
-        findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
+        controls.layout(myFormFactorPanel, ++row, inclusionCheckBox.getIconTextGap());
+        myFormFactorApiSelectors.put(formFactor, controls);
+        minSdkComboBox.register(this);
+
+        // If we don't have any valid targets for the given form factor, disable that form factor
+        if (minSdkComboBox.getItemCount() == 0) {
+          inclusionCheckBox.setSelected(false);
+          inclusionCheckBox.setEnabled(false);
+          inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
+
+          JBCardLayout layout = new JBCardLayout();
+          final JPanel downloadCardPanel = new JPanel(layout);
+          downloadCardPanel.add(DOWNLOAD_PROGRESS_CARD, createDownloadingMessage());
+          final HyperlinkLabel link = new HyperlinkLabel("Download");
+          downloadCardPanel.add(DOWNLOAD_LINK_CARD, link);
+          layout.show(downloadCardPanel, DOWNLOAD_PROGRESS_CARD);
+          c.setColumn(1);
+          myFormFactorPanel.add(downloadCardPanel, c);
+          findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
+        }
       }
 
       if (formFactor.equals(MOBILE)) {
@@ -357,12 +364,35 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       Boolean included = myState.get(getInclusionKey(formFactor));
       // Disable api selection for non-enabled form factors and check to see if only one is selected
       if (included != null && included) {
-        if (myState.get(getMinApiKey(formFactor)) == null) {
-          // Don't allow the user to continue unless all minAPIs are chosen
-          setErrorHtml("Each form factor must have a Minimum SDK level selected.");
+        if (!isBaseEnabled(formFactor)) {
+          return false;
+        }
+        if (formFactor.baseFormFactor == null && myState.get(getMinApiKey(formFactor)) == null) {
+          // Don't allow the user to continue unless all minAPIs of base form factors are chosen
+          setErrorHtml(formFactor + " must have a Minimum SDK level selected.");
           return false;
         }
       }
+    }
+    return true;
+  }
+
+  private boolean isBaseEnabled(FormFactor formFactor) {
+    if (formFactor.baseFormFactor == null) {
+      return true;
+    }
+    Boolean isBaseEnabled = myState.get(getInclusionKey(formFactor.baseFormFactor));
+    if (isBaseEnabled == null || !isBaseEnabled) {
+      setErrorHtml("In order to support " + formFactor + " you need to enable " + formFactor.baseFormFactor + ".");
+      return false;
+    }
+    // Check if minSDK of the base is valid:
+    AndroidTargetComboBoxItem baseMinSdk = myState.get(getTargetComboBoxKey(formFactor.baseFormFactor));
+    if (!FormFactorUtils.getMinSdkComboBoxFilter(formFactor, 0).apply(baseMinSdk)) {
+      // Don't allow the user to continue unless all minAPIs of base form factors are chosen
+      // TODO: add valid minimum SDK levels to the error message.
+      setErrorHtml("Set a minimum SDK level on " + formFactor.baseFormFactor + " that is compatible with " + formFactor);
+      return false;
     }
     return true;
   }
