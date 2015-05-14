@@ -40,7 +40,7 @@ public class ColorEditor extends AbstractTableCellEditor {
   private final Configuration myConfiguration;
 
   private final ColorComponent myComponent;
-  private ColorInfo myEditorValue = null;
+  private ColorEditorValue myEditorValue = null;
 
   private final AndroidThemePreviewPanel myPreviewPanel;
 
@@ -56,26 +56,26 @@ public class ColorEditor extends AbstractTableCellEditor {
     myPreviewPanel = previewPanel;
   }
 
-  public static class ColorInfo {
+  public static class ColorEditorValue {
     private final @NotNull String myResourceValue;
     private final boolean myForceReload;
-
-    @NotNull
-    public String getResourceValue() {
-      return myResourceValue;
-    }
 
     public boolean isForceReload() {
       return myForceReload;
     }
 
-    public ColorInfo(@NotNull String resourceValue, boolean forceReload) {
+    public ColorEditorValue(@NotNull String resourceValue, boolean forceReload) {
       myResourceValue = resourceValue;
       myForceReload = forceReload;
     }
 
-    public static ColorInfo of(@NotNull String resourceValue, boolean forceReload) {
-      return new ColorInfo(resourceValue, forceReload);
+    public static ColorEditorValue of(@NotNull String resourceValue, boolean forceReload) {
+      return new ColorEditorValue(resourceValue, forceReload);
+    }
+
+    @Override
+    public String toString() {
+      return myResourceValue;
     }
   }
 
@@ -129,7 +129,7 @@ public class ColorEditor extends AbstractTableCellEditor {
       if (dialog.isOK()) {
         String value = dialog.getResourceName();
         if (value != null) {
-          myEditorValue = ColorInfo.of(dialog.getResourceName(), dialog.overwriteResource());
+          myEditorValue = ColorEditorValue.of(dialog.getResourceName(), dialog.overwriteResource());
         }
       }
 
