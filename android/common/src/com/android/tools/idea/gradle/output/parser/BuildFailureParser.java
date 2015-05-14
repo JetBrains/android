@@ -152,18 +152,18 @@ public class BuildFailureParser implements PatternAwareOutputParser {
                 matcher = Pattern.compile("\\s*> Duplicate resources: (.+):(.+), (.+):(.+)\\s*").matcher(currentLine);
                 if (matcher.matches()) {
                   file = new SourceFile(new File(matcher.group(1)));
-                  SourcePosition thisPos = AbstractAaptOutputParser.findResourceLine(file.getSourceFile(), matcher.group(2), logger);
+                  position = AbstractAaptOutputParser.findResourceLine(file.getSourceFile(), matcher.group(2), logger);
                   File other =  new File(matcher.group(3));
                   SourcePosition otherPos = AbstractAaptOutputParser.findResourceLine(other, matcher.group(4), logger);
                   messages.add(new Message(
-                      Message.Kind.ERROR, currentLine, new SourceFilePosition(file, thisPos), new SourceFilePosition(other, otherPos)));
+                      Message.Kind.ERROR, currentLine, new SourceFilePosition(file, position), new SourceFilePosition(other, otherPos)));
                   // Skip appending to the errorMessage buffer; we've already added both locations to the message
                   break;
                 }
               }
               else if (currentLine.startsWith("> Problems pinging owner of lock ", quoted)) {
                 String text = "Possibly unstable network connection: Failed to connect to lock owner. Try to rebuild.";
-                messages.add(new Message(Message.Kind.ERROR, text, new SourceFilePosition(SourceFile.UNKNOWN, SourcePosition.UNKNOWN)));
+                messages.add(new Message(Message.Kind.ERROR, text, SourceFilePosition.UNKNOWN));
               }
             }
             if (errorMessage.length() > 0) {
