@@ -59,7 +59,8 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.RenderParamsFlags.*;
+import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
+import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -92,6 +93,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
+  private ParserFactory myParserFactory;
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -685,8 +687,19 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @NotNull
   @Override
-  public XmlPullParser createParser(@Nullable String displayName) throws XmlPullParserException {
-    return new NamedParser(displayName);
+  public ParserFactory getParserFactory() {
+    if (myParserFactory == null) {
+      myParserFactory = new ParserFactoryImpl();
+    }
+    return myParserFactory;
+  }
+
+  private static class ParserFactoryImpl extends ParserFactory {
+    @NotNull
+    @Override
+    public XmlPullParser createParser(@Nullable String debugName) throws XmlPullParserException {
+      return new NamedParser(debugName);
+    }
   }
 
   private static class NamedParser extends KXmlParser {
