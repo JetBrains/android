@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
@@ -51,6 +52,7 @@ import static com.android.utils.SdkUtils.createPathComment;
 @SuppressWarnings({"ResultOfMethodCallIgnored", "StringBufferReplaceableByString"})
 public class BuildOutputParserTest extends TestCase {
   private static final String NEWLINE = SystemProperties.getLineSeparator();
+  private static final String CWD_PATH = new File("").getAbsolutePath();
 
   private File sourceFile;
   private String sourceFilePath;
@@ -314,7 +316,7 @@ public class BuildOutputParserTest extends TestCase {
 
     assertEquals("0: Error:A problem occurred evaluating project ':project'.\n" +
                  "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.\n" +
-                 "\t" + sourceFilePath + ":9:0\n" +
+                 "\t" + sourceFilePath + ":9:1\n" +
                  "1: Info:BUILD FAILED\n" +
                  "2: Info:Total time: 18.303 secs\n",
                  toString(messages));
@@ -481,7 +483,15 @@ public class BuildOutputParserTest extends TestCase {
   @Nullable
   private static String getSystemIndependentSourcePath(@NotNull Message message) {
     String sourcePath = message.getSourcePath();
-    return sourcePath == null ? null : FileUtil.toSystemIndependentName(sourcePath);
+    if (sourcePath == null) {
+      return null;
+    }
+    String name = FileUtil.toSystemIndependentName(sourcePath);
+    if (name.startsWith(CWD_PATH)) {
+      name = name.substring(CWD_PATH.length() + 1);
+    };
+    return name;
+
   }
 
   private static boolean setupSdkHome() {
@@ -643,8 +653,7 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals("0: Error:Found item String/drawer_open more than one time: Failed to parse " + sourceFilePath + "\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
-                 "> Found item String/drawer_open more than one time\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n",
+                 "> Found item String/drawer_open more than one time\n",
                  toString(parser.parseGradleOutput(output)));
 
     // Also test CRLF handling:
@@ -652,8 +661,7 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals("0: Error:Found item String/drawer_open more than one time: Failed to parse " + sourceFilePath + "\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
-                 "> Found item String/drawer_open more than one time\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n",
+                 "> Found item String/drawer_open more than one time\n",
                  toString(parser.parseGradleOutput(output)));
   }
 
@@ -704,13 +712,12 @@ public class BuildOutputParserTest extends TestCase {
                  "3: Simple::compileF2FaDebugRenderscript UP-TO-DATE\n" +
                  "4: Simple::mergeF2FaDebugResources FAILED\n" +
                  "5: Error:> Duplicate resources: " + path1 + ":string/group2_string, " + path2 + ":string/group2_string\n" +
-                 "\t" + path1 + ":4:-1\n" +
-                 "6: Error:Other duplicate occurrence here\n" +
-                 "\t" + path2 + ":3:-1\n" +
-                 "7: Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
-                 "\t" + path1 + ":4:-1\n" +
-                 "8: Info:BUILD FAILED\n" +
-                 "9: Info:Total time: 6.462 secs\n",
+                 "\t" + path1 + ":4:13\n" +
+                 "\t" + path2 + ":3:31\n" +
+                 "6: Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
+                 "\t" + path1 + ":4:13\n" +
+                 "7: Info:BUILD FAILED\n" +
+                 "8: Info:Total time: 6.462 secs\n",
                  toString(parser.parseGradleOutput(output)));
 
     file1.delete();
@@ -802,7 +809,6 @@ public class BuildOutputParserTest extends TestCase {
                  "13: Simple::MyApp:mergeDebugResources FAILED\n" +
                  "14: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
-                 "\t" + sourceFilePath + ":7:18\n" +
                  "15: Info:BUILD FAILED\n" +
                  "16: Info:Total time: 7.245 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1338,7 +1344,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication589:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication589:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 4.861 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1392,7 +1397,6 @@ public class BuildOutputParserTest extends TestCase {
                  "12: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
-                 "\t" + sourceFilePath + ":4:1\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 5.187 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1465,7 +1469,6 @@ public class BuildOutputParserTest extends TestCase {
                  "12: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> "+ sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
-                 "\t" + sourceFilePath + ":2:16\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 4.951 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1654,7 +1657,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication585:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 8.91 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1705,7 +1707,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication585:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
-                 "\t" + sourceFilePath + ":4:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 8.91 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1757,7 +1758,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.623 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1804,13 +1804,13 @@ public class BuildOutputParserTest extends TestCase {
                  "3: Simple::foolib:buildNative\n" +
                  "4: Simple:Unexpected close tag: MANIFEST, expecting APPLICATION\n" +
                  "5: Warning:warning: overriding commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "6: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "7: Warning:warning: overriding commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "8: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "9: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
                  "10: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
@@ -1828,9 +1828,9 @@ public class BuildOutputParserTest extends TestCase {
                  "16: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
                  "17: Warning:warning: overriding commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "18: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "19: Simple:[armeabi-v7a] Install        : libaacdecoder.so => libs/armeabi-v7a/libaacdecoder.so\n" +
                  "20: Simple:[armeabi] Install        : libaacdecoder.so => libs/armeabi/libaacdecoder.so\n" +
                  "21: Simple:[x86] Install        : libaacdecoder.so => libs/x86/libaacdecoder.so\n" +
@@ -1909,7 +1909,7 @@ public class BuildOutputParserTest extends TestCase {
                  // TODO: Link to the gradle.properties file directly!
                  // However, we have an import hyperlink helper to do it automatically, so may not be necessary
                  "> Gradle version 1.8 is required. Current version is 1.7. If using the gradle wrapper, try editing the distributionUrl in /some/path/gradle.properties to gradle-1.8-all.zip\n" +
-                 "\t" + sourceFilePath + ":24:0\n" +
+                 "\t" + sourceFilePath + ":24:1\n" +
                  "1: Info:BUILD FAILED\n" +
                  "2: Info:Total time: 4.467 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -2206,7 +2206,6 @@ public class BuildOutputParserTest extends TestCase {
                  "  \t1\n" +
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
-                 "\t" + source.getPath() + ":13:23\n" +
                  "16: Info:BUILD FAILED\n" +
                  "17: Info:Total time: 7.024 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -2355,7 +2354,6 @@ public class BuildOutputParserTest extends TestCase {
                  "  \t1\n" +
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
-                 "\t" + source.getPath() + ":13:23\n" +
                  "16: Info:BUILD FAILED\n" +
                  "17: Info:Total time: 7.024 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -2364,6 +2362,10 @@ public class BuildOutputParserTest extends TestCase {
     source.delete();
     tempDir.delete();
   }
+
+  private static final String WINDOWS_PATH_DRIVE_LETTER = "C:";
+  private static final String WINDOWS_PATH_UNDER_UNIX = new File(WINDOWS_PATH_DRIVE_LETTER).getAbsolutePath();
+  private static final int WINDOWS_PATH_UNIX_PREFIX_LENGTH = WINDOWS_PATH_UNDER_UNIX.length() - WINDOWS_PATH_DRIVE_LETTER.length();
 
   @NotNull
   private static String toString(@NotNull List<Message> messages) {
@@ -2374,11 +2376,21 @@ public class BuildOutputParserTest extends TestCase {
       sb.append(StringUtil.capitalize(message.getKind().toString().toLowerCase(Locale.US))).append(':'); // INFO => Info
       sb.append(message.getText());
       if (message.getSourcePath() != null) {
-        sb.append('\n');
-        sb.append('\t');
-        sb.append(message.getSourcePath());
-        sb.append(':').append(Long.toString(message.getLineNumber()));
-        sb.append(':').append(Long.toString(message.getColumn() == 0 ? -1 : message.getColumn()));
+        for (SourceFilePosition position: message.getSourceFilePositions()) {
+          sb.append('\n');
+          sb.append('\t');
+          // Fudge for windows tests. As messages use a file object, which is filesystem aware, Windows paths come out prefaced with the
+          // unix CWD.
+          String path = position.getFile().toString();
+          if (path.startsWith(WINDOWS_PATH_UNDER_UNIX)) {
+            path = path.substring(WINDOWS_PATH_UNIX_PREFIX_LENGTH);
+          }
+          sb.append(path);
+          int line = position.getPosition().getStartLine();
+          sb.append(':').append(Integer.toString(line == -1 ? -1 : line + 1));
+          int col = position.getPosition().getStartColumn();
+          sb.append(':').append(Integer.toString(col == -1 ? -1 : col + 1));
+        }
       } else {
         String gradlePath = message.getSourceFilePositions().get(0).getFile().getDescription();
         if (gradlePath != null) {
