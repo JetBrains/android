@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -87,11 +89,13 @@ public abstract class DeveloperServiceCreator {
    */
   @Nullable
   public final DeveloperService createService(@NotNull Module module) {
-    final ServiceContext context = createContext();
     if (AndroidFacet.getInstance(module) == null) {
       throw new IllegalArgumentException(
         String.format("Developer service cannot be associated with non-Android module %s", module.getName()));
     }
+
+    final ServiceContext context = createContext(module);
+    initializeContext(context);
 
     final ServiceXmlParser serviceParser = new ServiceXmlParser(module, myRootPath, context);
 
@@ -129,6 +133,19 @@ public abstract class DeveloperServiceCreator {
     return new DeveloperService(serviceParser);
   }
 
+  @NotNull
+  private ServiceContext createContext(@NotNull Module module) {
+    ServiceContext context = new ServiceContext();
+
+    String packageName = ManifestInfo.get(module, false).getPackage();
+
+    if (packageName != null) {
+      context.putValue("packageName", new StringValueProperty(packageName));
+    }
+
+    return context;
+  }
+
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
    */
@@ -145,9 +162,7 @@ public abstract class DeveloperServiceCreator {
   protected abstract String[] getResources();
 
   /**
-   * Create a context (a package of methods and variables, essentially) for the service UI to be
-   * able to bind to.
+   * Given a fresh context, initialize it with values used by this service.
    */
-  @NotNull
-  protected abstract ServiceContext createContext();
+  protected abstract void initializeContext(@NotNull ServiceContext serviceContext);
 }
