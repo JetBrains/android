@@ -15,156 +15,93 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
+import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
+public class ColorComponent extends ResourceComponent {
 
-public class ColorComponent extends JPanel {
-  private static final int DISTANCE_BETWEEN_ROWS = 20;
-  private static final String LABEL_TEMPLATE = "<html><b><font color=\"#6F6F6F\">%s</font></b><font color=\"#9B9B9B\">%s</font>";
-  private static final int LABEL_BUTTON_GAP = 8;
-  private static final int BUTTON_VERTICAL_PADDINGS = 14;
-  public static final int SUM_PADDINGS = DISTANCE_BETWEEN_ROWS + LABEL_BUTTON_GAP + BUTTON_VERTICAL_PADDINGS;
-  public static final int BACKGROUND_CELL_SIZE = 4;
+  private @NotNull List<Color> myColors = Collections.emptyList();
+  private ColorIcon myIcon = new ColorIcon();
 
-  private final ColorChooserButton myColorChooserButton = new ColorChooserButton();
-  private final JLabel myNameLabel = new JLabel();
-  private String myValue = "";
-
-  public ColorComponent() {
-    super(new BorderLayout(0, LABEL_BUTTON_GAP));
-    setBorder(BorderFactory.createMatteBorder(DISTANCE_BETWEEN_ROWS / 2, 0, DISTANCE_BETWEEN_ROWS / 2, 0, getBackground()));
-
-    add(myNameLabel, BorderLayout.NORTH);
-
-    myColorChooserButton.setBorder(null);
-    myColorChooserButton.setBackground(JBColor.WHITE);
-    myColorChooserButton.setForeground(null);
-    add(myColorChooserButton, BorderLayout.CENTER);
+  @Override
+  int getIconCount() {
+    return myColors.size();
   }
 
   @Override
-  public void setFont(final Font font) {
-    super.setFont(font);
-    if (myColorChooserButton != null) {
-      myColorChooserButton.setFont(font);
-    }
-  }
-
-  public void configure(final EditedStyleItem resValue, final List<Color> color) {
-    String colorText = color.isEmpty() ? "" : " - " + ResourceHelper.colorToString(color.get(0));
-    myNameLabel.setText(String.format(LABEL_TEMPLATE, resValue.getQualifiedName(), colorText));
-    myValue = resValue.getQualifiedName();
-    myColorChooserButton.configure(resValue, color);
+  Icon getIconAt(int i) {
+    myIcon.setColor(myColors.get(i));
+    return myIcon;
   }
 
   @Override
-  public void setComponentPopupMenu(JPopupMenu popup) {
-    super.setComponentPopupMenu(popup);
-    myColorChooserButton.setComponentPopupMenu(popup);
+  void setIconHeight(int height) {
+    myIcon.setHeight(height);
   }
 
-  public String getValue() {
-    return myValue;
+  public void configure(@NotNull EditedStyleItem resValue, @NotNull List<Color> colors) {
+    String colorText = colors.isEmpty() ? "(empty)" : ResourceHelper.colorToString(colors.get(0));
+    configure(ThemeEditorUtils.getDisplayHtml(resValue), colorText, resValue.getValue());
+    myColors = ImmutableList.copyOf(colors);
   }
 
-  public void addActionListener(final ActionListener listener) {
-    myColorChooserButton.addActionListener(listener);
-  }
+  static class ColorIcon implements Icon {
 
-  private static class ColorChooserButton extends JButton {
-    private static final Logger LOG = Logger.getInstance(ColorChooserButton.class);
-
-    private static final int BETWEEN_STATES_PADDING = 2;
-    private static final int STATES_PADDING = 6;
     private static final int ARC_SIZE = 10;
-
     // If squared distance between two colors are less than this constant they're considered to be similar.
     private static final double THRESHOLD_SQUARED_DISTANCE = 0.01;
 
-    private String myValue;
-    private @NotNull List<Color> myColors = Collections.emptyList();
     private final float[] myRgbaArray = new float[4];
+    private Color myColor;
+    private int myCellSize;
 
-    public void configure(final EditedStyleItem resValue, final List<Color> color) {
-      myValue = resValue.getValue();
-      setColors(color);
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+      if (myColor.getAlpha() != 0xff) {
+        final RoundRectangle2D.Double clip =
+          new RoundRectangle2D.Double(x, y, myCellSize, myCellSize, ARC_SIZE, ARC_SIZE);
+        GraphicsUtil.paintCheckeredBackground(g, clip);
+      }
+
+      g.setColor(myColor);
+      g.fillRoundRect(x, y, myCellSize, myCellSize, ARC_SIZE, ARC_SIZE);
+
+      myColor.getRGBComponents(myRgbaArray);
+      if (Math.pow(1.0 - myRgbaArray[0], 2) + Math.pow(1.0 - myRgbaArray[1], 2) + Math.pow(1.0 - myRgbaArray[2], 2) < THRESHOLD_SQUARED_DISTANCE) {
+        // Drawing a border to avoid displaying white boxes on a white background
+        g.setColor(Gray._239);
+        g.drawRoundRect(x, y, myCellSize, myCellSize - 1, ARC_SIZE, ARC_SIZE);
+      }
+    }
+
+    public void setHeight(int height) {
+      myCellSize = height;
+    }
+
+    public void setColor(@NotNull Color color) {
+      this.myColor = color;
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-      setupAAPainting(g);
-
-      final int width = getWidth();
-      final int height = getHeight();
-
-      // Background is filled manually here instead of calling super.paintComponent()
-      // because some L'n'Fs (e.g. GTK+) paint additional decoration even with null border.
-      g.setColor(getBackground());
-      g.fillRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
-
-      g.setColor(Gray._170);
-      g.drawRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
-
-      if (myValue == null) {
-        LOG.error("Trying to draw ColorChooserButton in inconsistent state (either name or value is null)!");
-        return;
-      }
-
-      final int cellSize = height - 2 * BETWEEN_STATES_PADDING;
-      int xOffset = BETWEEN_STATES_PADDING;
-      for (final Color color : myColors) {
-        if (color.getAlpha() != 0xff) {
-          final RoundRectangle2D.Double clip =
-            new RoundRectangle2D.Double(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize, ARC_SIZE, ARC_SIZE);
-          GraphicsUtil.paintCheckeredBackground(g, clip, BACKGROUND_CELL_SIZE);
-        }
-
-        g.setColor(color);
-        g.fillRoundRect(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize, ARC_SIZE, ARC_SIZE);
-
-        color.getRGBComponents(myRgbaArray);
-        if (Math.pow(1.0 - myRgbaArray[0], 2) + Math.pow(1.0 - myRgbaArray[1], 2) + Math.pow(1.0 - myRgbaArray[2], 2) < THRESHOLD_SQUARED_DISTANCE) {
-          // Drawing a border to avoid displaying white boxes on a white background
-          g.setColor(Gray._239);
-          g.drawRoundRect(xOffset, BETWEEN_STATES_PADDING, cellSize, cellSize - 1, ARC_SIZE, ARC_SIZE);
-        }
-
-        xOffset += cellSize + BETWEEN_STATES_PADDING;
-      }
-
-      xOffset += STATES_PADDING - BETWEEN_STATES_PADDING;
-
-      FontMetrics fm = g.getFontMetrics();
-      g.setColor(getForeground());
-      int yOffset = (height - fm.getHeight()) / 2 + fm.getAscent();
-      g.drawString(myValue, xOffset, yOffset);
+    public int getIconWidth() {
+      return myCellSize;
     }
 
-    public void setColors(@NotNull List<Color> colors) {
-      myColors = ImmutableList.copyOf(colors);
+    @Override
+    public int getIconHeight() {
+      return myCellSize;
     }
   }
 }
