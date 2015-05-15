@@ -28,16 +28,17 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -445,8 +446,12 @@ public class NlComponent {
   public String getAttribute(@Nullable String namespace, @NonNull String attribute) {
     if (snapshot != null) {
       return snapshot.getAttribute(attribute, namespace);
+    } else if (myTag.isValid()) {
+      return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
+    } else {
+      // Newly created components for example
+      return null;
     }
-    return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
   }
 
   @NonNull
@@ -462,6 +467,10 @@ public class NlComponent {
     return Collections.emptyList();
   }
 
+  public boolean isShowing() {
+    return snapshot != null;
+  }
+
   @Nullable
   public ViewHandler getViewHandler() {
     return ViewHandlerManager.get(myTag.getProject()).getHandler(this);
@@ -471,9 +480,13 @@ public class NlComponent {
    * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int)}.
+   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int, int)}.
    *
+   * @param editor     The editor showing the component
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}
+   *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
+   *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
+   *                   you can omit the package.)
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
@@ -481,36 +494,7 @@ public class NlComponent {
                                  @NonNull String fqcn,
                                  @Nullable NlComponent before,
                                  @NonNull InsertType insertType) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-
-    String tagName =  viewClassToTag(fqcn);
-    XmlTag childTag = myTag.createChildTag(tagName, null, null, false);
-    if (before != null) {
-      myTag.addBefore(childTag, before.myTag);
-    } else {
-      myTag.addSubTag(childTag, false);
-    }
-
-    NlComponent child = new NlComponent(myModel, childTag);
-    addChild(child, before);
-
-    // Notify view handlers
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(myTag.getProject());
-    ViewHandler childHandler = viewHandlerManager.getHandler(child);
-    if (childHandler != null) {
-      boolean ok = childHandler.onCreate(editor, this, child, insertType);
-      if (!ok) {
-        removeChild(child);
-        childTag.delete();
-        return null;
-      }
-    }
-    ViewHandler parentHandler = viewHandlerManager.getHandler(this);
-    if (parentHandler instanceof ViewGroupHandler) {
-      ((ViewGroupHandler)parentHandler).onChildInserted(this, child, insertType);
-    }
-
-    return child;
+    return myModel.createComponent(((ViewEditorImpl)editor).getScreenView(), fqcn, this, before, insertType);
   }
 
   /**

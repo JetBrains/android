@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -30,7 +31,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT;
 public class IncludeHandler extends ViewHandler {
   @Override
   public boolean onCreate(@NonNull ViewEditor editor,
-                          @NonNull NlComponent parent,
+                          @Nullable NlComponent parent,
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
     // When dropping an include tag, ask the user which layout to include.
