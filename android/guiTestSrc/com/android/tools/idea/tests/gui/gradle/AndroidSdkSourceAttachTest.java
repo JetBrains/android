@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.skip;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.rename;
@@ -56,8 +57,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   private static final String ANDROID_PLATFORM = "android-21";
 
   // Sdk used for the simpleApplication project.
-  private Sdk mySdk = findSuitableAndroidSdk(ANDROID_PLATFORM);
-
+  private Sdk mySdk;
   private File mySdkSourcePath;
   private File mySdkSourceTmpPath;
 
@@ -68,18 +68,27 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
   @Before
   public void restoreAndroidSdkSource() throws IOException {
-    String sdkHomePath = mySdk.getHomePath();
-    mySdkSourcePath = new File(sdkHomePath, join("sources", ANDROID_PLATFORM));
-    mySdkSourceTmpPath = new File(sdkHomePath, join("sources.tmp", ANDROID_PLATFORM)); // it can't be in 'sources' folder
+    mySdk = findSuitableAndroidSdk(ANDROID_PLATFORM);
 
-    if (!mySdkSourcePath.isDirectory() && mySdkSourceTmpPath.isDirectory()) {
-      rename(mySdkSourceTmpPath, mySdkSourcePath);
+    if (mySdk != null) {
+      String sdkHomePath = mySdk.getHomePath();
+      mySdkSourcePath = new File(sdkHomePath, join("sources", ANDROID_PLATFORM));
+      mySdkSourceTmpPath = new File(sdkHomePath, join("sources.tmp", ANDROID_PLATFORM)); // it can't be in 'sources' folder
+
+      if (!mySdkSourcePath.isDirectory() && mySdkSourceTmpPath.isDirectory()) {
+        rename(mySdkSourceTmpPath, mySdkSourcePath);
+      }
     }
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testDownloadSdkSource() throws IOException {
+    if (mySdk == null) {
+      printPlatformNotFound();
+      skip("testDownloadSdkSource");
+      return;
+    }
+
     if (mySdkSourcePath.isDirectory()) {
       delete(mySdkSourceTmpPath);
       rename(mySdkSourcePath, mySdkSourceTmpPath);
@@ -121,12 +130,18 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     assertIsActivityJavaFile(sourceFile);
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testRefreshSdkSource() throws IOException {
+    if (mySdk == null) {
+      printPlatformNotFound();
+      skip("testRefreshSdkSource");
+      return;
+    }
+
     if (!mySdkSourcePath.isDirectory()) {
       // Skip test if Sdk source is not installed.
       System.out.println("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'");
+      skip("testRefreshSdkSource");
       return;
     }
 
@@ -156,6 +171,10 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
     assertIsActivityJavaFile(sourceFile);
+  }
+
+  private static void printPlatformNotFound() {
+    System.out.println("SDK with platform '" + ANDROID_PLATFORM + "' not found");
   }
 
   private static void assertIsActivityJavaFile(@NotNull VirtualFile sourceFile) {
