@@ -6,8 +6,8 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
-import com.intellij.database.dataSource.DatabaseDriver;
 import com.intellij.database.util.DbImplUtil;
+import com.intellij.database.view.ui.DsUiDefaults;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -15,7 +15,6 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.FieldPanel;
@@ -70,7 +69,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
 
-    myPanel.setBorder(DialogWrapper.ourDefaultBorder);
+    myPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
     myTempDataSource = dataSource.copy();
 
     myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
