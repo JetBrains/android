@@ -34,7 +34,6 @@ import java.util.List;
  * Component that renders a list of colors.
  */
 public class ColorPalette extends JComponent implements Scrollable, ItemSelectable {
-  protected static int CHECKERED_BACKGROUND_SIZE = 8;
 
   private int myColorBoxSize = 50;
   private int myColorBoxPadding = myColorBoxSize / 10;
@@ -225,7 +224,7 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
     }
 
     if (myShowCheckeredBackground) {
-      GraphicsUtil.paintCheckeredBackground(g, getBounds(), CHECKERED_BACKGROUND_SIZE);
+      GraphicsUtil.paintCheckeredBackground(g, new Rectangle(getSize()));
     }
 
     final int width = getWidth();

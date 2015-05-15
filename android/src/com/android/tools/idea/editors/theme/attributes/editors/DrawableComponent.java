@@ -19,56 +19,49 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.util.GraphicsUtil;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
+
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Icon;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
 
 /**
  * This class is used to draw drawable resources in theme editor cell.
  * Used in {@link DrawableEditor} and {@link DrawableRenderer}.
  */
-public class DrawableComponent extends JButton {
-  private static final Logger LOG = Logger.getInstance(DrawableComponent.class);
-
-  private static final int PADDING = 2;
-
-  // Size of a square in checkered board background
-  private static final int CELL_SIZE = 10;
-
-  // Distance between border of a cell and image
-  private static final int IMAGE_PADDING = 5;
-
-  // Amount of space between border of box with text and text itself
-  private static final int TEXT_PADDING = 1;
-
-  // Amount of space between border of a cell and rectangle with solid background for showing text
-  private static final int TEXT_MARGIN = 3;
+public class DrawableComponent extends ResourceComponent {
 
   private final List<BufferedImage> myImages = new ArrayList<BufferedImage>();
-  private String myName;
-  private String myValue;
-  private boolean myIsPublic;
+  private ImageIcon myIcon = new ImageIcon();
 
-  public static Border getBorder(final Color borderColor) {
-    return BorderFactory.createMatteBorder(PADDING, PADDING, PADDING, PADDING, borderColor);
+  @Override
+  int getIconCount() {
+    return myImages.size();
+  }
+
+  @Override
+  Icon getIconAt(int i) {
+    myIcon.setImage(myImages.get(i));
+    return myIcon;
+  }
+
+  @Override
+  void setIconHeight(int height) {
+    myIcon.setHeight(height);
   }
 
   /**
    * Populate text fields shown in a cell from EditedStyleItem value
    */
   public void configure(final @NotNull EditedStyleItem item, final @Nullable RenderTask renderTask) {
-    myName = ThemeEditorUtils.getDisplayHtml(item);
-    myValue = item.getValue();
-    myIsPublic = item.isPublicAttribute();
+    configure(ThemeEditorUtils.getDisplayHtml(item), "drawable", item.getValue());
 
     myImages.clear();
     if (renderTask != null) {
@@ -76,54 +69,29 @@ public class DrawableComponent extends JButton {
     }
   }
 
-  @Override
-  protected void paintComponent(Graphics g) {
-    com.intellij.util.ui.GraphicsUtil.setupAntialiasing(g);
+  static class ImageIcon extends javax.swing.ImageIcon {
 
-    final int width = getWidth();
-    final int height = getHeight();
-    GraphicsUtil.paintCheckeredBackground(g, new Rectangle(0, 0, width, height), CELL_SIZE);
+    private int myHeight;
 
-    int offset = IMAGE_PADDING;
-    for (final BufferedImage image : myImages) {
-      int imageHeight = image.getHeight();
-      int imageWidth = image.getWidth();
-
-      int maxHeight = height - 2 * IMAGE_PADDING;
-
-      if (imageHeight > maxHeight) {
-        imageWidth = (int) Math.floor(imageWidth * maxHeight / ((double) imageHeight));
-        imageHeight = maxHeight;
-      }
-
-      final int startY = (height - imageHeight - 2 * PADDING) / 2 + PADDING;
-      final int startX = (width - offset - imageWidth);
-
-      g.drawImage(image, startX, startY, imageWidth, imageHeight, null);
-      offset += imageWidth + IMAGE_PADDING;
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+      Image image = getImage();
+      GraphicsUtil.paintCheckeredBackground(g, new Rectangle(x, y, getIconWidth(), getIconHeight()));
+      g.drawImage(image, x, y, getIconWidth(), getIconHeight(), c);
     }
 
-    if (myName != null && myValue != null) {
-      final FontMetrics fontMetrics = g.getFontMetrics();
-      final int stringHeight = fontMetrics.getHeight();
-
-      final int nameWidth = fontMetrics.stringWidth(myName);
-      final int valueWidth = fontMetrics.stringWidth(myValue);
-
-      g.setColor(Gray._50);
-      final int rectOffset = PADDING + TEXT_MARGIN;
-      g.fillRect(rectOffset, rectOffset, nameWidth + 2 * TEXT_PADDING, stringHeight);
-      g.fillRect(rectOffset, height - rectOffset - stringHeight, valueWidth + 2 * TEXT_PADDING, stringHeight);
-
-      g.setColor(JBColor.WHITE);
-      g.drawString(myName, rectOffset + TEXT_PADDING, rectOffset + stringHeight - TEXT_PADDING);
-      g.drawString(myValue, rectOffset + TEXT_PADDING, height - rectOffset - TEXT_PADDING);
+    public void setHeight(int height) {
+      myHeight = height;
     }
 
-    // If attribute is private, draw a cross on it
-    if (!myIsPublic) {
-      g.setColor(JBColor.WHITE);
-      GraphicsUtil.drawCross(g, new Rectangle(PADDING, PADDING, width - PADDING, height - PADDING), 0.5f);
+    @Override
+    public int getIconHeight() {
+      return myHeight;
+    }
+
+    @Override
+    public int getIconWidth() {
+      return myHeight * super.getIconWidth() / super.getIconHeight();
     }
   }
 }
