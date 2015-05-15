@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import java.awt.*;
 import java.util.Collections;
 
+import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,6 +46,7 @@ import static org.junit.Assert.assertNotNull;
  *   <li>Component Tree</li>
  * </ul>
  */
+@BelongsToTestGroups({LAYOUT})
 public class LayoutEditorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSetProperty() throws Exception {
@@ -183,6 +186,10 @@ public class LayoutEditorTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testIdManipulation() throws Exception {
+    if (true) {
+      System.out.println("Skipping testIdManipulation until http://b.android.com/173576 is fixed\n");
+      return;
+    }
     // Checks that when we insert new widgets, we assign appropriate id's (they should
     // be unique in the application), and also check that when we copy/paste a component
     // hierarchy, we reassign id's to keep them unique and also update all references within
