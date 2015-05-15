@@ -218,7 +218,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   private void definePackage(@NotNull String className) {
     int i = className.lastIndexOf('.');
-    if (i != 0) {
+    if (i > 0) {
       String packageName = className.substring(0, i);
       Package pkg = getPackage(packageName);
       if (pkg == null) {
