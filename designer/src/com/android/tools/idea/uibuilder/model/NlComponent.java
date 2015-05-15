@@ -21,7 +21,9 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -61,6 +63,7 @@ public class NlComponent {
   @NonNull private NlModel myModel;
   @NonNull private XmlTag myTag;
   @NonNull private String myTagName; // for non-read lock access elsewhere
+  @Nullable private TagSnapshot snapshot;
 
   public NlComponent(@NonNull NlModel model, @NonNull XmlTag tag) {
     myModel = model;
@@ -81,6 +84,10 @@ public class NlComponent {
   public void setTag(@NonNull XmlTag tag) {
     myTag = tag;
     myTagName = tag.getName();
+  }
+
+  public void setSnapshot(@Nullable TagSnapshot snapshot) {
+    this.snapshot = snapshot;
   }
 
   public void setBounds(@AndroidCoordinate int x, @AndroidCoordinate int y, @AndroidCoordinate int w, @AndroidCoordinate int h) {
@@ -436,7 +443,23 @@ public class NlComponent {
 
   @Nullable
   public String getAttribute(@Nullable String namespace, @NonNull String attribute) {
+    if (snapshot != null) {
+      return snapshot.getAttribute(attribute, namespace);
+    }
     return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
+  }
+
+  @NonNull
+  public List<AttributeSnapshot> getAttributes() {
+    if (snapshot != null && snapshot.attributes != null) {
+      return snapshot.attributes;
+    }
+
+    if (myTag.isValid()) {
+      return AttributeSnapshot.createAttributesForTag(myTag);
+    }
+
+    return Collections.emptyList();
   }
 
   @Nullable

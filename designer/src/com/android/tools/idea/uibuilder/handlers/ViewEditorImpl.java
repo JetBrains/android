@@ -88,6 +88,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public Map<NlComponent, Dimension> measureChildren(@NonNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
+    // TODO: Reuse snapshot!
     Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
     XmlTag parentTag = parent.getTag();
     if (parentTag.isValid()) {

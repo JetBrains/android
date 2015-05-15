@@ -85,7 +85,7 @@ public class Segment {
   @Override
   public String toString() {
     String componentStr = component == null ? "null" : component.getTagName().substring(
-      component.getTag().getName().lastIndexOf(('.')) + 1);
+      component.getTagName().lastIndexOf(('.')) + 1);
     return "Segment [edgeType=" + edgeType + ", component=" + componentStr + ", at=" + at + ", id=" + id
            + ", from=" + from + ", to=" + to + ", marginType=" + marginType + "]";
   }
