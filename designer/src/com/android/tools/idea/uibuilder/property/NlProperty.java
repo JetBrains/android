@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -38,34 +38,40 @@ public class NlProperty extends PTableItem {
     SdkConstants.ATTR_LAYOUT // <include layout="..." />
   );
 
-  @NotNull private final XmlTag myTag;
-  @NotNull private final XmlAttributeDescriptor myDescriptor;
+  @NotNull private final NlComponent myComponent;
   @Nullable private final AttributeDefinition myDefinition;
+  @NotNull private final String myAttribute;
+  @Nullable private final String myNamespace;
+
   private NlPropertyRenderer myRenderer;
 
-  public NlProperty(@NotNull XmlTag tag, @NotNull XmlAttributeDescriptor descriptor, @Nullable AttributeDefinition attributeDefinition) {
+  public NlProperty(@NotNull NlComponent component,
+                    @NotNull XmlAttributeDescriptor descriptor,
+                    @Nullable AttributeDefinition attributeDefinition) {
     if (attributeDefinition == null && !ATTRS_WITHOUT_DEFN.contains(descriptor.getName())) {
       throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
     }
 
-    myTag = tag;
-    myDescriptor = descriptor;
+    // NOTE: we do not save any PSI data structures as fields as they could go out of date as the user edits the file.
+    // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
+    // that the component can provide that information by having a shadow copy that is consistent with the rendering
+    myComponent = component;
+    myAttribute = descriptor.getName();
+    myNamespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
+                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag()) : null;
     myDefinition = attributeDefinition;
   }
 
   @Override
   @NotNull
   public String getName() {
-    return myDescriptor.getName();
+    return myAttribute;
   }
 
   @Nullable
   public String getValue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
-    if (!myTag.isValid()) {
-      return "";
-    }
-    return myTag.getAttributeValue(myDescriptor.getName(myTag));
+    return myComponent.getAttribute(myNamespace, myAttribute);
   }
 
   @NotNull
@@ -79,18 +85,13 @@ public class NlProperty extends PTableItem {
 
   @Override
   public String toString() {
-    String namespace = "unknown";
-    if (myDescriptor instanceof NamespaceAwareXmlAttributeDescriptor) {
-      namespace = ((NamespaceAwareXmlAttributeDescriptor)myDescriptor).getNamespace(myTag);
-    }
-
     return Objects.toStringHelper(this)
-      .add("name", getName())
-      .add("namespace", namespace)
+      .add("name", myAttribute)
+      .add("namespace", myNamespace)
       .toString();
   }
 
   public String getTooltipText() {
-    return myDescriptor.getName(myTag);
+    return myNamespace + "." + myNamespace;
   }
 }

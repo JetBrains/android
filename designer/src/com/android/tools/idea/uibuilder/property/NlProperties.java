@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,17 +48,22 @@ public class NlProperties {
   }
 
   @NotNull
-  public List<NlProperty> getProperties(@NotNull final XmlTag tag) {
+  public List<NlProperty> getProperties(@NotNull final NlComponent component) {
     return ApplicationManager.getApplication().runReadAction(new Computable<List<NlProperty>>() {
       @Override
       public List<NlProperty> compute() {
-        return getPropertiesWithReadLock(tag);
+        return getPropertiesWithReadLock(component);
       }
     });
   }
 
   @NotNull
-  private List<NlProperty> getPropertiesWithReadLock(@NotNull XmlTag tag) {
+  private List<NlProperty> getPropertiesWithReadLock(@NotNull NlComponent component) {
+    XmlTag tag = component.getTag();
+    if (!tag.isValid()) {
+      return Collections.emptyList();
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(tag);
     if (facet == null) {
       return Collections.emptyList();
@@ -85,7 +91,7 @@ public class NlProperties {
       String namespace = getNamespace(desc, tag);
       AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
       AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-      properties.add(new NlProperty(tag, desc, attrDef));
+      properties.add(new NlProperty(component, desc, attrDef));
     }
 
     return properties;

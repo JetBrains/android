@@ -40,7 +40,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
     String tag = "View";
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(xmlFile.getRootTag());
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(xmlFile.getRootTag()));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
@@ -67,7 +67,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(subTags[0]);
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A textview should have all of its attributes and the parent class's (View) attributes
@@ -119,7 +119,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(subTags[0]);
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, VIEW_ATTRS);
@@ -150,7 +150,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(subTags[0]);
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
