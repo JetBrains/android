@@ -19,7 +19,9 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -39,6 +41,12 @@ public class SdkSyncTest extends IdeaTestCase {
     myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
     assertNull(IdeSdks.getAndroidSdkPath());
+  }
+
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    // For this test we don't care about checking for settings damage.
+    return new CompositeException();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
@@ -101,6 +109,46 @@ public class SdkSyncTest extends IdeaTestCase {
     assertNull(IdeSdks.getAndroidSdkPath());
     myLocalProperties = new LocalProperties(myProject);
     assertNull(myLocalProperties.getAndroidSdkPath());
+  }
+
+  public void testRemoveInvalidNdkPath() throws Exception {
+    final File invalidNdk = new File("invalid/ndk/path");
+    myLocalProperties = new LocalProperties(myProject);
+    myLocalProperties.setAndroidNdkPath(invalidNdk);
+
+    SdkSync.FindValidNdkPathTask task = new SdkSync.FindValidNdkPathTask() {
+      @NotNull
+      @Override
+      File selectValidNdkPath(String invalidNdkPath) {
+        assertEquals(invalidNdk.getPath(), invalidNdkPath);
+        return new File("");
+      }
+    };
+
+    SdkSync.verifyProjectAndroidNdk(myLocalProperties, task);
+    myLocalProperties = new LocalProperties(myProject);
+    assertNull(myLocalProperties.getAndroidNdkPath());
+  }
+
+  public void testUpdateNdkPath() throws Exception {
+    final File invalidNdk = new File("invalid/ndk/path");
+    myLocalProperties = new LocalProperties(myProject);
+    myLocalProperties.setAndroidNdkPath(invalidNdk);
+
+    final File validNdk = new File("invalid/ndk/path");
+
+    SdkSync.FindValidNdkPathTask task = new SdkSync.FindValidNdkPathTask() {
+      @NotNull
+      @Override
+      File selectValidNdkPath(String invalidNdkPath) {
+        assertEquals(invalidNdk.getPath(), invalidNdkPath);
+        return validNdk;
+      }
+    };
+
+    SdkSync.verifyProjectAndroidNdk(myLocalProperties, task);
+    myLocalProperties = new LocalProperties(myProject);
+    assertEquals(validNdk, myLocalProperties.getAndroidNdkPath());
   }
 
   private void assertDefaultSdkSet() {
