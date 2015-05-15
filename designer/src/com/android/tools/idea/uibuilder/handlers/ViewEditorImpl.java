@@ -157,4 +157,9 @@ public class ViewEditorImpl extends ViewEditor {
 
     return null;
   }
+
+  @NonNull
+  public ScreenView getScreenView() {
+    return myScreen;
+  }
 }

@@ -30,17 +30,16 @@ import static com.android.SdkConstants.*;
 /** Handler for the {@code <ScrollView>} widget */
 public class ScrollViewHandler extends ViewGroupHandler {
   @Override
-  public void onChildInserted(@NonNull NlComponent child, @NonNull NlComponent parent,
+  public void onChildInserted(@NonNull NlComponent parent, @NonNull NlComponent child,
                               @NonNull InsertType insertType) {
-    // The child of the ScrollView should fill in both directions
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-    child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
+    child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
   }
 
   @Override
   public boolean onCreate(@NonNull ViewEditor editor,
+                          @Nullable NlComponent parent,
                           @NonNull NlComponent node,
-                          @NonNull NlComponent parent,
                           @NonNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Insert a default linear layout (which will in turn be registered as
