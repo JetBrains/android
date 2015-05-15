@@ -28,14 +28,14 @@ public class NlPropertyRendererTest extends LayoutTestCase {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
-                    "  <TextView id=\"@+id/textView\"/>" +
+                    "  <TextView android:id=\"@+id/textView\"/>" +
                     "</RelativeLayout>";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
 
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(subTags[0]);
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
 
     NlPropertyRenderer renderer = new NlPropertyRenderer();
 
