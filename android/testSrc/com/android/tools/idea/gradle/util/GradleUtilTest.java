@@ -172,7 +172,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
                       "    }\n" +
                       "}";
-    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents, null);
+    FullRevision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
@@ -186,7 +186,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
                       "    }\n" +
                       "}";
-    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents, null);
+    FullRevision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
@@ -200,7 +200,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:+'\n" +
                       "    }\n" +
                       "}";
-    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents, null);
+    FullRevision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
   }
 
