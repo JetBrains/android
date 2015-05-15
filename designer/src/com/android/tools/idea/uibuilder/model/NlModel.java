@@ -24,9 +24,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceVersion;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
@@ -39,6 +43,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -52,6 +57,8 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Model for an XML file
@@ -608,6 +615,98 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     return siblingLists;
+  }
+
+  /**
+   * Creates a new component of the given type. It will optionally insert it as a child of the given parent (and optionally
+   * right before the given sibling or null to append at the end.)
+   * <p/>
+   * Note: This operation can only be called when the caller is already holding a write lock. This will be the
+   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
+   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int, int)}.
+   *
+   * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
+   * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
+   *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
+   *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
+   *                   you can omit the package.)
+   * @param parent     The optional parent to add this component to
+   * @param before     The sibling to insert immediately before, or null to append
+   * @param insertType The type of insertion
+   */
+  public NlComponent createComponent(@Nullable ScreenView screenView,
+                                     @NonNull String fqcn,
+                                     @Nullable NlComponent parent,
+                                     @Nullable NlComponent before,
+                                     @NonNull InsertType insertType) {
+    String tagName =  NlComponent.viewClassToTag(fqcn);
+
+    XmlTag tag;
+    if (parent != null) {
+      // Creating a component intended to be inserted into an existing layout
+      tag = parent.getTag().createChildTag(tagName, null, null, false);
+    } else {
+      // Creating a component not yet inserted into a layout. Typically done when trying to perform
+      // a drag from palette, etc.
+      XmlElementFactory elementFactory = XmlElementFactory.getInstance(getProject());
+      String text = "<" + fqcn + " xmlns:android=\"http://schemas.android.com/apk/res/android\"/>"; // SIZES?
+      tag = elementFactory.createTagFromText(text);
+    }
+
+    return createComponent(screenView, tag, parent, before, insertType);
+  }
+
+  public NlComponent createComponent(@Nullable ScreenView screenView,
+                                     @NonNull XmlTag tag,
+                                     @Nullable NlComponent parent,
+                                     @Nullable NlComponent before,
+                                     @NonNull InsertType insertType) {
+    if (parent != null) {
+      // Creating a component intended to be inserted into an existing layout
+      XmlTag parentTag = parent.getTag();
+      if (before != null) {
+        tag = (XmlTag) parentTag.addBefore(tag, before.getTag());
+      } else {
+        tag = parentTag.addSubTag(tag, false);
+      }
+
+      // Required for all views; drop handlers can adjust as necessary
+      tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
+      tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
+    } else {
+      // No namespace yet: use the default prefix instead
+      tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+      tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    }
+
+    NlComponent child = new NlComponent(this, tag);
+
+    if (parent != null) {
+      parent.addChild(child, before);
+    }
+
+    // Notify view handlers
+    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
+    ViewHandler childHandler = viewHandlerManager.getHandler(child);
+    if (childHandler != null && screenView != null) {
+      ViewEditor editor = new ViewEditorImpl(screenView);
+      boolean ok = childHandler.onCreate(editor, parent, child, insertType);
+      if (!ok) {
+        if (parent != null) {
+          parent.removeChild(child);
+        }
+        tag.delete();
+        return null;
+      }
+    }
+    if (parent != null) {
+      ViewHandler parentHandler = viewHandlerManager.getHandler(parent);
+      if (parentHandler instanceof ViewGroupHandler) {
+        ((ViewGroupHandler)parentHandler).onChildInserted(parent, child, insertType);
+      }
+    }
+
+    return child;
   }
 
   @Override
