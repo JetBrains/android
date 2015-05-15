@@ -61,6 +61,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
+import com.intellij.util.containers.SmartHashSet;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
 import org.gradle.wrapper.PathAssembler;
@@ -102,6 +103,7 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesTo
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
@@ -773,8 +775,36 @@ public final class GradleUtil {
     return true;
   }
 
+
   /**
-   * Finds the version of the Android Gradle plug-in being used in the given project.
+   * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
+   * modules in the project or if the last sync has failed.
+   *
+   * @see #getAndroidGradleModelVersionFromBuildFile(Project)
+   */
+  @Nullable
+  public static FullRevision getAndroidGradleModelVersionInUse(@NotNull Project project) {
+    Set<String> pluginVersionsUsedInProject = new SmartHashSet<String>();
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidProject androidProject = getAndroidProject(module);
+      if (androidProject == null) {
+        continue;
+      }
+      pluginVersionsUsedInProject.add(androidProject.getModelVersion());
+    }
+
+    // This should pretty much always be the case, but let's be safe here.
+    if (pluginVersionsUsedInProject.size() == 1) {
+      return parseRevision(getOnlyElement(pluginVersionsUsedInProject));
+    }
+
+    return null;
+  }
+
+  /**
+   * Tries to find the version of the Android Gradle plug-in declared in build.gradle files. If the project contains complicated build
+   * logic, this may be incorrect.
+   *
    * <p>
    * The version is returned as it is specified in build files if it does not use "+" notation.
    * </p>
@@ -789,9 +819,10 @@ public final class GradleUtil {
    *
    * @param project the given project.
    * @return the version of the Android Gradle plug-in being used in the given project. (or an approximation.)
+   * @see #getAndroidGradleModelVersionInUse(Project)
    */
   @Nullable
-  public static FullRevision getResolvedAndroidGradleModelVersion(@NotNull final Project project) {
+  public static FullRevision getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // This is default project.
@@ -805,7 +836,7 @@ public final class GradleUtil {
           File fileToCheck = virtualToIoFile(virtualFile);
           try {
             String contents = loadFile(fileToCheck);
-            FullRevision version = getResolvedAndroidGradleModelVersion(contents, project);
+            FullRevision version = getAndroidGradleModelVersionFromBuildFile(contents, project);
             if (version != null) {
               modelVersionRef.set(version);
               return false; // we found the model version. Stop.
@@ -824,7 +855,7 @@ public final class GradleUtil {
 
   @VisibleForTesting
   @Nullable
-  static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
+  static FullRevision getAndroidGradleModelVersionFromBuildFile(@NotNull String fileContents, @Nullable Project project) {
     GradleCoordinate found = getPluginDefinition(fileContents, GRADLE_PLUGIN_NAME);
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);

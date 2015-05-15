@@ -16,8 +16,11 @@
 package com.android.tools.idea.wizard;
 
 
+import com.android.SdkConstants;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -39,7 +42,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
@@ -72,9 +74,11 @@ public class NewModuleWizardDynamic extends DynamicWizard {
    */
   protected void initState() {
     ScopedStateStore state = getState();
+    Project project = getProject();
+
     // TODO(jbakermalone): move the setting of this state closer to where it is used, so it's clear what's needed.
     state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
-    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, determineGradlePluginVersion(project));
     state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
     state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
     state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
@@ -93,7 +97,6 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     if (mavenUrl != null) {
       state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
-    Project project = getProject();
     if (project != null) {
       state.put(PROJECT_LOCATION_KEY, project.getBasePath());
     }
@@ -101,6 +104,21 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
   }
 
+  @NotNull
+  private static String determineGradlePluginVersion(@Nullable Project project) {
+    if (project != null) {
+      FullRevision versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project);
+      if (versionInUse != null) {
+        return versionInUse.toString();
+      }
+
+      FullRevision versionFromBuildFile = GradleUtil.getAndroidGradleModelVersionFromBuildFile(project);
+      if (versionFromBuildFile != null) {
+        return versionFromBuildFile.toString();
+      }
+    }
+    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+  }
 
   @NotNull
   protected static WizardStepHeaderSettings buildHeader() {
