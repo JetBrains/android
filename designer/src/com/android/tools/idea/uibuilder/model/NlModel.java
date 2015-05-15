@@ -277,15 +277,44 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       component.children = null;
     }
 
-    List<NlComponent> newRoots = Lists.newArrayList();
+    final List<NlComponent> newRoots = Lists.newArrayList();
     if (rootViews != null) {
       for (ViewInfo info : rootViews) {
         NlComponent newRoot = updateHierarchy(null, info, 0, 0);
-        newRoots.add(newRoot);
+        if (newRoot != null) {
+          newRoots.add(newRoot);
+        }
       }
     }
+
+    // TODO: Use result from rendering instead, if available!
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        for (NlComponent root : newRoots) {
+          TagSnapshot snapshot = TagSnapshot.createTagSnapshot(root.getTag());
+          updateSnapshot(root, snapshot);
+        }
+      }
+    });
+
     myModificationCount++;
     myComponents = newRoots;
+  }
+
+  private static void updateSnapshot(@NonNull NlComponent component, @NonNull TagSnapshot snapshot) {
+    assert component.getTag() == snapshot.tag;
+    component.setSnapshot(snapshot);
+    if (snapshot.children != null) {
+      assert snapshot.children.size() == component.getChildCount();
+      for (int i = 0, n = component.getChildCount(); i < n; i++) {
+        NlComponent child = component.getChild(i);
+        assert child != null;
+        updateSnapshot(child, snapshot.children.get(i));
+      }
+    } else {
+      assert component.getChildCount() == 0;
+    }
   }
 
   protected void initTagMap(@NonNull NlComponent root) {

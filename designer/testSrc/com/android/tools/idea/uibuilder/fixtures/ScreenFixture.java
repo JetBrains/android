@@ -154,7 +154,7 @@ public class ScreenFixture {
   }
 
   private static void findById(@NonNull List<NlComponent> result, @NonNull NlComponent component, @NonNull String id) {
-    if (id.equals(AndroidPsiUtils.getAttributeSafely(component.getTag(), ANDROID_URI, ATTR_ID))) {
+    if (id.equals(component.getAttribute(ANDROID_URI, ATTR_ID))) {
       result.add(component);
     }
 
