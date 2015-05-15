@@ -19,10 +19,7 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.ArtifactsByConfigurationModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +38,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,8 +52,8 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
   private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
 
   private final List<ModuleCustomizer<IdeaJavaProject>> myCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer(),
-                     new ArtifactsByConfigurationModuleCustomizer());
+    ImmutableList.of(new JavaLanguageLevelModuleCustomizer(), new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(),
+                     new CompilerOutputModuleCustomizer(), new ArtifactsByConfigurationModuleCustomizer());
 
   @Override
   @NotNull
