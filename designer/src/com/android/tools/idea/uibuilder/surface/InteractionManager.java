@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.DnDTransferItem;
 import com.android.tools.idea.uibuilder.palette.ItemTransferable;
@@ -538,8 +539,8 @@ public class InteractionManager {
             final NlModel model = screenView.getModel();
             try {
               DnDTransferItem item = getTransferItem(event.getTransferable(), true /* allow placeholders */);
-              XmlTag tag = createTagFromtransferItem(item);
-              NlComponent dragged = new NlComponent(model, tag);
+              XmlTag tag = createTagFromTransferItem(item);
+              NlComponent dragged = model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW);
               dragged.w = item.getWidth();
               dragged.h = item.getHeight();
               dragged.x = Coordinates.getAndroidX(screenView, myLastMouseX) - dragged.w / 2;
@@ -602,7 +603,7 @@ public class InteractionManager {
         WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Drop", file) {
           @Override
           protected void run(@NotNull Result<Void> result) throws Throwable {
-            XmlTag tag = createTagFromtransferItem(item);
+            XmlTag tag = createTagFromTransferItem(item);
 
             if (myCurrentInteraction instanceof DragDropInteraction) {
               // On a drag we put in a place holder component for the drag operation
@@ -674,7 +675,7 @@ public class InteractionManager {
     return item;
   }
 
-  @NotNull XmlTag createTagFromtransferItem(@NotNull DnDTransferItem item) {
+  @NotNull XmlTag createTagFromTransferItem(@NotNull DnDTransferItem item) {
     ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
     NlModel model = screenView.getModel();
     Project project = model.getFacet().getModule().getProject();

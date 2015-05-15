@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -36,7 +37,7 @@ public class ViewHandler {
    * when a DialerFilter is first created, but not during a copy/paste or a move.
    *
    * @param editor     the associated editor
-   * @param parent     the parent of the node (which may not yet contain the newly created
+   * @param parent     the parent of the node, if any (which may not yet contain the newly created
    *                   node in its child list)
    * @param newChild   the newly created node (which will always be a View that applies to
    *                   this {@linkplain ViewHandler})
@@ -50,7 +51,7 @@ public class ViewHandler {
    * cancels the drop instead by returning false.
    */
   public boolean onCreate(@NonNull ViewEditor editor,
-                          @NonNull NlComponent parent,
+                          @Nullable NlComponent parent,
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
     return true;
