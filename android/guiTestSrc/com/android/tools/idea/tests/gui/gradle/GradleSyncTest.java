@@ -60,6 +60,7 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.reflect.reference.TypeRef;
+import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -1249,6 +1250,17 @@ public class GradleSyncTest extends GuiTestCase {
     // Verify AndroidFacet was removed.
     appModule = projectFrame.getModule("app");
     assertNull(AndroidFacet.getInstance(appModule));
+  }
+
+  @Test @IdeGuiTest
+  public void testAndroidModuleLanguageLevel() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+
+    Module library = projectFrame.getModule("library");
+    Module app = projectFrame.getModule("app");
+
+    assertEquals(LanguageLevel.JDK_1_6, LanguageLevelModuleExtensionImpl.getInstance(library).getLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_7, LanguageLevelModuleExtensionImpl.getInstance(app).getLanguageLevel());
   }
 
   private static void updateAndroidModelVersion(@NotNull File projectPath, @NotNull String modelVersion) throws IOException {
