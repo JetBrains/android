@@ -132,14 +132,20 @@ public final class LocalProperties {
     doSetAndroidNdkPath(toSystemDependentName(androidNdkPath));
   }
 
-  public void setAndroidNdkPath(@NotNull File androidNdkPath) {
-    doSetAndroidNdkPath(androidNdkPath.getPath());
+  public void setAndroidNdkPath(@Nullable File androidNdkPath) {
+    String path = androidNdkPath != null ? androidNdkPath.getPath() : null;
+    doSetAndroidNdkPath(path);
   }
 
   // Sets the path as it is given. When invoked from production code, the path is assumed to be "system dependent".
   @VisibleForTesting
-  void doSetAndroidNdkPath(@NotNull String path) {
-    myProperties.setProperty(NDK_DIR_PROPERTY, path);
+  void doSetAndroidNdkPath(@Nullable String path) {
+    if (isNotEmpty(path)) {
+      myProperties.setProperty(NDK_DIR_PROPERTY, path);
+    }
+    else {
+      myProperties.remove(NDK_DIR_PROPERTY);
+    }
   }
 
   public boolean hasAndroidDirProperty() {
