@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -37,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +57,7 @@ import static org.junit.Assert.assertTrue;
  *   <li>Render thumbnails</li>
  * </ul>
  */
+@BelongsToTestGroups({LAYOUT})
 public class LayoutPreviewTest extends GuiTestCase {
   // Default folder in the GUI test data directory where we're storing rendering thumbnails
   public static final String THUMBNAIL_FOLDER = "thumbnails";
