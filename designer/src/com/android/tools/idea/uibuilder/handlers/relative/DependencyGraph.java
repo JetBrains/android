@@ -17,13 +17,14 @@ package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.util.containers.WeakHashMap;
 
 import java.util.*;
 
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.VALUE_TRUE;
 
@@ -106,11 +107,14 @@ public class DependencyGraph {
     }
 
     for (ViewData view : myNodeToView.values()) {
-      for (XmlAttribute attribute : view.node.getTag().getAttributes()) {
-        String name = attribute.getLocalName();
+      for (AttributeSnapshot attribute : view.node.getAttributes()) {
+        if (!ANDROID_URI.equals(attribute.namespace)) {
+          continue;
+        }
+        String name = attribute.name;
         ConstraintType type = ConstraintType.fromAttribute(name);
         if (type != null) {
-          String value = attribute.getValue();
+          String value = attribute.value;
 
           if (type.targetParent) {
             if (VALUE_TRUE.equals(value)) {
