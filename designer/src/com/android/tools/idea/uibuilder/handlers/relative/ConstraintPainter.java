@@ -120,9 +120,6 @@ public class ConstraintPainter {
                                             boolean showDependents,
                                             TextDirection textDirection) {
 
-    if (!parentNode.getTag().isValid()) {
-      return;
-    }
     DependencyGraph dependencyGraph = DependencyGraph.get(parentNode);
     Set<NlComponent> horizontalDeps = dependencyGraph.dependsOn(childNodes, false /* vertical */);
     Set<NlComponent> verticalDeps = dependencyGraph.dependsOn(childNodes, true /* vertical */);
