@@ -29,13 +29,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class NlPropertiesModel extends PTableModel {
-  @Nullable private XmlTag myTag;
+  @Nullable private NlComponent myComponent;
 
   public void update(@NotNull Iterable<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
     // TODO: handle multiple selections: show properties common to all selections
-    NlComponent first = Iterables.getFirst(selection, null);
-    myTag = first == null ? null : first.getTag();
-    if (myTag == null) {
+    final NlComponent first = Iterables.getFirst(selection, null);
+    if (first == null) {
       setItems(Collections.<PTableItem>emptyList());
       if (postUpdateRunnable != null) {
         postUpdateRunnable.run();
@@ -48,7 +47,7 @@ public class NlPropertiesModel extends PTableModel {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        final List<NlProperty> properties = NlProperties.getInstance().getProperties(myTag);
+        final List<NlProperty> properties = NlProperties.getInstance().getProperties(first);
         final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties);
 
         UIUtil.invokeLaterIfNeeded(new Runnable() {
