@@ -44,7 +44,6 @@ public class DrawableEditor extends AbstractTableCellEditor {
     myRenderTask = renderTask;
 
     myComponent = new DrawableComponent();
-    myComponent.setBorder(DrawableComponent.getBorder(table.getSelectionBackground()));
     myComponent.addActionListener(new EditorClickListener());
   }
 
