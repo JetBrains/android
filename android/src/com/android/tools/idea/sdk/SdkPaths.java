@@ -42,6 +42,35 @@ public class SdkPaths {
     return validatedSdkPath(sdkPath, "SDK", true, includePathInMessage);
   }
 
+  /**
+   * Indicates whether the given path belongs to a valid Android NDK.
+   *
+   * @param ndkPath              the given path.
+   * @param includePathInMessage indicates whether the given path should be included in the result message.
+   * @return the validation result.
+   */
+  @NotNull
+  public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
+    ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
+    if (!validationResult.success) {
+      return validationResult;
+    }
+
+    File toolchainsDirPath = new File(ndkPath, "toolchains");
+    if (!toolchainsDirPath.isDirectory()) {
+      String message;
+      if (includePathInMessage) {
+        message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+      }
+      else {
+        message = "NDK does not contain any toolchains.";
+      }
+      return ValidationResult.error(message);
+    }
+
+    return ValidationResult.SUCCESS;
+  }
+
   @NotNull
   private static ValidationResult validatedSdkPath(@Nullable File sdkPath, @NotNull String sdkName, boolean checkForWritable,
                                                    boolean includePathInMessage) {
