@@ -29,21 +29,15 @@ public class DrawableRenderer implements TableCellRenderer {
   private final DrawableComponent myComponent;
   private final RenderTask myRenderTask;
 
-  private final Border mySelectedBorder;
-  private final Border myUnselectedBorder;
-
   public DrawableRenderer(final @NotNull JTable table, final @Nullable RenderTask renderTask) {
     myRenderTask = renderTask;
 
     myComponent = new DrawableComponent();
-    mySelectedBorder = DrawableComponent.getBorder(table.getSelectionBackground());
-    myUnselectedBorder = DrawableComponent.getBorder(table.getBackground());
   }
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     myComponent.configure((EditedStyleItem) value, myRenderTask);
-    myComponent.setBorder(isSelected ? mySelectedBorder : myUnselectedBorder);
     return myComponent;
   }
 }

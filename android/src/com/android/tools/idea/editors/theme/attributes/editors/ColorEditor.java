@@ -106,7 +106,7 @@ public class ColorEditor extends AbstractTableCellEditor {
       if (itemValue != null && itemValue.startsWith(SdkConstants.COLOR_RESOURCE_PREFIX)) {
         colorName = itemValue.substring(SdkConstants.COLOR_RESOURCE_PREFIX.length());
       }
-      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myComponent.getValue(), null,
+      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myItem.getValue(), null,
                                                                    ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
 
       final String oldValue = myItem.getItemResourceValue().getValue();
