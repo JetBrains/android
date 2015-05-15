@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.util.ui.AbstractTableCellEditor;
 
 import java.awt.Component;
 import javax.swing.*;
@@ -40,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * Uses a dropdown to offer the choice between Material Dark, Material Light or Other.
  * Deals with Other through a separate dialog window.
  */
-public class ParentRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
+public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, AttributeEditorValue> implements TableCellRenderer {
   private final ComboBox myComboBox;
   private String myResultValue;
   private final Configuration myConfiguration;
@@ -67,21 +66,16 @@ public class ParentRendererEditor extends AbstractTableCellEditor implements Tab
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    if (!(value instanceof ThemeEditorStyle)) {
-      return null;
-    }
-
-    ThemeEditorStyle parent = (ThemeEditorStyle)value;
+  public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myConfiguration));
-    myComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
-    myResultValue = parent.getName();
+    myComboBox.setModel(new ParentThemesListModel(defaultThemes, value));
+    myResultValue = value.getName();
     return myComboBox;
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myResultValue;
+  public AttributeEditorValue getEditorValue() {
+    return new AttributeEditorValue(myResultValue, false);
   }
 
   private class ParentChoiceListener implements ActionListener {
