@@ -161,7 +161,7 @@ public class DragDropInteraction extends Interaction {
             for (NlComponent component : myDraggedComponents) {
 
               // Notify parent & child about the creation and allow them to customize the objects
-              InsertType insertType =  myType == DragType.COPY ? InsertType.CREATE :
+              InsertType insertType =  myType == DragType.COPY ? InsertType.MOVE_INTO :
                                        (component.getParent() != myDragReceiver ? InsertType.MOVE_INTO : InsertType.MOVE_WITHIN);
               myCurrentHandler.onChildInserted(myDragReceiver, component, insertType);
               ViewHandler viewHandler = viewHandlerManager.getHandler(component);

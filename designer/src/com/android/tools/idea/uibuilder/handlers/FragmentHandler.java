@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -28,7 +29,7 @@ import static com.android.SdkConstants.*;
 public class FragmentHandler extends ViewHandler {
   @Override
   public boolean onCreate(@NonNull ViewEditor editor,
-                          @NonNull NlComponent parent,
+                          @Nullable NlComponent parent,
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
