@@ -22,7 +22,6 @@ import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.lang.databinding.DbUtil;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -56,10 +55,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   private final LayoutLog myLogger;
 
   @NotNull
-  private final List<Element> myNodeStack = new ArrayList<Element>();
+  private final List<TagSnapshot> myNodeStack = new ArrayList<TagSnapshot>();
 
   @Nullable
-  protected final Element myRoot;
+  protected final TagSnapshot myRoot;
 
   @Nullable
   private String myToolsPrefix;
@@ -134,10 +133,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           myRoot = null;
         }
       } else {
-        myRoot = ApplicationManager.getApplication().runReadAction(new Computable<Element>() {
+        myRoot = ApplicationManager.getApplication().runReadAction(new Computable<TagSnapshot>() {
 
           @Override
-          public Element compute() {
+          public TagSnapshot compute() {
             if (root.isValid()) {
               myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
               myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
@@ -154,7 +153,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   @Nullable
-  protected final Element getCurrentNode() {
+  protected final TagSnapshot getCurrentNode() {
     if (myNodeStack.size() > 0) {
       return myNodeStack.get(myNodeStack.size() - 1);
     }
@@ -163,7 +162,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   @Nullable
-  protected final Element getPreviousNode() {
+  protected final TagSnapshot getPreviousNode() {
     if (myNodeStack.size() > 1) {
       return myNodeStack.get(myNodeStack.size() - 2);
     }
@@ -172,13 +171,13 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   @Nullable
-  protected final Attribute getAttribute(int i) {
+  protected final AttributeSnapshot getAttribute(int i) {
     if (myParsingState != START_TAG) {
       throw new IndexOutOfBoundsException();
     }
 
     // get the current uiNode
-    Element uiNode = getCurrentNode();
+    TagSnapshot uiNode = getCurrentNode();
     if (uiNode != null) {
       return uiNode.attributes.get(i);
     }
@@ -186,12 +185,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     return null;
   }
 
-  protected void push(@NotNull Element node) {
+  protected void push(@NotNull TagSnapshot node) {
     myNodeStack.add(node);
   }
 
   @NotNull
-  protected Element pop() {
+  protected TagSnapshot pop() {
     return myNodeStack.remove(myNodeStack.size() - 1);
   }
 
@@ -208,9 +207,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public Object getViewCookie() {
     if (myProvideViewCookies) {
-      Element element = getCurrentNode();
+      TagSnapshot element = getCurrentNode();
       if (element != null) {
-        return element.cookie;
+        return element.tag;
       }
     }
 
@@ -250,7 +249,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    */
   @Override
   public int getAttributeCount() {
-    Element node = getCurrentNode();
+    TagSnapshot node = getCurrentNode();
 
     if (node != null) {
       return node.attributes.size();
@@ -266,7 +265,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   @Override
   public String getAttributeName(int i) {
-    Attribute attribute = getAttribute(i);
+    AttributeSnapshot attribute = getAttribute(i);
     if (attribute != null) {
       return attribute.name;
     }
@@ -280,7 +279,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    */
   @Override
   public String getAttributeNamespace(int i) {
-    Attribute attribute = getAttribute(i);
+    AttributeSnapshot attribute = getAttribute(i);
     if (attribute != null) {
       return attribute.namespace;
     }
@@ -294,13 +293,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   @Override
   public String getAttributePrefix(int i) {
-    Attribute attribute = getAttribute(i);
+    AttributeSnapshot attribute = getAttribute(i);
     if (attribute != null) {
-      String prefix = attribute.prefix;
-      if (prefix.isEmpty()) {
-        prefix = null;
-      }
-      return prefix;
+      return attribute.prefix;
     }
     return null;
   }
@@ -312,7 +307,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   @Override
   public String getAttributeValue(int i) {
-    Attribute attribute = getAttribute(i);
+    AttributeSnapshot attribute = getAttribute(i);
     if (attribute != null) {
       return attribute.value;
     }
@@ -327,9 +322,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public String getAttributeValue(String namespace, String localName) {
     // get the current uiNode
-    Element tag = getCurrentNode();
+    TagSnapshot tag = getCurrentNode();
     if (tag != null) {
-      if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(tag.tag)) {
+      if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(tag.tagName)) {
         String layout = tag.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
         if (layout != null) {
           return layout;
@@ -342,11 +337,11 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       } else if (namespace.equals(ANDROID_URI)) {
         if (myAndroidPrefix != null) {
           if (myToolsPrefix != null) {
-            for (Attribute attribute : tag.attributes) {
+            for (AttributeSnapshot attribute : tag.attributes) {
               if (localName.equals(attribute.name)) {
                 if (myToolsPrefix.equals(attribute.prefix)) {
                   value = attribute.value;
-                  if (value.isEmpty()) {
+                  if (value != null && value.isEmpty()) {
                     // Empty when there is a runtime attribute set means unset the runtime attribute
                     value = tag.getAttribute(localName, ANDROID_URI) != null ? null : value;
                   }
@@ -368,7 +363,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         // will be for the current application's resource package, e.g.
         // http://schemas.android.com/apk/res/foo.bar, but the XML document will
         // be using http://schemas.android.com/apk/res-auto in library projects:
-        for (Attribute attribute : tag.attributes) {
+        for (AttributeSnapshot attribute : tag.attributes) {
           if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
                                                    AUTO_URI.equals(attribute.namespace))) {
             value = attribute.value;
@@ -411,9 +406,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public String getName() {
     if (myParsingState == START_TAG || myParsingState == END_TAG) {
-      Element currentNode = getCurrentNode();
+      TagSnapshot currentNode = getCurrentNode();
       assert currentNode != null; // Should only be called when START_TAG
-      String name = currentNode.tag;
+      String name = currentNode.tagName;
       if (name.equals(VIEW_FRAGMENT)) {
         // Temporarily translate <fragment> to <include> (and in getAttribute
         // we will also provide a layout-attribute for the corresponding
@@ -443,7 +438,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public String getNamespace() {
     if (myParsingState == START_TAG || myParsingState == END_TAG) {
-      Element currentNode = getCurrentNode();
+      TagSnapshot currentNode = getCurrentNode();
       assert currentNode != null;  // Should only be called when START_TAG
       return currentNode.namespace;
     }
@@ -455,13 +450,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public String getPrefix() {
     if (myParsingState == START_TAG || myParsingState == END_TAG) {
-      Element currentNode = getCurrentNode();
+      TagSnapshot currentNode = getCurrentNode();
       assert currentNode != null;  // Should only be called when START_TAG
-      String prefix = currentNode.prefix;
-      if (prefix.isEmpty()) {
-        prefix = null;
-      }
-      return prefix;
+      return currentNode.prefix;
     }
 
     return null;
@@ -470,7 +461,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public boolean isEmptyElementTag() throws XmlPullParserException {
     if (myParsingState == START_TAG) {
-      Element currentNode = getCurrentNode();
+      TagSnapshot currentNode = getCurrentNode();
       assert currentNode != null;  // Should only be called when START_TAG
       // This isn't quite right; if layoutlib starts needing this, stash XmlTag#isEmpty() in snapshot
       return currentNode.children.isEmpty();
@@ -492,9 +483,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   protected void onNextFromStartTag() {
     // get the current node, and look for text or children (children first)
-    Element node = getCurrentNode();
+    TagSnapshot node = getCurrentNode();
     assert node != null;  // Should only be called when START_TAG
-    List<Element> children = node.children;
+    List<TagSnapshot> children = node.children;
     if (!children.isEmpty()) {
       // move to the new child, and don't change the state.
       push(children.get(0));
@@ -516,10 +507,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   protected void onNextFromEndTag() {
     // look for a sibling. if no sibling, go back to the parent
-    Element node = getCurrentNode();
+    TagSnapshot node = getCurrentNode();
     assert node != null;  // Should only be called when END_TAG
 
-    Element sibling = node.next;
+    TagSnapshot sibling = node.getNextSibling();
     if (sibling != null) {
       node = sibling;
       // to go to the sibling, we need to remove the current node,
@@ -548,29 +539,31 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   @Nullable
-  private static Element createSnapshot(@NotNull XmlTag tag) {
+  private static TagSnapshot createSnapshot(@NotNull XmlTag tag) {
     // <include> tags can't be at the root level; handle <fragment> rewriting here such that we don't
     // need to handle it as a tag name rewrite (where it's harder to change the structure)
     // https://code.google.com/p/android/issues/detail?id=67910
     String rootTag = tag.getName();
+    assert rootTag != null;
     if (rootTag.equals(VIEW_FRAGMENT)) {
-      Element element = new Element(tag, FRAME_LAYOUT, "", "");
+      TagSnapshot element = TagSnapshot.createSyntheticTag(tag, FRAME_LAYOUT, "", "");
       XmlAttribute[] psiAttributes = tag.getAttributes();
-      List<Attribute> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
+      List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
       element.attributes = attributes;
       for (XmlAttribute psiAttribute : psiAttributes) {
-        Attribute attribute = createAttributeSnapshot(psiAttribute);
+        AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
         if (attribute != null) {
           attributes.add(attribute);
         }
       }
-      Element include = new Element(null, VIEW_FRAGMENT, "", "");
+      TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "");
       element.children = Collections.singletonList(include);
       include.children = Collections.emptyList();
-      List<Attribute> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
+      List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
       include.attributes = includeAttributes;
       for (XmlAttribute psiAttribute : psiAttributes) {
         String name = psiAttribute.getName();
+        assert name != null;
         if (name.startsWith(XMLNS_PREFIX)) {
           continue;
         }
@@ -579,14 +572,14 @@ public class LayoutPsiPullParser extends LayoutPullParser {
             localName.equals(ATTR_ID)) {
           continue;
         }
-        Attribute attribute = createAttributeSnapshot(psiAttribute);
+        AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
         if (attribute != null) {
           includeAttributes.add(attribute);
         }
       }
       return element;
     } else if (rootTag.equals(FRAME_LAYOUT)) {
-      Element root = createTagSnapshot(tag);
+      TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
 
       // tools:layout on a <FrameLayout> acts like an <include> child. This
       // lets you preview runtime additions on FrameLayouts.
@@ -594,18 +587,18 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       if (layout != null && root.children.isEmpty()) {
         String prefix = tag.getPrefixByNamespace(ANDROID_URI);
         if (prefix != null) {
-          List<Element> children = Lists.newArrayList();
+          List<TagSnapshot> children = Lists.newArrayList();
           children.addAll(root.children);
           root.children = children;
 
-          Element element = new Element(null, VIEW_INCLUDE, "", "");
+          TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "");
           children.add(element);
           element.children = Collections.emptyList();
-          List<Attribute> attributes = Lists.newArrayListWithExpectedSize(3);
+          List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
           element.attributes = attributes;
-          attributes.add(new Attribute("", "", ATTR_LAYOUT, layout));
-          attributes.add(new Attribute(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
-          attributes.add(new Attribute(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
+          attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
+          attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
+          attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
         }
       }
 
@@ -623,7 +616,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         String prefix = tag.getPrefixByNamespace(ANDROID_URI);
         if (prefix != null) {
           for (int i = 0, n = root.children.size(); i < n; i++) {
-            Element child = root.children.get(i);
+            TagSnapshot child = root.children.get(i);
             boolean visible = indices.contains(i);
             child.setAttribute(ATTR_VISIBILITY, ANDROID_URI, prefix, visible ? "visible" : "gone");
           }
@@ -633,14 +626,16 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       return root;
     } else if (rootTag.equals(TAG_LAYOUT)) {
       for (XmlTag subTag : tag.getSubTags()) {
-        if (!subTag.getName().equals(TAG_DATA)) {
+        String subTagName = subTag.getName();
+        assert subTagName != null;
+        if (!subTagName.equals(TAG_DATA)) {
           return createSnapshot(subTag);
         }
       }
       // Rely on code inspection to log errors in the layout.
       return null;
     } else {
-      Element root = createTagSnapshot(tag);
+      TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
 
       // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
       // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
@@ -649,133 +644,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         if (id == null) {
           String prefix = tag.getPrefixByNamespace(ANDROID_URI);
           if (prefix != null) {
-            root.attributes.add(new Attribute(ANDROID_URI, prefix, ATTR_ID, "@+id/_dynamic"));
+            root.attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_ID, "@+id/_dynamic"));
           }
         }
       }
 
       return root;
-    }
-  }
-
-  @NotNull
-  private static Element createTagSnapshot(@NotNull XmlTag tag) {
-    Element element = new Element(tag);
-
-    // Attributes
-    XmlAttribute[] psiAttributes = tag.getAttributes();
-    List<Attribute> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
-    element.attributes = attributes;
-    for (XmlAttribute psiAttribute : psiAttributes) {
-      Attribute attribute = createAttributeSnapshot(psiAttribute);
-      if (attribute != null) {
-        attributes.add(attribute);
-      }
-    }
-
-    // Children
-    XmlTag[] subTags = tag.getSubTags();
-    if (subTags.length > 0) {
-      Element last = null;
-      ArrayList<Element> children = Lists.newArrayListWithExpectedSize(subTags.length);
-      element.children = children;
-      for (XmlTag subTag : subTags) {
-        Element child = createTagSnapshot(subTag);
-        children.add(child);
-        if (last != null) {
-          last.next = child;
-        }
-        last = child;
-      }
-    } else {
-      element.children = Collections.emptyList();
-    }
-
-    return element;
-  }
-
-  /**
-   * Returns null if the attribute should not be passed to LayoutLib.
-   */
-  @Nullable
-  private static Attribute createAttributeSnapshot(@NotNull XmlAttribute psiAttribute) {
-    String localName = psiAttribute.getLocalName();
-    String namespace = psiAttribute.getNamespace();
-    String prefix = psiAttribute.getNamespacePrefix();
-    String value = psiAttribute.getValue();
-    if (value != null && value.startsWith(PREFIX_BINDING_EXPR)) {
-      // if this is a binding expression, get the default value.
-      value = DbUtil.getBindingExprDefault(psiAttribute);
-      if (value == null) {
-        // If no default value, strip the attribute completely.
-        return null;
-      }
-    }
-    return new Attribute(namespace, prefix, localName, value);
-  }
-
-  protected static class Element {
-    public final String namespace;
-    public final String tag;
-    public final XmlTag cookie;
-    private final String prefix;
-    public Element next;
-    public List<Element> children;
-    public List<Attribute> attributes;
-
-    public Element(@Nullable XmlTag tag, String tagName, String prefix, String namespace) {
-      this.tag = tagName;
-      this.prefix = prefix;
-      this.namespace = namespace;
-      this.cookie = tag;
-    }
-
-    public Element(@NotNull XmlTag tag) {
-      this(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace());
-    }
-
-    @Nullable
-    public String getAttribute(String name) {
-      return getAttribute(name, null);
-    }
-
-    @Nullable
-    public String getAttribute(String name, @Nullable String namespace) {
-      // We just use a list rather than a map since in layouts the number of attributes is
-      // typically very small so map overhead isn't worthwhile
-      for (Attribute attribute : attributes) {
-        if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-          return attribute.value;
-        }
-      }
-
-      return null;
-    }
-
-    private void setAttribute(String name, String namespace, String prefix, @Nullable String value) {
-      for (Attribute attribute : attributes) {
-        if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-          attributes.remove(attribute);
-          break;
-        }
-      }
-      if (value != null) {
-        attributes.add(new Attribute(namespace, prefix, name, value));
-      }
-    }
-  }
-
-  protected static class Attribute {
-    public String namespace;
-    public String prefix;
-    public String name;
-    public String value;
-
-    private Attribute(@Nullable String namespace, String prefix, String name, @Nullable String value) {
-      this.namespace = namespace;
-      this.prefix = prefix;
-      this.name = name;
-      this.value = value;
     }
   }
 
@@ -798,9 +672,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     @Override
     public String getAttributeValue(final String namespace, final String localName) {
       if (myFilter != null) {
-        Element element = getCurrentNode();
+        TagSnapshot element = getCurrentNode();
         if (element != null) {
-          final XmlTag tag = element.cookie;
+          final XmlTag tag = element.tag;
           if (tag != null) {
             String value;
             if (ApplicationManager.getApplication().isReadAccessAllowed()) {
