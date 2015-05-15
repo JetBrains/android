@@ -249,7 +249,7 @@ public class NlComponent {
   /** Returns the ID of this component */
   @Nullable
   public String getId() {
-    String id = AndroidPsiUtils.getAttributeSafely(myTag, ANDROID_URI, ATTR_ID);
+    String id = getAttribute(ANDROID_URI, ATTR_ID);
     if (id != null) {
       if (id.startsWith(NEW_ID_PREFIX)) {
         return id.substring(NEW_ID_PREFIX.length());
