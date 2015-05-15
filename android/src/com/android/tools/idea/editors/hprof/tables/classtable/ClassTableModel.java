@@ -95,7 +95,7 @@ public class ClassTableModel extends HprofTableModel {
       @Nullable
       @Override
       public Integer getValue(@NotNull ClassTableModel model, int row) {
-        return model.getEntry(row).getShalowSize();
+        return model.getEntry(row).getShallowSize(myCurrentHeapId);
       }
     });
     columns.add(new TableColumn<ClassTableModel, Long>("Retained Size", Long.class, SwingConstants.RIGHT, 120, false) {
