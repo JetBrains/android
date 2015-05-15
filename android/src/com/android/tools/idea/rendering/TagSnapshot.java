@@ -93,6 +93,10 @@ public class TagSnapshot {
 
   @Nullable
   public String getAttribute(@NotNull String name, @Nullable String namespace) {
+    if (attributes == null) {
+      return null;
+    }
+
     // We just use a list rather than a map since in layouts the number of attributes is
     // typically very small so map overhead isn't worthwhile
     for (AttributeSnapshot attribute : attributes) {
@@ -109,10 +113,14 @@ public class TagSnapshot {
    * construction, not later
    */
   public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
-    for (AttributeSnapshot attribute : attributes) {
-      if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-        attributes.remove(attribute);
-        break;
+    if (attributes == null) {
+      attributes = Lists.newArrayList();
+    } else {
+      for (AttributeSnapshot attribute : attributes) {
+        if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
+          attributes.remove(attribute);
+          break;
+        }
       }
     }
     if (value != null) {
