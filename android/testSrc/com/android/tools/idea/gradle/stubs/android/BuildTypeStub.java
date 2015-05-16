@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class BuildTypeStub implements BuildType {
@@ -157,8 +158,8 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  @Nullable
-  public File getJarJarRuleFile() {
-    return null;
+  @NotNull
+  public List<File> getJarJarRuleFiles() {
+    return Collections.emptyList();
   }
 }
