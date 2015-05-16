@@ -161,9 +161,9 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  @Nullable
-  public File getJarJarRuleFile() {
-    return null;
+  @NotNull
+  public List<File> getJarJarRuleFiles() {
+    return Collections.emptyList();
   }
 
   @Override
