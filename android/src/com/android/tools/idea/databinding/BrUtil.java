@@ -16,10 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiNameIdentifierOwner;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.util.containers.HashSet;
 
 import java.util.Collection;
@@ -29,12 +26,15 @@ import java.util.Set;
  * This class replicates some logic inside data binding compiler.
  * <p>
  * If we import data binding library as is in the future, we can get rid of this.
+ * <p>
+ * We do not use {@linkplain com.intellij.psi.util.PropertyUtil} on purpose to avoid any inconsistencies
+ * between Data Binding's compiler code and this.
  */
 public class BrUtil {
   private static final Logger LOG = Logger.getInstance(BrUtil.class);
-  static Set<String> collectIds(Collection<? extends PsiNameIdentifierOwner> psiElements) {
+  static Set<String> collectIds(Collection<? extends PsiModifierListOwner> psiElements) {
     Set<String> properties = new HashSet<String>();
-    for (PsiNameIdentifierOwner owner : psiElements) {
+    for (PsiModifierListOwner owner : psiElements) {
       String key = null;
       if (owner instanceof PsiField) {
         key = stripPrefixFromField((PsiField)owner);
@@ -60,8 +60,7 @@ public class BrUtil {
       return null;
     }
     char firstChar = propertyName.charAt(0);
-    return "" + Character.toLowerCase(firstChar) +
-           propertyName.subSequence(1, propertyName.length());
+    return String.valueOf(Character.toLowerCase(firstChar)) + propertyName.subSequence(1, propertyName.length());
   }
 
   static boolean isGetter(PsiMethod psiMethod) {
@@ -114,14 +113,13 @@ public class BrUtil {
       if (name.length() > 2 && firstChar == 'm' && secondChar == '_') {
         char thirdChar = name.charAt(2);
         if (Character.isJavaIdentifierStart(thirdChar)) {
-          return "" + Character.toLowerCase(thirdChar) +
-                 name.subSequence(3, name.length());
+          return String.valueOf(Character.toLowerCase(thirdChar)) + name.subSequence(3, name.length());
         }
       } else if ((firstChar == 'm' && Character.isUpperCase(secondChar)) ||
                  (firstChar == '_' && Character.isJavaIdentifierStart(secondChar))) {
-        return "" + Character.toLowerCase(secondChar) + name.subSequence(2, name.length());
+        return String.valueOf(Character.toLowerCase(secondChar)) + name.subSequence(2, name.length());
       }
     }
-    return name.toString();
+    return name;
   }
 }

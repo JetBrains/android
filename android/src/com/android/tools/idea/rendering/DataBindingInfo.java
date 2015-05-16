@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.ide.common.res2.DataBindingResourceItem;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
@@ -26,7 +24,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -34,6 +32,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -45,18 +44,22 @@ public class DataBindingInfo implements ModificationTracker {
   private final Map<DataBindingResourceType, List<PsiDataBindingResourceItem>> myItems =
     Maps.newEnumMap(DataBindingResourceType.class);
 
-  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.VIEW_STUB,
-                                                                    SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
   private String myClassName;
   private String myPackageName;
   private final PsiResourceFile myPsiResourceFile;
   private PsiClass myPsiClass;
   private long myModificationCount;
+  private final AndroidFacet myFacet;
 
-  public DataBindingInfo(PsiResourceFile psiResourceFile, String className, String packageName) {
-    this.myClassName = className;
-    this.myPackageName = packageName;
+  public DataBindingInfo(AndroidFacet facet, PsiResourceFile psiResourceFile, String className, String packageName) {
+    myFacet = facet;
+    myClassName = className;
+    myPackageName = packageName;
     myPsiResourceFile = psiResourceFile;
+  }
+
+  public AndroidFacet getFacet() {
+    return myFacet;
   }
 
   void update(String className, String packageName, long modificationCount) {
@@ -86,7 +89,7 @@ public class DataBindingInfo implements ModificationTracker {
     if (myItems == null) {
       changed = true;
     } else {
-      List<DataBindingResourceItem> removed = Lists.newArrayList();
+      List<PsiDataBindingResourceItem> removed = Lists.newArrayList();
       for (Map.Entry<DataBindingResourceType, List<PsiDataBindingResourceItem>> entry : myItems.entrySet()) {
         for (PsiDataBindingResourceItem item : entry.getValue()) {
           if (!Iterables.contains(items, item)) {
@@ -94,7 +97,7 @@ public class DataBindingInfo implements ModificationTracker {
           }
         }
         changed |= removed.size() > 0;
-        for (DataBindingResourceItem item : removed) {
+        for (PsiDataBindingResourceItem item : removed) {
           entry.getValue().remove(item);
         }
       }
@@ -156,41 +159,14 @@ public class DataBindingInfo implements ModificationTracker {
       if (psiResourceItem.getTag() == null) {
         continue;
       }
-      String viewName = getViewName(psiResourceItem.getTag());
-      if (viewName == null) {
-        continue;
-      }
-      String viewClass = getViewClass(viewName);
-      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(item.getName()), viewClass, psiResourceItem.getTag()));
+      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(item.getName()), psiResourceItem.getTag()));
     }
     return result;
   }
 
-  private static String getViewName(XmlTag tag) {
-    // TODO handle include and merge
-    String viewName = tag.getName();
-    if (SdkConstants.VIEW_TAG.equals(viewName)) {
-      viewName = tag.getAttributeValue(SdkConstants.ATTR_CLASS, SdkConstants.ANDROID_URI);
-    }
-    return viewName;
-  }
-
-  private static String getViewClass(String elementName) {
-    if (elementName.indexOf('.') == -1) {
-      if (VIEW_PACKAGE_ELEMENTS.contains(elementName)) {
-        return SdkConstants.VIEW_PKG_PREFIX + elementName;
-      } else if (SdkConstants.WEB_VIEW.equals(elementName)) {
-        return SdkConstants.ANDROID_WEBKIT_PKG + elementName;
-      }
-      return SdkConstants.WIDGET_PKG_PREFIX + elementName;
-    } else {
-      return elementName;
-    }
-  }
-
   @Nullable
   public Module getModule() {
-    return ModuleUtil.findModuleForPsiElement(myPsiResourceFile.getPsiFile());
+    return ModuleUtilCore.findModuleForPsiElement(myPsiResourceFile.getPsiFile());
   }
 
   @Override
@@ -200,12 +176,10 @@ public class DataBindingInfo implements ModificationTracker {
 
   public static class ViewWithId {
     public final String name;
-    public final String className;
     public final XmlTag tag;
 
-    public ViewWithId(String name, String className, XmlTag tag) {
+    public ViewWithId(String name, XmlTag tag) {
       this.name = name;
-      this.className = className;
       this.tag = tag;
     }
   }
