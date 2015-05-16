@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.res2.DataBindingResourceItem;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 
 import java.util.Arrays;
@@ -36,7 +37,7 @@ public class PsiDataBindingResourceItem extends DataBindingResourceItem {
     myXmlTag = xmlTag;
     myData = Maps.newHashMap();
     for (String data : type.attributes) {
-      myData.put(data, myXmlTag.getAttributeValue(data));
+      myData.put(data, StringUtil.unescapeXml(myXmlTag.getAttributeValue(data)));
     }
   }
 
