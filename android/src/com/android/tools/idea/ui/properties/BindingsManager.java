@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.exceptions.BindingCycleException;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.ui.properties.expressions.list.ListExpression;
 import com.google.common.base.Objects;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Queues;
-import com.google.common.collect.Table;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
@@ -46,8 +47,25 @@ public final class BindingsManager {
    */
   private static final int MAX_CYCLE_COUNT = 10;
 
+  /**
+   * A strategy on how to invoke a binding update. Instead of invoking immediately, we often want
+   * to postpone the invocation, as that will allow us to avoid doing expensive updates on
+   * redundant, intermediate changes, e.g. a repaint will happen if width and/or height changes,
+   * and we only want to repaint once if both width and height are changed on the same frame.
+   */
   public interface InvokeStrategy {
     void invoke(@NotNull Runnable runnable);
+  }
+
+  /**
+   * Simple interface for how bindings should update themselves once the target they're listening
+   * to has changed, which are added to a queue to be invoked later. A class that implements this
+   * interface should also implement {@link #equals(Object)} and {@link #hashCode()} as it's
+   * possible the same update request may be enqueued multiple times in a single frame (if the
+   * target value is invalidated multiple times), but we really only want to update once.
+   */
+  private interface Updater {
+    void update();
   }
 
   /**
@@ -82,8 +100,9 @@ public final class BindingsManager {
 
   private final Map<ObservableProperty<?>, OneWayBinding<?>> myOneWayBindings = Maps.newHashMap();
   private final Table<ObservableProperty<?>, ObservableProperty<?>, TwoWayBinding<?>> myTwoWayBindings = HashBasedTable.create();
-  private final Queue<PropertyUpdater<?>> myUpdaters = Queues.newArrayDeque();
-  private final Queue<PropertyUpdater<?>> myDeferredUpdaters = Queues.newArrayDeque();
+  private final List<ListBindingWrapper> myListWrappers = Lists.newArrayList();
+  private final Queue<Updater> myUpdaters = Queues.newArrayDeque();
+  private final Queue<Updater> myDeferredUpdaters = Queues.newArrayDeque();
 
   private boolean myUpdateInProgress;
   private int myCycleCount;
@@ -143,6 +162,15 @@ public final class BindingsManager {
   }
 
   /**
+   * Binds a list to a target list expression.
+   */
+  public <S, D> void bindList(@NotNull ObservableList<D> destList, @NotNull ListExpression<S, D> srcExpression) {
+    releaseList(destList);
+
+    myListWrappers.add(new ListBindingWrapper(destList, new ListBinding<S, D>(destList, srcExpression)));
+  }
+
+  /**
    * Releases a one-way binding previously registered via {@link #bind(ObservableProperty, ObservableValue)}
    */
   public void release(@NotNull ObservableProperty<?> dest) {
@@ -170,6 +198,22 @@ public final class BindingsManager {
   }
 
   /**
+   * Releases a mapping previously registered via {@link #bindList(ObservableList, ListExpression)}
+   */
+  public <T> void releaseList(@NotNull ObservableList<T> destList) {
+    Iterator<ListBindingWrapper> i = myListWrappers.iterator();
+    while (i.hasNext()) {
+      ListBindingWrapper wrapper = i.next();
+      if (wrapper.getList() == destList) {
+        wrapper.getBinding().dispose();
+        i.remove();
+        break;
+      }
+    }
+  }
+
+
+  /**
    * Release all bindings (one-way and two-way) registered with this bindings manager.
    */
   public void releaseAll() {
@@ -182,12 +226,17 @@ public final class BindingsManager {
       twoWayBinding.dispose();
     }
     myTwoWayBindings.clear();
+
+    for (ListBindingWrapper listWrapper : myListWrappers) {
+      listWrapper.getBinding().dispose();
+    }
+    myListWrappers.clear();
   }
 
-  private void enqueueUpdater(PropertyUpdater<?> propertyUpdater) {
+  private void enqueueUpdater(@NotNull Updater updater) {
     if (myUpdateInProgress) {
-      if (!myDeferredUpdaters.contains(propertyUpdater)) {
-        myDeferredUpdaters.add(propertyUpdater);
+      if (!myDeferredUpdaters.contains(updater)) {
+        myDeferredUpdaters.add(updater);
       }
       return;
     }
@@ -195,8 +244,8 @@ public final class BindingsManager {
     // Prepare to run an update if we're the first update request. Any other requests that are made
     // before the update runs will get lumped in with it.
     boolean shouldInvoke = myUpdaters.isEmpty();
-    if (!myUpdaters.contains(propertyUpdater)) {
-      myUpdaters.add(propertyUpdater);
+    if (!myUpdaters.contains(updater)) {
+      myUpdaters.add(updater);
     }
 
     if (shouldInvoke) {
@@ -209,7 +258,7 @@ public final class BindingsManager {
       @Override
       public void run() {
         myUpdateInProgress = true;
-        for (PropertyUpdater<?> propertyUpdater : myUpdaters) {
+        for (Updater propertyUpdater : myUpdaters) {
           propertyUpdater.update();
         }
         myUpdaters.clear();
@@ -294,12 +343,53 @@ public final class BindingsManager {
     }
   }
 
+  private class ListBinding<S, D> extends InvalidationListener implements Updater {
+    private final ObservableList<D> myDestList;
+    private final ListExpression<S, D> mySrcExpression;
+
+    private ListBinding(ObservableList<D> destList, ListExpression<S, D> srcExpression) {
+      myDestList = destList;
+      mySrcExpression = srcExpression;
+      srcExpression.addListener(this);
+
+      // Once bound, force the dest list to refresh its contents based on the source list
+      onInvalidated(srcExpression);
+    }
+
+    @Override
+    protected void onInvalidated(@NotNull Observable sender) {
+      enqueueUpdater(this);
+    }
+
+    @Override
+    public void update() {
+      myDestList.setAll(mySrcExpression.get());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ListBinding<?, ?> that = (ListBinding<?, ?>)o;
+      return Objects.equal(myDestList, that.myDestList) && Objects.equal(mySrcExpression, that.mySrcExpression);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(myDestList, mySrcExpression);
+    }
+
+    public void dispose() {
+      mySrcExpression.removeListener(this);
+    }
+  }
+
   /**
    * Simple helper class which wraps a property and a value and can update the property on request.
    * This class is used by both {@link OneWayBinding} and {@link TwoWayBinding} to enqueue an
    * update after they detect a change.
    */
-  private static final class PropertyUpdater<T> {
+  private static final class PropertyUpdater<T> implements Updater {
     private final ObservableProperty<T> myDest;
     private final ObservableValue<T> mySrc;
 
@@ -308,6 +398,7 @@ public final class BindingsManager {
       mySrc = src;
     }
 
+    @Override
     public void update() {
       myDest.set(mySrc.get());
     }
@@ -323,6 +414,31 @@ public final class BindingsManager {
     @Override
     public int hashCode() {
       return Objects.hashCode(myDest, mySrc);
+    }
+  }
+
+  /**
+   * Wrapper class which helps us work around that Java {@link Map}s don't support having mutable
+   * {@link List}s as keys. Ideally, we would have just done HashMap.put(list, binding), but this
+   * would break if the list is ever modified.
+   *
+   * See also: http://stackoverflow.com/a/9973694/1299302
+   */
+  private static final class ListBindingWrapper {
+    private ObservableList myList;
+    private ListBinding myBinding;
+
+    public ListBindingWrapper(ObservableList list, ListBinding binding) {
+      myList = list;
+      myBinding = binding;
+    }
+
+    public ObservableList getList() {
+      return myList;
+    }
+
+    public ListBinding getBinding() {
+      return myBinding;
     }
   }
 }
