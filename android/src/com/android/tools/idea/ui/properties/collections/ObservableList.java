@@ -148,6 +148,29 @@ public final class ObservableList<E> extends AbstractObservable implements List<
     return added;
   }
 
+  /**
+   * Convenience method - same as {@link #clear()} followed by {@link #addAll(Collection)} but only
+   * triggers a single invalidation.
+   */
+  public boolean setAll(@NotNull Collection<? extends E> c) {
+    beginUpdate();
+
+    boolean cleared = false;
+    if (!myInnerList.isEmpty()) {
+      myInnerList.clear();
+      cleared = true;
+    }
+
+    boolean added = myInnerList.addAll(c);
+    boolean changed = cleared || added;
+    if (changed) {
+      notifyContentsChanged();
+    }
+    endUpdate();
+
+    return changed;
+  }
+
   @Override
   public boolean addAll(int index, Collection<? extends E> c) {
     boolean added = myInnerList.addAll(index, c);
