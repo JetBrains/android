@@ -456,7 +456,7 @@ public class NlComponent {
 
   @NonNull
   public List<AttributeSnapshot> getAttributes() {
-    if (snapshot != null && snapshot.attributes != null) {
+    if (snapshot != null) {
       return snapshot.attributes;
     }
 
