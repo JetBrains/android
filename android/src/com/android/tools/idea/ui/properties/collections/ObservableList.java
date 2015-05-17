@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.collections;
 
 import com.android.tools.idea.ui.properties.AbstractObservable;
+import com.google.common.base.Objects;
 import com.google.common.collect.ForwardingIterator;
 import com.google.common.collect.ForwardingListIterator;
 import com.google.common.collect.Lists;
@@ -270,8 +271,15 @@ public final class ObservableList<E> extends AbstractObservable implements List<
   }
 
   @Override
-  public boolean equals(Object obj) {
-    return myInnerList.equals(obj);
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (myInnerList.equals(o)) return true;
+
+    if (o != null && o instanceof ObservableList) {
+      return ((ObservableList)o).myInnerList.equals(myInnerList);
+    }
+
+    return false;
   }
 
   @Override
