@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property;
+package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.android.tools.idea.uibuilder.property.NlProperties;
+import com.android.tools.idea.uibuilder.property.NlPropertiesTest;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
