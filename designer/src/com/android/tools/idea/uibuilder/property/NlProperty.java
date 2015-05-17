@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,8 +45,6 @@ public class NlProperty extends PTableItem {
   @Nullable private final AttributeDefinition myDefinition;
   @NotNull private final String myName;
   @Nullable private final String myNamespace;
-
-  private NlPropertyRenderer myRenderer;
 
   public NlProperty(@NotNull NlComponent component,
                     @NotNull XmlAttributeDescriptor descriptor,
@@ -81,13 +80,15 @@ public class NlProperty extends PTableItem {
     return myDefinition == null ? Collections.<String>emptyList() : myDefinition.getParentStyleables();
   }
 
+  @Nullable
+  public AttributeDefinition getDefinition() {
+    return myDefinition;
+  }
+
   @NotNull
   @Override
   public TableCellRenderer getCellRenderer() {
-    if (myRenderer == null) {
-      myRenderer = new NlPropertyRenderer();
-    }
-    return myRenderer;
+    return NlPropertyRenderers.get(this);
   }
 
   @Override
