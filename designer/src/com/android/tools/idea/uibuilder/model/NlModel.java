@@ -312,7 +312,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static void updateSnapshot(@NonNull NlComponent component, @NonNull TagSnapshot snapshot) {
     assert component.getTag() == snapshot.tag;
     component.setSnapshot(snapshot);
-    if (snapshot.children != null) {
+    if (!snapshot.children.isEmpty()) {
       assert snapshot.children.size() == component.getChildCount();
       for (int i = 0, n = component.getChildCount(); i < n; i++) {
         NlComponent child = component.getChild(i);
@@ -355,18 +355,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       cookie = ((MergeCookie)cookie).getCookie();
       if (cookie instanceof XmlTag) {
         tag = (XmlTag)cookie;
-        if (myMergeComponentMap.containsKey(tag)) {
+        NlComponent mergedComponent = myMergeComponentMap.get(tag);
+        if (mergedComponent == null && parent != null && tag == parent.getTag()) {
+          // NumberPicker will render its children with merge cookies pointing to the root
+          // component (which was not a <merge>)
+          mergedComponent = parent;
+        }
+        if (mergedComponent != null) {
           // Just expand the bounds
           int left = parentX + view.getLeft();
           int top = parentY + view.getTop();
           int width = view.getRight() - view.getLeft();
           int height = view.getBottom() - view.getTop();
-          NlComponent viewComponent = myMergeComponentMap.get(tag);
-          Rectangle rectanglePrev = new Rectangle(viewComponent.x, viewComponent.y,
-                                                  viewComponent.w, viewComponent.h);
+          Rectangle rectanglePrev = new Rectangle(mergedComponent.x, mergedComponent.y,
+                                                  mergedComponent.w, mergedComponent.h);
           Rectangle rectangle = new Rectangle(left, top, width, height);
           rectangle.add(rectanglePrev);
-          viewComponent.setBounds(rectanglePrev.x, rectanglePrev.y, rectanglePrev.width, rectanglePrev.height);
+          mergedComponent.setBounds(rectanglePrev.x, rectanglePrev.y, rectanglePrev.width, rectanglePrev.height);
           return null;
         }
       }
