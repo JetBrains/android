@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
+
 /**
  * Panel that provides a UI view onto a {@link DeveloperServiceMetadata}.
  */
@@ -76,7 +78,7 @@ public final class DeveloperServicePanel extends EditorPanel {
     initializeFooterPanel(developerServiceMetadata);
 
     final SelectedProperty enabledCheckboxSelected = new SelectedProperty(myEnabledCheckbox);
-    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.or(service.getContext().installed()));
+    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.and(not(service.getContext().installed())));
 
     // This definition might be modified from the user interacting with the service earlier but not
     // yet committing to install it.
