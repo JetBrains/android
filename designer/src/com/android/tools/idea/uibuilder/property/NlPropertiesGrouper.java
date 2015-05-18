@@ -15,49 +15,74 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
+import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.util.List;
+import java.util.Set;
 
 public class NlPropertiesGrouper {
-  public List<PTableItem> group(List<NlProperty> properties) {
+  public List<PTableItem> group(@NotNull List<NlProperty> properties, @NotNull final NlComponent component) {
+    final String className = component.getTagName();
+
     List<PTableItem> result = Lists.newArrayListWithExpectedSize(properties.size());
 
-    PTableGroupItem layoutGroup = new PTableGroupItem() {
+    // group theme attributes together
+    NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator("Theme", new Predicate<NlProperty>() {
       @Override
-      public String getName() {
-        return "layout";
+      public boolean apply(@Nullable NlProperty p) {
+        return p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme"));
       }
+    });
 
-      @NotNull
+    // group attributes that correspond to this component together
+    NlPropertyAccumulator customViewPropertiesAccumulator = new NlPropertyAccumulator(className, new Predicate<NlProperty>() {
       @Override
-      public TableCellRenderer getCellRenderer() {
-        return new ColoredTableCellRenderer() {
-          @Override
-          protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
-          }
-        };
+      public boolean apply(@Nullable NlProperty p) {
+        return p != null && p.getParentStylables().contains(className);
       }
-    };
-    List<PTableItem> layoutProps = Lists.newArrayList();
+    });
+
+    // group margin, padding and layout attributes together
+    NlPropertyAccumulator marginPropertiesAccumulator = new NlPropertyAccumulator.PropertyNamePrefixAccumulator("Margin", "margin");
+    NlPropertyAccumulator paddingPropertiesAccumulator = new NlPropertyAccumulator.PropertyNamePrefixAccumulator("Padding", "padding");
+    NlPropertyAccumulator layoutViewPropertiesAccumulator = new NlPropertyAccumulator.PropertyNamePrefixAccumulator("Layout", "layout");
+
+    List<NlPropertyAccumulator> accumulators = ImmutableList.of(customViewPropertiesAccumulator, themePropertiesAccumulator,
+                                                                marginPropertiesAccumulator, paddingPropertiesAccumulator,
+                                                                layoutViewPropertiesAccumulator);
+
+    Set<String> modifiedAttrs = NlPropertiesSorter.getModifiedAttributes(component);
 
     for (NlProperty p : properties) {
-      if (p.getName().startsWith("layout")) {
-        layoutProps.add(p);
-      } else {
+      if (modifiedAttrs.contains(p.getName())) {
+        result.add(p);
+        continue;
+      }
+
+      boolean added = false;
+      for (NlPropertyAccumulator accumulator : accumulators) {
+        added = accumulator.process(p);
+        if (added) {
+          break;
+        }
+      }
+
+      if (!added) {
         result.add(p);
       }
     }
 
-    layoutGroup.setChildren(layoutProps);
-    result.set(0, layoutGroup);
+    for (NlPropertyAccumulator accumulator : accumulators) {
+      if (accumulator.hasItems()) {
+        result.add(accumulator.getGroupNode());
+      }
+    }
 
     return result;
   }

@@ -59,6 +59,7 @@ public class PNameRenderer implements TableCellRenderer {
 
     myRenderer.setIpad(new Insets(0, indent, 0, 0));
     myRenderer.append(item.getName());
+    myRenderer.setToolTipText(item.getTooltipText());
     return myRenderer;
   }
 
