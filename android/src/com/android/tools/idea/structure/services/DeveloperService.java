@@ -73,7 +73,7 @@ public final class DeveloperService {
    */
   public void install() {
     Project project = myServiceParser.getModule().getProject();
-    new WriteCommandAction.Simple(project, "Install service: " + getMetadata().getName()) {
+    new WriteCommandAction.Simple(project, "Install " + getMetadata().getName()) {
       @Override
       protected void run() throws Throwable {
         myServiceParser.createRecipe(true);
@@ -113,7 +113,7 @@ public final class DeveloperService {
       }
 
       if (dependenciesChanged) {
-        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall service: " + getMetadata().getName()) {
+        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall " + getMetadata().getName()) {
           @Override
           public void run() {
             gradleFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
