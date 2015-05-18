@@ -415,7 +415,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(myMinApiLevel))
         .addComponentFilter(myGroupFilter);
 
-      if (myIsAppCompatTheme = isAppCompatTheme(myConfiguration)) {
+      myIsAppCompatTheme = isAppCompatTheme(myConfiguration);
+      if (myIsAppCompatTheme) {
         builder
           .addComponentFilter(mySupportReplacementsFilter)
           .addAllComponents(mySupportLibraryComponents);
@@ -478,15 +479,12 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
 
     StyleResourceValue defaultTheme = resources.getDefaultTheme();
-    for (int i = 0; i < ResourceResolver.MAX_RESOURCE_INDIRECTION; i++) {
+    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && defaultTheme != null; i++) {
       // for loop ensures that we don't run into cyclic theme inheritance.
       if (defaultTheme.getName().startsWith("Theme.AppCompat")) {
         return true;
       }
       defaultTheme = resources.getParent(defaultTheme);
-      if (defaultTheme == null) {
-        break;
-      }
     }
     return false;
   }
