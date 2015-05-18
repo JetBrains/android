@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.editors.theme.ThemeEditor;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
@@ -94,7 +95,7 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
     }
 
     if (!style.isProjectStyle()) {
-      String simplifiedName = simplifyName(styleName);
+      String simplifiedName = simplifyName(style);
       if (StringUtil.isEmpty(simplifiedName)) {
         myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
       }
@@ -122,18 +123,24 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
    * or Theme.*.*
    */
   @NotNull
-  private static String simplifyName(String themeName) {
+  private static String simplifyName(@NotNull ThemeEditorStyle theme) {
     StringBuilder result = new StringBuilder();
-    String[] pieces = themeName.split("\\.");
-    if (pieces.length > 1) {
+    String name = theme.getName();
+    String[] pieces = name.split("\\.");
+    if (pieces.length > 1 && !"Light".equals(pieces[1])) {
       result.append(pieces[1]);
-      if (pieces.length > 2 && pieces[2].equals("Light")) {
+    }
+    ThemeEditorStyle parent = theme;
+    while (parent != null) {
+      if ("Theme.Light".equals(parent.getSimpleName())) {
         result.append(' ').append("Light");
+        return result.toString();
       }
       else {
-        result.append(' ').append("Dark");
+        parent = parent.getParent();
       }
     }
+    result.append(' ').append("Dark");
     return result.toString();
   }
 }
