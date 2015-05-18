@@ -80,14 +80,14 @@ public final class DeveloperService {
       }
     }.execute();
     getContext().snapshot();
-    getContext().isInstalled().set(true);
+    getContext().installed().set(true);
 
     UsageTracker.getInstance()
       .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_INSTALLED, getMetadata().getName(), null);
   }
 
   public void uninstall() {
-    if (!getContext().isInstalled().get()) {
+    if (!getContext().installed().get()) {
       return;
     }
 
@@ -123,7 +123,7 @@ public final class DeveloperService {
       GradleProjectImporter.getInstance().requestProjectSync(getModule().getProject(), null);
     }
 
-    getContext().isInstalled().set(false);
+    getContext().installed().set(false);
 
     UsageTracker.getInstance()
       .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_REMOVED, getMetadata().getName(), null);

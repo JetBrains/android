@@ -321,7 +321,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       }
     }
 
-    myContext.isInstalled().set(allDependenciesFound);
+    myContext.installed().set(allDependenciesFound);
     myContext.snapshot();
   }
 
