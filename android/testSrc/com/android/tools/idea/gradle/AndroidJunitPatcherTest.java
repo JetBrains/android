@@ -17,72 +17,79 @@ package com.android.tools.idea.gradle;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.*;
 import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link AndroidJunitPatcher}.
  */
 public class AndroidJunitPatcherTest extends AndroidTestCase {
-  private List<String> myExampleClassPath;
   private Set<String> myExampleClassPathSet;
   private String myRealAndroidJar;
   private String myMockableAndroidJar;
   private Collection<String> myResourcesDirs;
 
-
   private AndroidJunitPatcher myPatcher;
   private JavaParameters myJavaParameters;
   private AndroidProjectStub myAndroidProject;
+  private String myRoot;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     setUpIdeaAndroidProject();
-    setUpExampleClasspath();
 
     myPatcher = new AndroidJunitPatcher();
     myJavaParameters = new JavaParameters();
-    myJavaParameters.getClassPath().addAll(myExampleClassPath);
-
-    // Sanity check. These should be fixed by the patcher.
-    assertContainsElements(myExampleClassPath, myRealAndroidJar);
-    assertContainsElements(myExampleClassPath, myMockableAndroidJar);
-    assertDoesntContain(myExampleClassPath, myResourcesDirs);
-    assertFalse(Iterables.getLast(myExampleClassPath).equals(myMockableAndroidJar));
+    myJavaParameters.getClassPath().addAll(getExampleClasspath());
   }
 
-  private void setUpExampleClasspath() {
-    String root = myAndroidProject.getRootDir().getPath();
-    myExampleClassPath = Lists.newArrayList(
-      root + "/build/intermediates/classes/debug",
-      root + "/build/intermediates/classes/test/debug",
-      root + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar",
-      root + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/res",
-      root + "/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/classes.jar",
-      root + "/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/libs/internal_impl-22.0.0.jar",
-      root + "/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/res",
-      "/home/user/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar",
-      "/idea/production/java-runtime",
-      "/idea/production/junit_rt");
+  private List<String> getExampleClasspath() {
+    myRoot = myAndroidProject.getRootDir().getPath();
+    List<String> exampleClassPath =
+      Lists.newArrayList(myRoot + "/build/intermediates/classes/debug", myRoot + "/build/intermediates/classes/test/debug",
+                         myRoot + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar",
+                         myRoot + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/res",
+                         myRoot + "/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/classes.jar",
+                         myRoot + "/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/libs/internal_impl-22.0.0.jar",
+                         myRoot + "/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/res",
+                         "/home/user/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar",
+                         "/idea/production/java-runtime", "/idea/production/junit_rt");
 
-    myMockableAndroidJar = root + "/build/intermediates/mockable-android-22.jar";
+    myMockableAndroidJar = myRoot + "/build/intermediates/mockable-android-17.jar";
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myModule);
+    assertNotNull(androidPlatform);
+    assertEquals(17, androidPlatform.getApiLevel()); // Sanity check.
     myRealAndroidJar = FileUtil.toCanonicalPath(getTestSdkPath() + "/platforms/android-1.5/android.jar");
-    myResourcesDirs = ImmutableList.of(root + "/build/intermediates/javaResources/debug",
-                                       root + "/build/intermediates/javaResources/test/debug");
+    myResourcesDirs = ImmutableList.of(myRoot + "/build/intermediates/javaResources/debug",
+                                       myRoot + "/build/intermediates/javaResources/test/debug");
 
-    myExampleClassPath.add(0, myMockableAndroidJar);
-    myExampleClassPath.add(0, myRealAndroidJar);
+    exampleClassPath.add(0, myMockableAndroidJar);
+    exampleClassPath.add(0, myRealAndroidJar);
 
-    myExampleClassPathSet = ImmutableSet.copyOf(myExampleClassPath);
+    myExampleClassPathSet = ImmutableSet.copyOf(exampleClassPath);
+
+    // Sanity check. These should be fixed by the patcher.
+    assertContainsElements(exampleClassPath, myRealAndroidJar);
+    assertContainsElements(exampleClassPath, myMockableAndroidJar);
+    assertDoesntContain(exampleClassPath, myResourcesDirs);
+    assertFalse(Iterables.getLast(exampleClassPath).equals(myMockableAndroidJar));
+
+    return exampleClassPath;
   }
 
   private void setUpIdeaAndroidProject() {
@@ -102,10 +109,52 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     assertDoesntContain(result, myRealAndroidJar);
 
     // Mockable JAR is at the end:
-    assertEquals(Iterables.getLast(result), myMockableAndroidJar);
+    assertEquals(myMockableAndroidJar, Iterables.getLast(result));
     // Only the real android.jar was removed:
     assertContainsElements(Sets.difference(myExampleClassPathSet, resultSet), myRealAndroidJar);
     // Only expected entries were added:
     assertContainsElements(Sets.difference(resultSet, myExampleClassPathSet), myResourcesDirs);
+  }
+
+  public void testCaseInsensitivity() throws Exception {
+    if (!SystemInfo.isWindows) {
+      // This test only makes sense on Windows.
+      System.out.println("Skipping AndroidJunitPatcherTest#testCaseInsensitivity: not running on Windows.");
+      return;
+    }
+
+    myJavaParameters.getClassPath().remove(myRealAndroidJar);
+    // It's still the same file on Windows:
+    String alsoRealAndroidJar = myRealAndroidJar.replace("platforms", "Platforms");
+    myJavaParameters.getClassPath().addFirst(alsoRealAndroidJar);
+
+    myPatcher.patchJavaParameters(myModule, myJavaParameters);
+    List<String> result = myJavaParameters.getClassPath().getPathList();
+    assertThat(result).excludes(alsoRealAndroidJar, myRealAndroidJar);
+  }
+
+  public void testMultipleMockableJars_oldModel() throws Exception {
+    String jar22 = myRoot + "lib1/build/intermediates/mockable-android-22.jar";
+    String jar15 = myRoot + "lib2/build/intermediates/mockable-android-15.jar";
+    myJavaParameters.getClassPath().addFirst(jar22);
+    myJavaParameters.getClassPath().addFirst(jar15);
+
+    myPatcher.patchJavaParameters(myModule, myJavaParameters);
+
+    List<String> pathList = myJavaParameters.getClassPath().getPathList();
+    assertEquals(myMockableAndroidJar, Iterables.getLast(pathList));
+    assertDoesntContain(pathList, jar15);
+    assertDoesntContain(pathList, jar22);
+  }
+
+  @SuppressWarnings("ConstantConditions") // No risk of NPEs.
+  public void testMultipleMockableJars_newModel() throws Exception {
+    myJavaParameters.getClassPath().remove(myMockableAndroidJar);
+
+    JavaArtifactStub artifact = (JavaArtifactStub)myFacet.getIdeaAndroidProject().findSelectedTestArtifactInSelectedVariant();
+    artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
+    myPatcher.patchJavaParameters(myModule, myJavaParameters);
+
+    assertEquals(myMockableAndroidJar, Iterables.getLast(myJavaParameters.getClassPath().getPathList()));
   }
 }
