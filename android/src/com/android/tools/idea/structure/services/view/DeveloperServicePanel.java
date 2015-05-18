@@ -88,11 +88,12 @@ public final class DeveloperServicePanel extends EditorPanel {
       @Override
       protected void onInvalidated(@NotNull Observable sender) {
         if (enabledCheckboxSelected.get()) {
-          myService.getContext().modified().set(true);
+          // User just selected a service which was previous uninstalled
+          myService.getContext().beginEditing();
         }
         else {
-          boolean isModified = myService.getContext().modified().get();
           if (myService.getContext().installed().get()) {
+            // User just deselected a service which was previous installed
             String message = String.format(DELETE_SERVICE_MESSAGE, myService.getMetadata().getName(),
                                            Joiner.on('\n').join(myService.getMetadata().getDependencies()));
             int answer = Messages.showYesNoDialog(myService.getModule().getProject(), message, DELETE_SERVICE_TITLE, null);
@@ -101,11 +102,11 @@ public final class DeveloperServicePanel extends EditorPanel {
             }
             else {
               enabledCheckboxSelected.set(true);
-              myService.getContext().modified().set(isModified);
             }
           }
           else {
-            myService.getContext().modified().set(false);
+            // User just deselected a service they were editing but hadn't installed yet
+            myService.getContext().cancelEditing();
           }
         }
       }
@@ -198,6 +199,8 @@ public final class DeveloperServicePanel extends EditorPanel {
 
   @Override
   public void apply() {
+    myService.getContext().finishEditing();
+
     if (!isModified()) {
       return;
     }
