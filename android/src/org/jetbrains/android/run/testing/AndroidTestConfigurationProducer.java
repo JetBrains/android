@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.actions.ConfigurationFromContext;
+import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
@@ -224,5 +226,12 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                className != null && className.equals(configuration.CLASS_NAME);
     }
     return false;
+  }
+
+  @Override
+  public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+    // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
+    // other test configurations, as they won't work anyway.
+    return other.isProducedBy(JUnitConfigurationProducer.class);
   }
 }
