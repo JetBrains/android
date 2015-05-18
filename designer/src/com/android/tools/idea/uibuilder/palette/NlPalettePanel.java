@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.DnDAction;
@@ -57,6 +58,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   @NotNull private final IconPreviewFactory myIconFactory;
   @NotNull private Mode myMode;
   @Nullable private ScalableDesignSurface myDesignSurface;
+  @Nullable private BufferedImage myLastDragImage;
 
   public NlPalettePanel() {
     myModel = NlPaletteModel.get();
@@ -288,9 +290,10 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       NlPaletteItem item = (NlPaletteItem)content;
       Dimension size = null;
       if (myDesignSurface != null) {
-        BufferedImage image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), 1.0);
+        BufferedImage image = myIconFactory.renderDragImage(item, myDesignSurface.getCurrentScreenView(), 1.0);
         if (image != null) {
           size = new Dimension(image.getWidth(), image.getHeight());
+          myLastDragImage = image;
         }
       }
       if (size == null) {
@@ -308,13 +311,11 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     @Override
     public Pair<Image, Point> createDraggedImage(DnDAction action, Point dragOrigin) {
       TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-      Object content = node.getUserObject();
-      assert content instanceof NlPaletteItem;
-      NlPaletteItem item = (NlPaletteItem)content;
       BufferedImage image = null;
-      if (myDesignSurface != null) {
-        image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), myDesignSurface.getScale());
+      if (myLastDragImage != null && myLastDragImage != null) {
+        double scale = myDesignSurface.getScale();
+        image = ImageUtils.scale(myLastDragImage, scale, scale);
+        myLastDragImage = null;
       }
       if (image == null) {
         image = (BufferedImage)DnDAwareTree.getDragImage(myTree, path, dragOrigin).getFirst();

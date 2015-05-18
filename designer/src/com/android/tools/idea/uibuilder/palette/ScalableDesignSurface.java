@@ -16,11 +16,13 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 /**
  * Defines an design surface for a palette that has a scale.
  */
 public interface ScalableDesignSurface {
   Configuration getConfiguration();
+  ScreenView getCurrentScreenView();
   double getScale();
 }
