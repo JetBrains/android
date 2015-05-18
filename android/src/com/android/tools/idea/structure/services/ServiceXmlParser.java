@@ -468,7 +468,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       return myContext.getAction(varName);
     }
     else {
-      throw new RuntimeException("Invalid action value (did you forget ${...}): " + value);
+      throw new RuntimeException("Invalid action value (did you forget ${...()}): " + value);
     }
   }
 
