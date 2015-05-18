@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An expression which converts two booleans to their logical OR result.
  */
-public final class OrExpression extends AbstractBooleanExpression {
+public final class OrExpression extends BooleanExpression {
   private final ObservableValue<Boolean> myValueLhs;
   private final ObservableValue<Boolean> myValueRhs;
 

@@ -17,14 +17,14 @@ package com.android.tools.idea.ui.properties.expressions.integer;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpression;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A base class for expressions that do numerical comparisons.
  */
-public abstract class ComparisonExpression extends AbstractBooleanExpression {
+public abstract class ComparisonExpression extends BooleanExpression {
   private final ObservableValue<Integer> myValueLhs;
   private final ObservableValue<Integer> myValueRhs;
 

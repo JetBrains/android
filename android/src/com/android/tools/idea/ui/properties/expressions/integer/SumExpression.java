@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * An expression which returns a sum of all {@link ObservableValue} arguments.
  */
-public final class SumExpression extends AbstractIntExpression {
+public final class SumExpression extends IntExpression {
   private final List<ObservableValue<Integer>> myValues;
 
   public SumExpression(ObservableValue<Integer>... values) {

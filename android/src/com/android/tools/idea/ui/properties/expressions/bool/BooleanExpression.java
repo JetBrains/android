@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Base class for boolean expressions, providing a default implementation for the {@link ObservableBool} interface.
  */
-public abstract class AbstractBooleanExpression extends Expression implements ObservableBool {
+public abstract class BooleanExpression extends Expression implements ObservableBool {
 
-  protected AbstractBooleanExpression(Observable... values) {
+  protected BooleanExpression(Observable... values) {
     super(values);
   }
 
