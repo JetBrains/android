@@ -22,7 +22,12 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.io.CharStreams;
+import com.intellij.android.designer.model.morphing.LinearLayout;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -31,7 +36,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -57,7 +64,15 @@ import static com.android.SdkConstants.*;
 public class IconPreviewFactory {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
   private static final String DEFAULT_THEME = "AppTheme";
+  private static final String PREVIEW_PLACEHOLDER_FILE = "preview.xml";
   private static final String[] PREVIEW_FILES = {"preview1.xml", "preview2.xml", "preview3.xml"};
+  private static final String LINEAR_LAYOUT = "<LinearLayout\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:layout_width=\"wrap_content\"\n" +
+                                              "    android:layout_height=\"wrap_content\"\n" +
+                                              "    android:orientation=\"vertical\">\n" +
+                                              "  %1$s\n" +
+                                              "</LinearLayout>\n";
 
   private static IconPreviewFactory ourInstance;
 
@@ -79,6 +94,80 @@ public class IconPreviewFactory {
       return null;
     }
     return ImageUtils.scale(image, scale, scale);
+  }
+
+  /**
+   * Return a component image to display while dragging a component from the palette.
+   * Return null if such an image cannot be rendered. The palette must provide a fallback in this case.
+   */
+  @Nullable
+  public BufferedImage renderDragImage(@NotNull NlPaletteItem item, @NotNull ScreenView screenView, double scale) {
+    XmlElementFactory elementFactory = XmlElementFactory.getInstance(screenView.getModel().getProject());
+    String xml = item.getRepresentation();
+    if (xml.isEmpty()) {
+      return null;
+    }
+    xml = addAndroidNamespaceIfMissing(item.getRepresentation());
+    XmlTag tag = null;
+    try {
+      tag = elementFactory.createTagFromText(xml);
+    } catch (IncorrectOperationException ignore) {
+    }
+    if (tag == null) {
+      return null;
+    }
+    NlModel model = screenView.getModel();
+    NlComponent component = model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW);
+
+    // Some components require a parent to render correctly.
+    xml = String.format(LINEAR_LAYOUT, component.getTag().getText());
+    RenderResult result = renderImage(xml, model.getConfiguration());
+    if (result == null) {
+      return null;
+    }
+    BufferedImage image = result.getRenderedImage();
+    if (image == null) {
+      return null;
+    }
+    List<ViewInfo> infos = result.getRootViews();
+    if (infos == null || infos.isEmpty()) {
+      return null;
+    }
+    infos = infos.get(0).getChildren();
+    if (infos == null || infos.isEmpty()) {
+      return null;
+    }
+    ViewInfo view = infos.get(0);
+    if (image.getHeight() < view.getBottom() || image.getWidth() < view.getRight() ||
+      view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
+      return null;
+    }
+    image = image.getSubimage(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+    return ImageUtils.scale(image, scale, scale);
+  }
+
+  private static String addAndroidNamespaceIfMissing(@NotNull String xml) {
+    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
+    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
+    // a component handler will correctly set namespace prefixes)
+
+    if (!xml.contains(ANDROID_URI)) {
+      int index = xml.indexOf('<');
+      if (index != -1) {
+        index = xml.indexOf(' ', index);
+        if (index == -1) {
+          index = xml.indexOf("/>");
+          if (index == -1) {
+            index = xml.indexOf('>');
+          }
+        }
+        if (index != -1) {
+          xml =
+            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
+        }
+      }
+    }
+    return xml;
   }
 
   private static BufferedImage readImage(@NotNull String id, @NotNull Configuration configuration) {
@@ -113,34 +202,14 @@ public class IconPreviewFactory {
     ApplicationManager.getApplication().runReadAction(new Computable<Void>() {
       @Override
       public Void compute() {
-        AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
-        if (facet == null) {
-          return null;
-        }
-        Project project = configuration.getModule().getProject();
-        for (String previewFileName : PREVIEW_FILES) {
-          String preview = loadPreviews(previewFileName);
-          if (preview != null) {
-            PsiFile file = PsiFileFactory.getInstance(project).createFileFromText("preview.xml", XmlFileType.INSTANCE, preview);
-            RenderService renderService = RenderService.get(facet);
-            RenderLogger logger = renderService.createLogger();
-            Color bg = UIUtil.getTreeBackground();
-            //noinspection UseJBColor
-            Color color = new Color(bg.getRed(), bg.getGreen(), bg.getBlue(), 0);
-            final RenderTask task = renderService.createTask(file, configuration, logger, null);
-            if (task != null) {
-              task.setOverrideBgColor(color.getRGB());
-              task.setDecorations(false);
-              task.setRenderingMode(SessionParams.RenderingMode.FULL_EXPAND);
-              task.setFolderType(ResourceFolderType.LAYOUT);
-              RenderResult result = task.render();
-              addResult(result, configuration);
-              task.dispose();
-            }
-          }
-        }
-        callback.run();
-        return null;
+      for (String previewFileName : PREVIEW_FILES) {
+        String preview = loadPreviews(previewFileName);
+        assert preview != null;
+        RenderResult result = renderImage(preview, configuration);
+        addResultToCache(result, configuration);
+      }
+      callback.run();
+      return null;
       }
     });
   }
@@ -197,12 +266,35 @@ public class IconPreviewFactory {
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API : target.getVersion().getApiLevel();
   }
 
-  private static void addResult(@Nullable RenderResult result, @NotNull Configuration configuration) {
+  private static void addResultToCache(@Nullable RenderResult result, @NotNull Configuration configuration) {
     if (result == null || result.getRenderedImage() == null || result.getRootViews() == null || result.getRootViews().isEmpty()) {
       return;
     }
     ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), configuration);
     accumulator.run(result.getRootViews(), 0);
+  }
+
+  @Nullable
+  private static RenderResult renderImage(@NotNull String xml, @NotNull Configuration configuration) {
+    AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
+    if (facet == null) {
+      return null;
+    }
+    Project project = configuration.getModule().getProject();
+    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(file, configuration, logger, null);
+    RenderResult result = null;
+    if (task != null) {
+      task.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
+      task.setDecorations(false);
+      task.setRenderingMode(SessionParams.RenderingMode.FULL_EXPAND);
+      task.setFolderType(ResourceFolderType.LAYOUT);
+      result = task.render();
+      task.dispose();
+    }
+    return result;
   }
 
   private static class ImageAccumulator {
@@ -231,7 +323,7 @@ public class IconPreviewFactory {
               saveImage(id, image);
             }
             else {
-              LOG.warn(String.format("Dimensions of %$1s is out of range", id));
+              LOG.warn(String.format("Dimensions of %1$s is out of range", id));
             }
           }
         }

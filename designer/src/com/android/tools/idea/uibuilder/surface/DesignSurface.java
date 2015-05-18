@@ -176,6 +176,7 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
   }
 
   @NonNull
+  @Override
   public ScreenView getCurrentScreenView() {
     return myScreenView;
   }
