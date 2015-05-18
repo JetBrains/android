@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.lint.checks.ApiLookup;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -287,16 +288,23 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
+    Collection<PsiFile> toBeEdited = new HashSet<PsiFile>();
+    final Collection<XmlTag> sources = new HashSet<XmlTag>();
     for (ResourceItem resourceItem : getResources()) {
       final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
       assert sourceXml != null;
-      new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent) {
-        @Override
-        protected void run() throws Throwable {
+      toBeEdited.add(sourceXml.getContainingFile());
+      sources.add(sourceXml);
+    }
+
+    new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
+      @Override
+      protected void run() {
+        for (XmlTag sourceXml : sources) {
           sourceXml.setAttribute(SdkConstants.ATTR_PARENT, newParent);
         }
-      }.execute();
-    }
+      }
+    }.execute();
   }
 
   @NotNull
@@ -333,26 +341,33 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Deletes an attribute of that particular style from the xml file
+   * Deletes an attribute of that particular style from all the relevant xml files
    */
   public void removeAttribute(@NotNull final String attribute) {
     if (!isProjectStyle()) {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
+    Collection<PsiFile> toBeEdited = new HashSet<PsiFile>();
+    final Collection<XmlTag> toBeRemoved = new HashSet<XmlTag>();
     for (ResourceItem resourceItem : getResources()) {
       final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
       assert sourceXml != null;
       final XmlTag tag = getValueTag(sourceXml, attribute);
       if (tag != null) {
-        new WriteCommandAction.Simple(myProject, "Removing " + tag.getName(), tag.getContainingFile()) {
-          @Override
-          public void run() {
-            tag.delete();
-          }
-        }.execute();
+        toBeEdited.add(tag.getContainingFile());
+        toBeRemoved.add(tag);
       }
     }
+
+    new WriteCommandAction.Simple(myProject, "Removing " + attribute, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
+      @Override
+      protected void run() {
+        for (XmlTag tag : toBeRemoved) {
+          tag.delete();
+        }
+      }
+    }.execute();
   }
 
   /**
