@@ -22,11 +22,13 @@ import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.Callable;
 
 /**
  * A generic mapping of strings to {@link Observable} values and {@link Runnable} actions. Adding
@@ -60,6 +62,53 @@ public final class ServiceContext {
     }
   };
 
+  private Runnable myBeforeShown = EmptyRunnable.INSTANCE;
+  private Callable<Boolean> myTestValidity = new Callable<Boolean>() {
+    @Override
+    public Boolean call() throws Exception {
+      return true;
+    }
+  };
+
+  /**
+   * Set a callback to call before this service's UI is shown to the user. This is a useful place
+   * to put in any expensive operations, like network requests, that should only happen when
+   * needed.
+   */
+  public void setBeforeShownCallback(@NotNull Runnable beforeShown) {
+    myBeforeShown = beforeShown;
+  }
+
+  /**
+   * Set a callback to call when the user wishes to install this service, to ensure the values
+   * are OK.
+   */
+  public void setIsValidCallback(@NotNull Callable<Boolean> testValidity) {
+    myTestValidity = testValidity;
+  }
+
+
+  public void beginEditing() {
+    myBeforeShown.run();
+
+    if (myWatched.isEmpty()) {
+      myModified.set(isValid());
+    }
+  }
+
+  public void finishEditing() {
+    if (!myModified.get()) {
+      return;
+    }
+
+    myModified.set(isValid());
+  }
+
+  public void cancelEditing() {
+    myModified.set(false);
+  }
+
+
   /**
    * A property which indicates whether this service is already installed into the current module
    * or not.
@@ -73,7 +122,7 @@ public final class ServiceContext {
    *
    * @see #putWatchedValue(String, ObservableProperty)
    */
-  public BoolValueProperty modified() {
+  public ObservableBool modified() {
     return myModified;
   }
 
@@ -187,5 +236,18 @@ public final class ServiceContext {
     }
 
     return valueMap;
+  }
+
+  /**
+   * Check if this service is valid - if any of the user's values are bad, we shouldn't install
+   * this service.
+   */
+  private boolean isValid() {
+    try {
+      return myTestValidity.call();
+    }
+    catch (Exception e) {
+      return false;
+    }
   }
 }
