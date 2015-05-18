@@ -55,6 +55,7 @@ public class ScreenView {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
+            mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
             mySurface.repaint();
             mySurface.zoomToFit();
           }

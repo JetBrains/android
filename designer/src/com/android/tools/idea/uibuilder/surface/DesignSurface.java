@@ -22,6 +22,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -31,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
@@ -40,6 +42,7 @@ import com.intellij.util.ui.ButtonlessScrollBarUI;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
@@ -60,6 +63,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  */
 public class DesignSurface extends JPanel implements ScalableDesignSurface {
   private static final Logger LOG = Logger.getInstance(DesignSurface.class);
+  public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
 
   private final ScreenView myScreenView;
   private final ScreenView myBlueprintView;
@@ -72,6 +76,8 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
   private List<Layer> myLayers = Lists.newArrayList();
   private InteractionManager myInteractionManager;
   private GlassPane myGlassPane;
+  private RenderErrorPanel myErrorPanel;
+  private int myErrorPanelHeight = -1;
 
   public DesignSurface(@NonNull NlModel model) {
     super(new BorderLayout());
@@ -87,12 +93,13 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
     myScreenView.setLocation(myScreenX, myScreenY);
 
     myBlueprintView = new ScreenView(this, model);
-    myBlueprintView.setLocation(myScreenX + myScreenView.getPreferredSize().width + 10, myScreenY);
+    Dimension screenSize = myScreenView.getPreferredSize();
+    assert screenSize != null;
+    myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
 
     myLayeredPane = new MyLayeredPane();
     myLayeredPane.setBounds(0, 0, 100, 100);
-    Dimension preferredSize = myScreenView.getPreferredSize();
-    myLayeredPane.setPreferredSize(preferredSize);
+    myLayeredPane.setPreferredSize(screenSize);
     myGlassPane = new GlassPane();
     myLayeredPane.add(myGlassPane, JLayeredPane.DRAG_LAYER);
 
@@ -103,6 +110,10 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 
     add(myScrollPane, BorderLayout.CENTER);
+
+    myErrorPanel = new RenderErrorPanel();
+    myErrorPanel.setVisible(false);
+    myLayeredPane.add(myErrorPanel, JLayeredPane.POPUP_LAYER);
 
     // TODO: Do this as part of the layout/validate operation instead
     addComponentListener(new ComponentListener() {
@@ -149,9 +160,12 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
   private void updateScrolledAreaSize() {
     Dimension size = myScreenView.getPreferredSize();
     if (size != null) {
+      // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
+      // to the side or below based on the form factor and the available size
       Dimension dimension =
         new Dimension((int)(myScale * size.width) + 2 * DEFAULT_SCREEN_OFFSET_X, (int)(myScale * size.height) + 2 * DEFAULT_SCREEN_OFFSET_Y);
       myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
+      myLayeredPane.setPreferredSize(dimension);
       myScrollPane.revalidate();
     }
   }
@@ -190,7 +204,11 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
   }
 
   public void zoomActual() {
-    setScale(1);
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      setScale(0.5);
+    } else {
+      setScale(1);
+    }
     repaint();
   }
 
@@ -249,6 +267,11 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
       scale = 10;
     }
     myScale = scale;
+    positionBlueprintView();
+    updateScrolledAreaSize();
+  }
+
+  private void positionBlueprintView() {
     Dimension preferredSize = myScreenView.getPreferredSize();
     if (preferredSize != null) {
       if (preferredSize.width > preferredSize.height) {
@@ -259,7 +282,6 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
         myBlueprintView.setLocation(myScreenX + (int)(myScale * preferredSize.width) + 10, myScreenY);
       }
     }
-    updateScrolledAreaSize();
   }
 
   public void toggleDeviceFrames() {
@@ -272,6 +294,7 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
       myScreenY = DEFAULT_SCREEN_OFFSET_Y;
     }
     myScreenView.setLocation(myScreenX, myScreenY);
+    positionBlueprintView();
     repaint();
   }
 
@@ -291,6 +314,31 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
 
   public void deactivate() {
     myScreenView.getModel().deactivate();
+  }
+
+  private void positionErrorPanel() {
+    int height = getHeight();
+    int width = getWidth();
+    int size;
+    if (SIZE_ERROR_PANEL_DYNAMICALLY) { // TODO: Only do this when the error panel is showing
+      if (myErrorPanelHeight == -1) {
+        // Make the layout take up to 3/4ths of the height, and at least 1/4th, but
+        // anywhere in between based on what the actual text requires
+        size = height * 3 / 4;
+        int preferredHeight = myErrorPanel.getPreferredHeight(width) + 8;
+        if (preferredHeight < size) {
+          size = Math.max(preferredHeight, Math.min(height / 4, size));
+          myErrorPanelHeight = size;
+        }
+      } else {
+        size = myErrorPanelHeight;
+      }
+    } else {
+      size = height / 2;
+    }
+
+    myErrorPanel.setSize(width, size);
+    myErrorPanel.setLocation(RULER_SIZE_PX, height - size);
   }
 
   private static class MyScrollPane extends JBScrollPane {
@@ -426,6 +474,8 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
 
     @Override
     public Point magnify(double scale, Point at) {
+      // Handle screen zooming.
+      // Note: This only seems to work (be invoked) on Mac with the Apple JDK (1.6) currently
       setScale(scale * myScale);
       DesignSurface.this.repaint();
       return new Point((int)(at.x * scale), (int)(at.y * scale));
@@ -441,6 +491,49 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
       int tly = myScrollPane.getVerticalScrollBar().getValue();
 
       paintBackground(g2d, tlx, tly);
+
+      Composite oldComposite = g2d.getComposite();
+
+      RenderResult result = myScreenView.getResult();
+      boolean paintedFrame = false;
+      if (myDeviceFrames && result != null && result.getRenderedImage() != null) {
+        Configuration configuration = myScreenView.getConfiguration();
+        Device device = configuration.getDevice();
+        State deviceState = configuration.getDeviceState();
+        DeviceArtPainter painter = DeviceArtPainter.getInstance();
+        if (device != null && painter.hasDeviceFrame(device) && deviceState != null) {
+          paintedFrame = true;
+          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+          painter.paintFrame(g2d, device, deviceState.getOrientation(), true, myScreenX, myScreenY,
+                             (int)(myScale * result.getRenderedImage().getHeight()));
+        }
+      }
+
+      if (paintedFrame) {
+        // Only use alpha on the ruler bar if overlaying the device art
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
+      } else {
+        // Only show bounds dashed lines when there's no device
+        paintBoundsRectangle(g2d);
+      }
+
+      g2d.setComposite(oldComposite);
+
+      for (Layer layer : myLayers) {
+        if (!layer.isHidden()) {
+          layer.paint(g2d);
+        }
+      }
+
+      // Temporary overlays:
+      List<Layer> layers = myInteractionManager.getLayers();
+      if (layers != null) {
+        for (Layer layer : layers) {
+          if (!layer.isHidden()) {
+            layer.paint(g2d);
+          }
+        }
+      }
     }
 
     private void paintBackground(@NonNull Graphics2D graphics, int lx, int ly) {
@@ -543,56 +636,33 @@ public class DesignSurface extends JPanel implements ScalableDesignSurface {
     protected void paintChildren(@NonNull Graphics graphics) {
       super.paintChildren(graphics); // paints the screen
 
-      Graphics2D g2d = (Graphics2D)graphics;
+      // Paint rulers on top of whatever is under the scroll panel
 
+      Graphics2D g2d = (Graphics2D)graphics;
       // (x,y) coordinates of the top left corner in the view port
       int tlx = myScrollPane.getHorizontalScrollBar().getValue();
       int tly = myScrollPane.getVerticalScrollBar().getValue();
-
-      Composite oldComposite = g2d.getComposite();
-
-      RenderResult result = myScreenView.getResult();
-      boolean paintedFrame = false;
-      if (myDeviceFrames && result != null && result.getRenderedImage() != null) {
-        Configuration configuration = myScreenView.getConfiguration();
-        Device device = configuration.getDevice();
-        State deviceState = configuration.getDeviceState();
-        DeviceArtPainter painter = DeviceArtPainter.getInstance();
-        if (device != null && painter.hasDeviceFrame(device) && deviceState != null) {
-          paintedFrame = true;
-          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
-          painter.paintFrame(g2d, device, deviceState.getOrientation(), true, myScreenX, myScreenY,
-                             (int)(myScale * result.getRenderedImage().getHeight()));
-        }
-      }
-
-      if (paintedFrame) {
-        // Only use alpha on the ruler bar if overlaying the device art
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
-      } else {
-        // Only show bounds dashed lines when there's no device
-        paintBoundsRectangle(g2d);
-      }
-
-      g2d.setComposite(oldComposite);
-
-      for (Layer layer : myLayers) {
-        if (!layer.isHidden()) {
-          layer.paint(g2d);
-        }
-      }
-
-      // Temporary overlays:
-      List<Layer> layers = myInteractionManager.getLayers();
-      if (layers != null) {
-        for (Layer layer : layers) {
-          if (!layer.isHidden()) {
-            layer.paint(g2d);
-          }
-        }
-      }
-
       paintRulers(g2d, tlx, tly);
+    }
+
+    @Override
+    public void doLayout() {
+      super.doLayout();
+      positionErrorPanel();
+    }
+  }
+
+  public void updateErrorDisplay(@NotNull ScreenView view, @Nullable final RenderResult result) {
+    if (view == myScreenView) {
+      boolean hasProblems = result != null && result.getLogger().hasProblems();
+      if (hasProblems != myErrorPanel.isVisible()) {
+        if (hasProblems) {
+          myErrorPanelHeight = -1;
+          myErrorPanel.showErrors(result);
+        }
+        myErrorPanel.setVisible(hasProblems);
+        repaint();
+      }
     }
   }
 
