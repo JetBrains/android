@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * An expression which returns true if any of a list of target values is true.
  */
-public final class AnyExpression extends AbstractBooleanExpression {
+public final class AnyExpression extends BooleanExpression {
   private final List<ObservableValue<Boolean>> myValues;
 
   public AnyExpression(ObservableValue<Boolean>... values) {

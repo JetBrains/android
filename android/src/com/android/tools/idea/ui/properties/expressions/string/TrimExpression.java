@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An expression which returns a copy of a string with leading and trailing whitespace removed.
  */
-public final class TrimExpression extends AbstractStringExpression {
+public final class TrimExpression extends StringExpression {
   private final ObservableValue<String> myValue;
 
   public TrimExpression(ObservableValue<String> value) {
