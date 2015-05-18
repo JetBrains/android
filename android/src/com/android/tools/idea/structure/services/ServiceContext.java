@@ -45,22 +45,22 @@ public final class ServiceContext {
   private final Map<String, Observable> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
   private final Map<ObservableProperty, Object> myWatched = new WeakHashMap<ObservableProperty, Object>();
-  private final BoolValueProperty myIsInstalled = new BoolValueProperty();
-  private final BoolValueProperty myIsModified = new BoolValueProperty();
+  private final BoolValueProperty myInstalled = new BoolValueProperty();
+  private final BoolValueProperty myModified = new BoolValueProperty();
 
   private final InvalidationListener myWatchedListener = new InvalidationListener() {
     @Override
     protected void onInvalidated(@NotNull Observable sender) {
-      myIsModified.set(true);
+      myModified.set(true);
     }
   };
 
-  public BoolValueProperty isModified() {
-    return myIsModified;
+  public BoolValueProperty installed() {
+    return myInstalled;
   }
 
-  public BoolValueProperty isInstalled() {
-    return myIsInstalled;
+  public BoolValueProperty modified() {
+    return myModified;
   }
 
   public void snapshot() {
@@ -68,7 +68,7 @@ public final class ServiceContext {
       myWatched.put(property, property.get());
     }
 
-    myIsModified.set(false);
+    myModified.set(false);
   }
 
   public void restore() {
@@ -77,7 +77,7 @@ public final class ServiceContext {
       property.set(myWatched.get(property));
     }
 
-    myIsModified.set(false);
+    myModified.set(false);
   }
 
   public void putValue(@NotNull String key, @NotNull Observable observable) {
