@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.testframework.TestTreeView;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -24,9 +25,11 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
+import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +88,11 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     @NotNull
+    public UnitTestTreeFixture getUnitTestTree() {
+      return new UnitTestTreeFixture(this, myRobot.finder().findByType(myContent.getComponent(), TestTreeView.class));
+    }
+
+    @NotNull
     private JComponent getTabContent(@NotNull final JComponent root,
                                      final Class<? extends JBTabsImpl> parentComponentType,
                                      @NotNull final Class<? extends JComponent> tabContentType,
@@ -128,6 +136,29 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return true;
     }
 
+    public void rerun() {
+      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
+      assertNotNull(toolbar);
+      List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
+      for (ActionButton button : buttons) {
+        if ("com.intellij.execution.runners.FakeRerunAction".equals(button.getAction().getClass().getCanonicalName())) {
+          myRobot.click(button);
+          return;
+        }
+      }
+
+      throw new IllegalStateException("Could not find the Re-run button.");
+    }
+
+    public void waitForExecutionToFinish(@NotNull Timeout timeout) {
+      Pause.pause(new Condition("Wait for execution to finish") {
+        @Override
+        public boolean test() {
+          return !isExecutionInProgress();
+        }
+      }, timeout);
+    }
+
     @TestOnly
     public boolean stop() {
       ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
@@ -147,6 +178,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       }
       return false;
     }
+
   }
 
   protected ExecutionToolWindowFixture(@NotNull String toolWindowId, @NotNull IdeFrameFixture ideFrame) {
@@ -154,9 +186,10 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
   }
 
   @NotNull
-  public ContentFixture findContent(@NotNull String appName) {
-    Content content = getContent(appName);
+  public ContentFixture findContent(@NotNull String tabName) {
+    Content content = getContent(tabName);
     assertNotNull(content);
     return new ContentFixture(this, myRobot, content);
   }
+
 }
