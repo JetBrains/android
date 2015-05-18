@@ -939,6 +939,9 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
               else if (SdkRepoConstants.NODE_SOURCE.equals(name)) {
                 p = new RemoteSourcePkgInfo(this, child, nsUri, licenses);
               }
+              else if (SdkRepoConstants.NODE_NDK.equals(name)) {
+                p = new RemoteNdkPkgInfo(this, child, nsUri, licenses);
+              }
             }
 
             if (p != null) {
