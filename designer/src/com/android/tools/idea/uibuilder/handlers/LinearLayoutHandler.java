@@ -21,10 +21,8 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -209,7 +207,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       // vertical.
       myIndices = new ArrayList<MatchPos>();
 
-      int last = myVertical ? layout.y : layout.x;
+      int last = myVertical ? layout.y + layout.getPadding().top : layout.x + layout.getPadding().left;
       int pos = 0;
       boolean lastDragged = false;
       mySelfPos = -1;
@@ -316,9 +314,15 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Override
     public void paint(@NonNull NlGraphics gc) {
+      Insets padding = layout.getPadding();
+      int layoutX = layout.x + padding.left;
+      int layoutW = layout.w - padding.width();
+      int layoutY = layout.y + padding.top;
+      int layoutH = layout.h - padding.height();
+
       // Highlight the receiver
       gc.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-      gc.drawRect(layout.x, layout.y, layout.w, layout.h);
+      gc.drawRect(layoutX, layoutY, layoutW, layoutH);
 
       gc.useStyle(NlDrawingStyle.DROP_ZONE);
 
@@ -334,11 +338,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
         if (pos != selfPos) {
           if (isVertical) {
             // draw horizontal lines
-            gc.drawLine(layout.x, i, layout.x + layout.w, i);
+            gc.drawLine(layoutX, i, layoutW, i);
           }
           else {
             // draw vertical lines
-            gc.drawLine(i, layout.y, i, layout.y + layout.h);
+            gc.drawLine(i, layoutY, i, layoutH);
           }
         }
       }
@@ -381,35 +385,35 @@ public class LinearLayoutHandler extends ViewGroupHandler {
           int offsetX;
           int offsetY;
           if (isVertical) {
-            offsetX = layout.x - be.x;
+            offsetX = layoutX - be.x;
             offsetY = currY - be.y - (isLast ? 0 : (be.h / 2));
 
           }
           else {
             offsetX = currX - be.x - (isLast ? 0 : (be.w / 2));
-            offsetY = layout.y - be.y;
+            offsetY = layoutY - be.y;
           }
 
           gc.useStyle(NlDrawingStyle.DROP_PREVIEW);
           for (NlComponent element : components) {
-            if (element.w > 0 && element.h > 0 && (element.w > layout.w || element.h > layout.h) &&
+            if (element.w > 0 && element.h > 0 && (element.w > layoutW || element.h > layoutH) &&
                 layout.getChildCount() == 0) {
               // The bounds of the child does not fully fit inside the target.
               // Limit the bounds to the layout bounds (but only when there
               // are no children, since otherwise positioning around the existing
               // children gets difficult)
               final int px, py, pw, ph;
-              if (element.w > layout.w) {
-                px = layout.x;
-                pw = layout.w;
+              if (element.w > layoutW) {
+                px = layoutX;
+                pw = layoutW;
               }
               else {
                 px = element.x + offsetX;
                 pw = element.w;
               }
-              if (element.h > layout.h) {
-                py = layout.y;
-                ph = layout.h;
+              if (element.h > layoutH) {
+                py = layoutY;
+                ph = layoutH;
               }
               else {
                 py = element.y + offsetY;
