@@ -207,24 +207,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
   }
 
-  private void initializeService(@NotNull File initializeFile) {
-    InitializeXmlParser initializeXmlParser = new InitializeXmlParser(myModule, myContext);
-
-    try {
-      InputSource xmlSource = new InputSource(new FileInputStream(initializeFile));
-      SAXParserFactory.newInstance().newSAXParser().parse(xmlSource, initializeXmlParser);
-    }
-    catch (ParserConfigurationException e) {
-      throw new RuntimeException(e);
-    }
-    catch (SAXException e) {
-      throw new RuntimeException(e);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   private void parseServiceTag(@NotNull Attributes attributes) {
     String format = requireAttr(attributes, Schema.Service.ATTR_FORMAT);
     try {
@@ -245,10 +227,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     String learnLink = attributes.getValue(Schema.Service.ATTR_LEARN_MORE);
     String apiLink = attributes.getValue(Schema.Service.ATTR_API_DOCS);
 
-    String initializeFilename = attributes.getValue(Schema.Service.ATTR_INITIALIZE);
-    if (initializeFilename != null) {
-      initializeService(new File(myRootPath, initializeFilename));
-    }
     myRecipeFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_EXECUTE));
 
     try {
