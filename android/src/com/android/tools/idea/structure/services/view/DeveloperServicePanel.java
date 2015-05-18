@@ -76,11 +76,11 @@ public final class DeveloperServicePanel extends EditorPanel {
     initializeFooterPanel(developerServiceMetadata);
 
     final SelectedProperty enabledCheckboxSelected = new SelectedProperty(myEnabledCheckbox);
-    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.or(service.getContext().isInstalled()));
+    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.or(service.getContext().installed()));
 
     // This definition might be modified from the user interacting with the service earlier but not
     // yet committing to install it.
-    if (service.getContext().isInstalled().get() || service.getContext().isModified().get()) {
+    if (service.getContext().installed().get() || service.getContext().modified().get()) {
       myEnabledCheckbox.setSelected(true);
     }
 
@@ -88,11 +88,11 @@ public final class DeveloperServicePanel extends EditorPanel {
       @Override
       protected void onInvalidated(@NotNull Observable sender) {
         if (enabledCheckboxSelected.get()) {
-          myService.getContext().isModified().set(true);
+          myService.getContext().modified().set(true);
         }
         else {
-          boolean isModified = myService.getContext().isModified().get();
-          if (myService.getContext().isInstalled().get()) {
+          boolean isModified = myService.getContext().modified().get();
+          if (myService.getContext().installed().get()) {
             String message = String.format(DELETE_SERVICE_MESSAGE, myService.getMetadata().getName(),
                                            Joiner.on('\n').join(myService.getMetadata().getDependencies()));
             int answer = Messages.showYesNoDialog(myService.getModule().getProject(), message, DELETE_SERVICE_TITLE, null);
@@ -101,11 +101,11 @@ public final class DeveloperServicePanel extends EditorPanel {
             }
             else {
               enabledCheckboxSelected.set(true);
-              myService.getContext().isModified().set(isModified);
+              myService.getContext().modified().set(isModified);
             }
           }
           else {
-            myService.getContext().isModified().set(false);
+            myService.getContext().modified().set(false);
           }
         }
       }
@@ -207,7 +207,7 @@ public final class DeveloperServicePanel extends EditorPanel {
 
   @Override
   public boolean isModified() {
-    return myService.getContext().isModified().get();
+    return myService.getContext().modified().get();
   }
 
   public void dispose() {
