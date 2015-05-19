@@ -20,6 +20,10 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.DnDTransferItem;
 import com.android.tools.idea.uibuilder.palette.ItemTransferable;
@@ -28,6 +32,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
@@ -61,6 +66,8 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * interactions and in order to update the interactions along the way.
  */
 public class InteractionManager {
+  private static final Logger LOG = Logger.getInstance(InteractionManager.class);
+
   /** The canvas which owns this {@linkplain InteractionManager}. */
   @NonNull
   private final DesignSurface mySurface;
@@ -176,7 +183,7 @@ public class InteractionManager {
     if (interaction != null) {
       myCurrentInteraction = interaction;
       myCurrentInteraction.begin(x, y, modifiers);
-     myLayers = interaction.createOverlays();
+      myLayers = interaction.createOverlays();
     }
   }
 
@@ -258,11 +265,11 @@ public class InteractionManager {
       }
 
       if (component != null && !component.isRoot()) {
-          Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-          if (cursor != mySurface.getCursor()) {
-            mySurface.setCursor(cursor);
-          }
-          return;
+        Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+        if (cursor != mySurface.getCursor()) {
+          mySurface.setCursor(cursor);
+        }
+        return;
       }
     }
 
@@ -551,6 +558,7 @@ public class InteractionManager {
               break;
             }
             catch (Exception ignore) {
+              LOG.debug(ignore);
             }
           }
         }
@@ -592,7 +600,7 @@ public class InteractionManager {
       myLastMouseX = location.x;
       myLastMouseY = location.y;
 
-     ScreenView screenView = mySurface.getScreenView(location.x, location.y);
+      final ScreenView screenView = mySurface.getScreenView(location.x, location.y);
 
       try {
         final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
@@ -606,9 +614,10 @@ public class InteractionManager {
             XmlTag tag = createTagFromTransferItem(item);
 
             if (myCurrentInteraction instanceof DragDropInteraction) {
-              // On a drag we put in a place holder component for the drag operation
-              List<NlComponent> draggedComponents = ((DragDropInteraction)myCurrentInteraction).getDraggedComponents();
+              DragDropInteraction dragDrop = (DragDropInteraction)myCurrentInteraction;
+              List<NlComponent> draggedComponents = dragDrop.getDraggedComponents();
               NlComponent component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
+              boolean dropCancelled = true;
               if (component != null) {
                 if (component.getTag().getName().equals("placeholder")) {
                   // If we were unable to read the transfer data on dragEnter, replace the tag here:
@@ -617,8 +626,16 @@ public class InteractionManager {
                 if (component.needsDefaultId()) {
                   component.assignId();
                 }
+                ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
+                ViewHandler viewHandler = viewHandlerManager.getHandler(component);
+                if (viewHandler != null && dragDrop.getDragReceiver() != null) {
+                  ViewEditor editor = new ViewEditorImpl(screenView);
+                  dropCancelled = !viewHandler.onCreate(editor, dragDrop.getDragReceiver(), component, InsertType.CREATE);
+                } else {
+                  dropCancelled = false;
+                }
               }
-              finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, false);
+              finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, dropCancelled);
               if (component != null && component.getTag().isValid() && component.getTag().getParent() instanceof XmlTag) {
                 // Remove any xmlns: attributes once the element is added into the document
                 for (XmlAttribute attribute : component.getTag().getAttributes()) {
@@ -645,6 +662,7 @@ public class InteractionManager {
         model.notifyModified();
       }
       catch (Exception ignore) {
+        LOG.debug(ignore);
         event.rejectDrop();
       }
     }
