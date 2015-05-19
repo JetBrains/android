@@ -43,6 +43,7 @@ import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Class to render layouts to a {@link Graphics} instance. This renderer does not allow for much customization of the device and does not
@@ -284,20 +285,33 @@ public class GraphicsLayoutRenderer {
     }
 
     Result result = null;
-    mySecurityManager.setActive(true, myCredential);
+
     try {
-      if (myRenderSession == null) {
-        myResourceLookupChain.clear();
-        myRenderSession = initRenderSession();
-        result = myRenderSession != null ? myRenderSession.getResult() : null;
-        // initRenderSession will call render so we do not need to do it here.
-      } else {
-        result = myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
-      }
+      result = RenderService.runRenderAction(new Callable<Result>() {
+        @Override
+        public Result call() {
+          mySecurityManager.setActive(true, myCredential);
+          try {
+            if (myRenderSession == null) {
+              myResourceLookupChain.clear();
+              myRenderSession = initRenderSession();
+              return myRenderSession != null ? myRenderSession.getResult() : null;
+              // initRenderSession will call render so we do not need to do it here.
+            }
+            else {
+              return myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
+            }
+          }
+          finally {
+            mySecurityManager.setActive(false, myCredential);
+          }
+        }
+      });
     }
-    finally {
-      mySecurityManager.setActive(false, myCredential);
+    catch (Exception e) {
+      LOG.error("Exception running render action", e);
     }
+
 
     if (myScale != 1.0) {
       graphics.setTransform(oldTransform);

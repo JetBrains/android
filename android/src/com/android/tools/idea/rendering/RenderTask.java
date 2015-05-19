@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
@@ -594,10 +595,8 @@ public class RenderTask implements IImageFactory {
     return null;
   }
 
-  private static final Object RENDERING_LOCK = new Object();
-
   @Nullable
-  public RenderResult render(@NotNull IImageFactory factory) {
+  public RenderResult render(@NotNull final IImageFactory factory) {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
@@ -605,20 +604,21 @@ public class RenderTask implements IImageFactory {
       throw new IllegalStateException("render shouldn't be called on RenderTask without PsiFile");
     }
 
-    synchronized (RENDERING_LOCK) {
-      RenderResult renderResult;
-      try {
-        renderResult = createRenderSession(factory);
-      } catch (final Exception e) {
-        String message = e.getMessage();
-        if (message == null) {
-          message = e.toString();
+    try {
+      return RenderService.runRenderAction(new Callable<RenderResult>() {
+        @Override
+        public RenderResult call() throws Exception {
+          return createRenderSession(factory);
         }
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-        renderResult = new RenderResult(this, null, myPsiFile, myLogger);
+      });
+    }
+    catch (final Exception e) {
+      String message = e.getMessage();
+      if (message == null) {
+        message = e.toString();
       }
-
-      return renderResult;
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
+      return new RenderResult(RenderTask.this, null, myPsiFile, myLogger);
     }
   }
 
