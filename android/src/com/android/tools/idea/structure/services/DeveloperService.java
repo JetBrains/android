@@ -73,21 +73,21 @@ public final class DeveloperService {
    */
   public void install() {
     Project project = myServiceParser.getModule().getProject();
-    new WriteCommandAction.Simple(project, "Install service: " + getMetadata().getName()) {
+    new WriteCommandAction.Simple(project, "Install " + getMetadata().getName()) {
       @Override
       protected void run() throws Throwable {
         myServiceParser.createRecipe(true);
       }
     }.execute();
     getContext().snapshot();
-    getContext().isInstalled().set(true);
+    getContext().installed().set(true);
 
     UsageTracker.getInstance()
       .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_INSTALLED, getMetadata().getName(), null);
   }
 
   public void uninstall() {
-    if (!getContext().isInstalled().get()) {
+    if (!getContext().installed().get()) {
       return;
     }
 
@@ -113,7 +113,7 @@ public final class DeveloperService {
       }
 
       if (dependenciesChanged) {
-        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall service: " + getMetadata().getName()) {
+        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall " + getMetadata().getName()) {
           @Override
           public void run() {
             gradleFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
@@ -123,7 +123,7 @@ public final class DeveloperService {
       GradleProjectImporter.getInstance().requestProjectSync(getModule().getProject(), null);
     }
 
-    getContext().isInstalled().set(false);
+    getContext().installed().set(false);
 
     UsageTracker.getInstance()
       .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_REMOVED, getMetadata().getName(), null);
