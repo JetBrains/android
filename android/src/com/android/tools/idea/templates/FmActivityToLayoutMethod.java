@@ -37,7 +37,7 @@ public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
       throw new TemplateModelException("Wrong arguments");
     }
 
-    String activityName = args.get(0).toString();
+    String activityName = ((TemplateScalarModel)args.get(0)).getAsString();
 
     if (activityName.isEmpty()) {
       return new SimpleScalar("");

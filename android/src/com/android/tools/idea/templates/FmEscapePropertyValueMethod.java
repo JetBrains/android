@@ -33,7 +33,7 @@ public class FmEscapePropertyValueMethod implements TemplateMethodModelEx {
 
     // Slow, stupid implementation, but is 100% compatible with Java's property file implementation
     Properties properties = new Properties();
-    String value = args.get(0).toString();
+    String value = ((TemplateScalarModel)args.get(0)).getAsString();
     properties.setProperty("k", value); // key doesn't matter
     StringWriter writer = new StringWriter();
     String escaped;
