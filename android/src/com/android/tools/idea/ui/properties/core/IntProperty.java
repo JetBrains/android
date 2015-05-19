@@ -59,4 +59,34 @@ public abstract class IntProperty extends ObservableProperty<Integer> implements
   public ObservableBool isLessThanEqualTo(@NotNull ObservableValue<Integer> value) {
     return ComparisonExpression.isLessThanEqual(this, value);
   }
+
+  @NotNull
+  @Override
+  public ObservableBool isEqualTo(int value) {
+    return ComparisonExpression.isEqual(this, value);
+  }
+
+  @NotNull
+  @Override
+  public ObservableBool isGreaterThan(int value) {
+    return ComparisonExpression.isGreaterThan(this, value);
+  }
+
+  @NotNull
+  @Override
+  public ObservableBool isGreaterThanEqualTo(int value) {
+    return ComparisonExpression.isGreaterThanEqual(this, value);
+  }
+
+  @NotNull
+  @Override
+  public ObservableBool isLessThan(int value) {
+    return ComparisonExpression.isLessThan(this, value);
+  }
+
+  @NotNull
+  @Override
+  public ObservableBool isLessThanEqualTo(int value) {
+    return ComparisonExpression.isLessThanEqual(this, value);
+  }
 }

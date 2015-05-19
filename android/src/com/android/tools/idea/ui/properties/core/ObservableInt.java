@@ -36,4 +36,19 @@ public interface ObservableInt extends ObservableValue<Integer> {
 
   @NotNull
   ObservableBool isLessThanEqualTo(@NotNull ObservableValue<Integer> value);
+
+  @NotNull
+  ObservableBool isEqualTo(int value);
+
+  @NotNull
+  ObservableBool isGreaterThan(int value);
+
+  @NotNull
+  ObservableBool isLessThan(int value);
+
+  @NotNull
+  ObservableBool isGreaterThanEqualTo(int value);
+
+  @NotNull
+  ObservableBool isLessThanEqualTo(int value);
 }

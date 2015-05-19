@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.expressions.integer;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpression;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,51 @@ public abstract class ComparisonExpression extends AbstractBooleanExpression {
 
   public static ObservableBool isLessThanEqual(@NotNull ObservableValue<Integer> valueLhs, @NotNull ObservableValue<Integer> valueRhs) {
     return new ComparisonExpression(valueLhs, valueRhs) {
+      @Override
+      protected Boolean compare(int valueLhs, int valueRhs) {
+        return valueLhs <= valueRhs;
+      }
+    };
+  }
+
+  public static ObservableBool isEqual(@NotNull ObservableValue<Integer> valueLhs, int valueRhs) {
+    return new ComparisonExpression(valueLhs, new IntValueProperty(valueRhs)) {
+      @Override
+      protected Boolean compare(int valueLhs, int valueRhs) {
+        return valueLhs == valueRhs;
+      }
+    };
+  }
+
+  public static ObservableBool isGreaterThan(@NotNull ObservableValue<Integer> valueLhs, int valueRhs) {
+    return new ComparisonExpression(valueLhs, new IntValueProperty(valueRhs)) {
+      @Override
+      protected Boolean compare(int valueLhs, int valueRhs) {
+        return valueLhs > valueRhs;
+      }
+    };
+  }
+
+  public static ObservableBool isGreaterThanEqual(@NotNull ObservableValue<Integer> valueLhs, int valueRhs) {
+    return new ComparisonExpression(valueLhs, new IntValueProperty(valueRhs)) {
+      @Override
+      protected Boolean compare(int valueLhs, int valueRhs) {
+        return valueLhs >= valueRhs;
+      }
+    };
+  }
+
+  public static ObservableBool isLessThan(@NotNull ObservableValue<Integer> valueLhs, int valueRhs) {
+    return new ComparisonExpression(valueLhs, new IntValueProperty(valueRhs)) {
+      @Override
+      protected Boolean compare(int valueLhs, int valueRhs) {
+        return valueLhs < valueRhs;
+      }
+    };
+  }
+
+  public static ObservableBool isLessThanEqual(@NotNull ObservableValue<Integer> valueLhs, int valueRhs) {
+    return new ComparisonExpression(valueLhs, new IntValueProperty(valueRhs)) {
       @Override
       protected Boolean compare(int valueLhs, int valueRhs) {
         return valueLhs <= valueRhs;
