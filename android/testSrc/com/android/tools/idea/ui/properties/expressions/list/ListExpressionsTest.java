@@ -46,4 +46,21 @@ public final class ListExpressionsTest {
 
     assertThat(toUpper.get()).containsExactly("FIRST", "SECOND", "THIRD", "FOURTH");
   }
+
+  @Test
+  public void testSizeExpression() {
+    ObservableList<Integer> numbers = new ObservableList<Integer>();
+    SizeExpression count = new SizeExpression(numbers);
+
+    assertThat(count.get()).isEqualTo(0);
+
+    numbers.add(1);
+    numbers.add(2);
+
+    assertThat(count.get()).isEqualTo(2);
+
+    numbers.clear();
+
+    assertThat(count.get()).isEqualTo(0);
+  }
 }
