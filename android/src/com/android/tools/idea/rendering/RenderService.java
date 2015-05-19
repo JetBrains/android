@@ -50,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -60,6 +61,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService {
+  private static final Object RENDERING_LOCK = new Object();
+
   @NotNull
   private final AndroidFacet myFacet;
 
@@ -334,6 +337,30 @@ public class RenderService {
       }));
 
       logger.addMessage(problem);
+    }
+  }
+
+  /**
+   * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
+   * method.
+   */
+  public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
+    runRenderAction(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        runnable.run();
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
+   * method.
+   */
+  public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
+    synchronized (RENDERING_LOCK) {
+      return callable.call();
     }
   }
 }
