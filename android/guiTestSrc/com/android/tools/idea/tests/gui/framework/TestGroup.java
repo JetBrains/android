@@ -19,4 +19,5 @@ public enum TestGroup {
   PROJECT_SUPPORT,
   LAYOUT,
   UNIT_TESTING,
+  THEME,
 }

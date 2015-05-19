@@ -18,10 +18,13 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.editors.theme.ThemeEditor;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -957,6 +960,36 @@ public class EditorFixture {
         }
 
         return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
+      }
+    });
+  }
+
+  /**
+   * Returns a fixture around the {@link com.android.tools.idea.editors.theme.ThemeEditor} <b>if</b> the currently
+   * displayed editor is a theme editor.
+   */
+  @Nullable
+  public ThemeEditorFixture getThemeEditor() {
+    VirtualFile currentFile = getCurrentFile();
+    if (!(currentFile instanceof ThemeEditorVirtualFile)) {
+      return null;
+    }
+
+    return execute(new GuiQuery<ThemeEditorFixture>() {
+      @Override
+      @Nullable
+      protected ThemeEditorFixture executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        FileEditor[] editors = manager.getSelectedEditors();
+        if (editors.length == 0) {
+          return null;
+        }
+        FileEditor selected = editors[0];
+        if (!(selected instanceof ThemeEditor)) {
+          return null;
+        }
+
+        return new ThemeEditorFixture(robot, (ThemeEditor)selected);
       }
     });
   }
