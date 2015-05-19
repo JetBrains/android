@@ -65,7 +65,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param component the node to check layout orientation for
    * @return true if the layout is in vertical mode, otherwise false
    */
-  private static boolean isVertical(@NonNull NlComponent component) {
+  protected boolean isVertical(@NonNull NlComponent component) {
     // Horizontal is the default, so if no value is specified it is horizontal.
     String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
     return VALUE_VERTICAL.equals(orientation);
@@ -86,7 +86,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return orientation;
   }
 
-  private static void distributeWeights(NlComponent parentNode, NlComponent[] targets) {
+  private void distributeWeights(NlComponent parentNode, NlComponent[] targets) {
     // Any XML to get weight sum?
     String weightSum = parentNode.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
     double sum = -1.0;
@@ -121,7 +121,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private static void clearWeights(NlComponent parentNode) {
+  private void clearWeights(NlComponent parentNode) {
     // Clear attributes
     String sizeAttribute = isVertical(parentNode)
                            ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
@@ -557,7 +557,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return new LinearResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType);
   }
 
-  private static class LinearResizeHandler extends DefaultResizeHandler {
+  private class LinearResizeHandler extends DefaultResizeHandler {
     /** Whether the node should be assigned a new weight */
     public boolean useWeight;
     /** Weight sum to be applied to the parent */
