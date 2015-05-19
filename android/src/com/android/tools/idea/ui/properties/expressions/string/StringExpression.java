@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Base class for String expressions, providing a default implementation for the {@link ObservableString} interface.
  */
-public abstract class AbstractStringExpression extends Expression implements ObservableString {
+public abstract class StringExpression extends Expression implements ObservableString {
 
-  protected AbstractStringExpression(Observable... values) {
+  protected StringExpression(Observable... values) {
     super(values);
   }
 
