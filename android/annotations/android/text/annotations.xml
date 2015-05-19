@@ -321,6 +321,19 @@
   <item name="android.text.StaticLayout StaticLayout(java.lang.CharSequence, int, int, android.text.TextPaint, int, android.text.Layout.Alignment, float, float, boolean, android.text.TextUtils.TruncateAt, int) 3">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.text.StaticLayout.Builder android.text.StaticLayout.Builder setBreakStrategy(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.BREAK_STRATEGY_SIMPLE, android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY, android.text.Layout.BREAK_STRATEGY_BALANCED}" />
+    </annotation>
+  </item>
+  <item name="android.text.StaticLayout.Builder android.text.StaticLayout.Builder setEllipsize(android.text.TextUtils.TruncateAt) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.StaticLayout.Builder android.text.StaticLayout.Builder setHyphenationFrequency(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, android.text.Layout.HYPHENATION_FREQUENCY_FULL, android.text.Layout.HYPHENATION_FREQUENCY_NONE}" />
+    </annotation>
+  </item>
   <item name="android.text.TextPaint bgColor">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
