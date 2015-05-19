@@ -1162,7 +1162,8 @@ public final class GradleUtil {
   }
 
   private static boolean isWrapperInGradleCache(@NotNull Project project, @NotNull String gradleVersion) {
-    String wrapperDirNamePrefix = "gradle-" + gradleVersion + "-";
+    String distFolderDirName = "gradle-" + gradleVersion;
+    String wrapperDirNamePrefix = distFolderDirName + "-";
 
     // Try both distributions "all" and "bin".
     String[] wrapperDirNames = {wrapperDirNamePrefix + "all", wrapperDirNamePrefix + "bin"};
@@ -1171,7 +1172,17 @@ public final class GradleUtil {
       for (String wrapperDirName : wrapperDirNames) {
         File wrapperDirPath = new File(gradleServicePath, join("wrapper", "dists", wrapperDirName));
         if (wrapperDirPath.isDirectory()) {
-          return true;
+          // There is a folder that contains the actual distribution
+          // Example: // ~/.gradle/wrapper/dists/gradle-2.1-all/27drb4udbjf4k88eh2ffdc0n55/gradle-2.1
+          for (File mayBeDistParent : notNullize(wrapperDirPath.listFiles())) {
+            if (mayBeDistParent.isDirectory()) {
+              for (File mayBeDistFolder : notNullize(mayBeDistParent.listFiles())) {
+                if (mayBeDistFolder.isDirectory() && distFolderDirName.equals(mayBeDistFolder.getName())) {
+                  return true;
+                }
+              }
+            }
+          }
         }
       }
     }
