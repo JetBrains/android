@@ -25,7 +25,7 @@ import java.util.List;
  * An expression which returns a formatted string which takes target {@link ObservableValue}s as
  * arguments.
  */
-public final class FormatExpression extends AbstractStringExpression {
+public final class FormatExpression extends StringExpression {
   private final List<ObservableValue> myValues;
   @NotNull private final String myFormatString;
 

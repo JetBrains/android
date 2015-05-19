@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * chained expressions.
  */
 public final class BooleanExpressions {
-  public static final ObservableBool TRUE = new AbstractBooleanExpression() {
+  public static final ObservableBool TRUE = new BooleanExpression() {
     @NotNull
     @Override
     public Boolean get() {
@@ -32,7 +32,7 @@ public final class BooleanExpressions {
     }
   };
 
-  public static final ObservableBool FALSE = new AbstractBooleanExpression() {
+  public static final ObservableBool FALSE = new BooleanExpression() {
     @NotNull
     @Override
     public Boolean get() {
