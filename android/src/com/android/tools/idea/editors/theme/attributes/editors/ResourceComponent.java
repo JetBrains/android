@@ -38,7 +38,7 @@ import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
  */
 abstract class ResourceComponent extends JPanel {
 
-  private static final String LABEL_TEMPLATE = "<html><b><font color=\"#6F6F6F\">%s</font></b><font color=\"#9B9B9B\"> - %s</font>";
+  private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#6F6F6F\">%s</font></b><font color=\"#9B9B9B\"> - %s</font>";
 
   private static final int DISTANCE_BETWEEN_ROWS = 20;
   private static final int LABEL_BUTTON_GAP = 8;
