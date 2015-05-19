@@ -34,43 +34,41 @@ import java.util.List;
  */
 public class TagSnapshot {
   @Nullable public final String namespace;
-  @NotNull public final String tagName;
+  @NotNull  public final String tagName;
   @Nullable public final XmlTag tag;
   @Nullable public final String prefix;
 
   @Nullable private TagSnapshot myNext;
-  @Nullable public List<TagSnapshot> children;
-  @Nullable public List<AttributeSnapshot> attributes;
+  @NotNull public List<TagSnapshot> children;
+  @NotNull public List<AttributeSnapshot> attributes;
 
-  private TagSnapshot(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix, @Nullable String namespace) {
+  private TagSnapshot(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix, @Nullable String namespace,
+                      @NotNull List<AttributeSnapshot> attributes, @NotNull List<TagSnapshot> children) {
     this.tagName = tagName != null ? tagName : "?";
     this.prefix = prefix == null || prefix.isEmpty() ? null : prefix;
     this.namespace = namespace;
     this.tag = tag;
-  }
-
-  private TagSnapshot(@NotNull XmlTag tag) {
-    this(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace());
+    this.attributes = attributes;
+    this.children = children;
   }
 
   public static TagSnapshot createSyntheticTag(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix,
-                                               @Nullable String namespace) {
-    return new TagSnapshot(tag, tagName, prefix, namespace);
+                                               @Nullable String namespace, @NotNull List<AttributeSnapshot> attributes,
+                                               @NotNull List<TagSnapshot> children) {
+    return new TagSnapshot(tag, tagName, prefix, namespace, attributes, children);
   }
 
   @NotNull
   public static TagSnapshot createTagSnapshot(@NotNull XmlTag tag) {
-    TagSnapshot element = new TagSnapshot(tag);
-
     // Attributes
-    element.attributes = AttributeSnapshot.createAttributesForTag(tag);
+    List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(tag);
 
     // Children
+    List<TagSnapshot> children;
     XmlTag[] subTags = tag.getSubTags();
     if (subTags.length > 0) {
       TagSnapshot last = null;
-      List<TagSnapshot> children = Lists.newArrayListWithExpectedSize(subTags.length);
-      element.children = children;
+      children = Lists.newArrayListWithExpectedSize(subTags.length);
       for (XmlTag subTag : subTags) {
         TagSnapshot child = createTagSnapshot(subTag);
         children.add(child);
@@ -80,10 +78,10 @@ public class TagSnapshot {
         last = child;
       }
     } else {
-      element.children = Collections.emptyList();
+      children = Collections.emptyList();
     }
 
-    return element;
+    return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
   }
 
   @Nullable
@@ -93,10 +91,6 @@ public class TagSnapshot {
 
   @Nullable
   public String getAttribute(@NotNull String name, @Nullable String namespace) {
-    if (attributes == null) {
-      return null;
-    }
-
     // We just use a list rather than a map since in layouts the number of attributes is
     // typically very small so map overhead isn't worthwhile
     for (AttributeSnapshot attribute : attributes) {
@@ -113,17 +107,17 @@ public class TagSnapshot {
    * construction, not later
    */
   public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
-    if (attributes == null) {
-      attributes = Lists.newArrayList();
-    } else {
-      for (AttributeSnapshot attribute : attributes) {
-        if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-          attributes.remove(attribute);
-          break;
-        }
+    for (AttributeSnapshot attribute : attributes) {
+      if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
+        attributes.remove(attribute);
+        break;
       }
     }
     if (value != null) {
+      if (attributes.isEmpty()) {
+        // attributes may point to Collections.emptyList() when empty, which isn't mutable
+        attributes = Lists.newArrayList();
+      }
       attributes.add(new AttributeSnapshot(namespace, prefix, name, value));
     }
   }
@@ -131,5 +125,10 @@ public class TagSnapshot {
   @Nullable
   public TagSnapshot getNextSibling() {
     return myNext;
+  }
+
+  @Override
+  public String toString() {
+    return "TagSnapshot{" + tagName + ", attributes=" + attributes + ", children=\n" + children + "\n}";
   }
 }
