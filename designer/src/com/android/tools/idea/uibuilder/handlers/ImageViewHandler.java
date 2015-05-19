@@ -62,7 +62,7 @@ public class ImageViewHandler extends ViewHandler {
    *
    * @return a source attribute to use for sample images, never null
    */
-  public static String getSampleImageSrc() {
+  public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/btn_star"; //$NON-NLS-1$
   }

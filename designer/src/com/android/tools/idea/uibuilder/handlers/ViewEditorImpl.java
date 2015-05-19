@@ -85,6 +85,12 @@ public class ViewEditorImpl extends ViewEditor {
     return myScreen.getConfiguration();
   }
 
+  @NonNull
+  @Override
+  public NlModel getModel() {
+    return myScreen.getModel();
+  }
+
   @Nullable
   @Override
   public Map<NlComponent, Dimension> measureChildren(@NonNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
