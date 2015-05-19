@@ -124,6 +124,91 @@ public final class IntExpressionsTest {
   }
 
   @Test
+  public void testIsEqualWithValueExpression() {
+    BoolValueProperty result = new BoolValueProperty();
+    IntValueProperty lhs = new IntValueProperty();
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(result, lhs.isEqualTo(10));
+
+    assertThat(result.get()).isFalse();
+
+    lhs.set(10);
+    assertThat(result.get()).isTrue();
+
+    lhs.set(20);
+    assertThat(result.get()).isFalse();
+  }
+
+  @Test
+  public void testLessThanValueExpression() {
+    BoolValueProperty result = new BoolValueProperty();
+    IntValueProperty lhs = new IntValueProperty();
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(result, lhs.isLessThan(10));
+
+    assertThat(result.get()).isTrue();
+
+    lhs.set(10);
+    assertThat(result.get()).isFalse();
+
+    lhs.set(20);
+    assertThat(result.get()).isFalse();
+  }
+
+  @Test
+  public void testGreaterThanValueExpression() {
+    BoolValueProperty result = new BoolValueProperty();
+    IntValueProperty lhs = new IntValueProperty();
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(result, lhs.isGreaterThan(10));
+
+    assertThat(result.get()).isFalse();
+
+    lhs.set(10);
+    assertThat(result.get()).isFalse();
+
+    lhs.set(20);
+    assertThat(result.get()).isTrue();
+  }
+
+  @Test
+  public void testLessThanEqualValueExpression() {
+    BoolValueProperty result = new BoolValueProperty();
+    IntValueProperty lhs = new IntValueProperty();
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(result, lhs.isLessThanEqualTo(10));
+
+    assertThat(result.get()).isTrue();
+
+    lhs.set(10);
+    assertThat(result.get()).isTrue();
+
+    lhs.set(20);
+    assertThat(result.get()).isFalse();
+  }
+
+  @Test
+  public void testGreaterThanEqualValueExpression() {
+    BoolValueProperty result = new BoolValueProperty();
+    IntValueProperty lhs = new IntValueProperty();
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(result, lhs.isGreaterThanEqualTo(10));
+
+    assertThat(result.get()).isFalse();
+
+    lhs.set(10);
+    assertThat(result.get()).isTrue();
+
+    lhs.set(20);
+    assertThat(result.get()).isTrue();
+  }
+
+  @Test
   public void testSumExpression() {
     IntValueProperty sum = new IntValueProperty();
     IntValueProperty a = new IntValueProperty(1);
