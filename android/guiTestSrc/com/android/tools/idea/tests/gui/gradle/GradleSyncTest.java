@@ -1253,13 +1253,15 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
-  public void testAndroidModuleLanguageLevel() throws IOException {
+  public void testModuleLanguageLevel() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     Module library = projectFrame.getModule("library");
+    Module library2 = projectFrame.getModule("library2");
     Module app = projectFrame.getModule("app");
 
     assertEquals(LanguageLevel.JDK_1_6, LanguageLevelModuleExtensionImpl.getInstance(library).getLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_5, LanguageLevelModuleExtensionImpl.getInstance(library2).getLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_7, LanguageLevelModuleExtensionImpl.getInstance(app).getLanguageLevel());
   }
 
