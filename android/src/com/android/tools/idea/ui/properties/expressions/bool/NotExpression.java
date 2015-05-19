@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An expression which converts a boolean to its inverse value.
  */
-public final class NotExpression extends AbstractBooleanExpression {
+public final class NotExpression extends BooleanExpression {
   private final ObservableValue<Boolean> myValue;
 
   public NotExpression(@NotNull ObservableValue<Boolean> value) {

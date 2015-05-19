@@ -16,13 +16,13 @@
 package com.android.tools.idea.ui.properties.expressions.string;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpression;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An expression which returns true if a String is empty, false otherwise.
  */
-public final class IsEmptyExpression extends AbstractBooleanExpression {
+public final class IsEmptyExpression extends BooleanExpression {
   private final ObservableValue<String> myValue;
 
   public IsEmptyExpression(ObservableValue<String> value) {

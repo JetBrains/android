@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An expression which converts two booleans to their logical AND result.
  */
-public final class AndExpression extends AbstractBooleanExpression {
+public final class AndExpression extends BooleanExpression {
   private final ObservableValue<Boolean> myValueLhs;
   private final ObservableValue<Boolean> myValueRhs;
 
