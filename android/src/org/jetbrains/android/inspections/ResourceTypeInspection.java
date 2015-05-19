@@ -650,7 +650,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           sb.append(operator.getSymbol());
           sb.append(' ');
         }
-        sb.append("checkCallingOrSelfPermission(");
+        sb.append("checkSelfPermission(");
 
         // Try to map permission strings back to field references!
         PsiField field = permissionNames.get(permission);
