@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.ui.properties.expressions.list.AbstractMapExpression;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -59,6 +63,40 @@ public final class BindingsManagerTest {
   }
 
   @Test
+  public void mapBindingsUpdateDestinationList() throws Exception {
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+
+    ObservableList<Integer> numericList = new ObservableList<Integer>();
+    for (int i = 1; i <= 5; i++) {
+      numericList.add(i);
+    }
+    ObservableList<String> stringList = new ObservableList<String>();
+    CountListener listener = new CountListener();
+    stringList.addListener(listener);
+
+    bindings.bindList(stringList, new AbstractMapExpression<Integer, String>(numericList) {
+      @NotNull
+      @Override
+      protected String transform(@NotNull Integer srcElement) {
+        return srcElement.toString();
+      }
+    });
+
+    assertThat(stringList).containsExactly("1", "2", "3", "4", "5");
+    assertThat(listener.getCount()).isEqualTo(1);
+
+    numericList.addAll(Arrays.asList(6, 7));
+
+    assertThat(stringList).containsExactly("1", "2", "3", "4", "5", "6", "7");
+    assertThat(listener.getCount()).isEqualTo(2);
+
+    numericList.clear();
+
+    assertThat(stringList).isEmpty();
+    assertThat(listener.getCount()).isEqualTo(3);
+  }
+
+  @Test
   public void releaseDisconnectsOneWayBindings() throws Exception {
     BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
     StringValueProperty property1 = new StringValueProperty("A");
@@ -92,6 +130,29 @@ public final class BindingsManagerTest {
   }
 
   @Test
+  public void releaseDisconnectsListBindings() throws Exception {
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    ObservableList<String> dest = new ObservableList<String>();
+    ObservableList<Integer> src = new ObservableList<Integer>();
+
+    bindings.bindList(dest, new AbstractMapExpression<Integer, String>(src) {
+      @NotNull
+      @Override
+      protected String transform(@NotNull Integer srcElement) {
+        return srcElement.toString();
+      }
+    });
+
+    src.add(5);
+    assertThat(dest).containsExactly("5");
+
+    bindings.releaseList(dest);
+
+    src.add(10);
+    assertThat(dest).containsExactly("5");
+  }
+
+  @Test
   public void releaseAllDisconnectsOneWayBindings() throws Exception {
     BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
     StringValueProperty property1 = new StringValueProperty("A");
@@ -122,6 +183,29 @@ public final class BindingsManagerTest {
 
     property2.set("Property2");
     assertThat(property1.get()).isEqualTo("Property1");
+  }
+
+  @Test
+  public void releaseAllDisconnectsListBindings() throws Exception {
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    ObservableList<String> dest = new ObservableList<String>();
+    ObservableList<Integer> src = new ObservableList<Integer>();
+
+    bindings.bindList(dest, new AbstractMapExpression<Integer, String>(src) {
+      @NotNull
+      @Override
+      protected String transform(@NotNull Integer srcElement) {
+        return srcElement.toString();
+      }
+    });
+
+    src.add(5);
+    assertThat(dest).containsExactly("5");
+
+    bindings.releaseAll();
+
+    src.add(10);
+    assertThat(dest).containsExactly("5");
   }
 
   @Test
