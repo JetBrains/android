@@ -116,6 +116,7 @@ public class DragDropInteraction extends Interaction {
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
+    Project project = myScreenView.getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(ax, ay);
     if (handler != myCurrentHandler) {
       if (myDragHandler != null) {
@@ -127,21 +128,37 @@ public class DragDropInteraction extends Interaction {
       myCurrentHandler = handler;
       if (myCurrentHandler != null) {
         assert myDragReceiver != null;
-        myDragHandler = myCurrentHandler.createDragHandler(new ViewEditorImpl(myScreenView), myDragReceiver, myDraggedComponents, myType);
-        if (myDragHandler != null) {
-          myDragHandler.start(Coordinates.getAndroidX(myScreenView, myStartX),
-                              Coordinates.getAndroidY(myScreenView, myStartY),
-                              myStartMask);
+
+        String error = null;
+        ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
+        for (NlComponent component : myDraggedComponents) {
+          if (!myCurrentHandler.acceptsChild(myDragReceiver, component)) {
+            error = String.format("<%1$s> does not accept <%2$s> as a child", myDragReceiver.getTagName(), component.getTagName());
+            break;
+          }
+          ViewHandler viewHandler = viewHandlerManager.getHandler(component);
+          if (viewHandler != null && !viewHandler.acceptsParent(myDragReceiver, component)) {
+            error = String.format("<%1$s> does not accept <%2$s> as a parent", component.getTagName(), myDragReceiver.getTagName());
+            break;
+          }
+        }
+        if (error == null) {
+          myDragHandler = myCurrentHandler.createDragHandler(new ViewEditorImpl(myScreenView), myDragReceiver, myDraggedComponents, myType);
+          if (myDragHandler != null) {
+            myDragHandler
+              .start(Coordinates.getAndroidX(myScreenView, myStartX), Coordinates.getAndroidY(myScreenView, myStartY), myStartMask);
+          }
+        } else {
+          myCurrentHandler = null;
         }
       }
     }
 
-    if (myDragHandler != null) {
+    if (myDragHandler != null && myCurrentHandler != null) {
       String error = myDragHandler.update(ax, ay, modifiers);
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
         NlModel model = myScreenView.getModel();
-        Project project = model.getFacet().getModule().getProject();
         XmlFile file = model.getFile();
         String label = myType.getDescription();
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
@@ -159,12 +176,18 @@ public class DragDropInteraction extends Interaction {
 
             // Move the widget and schedule a re-render
             for (NlComponent component : myDraggedComponents) {
+              if (!myCurrentHandler.acceptsChild(myDragReceiver, component)) {
+                continue;
+              }
+              ViewHandler viewHandler = viewHandlerManager.getHandler(component);
+              if (viewHandler != null && !viewHandler.acceptsParent(myDragReceiver, component)) {
+                continue;
+              }
 
               // Notify parent & child about the creation and allow them to customize the objects
               InsertType insertType =  myType == DragType.COPY ? InsertType.MOVE_INTO :
                                        (component.getParent() != myDragReceiver ? InsertType.MOVE_INTO : InsertType.MOVE_WITHIN);
               myCurrentHandler.onChildInserted(myDragReceiver, component, insertType);
-              ViewHandler viewHandler = viewHandlerManager.getHandler(component);
               if (viewHandler != null) {
                 ViewEditor editor = new ViewEditorImpl(myScreenView);
                 boolean ok = viewHandler.onCreate(editor, myDragReceiver, component, insertType);

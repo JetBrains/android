@@ -163,6 +163,12 @@ public class ViewHandlerManager implements ProjectComponent {
     if (ABSOLUTE_LAYOUT.equals(viewTag)) {
       return new AbsoluteLayoutHandler();
     }
+    if (TABLE_LAYOUT.equals(viewTag)) {
+      return new TableLayoutHandler();
+    }
+    if (TABLE_ROW.equals(viewTag)) {
+      return new TableRowHandler();
+    }
 
     // Look for other handlers via reflection; first built into the IDE:
     try {

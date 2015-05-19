@@ -27,6 +27,19 @@ import java.util.EnumSet;
 /** A view handler is a tool handler for a given Android view class */
 public class ViewHandler {
   /**
+   * Returns whether the given component accepts the given parent layout as a potential container
+   *
+   * @param layout   the layout being inserted into (which does not yet contain the
+   *                 newly created node in its child list)
+   * @param newChild the newly created component
+   * @return true if the proposed parent is accepted
+   */
+  public boolean acceptsParent(@NonNull NlComponent layout,
+                              @NonNull NlComponent newChild) {
+    return true;
+  }
+
+  /**
    * Called when a view for this handler is being created. This allows for the handler to
    * customize the newly created object. Note that this method is called not just when a
    * view is created from a palette drag, but when views are constructed via a drag-move
