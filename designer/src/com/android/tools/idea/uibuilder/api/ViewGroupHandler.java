@@ -28,6 +28,19 @@ import java.util.List;
  */
 public class ViewGroupHandler extends ViewHandler {
   /**
+   * Returns whether the given layout accepts the given proposed child.
+   *
+   * @param layout   the layout being inserted into (which does not yet contain the
+   *                 newly created node in its child list)
+   * @param newChild the newly created component
+   * @return true if the proposed child is accepted
+   */
+  public boolean acceptsChild(@NonNull NlComponent layout,
+                              @NonNull NlComponent newChild) {
+    return true;
+  }
+
+  /**
    * Called when one or more children are about to be deleted by the user.
    *
    * @param parent  the parent of the deleted children (which still contains
