@@ -18,10 +18,22 @@ package com.android.tools.idea.rendering;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.FieldVisitor;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.tree.ClassNode;
 
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 import static com.android.tools.idea.rendering.ClassConverter.*;
 
@@ -143,6 +155,94 @@ public class ClassConverterTest extends TestCase {
     } catch (Throwable t) {
       fail("Expected class loading error");
     }
+  }
+
+  /*
+    Compile the class below and take the binary content
+
+      class TestView extends View {
+         public TestView(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }
+      }
+    */
+  // Method that generates the binary dump of the view below:
+  //
+  //class TestView extends View {
+  //  public TestView(Context context) {
+  //    super(context);
+  //  }
+  //
+  //  @Override
+  //  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+  //    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+  //  }
+  //}
+  //
+  // The binary dump was created by using ASMifier running:
+  // java -classpath asm-debug-all-5.0.2.jar:. org.objectweb.asm.util.ASMifier TestView.class
+  private static byte[] dumpTestViewClass () throws Exception {
+    ClassWriter cw = new ClassWriter(0);
+    FieldVisitor fv;
+    MethodVisitor mv;
+    AnnotationVisitor av0;
+
+    cw.visit(V1_7, ACC_SUPER, "TestView", null, "android/view/View", null);
+
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(Landroid/content/Context;)V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitMethodInsn(INVOKESPECIAL, "android/view/View", "<init>", "(Landroid/content/Context;)V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(2, 2);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PROTECTED, "onMeasure", "(II)V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitVarInsn(ILOAD, 1);
+      mv.visitVarInsn(ILOAD, 2);
+      mv.visitMethodInsn(INVOKESPECIAL, "android/view/View", "onMeasure", "(II)V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(3, 3);
+      mv.visitEnd();
+    }
+    cw.visitEnd();
+
+    return cw.toByteArray();
+  }
+
+  public void testMethodWrapping() throws Exception {
+    byte[] data = ClassConverterTest.dumpTestViewClass();
+
+    assertTrue(ClassConverter.isValidClassFile(data));
+    byte[] modified = ClassConverter.rewriteClass(data);
+    assertTrue(ClassConverter.isValidClassFile(data));
+
+    // Parse both classes and compare
+    ClassNode classNode = new ClassNode();
+    ClassReader classReader = new ClassReader(modified);
+    classReader.accept(classNode, 0);
+
+    assertEquals(3, classNode.methods.size());
+    final Set<String> methods = new HashSet<String>();
+    classNode.accept(new ClassVisitor(Opcodes.ASM5) {
+      @Override
+      public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        methods.add(name + desc);
+        return super.visitMethod(access, name, desc, signature, exceptions);
+      }
+    });
+    assertTrue(methods.contains("onMeasure(II)V"));
+    assertTrue(methods.contains("onMeasure_Original(II)V"));
   }
 
   private static class TestClassLoader extends RenderClassLoader {
