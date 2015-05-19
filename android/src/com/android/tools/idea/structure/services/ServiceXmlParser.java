@@ -30,9 +30,9 @@ import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.IntProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.AbstractBooleanExpression;
-import com.android.tools.idea.ui.properties.expressions.integer.AbstractIntExpression;
-import com.android.tools.idea.ui.properties.expressions.string.AbstractStringExpression;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
+import com.android.tools.idea.ui.properties.expressions.integer.IntExpression;
+import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -484,7 +484,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       if (boolValue == null) {
         throw new RuntimeException("Invalid bool value (did you forget ${...}): " + value);
       }
-      return new AbstractBooleanExpression() {
+      return new BooleanExpression() {
         @NotNull
         @Override
         public Boolean get() {
@@ -502,7 +502,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       return (ObservableValue<String>)myContext.getValue(varName);
     }
     else {
-      return new AbstractStringExpression() {
+      return new StringExpression() {
         @NotNull
         @Override
         public String get() {
@@ -525,7 +525,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         throw new RuntimeException("Invalid integer value (did you forget ${...}): " + value);
       }
 
-      return new AbstractIntExpression() {
+      return new IntExpression() {
         @NotNull
         @Override
         public Integer get() {
