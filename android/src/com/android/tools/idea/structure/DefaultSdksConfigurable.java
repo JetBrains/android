@@ -16,9 +16,16 @@
 
 package com.android.tools.idea.structure;
 
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,15 +42,18 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.Function;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -81,6 +91,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
 
   private JLabel myAndroidNDKLocationLabel;
   private HyperlinkLabel myNdkDownloadHyperlinkLabel;
+  private HyperlinkLabel myNdkResetHyperlinkLabel;
   private TextFieldWithBrowseButton mySdkLocationTextField;
   private TextFieldWithBrowseButton myNdkLocationTextField;
   private TextFieldWithBrowseButton myJdkLocationTextField;
@@ -102,6 +113,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (myProject == null || myProject.isDefault()) {
       myAndroidNDKLocationLabel.setVisible(false);
       myNdkDownloadHyperlinkLabel.setVisible(false);
+      myNdkResetHyperlinkLabel.setVisible(false);
       myNdkLocationTextField.setVisible(false);
     }
   }
@@ -168,6 +180,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     createJdkLocationTextField();
     createNdkLocationTextField();
     createNdkDownloadLink();
+    createNdkResetLink();
   }
 
   private void createSdkLocationTextField() {
@@ -181,13 +194,14 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   private void createNdkLocationTextField() {
-    myNdkLocationTextField = createTextFieldWithBrowseButton("Choose Android NDK Location", CHOOSE_VALID_NDK_DIRECTORY_ERR,
-                                                             new Function<File, ValidationResult>() {
-                                                               @Override
-                                                               public ValidationResult fun(File file) {
-                                                                 return validateAndroidNdk(file, false);
-                                                               }
-                                                             });
+    myNdkLocationTextField = createTextFieldWithBrowseButton(
+      "Choose Android NDK Location", CHOOSE_VALID_NDK_DIRECTORY_ERR,
+      new Function<File, ValidationResult>() {
+        @Override
+        public ValidationResult fun(File file) {
+          return validateAndroidNdk(file, false);
+        }
+      });
   }
 
   private TextFieldWithBrowseButton createTextFieldWithBrowseButton(String title, final String errorMessagae, final Function<File,
@@ -226,10 +240,37 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     });
   }
 
+  private void createNdkResetLink() {
+    myNdkResetHyperlinkLabel = new HyperlinkLabel();
+    myNdkResetHyperlinkLabel.setHyperlinkText("", "Select", " default NDK");
+    myNdkResetHyperlinkLabel.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        // known non-null since otherwise we won't show the link
+        //noinspection ConstantConditions
+        myNdkLocationTextField.setText(IdeSdks.getAndroidNdkPath().getPath());
+      }
+    });
+  }
+
   private void createNdkDownloadLink() {
     myNdkDownloadHyperlinkLabel = new HyperlinkLabel();
-    myNdkDownloadHyperlinkLabel.setHyperlinkText("Android NDK can be downloaded from ", "here", " .");
-    myNdkDownloadHyperlinkLabel.setHyperlinkTarget("http://developer.android.com/tools/sdk/ndk/");
+    myNdkDownloadHyperlinkLabel.setHyperlinkText("", "Download", " Android NDK.");
+    myNdkDownloadHyperlinkLabel.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(FullRevision.NOT_SPECIFIED).create());
+        SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
+        wizard.init();
+        if (wizard.showAndGet()) {
+          File ndk = IdeSdks.getAndroidNdkPath();
+          if (ndk != null) {
+            myNdkLocationTextField.setText(ndk.getPath());
+          }
+          validateState();
+        }
+      }
+    });
   }
 
   private void createJdkLocationTextField() {
@@ -476,10 +517,12 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
    */
   @Nullable
   private String validateAndroidNdkPath() {
+    hideNdkQuickfixLink();
     // As Ndk is required with for the projects with ndk modules, considering the empty value as legal.
     if (!myNdkLocationTextField.getText().isEmpty()) {
       ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
       if (!validationResult.success) {
+        showNdkQuickfixLink();
         String msg = validationResult.message;
         if (isEmpty(msg)) {
           msg = CHOOSE_VALID_NDK_DIRECTORY_ERR;
@@ -487,7 +530,24 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
         return msg;
       }
     }
+    else if (myNdkLocationTextField.isVisible()) {
+      showNdkQuickfixLink();
+    }
     return null;
+  }
+
+  private void showNdkQuickfixLink() {
+    if (IdeSdks.getAndroidNdkPath() == null) {
+      myNdkDownloadHyperlinkLabel.setVisible(true);
+    }
+    else {
+      myNdkResetHyperlinkLabel.setVisible(true);
+    }
+  }
+
+  private void hideNdkQuickfixLink() {
+    myNdkResetHyperlinkLabel.setVisible(false);
+    myNdkDownloadHyperlinkLabel.setVisible(false);
   }
 
   @NotNull
