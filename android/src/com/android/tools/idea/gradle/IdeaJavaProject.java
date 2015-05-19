@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.pom.java.LanguageLevel;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,7 @@ public class IdeaJavaProject implements Serializable {
   @Nullable private Map<String, Set<File>> myArtifactsByConfiguration;
   @Nullable private ExtIdeaCompilerOutput myCompilerOutput;
   @Nullable private File myBuildFolderPath;
+  @Nullable private String myLanguageLevel;
 
   private boolean myBuildable;
   private boolean myAndroidProjectWithoutVariants;
@@ -70,8 +72,13 @@ public class IdeaJavaProject implements Serializable {
     // If this is an Android project without variants, we cannot build it.
     boolean buildable = !androidProjectWithoutVariants && isBuildable(ideaModule);
 
+    String languageLevel = null;
+    if (extendedModel != null) {
+      languageLevel = extendedModel.getJavaSourceCompatibility();
+    }
+
     return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
-                               buildFolderPath, buildable, androidProjectWithoutVariants);
+                               buildFolderPath, languageLevel, buildable, androidProjectWithoutVariants);
   }
 
   @NotNull
@@ -112,6 +119,7 @@ public class IdeaJavaProject implements Serializable {
                          @Nullable Map<String, Set<File>> artifactsByConfiguration,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
+                         @Nullable String languageLevel,
                          boolean buildable,
                          boolean androidProjectWithoutVariants) {
     myModuleName = name;
@@ -139,6 +147,7 @@ public class IdeaJavaProject implements Serializable {
     myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
+    myLanguageLevel = languageLevel;
     myBuildable = buildable;
     myAndroidProjectWithoutVariants = androidProjectWithoutVariants;
   }
@@ -230,5 +239,13 @@ public class IdeaJavaProject implements Serializable {
 
   public boolean isAndroidProjectWithoutVariants() {
     return myAndroidProjectWithoutVariants;
+  }
+
+  @Nullable
+  public LanguageLevel getJavaLanguageLevel() {
+    if (myLanguageLevel != null) {
+      return LanguageLevel.parse(myLanguageLevel);
+    }
+    return null;
   }
 }
