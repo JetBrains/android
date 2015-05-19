@@ -483,6 +483,9 @@
   <item name="android.os.Looper android.os.Looper myLooper()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.Looper android.os.MessageQueue getQueue()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.Looper android.os.MessageQueue myQueue()">
     <annotation name="android.support.annotation.NonNull" />
   </item>

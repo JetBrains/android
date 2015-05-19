@@ -133,7 +133,13 @@
   <item name="android.app.Activity android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.Activity android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.Activity android.view.ActionMode startActionMode(android.view.ActionMode.Callback)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Activity android.view.ActionMode startActionMode(android.view.ActionMode.Callback, int)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Activity android.view.LayoutInflater getLayoutInflater()">
@@ -187,6 +193,9 @@
   <item name="android.app.Activity boolean onMenuItemSelected(int, android.view.MenuItem) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity boolean onSearchRequested(android.view.SearchEvent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.Activity boolean shouldUpRecreateTask(android.content.Intent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -224,7 +233,7 @@
   </item>
   <item name="android.app.Activity java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE}" />
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE}" />
     </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -295,6 +304,12 @@
   <item name="android.app.Activity void onPrepareDialog(int, android.app.Dialog, android.os.Bundle) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void onRequestPermissionsResult(int, java.lang.String[], int[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Activity void onRequestPermissionsResult(int, java.lang.String[], int[]) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.Activity void onRestart()">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
@@ -320,6 +335,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity void registerForContextMenu(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Activity void requestPermissions(java.lang.String[], int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity void runOnUiThread(java.lang.Runnable) 0">
@@ -644,6 +662,21 @@
   <item name="android.app.AlertDialog.Builder android.content.Context getContext()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Application void onConfigurationChanged(android.content.res.Configuration)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Application void onCreate()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Application void onLowMemory()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Application void onTerminate()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.app.Application void onTrimMemory(int)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.app.ApplicationErrorReport android.content.ComponentName getErrorReportReceiver(android.content.Context, java.lang.String, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -866,6 +899,9 @@
   <item name="android.app.Fragment java.lang.CharSequence getText(int) 0">
     <annotation name="android.support.annotation.StringRes" />
   </item>
+  <item name="android.app.Fragment java.lang.Object getHost()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.Fragment java.lang.String getString(int) 0">
     <annotation name="android.support.annotation.StringRes" />
   </item>
@@ -881,10 +917,19 @@
   <item name="android.app.Fragment void onCreate(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.Fragment void onRequestPermissionsResult(int, java.lang.String[], int[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Fragment void onRequestPermissionsResult(int, java.lang.String[], int[]) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.Fragment void onViewCreated(android.view.View, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Fragment void registerForContextMenu(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Fragment void requestPermissions(java.lang.String[], int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Fragment void unregisterForContextMenu(android.view.View) 0">
@@ -904,6 +949,21 @@
   </item>
   <item name="android.app.FragmentBreadCrumbs void setActivity(android.app.Activity) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.FragmentContainer android.view.View onFindViewById(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.FragmentContainer android.view.View onFindViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.app.FragmentController android.app.Fragment findFragmentByWho(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.FragmentHostCallback E onGetHost()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.FragmentHostCallback android.view.View onFindViewById(int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.FragmentManager android.app.FragmentTransaction beginTransaction()">
     <annotation name="android.support.annotation.NonNull" />
@@ -1323,6 +1383,12 @@
   <item name="android.app.Notification.Builder android.app.Notification.Builder setWhen(long)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Notification.CarExtender android.app.Notification.CarExtender setColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.app.Notification.CarExtender int getColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.app.Notification.InboxStyle android.app.Notification build()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1345,6 +1411,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.NotificationManager void notify(java.lang.String, int, android.app.Notification) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.NotificationManager void requestPolicyAccess(android.app.NotificationManager.NotificationPolicyAccessRequestCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.NotificationManager void requestPolicyAccess(android.app.NotificationManager.NotificationPolicyAccessRequestCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.NotificationManager void setNotificationPolicy(android.app.NotificationManager.Policy) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.PendingIntent android.app.PendingIntent getActivities(android.content.Context, int, android.content.Intent[], int) 0">

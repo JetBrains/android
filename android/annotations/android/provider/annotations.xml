@@ -236,6 +236,12 @@
   <item name="android.provider.ContactsContract.Contacts void markAsContacted(android.content.ContentResolver, long) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.provider.ContactsContract.Contacts.AggregationSuggestions.Builder android.provider.ContactsContract.Contacts.AggregationSuggestions.Builder setContactId(long)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts.AggregationSuggestions.Builder android.provider.ContactsContract.Contacts.AggregationSuggestions.Builder setLimit(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.provider.ContactsContract.Data android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

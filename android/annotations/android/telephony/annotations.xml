@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.telephony.CarrierConfigManager android.os.PersistableBundle getConfig()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.CarrierConfigManager android.os.PersistableBundle getConfigForSubId(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+
