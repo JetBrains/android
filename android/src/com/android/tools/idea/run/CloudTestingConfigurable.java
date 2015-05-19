@@ -64,8 +64,8 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
       new JEditorPane(UIUtil.HTML_MIME,
                       "<html>Google Cloud Test Lab provides a wide array of virtual and physical devices, to use for running tests and debugging."
                       + " Use it to run your tests against a matrix of device combinations with a single click.<br><br>"
-                      + "<a href='https://cloud.google.com'>More about Google Cloud Test Lab</a><br><br>"
-                      + "<a href='https://cloud.google.com'>Pricing information</a><br><br></html>");
+                      + "<a href='https://developers.google.com/cloud-test-lab'>More about Google Cloud Test Lab</a><br><br>"
+                      + "<a href='https://cloud.google.com/pricing'>Pricing information</a><br><br></html>");
     if (!CloudConfigurationProvider.canEnable()) {
       warningPane.setText("<html>This feature is coming soon. Stay tuned!<br><br>"
                           + "For more information, please visit <a href='https://cloud.google.com'>Google Cloud Test Lab</a>.<br><br></html>");
