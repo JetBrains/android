@@ -71,7 +71,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
-  private JBLabel myHelpMeChooseLabel = new JBLabel(getApiHelpText(0)) {
+  private JBLabel myHelpMeChooseLabel = new JBLabel(getApiHelpText(0, "")) {
     @Override
     public Dimension getPreferredSize() {
       // Since this contains auto-wrapped text, the preferred height will not be set until repaint(). The below will set it as soon
@@ -143,7 +143,11 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       @Override
       public String deriveValue(@NotNull ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
         AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
-        return getApiHelpText(selectedItem == null ? 0 : selectedItem.apiLevel);
+        String name = Integer.toString(selectedItem == null ? 0 : selectedItem.apiLevel);
+        if (selectedItem != null && selectedItem.target != null) {
+          name = selectedItem.target.getVersion().getApiString();
+        }
+        return getApiHelpText(selectedItem == null ? 0 : selectedItem.apiLevel, name);
       }
     });
 
@@ -160,12 +164,12 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
   }
 
-  private static String getApiHelpText(int selectedApi) {
+  private static String getApiHelpText(int selectedApi, String selectedApiName) {
     float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
     return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                                              "By targeting API %1$d and later, your app will run on %2$s of the devices that are " +
+                                              "By targeting API %1$s and later, your app will run on %2$s of the devices that are " +
                                               "active on the Google Play Store.</html>",
-                         selectedApi,
+                         selectedApiName,
                          percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage));
   }
 
