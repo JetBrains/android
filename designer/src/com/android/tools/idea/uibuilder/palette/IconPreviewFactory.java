@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.io.CharStreams;
-import com.intellij.android.designer.model.morphing.LinearLayout;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -65,7 +64,7 @@ public class IconPreviewFactory {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
   private static final String DEFAULT_THEME = "AppTheme";
   private static final String PREVIEW_PLACEHOLDER_FILE = "preview.xml";
-  private static final String[] PREVIEW_FILES = {"preview1.xml", "preview2.xml", "preview3.xml"};
+  private static final String[] PREVIEW_FILES = {"preview1.xml", "preview2.xml", "preview3.xml", "preview4.xml"};
   private static final String LINEAR_LAYOUT = "<LinearLayout\n" +
                                               "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                               "    android:layout_width=\"wrap_content\"\n" +

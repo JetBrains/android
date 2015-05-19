@@ -34,29 +34,41 @@ public class FrameLayoutHandler extends ViewGroupHandler {
                                        @NonNull NlComponent layout,
                                        @NonNull List<NlComponent> components,
                                        @NonNull DragType type) {
-    return new DragHandler(editor, this, layout, components, type) {
-      @Override
-      public void paint(@NonNull NlGraphics graphics) {
-        graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-        graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
-
-
-        for (NlComponent component : components) {
-          // Place all elements at (0,0) in the FrameLayout
-          int x = layout.x;
-          int y = layout.y;
-          int w = component.w;
-          int h = component.h;
-
-          graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
-          graphics.drawRect(x, y, w, h);
-        }
-      }
-
-      @Override
-      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-      }
+    return new FrameDragHandler(editor, this, layout, components, type) {
     };
+  }
+
+  protected class FrameDragHandler extends DragHandler {
+
+    protected FrameDragHandler(@NonNull ViewEditor editor,
+                               @NonNull ViewGroupHandler handler,
+                               @NonNull NlComponent layout,
+                               @NonNull List<NlComponent> components,
+                               @NonNull DragType type) {
+      super(editor, handler, layout, components, type);
+    }
+
+    @Override
+    public void paint(@NonNull NlGraphics graphics) {
+      graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
+      graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
+
+
+      for (NlComponent component : components) {
+        // Place all elements at (0,0) in the FrameLayout
+        int x = layout.x;
+        int y = layout.y;
+        int w = component.w;
+        int h = component.h;
+
+        graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
+        graphics.drawRect(x, y, w, h);
+      }
+    }
+
+    @Override
+    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    }
   }
 
   @Override

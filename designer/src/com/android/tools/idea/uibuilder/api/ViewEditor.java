@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -90,6 +91,10 @@ public abstract class ViewEditor {
   /** Returns the configuration for the editor */
   @NonNull
   public abstract Configuration getConfiguration();
+
+  /** Returns the model for the editor */
+  @NonNull
+  public abstract NlModel getModel();
 
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.
