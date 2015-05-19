@@ -88,7 +88,7 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
     String defaultAppTheme = null;
     if (myFacet != null) {
       Manifest manifest = myFacet.getManifest();
-      if (manifest != null && manifest.getApplication() != null) {
+      if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
         defaultAppTheme = manifest.getApplication()
           .getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
       }
