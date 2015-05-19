@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.AttributeEditorValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -206,9 +206,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return getRowContents(rowIndex).getValueAt(columnIndex);
   }
 
+  /**
+   * Implementation of setValueAt method of TableModel interface. Parameter aValue has type Object because of
+   * interface definition, but all passed values are expected to have type AttributeEditorValue.
+   * @param aValue value to be set at a cell with given row an column index, should have type AttributeEditorValue
+   */
   @Override
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-    getRowContents(rowIndex).setValueAt(columnIndex, aValue);
+    getRowContents(rowIndex).setValueAt(columnIndex, (AttributeEditorValue)aValue);
   }
 
   @Override
@@ -248,7 +253,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     Object getValueAt(int column);
 
-    void setValueAt(int column, Object value);
+    void setValueAt(int column, AttributeEditorValue value);
 
     Class<?> getCellClass(int column);
 
@@ -287,13 +292,12 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public void setValueAt(int column, Object value) {
+    public void setValueAt(int column, AttributeEditorValue value) {
       if (column == 0) {
         throw new RuntimeException("Tried to setValue at parent attribute label");
       }
       else {
-        assert value instanceof String;
-        String newName = (String)value;
+        String newName = value.getResourceValue();
         ThemeEditorStyle parent = mySelectedStyle.getParent();
         if (parent == null || !parent.getName().equals(newName)) {
           //Changes the value of Parent in XML
@@ -352,7 +356,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public void setValueAt(int column, Object value) {
+    public void setValueAt(int column, AttributeEditorValue value) {
       throw new RuntimeException(String.format("Tried to setValue at immutable label row of LabelledModel, column = %1$d" + column));
     }
 
@@ -453,7 +457,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public void setValueAt(int column, Object value) {
+    public void setValueAt(int column, AttributeEditorValue value) {
       if (value == null) {
         return;
       }
@@ -465,18 +469,12 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return;
       }
 
-      final boolean succeeded;
-      boolean forceReload = false;
       // Color editing may return reference value, which can be the same as previous value
       // in this cell, but updating table is still required because value that reference points
       // to was changed. To preserve this information, ColorEditor returns ColorEditorValue data
       // structure with value and boolean flag which shows whether reload should be forced.
-      if (value instanceof ColorEditor.ColorEditorValue) {
-        forceReload = ((ColorEditor.ColorEditorValue)value).isForceReload();
-      }
-      succeeded = setAttributeValue(value.toString(), forceReload);
 
-      if (succeeded) {
+      if (setAttributeValue(value.getResourceValue(), value.isForceReload())) {
         fireTableCellUpdated(myRowIndex, column);
       }
     }
