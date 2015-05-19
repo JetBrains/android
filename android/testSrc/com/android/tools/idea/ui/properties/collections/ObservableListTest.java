@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -454,6 +455,38 @@ public final class ObservableListTest {
     list.endUpdate();
     assertThat(listener.getCount()).isEqualTo(0);
     list.endUpdate();
+    assertThat(listener.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void setAllReplacesTheCurrentList()  throws Exception {
+    ObservableList<Integer> numericList = new ObservableList<Integer>();
+    numericList.add(1);
+    numericList.add(2);
+    numericList.add(3);
+
+    CountListener listener = new CountListener();
+    numericList.addListener(listener);
+
+    numericList.setAll(Arrays.asList(10, 9, 8));
+
+    assertThat(numericList).containsExactly(10, 9, 8);
+    assertThat(listener.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void setAllWithEmptyCollectionCanClearTheCurrentList()  throws Exception {
+    ObservableList<Integer> numericList = new ObservableList<Integer>();
+    numericList.add(1);
+    numericList.add(2);
+    numericList.add(3);
+
+    CountListener listener = new CountListener();
+    numericList.addListener(listener);
+
+    numericList.setAll(ImmutableSet.<Integer>of());
+
+    assertThat(numericList).isEmpty();
     assertThat(listener.getCount()).isEqualTo(1);
   }
 
