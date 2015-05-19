@@ -74,11 +74,24 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
     @Override
     public void actionPerformed(final ActionEvent e) {
       String itemValue = myItem.getValue();
-      String colorName = null;
-      if (itemValue != null && itemValue.startsWith(SdkConstants.COLOR_RESOURCE_PREFIX)) {
-        colorName = itemValue.substring(SdkConstants.COLOR_RESOURCE_PREFIX.length());
+      final String colorName;
+      // If it points to an existing resource.
+      if (itemValue != null &&
+          !SdkConstants.NULL_RESOURCE.equals(itemValue) &&
+          itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        // Use the name of that resource.
+        colorName = itemValue.substring(itemValue.indexOf('/') + 1);
       }
-      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, myItem.getValue(), null,
+      else {
+        // Otherwise use the name of the attribute.
+        colorName = myItem.getName();
+      }
+
+      // TODO we need to handle color state lists correctly here.
+      String resolvedColor = ResourceHelper.colorToString(
+        ResourceHelper.resolveColor(myConfiguration.getResourceResolver(), myItem.getItemResourceValue()));
+
+      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
                                                                    ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
 
       final String oldValue = myItem.getItemResourceValue().getValue();
