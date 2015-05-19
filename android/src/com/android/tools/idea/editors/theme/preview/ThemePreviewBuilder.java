@@ -53,7 +53,7 @@ public class ThemePreviewBuilder {
   /** Attribute to use to specify the ComponentGroup that a specific item in the preview belongs to. */
   public static final String BUILDER_ATTR_GROUP = "group";
 
-  static final String THEME_PREVIEW_LAYOUT = "com.android.layoutlib.bridge.android.theme.ThemePreviewLayout";
+  static final String THEME_PREVIEW_LAYOUT = "com.android.tools.idea.editors.theme.widgets.ThemePreviewLayout";
 
   private static final Map<String, String> NAMESPACE_TO_URI = ImmutableMap.of(
     ANDROID_NS_NAME, ANDROID_URI,
@@ -369,17 +369,30 @@ public class ThemePreviewBuilder {
   private PrintStream myDebugPrintStream;
 
   @NotNull
-  private static Element buildMainLayoutElement(@NotNull Document document) {
+  private static Element buildGridLayoutElement(@NotNull Document document,
+                                                int maxColumns,
+                                                int minColumnWidth,
+                                                int maxColumnWidth,
+                                                int itemHorizontalMargin,
+                                                int itemVerticalMargin) {
     Element layout = document.createElement(THEME_PREVIEW_LAYOUT);
     setAttribute(layout, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
     setAttribute(layout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     // Set the custom preview layout attributes
-    layout.setAttribute("max_columns", "3");
+    layout.setAttribute("max_columns", Integer.toString(maxColumns));
     // All values in DP
-    layout.setAttribute("max_column_width", "270");
-    layout.setAttribute("min_column_width", "270");
-    layout.setAttribute("item_horizontal_margin", "25");
-    layout.setAttribute("item_vertical_margin", "15");
+    if (minColumnWidth >= 0) {
+      layout.setAttribute("min_column_width", Integer.toString(minColumnWidth));
+    }
+    if (maxColumnWidth >= 0) {
+      layout.setAttribute("max_column_width", Integer.toString(maxColumnWidth));
+    }
+    if (itemHorizontalMargin >= 0) {
+      layout.setAttribute("item_horizontal_margin", Integer.toString(itemHorizontalMargin));
+    }
+    if (itemVerticalMargin >= 0) {
+      layout.setAttribute("item_vertical_margin", Integer.toString(itemVerticalMargin));
+    }
 
     return layout;
   }
@@ -388,7 +401,8 @@ public class ThemePreviewBuilder {
   private static Element buildElementGroup(@NotNull Document document,
                                            @NotNull ComponentGroup group,
                                            @NotNull String groupColor,
-                                           @NotNull List<ComponentDefinition> components) {
+                                           @NotNull List<ComponentDefinition> components,
+                                           boolean supressErrors) {
     Element componentGrouper = document.createElement(RELATIVE_LAYOUT);
     setAttribute(componentGrouper, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
     setAttribute(componentGrouper, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
@@ -570,10 +584,12 @@ public class ThemePreviewBuilder {
     setAttribute(backgroundLayout, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
     setAttribute(backgroundLayout, ATTR_PADDING_TOP, toDp(20));
     setAttribute(backgroundLayout, ATTR_PADDING_BOTTOM, toDp(20));
+    setAttribute(backgroundLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
     setAttribute(backgroundLayout, ATTR_GRAVITY, GRAVITY_VALUE_CENTER_HORIZONTAL);
     setAttribute(backgroundLayout, ATTR_BACKGROUND, myBackgroundColor);
 
-    Element layout = buildMainLayoutElement(document);
+    Element layout =
+      buildGridLayoutElement(document, 3, 270, 270, 25, 15);
     backgroundLayout.appendChild(layout);
     document.appendChild(backgroundLayout);
 
@@ -584,7 +600,7 @@ public class ThemePreviewBuilder {
         continue;
       }
 
-      Element elementGroup = buildElementGroup(document, group, myGroupHeaderColor, components);
+      Element elementGroup = buildElementGroup(document, group, myGroupHeaderColor, components, group == ComponentGroup.CUSTOM);
       layout.appendChild(elementGroup);
     }
 
