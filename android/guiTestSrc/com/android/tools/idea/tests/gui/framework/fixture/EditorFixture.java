@@ -691,11 +691,14 @@ public class EditorFixture {
         invokeActionViaKeystroke("$SelectAll");
         break;
       case FORMAT: {
-        invokeActionViaKeystroke("ReformatCode");
+        // To format without showing dialog:
+        //  invokeActionViaKeystroke("ReformatCode");
+        // However, before we replace this, make sure the dialog isn't shown in some scenarios (e.g. first users)
+        invokeActionViaKeystroke("ShowReformatFileDialog");
         JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
           @Override
           protected boolean isMatching(@NotNull JDialog dialog) {
-            return dialog.isShowing() && "Reformat Code".equals(dialog.getTitle());
+            return dialog.isShowing() && dialog.getTitle().contains("Reformat");
           }
         });
         DialogFixture dialogFixture = new DialogFixture(robot, dialog);
