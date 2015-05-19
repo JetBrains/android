@@ -24,5 +24,10 @@
   <item name="android.app.admin.DeviceAdminReceiver void onReceive(android.content.Context, android.content.Intent) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.SystemUpdatePolicy int getPolicyType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.admin.SystemUpdatePolicy.TYPE_INSTALL_AUTOMATIC, android.app.admin.SystemUpdatePolicy.TYPE_INSTALL_WINDOWED, android.app.admin.SystemUpdatePolicy.TYPE_POSTPONE}" />
+    </annotation>
+  </item>
 </root>
 

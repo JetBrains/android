@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.media.tv.TvContract android.net.Uri buildChannelsUriForInput(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvContract.Channels java.lang.String getVideoResolution(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvInputInfo android.graphics.drawable.Drawable loadIcon(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputInfo java.lang.CharSequence loadLabel(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputInfo void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager android.media.tv.TvInputInfo getTvInputInfo(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvInputManager android.media.tv.TvInputInfo getTvInputInfo(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager boolean isRatingBlocked(android.media.tv.TvContentRating) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager int getInputState(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager void registerCallback(android.media.tv.TvInputManager.TvInputCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager void registerCallback(android.media.tv.TvInputManager.TvInputCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager void unregisterCallback(android.media.tv.TvInputManager.TvInputCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputService android.media.tv.TvInputService.Session onCreateSession(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvInputService.Session boolean onSelectTrack(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvInputService.Session boolean onSetSurface(android.view.Surface) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvInputService.Session void notifyContentBlocked(android.media.tv.TvContentRating) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvTrackInfo.Builder Builder(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvView void setCallback(android.media.tv.TvView.TvInputCallback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvView void setTimeShiftPositionCallback(android.media.tv.TvView.TimeShiftPositionCallback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvView void timeShiftSetPlaybackParams(android.media.PlaybackParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvView void tune(java.lang.String, android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+
