@@ -19,7 +19,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +28,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class DrawableEditor extends AbstractTableCellEditor {
+public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> {
   private static final ResourceType[] DRAWABLE_TYPE = new ResourceType[] { ResourceType.DRAWABLE };
 
   private final DrawableComponent myComponent;
@@ -48,15 +47,15 @@ public class DrawableEditor extends AbstractTableCellEditor {
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    myEditedItem = (EditedStyleItem) value;
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+    myEditedItem = value;
     myComponent.configure(myEditedItem, myRenderTask);
     return myComponent;
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myResultValue;
+  public AttributeEditorValue getEditorValue() {
+    return new AttributeEditorValue(myResultValue, false);
   }
 
   private class EditorClickListener implements ActionListener {

@@ -21,7 +21,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 
 import javax.swing.*;
@@ -35,7 +34,7 @@ import java.awt.event.ActionListener;
  * Uses a dropdown to offer the choice between true or false or having a reference
  * Deals with references through a separate dialog window
  */
-public class BooleanRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
+public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
   private static final String USE_REFERENCE = "Use reference ...";
   private static final ResourceType[] BOOLEAN_TYPE = new ResourceType[] { ResourceType.BOOL };
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
@@ -71,11 +70,7 @@ public class BooleanRendererEditor extends AbstractTableCellEditor implements Ta
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     EditedStyleItem item = (EditedStyleItem) value;
     myEditedItemValue = item.getValue();
     DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel(COMBOBOX_OPTIONS);
@@ -88,8 +83,8 @@ public class BooleanRendererEditor extends AbstractTableCellEditor implements Ta
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myResultValue;
+  public AttributeEditorValue getEditorValue() {
+    return new AttributeEditorValue(myResultValue, false);
   }
 
   private class BooleanChoiceListener implements ActionListener {
