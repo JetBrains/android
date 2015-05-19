@@ -6,6 +6,7 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -301,6 +302,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
   protected List<URL> getExternalJars() {
     final List<URL> result = new ArrayList<URL>();
 
+    if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
+      result.add(getClass().getClassLoader().getResource("androidWidgets/studio-android-widgets.jar"));
+    }
     for (VirtualFile libFile : AndroidRootUtil.getExternalLibraries(myModule)) {
       if (EXT_JAR.equals(libFile.getExtension())) {
         final File file = new File(libFile.getPath());
