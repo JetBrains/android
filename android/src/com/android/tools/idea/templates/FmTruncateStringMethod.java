@@ -25,8 +25,8 @@ public class FmTruncateStringMethod implements TemplateMethodModelEx {
     if (args.size() != 2) {
       throw new TemplateModelException("Wrong arguments");
     }
-    String s = ((SimpleScalar)args.get(0)).getAsString();
-    int max = ((SimpleNumber)args.get(1)).getAsNumber().intValue();
+    String s = ((TemplateScalarModel)args.get(0)).getAsString();
+    int max = ((TemplateNumberModel)args.get(1)).getAsNumber().intValue();
     return new SimpleScalar(s.substring(0, Math.min(s.length(), max)));
   }
 }
