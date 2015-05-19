@@ -338,6 +338,10 @@ public class ThemeEditorComponent extends Splitter {
         myPreviewPanel.repaint();
       }
     });
+
+    // Set an initial state in case that the editor didn't have a previously saved state
+    // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
+    reload(null);
   }
 
   private void configureFilter() {
