@@ -19,7 +19,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TextFieldWithAutoCompletion;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +31,7 @@ import java.util.List;
 /**
  * Cell editor that allows editing references in styles. It also allows providing auto-complete suggestions.
  */
-public class AttributeReferenceRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
+public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
   protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
   protected final JLabel myLabel = new JLabel();
   protected final TextFieldWithAutoCompletion<String> myTextField;
@@ -94,20 +93,15 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
-    EditedStyleItem item = (EditedStyleItem)value;
-    myEditValue = item;
-    myStringValue = item.getRawXmlValue();
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+    myEditValue = value;
+    myStringValue = value.getRawXmlValue();
 
     myTextField.setText(myStringValue);
     myTextField.setFont(table.getFont());
 
     if (myCompletionProvider != null) {
-      myTextField.setVariants(myCompletionProvider.getCompletions(item));
+      myTextField.setVariants(myCompletionProvider.getCompletions(value));
     }
 
     myBox.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
@@ -116,8 +110,8 @@ public class AttributeReferenceRendererEditor extends AbstractTableCellEditor im
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myTextField.getText();
+  public AttributeEditorValue getEditorValue() {
+    return new AttributeEditorValue(myTextField.getText(), false);
   }
 
   public interface CompletionProvider {

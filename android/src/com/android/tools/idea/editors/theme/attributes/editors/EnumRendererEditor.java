@@ -19,7 +19,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
 import javax.swing.*;
@@ -33,7 +32,7 @@ import java.awt.event.ActionListener;
  * Uses a ComboBox for a dropdown list of choices
  * In the case where other values are allowed, makes the ComboBox editable
  */
-public class EnumRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
+public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
   private final ComboBox myComboBox;
 
   public EnumRendererEditor() {
@@ -48,10 +47,6 @@ public class EnumRendererEditor extends AbstractTableCellEditor implements Table
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
     EditedStyleItem item = (EditedStyleItem) value;
     final Component component;
     if (column == 0) {
@@ -68,14 +63,9 @@ public class EnumRendererEditor extends AbstractTableCellEditor implements Table
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
-    EditedStyleItem item = (EditedStyleItem) value;
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     AttributeDefinition attrDefinition =
-      StyleResolver.getAttributeDefinition(item.getSourceStyle().getConfiguration(), item.getItemResourceValue());
+      StyleResolver.getAttributeDefinition(value.getSourceStyle().getConfiguration(), value.getItemResourceValue());
     if (attrDefinition != null) {
       if (attrDefinition.getFormats().size() > 1) {
         myComboBox.setEditable(true); // makes the box editable for items that can take values outside of the choices
@@ -84,12 +74,12 @@ public class EnumRendererEditor extends AbstractTableCellEditor implements Table
       }
       myComboBox.setModel(new DefaultComboBoxModel(attrDefinition.getValues()));
     }
-    myComboBox.setSelectedItem(item.getValue());
+    myComboBox.setSelectedItem(value.getValue());
     return myComboBox;
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myComboBox.getSelectedItem();
+  public AttributeEditorValue getEditorValue() {
+    return new AttributeEditorValue((String) myComboBox.getSelectedItem(), false);
   }
 }

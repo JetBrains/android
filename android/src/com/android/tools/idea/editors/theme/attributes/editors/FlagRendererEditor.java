@@ -27,7 +27,6 @@ import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.Html;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,7 @@ import java.util.*;
  * Renderer and Editor for attributes that take flags as values.
  * When editing, opens a dialog with checkboxes for all the possible flags to choose from.
  */
-public class FlagRendererEditor extends AbstractTableCellEditor implements TableCellRenderer {
+public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
   private final Box myBox = new Box(BoxLayout.LINE_AXIS);
   private final JLabel myLabel = new JLabel();
   private final EditorTextField myTextField = new EditorTextField();
@@ -99,19 +98,15 @@ public class FlagRendererEditor extends AbstractTableCellEditor implements Table
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
-    myItem = (EditedStyleItem)value;
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+    myItem = value;
     myTextField.setText(myItem.getValue());
     return myBox;
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myTextField.getText();
+  public AttributeEditorValue getEditorValue() {
+    return new AttributeEditorValue(myTextField.getText(), false);
   }
 
   private class FlagDialog extends DialogWrapper {
