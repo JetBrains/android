@@ -201,7 +201,7 @@ public class ViewLoader {
   }
 
   @Nullable
-  private Class<?> loadClass(String className) throws InconvertibleClassError {
+  public Class<?> loadClass(@NotNull String className) throws InconvertibleClassError {
     try {
       return getModuleClassLoader().loadClass(className);
     }
