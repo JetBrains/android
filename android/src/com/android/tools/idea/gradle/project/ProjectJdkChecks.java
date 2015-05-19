@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
@@ -48,7 +47,9 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
+import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 
 final class ProjectJdkChecks {
   private ProjectJdkChecks() {
@@ -69,7 +70,7 @@ final class ProjectJdkChecks {
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
     if (version != null && version.getFeatureLevel() >= 21) {
       Sdk jdk = IdeSdks.getJdk();
-      if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
+      if (jdk != null && !isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
@@ -81,7 +82,7 @@ final class ProjectJdkChecks {
         }
         Message msg;
         String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
-        VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+        VirtualFile buildFile = getGradleBuildFile(module);
         String groupName = "Project Configuration";
 
         if (buildFile != null) {

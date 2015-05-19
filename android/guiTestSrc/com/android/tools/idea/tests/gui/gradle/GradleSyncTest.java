@@ -25,8 +25,9 @@ import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.AbstractContentFixture;
@@ -50,6 +51,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -57,10 +59,10 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.reflect.reference.TypeRef;
-import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -94,8 +96,8 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.io.Files.write;
@@ -106,6 +108,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
@@ -1260,9 +1263,30 @@ public class GradleSyncTest extends GuiTestCase {
     Module library2 = projectFrame.getModule("library2");
     Module app = projectFrame.getModule("app");
 
-    assertEquals(LanguageLevel.JDK_1_6, LanguageLevelModuleExtensionImpl.getInstance(library).getLanguageLevel());
-    assertEquals(LanguageLevel.JDK_1_5, LanguageLevelModuleExtensionImpl.getInstance(library2).getLanguageLevel());
-    assertEquals(LanguageLevel.JDK_1_7, LanguageLevelModuleExtensionImpl.getInstance(app).getLanguageLevel());
+    assertEquals(JDK_1_6, getJavaLanguageLevel(library));
+    assertEquals(JDK_1_5, getJavaLanguageLevel(library2));
+    assertEquals(JDK_1_7, getJavaLanguageLevel(app));
+  }
+
+  @Test @IdeGuiTest
+  public void testModuleLanguageLevelWithJdk8() throws IOException {
+    Sdk jdk = IdeSdks.getJdk();
+    assert jdk != null;
+    if (!Jdks.isApplicableJdk(jdk, JDK_1_8)) {
+      String testName = "testModuleLanguageLevelWithJdk8";
+      skip(testName);
+      System.out.println(String.format("'%1$s' needs JDK 1.8 or newer.", testName));
+      return;
+    }
+
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    Module javaLib = projectFrame.getModule("javaLib");
+    assertEquals(JDK_1_7, getJavaLanguageLevel(javaLib));
+  }
+
+  @Nullable
+  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
+    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
   private static void updateAndroidModelVersion(@NotNull File projectPath, @NotNull String modelVersion) throws IOException {
