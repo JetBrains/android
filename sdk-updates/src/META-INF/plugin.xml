@@ -43,5 +43,9 @@
     </component>
   </application-components>
 
+  <actions>
+    <action id="Android.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
+            icon="AndroidIcons.SdkManager" overrides="true"/>
+  </actions>
 
 </idea-plugin>
