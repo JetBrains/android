@@ -18,6 +18,8 @@ package com.android.tools.idea.sdk;
 import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
@@ -35,6 +37,7 @@ import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,6 +99,18 @@ public final class IdeSdks {
       }
     }
     return null;
+  }
+
+  public static File getAndroidNdkPath() {
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (data == null) {
+      return null;
+    }
+    LocalPkgInfo[] ndk = data.getLocalSdk().getPkgsInfos(PkgType.PKG_NDK);
+    if (ndk.length == 0) {
+      return null;
+    }
+    return ndk[0].getLocalDir();
   }
 
   @Nullable
