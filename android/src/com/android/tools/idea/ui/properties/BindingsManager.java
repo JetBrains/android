@@ -127,7 +127,6 @@ public final class BindingsManager {
     release(dest);
 
     myOneWayBindings.put(dest, new OneWayBinding<T>(dest, src, enabled));
-    enqueueUpdater(new PropertyUpdater<T>(dest, src));
   }
 
   /**
@@ -141,7 +140,6 @@ public final class BindingsManager {
     releaseTwoWay(first, second);
 
     myTwoWayBindings.put(first, second, new TwoWayBinding<T>(first, second));
-    enqueueUpdater(new PropertyUpdater<T>(first, second));
   }
 
   /**
@@ -253,6 +251,9 @@ public final class BindingsManager {
 
       myObservableSrc.addListener(this);
       myEnabled.addListener(this);
+
+      // Once bound, force the dest property to refresh its value from the src property
+      onInvalidated(observableSrc);
     }
 
     public void dispose() {
@@ -282,6 +283,9 @@ public final class BindingsManager {
       myPropertyRhs = propertyRhs;
       myPropertyLhs.addListener(myLeftChangedListener);
       myPropertyRhs.addListener(myRightChangedListener);
+
+      // Once bound, force the left property to refresh its value from the right property
+      myRightChangedListener.onInvalidated(propertyRhs);
     }
 
     public void dispose() {
