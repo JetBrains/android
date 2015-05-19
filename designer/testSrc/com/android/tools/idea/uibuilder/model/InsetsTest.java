@@ -27,6 +27,9 @@ public class InsetsTest extends TestCase {
     assertEquals(3, insets.right);
     assertEquals(4, insets.bottom);
 
+    assertEquals(4, insets.width());
+    assertEquals(6, insets.height());
+
     assertTrue(new Insets(1, 2, 3, 4).equals(new Insets(1, 2, 3, 4)));
 
     assertTrue(Insets.NONE.isEmpty());
