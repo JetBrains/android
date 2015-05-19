@@ -24,18 +24,19 @@ import org.jetbrains.annotations.Nullable;
 public class OpenProjectStructureHyperlink extends NotificationHyperlink {
   @Nullable
   public static OpenProjectStructureHyperlink openJdkSettings(@NotNull Project project) {
-    ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-    if (service instanceof AndroidProjectSettingsService) {
-      return new OpenProjectStructureHyperlink("Open JDK Settings");
-    }
-    return null;
+    return openSdkSettings(project, "Open JDK Settings");
   }
 
   @Nullable
   public static OpenProjectStructureHyperlink openNdkSettings(@NotNull Project project) {
+    return openSdkSettings(project, "Open NDK Settings");
+  }
+
+  @Nullable
+  private static OpenProjectStructureHyperlink openSdkSettings(@NotNull Project project, @NotNull String hyperlinkText) {
     ProjectSettingsService service = ProjectSettingsService.getInstance(project);
     if (service instanceof AndroidProjectSettingsService) {
-      return new OpenProjectStructureHyperlink("Open NDK Settings");
+      return new OpenProjectStructureHyperlink(hyperlinkText);
     }
     return null;
   }
