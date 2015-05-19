@@ -32,10 +32,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
 import java.util.Collection;
@@ -51,6 +55,7 @@ public class SdkUpdaterConfigPanel {
   private PlatformComponentsPanel myPlatformComponentsPanel;
   private ToolComponentsPanel myToolComponentsPanel;
   private UpdateSitesPanel myUpdateSitesPanel;
+  private HyperlinkLabel myLaunchStandaloneLink;
   private SdkSources mySdkSources;
   private Runnable mySourcesChangeListener = new DispatchRunnable() {
     @Override
@@ -76,6 +81,13 @@ public class SdkUpdaterConfigPanel {
     mySdkSources.addChangeListener(mySourcesChangeListener);
     myUpdateSitesPanel.setSdkState(sdkState);
     mySdkLocation.setText(IdeSdks.getAndroidSdkPath().getPath());
+    myLaunchStandaloneLink.setHyperlinkText("Launch Standalone SDK Manager");
+    myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        RunAndroidSdkManagerAction.runSpecificSdkManager(null, IdeSdks.getAndroidSdkPath());
+      }
+    });
   }
 
   public String getSdkPath() {
