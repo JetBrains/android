@@ -31,6 +31,15 @@ public class OpenProjectStructureHyperlink extends NotificationHyperlink {
     return null;
   }
 
+  @Nullable
+  public static OpenProjectStructureHyperlink openNdkSettings(@NotNull Project project) {
+    ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+    if (service instanceof AndroidProjectSettingsService) {
+      return new OpenProjectStructureHyperlink("Open NDK Settings");
+    }
+    return null;
+  }
+
   private OpenProjectStructureHyperlink(@NotNull String text) {
     super("open.project.structure", text);
   }
