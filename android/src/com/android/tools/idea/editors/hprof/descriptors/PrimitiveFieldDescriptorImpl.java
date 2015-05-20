@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 public class PrimitiveFieldDescriptorImpl extends HprofFieldDescriptorImpl {
   @NotNull private PrimitiveValueImpl myPrimitiveValue;
 
-  public PrimitiveFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @NotNull final Object value) {
-    super(project, field, value);
+  public PrimitiveFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @NotNull final Object value, int memoryOrdering) {
+    super(project, field, value, memoryOrdering);
     myPrimitiveValue = (PrimitiveValueImpl)calcValue(null);
   }
 
