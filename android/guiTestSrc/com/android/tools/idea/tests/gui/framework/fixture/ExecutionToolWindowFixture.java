@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
-import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Condition;
@@ -124,10 +123,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     public boolean isExecutionInProgress() {
       // Consider that execution is in progress if 'stop' toolbar button is enabled.
-      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
-      assertNotNull(toolbar);
-      List<ActionButton> buttons = findComponentsOfType(toolbar, ActionButton.class);
-      for (ActionButton button : buttons) {
+      for (ActionButton button : getToolbarButtons()) {
         if ("com.intellij.execution.actions.StopAction".equals(button.getAction().getClass().getCanonicalName())) {
           //noinspection ConstantConditions
           return method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
@@ -137,10 +133,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     public void rerun() {
-      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
-      assertNotNull(toolbar);
-      List<ActionButton> buttons = UIUtil.findComponentsOfType(toolbar, ActionButton.class);
-      for (ActionButton button : buttons) {
+      for (ActionButton button : getToolbarButtons()) {
         if ("com.intellij.execution.runners.FakeRerunAction".equals(button.getAction().getClass().getCanonicalName())) {
           myRobot.click(button);
           return;
@@ -161,10 +154,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @TestOnly
     public boolean stop() {
-      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
-      assertNotNull(toolbar);
-      List<ActionButton> buttons = findComponentsOfType(toolbar, ActionButton.class);
-      for (ActionButton button : buttons) {
+      for (ActionButton button : getToolbarButtons()) {
         final AnAction action = button.getAction();
         if (action != null && action.getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
           //noinspection ConstantConditions
@@ -179,6 +169,12 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return false;
     }
 
+    @NotNull
+    private List<ActionButton> getToolbarButtons() {
+      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
+      assert toolbar != null;
+      return findComponentsOfType(toolbar, ActionButton.class);
+    }
   }
 
   protected ExecutionToolWindowFixture(@NotNull String toolWindowId, @NotNull IdeFrameFixture ideFrame) {
@@ -192,4 +188,10 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     return new ContentFixture(this, myRobot, content);
   }
 
+  @NotNull
+  public ContentFixture findContent(@NotNull TextMatcher tabNameMatcher) {
+    Content content = getContent(tabNameMatcher);
+    assertNotNull(content);
+    return new ContentFixture(this, myRobot, content);
+  }
 }
