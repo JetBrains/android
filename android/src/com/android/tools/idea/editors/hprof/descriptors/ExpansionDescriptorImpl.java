@@ -18,12 +18,15 @@ package com.android.tools.idea.editors.hprof.descriptors;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.NodeDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
+import org.jetbrains.annotations.NotNull;
 
 public class ExpansionDescriptorImpl extends NodeDescriptorImpl {
+  @NotNull private final String myName;
   private final int myStartIndex;
   private final int myTotal;
 
-  public ExpansionDescriptorImpl(int startIndex, int total) {
+  public ExpansionDescriptorImpl(@NotNull String name, int startIndex, int total) {
+    myName = name;
     myStartIndex = startIndex;
     myTotal = total;
     setLabel(calcRepresentation(null, null));
@@ -39,7 +42,7 @@ public class ExpansionDescriptorImpl extends NodeDescriptorImpl {
 
   @Override
   protected String calcRepresentation(EvaluationContextImpl context, DescriptorLabelListener labelListener) {
-    return String.format("...<more instances (%d of %d remaining)>...", myTotal - myStartIndex, myTotal);
+    return String.format("...<more %s (%d of %d remaining)>...", myName, myTotal - myStartIndex, myTotal);
   }
 
   @Override

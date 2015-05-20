@@ -18,9 +18,45 @@ package com.android.tools.idea.editors.hprof.tables;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class TableColumn<MT, T> extends AbstractColumn<T> {
+public abstract class TableColumn<MT, T> {
+  @NotNull private String myColumnName;
+  @NotNull private Class<T> myClass;
+  private int myHeaderJustification;
+  private int myColumnWidth;
+  private boolean myEnabled;
+
   public TableColumn(@NotNull String columnName, @NotNull Class<T> classType, int headerJustification, int relativeWidth, boolean enabled) {
-    super(columnName, classType, headerJustification, relativeWidth, enabled);
+    myColumnName = columnName;
+    myClass = classType;
+    myHeaderJustification = headerJustification;
+    myColumnWidth = relativeWidth;
+    myEnabled = enabled;
+  }
+
+  public boolean getEnabled() {
+    return myEnabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    myEnabled = enabled;
+  }
+
+  @NotNull
+  public Class<T> getColumnClass() {
+    return myClass;
+  }
+
+  @NotNull
+  public String getColumnName() {
+    return myColumnName;
+  }
+
+  public int getHeaderJustification() {
+    return myHeaderJustification;
+  }
+
+  public int getColumnWidth() {
+    return myColumnWidth;
   }
 
   @Nullable
