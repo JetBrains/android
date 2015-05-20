@@ -694,6 +694,22 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return myParserFactory;
   }
 
+  @NotNull
+  @Override
+  public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
+    try {
+      Class<?> aClass = myClassLoader.loadClass(name);
+      if (aClass != null) {
+        return aClass;
+      }
+      throw new ClassNotFoundException(name + " not found.");
+    }
+    catch (InconvertibleClassError e) {
+      throw new ClassNotFoundException(name + " not found.", e);
+    }
+
+  }
+
   private static class ParserFactoryImpl extends ParserFactory {
     @NotNull
     @Override
