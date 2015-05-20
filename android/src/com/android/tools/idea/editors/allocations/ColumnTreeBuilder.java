@@ -131,7 +131,7 @@ public class ColumnTreeBuilder {
           Comparator<?> comparator = myRowSorter.getComparator(key.getColumn());
           Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
           comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
-          myTreeSorter.sort(comparator);
+          myTreeSorter.sort(comparator, key.getSortOrder());
           while (expanded.hasMoreElements()) {
             myTree.expandPath(expanded.nextElement());
           }
@@ -168,7 +168,7 @@ public class ColumnTreeBuilder {
   }
 
   public interface TreeSorter<T> {
-    void sort(Comparator<T> comparator);
+    void sort(Comparator<T> comparator, SortOrder order);
   }
 
   /**
