@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.editors.theme.ThemeEditor;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
@@ -124,23 +123,24 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
    */
   @NotNull
   private static String simplifyName(@NotNull ThemeEditorStyle theme) {
-    StringBuilder result = new StringBuilder();
+    String result;
     String name = theme.getName();
     String[] pieces = name.split("\\.");
     if (pieces.length > 1 && !"Light".equals(pieces[1])) {
-      result.append(pieces[1]);
+      result = pieces[1];
+    }
+    else {
+      result = "Theme";
     }
     ThemeEditorStyle parent = theme;
     while (parent != null) {
       if ("Theme.Light".equals(parent.getSimpleName())) {
-        result.append(' ').append("Light");
-        return result.toString();
+        return result + " Light";
       }
       else {
         parent = parent.getParent();
       }
     }
-    result.append(' ').append("Dark");
-    return result.toString();
+    return result + " Dark";
   }
 }
