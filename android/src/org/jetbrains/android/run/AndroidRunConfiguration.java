@@ -461,7 +461,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         if (state.isStopped()) return LaunchResult.STOP;
         String command = "am start " +
                          getDebugFlags(state) +
-                         "-n \"" + activityPath + "\" " +
+                         " -n \"" + activityPath + "\" " +
                          "-a android.intent.action.MAIN " +
                          "-c android.intent.category.LAUNCHER";
         boolean deviceNotResponding = false;
