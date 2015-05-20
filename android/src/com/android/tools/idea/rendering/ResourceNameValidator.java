@@ -227,6 +227,23 @@ public class ResourceNameValidator implements InputValidatorEx {
    */
   public static ResourceNameValidator create(boolean allowXmlExtension, @Nullable LocalResourceRepository appResources,
                                              @NotNull ResourceType type) {
+    return create(allowXmlExtension, appResources, type, ResourceHelper.isFileBasedResourceType(type));
+  }
+
+  /**
+   * Creates a new {@link ResourceNameValidator}. By default, the name will need to be
+   * unique in the project.
+   *
+   * @param allowXmlExtension if true, allow .xml to be entered as a suffix for the
+   *                          resource name
+   * @param appResources      the app resources to validate new resource names for
+   * @param type              the resource type of the resource name being validated
+   * @param isFileType        allows you to specify if the resource is a file.
+   *                          for resources that can be both files and values like Color.
+   * @return a new {@link ResourceNameValidator}
+   */
+  public static ResourceNameValidator create(boolean allowXmlExtension, @Nullable LocalResourceRepository appResources,
+                                             @NotNull ResourceType type, boolean isFileType) {
     Set<String> existing = null;
     if (appResources != null) {
       existing = new HashSet<String>();
@@ -236,7 +253,6 @@ public class ResourceNameValidator implements InputValidatorEx {
       }
     }
 
-    boolean isFileType = ResourceHelper.isFileBasedResourceType(type);
     return new ResourceNameValidator(allowXmlExtension, existing, isFileType, type == ResourceType.DRAWABLE);
   }
 

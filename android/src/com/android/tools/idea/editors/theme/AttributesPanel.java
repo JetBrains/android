@@ -21,6 +21,7 @@ import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import java.awt.Dimension;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -69,6 +70,10 @@ public class AttributesPanel {
     mySubStyleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     myPalette.setShowCheckeredBackground(true);
+
+    // Stop the combo box long items from blocking the right panel from being able to be made small.
+    myThemeCombo.setMinimumSize(new Dimension(10, myThemeCombo.getMinimumSize().height));
+    myThemeCombo.setPreferredSize(new Dimension(10, myThemeCombo.getPreferredSize().height));
   }
 
   /**

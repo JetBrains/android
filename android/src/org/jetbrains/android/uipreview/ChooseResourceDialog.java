@@ -40,7 +40,13 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.*;
+import com.intellij.ui.ColorPickerListener;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
@@ -59,19 +65,48 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeSelectionModel;
+import java.io.IOException;
 
 /**
  * Resource Chooser, with previews. Based on ResourceDialog in the android-designer.
@@ -103,7 +138,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private final JBTabbedPane myContentPanel;
   private final ResourcePanel myProjectPanel;
   private final ResourcePanel mySystemPanel;
-  private JPanel myColorPickerPanel;
+  private JComponent myColorPickerPanel;
 
   private ColorPicker myColorPicker;
   private ResourcePickerListener myResourcePickerListener;
@@ -172,7 +207,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     mySystemPanel = new ResourcePanel(facet, types, true);
 
     myContentPanel = new JBTabbedPane();
-    myContentPanel.setPreferredSize(new Dimension(600, 500));
     myContentPanel.addTab("Project", myProjectPanel.myComponent);
     myContentPanel.addTab("System", mySystemPanel.myComponent);
 
@@ -194,8 +228,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       });
       myColorPicker.pickARGB();
 
-      myColorPickerPanel = new JPanel(new BorderLayout());
-      myColorPickerPanel.add(myColorPicker);
+      JPanel colorPickerContent = new JPanel(new BorderLayout());
+      myColorPickerPanel = new JBScrollPane(colorPickerContent);
+      myColorPickerPanel.setBorder(null);
+      colorPickerContent.add(myColorPicker);
       myContentPanel.addTab("Color", myColorPickerPanel);
 
       if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
@@ -208,7 +244,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
         Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
         myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
-        myColorPickerPanel.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
+        colorPickerContent.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
         updateResourceNameStatus();
       }
 
@@ -216,7 +252,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         myContentPanel.setSelectedIndex(2);
         doSelection = false;
       }
-      myValidator = ResourceNameValidator.create(false, AppResourceRepository.getAppResources(module, true), ResourceType.COLOR);
+      myValidator = ResourceNameValidator.create(false, AppResourceRepository.getAppResources(module, true), ResourceType.COLOR, false);
     }
     if (doSelection && value.startsWith("@")) {
       value = StringUtil.replace(value, "+", "");
