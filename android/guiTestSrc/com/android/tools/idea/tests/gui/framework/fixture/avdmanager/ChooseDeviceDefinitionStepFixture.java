@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.exception.ActionFailedException;
-import org.fest.swing.fixture.JOptionPaneFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 
 import javax.swing.*;
 
@@ -71,8 +69,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
       }
     }).click();
 
-    JOptionPaneFixture optionPaneFixture = new JOptionPaneFixture(robot());
-    optionPaneFixture.yesButton().click();
+    MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
     return this;
   }
 
@@ -88,7 +85,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     final TableView deviceList = robot().finder().find(target(), new GenericTypeMatcher<TableView>(TableView.class) {
       @Override
       protected boolean isMatching(@NotNull TableView component) {
-        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
+        return component.getRowCount() > 0 && component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
       }
     });
     return new JTableFixture(robot(), deviceList);

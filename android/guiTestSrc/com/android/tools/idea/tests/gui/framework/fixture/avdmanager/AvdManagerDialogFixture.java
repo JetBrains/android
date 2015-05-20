@@ -16,14 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.intellij.ui.components.JBLabel;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.JOptionPaneFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -78,9 +78,9 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     });
 
     JPanel actionPanel = (JPanel)actionCellFixture.editor();
-    JBLabel editButtonLabel = robot().finder().find(actionPanel, new GenericTypeMatcher<JBLabel>(JBLabel.class) {
+    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
-      protected boolean isMatching(@NotNull JBLabel component) {
+      protected boolean isMatching(@NotNull HyperlinkLabel component) {
         return "Edit this AVD".equals(component.getToolTipText());
       }
     });
@@ -117,8 +117,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
       }
     }).click();
 
-    JOptionPaneFixture optionPaneFixture = new JOptionPaneFixture(robot());
-    optionPaneFixture.yesButton().click();
+    MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
   }
 
   public void close() {
