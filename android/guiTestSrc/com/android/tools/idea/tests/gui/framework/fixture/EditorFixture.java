@@ -42,6 +42,7 @@ import com.intellij.ui.components.JBList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -906,6 +907,18 @@ public class EditorFixture {
 
     if (switchToTabIfNecessary) {
       selectEditorTab(Tab.EDITOR);
+    }
+
+    Boolean visible = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+      @Override
+      protected Boolean executeInEDT() throws Throwable {
+        AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
+        return manager.getToolWindowForm() != null;
+      }
+    });
+    if (visible == null || !visible) {
+      // This doesn't work; second nested menu item isn't clicked
+      //myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
     pause(new Condition("Preview window is visible") {
