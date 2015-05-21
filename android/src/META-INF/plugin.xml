@@ -189,6 +189,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUiRegistry"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
+    <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
+
     <applicationService serviceInterface="com.android.tools.idea.stats.UsageTracker"
                         serviceImplementation="com.android.tools.idea.stats.UsageTrackerAnalyticsImpl"/>
 
@@ -250,14 +252,10 @@
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     -->
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.editors.vmtrace.VmTraceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.editors.allocations.AllocationsEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.editors.hprof.HprofEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.editors.systeminfo.SystemInfoEditorProvider" />
 
     <runConfigurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
@@ -723,6 +721,7 @@
     <extensionPoint name="newModuleWizardPathFactory" interface="com.android.tools.idea.wizard.NewModuleWizardPathFactory"/>
     <extensionPoint name="newModuleDynamicPathFactory" interface="com.android.tools.idea.wizard.NewModuleDynamicPathFactory"/>
     <extensionPoint name="wizardParameterFactory" interface="com.android.tools.idea.wizard.WizardParameterFactory"/>
+    <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.buildVariantModuleCustomizer"
@@ -734,6 +733,13 @@
     <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
                     interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
   </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android">
+    <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
+    <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
+    <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
+    <captureType implementation="com.android.tools.idea.editors.vmtrace.VmTraceCaptureType"/>
+  </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android">
     <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>

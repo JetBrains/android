@@ -17,10 +17,20 @@ package com.android.tools.idea.editors.hprof;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 public class HprofCaptureType extends FileCaptureType {
   protected HprofCaptureType() {
     super("Heap Snapshot", AndroidIcons.Ddms.DumpHprof, "Snapshot_", SdkConstants.DOT_HPROF);
+  }
+
+  @NotNull
+  @Override
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    return new HprofEditor(project, file);
   }
 }
