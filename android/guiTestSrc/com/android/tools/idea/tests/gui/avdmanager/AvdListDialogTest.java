@@ -39,15 +39,18 @@ public class AvdListDialogTest extends GuiTestCase {
 
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
     configureAvdOptionsStep.showAdvancedSettings();
+    configureAvdOptionsStep.requireAvdName("Nexus 7 API 19"); // check default
+    configureAvdOptionsStep.setAvdName("Testsuite AVD");
     configureAvdOptionsStep.setFrontCamera("Emulated");
     configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectUseHostGpu(true);
     avdEditWizard.clickFinish();
-    avdManagerDialog.close();
 
     // Ensure the AVD was created
-    avdManagerDialog.selectAvdByName("Nexus 7 2013 API 19");
+    avdManagerDialog.selectAvdByName("Testsuite AVD");
     // Then clean it up
-    avdManagerDialog.deleteAvdByName("Nexus 7 2013 API 19");
+    avdManagerDialog.deleteAvdByName("Testsuite AVD");
+
+    avdManagerDialog.close();
   }
 
   @Test @IdeGuiTest
