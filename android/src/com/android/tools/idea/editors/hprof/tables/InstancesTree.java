@@ -221,6 +221,7 @@ public class InstancesTree {
                   append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
                 }
               }
+              setTextAlign(SwingConstants.RIGHT);
             }
           })
         )
@@ -269,6 +270,7 @@ public class InstancesTree {
                 append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
             }
+            setTextAlign(SwingConstants.RIGHT);
           }
         }));
 
