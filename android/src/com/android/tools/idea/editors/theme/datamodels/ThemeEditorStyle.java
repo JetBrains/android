@@ -23,19 +23,18 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.lint.checks.ApiLookup;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
@@ -49,6 +48,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -443,5 +443,28 @@ public class ThemeEditorStyle {
         break;
       }
     }
+  }
+
+  /**
+   * Returns whether this style is public.
+   */
+  public boolean isPublic() {
+    if (!myIsFrameworkStyle) {
+      return true;
+    }
+
+    IAndroidTarget target = myConfiguration.getTarget();
+    if (target == null) {
+      LOG.error("Unable to get IAndroidTarget.");
+      return false;
+    }
+
+    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myConfiguration.getModule());
+    if (androidTargetData == null) {
+      LOG.error("Unable to get AndroidTargetData.");
+      return false;
+    }
+
+    return androidTargetData.isResourcePublic(ResourceType.STYLE.getName(), getSimpleName());
   }
 }

@@ -373,14 +373,14 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getFrameworkThemes() {
     if (myFrameworkThemes == null) {
-      myFrameworkThemes = getSortedNames(myThemeResolver.getFrameworkThemes());
+      myFrameworkThemes = getSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()));
     }
     return myFrameworkThemes;
   }
 
   private List<String> getProjectThemes() {
     if (myProjectThemes == null) {
-      myProjectThemes = getSortedNames(myThemeResolver.getLocalThemes());
+      myProjectThemes = getSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()));
     }
 
     return myProjectThemes;
@@ -541,6 +541,19 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
     Collections.sort(themes);
     return themes;
+  }
+
+  /**
+   * Filters a collection of themes to return a new collection with only the public ones.
+   */
+  private static Collection<ThemeEditorStyle> getPublicThemes(Collection<ThemeEditorStyle> themes) {
+    HashSet<ThemeEditorStyle> publicThemes = new HashSet<ThemeEditorStyle>();
+    for (ThemeEditorStyle theme : themes) {
+      if (theme.isPublic()) {
+        publicThemes.add(theme);
+      }
+    }
+    return publicThemes;
   }
 
   private enum ThemeCategory {
