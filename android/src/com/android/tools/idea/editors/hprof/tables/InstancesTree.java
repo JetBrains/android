@@ -447,25 +447,26 @@ public class InstancesTree {
     else if (instance instanceof ArrayInstance) {
       assert (field != null);
       ArrayInstance arrayInstance = (ArrayInstance)instance;
+      Object[] values = arrayInstance.getValues();
       if (arrayInstance.getArrayType() == Type.OBJECT) {
-        descriptors = new ArrayList<HprofFieldDescriptorImpl>(arrayInstance.getValues().length);
-        arrayLength = arrayInstance.getValues().length;
+        descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
+        arrayLength = values.length;
         while (currentArrayIndex < arrayLength && currentArrayIndex < limit) {
           descriptors.add(
-            new InstanceFieldDescriptorImpl(myDebuggerTree.getProject(),
-                                            new Field(arrayInstance.getArrayType(), String.valueOf(currentArrayIndex)),
-                                            (Instance)arrayInstance.getValues()[currentArrayIndex], currentArrayIndex));
+            new InstanceFieldDescriptorImpl(
+              myDebuggerTree.getProject(),
+              new Field(arrayInstance.getArrayType(), String.valueOf(currentArrayIndex)),
+              (Instance)values[currentArrayIndex], currentArrayIndex));
           ++currentArrayIndex;
         }
       }
       else {
-        descriptors = new ArrayList<HprofFieldDescriptorImpl>(arrayInstance.getValues().length);
-        arrayLength = arrayInstance.getValues().length;
+        descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
+        arrayLength = values.length;
         while (currentArrayIndex < arrayLength && currentArrayIndex < limit) {
           descriptors.add(
             new PrimitiveFieldDescriptorImpl(myDebuggerTree.getProject(),
-              new Field(arrayInstance.getArrayType(), String.valueOf(currentArrayIndex)),
-                        arrayInstance.getValues()[currentArrayIndex], currentArrayIndex));
+              new Field(arrayInstance.getArrayType(), String.valueOf(currentArrayIndex)), values[currentArrayIndex], currentArrayIndex));
           ++currentArrayIndex;
         }
       }
