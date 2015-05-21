@@ -16,10 +16,20 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 public class AllocationCaptureType extends FileCaptureType {
   protected AllocationCaptureType() {
     super("Allocation Tracking", AndroidIcons.Ddms.AllocationTracker, "Allocations_", ".alloc");
+  }
+
+  @NotNull
+  @Override
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    return new AllocationsEditor(project, file);
   }
 }
