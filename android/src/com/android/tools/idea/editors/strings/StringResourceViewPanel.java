@@ -64,7 +64,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StringResourceViewPanel implements HyperlinkListener {
-  private static final boolean SHOW_TRANSLATION_ORDER_LINK = Boolean.getBoolean("order.translations");
+  private static final boolean HIDE_TRANSLATION_ORDER_LINK = !Boolean.getBoolean("order.translations");
 
   private final AndroidFacet myFacet;
   private JPanel myContainer;
@@ -94,7 +94,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
     ActionToolbar toolbar = createToolbar();
     myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
 
-    if (SHOW_TRANSLATION_ORDER_LINK) {
+    if (!HIDE_TRANSLATION_ORDER_LINK) {
       HyperlinkLabel hyperlinkLabel = new HyperlinkLabel("Order a professional translation...");
       myToolbarPanel.add(hyperlinkLabel, BorderLayout.EAST);
       hyperlinkLabel.addHyperlinkListener(this);
