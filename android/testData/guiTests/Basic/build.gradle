@@ -6,7 +6,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.0'
+        classpath 'com.android.tools.build:gradle:1.2.3'
     }
 }
 apply plugin: 'com.android.application'
@@ -16,15 +16,15 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:13.0.0'
-    debugCompile 'com.android.support:support-v13:13.0.0'
+    compile 'com.android.support:support-v4:22.1.1'
+    debugCompile 'com.android.support:support-v13:22.1.1'
 
-    compile 'com.google.android.gms:play-services:3.1.36'
+    compile 'com.google.android.gms:play-services:7.3.0'
 }
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion '19.1.0'
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     testBuildType "debug"
 
@@ -41,7 +41,7 @@ android {
         versionCode 12
         versionName "2.0"
         minSdkVersion 16
-        targetSdkVersion 16
+        targetSdkVersion 22
 
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
         testHandleProfiling false
