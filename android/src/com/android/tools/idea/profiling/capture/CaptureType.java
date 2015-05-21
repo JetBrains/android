@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,4 +40,11 @@ public abstract class CaptureType {
 
   @NotNull
   protected abstract Capture createCapture(@NotNull VirtualFile file);
+
+  @NotNull
+  public abstract FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file);
+
+  public boolean accept(@NotNull VirtualFile file) {
+    return true;
+  }
 }
