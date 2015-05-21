@@ -84,7 +84,7 @@ public abstract class DeveloperServiceCreator {
 
         Files.createParentDirs(file);
         assert file.createNewFile();
-        String fullName = new File(getResourceRoot(), name).getPath();
+        String fullName = String.format("%1$s/%2$s", getResourceRoot(), name);
         URL resource = getClass().getResource(fullName);
         if (resource == null) {
           throw new FileNotFoundException(String.format("Could not find service file %1$s", fullName));
@@ -194,6 +194,9 @@ public abstract class DeveloperServiceCreator {
 
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
+   * <p/>
+   * Be sure any slashes included in this path are forward slashes, as the value will be passed
+   * into {@link Class#getResource(String)}.
    */
   @NotNull
   protected abstract String getResourceRoot();
