@@ -150,33 +150,21 @@ public final class SdkSync {
     File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
     File ideAndroidNdkPath = IdeSdks.getAndroidNdkPath();
 
-    if (ideAndroidNdkPath != null) {
-      if (!filesEqual(ideAndroidNdkPath, projectAndroidNdkPath)) {
-        if (projectAndroidNdkPath != null) {
-          final String msg = String.format("The project and Android Studio point to different Android NDKs.\n\n" +
-                                           "Android Studio's default NDK is in:\n" +
-                                           "%1$s\n\n" +
-                                           "The project's NDK (specified in local.properties) is in:\n" +
-                                           "%2$s\n\n" +
-                                           "To keep results consistent between IDE and command line builds, only the default NDK can be " +
-                                           "used.\nThe project's local.properties file will be modified to match.",
-                                           ideAndroidNdkPath.getPath(), projectAndroidNdkPath.getPath());
-          invokeAndWaitIfNeeded(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showInfoMessage((Project)null, msg, "Android SDK Manager");
-            }
-          });
-        }
-        setProjectNdk(localProperties, ideAndroidNdkPath);
-      }
-    }
-
     if (projectAndroidNdkPath != null) {
       if (!SdkPaths.validateAndroidNdk(projectAndroidNdkPath, false).success) {
-        Logger.getInstance(SdkSync.class).warn(String.format("Removing invalid NDK path: %s", projectAndroidNdkPath));
-        setProjectNdk(localProperties, null);
+        if (ideAndroidNdkPath != null) {
+          Logger.getInstance(SdkSync.class).warn(String.format("Replacing invalid NDK path %1$s with %2$s",
+                                                               projectAndroidNdkPath, ideAndroidNdkPath));
+          setProjectNdk(localProperties, ideAndroidNdkPath);
+        }
+        else {
+          Logger.getInstance(SdkSync.class).warn(String.format("Removing invalid NDK path: %s", projectAndroidNdkPath));
+          setProjectNdk(localProperties, null);
+        }
       }
+    }
+    else {
+      setProjectNdk(localProperties, ideAndroidNdkPath);
     }
   }
 
