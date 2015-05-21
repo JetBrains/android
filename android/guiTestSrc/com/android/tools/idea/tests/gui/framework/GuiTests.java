@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
@@ -89,6 +90,11 @@ public final class GuiTests {
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
+
+  @SuppressWarnings("unused") // Invoked through reflection by GuiTestRunner#methodInvoker
+  public static void skipSourceGenerationOnSync() {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
