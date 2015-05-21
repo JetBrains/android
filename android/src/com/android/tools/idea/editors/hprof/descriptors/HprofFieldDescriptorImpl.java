@@ -36,25 +36,13 @@ import java.util.List;
 public abstract class HprofFieldDescriptorImpl extends FieldDescriptorImpl {
   @NotNull protected Field myField;
   @Nullable protected Object myValueData;
+  protected int myMemoryOrdering;
 
-  public HprofFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @Nullable Object value) {
+  public HprofFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @Nullable Object value, int memoryOrdering) {
     super(project, null, new FieldImpl(field, value));
     myField = field;
     myValueData = value;
-  }
-
-  public void updateRepresentation(@NotNull DebuggerManagerThreadImpl debuggerManagerThread,
-                                   @NotNull final SuspendContextImpl suspendContext) {
-    debuggerManagerThread.invokeAndWait(new DebuggerCommandImpl() {
-      @Override
-      protected void action() throws Exception {
-        updateRepresentation(new EvaluationContextImpl(suspendContext, null, getValue()), new DescriptorLabelListener() {
-          @Override
-          public void labelChanged() {
-          }
-        });
-      }
-    });
+    myMemoryOrdering = memoryOrdering;
   }
 
   public static void batchUpdateRepresentation(@NotNull final List<HprofFieldDescriptorImpl> descriptors,
@@ -114,5 +102,9 @@ public abstract class HprofFieldDescriptorImpl extends FieldDescriptorImpl {
   @Override
   public boolean isNull() {
     return myValueData == null;
+  }
+
+  public int getMemoryOrdering() {
+    return myMemoryOrdering;
   }
 }
