@@ -47,7 +47,6 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -99,6 +98,7 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesTo
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
+import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.io.Files.write;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
@@ -780,16 +780,6 @@ public class GradleSyncTest extends GuiTestCase {
 
     AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
-  }
-
-  @Nullable
-  private static Document getDocument(@NotNull final VirtualFile file) {
-    return execute(new GuiQuery<Document>() {
-      @Override
-      protected Document executeInEDT() throws Throwable {
-        return FileDocumentManager.getInstance().getDocument(file);
-      }
-    });
   }
 
   @Test @IdeGuiTest

@@ -23,16 +23,15 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
@@ -110,36 +109,15 @@ public class FileFixture {
           }
         });
       }
-    });
+    }, SHORT_TIMEOUT);
     return this;
   }
 
   @NotNull
   public FileFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
-    final DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
-    final PsiFile psiFile = getPsiFile();
+    waitUntilErrorAnalysisFinishes();
 
-    pause(new Condition("Waiting for error analysis to complete" + expected) {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            return codeAnalyzer.isErrorAnalyzingFinished(psiFile);
-          }
-        });
-      }
-    }, SHORT_TIMEOUT);
-
-    final Document document = execute(new GuiQuery<Document>() {
-      @Override
-      protected Document executeInEDT() throws Throwable {
-        return FileDocumentManager.getInstance().getDocument(myVirtualFile);
-      }
-    });
-    assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
-
+    final Document document = getNotNullDocument();
     Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
       @Override
       protected Collection<HighlightInfo> executeInEDT() throws Throwable {
@@ -167,17 +145,7 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
-    final Ref<Document> documentRef = new Ref<Document>();
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
-        documentRef.set(document);
-      }
-    });
-    final Document document = documentRef.get();
-    assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
-
+    final Document document = getNotNullDocument();
     pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {
       @Override
       public boolean test() {
@@ -198,8 +166,25 @@ public class FileFixture {
   }
 
   @NotNull
+  private Document getNotNullDocument() {
+    Document document = getDocument(myVirtualFile);
+    assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
+    return document;
+  }
+
+  @NotNull
   public FileFixture requireVirtualFile() {
     assertNotNull("No VirtualFile found for path " + quote(myPath.getPath()), myVirtualFile);
     return this;
+  }
+
+  @Nullable
+  public static Document getDocument(@NotNull final VirtualFile file) {
+    return execute(new GuiQuery<Document>() {
+      @Override
+      protected Document executeInEDT() throws Throwable {
+        return FileDocumentManager.getInstance().getDocument(file);
+      }
+    });
   }
 }
