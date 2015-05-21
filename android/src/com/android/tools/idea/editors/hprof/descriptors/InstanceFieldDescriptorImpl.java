@@ -34,10 +34,9 @@ import java.util.Map;
 public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
   @NotNull private ObjectReferenceImpl myObjectReference;
 
-  public InstanceFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @Nullable Instance instance) {
-    super(project, field, instance);
-
-    myObjectReference = (ObjectReferenceImpl)calcValue(null);
+  public InstanceFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @Nullable Instance instance, int memoryOrdering) {
+    super(project, field, instance, memoryOrdering);
+    myObjectReference = initObjectReference();
   }
 
   @Nullable
@@ -109,6 +108,10 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
 
   @Override
   public Value calcValue(EvaluationContextImpl evaluationContext) {
+    return myObjectReference;
+  }
+
+  private ObjectReferenceImpl initObjectReference() {
     if (isString()) {
       return new StringReferenceImpl(myField, (Instance)myValueData);
     }

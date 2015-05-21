@@ -194,7 +194,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
             }));
     builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<AbstractTreeNode>() {
       @Override
-      public void sort(Comparator<AbstractTreeNode> comparator) {
+      public void sort(Comparator<AbstractTreeNode> comparator, SortOrder sortOrder) {
         myTreeNode.sort(comparator);
         myTreeModel.nodeStructureChanged(myTreeNode);
       }
