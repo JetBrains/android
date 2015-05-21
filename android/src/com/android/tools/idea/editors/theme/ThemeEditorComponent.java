@@ -401,6 +401,10 @@ public class ThemeEditorComponent extends Splitter {
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
       String newQualifiedName = mySelectedTheme.getName().replace(mySelectedTheme.getSimpleName(), newName);
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        facet.refreshResources();
+      }
       reload(newQualifiedName);
       return true;
     }

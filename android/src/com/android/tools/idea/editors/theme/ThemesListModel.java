@@ -108,11 +108,13 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     if (!Objects.equal(mySelectedObject, anItem)) {
       mySelectedObject = anItem;
 
-      if (myEditThemeOptions.size() == 2) {
-        myEditThemeOptions.remove(1);
-      }
-      if (mySelectedObject instanceof ThemeEditorStyle && ((ThemeEditorStyle)mySelectedObject).isProjectStyle()) {
-        myEditThemeOptions.add(renameOption());
+      if (mySelectedObject instanceof ThemeEditorStyle) {
+        if (myEditThemeOptions.size() == 2) {
+          myEditThemeOptions.remove(1);
+        }
+        if (((ThemeEditorStyle)mySelectedObject).isProjectStyle()) {
+          myEditThemeOptions.add(renameOption());
+        }
       }
 
       fireContentsChanged(this, -1, -1);
