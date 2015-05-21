@@ -32,7 +32,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
+  private static final int MAX_VALUE_TEXT_LENGTH = 1024;
   @NotNull private ObjectReferenceImpl myObjectReference;
+  @Nullable private String myTruncatedValueText;
 
   public InstanceFieldDescriptorImpl(@NotNull Project project, @NotNull Field field, @Nullable Instance instance, int memoryOrdering) {
     super(project, field, instance, memoryOrdering);
@@ -85,7 +87,7 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
     else if (!isString()) {
       return "";
     }
-    else {
+    else if (myTruncatedValueText == null) {
       ArrayInstance charBufferArray = null;
       assert (myValueData instanceof ClassInstance);
       ClassInstance classInstance = (ClassInstance)myValueData;
@@ -95,15 +97,21 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
         }
       }
       assert (charBufferArray != null);
-      StringBuilder builder = new StringBuilder(charBufferArray.getValues().length + 3);
+
+      char[] stringChars = charBufferArray.asCharArray(MAX_VALUE_TEXT_LENGTH);
+      int charLength = stringChars.length;
+      StringBuilder builder = new StringBuilder(6 + charLength);
       builder.append(" \"");
-      for (Object o : charBufferArray.getValues()) {
-        assert (o instanceof Character);
-        builder.append(o);
+      if (charLength == MAX_VALUE_TEXT_LENGTH) {
+        builder.append(stringChars, 0, charLength - 1).append("...");
+      }
+      else {
+        builder.append(stringChars);
       }
       builder.append("\"");
-      return builder.toString();
+      myTruncatedValueText = builder.toString();
     }
+    return myTruncatedValueText;
   }
 
   @Override
