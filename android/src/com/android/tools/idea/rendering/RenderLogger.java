@@ -238,6 +238,12 @@ public class RenderLogger extends LayoutLog {
         addMessage(getProblemForIssue73732(throwable));
         return;
       }
+
+      if ("Unable to find the layout for Action Bar.".equals(description)) {
+        description += "\nConsider updating to a more recent version of appcompat, or switch the rendering library in the IDE " +
+                       "down to API 21";
+      }
+
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       } else if (message == null) {

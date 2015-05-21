@@ -299,10 +299,13 @@ public class LayoutPreviewTest extends GuiTestCase {
     preview.requireThumbnailMatch(suggestName(editor));
 
     // Render menu
-    editor.open("app/src/main/res/menu/my.xml", EditorFixture.Tab.EDITOR);
-    preview.waitForNextRenderToFinish();
-    preview.requireThumbnailMatch(suggestName(editor));
+    // Currently broken: https://code.google.com/p/android/issues/detail?id=174236
+    //editor.open("app/src/main/res/menu/my.xml", EditorFixture.Tab.EDITOR);
+    //preview.waitForNextRenderToFinish();
+    //preview.requireThumbnailMatch(suggestName(editor));
+    System.out.println("Not checking menu rendering: re-enable when issue 174236 is fixed");
 
+    // Make sure the project is built: we need custom views for the porter duff test
     GradleInvocationResult result = projectFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
 
