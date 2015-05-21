@@ -48,13 +48,15 @@ public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFix
 
   @NotNull
   public ChooseSystemImageStepFixture getChooseSystemImageStep() {
-    JRootPane rootPane = findStepWithTitle("System Image");
+    // Can't search for "System Image" because that appears as a label in the system image
+    // description panel on the right
+    JRootPane rootPane = findStepWithTitle("Select a system image");
     return new ChooseSystemImageStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public ConfigureAvdOptionsStepFixture getConfigureAvdOptionsStep() {
-    JRootPane rootPane = findStepWithTitle("Configure AVD");
+    JRootPane rootPane = findStepWithTitle("Verify Configuration");
     return new ConfigureAvdOptionsStepFixture(robot(), rootPane);
   }
 }

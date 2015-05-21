@@ -18,11 +18,15 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<ConfigureAvdOptionsStepFixture> {
 
@@ -59,6 +63,26 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
     } catch (ComponentLookupException e) {
       throw new RuntimeException("Hide Advanced Settings called when advanced settings are already hidden.", e);
     }
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAvdOptionsStepFixture requireAvdName(@NotNull String name) {
+    String text = GuiActionRunner.execute(new GuiQuery<String>() {
+      @Override
+      protected String executeInEDT() throws Throwable {
+        JTextField textFieldWithLabel = findTextFieldWithLabel("AVD Name");
+        return textFieldWithLabel.getText();
+      }
+    });
+    assertThat(text).as("AVD name").isEqualTo(name);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAvdOptionsStepFixture setAvdName(@NotNull String name) {
+    JTextField textFieldWithLabel = findTextFieldWithLabel("AVD Name");
+    replaceText(textFieldWithLabel, name);
     return this;
   }
 
