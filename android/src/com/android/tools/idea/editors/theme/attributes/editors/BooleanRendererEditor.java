@@ -71,8 +71,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
 
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
-    EditedStyleItem item = (EditedStyleItem) value;
-    myEditedItemValue = item.getValue();
+    myEditedItemValue = value.getValue();
     DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel(COMBOBOX_OPTIONS);
     if (!(myEditedItemValue.equals("true") || myEditedItemValue.equals("false"))) {
       comboBoxModel.insertElementAt(myEditedItemValue, 0);
