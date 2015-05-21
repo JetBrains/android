@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -38,6 +40,7 @@ import java.util.List;
 import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
+import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myBeforeClass;
@@ -130,14 +133,24 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     if (canRunGuiTests()) {
       try {
         ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
-        //noinspection unchecked
-        Class<? extends Annotation> ideGuiTestClass =
-          (Class<? extends Annotation>)ideClassLoader.loadClass(IdeGuiTest.class.getCanonicalName());
-        Annotation annotation = method.getMethod().getAnnotation(ideGuiTestClass);
-        if (annotation != null && Proxy.isProxyClass(annotation.getClass())) {
-          InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
-          Method closeProjectBeforeExecutionMethod = ideGuiTestClass.getDeclaredMethod("closeProjectBeforeExecution");
-          Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, EMPTY_OBJECT_ARRAY);
+        Class<? extends Annotation> ideGuiTestSetupClass = loadAnnotationClass(ideClassLoader, IdeGuiTestSetup.class);
+        Class<?> type = method.getMethod().getDeclaringClass();
+        Annotation ideGuiTestSetup = type.getAnnotation(ideGuiTestSetupClass);
+        if (ideGuiTestSetup != null) {
+          Object result = invokeMethod("skipSourceGenerationOnSync", ideGuiTestSetup, ideGuiTestSetupClass);
+          assertNotNull(result);
+          assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
+          if ((Boolean)result) {
+            Class<?> guiTestsClass = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
+            method("skipSourceGenerationOnSync").in(guiTestsClass).invoke();
+          }
+        }
+
+        Class<? extends Annotation> ideGuiTestClass = loadAnnotationClass(ideClassLoader, IdeGuiTest.class);
+        Annotation ideGuiTest = method.getMethod().getAnnotation(ideGuiTestClass);
+        if (ideGuiTest != null) {
+          Object result = invokeMethod("closeProjectBeforeExecution", ideGuiTest, ideGuiTestClass);
+          assertNotNull(result);
           assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
           if ((Boolean)result) {
             method("closeAllProjects").in(test).invoke();
@@ -149,5 +162,24 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       }
     }
     return new MethodInvoker(method, test);
+  }
+
+  @NotNull
+  private static Class<? extends Annotation> loadAnnotationClass(@NotNull ClassLoader ideClassLoader,
+                                                                 @NotNull Class<? extends Annotation> type) throws ClassNotFoundException {
+    //noinspection unchecked
+    return (Class<? extends Annotation>)ideClassLoader.loadClass(type.getCanonicalName());
+  }
+
+  @Nullable
+  private static Object invokeMethod(@NotNull String methodName,
+                                     @NotNull Annotation target,
+                                     @NotNull Class<? extends Annotation> annotationType) throws Throwable {
+    if (Proxy.isProxyClass(target.getClass())) {
+      InvocationHandler invocationHandler = Proxy.getInvocationHandler(target);
+      Method method = annotationType.getDeclaredMethod(methodName);
+      return invocationHandler.invoke(annotationType, method, EMPTY_OBJECT_ARRAY);
+    }
+    return null;
   }
 }
