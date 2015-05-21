@@ -19,8 +19,6 @@ package com.android.tools.idea.structure;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
@@ -47,7 +45,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.Function;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +86,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   private String myOriginalNdkHomePath;
   private String myOriginalSdkHomePath;
 
-  private JLabel myAndroidNDKLocationLabel;
   private HyperlinkLabel myNdkDownloadHyperlinkLabel;
   private HyperlinkLabel myNdkResetHyperlinkLabel;
   private TextFieldWithBrowseButton mySdkLocationTextField;
@@ -108,13 +104,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     myDetailsComponent.setContent(myWholePanel);
     myDetailsComponent.setText("SDK Location");
 
-    // Ndk directory is stored on per project basis and there is no IDE-level ndk directory setting. Due to that hide the ndk directory
-    // option in the default Project Structure dialog.
+    // We can't update The IDE-level ndk directory. Due to that disabling the ndk directory option in the default Project Structure dialog.
     if (myProject == null || myProject.isDefault()) {
-      myAndroidNDKLocationLabel.setVisible(false);
-      myNdkDownloadHyperlinkLabel.setVisible(false);
-      myNdkResetHyperlinkLabel.setVisible(false);
-      myNdkLocationTextField.setVisible(false);
+      myNdkLocationTextField.setEnabled(false);
     }
   }
 
@@ -408,7 +400,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   /**
-   * @return what the IDE is using as the home path for the Android SDK for new projects.
+   * @return the appropriate NDK path for a given project, i.e the project's ndk path for a real project and the default NDK path default
+   * project.
    */
   @NotNull
   private String getDefaultNdkPath() {
@@ -421,6 +414,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       }
       catch (IOException e) {
         LOG.info(String.format("Unable to read local.properties file in project '%1$s'.", myProject.getName()), e);
+      }
+    } else {
+      File path = IdeSdks.getAndroidNdkPath();
+      if (path != null) {
+        return path.getPath();
       }
     }
     return "";
