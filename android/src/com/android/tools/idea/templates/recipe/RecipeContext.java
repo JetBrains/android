@@ -289,8 +289,11 @@ public final class RecipeContext {
     }
   }
 
+  /**
+   * Returns the absolute path to the file which will get read from.
+   */
   @NotNull
-  private File getSourceFile(@NotNull File file) {
+  public File getSourceFile(@NotNull File file) {
     if (file.isAbsolute()) {
       return file;
     }
@@ -300,8 +303,11 @@ public final class RecipeContext {
     }
   }
 
+  /**
+   * Returns the absolute path to the file which will get written to.
+   */
   @NotNull
-  private File getTargetFile(@NotNull File file) throws IOException {
+  public File getTargetFile(@NotNull File file) throws IOException {
     if (file.isAbsolute()) {
       return file;
     }
