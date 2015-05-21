@@ -24,11 +24,11 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -58,14 +58,12 @@ public abstract class ToolWindowFixture {
 
   @Nullable
   protected Content getContent(@NotNull final String displayName) {
-    activate();
-    waitUntilIsVisible();
-    final AtomicReference<Content> contentRef = new AtomicReference<Content>();
-
+    activateAndWaitUntilIsVisible();
+    final Ref<Content> contentRef = new Ref<Content>();
     pause(new Condition("finding content '" + displayName + "'") {
       @Override
       public boolean test() {
-        Content[] contents = myToolWindow.getContentManager().getContents();
+        Content[] contents = getContents();
         for (Content content : contents) {
           if (displayName.equals(content.getDisplayName())) {
             contentRef.set(content);
@@ -76,6 +74,37 @@ public abstract class ToolWindowFixture {
       }
     }, SHORT_TIMEOUT);
     return contentRef.get();
+  }
+
+  @Nullable
+  protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
+    activateAndWaitUntilIsVisible();
+    final Ref<Content> contentRef = new Ref<Content>();
+    pause(new Condition("finding content matching " + displayNameMatcher.formattedValues()) {
+      @Override
+      public boolean test() {
+        Content[] contents = getContents();
+        for (Content content : contents) {
+          String displayName = content.getDisplayName();
+          if (displayNameMatcher.isMatching(displayName)) {
+            contentRef.set(content);
+            return true;
+          }
+        }
+        return false;
+      }
+    }, SHORT_TIMEOUT);
+    return contentRef.get();
+  }
+
+  private void activateAndWaitUntilIsVisible() {
+    activate();
+    waitUntilIsVisible();
+  }
+
+  @NotNull
+  private Content[] getContents() {
+    return myToolWindow.getContentManager().getContents();
   }
 
   protected boolean isActive() {
