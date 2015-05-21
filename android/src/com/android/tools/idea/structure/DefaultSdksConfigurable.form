@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="myWholePanel" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="10">
     <margin top="14" left="4" bottom="4" right="4"/>
     <constraints>
-      <xy x="20" y="20" width="1244" height="370"/>
+      <xy x="20" y="20" width="1244" height="380"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -60,7 +60,7 @@
           </component>
         </children>
       </grid>
-      <component id="533f0" class="javax.swing.JLabel" binding="myAndroidNDKLocationLabel">
+      <component id="533f0" class="javax.swing.JLabel">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="7" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
