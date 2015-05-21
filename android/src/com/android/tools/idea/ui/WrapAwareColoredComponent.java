@@ -17,6 +17,7 @@ package com.android.tools.idea.ui;
 
 import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -636,7 +637,7 @@ public class WrapAwareColoredComponent extends JComponent implements Accessible,
 
     final List<Object[]> searchMatches = new ArrayList<Object[]>();
 
-    UIUtil.applyRenderingHints(g);
+    UISettings.setupAntialiasing(g);
     applyAdditionalHints(g);
     final Font ownFont = getFont();
     if (ownFont != null) {
