@@ -15,34 +15,38 @@
  */
 package com.android.tools.idea.profiling.capture;
 
-import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
-
 public class CaptureTypeService {
 
-  @NotNull Map<Class<? extends CaptureType>, CaptureType> myCaptureTypes = Maps.newHashMap();
+  ExtensionPointName<CaptureType> EP_NAME = ExtensionPointName.create("com.android.captureType");
 
   @NotNull
   public static CaptureTypeService getInstance() {
     return ServiceManager.getService(CaptureTypeService.class);
   }
 
-  public <T extends CaptureType> void register(Class<T> clazz, T type) {
-    myCaptureTypes.put(clazz, type);
-  }
-
   @NotNull
-  public Collection<CaptureType> getCaptureTypes() {
-    return myCaptureTypes.values();
+  public CaptureType[] getCaptureTypes() {
+    return EP_NAME.getExtensions();
   }
 
   @Nullable
   public <T extends CaptureType> T getType(Class<T> type) {
-    return (T)myCaptureTypes.get(type);
+    return EP_NAME.findExtension(type);
+  }
+
+  @Nullable
+  public CaptureType getTypeFor(@NotNull VirtualFile file) {
+    for (CaptureType type : getCaptureTypes()) {
+      if (type.isValidCapture(file)) {
+        return type;
+      }
+    }
+    return null;
   }
 }
