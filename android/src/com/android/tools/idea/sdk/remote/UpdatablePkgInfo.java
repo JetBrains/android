@@ -16,8 +16,11 @@
 package com.android.tools.idea.sdk.remote;
 
 import com.android.annotations.NonNull;
+import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -28,6 +31,9 @@ import org.jetbrains.annotations.Nullable;
 public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
   private LocalPkgInfo myLocalInfo;
   private RemotePkgInfo myRemoteInfo;
+  private RemotePkgInfo myRemotePreviewInfo;
+
+  private final Logger LOG = Logger.getInstance(getClass());
 
   public UpdatablePkgInfo(@NonNull LocalPkgInfo localInfo) {
     init(localInfo, null);
@@ -47,9 +53,41 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     myRemoteInfo = remotePkg;
   }
 
-  public void setRemote(@NonNull RemotePkgInfo remote) {
-    assert myRemoteInfo == null;
-    myRemoteInfo = remote;
+  /**
+   * Adds the given remote package if this package doesn't already have a remote, or if the given remote is more recent.
+   * If it is a preview, it will be returned by {@link #getRemote()} only if it is specified that preview packages are desired.
+   *
+   * @param remote The remote package.
+   */
+  public void addRemote(@NonNull RemotePkgInfo remote) {
+    checkInstallId(remote);
+    if (remote.getPkgDesc().isPreview()) {
+      if (myRemotePreviewInfo == null ||
+          remote.getPkgDesc().isUpdateFor(myRemotePreviewInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)) {
+        myRemotePreviewInfo = remote;
+      }
+    }
+    else {
+      if (myRemoteInfo == null || remote.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)) {
+        myRemoteInfo = remote;
+      }
+    }
+  }
+
+  private void checkInstallId(RemotePkgInfo remote) {
+    if (myLocalInfo == null) {
+      return;
+    }
+    String localIid = myLocalInfo.getDesc().getInstallId();
+    String remoteIid = remote.getPkgDesc().getInstallId();
+    if (remoteIid.equals(localIid)) {
+      return;
+    }
+    if (!myLocalInfo.getDesc().isPreview() && remote.getPkgDesc().isPreview() &&
+        remoteIid.equals(localIid + PkgDesc.PREVIEW_SUFFIX)) {
+      return;
+    }
+    assert false : String.format("%s doesn't match %s", remoteIid, localIid);
   }
 
   @Nullable
@@ -57,13 +95,24 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     return myLocalInfo;
   }
 
-  @Nullable
-  public RemotePkgInfo getRemote() {
+  public RemotePkgInfo getRemote(boolean alwaysIncludePreview) {
+    // If the local is preview or we're always including previews, and we don't have a non-preview remote or the preview is newer than
+    // the non-preview, return the preview.
+    if ((alwaysIncludePreview || (myLocalInfo != null && myLocalInfo.getDesc().isPreview())) &&
+        (!hasRemote(false) ||
+         (hasPreview() &&
+          myRemotePreviewInfo.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)))) {
+      return myRemotePreviewInfo;
+    }
     return myRemoteInfo;
   }
 
-  public boolean hasRemote() {
-    return myRemoteInfo != null;
+  public boolean hasPreview() {
+    return myRemotePreviewInfo != null;
+  }
+
+  public boolean hasRemote(boolean includePreview) {
+    return myRemoteInfo != null || (includePreview && myRemotePreviewInfo != null);
   }
 
   public boolean hasLocal() {
