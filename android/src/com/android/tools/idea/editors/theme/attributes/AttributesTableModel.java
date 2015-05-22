@@ -309,7 +309,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public Class<?> getCellClass(int column) {
-      return ParentAttribute.class;
+      return column == 0 ? String.class : ParentAttribute.class;
     }
 
     @Override
