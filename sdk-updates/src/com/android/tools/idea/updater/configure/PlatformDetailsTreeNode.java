@@ -34,8 +34,8 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   public PlatformDetailsTreeNode(@NotNull NodeStateHolder state, boolean includePreview) {
     myStateHolder = state;
-    myStateHolder.setState(getInitialState());
     myIncludePreview = includePreview;
+    myStateHolder.setState(getInitialState());
   }
 
   @Override
