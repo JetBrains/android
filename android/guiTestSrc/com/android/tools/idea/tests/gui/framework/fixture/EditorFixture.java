@@ -917,8 +917,7 @@ public class EditorFixture {
       }
     });
     if (visible == null || !visible) {
-      // This doesn't work; second nested menu item isn't clicked
-      //myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
+      myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
     pause(new Condition("Preview window is visible") {
