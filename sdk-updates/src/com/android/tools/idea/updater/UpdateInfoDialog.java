@@ -71,7 +71,9 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
         SdkQuickfixWizard sdkQuickfixWizard =
           new SdkQuickfixWizard(null, null, myPackages, new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
         sdkQuickfixWizard.init();
-        sdkQuickfixWizard.show();
+        if (sdkQuickfixWizard.showAndGet()) {
+          close(0);
+        }
       }
     });
 
