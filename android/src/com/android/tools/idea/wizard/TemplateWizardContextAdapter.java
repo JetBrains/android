@@ -186,4 +186,15 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
   public String getAssetTheme() {
     return (String)myWizardState.get(ATTR_ASSET_THEME);
   }
+
+  @Nullable
+  @Override
+  public String getErrorLog()  {
+    return (String)myWizardState.get(ATTR_ERROR_LOG);
+  }
+
+  @Override
+  public void setErrorLog(String log) {
+    myWizardState.put(ATTR_ERROR_LOG, log);
+  }
 }

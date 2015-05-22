@@ -86,7 +86,7 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
       setErrorHtml(String.format("A drawable resource named %s already exists and will be overwritten.", assetName));
     }
     requestPreviewUpdate();
-    return true;
+    return isValid();
   }
 
   /**

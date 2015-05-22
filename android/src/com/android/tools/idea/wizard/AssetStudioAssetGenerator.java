@@ -60,6 +60,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_ASSET_TYPE = "assetType";
   public static final String ATTR_ASSET_THEME = "assetTheme";
   public static final String ATTR_ASSET_NAME = "assetName";
+  public static final String ATTR_ERROR_LOG = "errorLog";
+
+  public static final String ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE = "Empty preview image!";
 
   private static final Logger LOG = Logger.getInstance("#" + AssetStudioAssetGenerator.class.getName());
   private static final String OUTPUT_DIRECTORY = "src/main/";
@@ -140,6 +143,11 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     @Nullable
     String getAssetTheme();
+
+    @Nullable
+    public String getErrorLog();
+
+    public void setErrorLog(String log);
   }
 
   public static class ImageGeneratorException extends Exception {
@@ -357,18 +365,13 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
         // So here we should only generate one dpi image.
         String path = myContext.getImagePath();
         if (path == null || path.isEmpty()) {
-          throw new ImageGeneratorException("Path to image is empty.");
+          return;
         }
-
-        try {
-          sourceImage = getSvgImage(path);
-        }
-        catch (FileNotFoundException e) {
-          throw new ImageGeneratorException("Image file not found: " + path);
-        }
-        catch (IOException e) {
-          throw new ImageGeneratorException("Unable to load image file: " + path);
-        }
+        // Get the parsing errors while generating the images.
+        // Save the error log into context to be later picked up by the step UI.
+        StringBuilder errorLog = new StringBuilder();
+        sourceImage = getSvgImage(path, errorLog);
+        myContext.setErrorLog(errorLog.toString());
         break;
       }
 
@@ -529,20 +532,24 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   }
 
   @NotNull
-  private static BufferedImage getSvgImage(@NotNull String path) throws IOException {
-    String xmlFileContent = generateVectorXml(new File(path));
-    BufferedImage image = VdPreview.getPreviewFromVectorXml(SVG_PREVIEW_WIDTH, xmlFileContent);
+  private static BufferedImage getSvgImage(@NotNull String path, StringBuilder errorLog) {
+    String xmlFileContent = generateVectorXml(new File(path), errorLog);
+    BufferedImage image = VdPreview.getPreviewFromVectorXml(SVG_PREVIEW_WIDTH, xmlFileContent,
+                                                            errorLog);
 
     if (image == null) {
       //noinspection UndesirableClassUsage
       image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+      // This sentence is also used as a flag to turn on / off the next button in vector step.
+      errorLog.insert(0, ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE + "\n");
     }
     return image;
   }
 
   public void outputXmlToRes(File targetResDir) {
     String currentFilePath = myContext.getImagePath();
-    String xmlFileContent = generateVectorXml(new File(currentFilePath));
+    // At output step, we can ignore the errors since they have been exposed in the previous step.
+    String xmlFileContent = generateVectorXml(new File(currentFilePath), null);
 
     String xmlFileName = myContext.getAssetName();
     // Here get the XML file content, and write into targetResDir / drawable / ***.xml
@@ -563,20 +570,21 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   }
 
   @Nullable
-  private static String generateVectorXml(@NotNull File inputSvgFile) {
+  private static String generateVectorXml(@NotNull File inputSvgFile, StringBuilder error) {
     OutputStream outStream = new ByteArrayOutputStream();
-    try {
-      Svg2Vector.parseSvgToXml(inputSvgFile, outStream);
+    String parseError = Svg2Vector.parseSvgToXml(inputSvgFile, outStream);
+    if (error != null) {
+      error.append(Strings.nullToEmpty(parseError));
     }
-    catch (Exception e) {
-      LOG.error(e);
-    }
-    return outStream.toString();
+    String vectorXmlContent = outStream.toString();
+    // Return null content to make sure the preview image will be gone!
+    return vectorXmlContent;
   }
 
 
   @NotNull
-  protected static BufferedImage getImage(@NotNull String path, boolean isPluginRelative) throws IOException {
+  protected static BufferedImage getImage(@NotNull String path, boolean isPluginRelative)
+      throws IOException {
     BufferedImage image;
     if (isPluginRelative) {
       image = GraphicGenerator.getStencilImage(path);
