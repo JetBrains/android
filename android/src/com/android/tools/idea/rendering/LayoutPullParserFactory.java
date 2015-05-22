@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.Features;
-import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -138,6 +138,11 @@ public class LayoutPullParserFactory {
         return createDrawableParser(file);
       case MENU:
         if (renderTask.supportsCapability(Features.ACTION_BAR)) {
+          Configuration configuration = renderTask.getConfiguration();
+          String theme = findFrameworkTheme(configuration.getTheme(), renderTask.getResourceResolver());
+          if (theme != null) {
+            configuration.setTheme(theme);
+          }
           return new MenuLayoutParserFactory(renderTask).render();
         }
         renderTask.setRenderingMode(V_SCROLL);
@@ -167,6 +172,23 @@ public class LayoutPullParserFactory {
         assert false : folderType;
         return null;
     }
+  }
+
+  /** Finds nearest theme in the framework that the given theme reference inherits from, or null if not found */
+  @Nullable
+  private static String findFrameworkTheme(String theme, ResourceResolver resourceResolver) {
+    if (theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+      return theme;
+    }
+    ResourceValue resValue = resourceResolver.findResValue(theme, false);
+    while (resValue instanceof StyleResourceValue) {
+      StyleResourceValue srv = (StyleResourceValue)resValue;
+      if (srv.isFramework()) {
+        return ANDROID_STYLE_RESOURCE_PREFIX + srv.getName();
+      }
+      resValue = resourceResolver.getParent(srv);
+    }
+    return null;
   }
 
   private static ILegacyPullParser createDrawableParser(XmlFile file) {
