@@ -152,6 +152,7 @@ public class InstanceReferenceTree {
             if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
               append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
             }
+            setTextAlign(SwingConstants.RIGHT);
           }
         })
       ).addColumn(
@@ -169,6 +170,7 @@ public class InstanceReferenceTree {
               if (instance != null) {
                 append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
+              setTextAlign(SwingConstants.RIGHT);
             }
           })
       ).addColumn(
@@ -186,6 +188,7 @@ public class InstanceReferenceTree {
               if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
                 append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
+              setTextAlign(SwingConstants.RIGHT);
           }
         })
       );
