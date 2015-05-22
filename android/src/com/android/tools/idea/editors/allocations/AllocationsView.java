@@ -280,8 +280,10 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         if (e.getClickCount() == 2) {
           Object value = myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0);
           if (value instanceof TreeNode) {
-            TreeNode[] path = myTreeModel.getPathToRoot((TreeNode)value);
-            myTree.setSelectionPath(new TreePath(path));
+            TreeNode[] nodes = myTreeModel.getPathToRoot((TreeNode)value);
+            TreePath path = new TreePath(nodes);
+            myTree.setSelectionPath(path);
+            myTree.scrollPathToVisible(path);
           }
         }
       }
@@ -434,8 +436,9 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     if (node instanceof AbstractTreeNode) {
       TreeNode[] path = myTreeModel.getPathToRoot(node);
       myInfoTableModel.setRowCount(path.length);
-      for (int i = 0; i < path.length; i++) {
-        myInfoTableModel.setValueAt(path[i], i, 0);
+      // Start at 1 to avoid adding the root node.
+      for (int i = 1; i < path.length; i++) {
+        myInfoTableModel.setValueAt(path[i], i - 1, 0);
       }
       myInfoTableModel.fireTableDataChanged();
     }
