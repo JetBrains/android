@@ -26,6 +26,9 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
@@ -63,7 +66,6 @@ import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
@@ -71,8 +73,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public final class GuiTests {
   public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
@@ -94,6 +95,14 @@ public final class GuiTests {
   @SuppressWarnings("unused") // Invoked through reflection by GuiTestRunner#methodInvoker
   public static void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  @SuppressWarnings("unused") // Invoked through reflection by MethodInvoker
+  public static boolean hasRequiredJdk(@NotNull JavaSdkVersion jdkVersion) {
+    Sdk jdk = IdeSdks.getJdk();
+    assertNotNull("Expecting to have a JDK", jdk);
+    JavaSdkVersion currentVersion = JavaSdk.getInstance().getVersion(jdk);
+    return currentVersion != null && currentVersion.isAtLeast(jdkVersion);
   }
 
   // Called by IdeTestApplication via reflection.
