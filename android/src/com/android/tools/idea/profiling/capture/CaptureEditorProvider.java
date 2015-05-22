@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.systeminfo;
+package com.android.tools.idea.profiling.capture;
 
-import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -25,24 +24,26 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class SystemInfoEditorProvider implements FileEditorProvider, DumbAware {
-  public SystemInfoEditorProvider() {
-    CaptureTypeService.getInstance().register(SystemInfoCaptureType.class, new SystemInfoCaptureType());
-  }
+public class CaptureEditorProvider implements FileEditorProvider, DumbAware {
+  @NonNls private static final String ID = "capture-editor";
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    // Use the default text editor to open files of this capture type, thus this provider should not accept the files.
-    return false;
+    CaptureType type = CaptureTypeService.getInstance().getTypeFor(file);
+    return type != null && type.accept(file);
   }
 
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    throw new UnsupportedOperationException(
-      "SystemInfoEditorProvider should let the default text editor provider handle this file type, and this method should not be called.");
+    CaptureType type = CaptureTypeService.getInstance().getTypeFor(file);
+    if (type == null) {
+      throw new IllegalStateException("Type has been removed between accept and createEditor");
+    }
+    return type.createEditor(project, file);
   }
 
   @Override
@@ -58,13 +59,12 @@ public class SystemInfoEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
-
   }
 
   @NotNull
   @Override
   public String getEditorTypeId() {
-    return "systeminfo-viewer";
+    return ID;
   }
 
   @NotNull

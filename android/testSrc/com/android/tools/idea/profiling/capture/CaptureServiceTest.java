@@ -16,17 +16,29 @@
 package com.android.tools.idea.profiling.capture;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.extensions.DefaultPluginDescriptor;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.extensions.ExtensionsArea;
+import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.io.IOException;
+import java.io.StringReader;
 
 public class CaptureServiceTest extends IdeaTestCase {
 
-  public void testUpdate() throws IOException {
+  static Element readElement(String text) throws Exception {
+    return new SAXBuilder().build(new StringReader(text)).getRootElement();
+  }
+
+  public void testUpdate() throws Exception {
     CaptureService service = CaptureService.getInstance(myProject);
     assertNull(service.getCapturesDirectory());
 
@@ -41,8 +53,13 @@ public class CaptureServiceTest extends IdeaTestCase {
     service.update();
     assertTrue(service.getCaptures().isEmpty());
 
-    MyCaptureType type = new MyCaptureType();
-    CaptureTypeService.getInstance().register(MyCaptureType.class, type);
+    ExtensionsArea area = Extensions.getRootArea();
+    Element element = readElement("  <extensions defaultExtensionNs=\"org.jetbrains.android\">\n" +
+                                  "    <captureType implementation=\"" + MyCaptureType.class.getName() +
+                                  "\"/>\n  </extensions>");
+    area.registerExtension(new DefaultPluginDescriptor(PluginId.getId("org.jetbrains.android")), element.getChild("captureType"));
+    MyCaptureType type = CaptureTypeService.getInstance().getType(MyCaptureType.class);
+
     service.update();
     assertEquals(1, service.getCaptures().size());
     assertEquals(type, service.getCaptures().iterator().next().getType());
@@ -70,6 +87,12 @@ public class CaptureServiceTest extends IdeaTestCase {
     @Override
     protected Capture createCapture(@NotNull VirtualFile file) {
       return new Capture(file, this);
+    }
+
+    @NotNull
+    @Override
+    public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+      return null;
     }
 
     @NotNull
