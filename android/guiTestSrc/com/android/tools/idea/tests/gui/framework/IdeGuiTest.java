@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_6;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface IdeGuiTest {
   boolean closeProjectBeforeExecution() default true;
+  JavaSdkVersion runWithMinimumJdkVersion() default JDK_1_6;
 }
