@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.lang.annotation.Annotation;
+
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
   private final FrameworkMethod myTestMethod;
@@ -35,6 +39,35 @@ public class MethodInvoker extends Statement {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
     String name = myTestMethod.getName();
+
+    Annotation ideGuiTestAnnotation = null;
+    for (Annotation annotation : myTestMethod.getAnnotations()) {
+      if (annotation.annotationType().getCanonicalName().equals(IdeGuiTest.class.getCanonicalName())) {
+        ideGuiTestAnnotation = annotation;
+        break;
+      }
+    }
+
+    if (ideGuiTestAnnotation != null) {
+      Object minimumJdkVersion = method("runWithMinimumJdkVersion").withReturnType(Object.class)
+                                                                   .in(ideGuiTestAnnotation)
+                                                                   .invoke();
+      assert minimumJdkVersion != null;
+
+      Class<?> guiTestsClass = classLoader.loadClass(GuiTests.class.getCanonicalName());
+      Class<?> javaSdkVersionClass = classLoader.loadClass(JavaSdkVersion.class.getCanonicalName());
+      Boolean hasRequiredJdk = method("hasRequiredJdk").withReturnType(boolean.class)
+                                                       .withParameterTypes(javaSdkVersionClass)
+                                                       .in(guiTestsClass)
+                                                       .invoke(minimumJdkVersion);
+      assert hasRequiredJdk != null;
+      if (!hasRequiredJdk) {
+        String jdkVersion = method("getDescription").withReturnType(String.class).in(minimumJdkVersion).invoke();
+        System.out.println(String.format("Skipping test '%1$s'. It needs JDK %2$s or newer.", name, jdkVersion));
+        return;
+      }
+    }
+
     System.out.println(String.format("Executing test '%1$s'", myTestMethod.getMethod().getDeclaringClass() + "#" + name));
     if (guiTestCaseType.isInstance(myTest)) {
       if (!canRunGuiTests()) {

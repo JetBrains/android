@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -51,7 +50,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -1255,17 +1254,8 @@ public class GradleSyncTest extends GuiTestCase {
     assertEquals(JDK_1_7, getJavaLanguageLevel(app));
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest(runWithMinimumJdkVersion = JavaSdkVersion.JDK_1_8)
   public void testModuleLanguageLevelWithJdk8() throws IOException {
-    Sdk jdk = IdeSdks.getJdk();
-    assert jdk != null;
-    if (!Jdks.isApplicableJdk(jdk, JDK_1_8)) {
-      String testName = "testModuleLanguageLevelWithJdk8";
-      skip(testName);
-      System.out.println(String.format("'%1$s' needs JDK 1.8 or newer.", testName));
-      return;
-    }
-
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     Module javaLib = projectFrame.getModule("javaLib");
     assertEquals(JDK_1_7, getJavaLanguageLevel(javaLib));
