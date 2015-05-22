@@ -55,13 +55,11 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Attr
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     final Component component;
-    if (column == 0) {
-      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-    } else {
-      myComboBox.removeAllItems();
-      myComboBox.addItem(value);
-      component = myComboBox;
-    }
+
+    myComboBox.removeAllItems();
+    myComboBox.addItem(value);
+    component = myComboBox;
+
     return component;
   }
 
