@@ -17,6 +17,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.annotations.NonNull;
+import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -121,11 +122,13 @@ public final class SdkPackages {
 
     // Find updates to locally installed packages
     for (UpdatablePkgInfo info : updatablePkgInfos) {
-      RemotePkgInfo update = findUpdate(info);
-      if (update != null) {
-        info.setRemote(update);
-        myUpdatedPkgs.add(info);
-        updates.add(update);
+      IPkgDesc localDesc = info.getLocalInfo().getDesc();
+      for (RemotePkgInfo remote : myRemotePkgInfos.get(localDesc.getType())) {
+        if (remote.getPkgDesc().isUpdateFor(localDesc)) {
+          info.addRemote(remote);
+          myUpdatedPkgs.add(info);
+          updates.add(remote);
+        }
       }
       newConsolidatedPkgs.put(info.getPkgDesc().getInstallId(), info);
     }
@@ -150,22 +153,5 @@ public final class SdkPackages {
       newConsolidatedPkgs.put(remoteDesc.getInstallId(), new UpdatablePkgInfo(remote));
     }
     myConsolidatedPkgs = newConsolidatedPkgs;
-  }
-
-  private RemotePkgInfo findUpdate(@NonNull UpdatablePkgInfo info) {
-    RemotePkgInfo currUpdatePkg = null;
-    IPkgDesc currUpdateDesc = null;
-    IPkgDesc localDesc = info.getLocalInfo().getDesc();
-
-    for (RemotePkgInfo remote: myRemotePkgInfos.get(localDesc.getType())) {
-      IPkgDesc remoteDesc = remote.getPkgDesc();
-      if ((currUpdateDesc == null && remoteDesc.isUpdateFor(localDesc)) ||
-          (currUpdateDesc != null && remoteDesc.isUpdateFor(currUpdateDesc))) {
-        currUpdatePkg = remote;
-        currUpdateDesc = remoteDesc;
-      }
-    }
-
-    return currUpdatePkg;
   }
 }

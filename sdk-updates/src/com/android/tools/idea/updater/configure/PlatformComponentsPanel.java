@@ -50,6 +50,7 @@ public class PlatformComponentsPanel {
   private AsyncProcessIcon myPlatformLoadingIcon;
   private JPanel myRootPanel;
   private boolean myModified;
+  private boolean myIncludePreview;
 
   private UpdaterTreeNode myPlatformDetailsRootNode;
   private UpdaterTreeNode myPlatformSummaryRootNode;
@@ -69,7 +70,6 @@ public class PlatformComponentsPanel {
         updatePlatformTable();
       }
     });
-
   }
 
   private void updatePlatformTable() {
@@ -90,7 +90,7 @@ public class PlatformComponentsPanel {
       for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder);
+        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
         marker.add(node);
         versionNodes.add(node);
         if (info.getPkgDesc().isObsolete() && info.getPkgDesc().getType() == PkgType.PKG_PLATFORM) {
@@ -175,5 +175,10 @@ public class PlatformComponentsPanel {
 
   public void clearState() {
     myStates.clear();
+  }
+
+  public void setIncludePreview(boolean includePreview) {
+    myIncludePreview = includePreview;
+    updatePlatformItems();
   }
 }
