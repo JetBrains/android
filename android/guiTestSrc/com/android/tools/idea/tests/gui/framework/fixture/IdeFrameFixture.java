@@ -74,7 +74,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -438,8 +437,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public void invokeMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(path);
-    robot().click(menuItem);
+    getMenuFixture().invokeMenuPath(path);
   }
 
   /**
@@ -450,37 +448,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
    */
   public void invokeMenuPathRegex(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(true, path);
-    robot().click(menuItem);
+    getMenuFixture().invokeMenuPathRegex(path);
   }
 
   @NotNull
-  private JMenuItem findActionMenuItem(@NotNull String... path) {
-    return findActionMenuItem(false, path);
-  }
-
-  @NotNull
-  private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
-    assertThat(path).isNotEmpty();
-    int segmentCount = path.length;
-    Container root = target();
-    for (int i = 0; i < segmentCount; i++) {
-      final String segment = path[i];
-      assertNotNull(root);
-      JMenuItem found = robot().finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-        @Override
-        protected boolean isMatching(@NotNull JMenuItem menuItem) {
-          return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
-        }
-      });
-      if (i < segmentCount - 1) {
-        robot().click(found);
-        root = robot().findActivePopupMenu();
-        continue;
-      }
-      return found;
-    }
-    throw new AssertionError("Menu item with path " + Arrays.toString(path) + " should have been found already");
+  private MenuFixture getMenuFixture() {
+    return new MenuFixture(robot(), target());
   }
 
   @NotNull
