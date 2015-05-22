@@ -15,44 +15,19 @@
  */
 package com.android.tools.idea.editors.hprof.jdi;
 
-import com.android.tools.perflib.heap.ArrayInstance;
-import com.android.tools.perflib.heap.ClassInstance;
 import com.android.tools.perflib.heap.Field;
 import com.android.tools.perflib.heap.Instance;
 import com.sun.jdi.StringReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 public class StringReferenceImpl extends ObjectReferenceImpl implements StringReference {
-
   public StringReferenceImpl(@NotNull Field field, @Nullable Instance instance) {
     super(field, instance);
   }
 
   @Override
   public String value() {
-    if (myValue == null) {
-      return null;
-    }
-
-    ArrayInstance charBufferArray = null;
-    assert (myValue instanceof ClassInstance);
-    ClassInstance classInstance = (ClassInstance)myValue;
-    for (Map.Entry<Field, Object> entry : classInstance.getValues().entrySet()) {
-      if ("value".equals(entry.getKey().getName())) {
-        charBufferArray = (ArrayInstance)entry.getValue();
-      }
-    }
-    assert (charBufferArray != null);
-    StringBuilder builder = new StringBuilder(charBufferArray.getValues().length + 3);
-    builder.append(" \"");
-    for (Object o : charBufferArray.getValues()) {
-      assert (o instanceof Character);
-      builder.append(o);
-    }
-    builder.append("\"");
-    return builder.toString();
+    return "";
   }
 }

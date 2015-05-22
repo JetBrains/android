@@ -23,28 +23,32 @@ import com.sun.jdi.ClassNotLoadedException;
 import com.sun.jdi.InvalidTypeException;
 import com.sun.jdi.Value;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ArrayReferenceImpl extends ObjectReferenceImpl implements ArrayReference {
+  @Nullable
+  private Object[] myCachedValues;
+
   public ArrayReferenceImpl(@NotNull Field field, @NotNull Instance instance) {
     super(field, instance);
   }
 
   @Override
   public int length() {
-    return getArrayInstance().getValues().length;
+    return getCachedValues().length;
   }
 
   @Override
   public Value getValue(int index) {
-    return new ValueImpl(myField, getArrayInstance().getValues()[index]);
+    return new ValueImpl(myField, getCachedValues()[index]);
   }
 
   @Override
   public List<Value> getValues() {
-    return getValues(0, getArrayInstance().getValues().length);
+    return getValues(0, getCachedValues().length);
   }
 
   @Override
@@ -54,7 +58,7 @@ public class ArrayReferenceImpl extends ObjectReferenceImpl implements ArrayRefe
 
   @Override
   public List<Value> getValues(int index, int length) {
-    Object[] rawValues = getArrayInstance().getValues();
+    Object[] rawValues = getCachedValues();
     List<Value> values = new ArrayList<Value>(rawValues.length - index);
     for (int i = index; i < rawValues.length; ++i) {
       values.add(new ValueImpl(myField, rawValues[i]));
@@ -77,5 +81,12 @@ public class ArrayReferenceImpl extends ObjectReferenceImpl implements ArrayRefe
   public ArrayInstance getArrayInstance() {
     //noinspection ConstantConditions
     return (ArrayInstance)getInstance();
+  }
+
+  private Object[] getCachedValues() {
+    if (myCachedValues == null) {
+      myCachedValues = getArrayInstance().getValues();
+    }
+    return myCachedValues;
   }
 }
