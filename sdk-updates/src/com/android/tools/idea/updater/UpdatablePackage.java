@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater;
 
+import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 
@@ -23,7 +24,7 @@ import com.intellij.ide.externalComponents.UpdatableExternalComponent;
  * {@link IPkgDesc} for a local or remote package.
  */
 public class UpdatablePackage implements UpdatableExternalComponent {
-  private IPkgDesc myPackage;
+  private final IPkgDesc myPackage;
 
   public UpdatablePackage(IPkgDesc p) {
     myPackage = p;
@@ -43,7 +44,8 @@ public class UpdatablePackage implements UpdatableExternalComponent {
     if (!(otherKey instanceof IPkgDesc)) {
       return false;
     }
-    return myPackage.isUpdateFor((IPkgDesc)otherKey);
+    // Ignore preview since we will only have created remote UpdatablePackages if previews were enabled
+    return myPackage.isUpdateFor((IPkgDesc)otherKey, FullRevision.PreviewComparison.IGNORE);
   }
 
   @Override
