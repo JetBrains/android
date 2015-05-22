@@ -16,12 +16,22 @@
 package com.android.tools.idea.editors.vmtrace;
 
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.ddmlib.DdmConstants.DOT_TRACE;
 
 public class VmTraceCaptureType extends FileCaptureType {
   protected VmTraceCaptureType() {
     super("Method Tracing", AndroidIcons.Ddms.StartMethodProfiling, "Trace_", DOT_TRACE);
+  }
+
+  @NotNull
+  @Override
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    return new VmTraceEditor(project, file);
   }
 }

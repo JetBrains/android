@@ -17,10 +17,25 @@ package com.android.tools.idea.editors.systeminfo;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 public class SystemInfoCaptureType extends FileCaptureType {
   protected SystemInfoCaptureType() {
     super("System Information", AndroidIcons.Ddms.SysInfo, "SystemInfo_", SdkConstants.DOT_TXT);
+  }
+
+  @NotNull
+  @Override
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    throw new IllegalStateException("Should not ask to create an editor");
+  }
+
+  @Override
+  public boolean accept(@NotNull VirtualFile file) {
+    return false;
   }
 }
