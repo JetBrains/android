@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.hprof.jdi;
 
+import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
 import com.sun.jdi.VirtualMachine;
@@ -60,8 +61,17 @@ public class TypeImpl implements com.sun.jdi.Type {
 
   @Override
   public String name() {
-    return myType == Type.OBJECT && myValue != null && ((Instance)myValue).getClassObj() != null ? ((Instance)myValue).getClassObj()
-      .getClassName() : myType.name();
+    if (myType == Type.OBJECT && myValue != null) {
+      if (myValue instanceof ClassObj) {
+        return Class.class.getName();
+      }
+      else if (((Instance)myValue).getClassObj() != null) {
+        return ((Instance)myValue).getClassObj().getClassName();
+      }
+    }
+
+    // We can't resolve the type name, so fall back to the hprof type's name.
+    return myType.name();
   }
 
   @Override
