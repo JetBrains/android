@@ -448,9 +448,10 @@ public class InstancesTree {
       assert (field != null);
       ArrayInstance arrayInstance = (ArrayInstance)instance;
       Object[] values = arrayInstance.getValues();
+      descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
+      arrayLength = values.length;
+
       if (arrayInstance.getArrayType() == Type.OBJECT) {
-        descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
-        arrayLength = values.length;
         while (currentArrayIndex < arrayLength && currentArrayIndex < limit) {
           descriptors.add(
             new InstanceFieldDescriptorImpl(
@@ -461,8 +462,6 @@ public class InstancesTree {
         }
       }
       else {
-        descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
-        arrayLength = values.length;
         while (currentArrayIndex < arrayLength && currentArrayIndex < limit) {
           descriptors.add(
             new PrimitiveFieldDescriptorImpl(myDebuggerTree.getProject(),
