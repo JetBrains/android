@@ -146,9 +146,9 @@ class PrimaryManifestInfo extends ManifestInfo {
     }
 
     int apiLevel = Math.min(targetSdk, renderingTargetSdk);
-    // For now this theme works only on XLARGE screens. When it works for all sizes,
-    // add that new apiLevel to this check.
-    if (apiLevel >= 11 && screenSize == ScreenSize.XLARGE || apiLevel >= 14) {
+    if (apiLevel >= 21) {
+      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"; //$NON-NLS-1$
+    } else if (apiLevel >= 14 || apiLevel >= 11 && screenSize == ScreenSize.XLARGE) {
       return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo"; //$NON-NLS-1$
     } else {
       return ANDROID_STYLE_RESOURCE_PREFIX + "Theme"; //$NON-NLS-1$
