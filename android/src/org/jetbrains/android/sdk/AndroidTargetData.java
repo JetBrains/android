@@ -17,6 +17,8 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.resources.FrameworkResources;
 import com.android.resources.ResourceType;
@@ -35,6 +37,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.NanoXmlUtil;
+import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
@@ -62,7 +65,10 @@ public class AndroidTargetData {
   private volatile LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
+  @GuardedBy("myPublicResourceCacheLock")
   private volatile Map<String, Set<String>> myPublicResourceCache;
+  @GuardedBy("myPublicResourceCacheLock")
+  private TIntObjectHashMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
   private FrameworkResources myFrameworkResources;
@@ -107,9 +113,19 @@ public class AndroidTargetData {
   private Map<String, Set<String>> getPublicResourceCache() {
     synchronized (myPublicResourceCacheLock) {
       if (myPublicResourceCache == null) {
-        myPublicResourceCache = parsePublicResCache();
+        parsePublicResCache();
       }
       return myPublicResourceCache;
+    }
+  }
+
+  @Nullable
+  public TIntObjectHashMap<String> getPublicIdMap() {
+    synchronized (myPublicResourceCacheLock) {
+      if (myPublicResourceIdMap == null) {
+        parsePublicResCache();
+      }
+      return myPublicResourceIdMap;
     }
   }
 
@@ -124,24 +140,25 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  private Map<String, Set<String>> parsePublicResCache() {
+  private void parsePublicResCache() {
     final String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
     final String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
-    final VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(
-      FileUtil.toSystemIndependentName(publicXmlPath));
+    final VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
 
     if (publicXml != null) {
       try {
         final MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
         NanoXmlUtil.parse(publicXml.getInputStream(), builder);
-        myPublicResourceCache = builder.getPublicResourceCache();
-        return myPublicResourceCache;
+
+        synchronized (myPublicResourceCacheLock) {
+          myPublicResourceCache = builder.getPublicResourceCache();
+          myPublicResourceIdMap = builder.getIdMap();
+        }
       }
       catch (IOException e) {
         LOG.error(e);
       }
     }
-    return null;
   }
 
   @Nullable
@@ -235,11 +252,14 @@ public class AndroidTargetData {
     }
   }
 
-  private static class MyPublicResourceCacheBuilder extends NanoXmlUtil.IXMLBuilderAdapter {
+  @VisibleForTesting
+  static class MyPublicResourceCacheBuilder extends NanoXmlUtil.IXMLBuilderAdapter {
     private final Map<String, Set<String>> myResult = new HashMap<String, Set<String>>();
+    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<String>(3000);
 
     private String myName;
     private String myType;
+    private int myId;
 
     @Override
     public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) throws Exception {
@@ -251,6 +271,10 @@ public class AndroidTargetData {
           myResult.put(myType, set);
         }
         set.add(myName);
+
+        if (myId != 0) {
+          myIdMap.put(myId, SdkConstants.ANDROID_PREFIX + myType + "/" + myName);
+        }
       }
     }
 
@@ -263,6 +287,13 @@ public class AndroidTargetData {
       else if ("type".endsWith(key)) {
         myType = value;
       }
+      else if ("id".equals(key)) {
+        try {
+          myId = Integer.decode(value);
+        } catch (NumberFormatException e) {
+          myId = 0;
+        }
+      }
     }
 
     @Override
@@ -270,10 +301,15 @@ public class AndroidTargetData {
       throws Exception {
       myName = null;
       myType = null;
+      myId = 0;
     }
 
     public Map<String, Set<String>> getPublicResourceCache() {
       return myResult;
+    }
+
+    public TIntObjectHashMap<String> getIdMap() {
+      return myIdMap;
     }
   }
 
