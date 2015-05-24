@@ -1,19 +1,21 @@
 package org.jetbrains.android.dom.layout;
 
+import com.android.SdkConstants;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class FragmentLayoutDomFileDescription extends LayoutDomFileDescription<Fragment> {
-  public static final String FRAGMENT_TAG_NAME = "fragment";
 
   public FragmentLayoutDomFileDescription() {
-    super(Fragment.class, FRAGMENT_TAG_NAME);
+    super(Fragment.class, VIEW_FRAGMENT);
   }
 
   @Override
@@ -23,7 +25,7 @@ public class FragmentLayoutDomFileDescription extends LayoutDomFileDescription<F
 
   static boolean hasFragmentRootTag(@NotNull XmlFile file) {
     final XmlTag rootTag = file.getRootTag();
-    return rootTag != null && FRAGMENT_TAG_NAME.equals(rootTag.getName());
+    return rootTag != null && VIEW_FRAGMENT.equals(rootTag.getName());
   }
 }
 
