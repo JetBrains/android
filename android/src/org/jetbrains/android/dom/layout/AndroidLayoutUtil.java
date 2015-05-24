@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -18,11 +20,12 @@ public class AndroidLayoutUtil {
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
     final List<String> result = new ArrayList<String>();
-    result.add("view");
-    result.add("merge");
-    result.add(FragmentLayoutDomFileDescription.FRAGMENT_TAG_NAME);
+    result.add(VIEW_TAG);
+    result.add(VIEW_MERGE);
+    result.add(VIEW_FRAGMENT);
     result.addAll(AndroidDomUtil.removeUnambiguousNames(AndroidDomExtender.getViewClassMap(facet)));
-    result.remove("View");
+    result.remove(VIEW);
+    result.add(TAG_LAYOUT);
     return result;
   }
 }
