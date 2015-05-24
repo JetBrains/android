@@ -85,13 +85,13 @@ public class LayoutPullParserFactory {
     if (module != null) {
       AndroidPlatform platform = AndroidPlatform.getInstance(module);
       if (platform != null) {
-        for (IAndroidTarget target : platform.getSdkData().getTargets()) {
-          AndroidVersion version = target.getVersion();
-          if (version.getFeatureLevel() >= PREFERENCES_MIN_API && !version.isPreview()) {
-            // TODO: remove revision check after the right LayoutLib is released.
-            // When the revision check is removed, we will show the option to render Preferences, and then a message to update the
-            // SDK Platform.
-            if (target.getRevision() > 2) {
+        IAndroidTarget[] targets = platform.getSdkData().getTargets();
+        for (int i = targets.length - 1; i >= 0; i--) {
+          IAndroidTarget target = targets[i];
+          if (target.isPlatform()) {
+            AndroidVersion version = target.getVersion();
+            int featureLevel = version.getFeatureLevel();
+            if (featureLevel >= PREFERENCES_MIN_API) {
               return true;
             }
           }
