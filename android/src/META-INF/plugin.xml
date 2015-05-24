@@ -623,6 +623,7 @@
                     serviceImplementation="com.android.tools.idea.structure.gradle.AndroidProjectSettingsService"
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.ResourceIdResolver" />
 
     <applicationConfigurable groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
 
@@ -710,8 +711,10 @@
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
+
     <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapDrawableRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.run.AndroidTypedIntegerRenderer" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
   </extensions>
