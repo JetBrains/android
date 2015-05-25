@@ -93,12 +93,27 @@ public class IdeTestApplication implements Disposable {
     return ourInstance;
   }
 
+  @NotNull
   private static File getConfigDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "config");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getFailedTestScreenshotDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "failures");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  private static File getGuiTestRootDirPath() throws IOException {
     String homeDirPath = toSystemDependentName(PathManager.getHomePath());
     assertThat(homeDirPath).isNotEmpty();
-    File configDirPath = new File(homeDirPath, join("androidStudio", "gui-tests", "config"));
-    ensureExists(configDirPath);
-    return configDirPath;
+    File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
+    ensureExists(rootDirPath);
+    return rootDirPath;
   }
 
   private static void recreateDirectory(@NotNull File path) throws IOException {
