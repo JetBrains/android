@@ -154,9 +154,13 @@ public class InstancesTree {
 
       private void onSelectionChanged() {
         DebuggerTreeNodeImpl newRoot;
+        Instance singleChild = null;
         if (myClassObj != null) {
           ContainerDescriptorImpl containerDescriptor = new ContainerDescriptorImpl(myClassObj, myHeap.getId());
           newRoot = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, containerDescriptor);
+          if (containerDescriptor.getInstances().size() == 1) {
+            singleChild = containerDescriptor.getInstances().get(0);
+          }
         }
         else {
           newRoot = myDebuggerTree.getNodeFactory().getDefaultNode();
@@ -165,6 +169,11 @@ public class InstancesTree {
         myDebuggerTree.getMutableModel().setRoot(newRoot);
         myDebuggerTree.treeChanged();
         myDebuggerTree.scrollRowToVisible(0);
+
+        if (singleChild != null) {
+          myDebuggerTree.setSelectionInterval(0 , 0);
+          selectionModel.setInstance(singleChild);
+        }
       }
     });
 
@@ -221,7 +230,57 @@ public class InstancesTree {
             }
           })
           .setRenderer((DebuggerTreeRenderer)myDebuggerTree.getCellRenderer())
-        )
+      )
+      .addColumn(
+        new ColumnTreeBuilder.ColumnBuilder()
+          .setName("Depth").setPreferredWidth(60)
+          .setComparator(new Comparator<DebuggerTreeNodeImpl>() {
+            @Override
+            public int compare(DebuggerTreeNodeImpl a, DebuggerTreeNodeImpl b) {
+              int depthA = 0;
+              int depthB = 0;
+              if (a.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+                Instance instanceA = (Instance)((InstanceFieldDescriptorImpl)a.getDescriptor()).getValueData();
+                if (instanceA != null) {
+                  depthA = instanceA.getDistanceToGcRoot();
+                }
+              }
+              if (b.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+                Instance instanceB = (Instance)((InstanceFieldDescriptorImpl)b.getDescriptor()).getValueData();
+                if (instanceB != null) {
+                  depthB = instanceB.getDistanceToGcRoot();
+                }
+              }
+              if (depthA != depthB) {
+                return depthA - depthB;
+              }
+              else {
+                return getDefaultOrdering(a, b);
+              }
+            }
+          })
+          .setRenderer(new ColoredTreeCellRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree,
+                                              Object value,
+                                              boolean selected,
+                                              boolean expanded,
+                                              boolean leaf,
+                                              int row,
+                                              boolean hasFocus) {
+              NodeDescriptorImpl nodeDescriptor = (NodeDescriptorImpl)((TreeBuilderNode)value).getUserObject();
+              if (nodeDescriptor instanceof InstanceFieldDescriptorImpl) {
+                InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)nodeDescriptor;
+                assert !descriptor.isPrimitive();
+                Instance instance = (Instance)descriptor.getValueData();
+                if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                  append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                }
+              }
+              setTextAlign(SwingConstants.RIGHT);
+            }
+          })
+      )
       .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Shallow Size")
@@ -272,10 +331,11 @@ public class InstancesTree {
               setTextAlign(SwingConstants.RIGHT);
             }
           })
-        )
+      )
       .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Dominating Size").setPreferredWidth(80)
+          .setName("Dominating Size")
+          .setPreferredWidth(80)
           .setComparator(new Comparator<DebuggerTreeNodeImpl>() {
             @Override
             public int compare(@NotNull DebuggerTreeNodeImpl a, @NotNull DebuggerTreeNodeImpl b) {
@@ -300,27 +360,29 @@ public class InstancesTree {
                return getDefaultOrdering(a, b);
              }
             }
-          }).setRenderer(new ColoredTreeCellRenderer() {
-          @Override
-          public void customizeCellRenderer(@NotNull JTree tree,
-                                            Object value,
-                                            boolean selected,
-                                            boolean expanded,
-                                            boolean leaf,
-                                            int row,
-                                            boolean hasFocus) {
-            NodeDescriptorImpl nodeDescriptor = (NodeDescriptorImpl)((TreeBuilderNode)value).getUserObject();
-            if (nodeDescriptor instanceof InstanceFieldDescriptorImpl) {
-              InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)nodeDescriptor;
-              assert !descriptor.isPrimitive();
-              Instance instance = (Instance)descriptor.getValueData();
-              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-                append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          })
+          .setRenderer(new ColoredTreeCellRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree,
+                                              Object value,
+                                              boolean selected,
+                                              boolean expanded,
+                                              boolean leaf,
+                                              int row,
+                                              boolean hasFocus) {
+              NodeDescriptorImpl nodeDescriptor = (NodeDescriptorImpl)((TreeBuilderNode)value).getUserObject();
+              if (nodeDescriptor instanceof InstanceFieldDescriptorImpl) {
+                InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)nodeDescriptor;
+                assert !descriptor.isPrimitive();
+                Instance instance = (Instance)descriptor.getValueData();
+                if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                  append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                }
               }
+              setTextAlign(SwingConstants.RIGHT);
             }
-            setTextAlign(SwingConstants.RIGHT);
-          }
-        }));
+          })
+      );
 
     //noinspection NullableProblems
     builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<DebuggerTreeNodeImpl>() {
