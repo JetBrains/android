@@ -43,16 +43,14 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
                   "    }\n" +
                   "}\n";
 
-    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
-    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
-    PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+    PsiElement element = getPsiElement(text);
     assertNotNull(element);
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "c");
     assertNotNull(annotation);
     assertEquals(SupportAnnotationDetector.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
 
-    annotation = AndroidResolveHelper.getAnnotationForLocal(element, "mColor");
+    annotation = AndroidResolveHelper.getAnnotationForField(element, "p1.p2.Foo", "mColor");
     assertNotNull(annotation);
     assertEquals(SupportAnnotationDetector.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
   }
@@ -82,9 +80,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
                   "}\n";
 
 
-    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
-    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
-    PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+    PsiElement element = getPsiElement(text);
     assertNotNull(element);
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "v");
@@ -100,5 +96,52 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
     assertEquals("INVISIBLE", map.get(4));
     assertEquals("VISIBLE", map.get(0));
     assertEquals("GONE", map.get(8));
+  }
+
+  public void testAnnotationResolution1() {
+    @Language("JAVA")
+    String text = "package p1.p2;\n" +
+                  "\n" +
+                  "class Foo {\n" +
+                  "  @android.support.annotation.ColorInt private int mColor = 0xFF123456;\n" +
+                  "  \n" +
+                  "  private void check() {\n" +
+                  "    int color;\n" +
+                  "    <caret>color = mColor;\n" +
+                  "  }\n" +
+                  "}";
+    testResolution(text);
+  }
+
+  public void testAnnotationResolution2() {
+    @Language("JAVA")
+    String text = "package p1.p2;\n" +
+                  "\n" +
+                  "class Foo {\n" +
+                  "  @android.support.annotation.ColorInt int getColor() {\n" +
+                  "    return 0x11223344;\n" +
+                  "  }\n" +
+                  "\n" +
+                  "  private void check() {\n" +
+                  "    int color;\n" +
+                  "    <caret>color = getColor();\n" +
+                  "  }\n" +
+                  "}";
+    testResolution(text);
+  }
+
+  private void testResolution(String text) {
+    PsiElement element = getPsiElement(text);
+    assertNotNull(element);
+
+    PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "color");
+    assertNotNull(annotation);
+    assertEquals(SupportAnnotationDetector.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+  }
+
+  private PsiElement getPsiElement(String text) {
+    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    return myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
   }
 }
