@@ -84,7 +84,7 @@ public class AnnotationsRenderer {
   }
 
   @NotNull
-  private static String renderIntDef(int value, AndroidResolveHelper.IntDefResolution intDef) {
+  static String renderIntDef(int value, AndroidResolveHelper.IntDefResolution intDef) {
     if (intDef.valuesMap == null) {
       return "";
     }
