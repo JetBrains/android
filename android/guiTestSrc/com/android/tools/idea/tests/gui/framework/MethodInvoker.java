@@ -16,22 +16,32 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import org.fest.swing.image.ScreenshotTaker;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
+import static com.android.tools.idea.tests.gui.framework.IdeTestApplication.getFailedTestScreenshotDirPath;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
-  private final FrameworkMethod myTestMethod;
-  private final Object myTest;
+  @NotNull private final FrameworkMethod myTestMethod;
+  @NotNull private final Object myTest;
+  @Nullable private final ScreenshotTaker myScreenshotTaker;
 
-  MethodInvoker(FrameworkMethod testMethod, Object test) {
+  MethodInvoker(@NotNull FrameworkMethod testMethod, @NotNull Object test, @Nullable ScreenshotTaker screenshotTaker) {
     myTestMethod = testMethod;
     myTest = test;
+    myScreenshotTaker = screenshotTaker;
   }
 
   @Override
@@ -76,6 +86,33 @@ public class MethodInvoker extends Statement {
       }
       field("myTestName").ofType(String.class).in(myTest).set(name);
     }
-    myTestMethod.invokeExplosively(myTest);
+    try {
+      myTestMethod.invokeExplosively(myTest);
+    }
+    catch (Throwable e) {
+      if (myScreenshotTaker != null) {
+        Method method = myTestMethod.getMethod();
+        String testFqn = method.getDeclaringClass().getSimpleName() + "." + method.getName();
+        String extension = ".png";
+
+        File rootDir = getFailedTestScreenshotDirPath();
+
+        File screenshotFilePath = new File(rootDir, testFqn + extension);
+        if (screenshotFilePath.isFile()) {
+          SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy.HH:mm:ss");
+          String now = format.format(new GregorianCalendar().getTime());
+          screenshotFilePath = new File(rootDir, testFqn  + "." + now + extension);
+        }
+
+        try {
+          myScreenshotTaker.saveDesktopAsPng(screenshotFilePath.getPath());
+          System.out.println("Screenshot of failed test taken and stored at " + screenshotFilePath.getPath());
+        } catch (Throwable ignored) {
+          System.out.println("Failed to take screenshot. Cause: " + ignored.getMessage());
+        }
+      }
+
+      throw e;
+    }
   }
 }

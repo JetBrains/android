@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -47,6 +47,8 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myAfterClass;
 
   private TestClass myTestClass;
+
+  private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
@@ -130,6 +132,8 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodInvoker(FrameworkMethod method, Object test) {
+    boolean takeScreenshot = true;
+
     if (canRunGuiTests()) {
       try {
         ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
@@ -137,22 +141,20 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
         Class<?> type = method.getMethod().getDeclaringClass();
         Annotation ideGuiTestSetup = type.getAnnotation(ideGuiTestSetupClass);
         if (ideGuiTestSetup != null) {
-          Object result = invokeMethod("skipSourceGenerationOnSync", ideGuiTestSetup, ideGuiTestSetupClass);
-          assertNotNull(result);
-          assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
-          if ((Boolean)result) {
+          boolean skipSourceGeneration = invokeBooleanMethod("skipSourceGenerationOnSync", ideGuiTestSetup, ideGuiTestSetupClass);
+          if (skipSourceGeneration) {
             Class<?> guiTestsClass = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
             method("skipSourceGenerationOnSync").in(guiTestsClass).invoke();
           }
+
+          takeScreenshot = invokeBooleanMethod("takeScreenshotOnTestFailure", ideGuiTestSetup, ideGuiTestSetupClass);
         }
 
         Class<? extends Annotation> ideGuiTestClass = loadAnnotationClass(ideClassLoader, IdeGuiTest.class);
         Annotation ideGuiTest = method.getMethod().getAnnotation(ideGuiTestClass);
         if (ideGuiTest != null) {
-          Object result = invokeMethod("closeProjectBeforeExecution", ideGuiTest, ideGuiTestClass);
-          assertNotNull(result);
-          assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
-          if ((Boolean)result) {
+          boolean closeProject = invokeBooleanMethod("closeProjectBeforeExecution", ideGuiTest, ideGuiTestClass);
+          if (closeProject) {
             method("closeAllProjects").in(test).invoke();
           }
         }
@@ -161,7 +163,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
         return new Fail(e);
       }
     }
-    return new MethodInvoker(method, test);
+    return new MethodInvoker(method, test, takeScreenshot ? myScreenshotTaker : null);
   }
 
   @NotNull
@@ -171,15 +173,17 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     return (Class<? extends Annotation>)ideClassLoader.loadClass(type.getCanonicalName());
   }
 
-  @Nullable
-  private static Object invokeMethod(@NotNull String methodName,
-                                     @NotNull Annotation target,
-                                     @NotNull Class<? extends Annotation> annotationType) throws Throwable {
+  private static boolean invokeBooleanMethod(@NotNull String methodName,
+                                             @NotNull Annotation target,
+                                             @NotNull Class<? extends Annotation> annotationType) throws Throwable {
     if (Proxy.isProxyClass(target.getClass())) {
       InvocationHandler invocationHandler = Proxy.getInvocationHandler(target);
       Method method = annotationType.getDeclaredMethod(methodName);
-      return invocationHandler.invoke(annotationType, method, EMPTY_OBJECT_ARRAY);
+      Object result = invocationHandler.invoke(annotationType, method, EMPTY_OBJECT_ARRAY);
+      assertNotNull(result);
+      assertThat(result).isInstanceOfAny(boolean.class, Boolean.class);
+      return (Boolean)result;
     }
-    return null;
+    throw new IllegalArgumentException("'target' is not a proxy for an annotation");
   }
 }
