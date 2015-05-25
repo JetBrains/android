@@ -45,6 +45,7 @@ import java.io.File;
 public class HprofEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(HprofEditor.class);
   private final JPanel myPanel;
+  private boolean myIsValid = true;
 
   public HprofEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myPanel = new JPanel();
@@ -117,7 +118,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
             public void run() {
               myPanel.removeAll();
               myPanel.setLayout(new BorderLayout());
-              myPanel.add(new HprofViewPanel(project, mySnapshot).getComponent(), BorderLayout.CENTER);
+              myPanel.add(new HprofViewPanel(project, HprofEditor.this, mySnapshot).getComponent(), BorderLayout.CENTER);
             }
           });
         }
@@ -140,7 +141,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
               myPanel.removeAll();
               myPanel.setLayout(new BorderLayout());
               if (mySnapshot != null) {
-                myPanel.add(new HprofViewPanel(project, mySnapshot).getComponent(), BorderLayout.CENTER);
+                myPanel.add(new HprofViewPanel(project, HprofEditor.this, mySnapshot).getComponent(), BorderLayout.CENTER);
               }
             }
           });
@@ -182,10 +183,14 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
     return false;
   }
 
+  public void setInvalid() {
+    myIsValid = false;
+  }
+
   @Override
   public boolean isValid() {
     // TODO: handle deletion of the underlying file?
-    return true;
+    return myIsValid;
   }
 
   @Override
