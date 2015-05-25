@@ -28,12 +28,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class InstanceReferenceTree {
+  private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
+
   @NotNull private Tree myTree;
   @NotNull private JComponent myColumnTree;
   private Instance myInstance;
@@ -44,12 +49,11 @@ public class InstanceReferenceTree {
       public void buildChildren(TreeBuilderNode node) {
         if (node == getRoot()) {
           node.add(createInstanceBuilderNode(myInstance));
-          nodeChanged(node);
         }
         else {
           addReferences(node);
-          nodeChanged(node);
         }
+        nodeChanged(node);
       }
 
       @Override
@@ -75,6 +79,39 @@ public class InstanceReferenceTree {
     myTree = new Tree(model);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
+    myTree.addTreeExpansionListener(new TreeExpansionListener() {
+      private boolean myIsCurrentlyExpanding = false;
+
+      @Override
+      public void treeExpanded(TreeExpansionEvent event) {
+        if (myIsCurrentlyExpanding) {
+          return;
+        }
+
+        myIsCurrentlyExpanding = true;
+        TreeBuilderNode node = (TreeBuilderNode)event.getPath().getLastPathComponent();
+        TreeBuilderNode currentNode = node;
+        int recursiveDepth = MAX_AUTO_EXPANSION_DEPTH;
+        while (currentNode.getChildCount() == 1 && recursiveDepth > 0) {
+          currentNode = (TreeBuilderNode)currentNode.getChildAt(0);
+          Instance currentInstance = (Instance)currentNode.getUserObject();
+          --recursiveDepth;
+          if (currentInstance.getDistanceToGcRoot() == 0) {
+            break;
+          }
+        }
+
+        if (node != currentNode) {
+          myTree.expandPath(new TreePath(currentNode.getPath()));
+        }
+        myIsCurrentlyExpanding = false;
+      }
+
+      @Override
+      public void treeCollapsed(TreeExpansionEvent event) {
+
+      }
+    });
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
       new ColumnTreeBuilder.ColumnBuilder().setName("Reference Tree").setPreferredWidth(600).setRenderer(
