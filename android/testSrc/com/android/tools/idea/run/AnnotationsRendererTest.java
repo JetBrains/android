@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiAnnotation;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +45,21 @@ public class AnnotationsRendererTest extends AndroidTestCase {
     result =
       AnnotationsRenderer.render(getProject(), createFakeAnnotation(SupportAnnotationDetector.RES_SUFFIX), 0xf1080074);
     assertEquals("0xf1080074 {@Res ?}", result.label);
+  }
+
+  public void testIntDefRendering() {
+    AndroidResolveHelper.IntDefResolution result = new AndroidResolveHelper.IntDefResolution(false, ImmutableMap.of(
+      4, "INVISIBLE",
+      2, "VISIBLE"
+    ));
+    assertEquals("INVISIBLE", AnnotationsRenderer.renderIntDef(4, result));
+
+    result = new AndroidResolveHelper.IntDefResolution(true, ImmutableMap.of(
+      4, "FOCUS1",
+      2, "FOCUS2"
+    ));
+    assertEquals("FOCUS1 | FOCUS2", AnnotationsRenderer.renderIntDef(6, result));
+
   }
 
   @NotNull
