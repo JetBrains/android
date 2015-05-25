@@ -106,7 +106,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   protected UrlClassLoader createClassLoader(List<URL> externalJars) {
-    return UrlClassLoader.build().parent(this).urls(externalJars).allowUnescaped().noPreload().get();
+    return UrlClassLoader.build().parent(this).urls(externalJars).noPreload().get();
   }
 
   @Nullable
