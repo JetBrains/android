@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.hprof;
 
 import com.android.tools.idea.editors.hprof.tables.InstanceReferenceTree;
 import com.android.tools.idea.editors.hprof.tables.InstancesTree;
+import com.android.tools.idea.editors.hprof.tables.SelectionModel;
 import com.android.tools.idea.editors.hprof.tables.classtable.ClassTable;
-import com.android.tools.idea.editors.hprof.tables.classtable.ClassTableModel;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
@@ -41,28 +41,35 @@ import java.awt.event.MouseEvent;
 public class HprofViewPanel implements Disposable {
   private static final int DIVIDER_WIDTH = 4;
   @NotNull private JPanel myContainer;
-  private Heap myCurrentHeap = null;
+  @NotNull private SelectionModel mySelectionModel;
 
-  public HprofViewPanel(@NotNull final Project project, @NotNull final Snapshot snapshot) {
+  public HprofViewPanel(@NotNull final Project project, @NotNull HprofEditor editor, @NotNull final Snapshot snapshot) {
     JBPanel treePanel = new JBPanel(new BorderLayout());
     treePanel.setBackground(JBColor.background());
 
-    final InstanceReferenceTree referenceTree = new InstanceReferenceTree();
-    treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
-
     assert (snapshot.getHeaps().size() > 0);
+    Heap currentHeap = null;
     for (Heap heap : snapshot.getHeaps()) {
       if ("app".equals(heap.getName())) {
-        myCurrentHeap = heap;
+        currentHeap = heap;
         break;
       }
-      else if (myCurrentHeap == null) {
-        myCurrentHeap = heap;
+      else if (currentHeap == null) {
+        currentHeap = heap;
       }
     }
 
-    final InstancesTree instancesTree = new InstancesTree(project, myCurrentHeap, referenceTree.getOnInstanceSelectionListener());
-    final ClassTable classTable = createClassTable(instancesTree);
+    if (currentHeap == null) {
+      editor.setInvalid();
+      return;
+    }
+    mySelectionModel = new SelectionModel(currentHeap);
+
+    final InstanceReferenceTree referenceTree = new InstanceReferenceTree(mySelectionModel);
+    treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
+
+    final InstancesTree instancesTree = new InstancesTree(project, mySelectionModel);
+    final ClassTable classTable = createClassTable(mySelectionModel);
     JBScrollPane classTableScrollPane = new JBScrollPane();
     classTableScrollPane.setViewportView(classTable);
     JBSplitter splitter = createNavigationSplitter(classTableScrollPane, instancesTree.getComponent());
@@ -82,11 +89,7 @@ public class HprofViewPanel implements Disposable {
           group.add(new AnAction(heap.getName() + " heap") {
             @Override
             public void actionPerformed(AnActionEvent e) {
-              myCurrentHeap = heap;
-              ClassObj classObj = instancesTree.getClassObj();
-              classTable.setHeap(heap, classObj);
-              instancesTree.setClassObj(heap, classObj);
-              referenceTree.clearInstance();
+              mySelectionModel.setHeap(heap);
             }
           });
         }
@@ -96,8 +99,8 @@ public class HprofViewPanel implements Disposable {
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
-        getTemplatePresentation().setText(myCurrentHeap.getName() + " heap");
-        e.getPresentation().setText(myCurrentHeap.getName() + " heap");
+        getTemplatePresentation().setText(mySelectionModel.getHeap().getName() + " heap");
+        e.getPresentation().setText(mySelectionModel.getHeap().getName() + " heap");
       }
     });
 
@@ -117,8 +120,8 @@ public class HprofViewPanel implements Disposable {
   }
 
   @NotNull
-  private ClassTable createClassTable(@NotNull final InstancesTree instancesTree) {
-    final ClassTable classTable = new ClassTable(new ClassTableModel(myCurrentHeap));
+  private ClassTable createClassTable(@NotNull SelectionModel selectionModel) {
+    final ClassTable classTable = new ClassTable(selectionModel);
     classTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent mouseEvent) {
@@ -127,7 +130,7 @@ public class HprofViewPanel implements Disposable {
         if (row >= 0) {
           int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
           ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-          instancesTree.setClassObj(myCurrentHeap, classObj);
+          mySelectionModel.setClassObj(classObj);
         }
       }
     });
