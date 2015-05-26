@@ -25,6 +25,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+
 public class ThemeEditorStyleTest extends AndroidTestCase {
 
   public ThemeEditorStyleTest() {
@@ -133,5 +135,29 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    */
   public void testModifyingHighApiAttribute() {
     doTest("android:actionModeStyle", "apiTestAfter7");
+  }
+
+  /**
+   * Tests the isPublic() method
+   */
+  public void testIsPublic() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+
+    // Non-framework themes are always public
+    ThemeEditorStyle projectTheme = themeResolver.getTheme("@style/AppTheme");
+    assertNotNull(projectTheme);
+    assertTrue(projectTheme.isPublic());
+
+    ThemeEditorStyle frameworkPublicTheme = themeResolver.getTheme("@android:style/Theme.Material");
+    assertNotNull(frameworkPublicTheme);
+    assertTrue(frameworkPublicTheme.isPublic());
+
+    ThemeEditorStyle frameworkPrivateTheme = themeResolver.getTheme("@android:style/Theme.Material.Dialog.NoFrame");
+    assertNotNull(frameworkPrivateTheme);
+    assertFalse(frameworkPrivateTheme.isPublic());
   }
 }
