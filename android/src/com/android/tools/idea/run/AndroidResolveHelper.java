@@ -74,8 +74,8 @@ public class AndroidResolveHelper {
       return null;
     }
 
-    // Parameter? Those can carry annotations directly
-    if (variable instanceof PsiParameter) {
+    // Parameter? Those can carry annotations directly. So can local variable declarations.
+    if (variable instanceof PsiParameter || variable instanceof PsiLocalVariable) {
       PsiAnnotation annotation = getAnnotation(variable);
       if (annotation != null) {
         return annotation;
