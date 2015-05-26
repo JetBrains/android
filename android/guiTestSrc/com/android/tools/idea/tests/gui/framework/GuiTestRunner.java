@@ -134,7 +134,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   }
 
   @Override
-  protected Statement methodInvoker(FrameworkMethod method, Object test) {
+  protected Statement methodInvoker(final FrameworkMethod method, Object test) {
     if (canRunGuiTests()) {
       try {
         assertNotNull(myScreenshotTaker);
@@ -144,6 +144,13 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
         return new Fail(e);
       }
     }
-    return new Fail(new IllegalStateException("[" + method.getName() + "] UI tests cannot run in a headless environment"));
+    // Skip the test.
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        String msg = String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName());
+        System.out.println(msg);
+      }
+    };
   }
 }
