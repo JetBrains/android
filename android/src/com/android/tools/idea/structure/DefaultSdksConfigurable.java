@@ -19,9 +19,12 @@ package com.android.tools.idea.structure;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.DispatchRunnable;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -43,8 +46,10 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.Function;
+import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,6 +97,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   private TextFieldWithBrowseButton myNdkLocationTextField;
   private TextFieldWithBrowseButton myJdkLocationTextField;
   private JPanel myWholePanel;
+  private JPanel myNdkDownloadPanel;
+  private AsyncProcessIcon myNdkCheckProcessIcon;
 
   private DetailsComponent myDetailsComponent;
 
@@ -108,6 +115,25 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (myProject == null || myProject.isDefault()) {
       myNdkLocationTextField.setEnabled(false);
     }
+    final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
+    layout.show(myNdkDownloadPanel, "loading");
+    final SdkState sdkState = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    sdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, new DispatchRunnable() {
+      @Override
+      public void doRun() {
+        if (!sdkState.getPackages().getRemotePkgInfos().get(PkgType.PKG_NDK).isEmpty()) {
+          layout.show(myNdkDownloadPanel, "link");
+        }
+        else {
+          myNdkDownloadPanel.setVisible(false);
+        }
+      }
+    }, new DispatchRunnable() {
+      @Override
+      public void doRun() {
+        myNdkDownloadPanel.setVisible(false);
+      }
+    }, false);
   }
 
   @Override
@@ -168,6 +194,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   private void createUIComponents() {
+    myNdkCheckProcessIcon = new AsyncProcessIcon("NDK check progress");
     createSdkLocationTextField();
     createJdkLocationTextField();
     createNdkLocationTextField();
@@ -536,7 +563,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
 
   private void showNdkQuickfixLink() {
     if (IdeSdks.getAndroidNdkPath() == null) {
-      myNdkDownloadHyperlinkLabel.setVisible(true);
+      myNdkDownloadPanel.setVisible(true);
     }
     else {
       myNdkResetHyperlinkLabel.setVisible(true);
@@ -545,7 +572,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
 
   private void hideNdkQuickfixLink() {
     myNdkResetHyperlinkLabel.setVisible(false);
-    myNdkDownloadHyperlinkLabel.setVisible(false);
+    myNdkDownloadPanel.setVisible(false);
   }
 
   @NotNull

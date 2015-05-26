@@ -17,6 +17,7 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.DispatchRunnable;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.sdk.SdkState;
