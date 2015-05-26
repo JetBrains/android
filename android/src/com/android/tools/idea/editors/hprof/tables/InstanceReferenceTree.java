@@ -276,6 +276,7 @@ public class InstanceReferenceTree {
           root.removeAllChildren();
           root.add(new InstanceNode(getMutableModel(), instance));
           model.nodeStructureChanged((TreeBuilderNode)model.getRoot());
+          myTree.expandRow(0);
         }
       }
     });
