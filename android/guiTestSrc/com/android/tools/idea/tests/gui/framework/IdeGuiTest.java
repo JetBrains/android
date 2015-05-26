@@ -28,5 +28,6 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_6;
 @Target(ElementType.METHOD)
 public @interface IdeGuiTest {
   boolean closeProjectBeforeExecution() default true;
+  int retryCount() default 0;
   JavaSdkVersion runWithMinimumJdkVersion() default JDK_1_6;
 }
