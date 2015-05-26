@@ -20,10 +20,13 @@ import com.android.tools.perflib.heap.*;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.PlatformIcons;
+import com.intellij.xdebugger.impl.ui.XDebuggerUIConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +34,7 @@ import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class InstanceReferenceTree {
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
@@ -48,10 +48,10 @@ public class InstanceReferenceTree {
       @Override
       public void buildChildren(TreeBuilderNode node) {
         if (node == getRoot()) {
-          node.add(createInstanceBuilderNode(myInstance));
+          node.add(new InstanceNode(this, myInstance));
         }
         else {
-          addReferences(node);
+          addReferences((InstanceNode)node);
         }
         nodeChanged(node);
       }
@@ -79,6 +79,7 @@ public class InstanceReferenceTree {
     myTree = new Tree(model);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
+    myTree.setLargeModel(true);
     myTree.addTreeExpansionListener(new TreeExpansionListener() {
       private boolean myIsCurrentlyExpanding = false;
 
@@ -89,12 +90,16 @@ public class InstanceReferenceTree {
         }
 
         myIsCurrentlyExpanding = true;
-        TreeBuilderNode node = (TreeBuilderNode)event.getPath().getLastPathComponent();
-        TreeBuilderNode currentNode = node;
+        InstanceNode node = (InstanceNode)event.getPath().getLastPathComponent();
+        InstanceNode currentNode = node;
         int recursiveDepth = MAX_AUTO_EXPANSION_DEPTH;
         while (currentNode.getChildCount() == 1 && recursiveDepth > 0) {
-          currentNode = (TreeBuilderNode)currentNode.getChildAt(0);
-          Instance currentInstance = (Instance)currentNode.getUserObject();
+          InstanceNode childNode = (InstanceNode)currentNode.getChildAt(0);
+          if (childNode.isLeaf() || childNode.getInstance().getDistanceToGcRoot() == 0) {
+            break;
+          }
+          currentNode = childNode;
+          Instance currentInstance = currentNode.getInstance();
           --recursiveDepth;
           if (currentInstance.getDistanceToGcRoot() == 0) {
             break;
@@ -129,7 +134,26 @@ public class InstanceReferenceTree {
               return;
             }
 
-            Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+            InstanceNode node = (InstanceNode)value;
+            Instance instance = node.getInstance();
+
+            String[] referenceVarNames = node.getVarNames();
+            if (referenceVarNames.length > 0) {
+              if (instance instanceof ArrayInstance) {
+                append(StringUtil.pluralize("Index", referenceVarNames.length), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+                append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              }
+
+              StringBuilder builder = new StringBuilder();
+              builder.append(referenceVarNames[0]);
+              for (int i = 1; i < referenceVarNames.length; ++i) {
+                builder.append(", ");
+                builder.append(referenceVarNames[i]);
+              }
+              append(builder.toString(), XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES);
+              append(" in ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+            }
+
             SimpleTextAttributes attributes;
             if (myInstance.getImmediateDominator() == instance) {
               attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
@@ -146,6 +170,9 @@ public class InstanceReferenceTree {
 
             if (instance instanceof ArrayInstance) {
               setIcon(AllIcons.Debugger.Db_array);
+            }
+            else if (instance instanceof ClassObj) {
+              setIcon(PlatformIcons.CLASS_ICON);
             }
             else {
               setIcon(AllIcons.Debugger.Value);
@@ -179,7 +206,7 @@ public class InstanceReferenceTree {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+            Instance instance = ((InstanceNode)value).getInstance();
             if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
               append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
             }
@@ -197,7 +224,7 @@ public class InstanceReferenceTree {
                                               boolean leaf,
                                               int row,
                                               boolean hasFocus) {
-              Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+              Instance instance = ((InstanceNode)value).getInstance();
               if (instance != null) {
                 append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
@@ -215,7 +242,7 @@ public class InstanceReferenceTree {
                                               boolean leaf,
                                               int row,
                                               boolean hasFocus) {
-              Instance instance = (Instance)((TreeBuilderNode)value).getUserObject();
+              Instance instance = ((InstanceNode)value).getInstance();
               if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
                 append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
@@ -247,7 +274,7 @@ public class InstanceReferenceTree {
           TreeBuilder model = getMutableModel();
           TreeBuilderNode root = (TreeBuilderNode)model.getRoot();
           root.removeAllChildren();
-          root.add(createInstanceBuilderNode(instance));
+          root.add(new InstanceNode(getMutableModel(), instance));
           model.nodeStructureChanged((TreeBuilderNode)model.getRoot());
         }
       }
@@ -269,17 +296,8 @@ public class InstanceReferenceTree {
     return (TreeBuilder)myTree.getModel();
   }
 
-  private TreeBuilderNode createInstanceBuilderNode(@NotNull final Instance instance) {
-    return new TreeBuilderNode(instance) {
-      @Override
-      protected TreeBuilder getTreeBuilder() {
-        return (TreeBuilder)myTree.getModel();
-      }
-    };
-  }
-
-  private void addReferences(@NotNull TreeBuilderNode node) {
-    Instance instance = (Instance)node.getUserObject();
+  private void addReferences(@NotNull InstanceNode node) {
+    Instance instance = node.getInstance();
     if (instance instanceof RootObj) {
       return;
     }
@@ -293,7 +311,62 @@ public class InstanceReferenceTree {
     });
 
     for (Instance reference : sortedReferences) {
-      node.add(createInstanceBuilderNode(reference));
+      List<String> scratchList = new ArrayList<String>(3);
+      if (reference instanceof ClassInstance) {
+        ClassInstance classInstance = (ClassInstance)reference;
+        for (Map.Entry<Field, Object> entry : classInstance.getValues().entrySet()) {
+          if (entry.getKey().getType() == Type.OBJECT && entry.getValue() == instance) {
+            scratchList.add(entry.getKey().getName());
+          }
+        }
+      }
+      else if (reference instanceof ArrayInstance) {
+        ArrayInstance arrayInstance = (ArrayInstance)reference;
+        assert arrayInstance.getArrayType() == Type.OBJECT;
+        Object[] values = arrayInstance.getValues();
+        for (int i = 0; i < values.length; ++i) {
+          if (values[i] == instance) {
+            scratchList.add(String.valueOf(i));
+          }
+        }
+      }
+      else if (reference instanceof ClassObj) {
+        ClassObj classObj = (ClassObj)reference;
+        Map<Field, Object> staticValues = classObj.getStaticFieldValues();
+        for (Map.Entry<Field, Object> entry : staticValues.entrySet()) {
+          if (entry.getKey().getType() == Type.OBJECT && entry.getValue() == instance) {
+            scratchList.add(entry.getKey().getName());
+          }
+        }
+      }
+
+      String[] scratchNameArray = new String[scratchList.size()];
+      node.add(new InstanceNode(getMutableModel(), reference, scratchList.toArray(scratchNameArray)));
+    }
+  }
+
+  private static class InstanceNode extends TreeBuilderNode {
+    @NotNull private TreeBuilder myModel;
+    @NotNull private String[] myVarNames;
+
+    public InstanceNode(@NotNull TreeBuilder model, @NotNull Instance userObject, @NotNull String... varNames) {
+      super(userObject);
+      myModel = model;
+      myVarNames = varNames;
+    }
+
+    @NotNull
+    public String[] getVarNames() {
+      return myVarNames;
+    }
+
+    public Instance getInstance() {
+      return (Instance)getUserObject();
+    }
+
+    @Override
+    protected TreeBuilder getTreeBuilder() {
+      return myModel;
     }
   }
 }
