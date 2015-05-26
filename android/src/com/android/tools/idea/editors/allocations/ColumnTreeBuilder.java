@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.allocations;
 import com.android.annotations.Nullable;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
@@ -146,9 +147,7 @@ public class ColumnTreeBuilder {
       column.configure(myTable, myRowSorter, myCellRenderer);
     }
 
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(myTable, BorderLayout.NORTH);
-    panel.add(myTree, BorderLayout.CENTER);
+    JPanel panel = new TreeWrapperPanel(myTable, myTree);
 
     JTableHeader header = myTable.getTableHeader();
     header.setReorderingAllowed(false);
@@ -338,6 +337,44 @@ public class ColumnTreeBuilder {
     public ColumnBuilder setRenderer(@NotNull ColoredTreeCellRenderer renderer) {
       myRenderer = renderer;
       return this;
+    }
+  }
+
+  private static class TreeWrapperPanel extends JPanel implements Scrollable {
+    private final JTree myTree;
+
+    public TreeWrapperPanel(JTable table, JTree tree) {
+      super(new BorderLayout());
+
+      myTree = tree;
+
+      add(table, BorderLayout.NORTH);
+      add(myTree, BorderLayout.CENTER);
+    }
+
+    @Override
+    public Dimension getPreferredScrollableViewportSize() {
+      return myTree.getPreferredScrollableViewportSize();
+    }
+
+    @Override
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+      return myTree.getScrollableUnitIncrement(visibleRect, orientation, direction);
+    }
+
+    @Override
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+      return myTree.getScrollableUnitIncrement(visibleRect, orientation, direction);
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+      return myTree.getScrollableTracksViewportWidth();
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportHeight() {
+      return myTree.getScrollableTracksViewportHeight();
     }
   }
 }
