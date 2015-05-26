@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.fest.swing.image.ScreenshotTaker;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -34,17 +36,19 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import static org.junit.Assert.assertNotNull;
+
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myBeforeClass;
   private Class<? extends Annotation> myAfterClass;
 
   private TestClass myTestClass;
 
-  private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
+  @Nullable private final ScreenshotTaker myScreenshotTaker;
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
-
+    myScreenshotTaker = canRunGuiTests() ? new ScreenshotTaker() : null;
     try {
       // A random class which is reachable from module community-main's classpath but not
       // module android's classpath
@@ -116,9 +120,11 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     myAfterClass = loadAnnotation(ideClassLoader, After.class);
   }
 
+  @NotNull
   @SuppressWarnings("unchecked")
-  private static Class<? extends Annotation> loadAnnotation(ClassLoader classLoader, Class<? extends Annotation> annotationType)
-    throws ClassNotFoundException {
+  private static Class<? extends Annotation> loadAnnotation(@NotNull ClassLoader classLoader,
+                                                            @NotNull Class<? extends Annotation> annotationType)
+  throws ClassNotFoundException {
     return (Class<? extends Annotation>)classLoader.loadClass(annotationType.getCanonicalName());
   }
 
@@ -131,12 +137,13 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   protected Statement methodInvoker(FrameworkMethod method, Object test) {
     if (canRunGuiTests()) {
       try {
+        assertNotNull(myScreenshotTaker);
         return new MethodInvoker(method, test, myScreenshotTaker);
       }
       catch (Throwable e) {
         return new Fail(e);
       }
     }
-    return new Fail(new IllegalStateException("UI tests cannot run in a headless environment"));
+    return new Fail(new IllegalStateException("[" + method.getName() + "] UI tests cannot run in a headless environment"));
   }
 }
