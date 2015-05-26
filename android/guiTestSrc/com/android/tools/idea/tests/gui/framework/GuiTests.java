@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
@@ -26,9 +25,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
@@ -91,19 +87,6 @@ public final class GuiTests {
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
-
-  @SuppressWarnings("unused") // Invoked through reflection by GuiTestRunner#methodInvoker
-  public static void skipSourceGenerationOnSync() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
-
-  @SuppressWarnings("unused") // Invoked through reflection by MethodInvoker
-  public static boolean hasRequiredJdk(@NotNull JavaSdkVersion jdkVersion) {
-    Sdk jdk = IdeSdks.getJdk();
-    assertNotNull("Expecting to have a JDK", jdk);
-    JavaSdkVersion currentVersion = JavaSdk.getInstance().getVersion(jdk);
-    return currentVersion != null && currentVersion.isAtLeast(jdkVersion);
-  }
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
