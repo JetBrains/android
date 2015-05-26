@@ -48,10 +48,30 @@ public class MethodInvoker extends Statement {
       // Message already printed in console.
       return;
     }
-    myTestConfigurator.executeSetupTasks();
+    System.out.println(String.format("Executing test '%1$s'", getTestFqn()));
 
-    String name = myTestMethod.getName();
-    System.out.println(String.format("Executing test '%1$s'", myTestMethod.getMethod().getDeclaringClass() + "#" + name));
+    int retryCount = myTestConfigurator.getRetryCount();
+    for (int i = 0; i <= retryCount; i++) {
+      if (i > 0) {
+        System.out.println(String.format("Retrying execution of test '%1$s'", getTestFqn()));
+      }
+      try {
+        runTest(i);
+        return; // no need to retry.
+      }
+      catch (Throwable throwable) {
+        if (retryCount == i) {
+          throw throwable; // Last run, throw any exceptions caught.
+        }
+        else {
+          throwable.printStackTrace();
+        }
+      }
+    }
+  }
+
+  private void runTest(int executionIndex) throws Throwable {
+    myTestConfigurator.executeSetupTasks();
 
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
@@ -61,31 +81,36 @@ public class MethodInvoker extends Statement {
         // We don't run tests in headless environment.
         return;
       }
-      field("myTestName").ofType(String.class).in(myTest).set(name);
+      field("myTestName").ofType(String.class).in(myTest).set(myTestMethod.getName());
     }
     try {
       myTestMethod.invokeExplosively(myTest);
     }
     catch (Throwable e) {
-      takeScreenshot();
+      takeScreenshot(executionIndex);
       throw e;
     }
   }
 
-  private void takeScreenshot() {
+  @NotNull
+  private String getTestFqn() {
+    return myTestMethod.getMethod().getDeclaringClass() + "#" + myTestMethod.getName();
+  }
+
+  private void takeScreenshot(int executionIndex) {
     if (myTestConfigurator.shouldTakeScreenshotOnFailure()) {
       Method method = myTestMethod.getMethod();
-      String testFqn = method.getDeclaringClass().getSimpleName() + "." + method.getName();
+      String fileNamePrefix = method.getDeclaringClass().getSimpleName() + "." + (executionIndex + 1) + "." + method.getName();
       String extension = ".png";
 
       try {
         File rootDir = getFailedTestScreenshotDirPath();
 
-        File screenshotFilePath = new File(rootDir, testFqn + extension);
+        File screenshotFilePath = new File(rootDir, fileNamePrefix + extension);
         if (screenshotFilePath.isFile()) {
           SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy.HH:mm:ss");
           String now = format.format(new GregorianCalendar().getTime());
-          screenshotFilePath = new File(rootDir, testFqn + "." + now + extension);
+          screenshotFilePath = new File(rootDir, fileNamePrefix + "." + now + extension);
         }
         myScreenshotTaker.saveDesktopAsPng(screenshotFilePath.getPath());
         System.out.println("Screenshot of failed test taken and stored at " + screenshotFilePath.getPath());
