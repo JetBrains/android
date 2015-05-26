@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.RenderTask;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,19 +28,20 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> {
+public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements ThemeEditorContext.ChangeListener {
   private static final ResourceType[] DRAWABLE_TYPE = new ResourceType[] { ResourceType.DRAWABLE };
 
   private final DrawableComponent myComponent;
-  private final RenderTask myRenderTask;
 
   private EditedStyleItem myEditedItem;
   private @Nullable AttributeEditorValue myResultValue;
-  private Module myModule;
+  private RenderTask myRenderTask;
+  private final ThemeEditorContext myContext;
 
-  public DrawableEditor(final @NotNull Module module, final @NotNull JTable table, final @Nullable RenderTask renderTask) {
-    myModule = module;
-    myRenderTask = renderTask;
+  public DrawableEditor(final @NotNull ThemeEditorContext context) {
+    myRenderTask = DrawableRenderer.configureRenderTask(context);
+    myContext = context;
+    context.addChangeListener(this);
 
     myComponent = new DrawableComponent();
     myComponent.addActionListener(new EditorClickListener());
@@ -58,11 +59,16 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEd
     return myResultValue;
   }
 
+  @Override
+  public void onNewConfiguration(ThemeEditorContext context) {
+    myRenderTask = DrawableRenderer.configureRenderTask(context);
+  }
+
   private class EditorClickListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, DRAWABLE_TYPE, myEditedItem.getValue(), null);
+        new ChooseResourceDialog(myContext.getCurrentThemeModule(), DRAWABLE_TYPE, myEditedItem.getValue(), null);
 
       dialog.show();
 

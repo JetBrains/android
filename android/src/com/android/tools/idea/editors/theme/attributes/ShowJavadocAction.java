@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.codeInsight.documentation.DocumentationComponent;
@@ -23,7 +23,6 @@ import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -42,13 +41,11 @@ public class ShowJavadocAction extends AnAction {
   private static final Point ORIGIN = new Point(0, 0);
 
   protected final JTable myAttributesTable;
-  protected final Module myModule;
-  protected final Configuration myConfiguration;
+  private final ThemeEditorContext myContext;
 
-  public ShowJavadocAction(@NotNull JTable attributesTable, @NotNull Module module, @NotNull Configuration configuration) {
+  public ShowJavadocAction(@NotNull JTable attributesTable, @NotNull ThemeEditorContext context) {
     myAttributesTable = attributesTable;
-    myModule = module;
-    myConfiguration = configuration;
+    myContext = context;
   }
 
   @Override
@@ -67,10 +64,7 @@ public class ShowJavadocAction extends AnAction {
     Project project = e.getProject();
     DocumentationManager documentationManager = DocumentationManager.getInstance(project);
     final DocumentationComponent docComponent = new DocumentationComponent(documentationManager);
-    String tooltip = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, myConfiguration);
-    if (tooltip == null) {
-      return;
-    }
+    String tooltip = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
     docComponent.setText(tooltip, e.getData(CommonDataKeys.PSI_FILE), true);
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)

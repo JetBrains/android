@@ -30,20 +30,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.CompletionProvider {
+class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.CompletionProvider, ThemeEditorContext.ChangeListener {
   private final ArrayList<ResourceValue> myAllResources = new ArrayList<ResourceValue>();
 
-  ResourcesCompletionProvider(@Nullable ResourceResolver resourceResolver) {
-    if (resourceResolver == null) {
-      return;
-    }
-
-    for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getFrameworkResources().values()) {
-      myAllResources.addAll(resourceTypeResource.values());
-    }
-    for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getProjectResources().values()) {
-      myAllResources.addAll(resourceTypeResource.values());
-    }
+  ResourcesCompletionProvider(@NotNull ThemeEditorContext themeEditorContext) {
+    fillResources(themeEditorContext.getResourceResolver());
   }
 
   @NotNull
@@ -89,5 +80,25 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
     }
 
     return resourceNamesList;
+  }
+
+  private void fillResources(@Nullable ResourceResolver resourceResolver) {
+    myAllResources.clear();
+
+    if (resourceResolver == null) {
+      return;
+    }
+
+    for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getFrameworkResources().values()) {
+      myAllResources.addAll(resourceTypeResource.values());
+    }
+    for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getProjectResources().values()) {
+      myAllResources.addAll(resourceTypeResource.values());
+    }
+  }
+
+  @Override
+  public void onNewConfiguration(ThemeEditorContext context) {
+    fillResources(context.getResourceResolver());
   }
 }
