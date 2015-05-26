@@ -678,10 +678,8 @@ public class ThemeEditorComponent extends Splitter {
               }
             }
 
-            if (myPreviewPanel != null) {
-              myPreviewPanel.revalidate();
-              myPreviewPanel.repaint();
-            }
+            myPreviewPanel.invalidateGraphicsRenderer();
+            myPreviewPanel.revalidate();
             myAttributesTable.repaint();
           }
         });
