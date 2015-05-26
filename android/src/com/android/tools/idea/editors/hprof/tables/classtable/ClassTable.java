@@ -16,8 +16,10 @@
 package com.android.tools.idea.editors.hprof.tables.classtable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTable;
+import com.android.tools.idea.editors.hprof.tables.SelectionModel;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
+import com.android.tools.perflib.heap.Instance;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -29,9 +31,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ClassTable extends HprofTable {
-
-  public ClassTable(@NotNull ClassTableModel model) {
-    super(model);
+  public ClassTable(@NotNull final SelectionModel selectionModel) {
+    super(new ClassTableModel(selectionModel));
     setShowGrid(false);
 
     getColumnModel().getColumn(0).setCellRenderer(new ColoredTableCellRenderer() {
@@ -56,19 +57,32 @@ public class ClassTable extends HprofTable {
         }
       }
     });
-  }
 
-  public void setHeap(@NotNull Heap heap, @Nullable ClassObj classToSelect) {
-    ((ClassTableModel)getModel()).setHeap(heap);
-
-    if (classToSelect != null) {
-      ClassTableModel newModel = (ClassTableModel)getModel();
-      int newRow = newModel.findEntryRow(classToSelect);
-      if (newRow >= 0) {
-        int newViewRow = getRowSorter().convertRowIndexToView(newRow);
-        getSelectionModel().setSelectionInterval(newViewRow, newViewRow);
-        scrollRectToVisible(new Rectangle(getCellRect(newViewRow, 0, true)));
+    selectionModel.addListener(new SelectionModel.SelectionListener() {
+      @Override
+      public void onHeapChanged(@NotNull Heap heap) {
+        ClassObj classToSelect = selectionModel.getClassObj();
+        // If the new heap has the selected class (from a previous heap), then select it and scroll to it.
+        if (classToSelect != null) {
+          ClassTableModel newModel = (ClassTableModel)getModel();
+          int newRow = newModel.findEntryRow(classToSelect);
+          if (newRow >= 0) {
+            int newViewRow = getRowSorter().convertRowIndexToView(newRow);
+            getSelectionModel().setSelectionInterval(newViewRow, newViewRow);
+            scrollRectToVisible(new Rectangle(getCellRect(newViewRow, 0, true)));
+          }
+        }
       }
-    }
+
+      @Override
+      public void onClassObjChanged(@Nullable ClassObj classObj) {
+
+      }
+
+      @Override
+      public void onInstanceChanged(@Nullable Instance instance) {
+
+      }
+    });
   }
 }
