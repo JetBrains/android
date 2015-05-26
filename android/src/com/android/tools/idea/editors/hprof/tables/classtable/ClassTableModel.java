@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.hprof.tables.classtable;
 
 import com.android.tools.idea.editors.hprof.tables.HprofTableModel;
+import com.android.tools.idea.editors.hprof.tables.SelectionModel;
 import com.android.tools.idea.editors.hprof.tables.TableColumn;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
@@ -33,31 +34,45 @@ import java.util.List;
 public class ClassTableModel extends HprofTableModel {
   @NotNull private List<TableColumn<ClassTableModel, ?>> myColumns;
   @NotNull private ArrayList<ClassObj> myEntries;
+  @NotNull private SelectionModel mySelectionModel;
   private int myCurrentHeapId;
 
-  public ClassTableModel(@NotNull Heap selectedHeap) {
+  public ClassTableModel(@NotNull SelectionModel selectionModel) {
     super();
+    mySelectionModel = selectionModel;
     myColumns = createHeapTableColumns();
     myEntries = new ArrayList<ClassObj>();
-    setHeap(selectedHeap);
-  }
-
-  public void setHeap(@NotNull final Heap selectedHeap) {
-    myCurrentHeapId = selectedHeap.getId();
-    myEntries.clear();
-    // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
-    HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(selectedHeap.getClasses());
-    for (Instance instance : selectedHeap.getInstances()) {
-      entriesSet.add(instance.getClassObj());
-    }
-    myEntries.addAll(entriesSet);
-    Collections.sort(myEntries, new Comparator<ClassObj>() {
+    mySelectionModel.addListener(new SelectionModel.SelectionListener() {
       @Override
-      public int compare(ClassObj o1, ClassObj o2) {
-        return o1.getHeapInstancesCount(selectedHeap.getId()) - o2.getHeapInstancesCount(selectedHeap.getId());
+      public void onHeapChanged(@NotNull Heap heap) {
+        final Heap selectedHeap = mySelectionModel.getHeap();
+        myCurrentHeapId = selectedHeap.getId();
+        myEntries.clear();
+        // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
+        HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(selectedHeap.getClasses());
+        for (Instance instance : selectedHeap.getInstances()) {
+          entriesSet.add(instance.getClassObj());
+        }
+        myEntries.addAll(entriesSet);
+        Collections.sort(myEntries, new Comparator<ClassObj>() {
+          @Override
+          public int compare(ClassObj o1, ClassObj o2) {
+            return o1.getHeapInstancesCount(selectedHeap.getId()) - o2.getHeapInstancesCount(selectedHeap.getId());
+          }
+        });
+        fireTableDataChanged();
+      }
+
+      @Override
+      public void onClassObjChanged(@Nullable ClassObj classObj) {
+
+      }
+
+      @Override
+      public void onInstanceChanged(@Nullable Instance instance) {
+
       }
     });
-    fireTableDataChanged();
   }
 
   @NotNull
