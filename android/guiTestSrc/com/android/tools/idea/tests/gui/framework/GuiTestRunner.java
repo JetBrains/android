@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.fest.swing.image.ScreenshotTaker;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -32,15 +31,8 @@ import org.junit.runners.model.TestClass;
 
 import java.awt.*;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.List;
-
-import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.reflect.core.Reflection.method;
-import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myBeforeClass;
@@ -114,15 +106,20 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     return !GraphicsEnvironment.isHeadless();
   }
 
-  @SuppressWarnings("unchecked")
   private void loadClassesWithIdeClassLoader() throws Exception {
     ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
     Thread.currentThread().setContextClassLoader(ideClassLoader);
 
     Class<?> testClass = getTestClass().getJavaClass();
     myTestClass = new TestClass(ideClassLoader.loadClass(testClass.getName()));
-    myBeforeClass = (Class<? extends Annotation>)ideClassLoader.loadClass(Before.class.getName());
-    myAfterClass = (Class<? extends Annotation>)ideClassLoader.loadClass(After.class.getName());
+    myBeforeClass = loadAnnotation(ideClassLoader, Before.class);
+    myAfterClass = loadAnnotation(ideClassLoader, After.class);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Class<? extends Annotation> loadAnnotation(ClassLoader classLoader, Class<? extends Annotation> annotationType)
+    throws ClassNotFoundException {
+    return (Class<? extends Annotation>)classLoader.loadClass(annotationType.getCanonicalName());
   }
 
   @Override
@@ -132,58 +129,14 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodInvoker(FrameworkMethod method, Object test) {
-    boolean takeScreenshot = true;
-
     if (canRunGuiTests()) {
       try {
-        ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
-        Class<? extends Annotation> ideGuiTestSetupClass = loadAnnotationClass(ideClassLoader, IdeGuiTestSetup.class);
-        Class<?> type = method.getMethod().getDeclaringClass();
-        Annotation ideGuiTestSetup = type.getAnnotation(ideGuiTestSetupClass);
-        if (ideGuiTestSetup != null) {
-          boolean skipSourceGeneration = invokeBooleanMethod("skipSourceGenerationOnSync", ideGuiTestSetup, ideGuiTestSetupClass);
-          if (skipSourceGeneration) {
-            Class<?> guiTestsClass = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
-            method("skipSourceGenerationOnSync").in(guiTestsClass).invoke();
-          }
-
-          takeScreenshot = invokeBooleanMethod("takeScreenshotOnTestFailure", ideGuiTestSetup, ideGuiTestSetupClass);
-        }
-
-        Class<? extends Annotation> ideGuiTestClass = loadAnnotationClass(ideClassLoader, IdeGuiTest.class);
-        Annotation ideGuiTest = method.getMethod().getAnnotation(ideGuiTestClass);
-        if (ideGuiTest != null) {
-          boolean closeProject = invokeBooleanMethod("closeProjectBeforeExecution", ideGuiTest, ideGuiTestClass);
-          if (closeProject) {
-            method("closeAllProjects").in(test).invoke();
-          }
-        }
+        return new MethodInvoker(method, test, myScreenshotTaker);
       }
       catch (Throwable e) {
         return new Fail(e);
       }
     }
-    return new MethodInvoker(method, test, takeScreenshot ? myScreenshotTaker : null);
-  }
-
-  @NotNull
-  private static Class<? extends Annotation> loadAnnotationClass(@NotNull ClassLoader ideClassLoader,
-                                                                 @NotNull Class<? extends Annotation> type) throws ClassNotFoundException {
-    //noinspection unchecked
-    return (Class<? extends Annotation>)ideClassLoader.loadClass(type.getCanonicalName());
-  }
-
-  private static boolean invokeBooleanMethod(@NotNull String methodName,
-                                             @NotNull Annotation target,
-                                             @NotNull Class<? extends Annotation> annotationType) throws Throwable {
-    if (Proxy.isProxyClass(target.getClass())) {
-      InvocationHandler invocationHandler = Proxy.getInvocationHandler(target);
-      Method method = annotationType.getDeclaredMethod(methodName);
-      Object result = invocationHandler.invoke(annotationType, method, EMPTY_OBJECT_ARRAY);
-      assertNotNull(result);
-      assertThat(result).isInstanceOfAny(boolean.class, Boolean.class);
-      return (Boolean)result;
-    }
-    throw new IllegalArgumentException("'target' is not a proxy for an annotation");
+    return new Fail(new IllegalStateException("UI tests cannot run in a headless environment"));
   }
 }
