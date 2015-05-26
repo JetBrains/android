@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.DnDAction;
@@ -25,15 +28,19 @@ import com.intellij.ide.dnd.DnDDragStartBean;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDSource;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
+import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.IJSwingUtilities;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +56,7 @@ import java.awt.image.BufferedImage;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener {
+public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener, LafManagerListener {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
   private static final double PREVIEW_SCALE = 0.5;
 
@@ -103,6 +110,59 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       configuration.addListener(this);
     }
     setMode(myMode);
+  }
+
+  private void updateColorsAfterColorThemeChange(boolean doUpdate) {
+    LafManager manager = LafManager.getInstance();
+    if (doUpdate) {
+      manager.addLafManagerListener(this);
+    } else {
+      manager.removeLafManagerListener(this);
+    }
+  }
+
+  @Override
+  public void lookAndFeelChanged(LafManager source) {
+    setColors();
+  }
+
+  private void setColors() {
+    Color background;
+    Color foreground;
+    Configuration configuration = null;
+    if (myDesignSurface != null) {
+      configuration = myDesignSurface.getConfiguration();
+    }
+    ResourceResolver resolver = null;
+    if (configuration != null) {
+      resolver = configuration.getResourceResolver();
+    }
+    if (resolver == null || myMode != Mode.PREVIEW) {
+      foreground = UIUtil.getTreeForeground();
+      background = UIUtil.getTreeBackground();
+    } else {
+      ResourceValue windowBackground = resolver.findItemInTheme("colorBackground", true);
+      background = ResourceHelper.resolveColor(resolver, windowBackground);
+      if (background == null) {
+        background = UIUtil.getTreeBackground();
+      }
+      ResourceValue textForeground = resolver.findItemInTheme("colorForeground", true);
+      foreground = ResourceHelper.resolveColor(resolver, textForeground);
+      if (foreground == null) {
+        foreground = UIUtil.getTreeForeground();
+      }
+
+      // Ensure the colors can be differentiated:
+      if (Math.abs(ImageUtils.getBrightness(background.getRGB()) - ImageUtils.getBrightness(foreground.getRGB())) < 64) {
+        if (ImageUtils.getBrightness(background.getRGB()) < 128) {
+          foreground = JBColor.WHITE;
+        } else {
+          foreground = JBColor.BLACK;
+        }
+      }
+    }
+    myTree.setBackground(background);
+    myTree.setForeground(foreground);
   }
 
   // ---- implements ConfigurationListener ----
@@ -163,10 +223,12 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       myIconFactory.load(configuration, new Runnable() {
         @Override
         public void run() {
+          setColors();
           invalidateUI();
         }
       });
     } else {
+      setColors();
       invalidateUI();
     }
   }
@@ -194,6 +256,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     myTree.setSelectionRow(0);
     new PaletteSpeedSearch(myTree);
     enableDnD(myTree);
+    updateColorsAfterColorThemeChange(true);
   }
 
 
@@ -264,6 +327,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       Configuration configuration = myDesignSurface.getConfiguration();
       configuration.removeListener(this);
     }
+    updateColorsAfterColorThemeChange(false);
   }
 
   private class PaletteDnDSource implements DnDSource {
@@ -312,7 +376,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     public Pair<Image, Point> createDraggedImage(DnDAction action, Point dragOrigin) {
       TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
       BufferedImage image = null;
-      if (myLastDragImage != null && myLastDragImage != null) {
+      if (myLastDragImage != null && myDesignSurface != null) {
         double scale = myDesignSurface.getScale();
         image = ImageUtils.scale(myLastDragImage, scale, scale);
         myLastDragImage = null;
